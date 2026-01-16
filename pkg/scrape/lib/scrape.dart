@@ -10,6 +10,7 @@ import 'dart:math' as math;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -276,7 +277,9 @@ class Scrape {
     // Tokenize the source.
     var reader = CharSequenceReader(source);
     var stringSource = StringSource(source, file.path);
-    var scanner = Scanner(stringSource, reader, diagnosticListener);
+    var diagnosticReporter =
+        DiagnosticReporter(diagnosticListener, stringSource);
+    var scanner = Scanner(reader, diagnosticReporter);
     scanner.configureFeatures(
         featureSet: featureSet, featureSetForOverriding: featureSet);
     var startToken = scanner.tokenize();
@@ -284,8 +287,7 @@ class Scrape {
 
     // Parse it.
     var parser = Parser(
-      stringSource,
-      diagnosticListener,
+      diagnosticReporter,
       featureSet: featureSet,
       languageVersion: LibraryLanguageVersion(
           package: ExperimentStatus.currentVersion, override: null),

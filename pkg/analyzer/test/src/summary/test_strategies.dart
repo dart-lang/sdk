@@ -16,7 +16,11 @@ import 'package:analyzer/src/generated/parser.dart';
 
 CompilationUnit parseText(Source source, String text, FeatureSet featureSet) {
   CharSequenceReader reader = CharSequenceReader(text);
-  Scanner scanner = Scanner(source, reader, DiagnosticListener.nullListener)
+  var diagnosticReporter = DiagnosticReporter(
+    DiagnosticListener.nullListener,
+    source,
+  );
+  Scanner scanner = Scanner(reader, diagnosticReporter)
     ..configureFeatures(
       featureSetForOverriding: featureSet,
       featureSet: featureSet,
@@ -27,8 +31,7 @@ CompilationUnit parseText(Source source, String text, FeatureSet featureSet) {
   // because the scanner may have detected a language version comment
   // and downgraded the feature set it holds.
   Parser parser = Parser(
-    source,
-    DiagnosticListener.nullListener,
+    diagnosticReporter,
     featureSet: scanner.featureSet,
     languageVersion: LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,

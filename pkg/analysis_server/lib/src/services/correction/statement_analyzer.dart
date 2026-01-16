@@ -25,9 +25,11 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
     var tokens = <Token>[];
     var scanner =
         Scanner(
-          _SourceMock.instance,
           CharSequenceReader(text),
-          DiagnosticListener.nullListener,
+          DiagnosticReporter(
+            DiagnosticListener.nullListener,
+            _SourceMock.instance,
+          ),
         )..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet,

@@ -84,7 +84,8 @@ ParseStringResult parseString({
   var source = StringSource(content, path ?? '');
   var reader = CharSequenceReader(content);
   var diagnosticCollector = RecordingDiagnosticListener();
-  var scanner = Scanner(source, reader, diagnosticCollector)
+  var diagnosticReporter = DiagnosticReporter(diagnosticCollector, source);
+  var scanner = Scanner(reader, diagnosticReporter)
     ..configureFeatures(
       featureSetForOverriding: featureSet,
       featureSet: featureSet,
@@ -96,8 +97,7 @@ ParseStringResult parseString({
   );
   var lineInfo = LineInfo(scanner.lineStarts);
   var parser = Parser(
-    source,
-    diagnosticCollector,
+    diagnosticReporter,
     featureSet: scanner.featureSet,
     languageVersion: languageVersion,
     lineInfo: lineInfo,

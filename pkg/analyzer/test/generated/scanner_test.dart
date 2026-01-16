@@ -132,11 +132,13 @@ class LineInfoTest {
     String source = "var\r\ni\n=\n1;\n";
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     Scanner scanner =
-        Scanner(TestSource(), CharSequenceReader(source), listener)
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+        Scanner(
+          CharSequenceReader(source),
+          DiagnosticReporter(listener, TestSource()),
+        )..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -150,11 +152,13 @@ class LineInfoTest {
     String source = '<!-- @Component(';
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     Scanner scanner =
-        Scanner(TestSource(), CharSequenceReader(source), listener)
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+        Scanner(
+          CharSequenceReader(source),
+          DiagnosticReporter(listener, TestSource()),
+        )..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
     Token token = scanner.tokenize(reportScannerErrors: false);
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next!;
@@ -191,11 +195,13 @@ class LineInfoTest {
 
   Token _scanWithListener(String source, GatheringDiagnosticListener listener) {
     Scanner scanner =
-        Scanner(TestSource(), CharSequenceReader(source), listener)
-          ..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+        Scanner(
+          CharSequenceReader(source),
+          DiagnosticReporter(listener, TestSource()),
+        )..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
     Token result = scanner.tokenize();
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
     listener.setLineInfo(TestSource(), lineInfo);
@@ -253,7 +259,7 @@ class ScannerTest with ResourceProviderMixin {
     var source = StringSource(content, path);
     var reader = CharSequenceReader(content);
     var diagnosticCollector = RecordingDiagnosticListener();
-    return Scanner(source, reader, diagnosticCollector);
+    return Scanner(reader, DiagnosticReporter(diagnosticCollector, source));
   }
 }
 

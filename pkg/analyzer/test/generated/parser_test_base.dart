@@ -854,8 +854,7 @@ class ParserProxy extends analyzer.Parser {
     this.expectedEndOffset,
     required LineInfo lineInfo,
   }) : super(
-         source,
-         diagnosticListener,
+         DiagnosticReporter(diagnosticListener, source),
          featureSet: featureSet,
          languageVersion: languageVersion,
          allowNativeClause: allowNativeClause,
@@ -1128,8 +1127,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     listener.setLineInfo(source, lineInfo);
 
     parser = analyzer.Parser(
-      source,
-      listener,
+      DiagnosticReporter(listener, source),
       featureSet: featureSet,
       languageVersion: languageVersion,
       lineInfo: lineInfo,
@@ -1268,8 +1266,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     listener.setLineInfo(source, lineInfo);
 
     analyzer.Parser parser = analyzer.Parser(
-      source,
-      listener,
+      DiagnosticReporter(listener, source),
       featureSet: FeatureSets.latestWithExperiments,
       languageVersion: languageVersion,
       lineInfo: lineInfo,
@@ -1310,8 +1307,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     LineInfo lineInfo = LineInfo(result.lineStarts);
 
     analyzer.Parser parser = analyzer.Parser(
-      source,
-      listener,
+      DiagnosticReporter(listener, source),
       featureSet: FeatureSet.latestLanguageVersion(),
       languageVersion: languageVersion,
       lineInfo: lineInfo,
@@ -1627,8 +1623,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     listener.setLineInfo(source, lineInfo);
 
     analyzer.Parser parser = analyzer.Parser(
-      source,
-      listener,
+      DiagnosticReporter(listener, source),
       featureSet: FeatureSet.latestLanguageVersion(),
       languageVersion: languageVersion,
       lineInfo: lineInfo,

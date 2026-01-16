@@ -582,7 +582,8 @@ class FileState {
       performance.getDataInt('length').add(code.length);
 
       CharSequenceReader reader = CharSequenceReader(code);
-      Scanner scanner = Scanner(source, reader, diagnosticListener)
+      var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
+      Scanner scanner = Scanner(reader, diagnosticReporter)
         ..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet.restrictToVersion(packageLanguageVersion),
@@ -595,8 +596,7 @@ class FileState {
       );
 
       Parser parser = Parser(
-        source,
-        diagnosticListener,
+        diagnosticReporter,
         featureSet: scanner.featureSet,
         lineInfo: lineInfo,
         languageVersion: languageVersion,

@@ -114,8 +114,7 @@ CompilationUnit parseDirectives(Source source) {
   var result = tokenize(source);
   var lineInfo = LineInfo(result.lineStarts);
   var parser = new Parser(
-    source,
-    DiagnosticListener.nullListener,
+    DiagnosticReporter(DiagnosticListener.nullListener, source),
     featureSet: FeatureSet.latestLanguageVersion(),
     languageVersion: LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,
@@ -144,8 +143,7 @@ CompilationUnit parseFull(Source source) {
   var lineInfo = LineInfo(result.lineStarts);
   parseTimer.start();
   var parser = new Parser(
-    source,
-    DiagnosticListener.nullListener,
+    DiagnosticReporter(DiagnosticListener.nullListener, source),
     featureSet: FeatureSet.latestLanguageVersion(),
     languageVersion: LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,

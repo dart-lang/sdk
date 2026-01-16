@@ -701,9 +701,11 @@ class _MinimalEditComputer {
     try {
       var scanner =
           Scanner(
-            _SourceMock.instance,
             CharSequenceReader(s),
-            DiagnosticListener.nullListener,
+            DiagnosticReporter(
+              DiagnosticListener.nullListener,
+              _SourceMock.instance,
+            ),
           )..configureFeatures(
             featureSetForOverriding: featureSet,
             featureSet: featureSet,

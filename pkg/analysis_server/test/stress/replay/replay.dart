@@ -226,9 +226,11 @@ class Driver {
     var featureSet = FeatureSet.latestLanguageVersion();
     var scanner =
         Scanner(
-          _TestSource(),
           CharSequenceReader(text),
-          error.DiagnosticListener.nullListener,
+          error.DiagnosticReporter(
+            error.DiagnosticListener.nullListener,
+            _TestSource(),
+          ),
         )..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet,
