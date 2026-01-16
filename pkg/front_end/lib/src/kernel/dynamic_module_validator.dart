@@ -722,11 +722,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   void _verifyCallable(TreeNode target, TreeNode node) {
-    if (target is Procedure) {
-      target = _unwrapMixinStubs(target);
-    }
     if (target is Member) {
-      target = _unwrapMixinCopy(target);
+      target = _unwrapMember(target);
     }
     if (!_isFromDynamicModule(target) &&
         !_isSpecified(target, spec.callable) &&
@@ -802,11 +799,17 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     }
   }
 
-  // Unwrap synthetic mixin stubs to get actual implementation member.
-  Member _unwrapMixinStubs(Member member) {
-    if (member is Procedure &&
-        member.stubKind == ProcedureStubKind.ConcreteMixinStub) {
-      return _unwrapMixinStubs(member.stubTarget!);
+  // Unwrap synthetic stubs to get actual member.
+  Member _unwrapStubs(Member member) {
+    if (member is Procedure) {
+      switch (member.stubKind) {
+        case ProcedureStubKind.ConcreteForwardingStub:
+        case ProcedureStubKind.ConcreteMixinStub:
+        case ProcedureStubKind.MemberSignature:
+          return _unwrapStubs(member.stubTarget!);
+        default:
+          break;
+      }
     }
     return member;
   }
@@ -830,14 +833,16 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     )!;
   }
 
+  Member _unwrapMember(Member member) => _unwrapMixinCopy(_unwrapStubs(member));
+
   void _verifyOverrides(
     List<Member> implementationMembers,
     List<Member> interfaceMembers,
   ) {
     int i = 0, j = 0;
     while (i < implementationMembers.length && j < interfaceMembers.length) {
-      Member impl = _unwrapMixinStubs(implementationMembers[i]);
-      Member interfaceMember = interfaceMembers[j];
+      Member impl = _unwrapMember(implementationMembers[i]);
+      Member interfaceMember = _unwrapMember(interfaceMembers[j]);
       int comparison = ClassHierarchy.compareMembers(impl, interfaceMember);
       if (comparison < 0) {
         ++i;
@@ -856,11 +861,6 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   void _verifyOverride(Member ownMember, Member superMember) {
-    ownMember = _unwrapMixinCopy(ownMember);
-    superMember = _unwrapMixinCopy(superMember);
-    if (identical(ownMember, superMember)) {
-      return;
-    }
     if (!_isFromDynamicModule(superMember) &&
         !_isSpecified(superMember, spec.canBeOverridden) &&
         !languageImplPragmas.canBeOverridden(superMember)) {
