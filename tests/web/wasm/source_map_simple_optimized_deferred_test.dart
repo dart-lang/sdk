@@ -17,10 +17,10 @@ const List<(String?, int?, int?, String?)?> frameDetails = [
 ];
 
 /*
-at <minified>.g (wasm://wasm/-000a82a6:wasm-function[193]:0xed1f)
-at <minified>.f (wasm://wasm/-000a82a6:wasm-function[192]:0xed13)
-at <minified>.main (wasm://wasm/-000a82a6:wasm-function[57]:0xb364)
-at <minified>._invokeMain (wasm://wasm/-000a82a6:wasm-function[53]:0xb275)
+at <minified>.g (wasm://wasm/$-000a82a6:wasm-function[193]:0xed1f)
+at <minified>.f (wasm://wasm/$-000a82a6:wasm-function[192]:0xed13)
+at <minified>.main (wasm://wasm//$-000a82a6:wasm-function[57]:0xb364)
+at <minified>._invokeMain (wasm://wasm/$-000a82a6:wasm-function[53]:0xb275)
 at InstantiatedApp.invokeMain (.../source_map_simple_optimized_deferred_test.mjs:368:37)
 at main (.../run_wasm.js:428:21)
 at async action (.../run_wasm.js:353:38)
