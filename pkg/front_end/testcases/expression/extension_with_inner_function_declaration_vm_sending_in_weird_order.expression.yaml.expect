@@ -1,4 +1,4 @@
 Errors: {
 }
-method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::int offset, lowered dart.core::String #this) → dynamic
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::int offset, lowered dart.core::String #this) → dynamic
   return offset.{dart.core::num::+}(#this.{dart.core::String::length}{dart.core::int}){(dart.core::num) → dart.core::int};

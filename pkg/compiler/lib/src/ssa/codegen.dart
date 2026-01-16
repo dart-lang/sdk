@@ -2677,6 +2677,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         ? _nativeData.getFixedBackendName(target)
         : target.name;
 
+    Object? recordedMethodUses;
+    if (_closedWorld.annotationsData.shouldRecordMethodUses(target)) {
+      recordedMethodUses = _recordMethodUses(
+        target,
+        inputs,
+        node.sourceInformation!,
+      );
+    }
+
     void invokeWithJavaScriptReceiver(js.Expression receiverExpression) {
       // JS-interop target names can be paths ("a.b"), so we parse them to
       // re-associate the property accesses ("#.a.b" is `dot(dot(#,'a'),'b')`).
@@ -2706,6 +2715,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       js.Expression expression = js.js
           .uncachedExpressionTemplate(template)
           .instantiateExpression(templateInputs);
+      if (recordedMethodUses != null) {
+        expression = expression.withAnnotation(recordedMethodUses);
+      }
       push(expression.withSourceInformation(node.sourceInformation));
       _registry.registerNativeMethod(target);
     }
@@ -2742,6 +2754,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         } else {
           assert(target.isFunction);
           expression = js.js('#(#)', [targetExpression, arguments]);
+        }
+        if (recordedMethodUses != null) {
+          expression = expression.withAnnotation(recordedMethodUses);
         }
         push(expression.withSourceInformation(node.sourceInformation));
         _registry.registerNativeMethod(target);
