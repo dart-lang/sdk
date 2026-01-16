@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' show File, Directory;
+import 'dart:io' show Directory, File, Platform;
 
 import 'package:compiler/compiler_api.dart' as api show OutputType;
 import 'package:compiler/compiler_api.dart';
@@ -20,10 +20,12 @@ const List<String> compilerOptions = [Flags.writeRecordedUses, Flags.testMode];
 
 /// Run `dart --define=updateExpectations=true pkg/compiler/test/record_use/record_use_test.dart`
 /// to update.
+/// Run `dart -DupdateExpectations=true pkg/vm/test/transformations/record_use_test.dart`
+/// to update the shared expectations to the VM output.
 Future<void> main() async {
   final vmTestCases = Directory('pkg/vm/testcases/transformations/record_use');
-  final testFiles = vmTestCases
-      .listSync()
+  final jsTestCases = Directory.fromUri(Platform.script.resolve('data'));
+  final testFiles = [...jsTestCases.listSync(), ...vmTestCases.listSync()]
       .whereType<File>()
       .where((file) => file.path.endsWith('.dart'))
       .map(
