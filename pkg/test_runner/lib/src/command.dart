@@ -195,7 +195,8 @@ class CompilationCommand extends ProcessCommand {
       [int pid = 0]) {
     if (displayName == 'precompiler' ||
         displayName == 'app_jit' ||
-        displayName == 'dart2bytecode') {
+        displayName == 'dart2bytecode' ||
+        displayName == 'modaot') {
       return VMCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, pid);
     } else if (displayName == 'dart2wasm') {
