@@ -451,25 +451,15 @@ class ExportSection extends Section {
       final name = d.readName();
       final kind = d.readByte();
       final index = d.readUnsigned();
-      switch (kind) {
-        case 0x00:
-          exports.add(ir.FunctionExport(name, functions[index]));
-          break;
-        case 0x01:
-          exports.add(ir.TableExport(name, tables[index]));
-          break;
-        case 0x02:
-          exports.add(ir.MemoryExport(name, memories[index]));
-          break;
-        case 0x03:
-          exports.add(ir.GlobalExport(name, globals[index]));
-          break;
-        case 0x04:
-          exports.add(ir.TagExport(name, tags[index]));
-          break;
-        default:
-          throw "Invalid export kind: $kind";
-      }
+      final export = switch (kind) {
+        0x00 => ir.FunctionExport(name, functions[index]),
+        0x01 => ir.TableExport(name, tables[index]),
+        0x02 => ir.MemoryExport(name, memories[index]),
+        0x03 => ir.GlobalExport(name, globals[index]),
+        0x04 => ir.TagExport(name, tags[index]),
+        _ => throw "Invalid export kind: $kind",
+      };
+      exports.add(export);
     }
     return ir.Exports(exports);
   }

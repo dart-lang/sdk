@@ -110,16 +110,11 @@ class NumType extends ValueType {
 
   @override
   int get byteSize {
-    switch (kind) {
-      case NumTypeKind.i32:
-      case NumTypeKind.f32:
-        return 4;
-      case NumTypeKind.i64:
-      case NumTypeKind.f64:
-        return 8;
-      case NumTypeKind.v128:
-        return 16;
-    }
+    return switch (kind) {
+      NumTypeKind.i32 || NumTypeKind.f32 => 4,
+      NumTypeKind.i64 || NumTypeKind.f64 => 8,
+      NumTypeKind.v128 => 16
+    };
   }
 
   @override
@@ -162,20 +157,7 @@ class NumType extends ValueType {
   }
 
   @override
-  String toString() {
-    switch (kind) {
-      case NumTypeKind.i32:
-        return "i32";
-      case NumTypeKind.i64:
-        return "i64";
-      case NumTypeKind.f32:
-        return "f32";
-      case NumTypeKind.f64:
-        return "f64";
-      case NumTypeKind.v128:
-        return "v128";
-    }
-  }
+  String toString() => kind.name;
 }
 
 /// A *reference type*.
@@ -1390,12 +1372,7 @@ class PackedType implements StorageType {
 
   @override
   int get byteSize {
-    switch (kind) {
-      case PackedTypeKind.i8:
-        return 1;
-      case PackedTypeKind.i16:
-        return 2;
-    }
+    return switch (kind) { PackedTypeKind.i8 => 1, PackedTypeKind.i16 => 2 };
   }
 
   @override
@@ -1423,12 +1400,5 @@ class PackedType implements StorageType {
   }
 
   @override
-  String toString() {
-    switch (kind) {
-      case PackedTypeKind.i8:
-        return "i8";
-      case PackedTypeKind.i16:
-        return "i16";
-    }
-  }
+  String toString() => kind.name;
 }

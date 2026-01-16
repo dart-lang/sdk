@@ -60,24 +60,17 @@ abstract class Instruction implements Serializable {
       case 0xFB:
         {
           final byte2 = d.readByte();
-          switch (byte2) {
-            case 0x00:
-              return StructNew.deserialize(d, types);
-            case 0x01:
-              return StructNewDefault.deserialize(d, types);
-            case 0x06:
-              return ArrayNew.deserialize(d, types);
-            case 0x07:
-              return ArrayNewDefault.deserialize(d, types);
-            case 0x08:
-              return ArrayNewFixed.deserialize(d, types);
-            case 0x1A:
-              return ExternInternalize.deserialize(d);
-            case 0x1B:
-              return ExternExternalize.deserialize(d);
-            default:
-              throw "Invalid ${isConstOnlyUse ? 'const ' : ''}instruction byte: $byte $byte2";
-          }
+          return switch (byte2) {
+            0x00 => StructNew.deserialize(d, types),
+            0x01 => StructNewDefault.deserialize(d, types),
+            0x06 => ArrayNew.deserialize(d, types),
+            0x07 => ArrayNewDefault.deserialize(d, types),
+            0x08 => ArrayNewFixed.deserialize(d, types),
+            0x1A => ExternInternalize.deserialize(d),
+            0x1B => ExternExternalize.deserialize(d),
+            _ =>
+              throw "Invalid ${isConstOnlyUse ? 'const ' : ''}instruction byte: $byte $byte2"
+          };
         }
       default:
         throw "Invalid ${isConstOnlyUse ? 'const ' : ''}instruction byte: $byte";
@@ -535,32 +528,20 @@ abstract class Instruction implements Serializable {
       case 0xFC:
         {
           final opcode = d.readByte();
-          switch (opcode) {
-            case 0x00:
-              return I32TruncSatF32S.deserialize(d);
-            case 0x01:
-              return I32TruncSatF32U.deserialize(d);
-            case 0x02:
-              return I32TruncSatF64S.deserialize(d);
-            case 0x03:
-              return I32TruncSatF64U.deserialize(d);
-            case 0x04:
-              return I64TruncSatF32S.deserialize(d);
-            case 0x05:
-              return I64TruncSatF32U.deserialize(d);
-            case 0x06:
-              return I64TruncSatF64S.deserialize(d);
-            case 0x07:
-              return I64TruncSatF64U.deserialize(d);
-            case 0x0B:
-              return MemoryFill.deserialize(d, memories);
-            case 0x10:
-              return TableSize.deserialize(d, tables);
-            case 0x11:
-              return TableFill.deserialize(d, tables);
-            default:
-              throw "Invalid instruction byte: 0xFC $opcode";
-          }
+          return switch (opcode) {
+            0x00 => I32TruncSatF32S.deserialize(d),
+            0x01 => I32TruncSatF32U.deserialize(d),
+            0x02 => I32TruncSatF64S.deserialize(d),
+            0x03 => I32TruncSatF64U.deserialize(d),
+            0x04 => I64TruncSatF32S.deserialize(d),
+            0x05 => I64TruncSatF32U.deserialize(d),
+            0x06 => I64TruncSatF64S.deserialize(d),
+            0x07 => I64TruncSatF64U.deserialize(d),
+            0x0B => MemoryFill.deserialize(d, memories),
+            0x10 => TableSize.deserialize(d, tables),
+            0x11 => TableFill.deserialize(d, tables),
+            _ => throw "Invalid instruction byte: 0xFC $opcode"
+          };
         }
       default:
         d.offset = instructionStart;
