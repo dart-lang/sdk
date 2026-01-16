@@ -72,11 +72,7 @@ class RemoveAsync extends ResolvedCorrectionProducer {
           :var declaredFragment,
         ):
           body = functionExpression.body;
-          if (declaredFragment?.element case var declaredElement?) {
-            returnType = declaredElement.returnType;
-          } else if (declaredFragment case var declaredFragment?) {
-            returnType = declaredFragment.element.returnType;
-          }
+          returnType = declaredFragment?.element.returnType;
         case MethodDeclaration():
           body = node.body;
           returnType = node.declaredFragment!.element.returnType;

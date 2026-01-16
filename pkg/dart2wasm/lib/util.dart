@@ -145,9 +145,10 @@ String intToMinString(int i) {
   i += 1;
   final codeUnits = <int>[];
   while (i > 0) {
-    int remainder = i % 128;
-    i ~/= 128;
-    codeUnits.add(remainder);
+    // Stick to the 92 printable characters (starting after "), from 35 to 126.
+    int remainder = i % 92;
+    i ~/= 92;
+    codeUnits.add(remainder + 35);
   }
   return String.fromCharCodes(codeUnits);
 }

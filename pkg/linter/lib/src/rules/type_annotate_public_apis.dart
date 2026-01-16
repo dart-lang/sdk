@@ -7,6 +7,7 @@ import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -33,6 +34,7 @@ class TypeAnnotatePublicApis extends AnalysisRule {
     RuleContext context,
   ) {
     var visitor = _Visitor(this);
+    registry.addConstructorDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
@@ -46,6 +48,21 @@ class _Visitor extends SimpleAstVisitor<void> {
   final _VisitorHelper v;
 
   _Visitor(this.rule) : v = _VisitorHelper(rule);
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.isAugmentation) return;
+
+    var enclosingElement = node.declaredFragment?.element.enclosingElement;
+    if (enclosingElement is EnumElement) return;
+    if (enclosingElement != null && enclosingElement.isPrivate) return;
+
+    var name = node.name;
+    if (name != null && Identifier.isPrivateName(name.lexeme)) return;
+
+    node.parameters.accept(v);
+  }
+
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     if (node.isAugmentation) return;

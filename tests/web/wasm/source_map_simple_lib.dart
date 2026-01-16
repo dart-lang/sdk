@@ -171,8 +171,8 @@ int parseMinifiedModule(String moduleName) {
   int result = 0;
   int power = 1;
   for (final codeUnit in codeUnits) {
-    result += codeUnit * power;
-    power *= 128;
+    result += (codeUnit - 35) * power;
+    power *= 92;
   }
   return result - 1;
 }
