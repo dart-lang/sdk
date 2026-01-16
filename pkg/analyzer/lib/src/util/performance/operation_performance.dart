@@ -1,8 +1,18 @@
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:developer' as developer;
 
 import 'package:collection/collection.dart';
+
+/// Callback type for [OperationPerformanceImpl.runAsyncHook].
+typedef RunAsyncHook =
+    Future<R> Function<R, T>(
+      String name,
+      Future<R> Function(T) operation,
+      T arg, {
+      Map<String, Object?>? arguments,
+    });
 
 /// The performance of an operation.
 abstract class OperationPerformance {
@@ -91,11 +101,15 @@ class OperationPerformanceDataImpl_Set<T>
 }
 
 class OperationPerformanceImpl implements OperationPerformance {
+  /// This closure can be overriden to intercept [runAsync] invocations.
+  static RunAsyncHook runAsyncHook =
+      <R, T>(name, operation, arg, {arguments}) => operation(arg);
+
   @override
   final String name;
-
   final Stopwatch _timer = Stopwatch();
   int _count = 0;
+
   final List<OperationPerformanceImpl> _children = [];
 
   final Map<String, OperationPerformanceData<Object>> _data = {};
@@ -171,16 +185,22 @@ class OperationPerformanceImpl implements OperationPerformance {
   ///
   /// If there is already a child with that name, its timer will resume and
   /// then stop. So, it will accumulate time across all runs.
+  ///
+  /// This also creates a synchronous [developer.Timeline] span with the
+  /// given [name] and specified [arguments] (serialized as JSON).
   T run<T>(
     String name,
-    T Function(OperationPerformanceImpl performance) operation,
-  ) {
+    T Function(OperationPerformanceImpl performance) operation, {
+    Map<String, Object?>? arguments,
+  }) {
     OperationPerformanceImpl child = _existingOrNewChild(name);
     child._start();
 
     try {
+      developer.Timeline.startSync(name, arguments: arguments);
       return operation(child);
     } finally {
+      developer.Timeline.finishSync();
       child._stop();
     }
   }
@@ -191,14 +211,22 @@ class OperationPerformanceImpl implements OperationPerformance {
   ///
   /// If there is already a child with that name, its timer will resume and
   /// then stop. So, it will accumulate time across all runs.
+  ///
+  /// Execution of the [operation] will be perfomed by the [runAsyncHook],
+  /// which by default simply executes the [operation], but this hook can be
+  /// overriden externally and emit one or more [developer.Timeline] spans
+  /// capturing synchronous execution time spent inside the [operation]. In
+  /// this case [arguments] will be recorded (serialized as JSON) in the
+  /// first emitted span.
   Future<T> runAsync<T>(
     String name,
-    Future<T> Function(OperationPerformanceImpl performance) operation,
-  ) async {
+    Future<T> Function(OperationPerformanceImpl performance) operation, {
+    Map<String, Object?>? arguments,
+  }) async {
     var child = _existingOrNewChild(name);
     child._start();
     try {
-      return await operation(child);
+      return await runAsyncHook(name, operation, child, arguments: arguments);
     } finally {
       child._stop();
     }

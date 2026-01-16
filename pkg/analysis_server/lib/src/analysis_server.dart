@@ -96,6 +96,7 @@ import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:perf_witness/server.dart' as perf_witness;
 import 'package:watcher/watcher.dart';
 
 /// The function for sending `openUri` request to the client.
@@ -1166,6 +1167,7 @@ abstract class AnalysisServer {
     surveyManager?.shutdown();
     await contextManager.dispose();
     await analyticsManager.shutdown();
+    await perf_witness.PerfWitnessServer.shutdown();
   }
 
   ResolvedForCompletionResultImpl?

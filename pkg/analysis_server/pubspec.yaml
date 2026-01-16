@@ -26,6 +26,7 @@ dependencies:
   memory_usage: any
   meta: any
   path: any
+  perf_witness: any
   pub_semver: any
   stream_channel: any
   telemetry: any
