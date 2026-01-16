@@ -40,7 +40,7 @@ class Deserializer {
     } while ((byte & 0x80) != 0);
 
     if ((shift < 64) && ((byte & 0x40) != 0)) {
-      result |= (~0 << shift);
+      result |= ~0 << shift;
     }
 
     return result;
