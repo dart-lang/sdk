@@ -1997,7 +1997,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      bool isExtensionOrExtensionType = false;
+      bool isExtensionOrExtensionTypeInstanceMember = false;
       String? extensionName;
       if (usedMethodName != null) {
         int indexOfDot = usedMethodName.indexOf(".");
@@ -2023,16 +2023,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
-            isExtensionOrExtensionType = true;
             offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
-                isStatic = false;
+                isExtensionOrExtensionTypeInstanceMember = true;
               }
             }
           } else if (builder is ExtensionTypeDeclarationBuilder) {
-            isExtensionOrExtensionType = true;
             offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
@@ -2060,7 +2058,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   usedDefinitions[syntheticThisName] = substitution
                       .substituteType(positionals.first.type);
                 }
-                isStatic = false;
+                isExtensionOrExtensionTypeInstanceMember = true;
               }
             }
           }
@@ -2085,9 +2083,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (String name in usedDefinitions.keys) {
         if (isLegalIdentifier(name)) continue;
         if (isExtensionThisName(name) &&
-            !isStatic &&
-            isExtensionOrExtensionType) {
-          // Accept  #this for extensions and extension types.
+            isExtensionOrExtensionTypeInstanceMember) {
+          // Accept  #this for "instance members" on extensions and
+          // extension types.
           continue;
         }
 
@@ -2226,8 +2224,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             type: def.value,
           )..fileOffset = offsetToUse ?? libraryBuilder.library.fileOffset;
 
-          if (isExtensionOrExtensionType &&
-              !isStatic &&
+          if (isExtensionOrExtensionTypeInstanceMember &&
               isExtensionThisName(def.key) &&
               extensionThis == null) {
             // The `#this` variable is special.
