@@ -22641,9 +22641,9 @@ ManifestWarningCode:
   permissionImpliesUnsupportedHardware:
     type: staticWarning
     parameters:
-      Object p0: the name of the feature tag
-    problemMessage: "Permission makes app incompatible for Chrome OS, consider adding optional #p0 feature tag, "
-    correctionMessage: ' Try adding `<uses-feature android:name="#p0"  android:required="false">`.'
+      String name: the name of the feature tag
+    problemMessage: "Permission makes app incompatible for Chrome OS, consider adding optional #name feature tag, "
+    correctionMessage: ' Try adding `<uses-feature android:name="#name"  android:required="false">`.'
     hasPublishedDocs: false
     comment: |-
       A code indicating that a specified permission is not supported on Chrome
@@ -22658,8 +22658,8 @@ ManifestWarningCode:
   unsupportedChromeOsFeature:
     type: staticWarning
     parameters:
-      String p0: the name of the feature
-    problemMessage: "The feature #p0 isn't supported on Chrome OS, consider making it optional."
+      String name: the name of the feature
+    problemMessage: "The feature #name isn't supported on Chrome OS, consider making it optional."
     correctionMessage: 'Try changing to `android:required="false"` for this feature.'
     hasPublishedDocs: false
     comment: |-
@@ -22667,8 +22667,8 @@ ManifestWarningCode:
   unsupportedChromeOsHardware:
     type: staticWarning
     parameters:
-      String p0: the name of the feature
-    problemMessage: "The feature #p0 isn't supported on Chrome OS, consider making it optional."
+      String name: the name of the feature
+    problemMessage: "The feature #name isn't supported on Chrome OS, consider making it optional."
     correctionMessage: 'Try adding `android:required="false"` for this feature.'
     hasPublishedDocs: false
     comment: |-

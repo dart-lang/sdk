@@ -13446,9 +13446,9 @@ patternVariableSharedCaseScopeNotAllCases = DiagnosticWithArguments(
 /// OS.
 ///
 /// Parameters:
-/// Object p0: the name of the feature tag
+/// String name: the name of the feature tag
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
   name: 'permission_implies_unsupported_hardware',
@@ -13461,7 +13461,7 @@ permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'permission_implies_unsupported_hardware',
   withArguments: _withArgumentsPermissionImpliesUnsupportedHardware,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -16887,9 +16887,9 @@ unrecognizedErrorCode = DiagnosticWithArguments(
 /// A code indicating that a specified feature is not supported on Chrome OS.
 ///
 /// Parameters:
-/// String p0: the name of the feature
+/// String name: the name of the feature
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 unsupportedChromeOsFeature = DiagnosticWithArguments(
   name: 'unsupported_chrome_os_feature',
@@ -16908,9 +16908,9 @@ unsupportedChromeOsFeature = DiagnosticWithArguments(
 /// Chrome OS.
 ///
 /// Parameters:
-/// String p0: the name of the feature
+/// String name: the name of the feature
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 unsupportedChromeOsHardware = DiagnosticWithArguments(
   name: 'unsupported_chrome_os_hardware',
@@ -20747,10 +20747,10 @@ LocatableDiagnostic _withArgumentsPatternVariableSharedCaseScopeNotAllCases({
 }
 
 LocatableDiagnostic _withArgumentsPermissionImpliesUnsupportedHardware({
-  required Object p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.permissionImpliesUnsupportedHardware, [
-    p0,
+    name,
   ]);
 }
 
@@ -21553,15 +21553,15 @@ LocatableDiagnostic _withArgumentsUnrecognizedErrorCode({
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedChromeOsFeature({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.unsupportedChromeOsFeature, [p0]);
+  return LocatableDiagnosticImpl(diag.unsupportedChromeOsFeature, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedChromeOsHardware({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.unsupportedChromeOsHardware, [p0]);
+  return LocatableDiagnosticImpl(diag.unsupportedChromeOsHardware, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedOperator({required String p0}) {
