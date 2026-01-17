@@ -25146,9 +25146,9 @@ WarningCode:
   deadCodeOnCatchSubtype:
     type: staticWarning
     parameters:
-      Type p0: name of the subtype
-      Type p1: name of the supertype
-    problemMessage: "Dead code: This on-catch block won't be executed because '#p0' is a subtype of '#p1' and hence will have been caught already."
+      Type subtype: name of the subtype
+      Type supertype: name of the supertype
+    problemMessage: "Dead code: This on-catch block won't be executed because '#subtype' is a subtype of '#supertype' and hence will have been caught already."
     correctionMessage: Try reordering the catch clauses so that this block can be reached, or removing the unreachable catch clause.
     hasPublishedDocs: true
     comment: |-

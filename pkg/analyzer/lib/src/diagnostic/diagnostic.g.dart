@@ -3052,10 +3052,13 @@ deadCodeLateWildcardVariableInitializer = DiagnosticWithoutArgumentsImpl(
 /// `A` was already caught.
 ///
 /// Parameters:
-/// Type p0: name of the subtype
-/// Type p1: name of the supertype
+/// Type subtype: name of the subtype
+/// Type supertype: name of the supertype
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType subtype,
+    required DartType supertype,
+  })
 >
 deadCodeOnCatchSubtype = DiagnosticWithArguments(
   name: 'dead_code_on_catch_subtype',
@@ -18681,10 +18684,13 @@ LocatableDiagnostic _withArgumentsCouldNotInfer({
 }
 
 LocatableDiagnostic _withArgumentsDeadCodeOnCatchSubtype({
-  required DartType p0,
-  required DartType p1,
+  required DartType subtype,
+  required DartType supertype,
 }) {
-  return LocatableDiagnosticImpl(diag.deadCodeOnCatchSubtype, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.deadCodeOnCatchSubtype, [
+    subtype,
+    supertype,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDefinitelyUnassignedLateLocalVariable({
