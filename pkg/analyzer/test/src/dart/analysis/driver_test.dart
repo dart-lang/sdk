@@ -92234,6 +92234,69 @@ class B {}
     );
   }
 
+  test_manifest_topConflict_classTypeAlias_classTypeAlias() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.named();
+}
+class M {}
+class B {}
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      B: #M0
+      B=: #M0
+    declaredClasses
+      A: #M1
+        declaredConstructors
+          named: #M2
+        interface: #M3
+      M: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      A: #M1
+      B: #M0
+      B=: #M0
+      M: #M4
+''',
+      updatedCode: r'''
+class A {
+  A.named();
+}
+class M {}
+class B = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M1
+        declaredConstructors
+          named: #M2
+        interface: #M3
+      B: #M7
+        inheritedConstructors
+          named: #M2
+        interface: #M8
+      M: #M4
+        interface: #M5
+    exportMapId: #M9
+    exportMap
+      A: #M1
+      B: #M7
+      M: #M4
+''',
+    );
+  }
+
   test_manifest_topConflict_enum_enum_enum() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
