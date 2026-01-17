@@ -10052,21 +10052,21 @@ const DiagnosticWithoutArguments missingDefaultValueForParameterWithAnnotation =
     );
 
 /// Parameters:
-/// String p0: the list of packages missing from the dependencies and the list
-///            of packages missing from the dev_dependencies (if any) in the
-///            pubspec file.
+/// String missing: description of the missing packages, and which section of
+///                 the pubspec file they are missing from.
+/// String fix: description of what to fix
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String missing, required String fix})
 >
 missingDependency = DiagnosticWithArguments(
   name: 'missing_dependency',
-  problemMessage: "Missing a dependency on imported package '{0}'.",
-  correctionMessage: "Try adding {0}.",
+  problemMessage: "Missing a dependency on imported {0}.",
+  correctionMessage: "Try adding {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'missing_dependency',
   withArguments: _withArgumentsMissingDependency,
-  expectedTypes: [ExpectedType.string],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
@@ -20083,8 +20083,11 @@ LocatableDiagnostic _withArgumentsMissingDefaultValueForParameterPositional({
   );
 }
 
-LocatableDiagnostic _withArgumentsMissingDependency({required String p0}) {
-  return LocatableDiagnosticImpl(diag.missingDependency, [p0]);
+LocatableDiagnostic _withArgumentsMissingDependency({
+  required String missing,
+  required String fix,
+}) {
+  return LocatableDiagnosticImpl(diag.missingDependency, [missing, fix]);
 }
 
 LocatableDiagnostic _withArgumentsMissingEnumConstantInSwitch({

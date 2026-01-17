@@ -23944,9 +23944,10 @@ PubspecWarningCode:
   missingDependency:
     type: staticWarning
     parameters:
-      String p0: the list of packages missing from the dependencies and the list of packages missing from the dev_dependencies (if any) in the pubspec file.
-    problemMessage: "Missing a dependency on imported package '#p0'."
-    correctionMessage: "Try adding #p0."
+      String missing: description of the missing packages, and which section of the pubspec file they are missing from.
+      String fix: description of what to fix
+    problemMessage: "Missing a dependency on imported #missing."
+    correctionMessage: "Try adding #fix."
     hasPublishedDocs: true
     documentation: |-
       #### Description

@@ -26,9 +26,9 @@ class MissingDependencyTest with ResourceProviderMixin {
   /// Asserts that when the validator is used on the given [content], a
   /// [diag.missingDependency] warning is produced.
   ///
-  /// The message text is returned so that it can be further validated if
-  /// desired.
-  String assertErrors(
+  /// The problem message and correction message are returned so that it can be
+  /// further validated if desired.
+  ({String problemMessage, String correctionMessage}) assertErrors(
     String content, {
     required Set<String> usedDeps,
     required Set<String> usedDevDeps,
@@ -42,7 +42,10 @@ class MissingDependencyTest with ResourceProviderMixin {
     expect(data.addDeps, addDeps);
     expect(data.addDevDeps, addDevDeps);
     expect(data.removeDevDeps, removeDevDeps);
-    return error.problemMessage.messageText(includeUrl: false);
+    return (
+      problemMessage: error.problemMessage.messageText(includeUrl: false),
+      correctionMessage: error.correctionMessage!,
+    );
   }
 
   /// Assert that when the validator is used on the given [content] no errors
@@ -63,7 +66,7 @@ class MissingDependencyTest with ResourceProviderMixin {
   }
 
   test_missingDependency_error() {
-    var message = assertErrors(
+    var (:problemMessage, :correctionMessage) = assertErrors(
       '''
 name: sample
 dependencies:
@@ -73,12 +76,12 @@ dependencies:
       addDeps: ['matcher'],
       usedDevDeps: {},
     );
-    // TODO(paulberry): see https://github.com/dart-lang/sdk/issues/62431
-    expect(message, contains("package ''matcher' in 'dependencies''"));
+    expect(problemMessage, contains("package 'matcher' in 'dependencies'"));
+    expect(correctionMessage, contains("adding 'matcher' to 'dependencies'"));
   }
 
   test_missingDependency_move_to_dev() {
-    var message = assertErrors(
+    var (:problemMessage, :correctionMessage) = assertErrors(
       '''
 name: sample
 dependencies:
@@ -91,8 +94,8 @@ dev_dependencies:
       removeDevDeps: ['test'],
       usedDevDeps: {},
     );
-    // TODO(paulberry): see https://github.com/dart-lang/sdk/issues/62431
-    expect(message, contains("package ''test' in 'dependencies''"));
+    expect(problemMessage, contains("package 'test' in 'dependencies'"));
+    expect(correctionMessage, contains("adding 'test' to 'dependencies'"));
   }
 
   test_missingDependency_noError() {
@@ -122,7 +125,7 @@ dev_dependencies:
   }
 
   test_missingDevDependency_error() {
-    var message = assertErrors(
+    var (:problemMessage, :correctionMessage) = assertErrors(
       '''
 name: sample
 dependencies:
@@ -134,8 +137,8 @@ dev_dependencies:
       usedDevDeps: {'lints', 'test'},
       addDevDeps: ['test'],
     );
-    // TODO(paulberry): see https://github.com/dart-lang/sdk/issues/62431
-    expect(message, contains("package ' 'test' in 'dev_dependencies''"));
+    expect(problemMessage, contains("package 'test' in 'dev_dependencies'"));
+    expect(correctionMessage, contains("adding 'test' to 'dev_dependencies'"));
   }
 
   test_missingDevDependency_inDeps_noError() {
@@ -154,7 +157,7 @@ dev_dependencies:
   }
 
   test_missingDevDependency_multiple_deps() {
-    var message = assertErrors(
+    var (:problemMessage, :correctionMessage) = assertErrors(
       '''
 name: sample
 dependencies:
@@ -164,12 +167,18 @@ dependencies:
       usedDevDeps: {},
       addDeps: ['test', 'args'],
     );
-    // TODO(paulberry): see https://github.com/dart-lang/sdk/issues/62431
-    expect(message, contains("package ''test','args' in 'dependencies''"));
+    expect(
+      problemMessage,
+      contains("packages 'test', 'args' in 'dependencies'"),
+    );
+    expect(
+      correctionMessage,
+      contains("adding 'test', 'args' to 'dependencies'"),
+    );
   }
 
   test_missingDevDependency_multiple_depsAndDevDeps() {
-    var message = assertErrors(
+    var (:problemMessage, :correctionMessage) = assertErrors(
       '''
 name: sample
 ''',
@@ -178,17 +187,24 @@ name: sample
       addDeps: ['path', 'args'],
       addDevDeps: ['test', 'lints'],
     );
-    // TODO(paulberry): see https://github.com/dart-lang/sdk/issues/62431
     expect(
-      message,
+      problemMessage,
       contains(
-        "package ''path','args' in 'dependencies', 'test','lints' in 'dev_dependencies''",
+        "packages 'path', 'args' in 'dependencies', and packages 'test', "
+        "'lints' in 'dev_dependencies'",
+      ),
+    );
+    expect(
+      correctionMessage,
+      contains(
+        "adding 'path', 'args' to 'dependencies', and 'test', 'lints' to "
+        "'dev_dependencies'",
       ),
     );
   }
 
   test_missingDevDependency_multiple_devDeps() {
-    var message = assertErrors(
+    var (:problemMessage, :correctionMessage) = assertErrors(
       '''
 name: sample
 dev_dependencies:
@@ -198,8 +214,14 @@ dev_dependencies:
       usedDevDeps: {'path', 'test', 'args'},
       addDevDeps: ['test', 'args'],
     );
-    // TODO(paulberry): see https://github.com/dart-lang/sdk/issues/62431
-    expect(message, contains("package ' 'test','args' in 'dev_dependencies''"));
+    expect(
+      problemMessage,
+      contains("packages 'test', 'args' in 'dev_dependencies'"),
+    );
+    expect(
+      correctionMessage,
+      contains("adding 'test', 'args' to 'dev_dependencies'"),
+    );
   }
 
   test_missingDevDependency_noError() {
