@@ -59,7 +59,8 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [],
   );
-  var scanner = Scanner(source, reader, diagnosticListener)
+  var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
+  var scanner = Scanner(reader, diagnosticReporter)
     ..configureFeatures(
       featureSetForOverriding: FeatureSet.latestLanguageVersion(),
       featureSet: featureSet,
@@ -72,8 +73,7 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
   );
 
   var parser = p.Parser(
-    source,
-    diagnosticListener,
+    diagnosticReporter,
     featureSet: scanner.featureSet,
     lineInfo: lineInfo,
     languageVersion: languageVersion,

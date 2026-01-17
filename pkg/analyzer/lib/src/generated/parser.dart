@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart'
     show ExperimentalFeaturesStatus;
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -29,15 +28,14 @@ class Parser {
   final AstBuilder astBuilder;
 
   Parser(
-    Source source,
-    DiagnosticListener diagnosticListener, {
+    DiagnosticReporter diagnosticReporter, {
     required FeatureSet featureSet,
     bool allowNativeClause = true,
     required LibraryLanguageVersion languageVersion,
     required LineInfo lineInfo,
   }) : astBuilder = AstBuilder(
-         DiagnosticReporter(diagnosticListener, source),
-         source.uri,
+         diagnosticReporter,
+         diagnosticReporter.source.uri,
          true,
          featureSet,
          languageVersion,

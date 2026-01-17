@@ -19810,7 +19810,7 @@ abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('constKeyword'),
+    GenerateNodeProperty('constKeyword', isTokenFinal: false),
     GenerateNodeProperty('typeName'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('constructorName'),
@@ -19821,7 +19821,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     implements PrimaryConstructorDeclaration {
   @generated
   @override
-  final Token? constKeyword;
+  Token? constKeyword;
 
   @generated
   @override

@@ -6557,6 +6557,47 @@ class LibraryElementImplInternal {
   InheritanceManager3 get inheritanceManager {
     return _library._session.inheritanceManager;
   }
+
+  List<Uri> allUnitSourceUris() {
+    var unitUris = <Uri>{};
+
+    void appendUnitUris(
+      LibraryFragmentImpl? fragment,
+      DirectiveUri? partDirectiveUri,
+    ) {
+      // We start with a fragment, but recurse with a directive URI.
+      fragment =
+          fragment ??
+          (partDirectiveUri is DirectiveUriWithUnitImpl
+              ? partDirectiveUri.libraryFragment
+              : null);
+
+      // If there is a `Source`, bundle reader will resolve its URI.
+      // Even if there is no valid fragment for this source.
+      Source source;
+      if (fragment != null) {
+        source = fragment.source;
+      } else if (partDirectiveUri is DirectiveUriWithSourceImpl) {
+        source = partDirectiveUri.source;
+      } else {
+        return;
+      }
+
+      if (!unitUris.add(source.uri)) {
+        return;
+      }
+
+      // If we have a fragment (usually), recurse into parts.
+      if (fragment != null) {
+        for (var partInclude in fragment.partIncludes) {
+          appendUnitUris(null, partInclude.uri);
+        }
+      }
+    }
+
+    appendUnitUris(_library._firstFragment, null);
+    return unitUris.toList();
+  }
 }
 
 class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {

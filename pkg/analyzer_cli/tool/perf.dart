@@ -94,8 +94,7 @@ CompilationUnit parseDirectives(Source source) {
   );
   var lineInfo = LineInfo(result.lineStarts);
   var parser = Parser(
-    source,
-    DiagnosticListener.nullListener,
+    DiagnosticReporter(DiagnosticListener.nullListener, source),
     featureSet: FeatureSet.latestLanguageVersion(),
     lineInfo: lineInfo,
     languageVersion: languageVersion,
@@ -135,8 +134,7 @@ CompilationUnit parseFull(Source source) {
   );
   var lineInfo = LineInfo(result.lineStarts);
   var parser = Parser(
-    source,
-    DiagnosticListener.nullListener,
+    DiagnosticReporter(DiagnosticListener.nullListener, source),
     featureSet: FeatureSet.latestLanguageVersion(),
     languageVersion: languageVersion,
     lineInfo: lineInfo,
@@ -236,9 +234,8 @@ ScannerResult tokenize(Source source) {
   // first converting to String?
   var scanner =
       Scanner(
-          source,
           CharSequenceReader(contents),
-          DiagnosticListener.nullListener,
+          DiagnosticReporter(DiagnosticListener.nullListener, source),
         )
         ..configureFeatures(
           featureSetForOverriding: featureSet,

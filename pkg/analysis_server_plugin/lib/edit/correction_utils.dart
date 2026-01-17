@@ -459,9 +459,8 @@ class TokenUtils {
       var tokens = <Token>[];
       var scanner =
           Scanner(
-            _SourceMock(),
             CharSequenceReader(s),
-            DiagnosticListener.nullListener,
+            DiagnosticReporter(DiagnosticListener.nullListener, _SourceMock()),
           )..configureFeatures(
             featureSetForOverriding: featureSet,
             featureSet: featureSet,

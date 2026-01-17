@@ -5,13 +5,13 @@
 import 'dart:convert';
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     as usedForFuzzTesting;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:front_end/src/codes/cfe_codes.dart';
@@ -73,12 +73,14 @@ class ScannerTest_Cfe_UTF8 extends ScannerTest_Cfe {
     // Translate error tokens
     if (result.hasErrors) {
       while (token is ErrorToken) {
-        translateErrorToken(token, (
-          DiagnosticCode errorCode,
-          int offset,
-          List<Object>? arguments,
-        ) {
-          listener.errors.add(new TestError(offset, errorCode, arguments));
+        translateErrorToken(token, (LocatedDiagnostic locatedDiagnostic) {
+          listener.errors.add(
+            new TestError(
+              locatedDiagnostic.offset,
+              locatedDiagnostic.locatableDiagnostic.code,
+              locatedDiagnostic.locatableDiagnostic.arguments,
+            ),
+          );
         });
         token = token.next!;
       }
@@ -141,12 +143,14 @@ class ScannerTest_Cfe extends ScannerTestBase {
     // Translate error tokens
     if (result.hasErrors) {
       while (token is ErrorToken) {
-        translateErrorToken(token, (
-          DiagnosticCode errorCode,
-          int offset,
-          List<Object>? arguments,
-        ) {
-          listener.errors.add(new TestError(offset, errorCode, arguments));
+        translateErrorToken(token, (LocatedDiagnostic locatedDiagnostic) {
+          listener.errors.add(
+            new TestError(
+              locatedDiagnostic.offset,
+              locatedDiagnostic.locatableDiagnostic.code,
+              locatedDiagnostic.locatableDiagnostic.arguments,
+            ),
+          );
         });
         token = token.next!;
       }

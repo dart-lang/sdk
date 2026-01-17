@@ -22641,9 +22641,9 @@ ManifestWarningCode:
   permissionImpliesUnsupportedHardware:
     type: staticWarning
     parameters:
-      Object p0: the name of the feature tag
-    problemMessage: "Permission makes app incompatible for Chrome OS, consider adding optional #p0 feature tag, "
-    correctionMessage: ' Try adding `<uses-feature android:name="#p0"  android:required="false">`.'
+      String name: the name of the feature tag
+    problemMessage: "Permission makes app incompatible for Chrome OS, consider adding optional #name feature tag, "
+    correctionMessage: ' Try adding `<uses-feature android:name="#name"  android:required="false">`.'
     hasPublishedDocs: false
     comment: |-
       A code indicating that a specified permission is not supported on Chrome
@@ -22658,8 +22658,8 @@ ManifestWarningCode:
   unsupportedChromeOsFeature:
     type: staticWarning
     parameters:
-      String p0: the name of the feature
-    problemMessage: "The feature #p0 isn't supported on Chrome OS, consider making it optional."
+      String name: the name of the feature
+    problemMessage: "The feature #name isn't supported on Chrome OS, consider making it optional."
     correctionMessage: 'Try changing to `android:required="false"` for this feature.'
     hasPublishedDocs: false
     comment: |-
@@ -22667,8 +22667,8 @@ ManifestWarningCode:
   unsupportedChromeOsHardware:
     type: staticWarning
     parameters:
-      String p0: the name of the feature
-    problemMessage: "The feature #p0 isn't supported on Chrome OS, consider making it optional."
+      String name: the name of the feature
+    problemMessage: "The feature #name isn't supported on Chrome OS, consider making it optional."
     correctionMessage: 'Try adding `android:required="false"` for this feature.'
     hasPublishedDocs: false
     comment: |-
@@ -22812,8 +22812,8 @@ ParserErrorCode:
   expectedToken:
     type: syntacticError
     parameters:
-      String p0: the token that was expected but not found
-    problemMessage: "Expected to find '#p0'."
+      String token: the token that was expected but not found
+    problemMessage: "Expected to find '#token'."
     hasPublishedDocs: false
   expectedTypeName:
     type: syntacticError
@@ -24267,8 +24267,8 @@ ScannerErrorCode:
   illegalCharacter:
     type: syntacticError
     parameters:
-      Object p0: the illegal character
-    problemMessage: Illegal character '#p0'.
+      int codePoint: the illegal character
+    problemMessage: Illegal character '#codePoint'.
     hasPublishedDocs: false
   missingDigit:
     type: syntacticError
@@ -24306,8 +24306,8 @@ ScannerErrorCode:
   unsupportedOperator:
     type: syntacticError
     parameters:
-      String p0: the unsupported operator
-    problemMessage: The '#p0' operator is not supported.
+      String lexeme: the unsupported operator
+    problemMessage: The '#lexeme' operator is not supported.
     hasPublishedDocs: false
   unterminatedMultiLineComment:
     type: syntacticError

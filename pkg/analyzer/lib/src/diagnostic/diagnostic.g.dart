@@ -4705,9 +4705,9 @@ const DiagnosticWithoutArguments expectedSwitchStatementBody =
     );
 
 /// Parameters:
-/// String p0: the token that was expected but not found
+/// String token: the token that was expected but not found
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String token})
 >
 expectedToken = DiagnosticWithArguments(
   name: 'expected_token',
@@ -6494,9 +6494,9 @@ illegalAsyncReturnType = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the illegal character
+/// int codePoint: the illegal character
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required int codePoint})
 >
 illegalCharacter = DiagnosticWithArguments(
   name: 'illegal_character',
@@ -6504,7 +6504,7 @@ illegalCharacter = DiagnosticWithArguments(
   type: DiagnosticType.SYNTACTIC_ERROR,
   uniqueName: 'illegal_character',
   withArguments: _withArgumentsIllegalCharacter,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.int],
 );
 
 /// Parameters:
@@ -13446,9 +13446,9 @@ patternVariableSharedCaseScopeNotAllCases = DiagnosticWithArguments(
 /// OS.
 ///
 /// Parameters:
-/// Object p0: the name of the feature tag
+/// String name: the name of the feature tag
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
   name: 'permission_implies_unsupported_hardware',
@@ -13461,7 +13461,7 @@ permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'permission_implies_unsupported_hardware',
   withArguments: _withArgumentsPermissionImpliesUnsupportedHardware,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -16887,9 +16887,9 @@ unrecognizedErrorCode = DiagnosticWithArguments(
 /// A code indicating that a specified feature is not supported on Chrome OS.
 ///
 /// Parameters:
-/// String p0: the name of the feature
+/// String name: the name of the feature
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 unsupportedChromeOsFeature = DiagnosticWithArguments(
   name: 'unsupported_chrome_os_feature',
@@ -16908,9 +16908,9 @@ unsupportedChromeOsFeature = DiagnosticWithArguments(
 /// Chrome OS.
 ///
 /// Parameters:
-/// String p0: the name of the feature
+/// String name: the name of the feature
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 unsupportedChromeOsHardware = DiagnosticWithArguments(
   name: 'unsupported_chrome_os_hardware',
@@ -16926,9 +16926,9 @@ unsupportedChromeOsHardware = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the unsupported operator
+/// String lexeme: the unsupported operator
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String lexeme})
 >
 unsupportedOperator = DiagnosticWithArguments(
   name: 'unsupported_operator',
@@ -18969,8 +18969,8 @@ LocatableDiagnostic _withArgumentsExpectedOneSetTypeArguments({
   return LocatableDiagnosticImpl(diag.expectedOneSetTypeArguments, [count]);
 }
 
-LocatableDiagnostic _withArgumentsExpectedToken({required String p0}) {
-  return LocatableDiagnosticImpl(diag.expectedToken, [p0]);
+LocatableDiagnostic _withArgumentsExpectedToken({required String token}) {
+  return LocatableDiagnosticImpl(diag.expectedToken, [token]);
 }
 
 LocatableDiagnostic _withArgumentsExpectedTwoMapPatternTypeArguments({
@@ -19302,8 +19302,8 @@ LocatableDiagnostic _withArgumentsHack({required String message}) {
   return LocatableDiagnosticImpl(diag.hack, [message]);
 }
 
-LocatableDiagnostic _withArgumentsIllegalCharacter({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.illegalCharacter, [p0]);
+LocatableDiagnostic _withArgumentsIllegalCharacter({required int codePoint}) {
+  return LocatableDiagnosticImpl(diag.illegalCharacter, [codePoint]);
 }
 
 LocatableDiagnostic _withArgumentsIllegalConcreteEnumMemberDeclaration({
@@ -20747,10 +20747,10 @@ LocatableDiagnostic _withArgumentsPatternVariableSharedCaseScopeNotAllCases({
 }
 
 LocatableDiagnostic _withArgumentsPermissionImpliesUnsupportedHardware({
-  required Object p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.permissionImpliesUnsupportedHardware, [
-    p0,
+    name,
   ]);
 }
 
@@ -21553,19 +21553,21 @@ LocatableDiagnostic _withArgumentsUnrecognizedErrorCode({
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedChromeOsFeature({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.unsupportedChromeOsFeature, [p0]);
+  return LocatableDiagnosticImpl(diag.unsupportedChromeOsFeature, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedChromeOsHardware({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.unsupportedChromeOsHardware, [p0]);
+  return LocatableDiagnosticImpl(diag.unsupportedChromeOsHardware, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnsupportedOperator({required String p0}) {
-  return LocatableDiagnosticImpl(diag.unsupportedOperator, [p0]);
+LocatableDiagnostic _withArgumentsUnsupportedOperator({
+  required String lexeme,
+}) {
+  return LocatableDiagnosticImpl(diag.unsupportedOperator, [lexeme]);
 }
 
 LocatableDiagnostic _withArgumentsUnsupportedOptionWithLegalValue({

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart' show IterableExtension;
 
@@ -34,7 +35,7 @@ class PreferConstConstructorsInImmutables extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
-    registry.addExtensionTypeDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -49,76 +50,106 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element == null) return;
     if (element.isConst) return;
     if (node.body is! EmptyFunctionBody) return;
-    var enclosingElement = element.enclosingElement;
+    var interfaceElement = element.enclosingElement;
 
-    if (enclosingElement.mixins.isNotEmpty) return;
-    if (!_hasImmutableAnnotation(enclosingElement)) return;
-    var isRedirected =
-        element.isFactory && element.redirectedConstructor != null;
-    if (isRedirected && (element.redirectedConstructor?.isConst ?? false)) {
-      rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
-    }
-    if (!isRedirected &&
-        _hasConstConstructorInvocation(node) &&
+    if (interfaceElement.mixins.isNotEmpty) return;
+    if (!interfaceElement.hasImmutableAnnotation) return;
+
+    if (element case ConstructorElement(
+      isFactory: true,
+      redirectedConstructor: ConstructorElement redirectedConstructor,
+    )) {
+      if (redirectedConstructor.isConst) {
+        rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
+      }
+    } else if (_hasConstConstructorInvocation(
+          element: node.declaredFragment?.element,
+          initializers: node.initializers,
+        ) &&
         node.canBeConst) {
       rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
     }
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (node.primaryConstructor.constKeyword != null) return;
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     var element = node.declaredFragment?.element;
     if (element == null) return;
-    if (element.metadata.hasImmutable) {
-      rule.reportAtToken(node.primaryConstructor.typeName);
+    if (element.isConst) return;
+    if (node.body?.body != null && node.body?.body is! EmptyFunctionBody) {
+      return;
+    }
+
+    var interfaceElement = element.enclosingElement;
+    if (interfaceElement.mixins.isNotEmpty) return;
+    if (!interfaceElement.hasImmutableAnnotation) return;
+
+    if (interfaceElement is ExtensionTypeElement) {
+      var errorRange = node.errorRange;
+      rule.reportAtOffset(errorRange.offset, errorRange.length);
+      return;
+    }
+
+    if (element case ConstructorElement(
+      isFactory: true,
+      redirectedConstructor: ConstructorElement redirectedConstructor,
+    )) {
+      if (redirectedConstructor.isConst) {
+        var errorRange = node.errorRange;
+        rule.reportAtOffset(errorRange.offset, errorRange.length);
+      }
+    } else if (_hasConstConstructorInvocation(
+          element: node.declaredFragment?.element,
+          initializers: node.body?.initializers,
+        ) &&
+        node.canBeConst) {
+      var errorRange = node.errorRange;
+      rule.reportAtOffset(errorRange.offset, errorRange.length);
     }
   }
 
-  static List<InterfaceElement> _getSelfAndSuperClasses(InterfaceElement self) {
-    InterfaceElement? current = self;
-    var seenElements = <InterfaceElement>{};
-    while (current != null && seenElements.add(current)) {
-      current = current.supertype?.element;
-    }
-    return seenElements.toList();
-  }
+  static bool _hasConstConstructorInvocation({
+    required ConstructorElement? element,
+    required List<ConstructorInitializer>? initializers,
+  }) {
+    if (element == null) return false;
 
-  static bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
-    var declaredElement = node.declaredFragment?.element;
-    if (declaredElement == null) {
-      return false;
-    }
-    var clazz = declaredElement.enclosingElement;
+    var interfaceElement = element.enclosingElement;
     // Constructor with super-initializer.
-    var superInvocation = node.initializers
-        .whereType<SuperConstructorInvocation>()
+    var superInvocation = initializers
+        ?.whereType<SuperConstructorInvocation>()
         .firstOrNull;
     if (superInvocation != null) {
       return superInvocation.element?.isConst ?? false;
     }
     // Constructor with 'this' redirecting initializer.
-    var redirectInvocation = node.initializers
-        .whereType<RedirectingConstructorInvocation>()
+    var redirectInvocation = initializers
+        ?.whereType<RedirectingConstructorInvocation>()
         .firstOrNull;
     if (redirectInvocation != null) {
       return redirectInvocation.element?.isConst ?? false;
     }
 
-    if (clazz is ExtensionTypeElement) {
-      return clazz.primaryConstructor.isConst;
+    if (interfaceElement is ExtensionTypeElement) {
+      return interfaceElement.primaryConstructor.isConst;
     }
 
     // Constructor with implicit `super()` call.
-    var unnamedSuperConstructor = clazz.supertype?.constructors
+    var unnamedSuperConstructor = interfaceElement.supertype?.constructors
         .firstWhereOrNull((e) => e.name == 'new');
     return unnamedSuperConstructor != null && unnamedSuperConstructor.isConst;
   }
+}
 
-  /// Whether [clazz] or any of its super-types are annotated with
-  /// `@immutable`.
-  static bool _hasImmutableAnnotation(InterfaceElement clazz) {
-    var selfAndInheritedClasses = _getSelfAndSuperClasses(clazz);
-    return selfAndInheritedClasses.any((cls) => cls.metadata.hasImmutable);
+extension on InterfaceElement {
+  /// Whether this or any super-types are annotated with `@immutable`.
+  bool get hasImmutableAnnotation {
+    InterfaceElement? current = this;
+    var seenElements = <InterfaceElement>{};
+    while (current != null && seenElements.add(current)) {
+      if (current.metadata.hasImmutable) return true;
+      current = current.supertype?.element;
+    }
+    return false;
   }
 }

@@ -4,19 +4,18 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -46,7 +45,7 @@ class Scanner {
 
   /// The diagnostic listener that will be informed of any diagnostics that are
   /// found during the scan.
-  final DiagnosticListener _diagnosticListener;
+  final DiagnosticReporter _diagnosticReporter;
 
   /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
   /// language version greater than the one specified in the package config.
@@ -64,30 +63,27 @@ class Scanner {
 
   /// Initialize a newly created scanner to scan characters from the given
   /// [source]. The given character [reader] will be used to read the characters
-  /// in the source. The given [_diagnosticListener] will be informed of any
+  /// in the source. The given [diagnosticReporter] will be informed of any
   /// errors that are found.
   factory Scanner(
-    Source source,
     CharacterReader reader,
-    DiagnosticListener diagnosticListener,
+    DiagnosticReporter diagnosticReporter,
   ) => Scanner.fasta(
-    source,
-    diagnosticListener,
+    diagnosticReporter,
     contents: reader.getContents(),
     offset: reader.offset,
   );
 
   factory Scanner.fasta(
-    Source source,
-    DiagnosticListener diagnosticListener, {
+    DiagnosticReporter diagnosticReporter, {
     String? contents,
     int offset = -1,
   }) {
     return Scanner._(
-      source,
-      contents ?? source.contents.data,
+      diagnosticReporter.source,
+      contents ?? diagnosticReporter.source.contents.data,
       offset,
-      diagnosticListener,
+      diagnosticReporter,
     );
   }
 
@@ -95,7 +91,7 @@ class Scanner {
     this.source,
     this._contents,
     this._readerOffset,
-    this._diagnosticListener,
+    this._diagnosticReporter,
   );
 
   /// The features associated with this scanner.
@@ -127,20 +123,8 @@ class Scanner {
     _featureSet = featureSet;
   }
 
-  void reportError(
-    DiagnosticCode diagnosticCode,
-    int offset,
-    List<Object?>? arguments,
-  ) {
-    _diagnosticListener.onDiagnostic(
-      Diagnostic.tmp(
-        source: source,
-        offset: offset,
-        length: 1,
-        diagnosticCode: diagnosticCode,
-        arguments: arguments ?? const [],
-      ),
-    );
+  void reportError(LocatedDiagnostic locatedDiagnostic) {
+    _diagnosticReporter.report(locatedDiagnostic);
   }
 
   /// The fasta parser handles error tokens produced by the scanner
@@ -205,14 +189,11 @@ class Scanner {
 
     var latestVersion = ExperimentStatus.currentVersion;
     if (overrideVersion > latestVersion) {
-      _diagnosticListener.onDiagnostic(
-        Diagnostic.tmp(
-          source: source,
-          offset: versionToken.offset,
-          length: versionToken.length,
-          diagnosticCode: diag.invalidLanguageVersionOverrideGreater,
-          arguments: [latestVersion.major, latestVersion.minor],
-        ),
+      _diagnosticReporter.atOffset(
+        offset: versionToken.offset,
+        length: versionToken.length,
+        diagnosticCode: diag.invalidLanguageVersionOverrideGreater,
+        arguments: [latestVersion.major, latestVersion.minor],
       );
       _overrideVersion = null;
     } else {
