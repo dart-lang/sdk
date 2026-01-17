@@ -211,13 +211,13 @@ class ImportsVerifier {
         var secondElementUri = secondElement.uri;
         if (firstElementUri is DirectiveUriWithLibraryImpl &&
             secondElementUri is DirectiveUriWithLibraryImpl) {
-          diagnosticReporter.atNode(
-            firstDirective.uri,
-            diag.unnecessaryImport,
-            arguments: [
-              firstElementUri.relativeUriString,
-              secondElementUri.relativeUriString,
-            ],
+          diagnosticReporter.report(
+            diag.unnecessaryImport
+                .withArguments(
+                  unnecessaryUri: firstElementUri.relativeUriString,
+                  reasonUri: secondElementUri.relativeUriString,
+                )
+                .at(firstDirective.uri),
           );
           // Now that we reported on the first, so we are done.
           break;

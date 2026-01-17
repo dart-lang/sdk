@@ -536,10 +536,13 @@ argumentTypeNotAssignable = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the name of the actual argument type
-/// Type p1: the name of the expected function return type
+/// Type actualType: the name of the actual argument type
+/// Type expectedType: the name of the expected function return type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 argumentTypeNotAssignableToErrorHandler = DiagnosticWithArguments(
   name: 'argument_type_not_assignable_to_error_handler',
@@ -3052,10 +3055,13 @@ deadCodeLateWildcardVariableInitializer = DiagnosticWithoutArgumentsImpl(
 /// `A` was already caught.
 ///
 /// Parameters:
-/// Type p0: name of the subtype
-/// Type p1: name of the supertype
+/// Type subtype: name of the subtype
+/// Type supertype: name of the supertype
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType subtype,
+    required DartType supertype,
+  })
 >
 deadCodeOnCatchSubtype = DiagnosticWithArguments(
   name: 'dead_code_on_catch_subtype',
@@ -3375,9 +3381,9 @@ deprecatedLintWithReplacement = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the member
+/// String name: the name of the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 deprecatedMemberUse = DiagnosticWithArguments(
   name: 'deprecated_member_use',
@@ -3392,10 +3398,10 @@ deprecatedMemberUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the member
-/// String p1: message details
+/// String name: the name of the member
+/// String details: message details
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({required String name, required String details})
 >
 deprecatedMemberUseWithMessage = DiagnosticWithArguments(
   name: 'deprecated_member_use',
@@ -7892,9 +7898,9 @@ invalidCastNewExpr = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the invalid escape sequence
+/// String escapeSequence: the invalid escape sequence
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String escapeSequence})
 >
 invalidCodePoint = DiagnosticWithArguments(
   name: 'invalid_code_point',
@@ -8170,18 +8176,21 @@ invalidExportOfInternalElement = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the internal element
-/// String p1: the name of the exported element that indirectly exposes the
-///            internal element
+/// String internalElementName: the name of the internal element
+/// String exportedElementName: the name of the exported element that
+///                             indirectly exposes the internal element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String internalElementName,
+    required String exportedElementName,
+  })
 >
 invalidExportOfInternalElementIndirectly = DiagnosticWithArguments(
   name: 'invalid_export_of_internal_element_indirectly',
   problemMessage:
       "The member '{0}' can't be exported as a part of a package's public API, "
       "but is indirectly exported as part of the signature of '{1}'.",
-  correctionMessage: "Try using a hide clause to hide '{0}'.",
+  correctionMessage: "Try using a hide clause to hide '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'invalid_export_of_internal_element_indirectly',
@@ -10052,21 +10061,21 @@ const DiagnosticWithoutArguments missingDefaultValueForParameterWithAnnotation =
     );
 
 /// Parameters:
-/// String p0: the list of packages missing from the dependencies and the list
-///            of packages missing from the dev_dependencies (if any) in the
-///            pubspec file.
+/// String missing: description of the missing packages, and which section of
+///                 the pubspec file they are missing from.
+/// String fix: description of what to fix
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String missing, required String fix})
 >
 missingDependency = DiagnosticWithArguments(
   name: 'missing_dependency',
-  problemMessage: "Missing a dependency on imported package '{0}'.",
-  correctionMessage: "Try adding {0}.",
+  problemMessage: "Missing a dependency on imported {0}.",
+  correctionMessage: "Try adding {1}.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'missing_dependency',
   withArguments: _withArgumentsMissingDependency,
-  expectedTypes: [ExpectedType.string],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// No parameters.
@@ -10091,9 +10100,9 @@ missingEnumBody = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the constant that is missing
+/// String constant: the name of the constant that is missing
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String constant})
 >
 missingEnumConstantInSwitch = DiagnosticWithArguments(
   name: 'missing_enum_constant_in_switch',
@@ -12321,9 +12330,9 @@ const DiagnosticWithoutArguments nonFinalFieldInEnum =
     );
 
 /// Parameters:
-/// Element p0: the non-generative constructor
+/// Element constructor: the non-generative constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Element p0})
+  LocatableDiagnostic Function({required Element constructor})
 >
 nonGenerativeConstructor = DiagnosticWithArguments(
   name: 'non_generative_constructor',
@@ -16464,9 +16473,9 @@ unexpectedTerminatorForParameterGroup = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the unexpected text that was found
+/// String text: the unexpected text that was found
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String text})
 >
 unexpectedToken = DiagnosticWithArguments(
   name: 'unexpected_token',
@@ -16578,10 +16587,13 @@ unnecessaryFinal = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the URI that is not necessary
-/// String p1: the URI that makes it unnecessary
+/// String unnecessaryUri: the URI that is not necessary
+/// String reasonUri: the URI that makes it unnecessary
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String unnecessaryUri,
+    required String reasonUri,
+  })
 >
 unnecessaryImport = DiagnosticWithArguments(
   name: 'unnecessary_import',
@@ -17645,8 +17657,11 @@ wrongNumberOfParametersForOperator = DiagnosticWithArguments(
 /// user-declared operator - is not 0 or 1.
 ///
 /// Parameters:
-/// int p0: the number of parameters found in the operator declaration
-const DiagnosticWithArguments<LocatableDiagnostic Function({required int p0})>
+/// int actualCount: the number of parameters found in the operator
+///                  declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required int actualCount})
+>
 wrongNumberOfParametersForOperatorMinus = DiagnosticWithArguments(
   name: 'wrong_number_of_parameters_for_operator',
   problemMessage:
@@ -17916,14 +17931,15 @@ wrongTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
 /// annotation of a covariant formal parameter.
 ///
 /// Parameters:
-/// Object p0: the variance modifier defined for {0}
-/// Object p1: the name of the type parameter
-/// Object p2: the variance position that the type parameter {1} is in
+/// String modifier: the variance modifier
+/// String typeParameterName: the name of the type parameter
+/// String variancePosition: the variance position that the type parameter is
+///                          in
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
+    required String modifier,
+    required String typeParameterName,
+    required String variancePosition,
   })
 >
 wrongTypeParameterVariancePosition = DiagnosticWithArguments(
@@ -17938,9 +17954,9 @@ wrongTypeParameterVariancePosition = DiagnosticWithArguments(
   uniqueName: 'wrong_type_parameter_variance_position',
   withArguments: _withArgumentsWrongTypeParameterVariancePosition,
   expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
   ],
 );
 
@@ -17960,10 +17976,13 @@ yieldEachInNonGenerator = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Type p0: the type of the expression after `yield*`
-/// Type p1: the return type of the function containing the `yield*`
+/// Type actualType: the type of the expression after `yield*`
+/// Type expectedType: the return type of the function containing the `yield*`
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 yieldEachOfInvalidType = DiagnosticWithArguments(
   name: 'yield_of_invalid_type',
@@ -17996,10 +18015,13 @@ yieldInNonGenerator = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Type p0: the type of the expression after `yield`
-/// Type p1: the return type of the function containing the `yield`
+/// Type actualType: the type of the expression after `yield`
+/// Type expectedType: the return type of the function containing the `yield`
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 yieldOfInvalidType = DiagnosticWithArguments(
   name: 'yield_of_invalid_type',
@@ -18105,12 +18127,12 @@ LocatableDiagnostic _withArgumentsArgumentTypeNotAssignable({
 }
 
 LocatableDiagnostic _withArgumentsArgumentTypeNotAssignableToErrorHandler({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   return LocatableDiagnosticImpl(diag.argumentTypeNotAssignableToErrorHandler, [
-    p0,
-    p1,
+    actualType,
+    expectedType,
   ]);
 }
 
@@ -18681,10 +18703,13 @@ LocatableDiagnostic _withArgumentsCouldNotInfer({
 }
 
 LocatableDiagnostic _withArgumentsDeadCodeOnCatchSubtype({
-  required DartType p0,
-  required DartType p1,
+  required DartType subtype,
+  required DartType supertype,
 }) {
-  return LocatableDiagnosticImpl(diag.deadCodeOnCatchSubtype, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.deadCodeOnCatchSubtype, [
+    subtype,
+    supertype,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDefinitelyUnassignedLateLocalVariable({
@@ -18739,15 +18764,18 @@ LocatableDiagnostic _withArgumentsDeprecatedLintWithReplacement({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedMemberUse({required String p0}) {
-  return LocatableDiagnosticImpl(diag.deprecatedMemberUse, [p0]);
+LocatableDiagnostic _withArgumentsDeprecatedMemberUse({required String name}) {
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUse, [name]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({
-  required String p0,
-  required String p1,
+  required String name,
+  required String details,
 }) {
-  return LocatableDiagnosticImpl(diag.deprecatedMemberUseWithMessage, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUseWithMessage, [
+    name,
+    details,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedMixin({required Object typeName}) {
@@ -19702,8 +19730,10 @@ LocatableDiagnostic _withArgumentsInvalidCastNewExpr({
   return LocatableDiagnosticImpl(diag.invalidCastNewExpr, [p0, p1]);
 }
 
-LocatableDiagnostic _withArgumentsInvalidCodePoint({required String p0}) {
-  return LocatableDiagnosticImpl(diag.invalidCodePoint, [p0]);
+LocatableDiagnostic _withArgumentsInvalidCodePoint({
+  required String escapeSequence,
+}) {
+  return LocatableDiagnosticImpl(diag.invalidCodePoint, [escapeSequence]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidDependency({required String p0}) {
@@ -19723,12 +19753,12 @@ LocatableDiagnostic _withArgumentsInvalidExportOfInternalElement({
 }
 
 LocatableDiagnostic _withArgumentsInvalidExportOfInternalElementIndirectly({
-  required String p0,
-  required String p1,
+  required String internalElementName,
+  required String exportedElementName,
 }) {
   return LocatableDiagnosticImpl(
     diag.invalidExportOfInternalElementIndirectly,
-    [p0, p1],
+    [internalElementName, exportedElementName],
   );
 }
 
@@ -20083,14 +20113,17 @@ LocatableDiagnostic _withArgumentsMissingDefaultValueForParameterPositional({
   );
 }
 
-LocatableDiagnostic _withArgumentsMissingDependency({required String p0}) {
-  return LocatableDiagnosticImpl(diag.missingDependency, [p0]);
+LocatableDiagnostic _withArgumentsMissingDependency({
+  required String missing,
+  required String fix,
+}) {
+  return LocatableDiagnosticImpl(diag.missingDependency, [missing, fix]);
 }
 
 LocatableDiagnostic _withArgumentsMissingEnumConstantInSwitch({
-  required String p0,
+  required String constant,
 }) {
-  return LocatableDiagnosticImpl(diag.missingEnumConstantInSwitch, [p0]);
+  return LocatableDiagnosticImpl(diag.missingEnumConstantInSwitch, [constant]);
 }
 
 LocatableDiagnostic _withArgumentsMissingExceptionValue({
@@ -20523,9 +20556,9 @@ LocatableDiagnostic _withArgumentsNonExhaustiveSwitchStatementPrivate({
 }
 
 LocatableDiagnostic _withArgumentsNonGenerativeConstructor({
-  required Element p0,
+  required Element constructor,
 }) {
-  return LocatableDiagnosticImpl(diag.nonGenerativeConstructor, [p0]);
+  return LocatableDiagnosticImpl(diag.nonGenerativeConstructor, [constructor]);
 }
 
 LocatableDiagnostic _withArgumentsNonGenerativeImplicitConstructor({
@@ -21496,8 +21529,8 @@ LocatableDiagnostic _withArgumentsUnexpectedTerminatorForParameterGroup({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUnexpectedToken({required String p0}) {
-  return LocatableDiagnosticImpl(diag.unexpectedToken, [p0]);
+LocatableDiagnostic _withArgumentsUnexpectedToken({required String text}) {
+  return LocatableDiagnosticImpl(diag.unexpectedToken, [text]);
 }
 
 LocatableDiagnostic _withArgumentsUnignorableIgnore({required Object p0}) {
@@ -21515,10 +21548,13 @@ LocatableDiagnostic _withArgumentsUnnecessaryDevDependency({
 }
 
 LocatableDiagnostic _withArgumentsUnnecessaryImport({
-  required String p0,
-  required String p1,
+  required String unnecessaryUri,
+  required String reasonUri,
 }) {
-  return LocatableDiagnosticImpl(diag.unnecessaryImport, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.unnecessaryImport, [
+    unnecessaryUri,
+    reasonUri,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUnnecessaryQuestionMark({
@@ -21731,10 +21767,10 @@ LocatableDiagnostic _withArgumentsWrongNumberOfParametersForOperator({
 }
 
 LocatableDiagnostic _withArgumentsWrongNumberOfParametersForOperatorMinus({
-  required int p0,
+  required int actualCount,
 }) {
   return LocatableDiagnosticImpl(diag.wrongNumberOfParametersForOperatorMinus, [
-    p0,
+    actualCount,
   ]);
 }
 
@@ -21841,27 +21877,33 @@ LocatableDiagnostic _withArgumentsWrongTypeParameterVarianceInSuperinterface({
 }
 
 LocatableDiagnostic _withArgumentsWrongTypeParameterVariancePosition({
-  required Object p0,
-  required Object p1,
-  required Object p2,
+  required String modifier,
+  required String typeParameterName,
+  required String variancePosition,
 }) {
   return LocatableDiagnosticImpl(diag.wrongTypeParameterVariancePosition, [
-    p0,
-    p1,
-    p2,
+    modifier,
+    typeParameterName,
+    variancePosition,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsYieldEachOfInvalidType({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
-  return LocatableDiagnosticImpl(diag.yieldEachOfInvalidType, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.yieldEachOfInvalidType, [
+    actualType,
+    expectedType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsYieldOfInvalidType({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
-  return LocatableDiagnosticImpl(diag.yieldOfInvalidType, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.yieldOfInvalidType, [
+    actualType,
+    expectedType,
+  ]);
 }

@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:yaml/yaml.dart';
 
 class MissingDependencyData {
@@ -119,19 +120,24 @@ class MissingDependencyValidator {
         addDevDeps.add(name);
       }
     }
-    var message = addDeps.isNotEmpty
-        ? "${addDeps.map((s) => "'$s'").join(',')} in 'dependencies'"
-        : '';
-    if (addDevDeps.isNotEmpty) {
-      message = message.isNotEmpty ? '$message,' : message;
-      message =
-          "$message ${addDevDeps.map((s) => "'$s'").join(',')} in 'dev_dependencies'";
-    }
     if (addDeps.isNotEmpty || addDevDeps.isNotEmpty) {
+      var missingMessageParts = <String>[];
+      var fixMessageParts = <String>[];
+      for (var (section, packages) in [
+        ('dependencies', addDeps),
+        ('dev_dependencies', addDevDeps),
+      ]) {
+        if (packages.isEmpty) continue;
+        var names = packages.map((p) => "'$p'").join(', ');
+        missingMessageParts.add(
+          "${'package'.pluralized(packages.length)} $names in '$section'",
+        );
+        fixMessageParts.add("$names to '$section'");
+      }
       var diagnostic = _reportErrorForNode(
         contents.nodes.values.first,
         diag.missingDependency,
-        [message],
+        [missingMessageParts.join(', and '), fixMessageParts.join(', and ')],
         [],
       );
       MissingDependencyData.byDiagnostic[diagnostic] = MissingDependencyData(

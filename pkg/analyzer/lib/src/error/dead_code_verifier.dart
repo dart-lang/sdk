@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 
 /// State information captured by [NullSafetyDeadCodeVerifier.for_conditionEnd]
@@ -376,16 +377,12 @@ class NullSafetyDeadCodeVerifier {
     var verifier = _CatchClausesVerifier(_typeSystem, (
       first,
       last,
-      diagnosticCode,
-      arguments,
+      locatableDiagnostic,
     ) {
       var offset = first.offset;
       var length = last.end - offset;
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: diagnosticCode,
-        arguments: arguments,
+      _diagnosticReporter.report(
+        locatableDiagnostic.atOffset(offset: offset, length: length),
       );
       _deadCatchClauseRanges.add(SourceRange(offset, length));
     }, node.catchClauses);
@@ -524,8 +521,7 @@ class _CatchClausesVerifier {
   final void Function(
     CatchClause first,
     CatchClause last,
-    DiagnosticCode,
-    List<Object> arguments,
+    LocatableDiagnostic locatableDiagnostic,
   )
   _reportDiagnostic;
   final List<CatchClause> catchClauses;
@@ -551,7 +547,6 @@ class _CatchClausesVerifier {
           catchClauses[index + 1],
           catchClauses.last,
           diag.deadCodeCatchFollowingCatch,
-          const [],
         );
         _done = true;
       }
@@ -565,8 +560,10 @@ class _CatchClausesVerifier {
         _reportDiagnostic(
           catchClause,
           catchClauses.last,
-          diag.deadCodeOnCatchSubtype,
-          [currentType, type],
+          diag.deadCodeOnCatchSubtype.withArguments(
+            subtype: currentType,
+            supertype: type,
+          ),
         );
         _done = true;
         return;

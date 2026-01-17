@@ -1108,10 +1108,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         for (var type in signatureTypes) {
           var aliasElement = type?.alias?.element;
           if (aliasElement != null && aliasElement.metadata.hasInternal) {
-            _diagnosticReporter.atNode(
-              node,
-              diag.invalidExportOfInternalElementIndirectly,
-              arguments: [aliasElement.name!, element.displayName],
+            _diagnosticReporter.report(
+              diag.invalidExportOfInternalElementIndirectly
+                  .withArguments(
+                    internalElementName: aliasElement.name!,
+                    exportedElementName: element.displayName,
+                  )
+                  .at(node),
             );
           }
         }

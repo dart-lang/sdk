@@ -376,6 +376,32 @@ export 'src/foo.dart' hide Two;
     );
   }
 
+  void test_indirectlyViaFunction_messageText() async {
+    newFile(testPackageImplementationFilePath, r'''
+import 'package:meta/meta.dart';
+@internal typedef int IntFunc(int x);
+IntFunc func() => (int x) => x;
+''');
+
+    await assertErrorsInCode(
+      r'''
+export 'src/foo.dart' show func;
+''',
+      [
+        error(
+          diag.invalidExportOfInternalElementIndirectly,
+          0,
+          32,
+          messageContains: [
+            "The member 'IntFunc' can't be exported",
+            "indirectly exported as part of the signature of 'func'",
+          ],
+          correctionContains: "Try using a hide clause to hide 'func'",
+        ),
+      ],
+    );
+  }
+
   void test_indirectlyViaFunction_parameter() async {
     newFile(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';

@@ -7,12 +7,12 @@ library;
 
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/return_type_verifier.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:collection/collection.dart';
@@ -201,10 +201,13 @@ class ErrorHandlerVerifier {
     bool checkFirstParameterType = true,
   }) {
     void report() {
-      _diagnosticReporter.atNode(
-        expression,
-        diag.argumentTypeNotAssignableToErrorHandler,
-        arguments: [expressionType, expectedFunctionReturnType],
+      _diagnosticReporter.report(
+        diag.argumentTypeNotAssignableToErrorHandler
+            .withArguments(
+              actualType: expressionType,
+              expectedType: expectedFunctionReturnType,
+            )
+            .at(expression),
       );
     }
 

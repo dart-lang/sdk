@@ -350,10 +350,10 @@ class ElementResolver {
           !element.enclosingElement.constructors.every(
             (constructor) => constructor.isFactory,
           )) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.nonGenerativeConstructor,
-          arguments: [element],
+        _diagnosticReporter.report(
+          diag.nonGenerativeConstructor
+              .withArguments(constructor: element)
+              .at(node),
         );
       }
     }

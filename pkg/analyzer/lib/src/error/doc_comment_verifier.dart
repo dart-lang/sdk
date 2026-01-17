@@ -89,27 +89,27 @@ class DocCommentVerifier {
           arguments: [tag.type.name, required.last.name],
         );
       } else if (gap == 2) {
-        var missingArguments = [
-          required[required.length - 2].name,
-          required.last.name,
-        ];
         _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
           diagnosticCode: diag.docDirectiveMissingTwoArguments,
-          arguments: [tag.type.name, ...missingArguments],
+          arguments: [
+            tag.type.name,
+            required[required.length - 2].name,
+            required.last.name,
+          ],
         );
       } else if (gap == 3) {
-        var missingArguments = [
-          required[required.length - 3].name,
-          required[required.length - 2].name,
-          required.last.name,
-        ];
         _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
           diagnosticCode: diag.docDirectiveMissingThreeArguments,
-          arguments: [tag.type.name, ...missingArguments],
+          arguments: [
+            tag.type.name,
+            required[required.length - 3].name,
+            required[required.length - 2].name,
+            required.last.name,
+          ],
         );
       }
     }
