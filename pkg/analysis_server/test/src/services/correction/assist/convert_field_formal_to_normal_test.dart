@@ -308,4 +308,93 @@ class C {
 }
 ''');
   }
+
+  Future<void> test_privateNamedParameter_optionalNamed() async {
+    await resolveTestCode('''
+class C {
+  int? _foo;
+
+  C({this._f^oo});
+}
+''');
+    await assertHasAssist('''
+class C {
+  int? _foo;
+
+  C({int? foo}) : _foo = foo;
+}
+''');
+  }
+
+  Future<void> test_privateNamedParameter_requiredNamed() async {
+    await resolveTestCode('''
+class C {
+  int _foo;
+
+  C({required this._f^oo});
+}
+''');
+    await assertHasAssist('''
+class C {
+  int _foo;
+
+  C({required int foo}) : _foo = foo;
+}
+''');
+  }
+
+  Future<void> test_privateNamedParameter_explicitType() async {
+    await resolveTestCode('''
+class C {
+  num _foo;
+
+  C({int this._f^oo = 0});
+}
+''');
+    await assertHasAssist('''
+class C {
+  num _foo;
+
+  C({int foo = 0}) : _foo = foo;
+}
+''');
+  }
+
+  Future<void> test_privateNamedParameter_withExistingInitializer() async {
+    await resolveTestCode('''
+class C {
+  int _foo;
+  int _bar;
+
+  C({required this._f^oo, required int bar}) : _bar = bar;
+}
+''');
+    await assertHasAssist('''
+class C {
+  int _foo;
+  int _bar;
+
+  C({required int foo, required int bar}) : _bar = bar, _foo = foo;
+}
+''');
+  }
+
+  Future<void> test_privateNamedParameter_disabled() async {
+    await resolveTestCode('''
+// @dart=3.10
+class C {
+  int? _foo;
+
+  C({this._f^oo});
+}
+''');
+    await assertHasAssist('''
+// @dart=3.10
+class C {
+  int? _foo;
+
+  C({int? _foo}) : _foo = _foo;
+}
+''');
+  }
 }
