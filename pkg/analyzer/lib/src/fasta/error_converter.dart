@@ -148,11 +148,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.invalidCodePoint:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.invalidCodePoint,
-          arguments: ['\\u{...}'],
+        diagnosticReporter?.report(
+          diag.invalidCodePoint
+              .withArguments(escapeSequence: '\\u{...}')
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.invalidModifierOnSetter:
@@ -270,11 +269,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.unexpectedToken:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.unexpectedToken,
-          arguments: [lexeme()],
+        diagnosticReporter?.report(
+          diag.unexpectedToken
+              .withArguments(text: lexeme())
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.unterminatedMultiLineComment:

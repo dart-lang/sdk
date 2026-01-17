@@ -89,10 +89,13 @@ class YieldStatementResolver {
           imposedReturnType,
           strictCasts: _resolver.analysisOptions.strictCasts,
         )) {
-          _diagnosticReporter.atNode(
-            expression,
-            diag.yieldEachOfInvalidType,
-            arguments: [impliedReturnType, imposedReturnType],
+          _diagnosticReporter.report(
+            diag.yieldEachOfInvalidType
+                .withArguments(
+                  actualType: impliedReturnType,
+                  expectedType: imposedReturnType,
+                )
+                .at(expression),
           );
           return;
         }
@@ -109,10 +112,13 @@ class YieldStatementResolver {
             imposedValueType,
             strictCasts: _resolver.analysisOptions.strictCasts,
           )) {
-            _diagnosticReporter.atNode(
-              expression,
-              diag.yieldOfInvalidType,
-              arguments: [expressionType, imposedValueType],
+            _diagnosticReporter.report(
+              diag.yieldOfInvalidType
+                  .withArguments(
+                    actualType: expressionType,
+                    expectedType: imposedValueType,
+                  )
+                  .at(expression),
             );
             return;
           }
@@ -136,10 +142,13 @@ class YieldStatementResolver {
         requiredReturnType,
         strictCasts: _resolver.analysisOptions.strictCasts,
       )) {
-        _diagnosticReporter.atNode(
-          expression,
-          diag.yieldEachOfInvalidType,
-          arguments: [impliedReturnType, requiredReturnType],
+        _diagnosticReporter.report(
+          diag.yieldEachOfInvalidType
+              .withArguments(
+                actualType: impliedReturnType,
+                expectedType: requiredReturnType,
+              )
+              .at(expression),
         );
       }
     }

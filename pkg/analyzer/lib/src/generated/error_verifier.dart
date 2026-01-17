@@ -4422,22 +4422,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         for (var constantName in constantNames) {
           int offset = statement.offset;
           int end = statement.rightParenthesis.end;
-          diagnosticReporter.atOffset(
-            offset: offset,
-            length: end - offset,
-            diagnosticCode: diag.missingEnumConstantInSwitch,
-            arguments: [constantName!],
+          diagnosticReporter.report(
+            diag.missingEnumConstantInSwitch
+                .withArguments(constant: constantName!)
+                .atOffset(offset: offset, length: end - offset),
           );
         }
 
         if (typeSystem.isNullable(expressionType) && !hasCaseNull) {
           int offset = statement.offset;
           int end = statement.rightParenthesis.end;
-          diagnosticReporter.atOffset(
-            offset: offset,
-            length: end - offset,
-            diagnosticCode: diag.missingEnumConstantInSwitch,
-            arguments: ['null'],
+          diagnosticReporter.report(
+            diag.missingEnumConstantInSwitch
+                .withArguments(constant: 'null')
+                .atOffset(offset: offset, length: end - offset),
           );
         }
       }
@@ -5622,10 +5620,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (superUnnamedConstructor.isFactory) {
-      diagnosticReporter.atSourceRange(
-        errorRange,
-        diag.nonGenerativeConstructor,
-        arguments: [superUnnamedConstructor],
+      diagnosticReporter.report(
+        diag.nonGenerativeConstructor
+            .withArguments(constructor: superUnnamedConstructor)
+            .atSourceRange(errorRange),
       );
       return;
     }
@@ -5972,10 +5970,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       return true;
     } else if ("-" == name && numParameters > 1) {
-      diagnosticReporter.atToken(
-        nameToken,
-        diag.wrongNumberOfParametersForOperatorMinus,
-        arguments: [numParameters],
+      diagnosticReporter.report(
+        diag.wrongNumberOfParametersForOperatorMinus
+            .withArguments(actualCount: numParameters)
+            .at(nameToken),
       );
       return true;
     }
@@ -6153,14 +6151,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     SyntacticEntity errorTarget,
   ) {
     if (!variance.greaterThanOrEqual(typeParameter.variance)) {
-      diagnosticReporter.atEntity(
-        errorTarget,
-        diag.wrongTypeParameterVariancePosition,
-        arguments: [
-          typeParameter.variance.keyword,
-          typeParameter.name ?? '',
-          variance.keyword,
-        ],
+      diagnosticReporter.report(
+        diag.wrongTypeParameterVariancePosition
+            .withArguments(
+              modifier: typeParameter.variance.keyword,
+              typeParameterName: typeParameter.name ?? '',
+              variancePosition: variance.keyword,
+            )
+            .at(errorTarget),
       );
     }
   }

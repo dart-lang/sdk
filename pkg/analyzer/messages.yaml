@@ -12992,8 +12992,8 @@ CompileTimeErrorCode:
   nonGenerativeConstructor:
     type: compileTimeError
     parameters:
-      Element p0: the non-generative constructor
-    problemMessage: "The generative constructor '#p0' is expected, but a factory was found."
+      Element constructor: the non-generative constructor
+    problemMessage: "The generative constructor '#constructor' is expected, but a factory was found."
     correctionMessage: Try calling a different constructor of the superclass, or making the called constructor not be a factory constructor.
     hasPublishedDocs: true
     documentation: |-
@@ -19319,9 +19319,9 @@ CompileTimeErrorCode:
   wrongNumberOfParametersForOperatorMinus:
     type: compileTimeError
     parameters:
-      int p0: the number of parameters found in the operator declaration
+      int actualCount: the number of parameters found in the operator declaration
     sharedName: wrongNumberOfParametersForOperator
-    problemMessage: "Operator '-' should declare 0 or 1 parameter, but #p0 found."
+    problemMessage: "Operator '-' should declare 0 or 1 parameter, but #actualCount found."
     hasPublishedDocs: true
     comment: |-
       7.1.1 Operators: It is a compile time error if the arity of the
@@ -19617,10 +19617,10 @@ CompileTimeErrorCode:
   wrongTypeParameterVariancePosition:
     type: compileTimeError
     parameters:
-      Object p0: the variance modifier defined for {0}
-      Object p1: the name of the type parameter
-      Object p2: the variance position that the type parameter {1} is in
-    problemMessage: "The '#p0' type parameter '#p1' can't be used in an '#p2' position."
+      String modifier: the variance modifier
+      String typeParameterName: the name of the type parameter
+      String variancePosition: the variance position that the type parameter is in
+    problemMessage: "The '#modifier' type parameter '#typeParameterName' can't be used in an '#variancePosition' position."
     correctionMessage: "Try removing the type parameter or change the explicit variance modifier declaration for the type parameter to another one of 'in', 'out', or 'inout'."
     hasPublishedDocs: false
     comment: |-
@@ -19692,17 +19692,17 @@ CompileTimeErrorCode:
   yieldEachOfInvalidType:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression after `yield*`
-      Type p1: the return type of the function containing the `yield*`
+      Type actualType: the type of the expression after `yield*`
+      Type expectedType: the return type of the function containing the `yield*`
     sharedName: yieldOfInvalidType
-    problemMessage: "The type '#p0' implied by the 'yield*' expression must be assignable to '#p1'."
+    problemMessage: "The type '#actualType' implied by the 'yield*' expression must be assignable to '#expectedType'."
     hasPublishedDocs: true
   yieldOfInvalidType:
     type: compileTimeError
     parameters:
-      Type p0: the type of the expression after `yield`
-      Type p1: the return type of the function containing the `yield`
-    problemMessage: "A yielded value of type '#p0' must be assignable to '#p1'."
+      Type actualType: the type of the expression after `yield`
+      Type expectedType: the return type of the function containing the `yield`
+    problemMessage: "A yielded value of type '#actualType' must be assignable to '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -22379,8 +22379,8 @@ HintCode:
   deprecatedMemberUse:
     type: hint
     parameters:
-      String p0: the name of the member
-    problemMessage: "'#p0' is deprecated and shouldn't be used."
+      String name: the name of the member
+    problemMessage: "'#name' is deprecated and shouldn't be used."
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
     hasPublishedDocs: true
     documentation: |-
@@ -22407,10 +22407,10 @@ HintCode:
   deprecatedMemberUseWithMessage:
     type: hint
     parameters:
-      String p0: the name of the member
-      String p1: message details
+      String name: the name of the member
+      String details: message details
     sharedName: deprecatedMemberUse
-    problemMessage: "'#p0' is deprecated and shouldn't be used. #p1"
+    problemMessage: "'#name' is deprecated and shouldn't be used. #details"
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
     hasPublishedDocs: true
   divisionOptimization:
@@ -22564,9 +22564,9 @@ HintCode:
   unnecessaryImport:
     type: hint
     parameters:
-      String p0: the URI that is not necessary
-      String p1: the URI that makes it unnecessary
-    problemMessage: "The import of '#p0' is unnecessary because all of the used elements are also provided by the import of '#p1'."
+      String unnecessaryUri: the URI that is not necessary
+      String reasonUri: the URI that makes it unnecessary
+    problemMessage: "The import of '#unnecessaryUri' is unnecessary because all of the used elements are also provided by the import of '#reasonUri'."
     correctionMessage: Try removing the import directive.
     hasPublishedDocs: true
     documentation: |-
@@ -22877,8 +22877,8 @@ ParserErrorCode:
   invalidCodePoint:
     type: syntacticError
     parameters:
-      String p0: the invalid escape sequence
-    problemMessage: "The escape sequence '#p0' isn't a valid code point."
+      String escapeSequence: the invalid escape sequence
+    problemMessage: "The escape sequence '#escapeSequence' isn't a valid code point."
     hasPublishedDocs: false
   invalidCommentReference:
     type: syntacticError
@@ -23262,8 +23262,8 @@ ParserErrorCode:
   unexpectedToken:
     type: syntacticError
     parameters:
-      String p0: the unexpected text that was found
-    problemMessage: "Unexpected text '#p0'."
+      String text: the unexpected text that was found
+    problemMessage: "Unexpected text '#text'."
     correctionMessage: Try removing the text.
     hasPublishedDocs: false
   varClass:
@@ -24520,8 +24520,8 @@ StaticWarningCode:
   missingEnumConstantInSwitch:
     type: staticWarning
     parameters:
-      String p0: the name of the constant that is missing
-    problemMessage: "Missing case clause for '#p0'."
+      String constant: the name of the constant that is missing
+    problemMessage: "Missing case clause for '#constant'."
     correctionMessage: Try adding a case clause for the missing constant, or adding a default clause.
     hasPublishedDocs: true
     documentation: |-
@@ -24717,9 +24717,9 @@ WarningCode:
   argumentTypeNotAssignableToErrorHandler:
     type: staticWarning
     parameters:
-      Type p0: the name of the actual argument type
-      Type p1: the name of the expected function return type
-    problemMessage: "The argument type '#p0' can't be assigned to the parameter type '#p1 Function(Object)' or '#p1 Function(Object, StackTrace)'."
+      Type actualType: the name of the actual argument type
+      Type expectedType: the name of the expected function return type
+    problemMessage: "The argument type '#actualType' can't be assigned to the parameter type '#expectedType Function(Object)' or '#expectedType Function(Object, StackTrace)'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
