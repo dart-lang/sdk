@@ -8173,18 +8173,21 @@ invalidExportOfInternalElement = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the internal element
-/// String p1: the name of the exported element that indirectly exposes the
-///            internal element
+/// String internalElementName: the name of the internal element
+/// String exportedElementName: the name of the exported element that
+///                             indirectly exposes the internal element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String internalElementName,
+    required String exportedElementName,
+  })
 >
 invalidExportOfInternalElementIndirectly = DiagnosticWithArguments(
   name: 'invalid_export_of_internal_element_indirectly',
   problemMessage:
       "The member '{0}' can't be exported as a part of a package's public API, "
       "but is indirectly exported as part of the signature of '{1}'.",
-  correctionMessage: "Try using a hide clause to hide '{0}'.",
+  correctionMessage: "Try using a hide clause to hide '{1}'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'invalid_export_of_internal_element_indirectly',
@@ -19729,12 +19732,12 @@ LocatableDiagnostic _withArgumentsInvalidExportOfInternalElement({
 }
 
 LocatableDiagnostic _withArgumentsInvalidExportOfInternalElementIndirectly({
-  required String p0,
-  required String p1,
+  required String internalElementName,
+  required String exportedElementName,
 }) {
   return LocatableDiagnosticImpl(
     diag.invalidExportOfInternalElementIndirectly,
-    [p0, p1],
+    [internalElementName, exportedElementName],
   );
 }
 

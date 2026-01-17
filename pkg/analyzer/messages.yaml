@@ -26771,10 +26771,10 @@ WarningCode:
   invalidExportOfInternalElementIndirectly:
     type: staticWarning
     parameters:
-      String p0: the name of the internal element
-      String p1: the name of the exported element that indirectly exposes the internal element
-    problemMessage: "The member '#p0' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of '#p1'."
-    correctionMessage: "Try using a hide clause to hide '#p0'."
+      String internalElementName: the name of the internal element
+      String exportedElementName: the name of the exported element that indirectly exposes the internal element
+    problemMessage: "The member '#internalElementName' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of '#exportedElementName'."
+    correctionMessage: "Try using a hide clause to hide '#exportedElementName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
