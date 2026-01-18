@@ -393,6 +393,11 @@ class LibraryManifestBuilder {
         return;
       }
 
+      // Skip conflicts.
+      if (conflictingTopLevelElements.contains(element)) {
+        return;
+      }
+
       // SAFETY: all items are already created.
       var item = declaredItems[element] as ClassItem;
 
