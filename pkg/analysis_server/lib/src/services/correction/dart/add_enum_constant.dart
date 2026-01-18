@@ -51,43 +51,36 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
     var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
     );
-    if (targetDeclarationResult == null) return;
-    var targetNode = targetDeclarationResult.node;
+    var targetNode = targetDeclarationResult?.node;
     if (targetNode is! EnumDeclaration) return;
 
-    var targetUnit = targetDeclarationResult.resolvedUnit;
-    if (targetUnit == null) return;
+    var constructors = targetElement.constructors
+        .where((c) => !c.isFactory)
+        .toList();
+    if (constructors.any((c) => c.formalParameters.isNotEmpty)) return;
 
-    var targetSource = targetFragment.libraryFragment.source;
-    var targetFile = targetSource.fullName;
-
-    var constructors = targetNode.body.members
-        .whereType<ConstructorDeclaration>()
-        .where((con) => con.factoryKeyword == null);
-
-    if (constructors.any((con) => con.parameters.parameters.isNotEmpty)) {
-      return;
+    String? constructorName;
+    if (constructors.isNotEmpty) {
+      if (constructors.length > 1) return;
+      if (constructors.first.name != 'new') {
+        constructorName = constructors.first.name;
+      }
     }
 
-    var length = constructors.length;
-    if (length > 1) return;
-
-    var constructorName = length == 1 ? constructors.first.name?.lexeme : null;
-    var addition = constructorName != null ? '.$constructorName()' : '';
-
     var lastConstant = targetNode.body.constants.lastOrNull;
+    var targetFile = targetFragment.libraryFragment.source.fullName;
 
     await builder.addDartFileEdit(targetFile, (builder) {
       if (lastConstant != null) {
         builder.addInsertion(lastConstant.end, (builder) {
           builder.write(', ');
           builder.write(_constantName);
-          builder.write(addition);
+          if (constructorName != null) builder.write('.$constructorName()');
         });
       } else {
         builder.addInsertion(targetNode.body.rightBracket.offset, (builder) {
           builder.write(_constantName);
-          builder.write(addition);
+          if (constructorName != null) builder.write('.$constructorName()');
         });
       }
     });
