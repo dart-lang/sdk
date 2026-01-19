@@ -1533,25 +1533,23 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   void _genConditionAndJumpIf(Expression condition, bool value, Label dest) {
+    final savedSourcePosition = asm.currentSourcePosition;
+    _recordSourcePosition(condition.fileOffset);
     final bool? constantValue = _constantConditionValue(condition);
     if (constantValue != null) {
       if (constantValue == value) {
-        _emitLocalSourcePosition(condition.fileOffset);
+        _emitSourcePosition();
         asm.emitJump(dest);
       }
-      return;
-    }
-    if (condition is EqualsNull) {
+    } else if (condition is EqualsNull) {
       _generateNode(condition.expression);
-      _emitLocalSourcePosition(condition.fileOffset);
+      _emitSourcePosition();
       if (value) {
         asm.emitJumpIfNull(dest);
       } else {
         asm.emitJumpIfNotNull(dest);
       }
-      return;
-    }
-    if (condition is Not) {
+    } else if (condition is Not) {
       _genConditionAndJumpIf(condition.operand, !value, dest);
     } else if (condition is LogicalExpression) {
       final isOR = (condition.operatorEnum == LogicalExpressionOperator.OR);
@@ -1573,13 +1571,14 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (negated) {
         value = !value;
       }
-      _emitLocalSourcePosition(condition.fileOffset);
+      _emitSourcePosition();
       if (value) {
         asm.emitJumpIfTrue(dest);
       } else {
         asm.emitJumpIfFalse(dest);
       }
     }
+    asm.currentSourcePosition = savedSourcePosition;
   }
 
   int _getDefaultParamConstIndex(VariableDeclaration param) {
@@ -2637,20 +2636,25 @@ class BytecodeGenerator extends RecursiveVisitor {
     _genPushInstantiatorTypeArguments();
     asm.emitAllocateClosure();
 
-    final int temp = locals.tempIndexInFrame(node);
-    asm.emitStoreLocal(temp);
+    final bool storeFunctionTAV = locals.hasFunctionTypeArgsVar;
+    final bool setEmptyDelayedTAV = function.typeParameters.isNotEmpty;
 
-    if (locals.hasFunctionTypeArgsVar) {
-      asm.emitPush(temp);
-      _genPushFunctionTypeArguments();
-      asm.emitStoreFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
-    }
+    if (storeFunctionTAV || setEmptyDelayedTAV) {
+      final int temp = locals.tempIndexInFrame(node);
+      asm.emitStoreLocal(temp);
 
-    // Delayed type arguments are only used by generic closures.
-    if (function.typeParameters.isNotEmpty) {
-      asm.emitPush(temp);
-      asm.emitPushConstant(cp.addEmptyTypeArguments());
-      asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
+      if (storeFunctionTAV) {
+        asm.emitPush(temp);
+        _genPushFunctionTypeArguments();
+        asm.emitStoreFieldTOS(
+            cp.addInstanceField(closureFunctionTypeArguments));
+      }
+
+      if (setEmptyDelayedTAV) {
+        asm.emitPush(temp);
+        asm.emitPushConstant(cp.addEmptyTypeArguments());
+        asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
+      }
     }
   }
 
@@ -2770,24 +2774,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   // Emits a source position entry and/or debugger stop as appropriate.
   void _emitSourcePosition() {
-    if (options.emitSourcePositions) {
-      asm.emitSourcePosition();
-    }
+    asm.emitSourcePosition();
     if (options.emitDebuggerStops &&
         (asm.currentSourcePositionFlags & SourcePositions.syntheticFlag) == 0) {
       asm.emitDebugCheck();
-    }
-  }
-
-  // Records the given file offset as the current source position and
-  // emits a source position entry and/or debugger stop as appropriate,
-  // restoring the current source position afterwards.
-  void _emitLocalSourcePosition(int fileOffset) {
-    if (fileOffset != TreeNode.noOffset) {
-      final savedSourcePosition = asm.currentSourcePosition;
-      _recordSourcePosition(fileOffset);
-      _emitSourcePosition();
-      asm.currentSourcePosition = savedSourcePosition;
     }
   }
 
@@ -2798,7 +2788,6 @@ class BytecodeGenerator extends RecursiveVisitor {
   /// the last finally block.
   void _generateNonLocalControlTransfer(
       TreeNode from, TreeNode to, GenerateContinuation continuation) {
-    _emitLocalSourcePosition(from.fileOffset);
     List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(from, to);
     _addFinallyBlocks(tryFinallyBlocks, continuation);
   }
@@ -3737,31 +3726,44 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitVariableSet(VariableSet node) {
     final v = node.variable;
-    final bool hasResult = !isExpressionWithoutResult(node);
-    final bool isLateFinal = v.isLate && v.isFinal;
 
-    if (!isLateFinal) {
-      _genPushContextIfCaptured(v);
-    }
-
+    _genPushContextIfCaptured(v);
     _generateNode(node.value);
 
+    // Wrap the set in an already initialized check for late final variables.
+    final bool isLateFinal = v.isLate && v.isFinal;
+    final Label error = new Label();
+    if (isLateFinal) {
+      _genLoadVar(v);
+      asm.emitJumpIfInitialized(error);
+    }
+
+    // _genStoreVar pops the stored value off the stack. If the result isn't
+    // used, this is fine. If it is used but the variable isn't captured, then
+    // the generator uses StoreLocal instead of calling _genStoreVar. Otherwise,
+    // a temporary must be used to save and restore the value (as there is no
+    // keep-on-stack equivalent of StoreContextVar).
+    final bool hasResult = !isExpressionWithoutResult(node);
+    final bool isCaptured = locals.isCaptured(v);
+    final bool storeResultInTemp = hasResult && isCaptured;
+
+    if (storeResultInTemp) {
+      asm.emitStoreLocal(locals.tempIndexInFrame(node));
+    }
     if (!v.isSynthesized) {
       _emitSourcePosition();
     }
+    if (hasResult && !isCaptured) {
+      asm.emitStoreLocal(locals.getVarIndexInFrame(v));
+    } else {
+      _genStoreVar(v);
+    }
+    if (storeResultInTemp) {
+      asm.emitPush(locals.tempIndexInFrame(node));
+    }
 
     if (isLateFinal) {
-      final int temp = locals.tempIndexInFrame(node);
-      asm.emitPopLocal(temp);
-
-      final Label error = new Label();
       final Label done = new Label();
-      _genLoadVar(v);
-      asm.emitJumpIfInitialized(error);
-
-      _genPushContextIfCaptured(v);
-      asm.emitPush(temp);
-      _genStoreVar(v);
       asm.emitJump(done);
 
       asm.bind(error);
@@ -3771,28 +3773,6 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitDrop1();
 
       asm.bind(done);
-
-      if (hasResult) {
-        asm.emitPush(temp);
-      }
-    } else if (locals.isCaptured(v)) {
-      final int temp = locals.tempIndexInFrame(node);
-      if (hasResult) {
-        asm.emitStoreLocal(temp);
-      }
-
-      _genStoreVar(v);
-
-      if (hasResult) {
-        asm.emitPush(temp);
-      }
-    } else {
-      final int localIndex = locals.getVarIndexInFrame(v);
-      if (hasResult) {
-        asm.emitStoreLocal(localIndex);
-      } else {
-        asm.emitPopLocal(localIndex);
-      }
     }
   }
 
@@ -3887,6 +3867,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _generateNonLocalControlTransfer(node, node.target, () {
       _genUnwindContext(targetContextLevel);
+      _emitSourcePosition();
       asm.emitJump(targetLabel);
     });
   }
@@ -3899,6 +3880,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _generateNonLocalControlTransfer(node, node.target.parent!, () {
       _genUnwindContext(targetContextLevel);
+      _emitSourcePosition();
       asm.emitJump(targetLabel);
     });
   }
@@ -3991,9 +3973,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
-    _emitSourcePosition();
     _genPushContextIfCaptured(node.variable);
     _genClosure(node, node.variable.name!, node.function);
+    _emitSourcePosition();
     _genStoreVar(node.variable);
   }
 
@@ -4394,8 +4376,9 @@ class BytecodeGenerator extends RecursiveVisitor {
         asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
       }
       if (emitStore) {
-        // Record the source position at the start of the bytecode generated
-        // for storing the variable.
+        // Record the source position of the declaration at the start of
+        // the generated bytecode since debugger tests expect to pause
+        // at the declaration prior to running the initializer (if any).
         if (initializer != null) {
           _recordSourcePosition(node.fileEqualsOffset);
         }
