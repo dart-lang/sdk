@@ -23,3 +23,4 @@ const soundNullSafetyOption = 'sound-null-safety';
 const aotOption = 'aot';
 const tfaOption = 'tfa';
 const verbosityOption = 'verbosity';
+const nativeAssetsOption = 'native-assets';

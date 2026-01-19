@@ -681,6 +681,8 @@ class ResidentFrontendServer {
         for (String define in request['define']) define,
       if (request['enable-experiment'] != null)
         for (String experiment in request['enable-experiment']) experiment,
+      if (request['native-assets'] != null)
+        '--native-assets=${request['native-assets']}',
     ]);
 
     for (final String option in overrides.options) {
@@ -714,22 +716,24 @@ class ResidentFrontendServer {
   /// Used to create compile requests for the ResidentFrontendServer.
   /// Returns a JSON string that the resident compiler will be able to
   /// interpret.
-  static String createCompileJSON(
-      {required String executable,
-      String? packages,
-      required String outputDill,
-      bool? supportMirrors,
-      bool? enableAsserts,
-      bool? soundNullSafety,
-      String? verbosity,
-      bool? aot,
-      bool? tfa,
-      bool? rta,
-      bool? treeShakeWriteOnlyFields,
-      bool? protobufTreeShakerV2,
-      List<String>? define,
-      List<String>? enableExperiment,
-      bool verbose = false}) {
+  static String createCompileJSON({
+    required String executable,
+    String? packages,
+    required String outputDill,
+    bool? supportMirrors,
+    bool? enableAsserts,
+    bool? soundNullSafety,
+    String? verbosity,
+    bool? aot,
+    bool? tfa,
+    bool? rta,
+    bool? treeShakeWriteOnlyFields,
+    bool? protobufTreeShakerV2,
+    List<String>? define,
+    List<String>? enableExperiment,
+    bool verbose = false,
+    String? nativeAssetsYaml,
+  }) {
     return jsonEncode(<String, Object>{
       "command": "compile",
       "executable": executable,
@@ -748,6 +752,7 @@ class ResidentFrontendServer {
         "tree-shaker-write-only-fields": true,
       if (verbosity != null) "verbosity": verbosity,
       "verbose": verbose,
+      if (nativeAssetsYaml != null) "native-assets": nativeAssetsYaml,
     });
   }
 }

@@ -25,6 +25,7 @@ typedef CompileRequestGeneratorCallback = String Function({
   required String outputDill,
   required ArgResults args,
   String? packages,
+  String? nativeAssetsYaml,
 });
 
 /// Uses the resident frontend compiler to compute a kernel file for
@@ -51,6 +52,7 @@ Future<DartExecutableWithPackageConfig> generateKernel(
   CompileRequestGeneratorCallback compileRequestGenerator, {
   required bool quiet,
   bool aot = false,
+  String? nativeAssetsYaml,
 }) async {
   // Locates the package_config.json and cached kernel file, makes sure the
   // resident frontend server is up and running, and computes a kernel.
@@ -76,6 +78,7 @@ Future<DartExecutableWithPackageConfig> generateKernel(
         outputDill: cachedDillPath,
         packages: packageConfig,
         args: args,
+        nativeAssetsYaml: nativeAssetsYaml,
       ),
       serverInfoFile,
     );
