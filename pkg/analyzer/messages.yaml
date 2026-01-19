@@ -3314,8 +3314,8 @@ CompileTimeErrorCode:
   constConstructorWithMixinWithField:
     type: compileTimeError
     parameters:
-      String p0: the name of the instance field.
-    problemMessage: "This constructor can't be declared 'const' because a mixin adds the instance field: #p0."
+      String fieldName: the name of the instance field.
+    problemMessage: "This constructor can't be declared 'const' because a mixin adds the instance field: #fieldName."
     correctionMessage: "Try removing the 'const' keyword or removing the 'with' clause from the class declaration, or removing the field from the mixin class."
     hasPublishedDocs: false
     comment: |-
@@ -3331,9 +3331,9 @@ CompileTimeErrorCode:
   constConstructorWithMixinWithFields:
     type: compileTimeError
     parameters:
-      String p0: the names of the instance fields.
+      String fieldNames: the names of the instance fields.
     sharedName: constConstructorWithMixinWithField
-    problemMessage: "This constructor can't be declared 'const' because the mixins add the instance fields: #p0."
+    problemMessage: "This constructor can't be declared 'const' because the mixins add the instance fields: #fieldNames."
     correctionMessage: "Try removing the 'const' keyword or removing the 'with' clause from the class declaration, or removing the fields from the mixin classes."
     hasPublishedDocs: false
     comment: |-

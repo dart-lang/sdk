@@ -2197,9 +2197,9 @@ constConstructorWithFieldInitializedByNonConst = DiagnosticWithArguments(
 /// also a const constructor.
 ///
 /// Parameters:
-/// String p0: the name of the instance field.
+/// String fieldName: the name of the instance field.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String fieldName})
 >
 constConstructorWithMixinWithField = DiagnosticWithArguments(
   name: 'const_constructor_with_mixin_with_field',
@@ -2226,9 +2226,9 @@ constConstructorWithMixinWithField = DiagnosticWithArguments(
 /// also a const constructor.
 ///
 /// Parameters:
-/// String p0: the names of the instance fields.
+/// String fieldNames: the names of the instance fields.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String fieldNames})
 >
 constConstructorWithMixinWithFields = DiagnosticWithArguments(
   name: 'const_constructor_with_mixin_with_field',
@@ -18602,16 +18602,18 @@ _withArgumentsConstConstructorWithFieldInitializedByNonConst({
 }
 
 LocatableDiagnostic _withArgumentsConstConstructorWithMixinWithField({
-  required String p0,
+  required String fieldName,
 }) {
-  return LocatableDiagnosticImpl(diag.constConstructorWithMixinWithField, [p0]);
+  return LocatableDiagnosticImpl(diag.constConstructorWithMixinWithField, [
+    fieldName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConstConstructorWithMixinWithFields({
-  required String p0,
+  required String fieldNames,
 }) {
   return LocatableDiagnosticImpl(diag.constConstructorWithMixinWithFields, [
-    p0,
+    fieldNames,
   ]);
 }
 
