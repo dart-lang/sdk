@@ -26728,9 +26728,9 @@ WarningCode:
   invalidExportOfInternalElement:
     type: staticWarning
     parameters:
-      String p0: the name of the element
-    problemMessage: "The member '#p0' can't be exported as a part of a package's public API."
-    correctionMessage: "Try using a hide clause to hide '#p0'."
+      String name: the name of the element
+    problemMessage: "The member '#name' can't be exported as a part of a package's public API."
+    correctionMessage: "Try using a hide clause to hide '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -26817,8 +26817,8 @@ WarningCode:
   invalidFactoryMethodDecl:
     type: staticWarning
     parameters:
-      String p0: The name of the method
-    problemMessage: "Factory method '#p0' must have a return type."
+      String name: The name of the method
+    problemMessage: "Factory method '#name' must have a return type."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -26860,8 +26860,8 @@ WarningCode:
   invalidFactoryMethodImpl:
     type: staticWarning
     parameters:
-      String p0: the name of the method
-    problemMessage: "Factory method '#p0' doesn't return a newly allocated object."
+      String name: the name of the method
+    problemMessage: "Factory method '#name' doesn't return a newly allocated object."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -26962,10 +26962,10 @@ WarningCode:
   invalidLanguageVersionOverrideGreater:
     type: staticWarning
     parameters:
-      Object p0: the latest major version
-      Object p1: the latest minor version
+      Object latestMajor: the latest major version
+      Object latestMinor: the latest minor version
     sharedName: invalidLanguageVersionOverride
-    problemMessage: "The language version override can't specify a version greater than the latest known language version: #p0.#p1."
+    problemMessage: "The language version override can't specify a version greater than the latest known language version: #latestMajor.#latestMinor."
     correctionMessage: Try removing the language version override.
     hasPublishedDocs: true
   invalidLanguageVersionOverrideAtSign:
@@ -27144,9 +27144,9 @@ WarningCode:
   invalidOverrideOfNonVirtualMember:
     type: staticWarning
     parameters:
-      String p0: the name of the member
-      String p1: the name of the defining class
-    problemMessage: "The member '#p0' is declared non-virtual in '#p1' and can't be overridden in subclasses."
+      String memberName: the name of the member
+      String definingClass: the name of the defining class
+    problemMessage: "The member '#memberName' is declared non-virtual in '#definingClass' and can't be overridden in subclasses."
     hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where an instance member annotated with
@@ -27210,9 +27210,9 @@ WarningCode:
   invalidUseOfDoNotSubmitMember:
     type: staticWarning
     parameters:
-      String p0: the name of the member
-    problemMessage: "Uses of '#p0' should not be submitted to source control."
-    correctionMessage: "Try removing the reference to '#p0'."
+      String name: the name of the member
+    problemMessage: "Uses of '#name' should not be submitted to source control."
+    correctionMessage: "Try removing the reference to '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -27267,8 +27267,8 @@ WarningCode:
   invalidUseOfInternalMember:
     type: staticWarning
     parameters:
-      String p0: the name of the member
-    problemMessage: "The member '#p0' can only be used within its package."
+      String name: the name of the member
+    problemMessage: "The member '#name' can only be used within its package."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -27305,9 +27305,9 @@ WarningCode:
   invalidUseOfProtectedMember:
     type: staticWarning
     parameters:
-      String p0: the name of the member
-      String p1: the name of the defining class
-    problemMessage: "The member '#p0' can only be used within instance members of subclasses of '#p1'."
+      String memberName: the name of the member
+      String definingClass: the name of the defining class
+    problemMessage: "The member '#memberName' can only be used within instance members of subclasses of '#definingClass'."
     hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where a member annotated with
@@ -27356,8 +27356,8 @@ WarningCode:
   invalidUseOfVisibleForOverridingMember:
     type: staticWarning
     parameters:
-      String p0: the name of the member
-    problemMessage: "The member '#p0' can only be used for overriding."
+      String name: the name of the member
+    problemMessage: "The member '#name' can only be used for overriding."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -27401,9 +27401,9 @@ WarningCode:
   invalidUseOfVisibleForTemplateMember:
     type: staticWarning
     parameters:
-      String p0: the name of the member
-      Uri p1: the name of the defining class
-    problemMessage: "The member '#p0' can only be used within '#p1' or a template library."
+      String memberName: the name of the member
+      Uri uri: the uri of the file containing the defining class
+    problemMessage: "The member '#memberName' can only be used within '#uri' or a template library."
     hasPublishedDocs: false
     comment: |-
       This warning is generated anywhere where a member annotated with
@@ -27411,9 +27411,9 @@ WarningCode:
   invalidUseOfVisibleForTestingMember:
     type: staticWarning
     parameters:
-      String p0: the name of the member
-      Uri p1: the name of the defining class
-    problemMessage: "The member '#p0' can only be used within '#p1' or a test."
+      String memberName: the name of the member
+      Uri uri: the uri of the file containing the defining class
+    problemMessage: "The member '#memberName' can only be used within '#uri' or a test."
     hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where a member annotated with
@@ -27473,9 +27473,9 @@ WarningCode:
   invalidVisibilityAnnotation:
     type: staticWarning
     parameters:
-      String p0: the name of the member
-      String p1: the name of the annotation
-    problemMessage: "The member '#p0' is annotated with '#p1', but this annotation is only meaningful on declarations of public members."
+      String memberName: the name of the member
+      String annotationName: the name of the annotation
+    problemMessage: "The member '#memberName' is annotated with '#annotationName', but this annotation is only meaningful on declarations of public members."
     hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where a private declaration is
@@ -27622,10 +27622,10 @@ WarningCode:
   returnTypeInvalidForCatchError:
     type: staticWarning
     parameters:
-      Type p0: the return type of the function
-      Type p1: the expected return type as defined by the type of the Future
+      Type actualType: the return type of the function
+      Type expectedType: the expected return type as defined by the type of the Future
     sharedName: invalidReturnTypeForCatchError
-    problemMessage: "The return type '#p0' isn't assignable to '#p1', as required by 'Future.catchError'."
+    problemMessage: "The return type '#actualType' isn't assignable to '#expectedType', as required by 'Future.catchError'."
     hasPublishedDocs: true
   returnOfInvalidTypeFromCatchError:
     type: staticWarning

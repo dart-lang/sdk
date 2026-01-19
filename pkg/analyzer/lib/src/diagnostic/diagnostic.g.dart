@@ -8174,9 +8174,9 @@ invalidExceptionValue = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the element
+/// String name: the name of the element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 invalidExportOfInternalElement = DiagnosticWithArguments(
   name: 'invalid_export_of_internal_element',
@@ -8228,9 +8228,9 @@ invalidExtensionArgumentCount = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: The name of the method
+/// String name: The name of the method
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 invalidFactoryMethodDecl = DiagnosticWithArguments(
   name: 'invalid_factory_method_decl',
@@ -8243,9 +8243,9 @@ invalidFactoryMethodDecl = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the method
+/// String name: the name of the method
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 invalidFactoryMethodImpl = DiagnosticWithArguments(
   name: 'invalid_factory_method_impl',
@@ -8526,10 +8526,13 @@ invalidLanguageVersionOverrideEquals = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Object p0: the latest major version
-/// Object p1: the latest minor version
+/// Object latestMajor: the latest major version
+/// Object latestMinor: the latest minor version
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
+  LocatableDiagnostic Function({
+    required Object latestMajor,
+    required Object latestMinor,
+  })
 >
 invalidLanguageVersionOverrideGreater = DiagnosticWithArguments(
   name: 'invalid_language_version_override',
@@ -8902,10 +8905,13 @@ invalidOverride = DiagnosticWithArguments(
 /// `@nonVirtual` is overridden in a subclass.
 ///
 /// Parameters:
-/// String p0: the name of the member
-/// String p1: the name of the defining class
+/// String memberName: the name of the member
+/// String definingClass: the name of the defining class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String memberName,
+    required String definingClass,
+  })
 >
 invalidOverrideOfNonVirtualMember = DiagnosticWithArguments(
   name: 'invalid_override_of_non_virtual_member',
@@ -9252,9 +9258,9 @@ const DiagnosticCode invalidUseOfCovariantInExtension =
     );
 
 /// Parameters:
-/// String p0: the name of the member
+/// String name: the name of the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 invalidUseOfDoNotSubmitMember = DiagnosticWithArguments(
   name: 'invalid_use_of_do_not_submit_member',
@@ -9281,9 +9287,9 @@ invalidUseOfIdentifierAugmented = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the member
+/// String name: the name of the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 invalidUseOfInternalMember = DiagnosticWithArguments(
   name: 'invalid_use_of_internal_member',
@@ -9312,10 +9318,13 @@ const DiagnosticWithoutArguments invalidUseOfNullValue =
 /// `@protected` is used outside of an instance member of a subclass.
 ///
 /// Parameters:
-/// String p0: the name of the member
-/// String p1: the name of the defining class
+/// String memberName: the name of the member
+/// String definingClass: the name of the defining class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String memberName,
+    required String definingClass,
+  })
 >
 invalidUseOfProtectedMember = DiagnosticWithArguments(
   name: 'invalid_use_of_protected_member',
@@ -9330,9 +9339,9 @@ invalidUseOfProtectedMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the member
+/// String name: the name of the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 invalidUseOfVisibleForOverridingMember = DiagnosticWithArguments(
   name: 'invalid_use_of_visible_for_overriding_member',
@@ -9348,10 +9357,10 @@ invalidUseOfVisibleForOverridingMember = DiagnosticWithArguments(
 /// `@visibleForTemplate` is used outside of a "template" Dart file.
 ///
 /// Parameters:
-/// String p0: the name of the member
-/// Uri p1: the name of the defining class
+/// String memberName: the name of the member
+/// Uri uri: the uri of the file containing the defining class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required Uri p1})
+  LocatableDiagnostic Function({required String memberName, required Uri uri})
 >
 invalidUseOfVisibleForTemplateMember = DiagnosticWithArguments(
   name: 'invalid_use_of_visible_for_template_member',
@@ -9367,10 +9376,10 @@ invalidUseOfVisibleForTemplateMember = DiagnosticWithArguments(
 /// `@visibleForTesting` is used outside the defining library, or a test.
 ///
 /// Parameters:
-/// String p0: the name of the member
-/// Uri p1: the name of the defining class
+/// String memberName: the name of the member
+/// Uri uri: the uri of the file containing the defining class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required Uri p1})
+  LocatableDiagnostic Function({required String memberName, required Uri uri})
 >
 invalidUseOfVisibleForTestingMember = DiagnosticWithArguments(
   name: 'invalid_use_of_visible_for_testing_member',
@@ -9386,10 +9395,13 @@ invalidUseOfVisibleForTestingMember = DiagnosticWithArguments(
 /// annotated with `@visibleForTemplate` or `@visibleForTesting`.
 ///
 /// Parameters:
-/// String p0: the name of the member
-/// String p1: the name of the annotation
+/// String memberName: the name of the member
+/// String annotationName: the name of the annotation
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String memberName,
+    required String annotationName,
+  })
 >
 invalidVisibilityAnnotation = DiagnosticWithArguments(
   name: 'invalid_visibility_annotation',
@@ -14625,10 +14637,14 @@ returnOfInvalidTypeFromMethod = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the return type of the function
-/// Type p1: the expected return type as defined by the type of the Future
+/// Type actualType: the return type of the function
+/// Type expectedType: the expected return type as defined by the type of the
+///                    Future
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 returnTypeInvalidForCatchError = DiagnosticWithArguments(
   name: 'invalid_return_type_for_catch_error',
@@ -19775,9 +19791,9 @@ LocatableDiagnostic _withArgumentsInvalidExceptionValue({
 }
 
 LocatableDiagnostic _withArgumentsInvalidExportOfInternalElement({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidExportOfInternalElement, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidExportOfInternalElement, [name]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidExportOfInternalElementIndirectly({
@@ -19791,15 +19807,15 @@ LocatableDiagnostic _withArgumentsInvalidExportOfInternalElementIndirectly({
 }
 
 LocatableDiagnostic _withArgumentsInvalidFactoryMethodDecl({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidFactoryMethodDecl, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidFactoryMethodDecl, [name]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidFactoryMethodImpl({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidFactoryMethodImpl, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidFactoryMethodImpl, [name]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidFieldTypeInStruct({
@@ -19841,12 +19857,12 @@ LocatableDiagnostic _withArgumentsInvalidImplementationOverrideSetter({
 }
 
 LocatableDiagnostic _withArgumentsInvalidLanguageVersionOverrideGreater({
-  required Object p0,
-  required Object p1,
+  required Object latestMajor,
+  required Object latestMinor,
 }) {
   return LocatableDiagnosticImpl(diag.invalidLanguageVersionOverrideGreater, [
-    p0,
-    p1,
+    latestMajor,
+    latestMinor,
   ]);
 }
 
@@ -19909,12 +19925,12 @@ LocatableDiagnostic _withArgumentsInvalidOverride({
 }
 
 LocatableDiagnostic _withArgumentsInvalidOverrideOfNonVirtualMember({
-  required String p0,
-  required String p1,
+  required String memberName,
+  required String definingClass,
 }) {
   return LocatableDiagnosticImpl(diag.invalidOverrideOfNonVirtualMember, [
-    p0,
-    p1,
+    memberName,
+    definingClass,
   ]);
 }
 
@@ -19969,57 +19985,63 @@ LocatableDiagnostic _withArgumentsInvalidUri({required String uri}) {
 }
 
 LocatableDiagnostic _withArgumentsInvalidUseOfDoNotSubmitMember({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidUseOfDoNotSubmitMember, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidUseOfDoNotSubmitMember, [name]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidUseOfInternalMember({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidUseOfInternalMember, [p0]);
+  return LocatableDiagnosticImpl(diag.invalidUseOfInternalMember, [name]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidUseOfProtectedMember({
-  required String p0,
-  required String p1,
+  required String memberName,
+  required String definingClass,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidUseOfProtectedMember, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.invalidUseOfProtectedMember, [
+    memberName,
+    definingClass,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidUseOfVisibleForOverridingMember({
-  required String p0,
+  required String name,
 }) {
   return LocatableDiagnosticImpl(diag.invalidUseOfVisibleForOverridingMember, [
-    p0,
+    name,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidUseOfVisibleForTemplateMember({
-  required String p0,
-  required Uri p1,
+  required String memberName,
+  required Uri uri,
 }) {
   return LocatableDiagnosticImpl(diag.invalidUseOfVisibleForTemplateMember, [
-    p0,
-    p1,
+    memberName,
+    uri,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidUseOfVisibleForTestingMember({
-  required String p0,
-  required Uri p1,
+  required String memberName,
+  required Uri uri,
 }) {
   return LocatableDiagnosticImpl(diag.invalidUseOfVisibleForTestingMember, [
-    p0,
-    p1,
+    memberName,
+    uri,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidVisibilityAnnotation({
-  required String p0,
-  required String p1,
+  required String memberName,
+  required String annotationName,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidVisibilityAnnotation, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.invalidVisibilityAnnotation, [
+    memberName,
+    annotationName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidWidgetPreviewPrivateArgument({
@@ -21099,10 +21121,13 @@ LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromMethod({
 }
 
 LocatableDiagnostic _withArgumentsReturnTypeInvalidForCatchError({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
-  return LocatableDiagnosticImpl(diag.returnTypeInvalidForCatchError, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.returnTypeInvalidForCatchError, [
+    actualType,
+    expectedType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsSdkVersionSince({

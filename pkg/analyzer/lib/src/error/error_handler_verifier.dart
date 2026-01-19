@@ -293,10 +293,13 @@ class ErrorHandlerVerifier {
       expectedType,
       strictCasts: _strictCasts,
     )) {
-      _diagnosticReporter.atNode(
-        callback,
-        diag.returnTypeInvalidForCatchError,
-        arguments: [functionReturnType, expectedType],
+      _diagnosticReporter.report(
+        diag.returnTypeInvalidForCatchError
+            .withArguments(
+              actualType: functionReturnType,
+              expectedType: expectedType,
+            )
+            .at(callback),
       );
     }
   }

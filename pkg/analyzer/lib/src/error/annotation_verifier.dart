@@ -289,10 +289,10 @@ class AnnotationVerifier {
     }
     var returnType = parent.returnType?.type;
     if (returnType is VoidType) {
-      _diagnosticReporter.atToken(
-        parent.name,
-        diag.invalidFactoryMethodDecl,
-        arguments: [parent.name.lexeme],
+      _diagnosticReporter.report(
+        diag.invalidFactoryMethodDecl
+            .withArguments(name: parent.name.lexeme)
+            .at(parent.name),
       );
       return;
     }
@@ -319,10 +319,10 @@ class AnnotationVerifier {
       }
     }
 
-    _diagnosticReporter.atToken(
-      parent.name,
-      diag.invalidFactoryMethodImpl,
-      arguments: [parent.name.lexeme],
+    _diagnosticReporter.report(
+      diag.invalidFactoryMethodImpl
+          .withArguments(name: parent.name.lexeme)
+          .at(parent.name),
     );
   }
 
@@ -545,10 +545,10 @@ class AnnotationVerifier {
     void reportInvalidAnnotation(String name) {
       // This method is only called on named elements, so it is safe to
       // assume that `declaredElement.name` is non-`null`.
-      _diagnosticReporter.atNode(
-        node.name,
-        diag.invalidVisibilityAnnotation,
-        arguments: [name, node.name.name],
+      _diagnosticReporter.report(
+        diag.invalidVisibilityAnnotation
+            .withArguments(memberName: name, annotationName: node.name.name)
+            .at(node.name),
       );
     }
 
