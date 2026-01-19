@@ -395,10 +395,10 @@ class AnnotationVerifier {
         var kindNames = kinds.map((kind) => kind.displayString).toList()
           ..sort();
         var validKinds = kindNames.commaSeparatedWithOr;
-        _diagnosticReporter.atNode(
-          node.name,
-          diag.invalidAnnotationTarget,
-          arguments: [name!, validKinds],
+        _diagnosticReporter.report(
+          diag.invalidAnnotationTarget
+              .withArguments(annotationName: name!, validTargets: validKinds)
+              .at(node.name),
         );
         return;
       }
@@ -441,10 +441,13 @@ class AnnotationVerifier {
     if (parent2 is! BlockClassBody ||
         parent3 is! ExtensionTypeDeclaration ||
         parent is MethodDeclaration && parent.isStatic) {
-      _diagnosticReporter.atNode(
-        node.name,
-        diag.invalidAnnotationTarget,
-        arguments: [node.name.name, 'instance members of extension types'],
+      _diagnosticReporter.report(
+        diag.invalidAnnotationTarget
+            .withArguments(
+              annotationName: node.name.name,
+              validTargets: 'instance members of extension types',
+            )
+            .at(node.name),
       );
     }
   }

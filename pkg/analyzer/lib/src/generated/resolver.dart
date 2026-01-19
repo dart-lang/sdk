@@ -1873,10 +1873,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           typeSystem.isNullable(element.type) &&
           typeSystem.isNonNullable(staticType) &&
           flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
-        diagnosticReporter.atNode(
-          simpleIdentifier,
-          diag.castFromNullableAlwaysFails,
-          arguments: [simpleIdentifier.name],
+        diagnosticReporter.report(
+          diag.castFromNullableAlwaysFails
+              .withArguments(name: simpleIdentifier.name)
+              .at(simpleIdentifier),
         );
       }
     }
@@ -4251,10 +4251,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           return;
         }
 
-        diagnosticReporter.atToken(
-          errorNode.block.leftBracket,
-          diag.bodyMightCompleteNormallyCatchError,
-          arguments: [returnTypeBase],
+        diagnosticReporter.report(
+          diag.bodyMightCompleteNormallyCatchError
+              .withArguments(type: returnTypeBase)
+              .at(errorNode.block.leftBracket),
         );
       }
     }

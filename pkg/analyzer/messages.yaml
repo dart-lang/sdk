@@ -24777,8 +24777,8 @@ WarningCode:
   assignmentOfDoNotStore:
     type: staticWarning
     parameters:
-      String p0: the name of the field or variable
-    problemMessage: "'#p0' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
+      String name: the name of the field or variable
+    problemMessage: "'#name' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
     correctionMessage: Try removing the assignment.
     hasPublishedDocs: true
     comment: |-
@@ -24812,8 +24812,8 @@ WarningCode:
   bodyMightCompleteNormallyCatchError:
     type: staticWarning
     parameters:
-      Type p0: the return type as derived by the type of the [Future].
-    problemMessage: "This 'onError' handler must return a value assignable to '#p0', but ends without returning a value."
+      Type type: the return type as derived by the type of the [Future].
+    problemMessage: "This 'onError' handler must return a value assignable to '#type', but ends without returning a value."
     correctionMessage: Try adding a return statement.
     hasPublishedDocs: true
     documentation: |-
@@ -24932,8 +24932,8 @@ WarningCode:
   castFromNullableAlwaysFails:
     type: staticWarning
     parameters:
-      String p0: the name of the unassigned variable
-    problemMessage: "This cast will always throw an exception because the nullable local variable '#p0' is not assigned."
+      String name: the name of the unassigned variable
+    problemMessage: "This cast will always throw an exception because the nullable local variable '#name' is not assigned."
     correctionMessage: "Try giving it an initializer expression, or ensure that it's assigned on every execution path."
     hasPublishedDocs: true
     documentation: |-
@@ -24982,9 +24982,9 @@ WarningCode:
   constantPatternNeverMatchesValueType:
     type: staticWarning
     parameters:
-      Type p0: the matched value type
-      Type p1: the constant value type
-    problemMessage: "The matched value type '#p0' can never be equal to this constant of type '#p1'."
+      Type matchedType: the matched value type
+      Type constantType: the constant value type
+    problemMessage: "The matched value type '#matchedType' can never be equal to this constant of type '#constantType'."
     correctionMessage: "Try a constant of the same type as the matched value type."
     hasPublishedDocs: true
     documentation: |-
@@ -25204,9 +25204,9 @@ WarningCode:
   deprecatedExportUse:
     type: staticWarning
     parameters:
-      String p0: the name of the element
-    problemMessage: "The ability to import '#p0' indirectly is deprecated."
-    correctionMessage: "Try importing '#p0' directly."
+      String name: the name of the element
+    problemMessage: "The ability to import '#name' indirectly is deprecated."
+    correctionMessage: "Try importing '#name' directly."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -25683,18 +25683,18 @@ WarningCode:
   docDirectiveHasExtraArguments:
     type: staticWarning
     parameters:
-      String p0: the name of the doc directive
-      int p1: the actual number of arguments
-      int p2: the expected number of arguments
-    problemMessage: "The '#p0' directive has '#p1' arguments, but only '#p2' are expected."
+      String directive: the name of the doc directive
+      int actualCount: the actual number of arguments
+      int expectedCount: the expected number of arguments
+    problemMessage: "The '#directive' directive has '#actualCount' arguments, but only '#expectedCount' are expected."
     correctionMessage: Try removing the extra arguments.
     hasPublishedDocs: false
   docDirectiveHasUnexpectedNamedArgument:
     type: staticWarning
     parameters:
-      String p0: the name of the doc directive
-      String p1: the name of the unexpected argument
-    problemMessage: "The '#p0' directive has an unexpected named argument, '#p1'."
+      String directive: the name of the doc directive
+      String argumentName: the name of the unexpected argument
+    problemMessage: "The '#directive' directive has an unexpected named argument, '#argumentName'."
     correctionMessage: "Try removing the unexpected argument."
     hasPublishedDocs: false
   docDirectiveMissingClosingBrace:
@@ -25706,60 +25706,60 @@ WarningCode:
   docDirectiveMissingClosingTag:
     type: staticWarning
     parameters:
-      String p0: the name of the corresponding doc directive tag
+      String tagName: the name of the corresponding doc directive tag
     problemMessage: "Doc directive is missing a closing tag."
-    correctionMessage: "Try closing the directive with the appropriate closing tag, '#p0'."
+    correctionMessage: "Try closing the directive with the appropriate closing tag, '#tagName'."
     hasPublishedDocs: false
   docDirectiveMissingOneArgument:
     type: staticWarning
     parameters:
-      String p0: the name of the doc directive
-      String p1: the name of the missing argument
+      String directive: the name of the doc directive
+      String argumentName: the name of the missing argument
     sharedName: docDirectiveMissingArgument
-    problemMessage: "The '#p0' directive is missing a '#p1' argument."
-    correctionMessage: "Try adding a '#p1' argument before the closing '}'."
+    problemMessage: "The '#directive' directive is missing a '#argumentName' argument."
+    correctionMessage: "Try adding a '#argumentName' argument before the closing '}'."
     hasPublishedDocs: false
   docDirectiveArgumentWrongFormat:
     type: staticWarning
     parameters:
-      String p0: the name of the doc directive argument
-      String p1: the expected format
-    problemMessage: "The '#p0' argument must be formatted as #p1."
-    correctionMessage: "Try formatting '#p0' as #p1."
+      String argumentName: the name of the doc directive argument
+      String expectedFormat: the expected format
+    problemMessage: "The '#argumentName' argument must be formatted as #expectedFormat."
+    correctionMessage: "Try formatting '#argumentName' as #expectedFormat."
     hasPublishedDocs: false
   docDirectiveMissingOpeningTag:
     type: staticWarning
     parameters:
-      String p0: the name of the corresponding doc directive tag
+      String tagName: the name of the corresponding doc directive tag
     problemMessage: "Doc directive is missing an opening tag."
-    correctionMessage: "Try opening the directive with the appropriate opening tag, '#p0'."
+    correctionMessage: "Try opening the directive with the appropriate opening tag, '#tagName'."
     hasPublishedDocs: false
   docDirectiveMissingThreeArguments:
     type: staticWarning
     parameters:
-      String p0: the name of the doc directive
-      String p1: the name of the first missing argument
-      String p2: the name of the second missing argument
-      String p3: the name of the third missing argument
+      String directive: the name of the doc directive
+      String argument1: the name of the first missing argument
+      String argument2: the name of the second missing argument
+      String argument3: the name of the third missing argument
     sharedName: docDirectiveMissingArgument
-    problemMessage: "The '#p0' directive is missing a '#p1', a '#p2', and a '#p3' argument."
+    problemMessage: "The '#directive' directive is missing a '#argument1', a '#argument2', and a '#argument3' argument."
     correctionMessage: "Try adding the missing arguments before the closing '}'."
     hasPublishedDocs: false
   docDirectiveMissingTwoArguments:
     type: staticWarning
     parameters:
-      String p0: the name of the doc directive
-      String p1: the name of the first missing argument
-      String p2: the name of the second missing argument
+      String directive: the name of the doc directive
+      String argument1: the name of the first missing argument
+      String argument2: the name of the second missing argument
     sharedName: docDirectiveMissingArgument
-    problemMessage: "The '#p0' directive is missing a '#p1' and a '#p2' argument."
+    problemMessage: "The '#directive' directive is missing a '#argument1' and a '#argument2' argument."
     correctionMessage: "Try adding the missing arguments before the closing '}'."
     hasPublishedDocs: false
   docDirectiveUnknown:
     type: staticWarning
     parameters:
-      String p0: the name of the unknown doc directive.
-    problemMessage: "Doc directive '#p0' is unknown."
+      String directive: the name of the unknown doc directive.
+    problemMessage: "Doc directive '#directive' is unknown."
     correctionMessage: "Try using one of the supported doc directives."
     hasPublishedDocs: false
   docImportCannotBeDeferred:
@@ -25969,8 +25969,8 @@ WarningCode:
   duplicateIgnore:
     type: staticWarning
     parameters:
-      String p0: the name of the diagnostic being ignored
-    problemMessage: "The diagnostic '#p0' doesn't need to be ignored here because it's already being ignored."
+      String name: the name of the diagnostic being ignored
+    problemMessage: "The diagnostic '#name' doesn't need to be ignored here because it's already being ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
     hasPublishedDocs: true
     documentation: |-
@@ -26466,9 +26466,9 @@ WarningCode:
   invalidAnnotationTarget:
     type: staticWarning
     parameters:
-      String p0: the name of the annotation
-      String p1: the list of valid targets
-    problemMessage: "The annotation '#p0' can only be used on #p1."
+      String annotationName: the name of the annotation
+      String validTargets: the list of valid targets
+    problemMessage: "The annotation '#annotationName' can only be used on #validTargets."
     hasPublishedDocs: true
     documentation: |-
       #### Description

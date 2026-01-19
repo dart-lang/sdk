@@ -671,9 +671,9 @@ const DiagnosticWithoutArguments assetPathNotString =
 /// Users should not assign values marked `@doNotStore`.
 ///
 /// Parameters:
-/// String p0: the name of the field or variable
+/// String name: the name of the field or variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 assignmentOfDoNotStore = DiagnosticWithArguments(
   name: 'assignment_of_do_not_store',
@@ -1125,9 +1125,9 @@ bodyMightCompleteNormally = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the return type as derived by the type of the [Future].
+/// Type type: the return type as derived by the type of the [Future].
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0})
+  LocatableDiagnostic Function({required DartType type})
 >
 bodyMightCompleteNormallyCatchError = DiagnosticWithArguments(
   name: 'body_might_complete_normally_catch_error',
@@ -1362,9 +1362,9 @@ caseExpressionTypeIsNotSwitchExpressionSubtype = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the unassigned variable
+/// String name: the name of the unassigned variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 castFromNullableAlwaysFails = DiagnosticWithArguments(
   name: 'cast_from_nullable_always_fails',
@@ -2027,10 +2027,13 @@ const DiagnosticWithoutArguments constAndFinal = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Type p0: the matched value type
-/// Type p1: the constant value type
+/// Type matchedType: the matched value type
+/// Type constantType: the constant value type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType matchedType,
+    required DartType constantType,
+  })
 >
 constantPatternNeverMatchesValueType = DiagnosticWithArguments(
   name: 'constant_pattern_never_matches_value_type',
@@ -3222,9 +3225,9 @@ deprecatedColonForDefaultValue = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the element
+/// String name: the name of the element
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 deprecatedExportUse = DiagnosticWithArguments(
   name: 'deprecated_export_use',
@@ -3519,10 +3522,13 @@ const DiagnosticWithoutArguments disallowedTypeInstantiationExpression =
     );
 
 /// Parameters:
-/// String p0: the name of the doc directive argument
-/// String p1: the expected format
+/// String argumentName: the name of the doc directive argument
+/// String expectedFormat: the expected format
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String argumentName,
+    required String expectedFormat,
+  })
 >
 docDirectiveArgumentWrongFormat = DiagnosticWithArguments(
   name: 'doc_directive_argument_wrong_format',
@@ -3535,14 +3541,14 @@ docDirectiveArgumentWrongFormat = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the doc directive
-/// int p1: the actual number of arguments
-/// int p2: the expected number of arguments
+/// String directive: the name of the doc directive
+/// int actualCount: the actual number of arguments
+/// int expectedCount: the expected number of arguments
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required int p1,
-    required int p2,
+    required String directive,
+    required int actualCount,
+    required int expectedCount,
   })
 >
 docDirectiveHasExtraArguments = DiagnosticWithArguments(
@@ -3557,10 +3563,13 @@ docDirectiveHasExtraArguments = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the doc directive
-/// String p1: the name of the unexpected argument
+/// String directive: the name of the doc directive
+/// String argumentName: the name of the unexpected argument
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String directive,
+    required String argumentName,
+  })
 >
 docDirectiveHasUnexpectedNamedArgument = DiagnosticWithArguments(
   name: 'doc_directive_has_unexpected_named_argument',
@@ -3585,9 +3594,9 @@ const DiagnosticWithoutArguments docDirectiveMissingClosingBrace =
     );
 
 /// Parameters:
-/// String p0: the name of the corresponding doc directive tag
+/// String tagName: the name of the corresponding doc directive tag
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String tagName})
 >
 docDirectiveMissingClosingTag = DiagnosticWithArguments(
   name: 'doc_directive_missing_closing_tag',
@@ -3601,10 +3610,13 @@ docDirectiveMissingClosingTag = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the doc directive
-/// String p1: the name of the missing argument
+/// String directive: the name of the doc directive
+/// String argumentName: the name of the missing argument
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String directive,
+    required String argumentName,
+  })
 >
 docDirectiveMissingOneArgument = DiagnosticWithArguments(
   name: 'doc_directive_missing_argument',
@@ -3617,9 +3629,9 @@ docDirectiveMissingOneArgument = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the corresponding doc directive tag
+/// String tagName: the name of the corresponding doc directive tag
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String tagName})
 >
 docDirectiveMissingOpeningTag = DiagnosticWithArguments(
   name: 'doc_directive_missing_opening_tag',
@@ -3633,16 +3645,16 @@ docDirectiveMissingOpeningTag = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the doc directive
-/// String p1: the name of the first missing argument
-/// String p2: the name of the second missing argument
-/// String p3: the name of the third missing argument
+/// String directive: the name of the doc directive
+/// String argument1: the name of the first missing argument
+/// String argument2: the name of the second missing argument
+/// String argument3: the name of the third missing argument
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
+    required String directive,
+    required String argument1,
+    required String argument2,
+    required String argument3,
   })
 >
 docDirectiveMissingThreeArguments = DiagnosticWithArguments(
@@ -3662,14 +3674,14 @@ docDirectiveMissingThreeArguments = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the doc directive
-/// String p1: the name of the first missing argument
-/// String p2: the name of the second missing argument
+/// String directive: the name of the doc directive
+/// String argument1: the name of the first missing argument
+/// String argument2: the name of the second missing argument
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String directive,
+    required String argument1,
+    required String argument2,
   })
 >
 docDirectiveMissingTwoArguments = DiagnosticWithArguments(
@@ -3688,9 +3700,9 @@ docDirectiveMissingTwoArguments = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the unknown doc directive.
+/// String directive: the name of the unknown doc directive.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String directive})
 >
 docDirectiveUnknown = DiagnosticWithArguments(
   name: 'doc_directive_unknown',
@@ -3944,9 +3956,9 @@ const DiagnosticWithoutArguments duplicateHiddenName =
     );
 
 /// Parameters:
-/// String p0: the name of the diagnostic being ignored
+/// String name: the name of the diagnostic being ignored
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 duplicateIgnore = DiagnosticWithArguments(
   name: 'duplicate_ignore',
@@ -7651,10 +7663,13 @@ invalidAnnotationFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the annotation
-/// String p1: the list of valid targets
+/// String annotationName: the name of the annotation
+/// String validTargets: the list of valid targets
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String annotationName,
+    required String validTargets,
+  })
 >
 invalidAnnotationTarget = DiagnosticWithArguments(
   name: 'invalid_annotation_target',
@@ -18147,8 +18162,10 @@ LocatableDiagnostic _withArgumentsAssetDoesNotExist({required String path}) {
   return LocatableDiagnosticImpl(diag.assetDoesNotExist, [path]);
 }
 
-LocatableDiagnostic _withArgumentsAssignmentOfDoNotStore({required String p0}) {
-  return LocatableDiagnosticImpl(diag.assignmentOfDoNotStore, [p0]);
+LocatableDiagnostic _withArgumentsAssignmentOfDoNotStore({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.assignmentOfDoNotStore, [name]);
 }
 
 LocatableDiagnostic _withArgumentsAssignmentToFinal({
@@ -18236,10 +18253,10 @@ LocatableDiagnostic _withArgumentsBodyMightCompleteNormally({
 }
 
 LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyCatchError({
-  required DartType p0,
+  required DartType type,
 }) {
   return LocatableDiagnosticImpl(diag.bodyMightCompleteNormallyCatchError, [
-    p0,
+    type,
   ]);
 }
 
@@ -18317,9 +18334,9 @@ _withArgumentsCaseExpressionTypeIsNotSwitchExpressionSubtype({
 }
 
 LocatableDiagnostic _withArgumentsCastFromNullableAlwaysFails({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.castFromNullableAlwaysFails, [p0]);
+  return LocatableDiagnosticImpl(diag.castFromNullableAlwaysFails, [name]);
 }
 
 LocatableDiagnostic _withArgumentsCastToNonType({required String name}) {
@@ -18560,12 +18577,12 @@ LocatableDiagnostic _withArgumentsConflictingTypeVariableAndMixin({
 }
 
 LocatableDiagnostic _withArgumentsConstantPatternNeverMatchesValueType({
-  required DartType p0,
-  required DartType p1,
+  required DartType matchedType,
+  required DartType constantType,
 }) {
   return LocatableDiagnosticImpl(diag.constantPatternNeverMatchesValueType, [
-    p0,
-    p1,
+    matchedType,
+    constantType,
   ]);
 }
 
@@ -18729,8 +18746,8 @@ LocatableDiagnostic _withArgumentsDependenciesFieldNotMap({
   return LocatableDiagnosticImpl(diag.dependenciesFieldNotMap, [fieldName]);
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedExportUse({required String p0}) {
-  return LocatableDiagnosticImpl(diag.deprecatedExportUse, [p0]);
+LocatableDiagnostic _withArgumentsDeprecatedExportUse({required String name}) {
+  return LocatableDiagnosticImpl(diag.deprecatedExportUse, [name]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedExtend({required Object typeName}) {
@@ -18798,84 +18815,89 @@ LocatableDiagnostic _withArgumentsDeprecatedSubclass({
 }
 
 LocatableDiagnostic _withArgumentsDocDirectiveArgumentWrongFormat({
-  required String p0,
-  required String p1,
+  required String argumentName,
+  required String expectedFormat,
 }) {
   return LocatableDiagnosticImpl(diag.docDirectiveArgumentWrongFormat, [
-    p0,
-    p1,
+    argumentName,
+    expectedFormat,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsDocDirectiveHasExtraArguments({
-  required String p0,
-  required int p1,
-  required int p2,
+  required String directive,
+  required int actualCount,
+  required int expectedCount,
 }) {
   return LocatableDiagnosticImpl(diag.docDirectiveHasExtraArguments, [
-    p0,
-    p1,
-    p2,
+    directive,
+    actualCount,
+    expectedCount,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsDocDirectiveHasUnexpectedNamedArgument({
-  required String p0,
-  required String p1,
+  required String directive,
+  required String argumentName,
 }) {
   return LocatableDiagnosticImpl(diag.docDirectiveHasUnexpectedNamedArgument, [
-    p0,
-    p1,
+    directive,
+    argumentName,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsDocDirectiveMissingClosingTag({
-  required String p0,
+  required String tagName,
 }) {
-  return LocatableDiagnosticImpl(diag.docDirectiveMissingClosingTag, [p0]);
+  return LocatableDiagnosticImpl(diag.docDirectiveMissingClosingTag, [tagName]);
 }
 
 LocatableDiagnostic _withArgumentsDocDirectiveMissingOneArgument({
-  required String p0,
-  required String p1,
+  required String directive,
+  required String argumentName,
 }) {
-  return LocatableDiagnosticImpl(diag.docDirectiveMissingOneArgument, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.docDirectiveMissingOneArgument, [
+    directive,
+    argumentName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDocDirectiveMissingOpeningTag({
-  required String p0,
+  required String tagName,
 }) {
-  return LocatableDiagnosticImpl(diag.docDirectiveMissingOpeningTag, [p0]);
+  return LocatableDiagnosticImpl(diag.docDirectiveMissingOpeningTag, [tagName]);
 }
 
 LocatableDiagnostic _withArgumentsDocDirectiveMissingThreeArguments({
-  required String p0,
-  required String p1,
-  required String p2,
-  required String p3,
+  required String directive,
+  required String argument1,
+  required String argument2,
+  required String argument3,
 }) {
   return LocatableDiagnosticImpl(diag.docDirectiveMissingThreeArguments, [
-    p0,
-    p1,
-    p2,
-    p3,
+    directive,
+    argument1,
+    argument2,
+    argument3,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsDocDirectiveMissingTwoArguments({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String directive,
+  required String argument1,
+  required String argument2,
 }) {
   return LocatableDiagnosticImpl(diag.docDirectiveMissingTwoArguments, [
-    p0,
-    p1,
-    p2,
+    directive,
+    argument1,
+    argument2,
   ]);
 }
 
-LocatableDiagnostic _withArgumentsDocDirectiveUnknown({required String p0}) {
-  return LocatableDiagnosticImpl(diag.docDirectiveUnknown, [p0]);
+LocatableDiagnostic _withArgumentsDocDirectiveUnknown({
+  required String directive,
+}) {
+  return LocatableDiagnosticImpl(diag.docDirectiveUnknown, [directive]);
 }
 
 LocatableDiagnostic _withArgumentsDotShorthandUndefinedGetter({
@@ -18918,8 +18940,8 @@ LocatableDiagnostic _withArgumentsDuplicateFieldName({required String name}) {
   return LocatableDiagnosticImpl(diag.duplicateFieldName, [name]);
 }
 
-LocatableDiagnostic _withArgumentsDuplicateIgnore({required String p0}) {
-  return LocatableDiagnosticImpl(diag.duplicateIgnore, [p0]);
+LocatableDiagnostic _withArgumentsDuplicateIgnore({required String name}) {
+  return LocatableDiagnosticImpl(diag.duplicateIgnore, [name]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateNamedArgument({
@@ -19658,10 +19680,13 @@ LocatableDiagnostic _withArgumentsInterfaceClassExtendedOutsideOfLibrary({
 }
 
 LocatableDiagnostic _withArgumentsInvalidAnnotationTarget({
-  required String p0,
-  required String p1,
+  required String annotationName,
+  required String validTargets,
 }) {
-  return LocatableDiagnosticImpl(diag.invalidAnnotationTarget, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.invalidAnnotationTarget, [
+    annotationName,
+    validTargets,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidAssignment({

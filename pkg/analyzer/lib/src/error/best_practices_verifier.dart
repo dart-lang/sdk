@@ -1035,10 +1035,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
       // named elements, so we can safely assume `entry.value.name` is
       // non-`null`.
-      _diagnosticReporter.atNode(
-        entry.key,
-        diag.assignmentOfDoNotStore,
-        arguments: [entry.value.name!],
+      _diagnosticReporter.report(
+        diag.assignmentOfDoNotStore
+            .withArguments(name: entry.value.name!)
+            .at(entry.key),
       );
     }
   }

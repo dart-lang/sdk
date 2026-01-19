@@ -148,10 +148,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           matchedValueType = matchedValueType?.extensionTypeErasure;
           if (matchedValueType != null) {
             if (!_canBeEqual(constantType, matchedValueType)) {
-              _diagnosticReporter.atNode(
-                node,
-                diag.constantPatternNeverMatchesValueType,
-                arguments: [matchedValueType, constantType],
+              _diagnosticReporter.report(
+                diag.constantPatternNeverMatchesValueType
+                    .withArguments(
+                      matchedType: matchedValueType,
+                      constantType: constantType,
+                    )
+                    .at(node),
               );
               return;
             }
