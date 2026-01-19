@@ -23,7 +23,6 @@ Bytecode {
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r3
   PopLocal             r2
   Push                 r2
   StoreLocal           r3
@@ -47,7 +46,7 @@ ConstantPool {
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::simpleClosure::'<anonymous closure>' (dart:core::int y) -> Null
 ClosureCode {
-  Entry                3
+  Entry                2
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
@@ -780,7 +779,6 @@ Bytecode {
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r4
   PopLocal             r3
   Push                 r3
   StoreLocal           r4
@@ -812,7 +810,6 @@ Bytecode {
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r3
   PopLocal             r2
   Push                 r2
   StoreLocal           r3
@@ -888,10 +885,9 @@ L1:
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r2
-  PopLocal             r3
-  Push                 r3
-  Push                 r3
+  PopLocal             r2
+  Push                 r2
+  Push                 r2
   UncheckedClosureCall CP#10, 1
   Drop1
   Push                 r0
@@ -905,7 +901,7 @@ L2:
 
 Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::B::topLevel::Closure/0::'closure2' () -> void
 ClosureCode {
-  Entry                3
+  Entry                2
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
@@ -1012,7 +1008,6 @@ L2:
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r4
   InstantiatedInterfaceCall CP#7, 2
   Drop1
   Push                 r3
@@ -1020,7 +1015,6 @@ L2:
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r4
   InstantiatedInterfaceCall CP#7, 2
   Drop1
   Push                 r0
@@ -1081,7 +1075,7 @@ ClosureCode {
 
 Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C::testForLoop::'<anonymous closure>' (dart:core::int ii) -> Null
 ClosureCode {
-  Entry                3
+  Entry                2
   Push                 FP[-6]
   LoadFieldTOS         CP#4
   PopLocal             r0
@@ -1132,7 +1126,6 @@ L2:
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r4
   PopLocal             r3
   Push                 r3
   StoreLocal           r4
@@ -1168,7 +1161,7 @@ ConstantPool {
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C::testForInLoop::'<anonymous closure>' () -> Null
 ClosureCode {
-  Entry                3
+  Entry                2
   Push                 FP[-5]
   LoadFieldTOS         CP#7
   PopLocal             r0
@@ -1212,7 +1205,7 @@ Function 'foo', reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                3
+  Entry                2
   CheckStack           0
   AllocateContext      0, 1
   PopLocal             r0
@@ -1234,7 +1227,6 @@ L1:
   Push                 FP[-6]
   LoadTypeArgumentsField CP#1
   AllocateClosure
-  StoreLocal           r2
   ReturnTOS
 }
 Parameter flags: [2]
@@ -1266,7 +1258,7 @@ Function 'bar', reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                3
+  Entry                2
   CheckStack           0
   AllocateContext      0, 1
   PopLocal             r0
@@ -1278,7 +1270,6 @@ Bytecode {
   Push                 FP[-5]
   LoadTypeArgumentsField CP#5
   AllocateClosure
-  StoreLocal           r2
   ReturnTOS
 }
 ConstantPool {
@@ -1304,7 +1295,6 @@ ClosureCode {
   LoadContextVar       0, 0
   LoadTypeArgumentsField CP#5
   AllocateClosure
-  StoreLocal           r3
   PopLocal             r2
   Push                 r2
   Push                 r2
