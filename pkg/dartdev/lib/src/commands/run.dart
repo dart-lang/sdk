@@ -384,6 +384,7 @@ Enables running executables from remote packages.
     required ArgResults args,
     required bool shouldRetryOnFrontendCompilerException,
     required bool quiet,
+    String? nativeAssetsYaml,
   }) async {
     final executableFile = File(executable.executable);
     assert(!await isFileKernelFile(executableFile) &&
@@ -397,6 +398,7 @@ Enables running executables from remote packages.
         args,
         createCompileJitJson,
         quiet: quiet,
+        nativeAssetsYaml: nativeAssetsYaml,
       );
     } on FrontendCompilerException catch (e) {
       if (e.issue == CompilationIssue.serverError) {
@@ -417,6 +419,7 @@ Enables running executables from remote packages.
             args: args,
             shouldRetryOnFrontendCompilerException: false,
             quiet: quiet,
+            nativeAssetsYaml: nativeAssetsYaml,
           );
         } else {
           log.stderr(
@@ -597,6 +600,7 @@ Enables running executables from remote packages.
           args: args,
           shouldRetryOnFrontendCompilerException: true,
           quiet: args[quietOption] ?? false,
+          nativeAssetsYaml: nativeAssets,
         );
         if (compiledKernelFile == null) {
           return errorExitCode;
