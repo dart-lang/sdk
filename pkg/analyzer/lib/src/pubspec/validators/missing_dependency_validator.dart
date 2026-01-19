@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:yaml/yaml.dart';
@@ -77,7 +78,10 @@ class MissingDependencyValidator {
       } else if (field is YamlMap) {
         return field.nodes;
       }
-      _reportErrorForNode(field, diag.dependenciesFieldNotMap, [key]);
+      _reportErrorForNode(
+        field,
+        diag.dependenciesFieldNotMap.withArguments(fieldName: key),
+      );
       return <String, YamlNode>{};
     }
 
@@ -136,9 +140,10 @@ class MissingDependencyValidator {
       }
       var diagnostic = _reportErrorForNode(
         contents.nodes.values.first,
-        diag.missingDependency,
-        [missingMessageParts.join(', and '), fixMessageParts.join(', and ')],
-        [],
+        diag.missingDependency.withArguments(
+          missing: missingMessageParts.join(', and '),
+          fix: fixMessageParts.join(', and '),
+        ),
       );
       MissingDependencyData.byDiagnostic[diagnostic] = MissingDependencyData(
         addDeps,
@@ -154,17 +159,9 @@ class MissingDependencyValidator {
   /// The reported [Diagnostic] is returned.
   Diagnostic _reportErrorForNode(
     YamlNode node,
-    DiagnosticCode diagnosticCode, [
-    List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
-  ]) {
+    LocatableDiagnostic locatableDiagnostic,
+  ) {
     var span = node.span;
-    return reporter.atOffset(
-      offset: span.start.offset,
-      length: span.length,
-      diagnosticCode: diagnosticCode,
-      arguments: arguments,
-      contextMessages: messages,
-    );
+    return reporter.report(locatableDiagnostic.atSourceSpan(span));
   }
 }

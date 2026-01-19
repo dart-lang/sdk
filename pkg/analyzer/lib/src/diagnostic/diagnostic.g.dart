@@ -569,9 +569,9 @@ const DiagnosticWithoutArguments assertInRedirectingConstructor =
     );
 
 /// Parameters:
-/// String p0: the path to the asset directory as given in the file.
+/// String path: the path to the asset directory as given in the file.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String path})
 >
 assetDirectoryDoesNotExist = DiagnosticWithArguments(
   name: 'asset_directory_does_not_exist',
@@ -586,9 +586,9 @@ assetDirectoryDoesNotExist = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the path to the asset as given in the file.
+/// String path: the path to the asset as given in the file.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String path})
 >
 assetDoesNotExist = DiagnosticWithArguments(
   name: 'asset_does_not_exist',
@@ -3189,9 +3189,9 @@ definitelyUnassignedLateLocalVariable = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the field
+/// String fieldName: the name of the field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String fieldName})
 >
 dependenciesFieldNotMap = DiagnosticWithArguments(
   name: 'dependencies_field_not_map',
@@ -3281,9 +3281,9 @@ const DiagnosticWithoutArguments deprecatedFactoryMethod =
     );
 
 /// Parameters:
-/// String p0: the name of the field
+/// String fieldName: the name of the field
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String fieldName})
 >
 deprecatedField = DiagnosticWithArguments(
   name: 'deprecated_field',
@@ -8034,9 +8034,9 @@ invalidConstructorName = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the kind of dependency.
+/// String kind: the kind of dependency.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String kind})
 >
 invalidDependency = DiagnosticWithArguments(
   name: 'invalid_dependency',
@@ -13225,9 +13225,9 @@ partOfUnnamedLibrary = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the path to the dependency as given in the file.
+/// String path: the path to the dependency as given in the file.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String path})
 >
 pathDoesNotExist = DiagnosticWithArguments(
   name: 'path_does_not_exist',
@@ -13242,9 +13242,9 @@ pathDoesNotExist = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the path as given in the file.
+/// String path: the path as given in the file.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String path})
 >
 pathNotPosix = DiagnosticWithArguments(
   name: 'path_not_posix',
@@ -13258,9 +13258,9 @@ pathNotPosix = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the path to the dependency as given in the file.
+/// String path: the path to the dependency as given in the file.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String path})
 >
 pathPubspecDoesNotExist = DiagnosticWithArguments(
   name: 'path_pubspec_does_not_exist',
@@ -16515,9 +16515,9 @@ unignorableIgnore = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the unknown platform.
+/// String platform: the unknown platform.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String platform})
 >
 unknownPlatform = DiagnosticWithArguments(
   name: 'unknown_platform',
@@ -16527,7 +16527,7 @@ unknownPlatform = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unknown_platform',
   withArguments: _withArgumentsUnknownPlatform,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -16555,9 +16555,9 @@ const DiagnosticWithoutArguments unnecessaryCastPattern =
     );
 
 /// Parameters:
-/// String p0: the name of the package in the dev_dependency list.
+/// String package: the name of the package in the dev_dependency list.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String package})
 >
 unnecessaryDevDependency = DiagnosticWithArguments(
   name: 'unnecessary_dev_dependency',
@@ -17569,9 +17569,10 @@ const DiagnosticWithoutArguments workspaceValueNotString =
     );
 
 /// Parameters:
-/// String p0: the path of the directory that contains the pubspec.yaml file.
+/// String path: the path of the directory that contains the pubspec.yaml
+///              file.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String path})
 >
 workspaceValueNotSubdirectory = DiagnosticWithArguments(
   name: 'workspace_value_not_subdirectory',
@@ -18137,13 +18138,13 @@ LocatableDiagnostic _withArgumentsArgumentTypeNotAssignableToErrorHandler({
 }
 
 LocatableDiagnostic _withArgumentsAssetDirectoryDoesNotExist({
-  required String p0,
+  required String path,
 }) {
-  return LocatableDiagnosticImpl(diag.assetDirectoryDoesNotExist, [p0]);
+  return LocatableDiagnosticImpl(diag.assetDirectoryDoesNotExist, [path]);
 }
 
-LocatableDiagnostic _withArgumentsAssetDoesNotExist({required String p0}) {
-  return LocatableDiagnosticImpl(diag.assetDoesNotExist, [p0]);
+LocatableDiagnostic _withArgumentsAssetDoesNotExist({required String path}) {
+  return LocatableDiagnosticImpl(diag.assetDoesNotExist, [path]);
 }
 
 LocatableDiagnostic _withArgumentsAssignmentOfDoNotStore({required String p0}) {
@@ -18721,9 +18722,9 @@ LocatableDiagnostic _withArgumentsDefinitelyUnassignedLateLocalVariable({
 }
 
 LocatableDiagnostic _withArgumentsDependenciesFieldNotMap({
-  required String p0,
+  required String fieldName,
 }) {
-  return LocatableDiagnosticImpl(diag.dependenciesFieldNotMap, [p0]);
+  return LocatableDiagnosticImpl(diag.dependenciesFieldNotMap, [fieldName]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedExportUse({required String p0}) {
@@ -18734,8 +18735,8 @@ LocatableDiagnostic _withArgumentsDeprecatedExtend({required Object typeName}) {
   return LocatableDiagnosticImpl(diag.deprecatedExtend, [typeName]);
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedField({required String p0}) {
-  return LocatableDiagnosticImpl(diag.deprecatedField, [p0]);
+LocatableDiagnostic _withArgumentsDeprecatedField({required String fieldName}) {
+  return LocatableDiagnosticImpl(diag.deprecatedField, [fieldName]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedImplement({
@@ -19736,8 +19737,8 @@ LocatableDiagnostic _withArgumentsInvalidCodePoint({
   return LocatableDiagnosticImpl(diag.invalidCodePoint, [escapeSequence]);
 }
 
-LocatableDiagnostic _withArgumentsInvalidDependency({required String p0}) {
-  return LocatableDiagnosticImpl(diag.invalidDependency, [p0]);
+LocatableDiagnostic _withArgumentsInvalidDependency({required String kind}) {
+  return LocatableDiagnosticImpl(diag.invalidDependency, [kind]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidExceptionValue({
@@ -20721,18 +20722,18 @@ LocatableDiagnostic _withArgumentsPartOfUnnamedLibrary({
   return LocatableDiagnosticImpl(diag.partOfUnnamedLibrary, [libraryName]);
 }
 
-LocatableDiagnostic _withArgumentsPathDoesNotExist({required String p0}) {
-  return LocatableDiagnosticImpl(diag.pathDoesNotExist, [p0]);
+LocatableDiagnostic _withArgumentsPathDoesNotExist({required String path}) {
+  return LocatableDiagnosticImpl(diag.pathDoesNotExist, [path]);
 }
 
-LocatableDiagnostic _withArgumentsPathNotPosix({required String p0}) {
-  return LocatableDiagnosticImpl(diag.pathNotPosix, [p0]);
+LocatableDiagnostic _withArgumentsPathNotPosix({required String path}) {
+  return LocatableDiagnosticImpl(diag.pathNotPosix, [path]);
 }
 
 LocatableDiagnostic _withArgumentsPathPubspecDoesNotExist({
-  required String p0,
+  required String path,
 }) {
-  return LocatableDiagnosticImpl(diag.pathPubspecDoesNotExist, [p0]);
+  return LocatableDiagnosticImpl(diag.pathPubspecDoesNotExist, [path]);
 }
 
 LocatableDiagnostic _withArgumentsPatternNeverMatchesValueType({
@@ -21537,14 +21538,14 @@ LocatableDiagnostic _withArgumentsUnignorableIgnore({required Object p0}) {
   return LocatableDiagnosticImpl(diag.unignorableIgnore, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsUnknownPlatform({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unknownPlatform, [p0]);
+LocatableDiagnostic _withArgumentsUnknownPlatform({required String platform}) {
+  return LocatableDiagnosticImpl(diag.unknownPlatform, [platform]);
 }
 
 LocatableDiagnostic _withArgumentsUnnecessaryDevDependency({
-  required String p0,
+  required String package,
 }) {
-  return LocatableDiagnosticImpl(diag.unnecessaryDevDependency, [p0]);
+  return LocatableDiagnosticImpl(diag.unnecessaryDevDependency, [package]);
 }
 
 LocatableDiagnostic _withArgumentsUnnecessaryImport({
@@ -21736,9 +21737,9 @@ LocatableDiagnostic _withArgumentsVariableTypeMismatch({
 }
 
 LocatableDiagnostic _withArgumentsWorkspaceValueNotSubdirectory({
-  required String p0,
+  required String path,
 }) {
-  return LocatableDiagnosticImpl(diag.workspaceValueNotSubdirectory, [p0]);
+  return LocatableDiagnosticImpl(diag.workspaceValueNotSubdirectory, [path]);
 }
 
 LocatableDiagnostic
