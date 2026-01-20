@@ -1607,6 +1607,7 @@ void _asSubtype(Object? o, bool onlyNullabilityCheck, _Type t) {
       ? _isNullabilityCheck(o, t.isDeclaredNullable)
       : _isSubtype(o, t);
   if (success) return;
+  if (minify) _throwErrorWithoutDetails();
   _throwAsCheckError(o, t);
 }
 
@@ -1623,6 +1624,7 @@ void _asInterfaceSubtype(
       ? _isNullabilityCheck(o, isDeclaredNullable)
       : _isInterfaceSubtype(o, isDeclaredNullable, tId, typeArguments);
   if (success) return;
+  if (minify) _throwErrorWithoutDetails();
   _throwInterfaceTypeAsCheckError(o, isDeclaredNullable, tId, typeArguments);
 }
 
@@ -1638,6 +1640,7 @@ void _asInterfaceSubtype0(
       ? _isNullabilityCheck(o, isDeclaredNullable)
       : _isInterfaceSubtype0(o, isDeclaredNullable, tId);
   if (success) return;
+  if (minify) _throwErrorWithoutDetails();
   _throwInterfaceTypeAsCheckError0(o, isDeclaredNullable, tId);
 }
 
@@ -1654,6 +1657,7 @@ void _asInterfaceSubtype1(
       ? _isNullabilityCheck(o, isDeclaredNullable)
       : _isInterfaceSubtype1(o, isDeclaredNullable, tId, typeArgument0);
   if (success) return;
+  if (minify) _throwErrorWithoutDetails();
   _throwInterfaceTypeAsCheckError1(o, isDeclaredNullable, tId, typeArgument0);
 }
 
@@ -1677,6 +1681,7 @@ void _asInterfaceSubtype2(
           typeArgument1,
         );
   if (success) return;
+  if (minify) _throwErrorWithoutDetails();
   _throwInterfaceTypeAsCheckError2(
     o,
     isDeclaredNullable,
@@ -1692,7 +1697,7 @@ Never _throwInterfaceTypeAsCheckError0(
   bool isDeclaredNullable,
   WasmI32 tId,
 ) {
-  if (minify) throw typeErrorWithoutDetails;
+  assert(!minify);
   final typeArguments = const WasmArray<_Type>.literal([]);
   _TypeError._throwAsCheckError(
     o,
@@ -1708,7 +1713,7 @@ Never _throwInterfaceTypeAsCheckError1(
   WasmI32 tId,
   _Type typeArgument0,
 ) {
-  if (minify) throw typeErrorWithoutDetails;
+  assert(!minify);
   final typeArguments = WasmArray<_Type>.literal([typeArgument0]);
   _TypeError._throwAsCheckError(
     o,
@@ -1725,7 +1730,7 @@ Never _throwInterfaceTypeAsCheckError2(
   _Type typeArgument0,
   _Type typeArgument1,
 ) {
-  if (minify) throw typeErrorWithoutDetails;
+  assert(!minify);
   final typeArguments = WasmArray<_Type>.literal([
     typeArgument0,
     typeArgument1,
@@ -1744,7 +1749,7 @@ Never _throwInterfaceTypeAsCheckError(
   WasmI32 tId,
   WasmArray<_Type> typeArguments,
 ) {
-  if (minify) throw typeErrorWithoutDetails;
+  assert(!minify);
   _TypeError._throwAsCheckError(
     o,
     _InterfaceType(tId, isDeclaredNullable, typeArguments),
@@ -1753,8 +1758,15 @@ Never _throwInterfaceTypeAsCheckError(
 
 @pragma("wasm:entry-point")
 @pragma('wasm:never-inline')
+Never _throwErrorWithoutDetails() {
+  assert(minify);
+  throw typeErrorWithoutDetails;
+}
+
+@pragma("wasm:entry-point")
+@pragma('wasm:never-inline')
 Never _throwAsCheckError(Object? o, _Type type) {
-  if (minify) throw typeErrorWithoutDetails;
+  if (minify) _throwErrorWithoutDetails();
   _TypeError._throwAsCheckError(o, type);
 }
 

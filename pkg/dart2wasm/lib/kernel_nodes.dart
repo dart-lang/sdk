@@ -304,6 +304,8 @@ mixin KernelNodes {
       "dart:core", "_TypeError", "_throwNullCheckErrorWithCurrentStack");
   late final Procedure throwAsCheckError =
       index.getProcedure("dart:core", "_TypeError", "_throwAsCheckError");
+  late final Procedure throwErrorWithoutDetails =
+      index.getTopLevelProcedure("dart:core", "_throwErrorWithoutDetails");
   late final Procedure throwInterfaceTypeAsCheckError1 = index
       .getTopLevelProcedure("dart:core", "_throwInterfaceTypeAsCheckError1");
   late final Procedure throwInterfaceTypeAsCheckError2 = index

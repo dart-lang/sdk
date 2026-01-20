@@ -5,7 +5,7 @@
   (type $_InterfaceType <...>)
   (type $type0 <...>)
   (table $static0-0 (export "static0-0") 1 (ref null $type0))
-  (global $"C420 _InterfaceType" (ref $_InterfaceType) <...>)
+  (global $"C422 _InterfaceType" (ref $_InterfaceType) <...>)
   (func $_loaded implicit getter (result (ref $_DefaultSet&_HashFieldBase&SetMixin)) <...>)
   (func $"useFoo <noInline>"
     call $"useFooAsType <noInline>"
@@ -13,7 +13,7 @@
     call $_DefaultSet&_HashFieldBase&SetMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashSetMixin.contains
     i32.eqz
     if
-      i32.const 51
+      i32.const 37
       i32.const 0
       ref.null none
       i64.const 0
@@ -26,7 +26,7 @@
     drop
   )
   (func $"useFooAsType <noInline>"
-    global.get $"C420 _InterfaceType"
+    global.get $"C422 _InterfaceType"
     call $print
     drop
   )
