@@ -11509,8 +11509,8 @@ CompileTimeErrorCode:
   mixinClassDeclaresConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the mixin that is invalid
-    problemMessage: "The class '#p0' can't be used as a mixin because it declares a constructor."
+      String className: the name of the mixin that is invalid
+    problemMessage: "The class '#className' can't be used as a mixin because it declares a constructor."
     hasPublishedDocs: true
     documentation: |-
       #### Description

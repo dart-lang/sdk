@@ -4479,18 +4479,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is ClassElementImpl && element.isMixinClass) {
       // Check that the class does not have a constructor.
       for (ClassMember member in members) {
-        if (member is ConstructorDeclarationImpl) {
-          if (!member.isSynthetic && member.factoryKeyword == null) {
-            // Report errors on non-trivial generative constructors on mixin
-            // classes.
-            if (!member.isTrivial) {
-              diagnosticReporter.atNode(
-                // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-                member.typeName!,
-                diag.mixinClassDeclaresConstructor,
-                arguments: [element.name!],
+        if (member case ConstructorDeclarationImpl constructor) {
+          if (!constructor.isSynthetic && constructor.isGenerative) {
+            if (!constructor.isTrivial) {
+              diagnosticReporter.report(
+                diag.mixinClassDeclaresConstructor
+                    .withArguments(className: element.name!)
+                    .atSourceRange(constructor.errorRange),
               );
             }
+          }
+        }
+      }
+      if (node is ClassDeclarationImpl) {
+        if (node.namePart
+            case PrimaryConstructorDeclarationImpl primaryConstructor) {
+          if (!primaryConstructor.isTrivial) {
+            diagnosticReporter.report(
+              diag.mixinClassDeclaresConstructor
+                  .withArguments(className: element.name!)
+                  .atSourceRange(primaryConstructor.errorRange),
+            );
           }
         }
       }

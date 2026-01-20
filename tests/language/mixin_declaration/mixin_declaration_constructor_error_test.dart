@@ -52,28 +52,33 @@ mixin class NE {
   // or is forwarding. Anything that contains any user code.
 
   const NE.qux(): this.baz(); // Is forwarding.
-  //    ^^
+  // [error column 9, length 6]
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+  //    ^^
   // [cfe] Can't use 'NE' as a mixin because it has constructors.
 
   NE.param(int i);
-  // [error column 3, length 2]
+  // [error column 3, length 8]
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+  // [error column 3, length 2]
   // [cfe] Can't use 'NE' as a mixin because it has constructors.
 
   const NE.init() : assert(true, "has initializer list");
-  //    ^^
+  // [error column 9, length 7]
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+  //    ^^
   // [cfe] Can't use 'NE' as a mixin because it has constructors.
 
   external NE.ext();
-  //       ^^
+  // [error column 12, length 6]
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+  //       ^^
   // [cfe] Can't use 'NE' as a mixin because it has constructors.
 
   NE.body() {
-  // [error column 3, length 2]
+  // [error column 3, length 7]
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+  // [error column 3, length 2]
   // [cfe] Can't use 'NE' as a mixin because it has constructors.
     print("Did something");
   }

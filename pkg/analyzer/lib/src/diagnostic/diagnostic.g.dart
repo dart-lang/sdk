@@ -10741,9 +10741,9 @@ mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the mixin that is invalid
+/// String className: the name of the mixin that is invalid
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 mixinClassDeclaresConstructor = DiagnosticWithArguments(
   name: 'mixin_class_declares_constructor',
@@ -20294,9 +20294,11 @@ LocatableDiagnostic _withArgumentsMixinClassDeclarationExtendsNotObject({
 }
 
 LocatableDiagnostic _withArgumentsMixinClassDeclaresConstructor({
-  required String p0,
+  required String className,
 }) {
-  return LocatableDiagnosticImpl(diag.mixinClassDeclaresConstructor, [p0]);
+  return LocatableDiagnosticImpl(diag.mixinClassDeclaresConstructor, [
+    className,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMixinInheritsFromNotObject({

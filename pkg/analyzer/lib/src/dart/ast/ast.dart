@@ -4888,6 +4888,10 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     return parameters.beginToken;
   }
 
+  bool get isGenerative {
+    return factoryKeyword == null;
+  }
+
   /// Whether this is a trivial constructor.
   ///
   /// A trivial constructor is a generative constructor that isn't a redirecting
@@ -19889,6 +19893,20 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   @generated
   set formalParameters(FormalParameterListImpl formalParameters) {
     _formalParameters = _becomeParentOf(formalParameters);
+  }
+
+  /// Whether this is a trivial constructor.
+  ///
+  /// A trivial primary constructor declares no parameters, has no initializer
+  /// list, and has no body (or an empty one).
+  bool get isTrivial {
+    if (formalParameters.parameters.isNotEmpty) {
+      return false;
+    }
+    if (body case var body?) {
+      return body.initializers.isEmpty && body.body is EmptyFunctionBody;
+    }
+    return true;
   }
 
   @generated
