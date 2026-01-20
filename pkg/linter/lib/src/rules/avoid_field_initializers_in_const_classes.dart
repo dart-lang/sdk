@@ -39,13 +39,11 @@ class AvoidFieldInitializersInConstClasses extends AnalysisRule {
 }
 
 class HasParameterReferenceVisitor extends RecursiveAstVisitor<void> {
-  Iterable<FormalParameterElement?> parameters;
+  Iterable<FormalParameterElement> parameters;
 
   bool useParameter = false;
 
-  HasParameterReferenceVisitor(
-    Iterable<FormalParameterFragment?> fragmentParameters,
-  ) : parameters = fragmentParameters.map((p) => p?.element);
+  HasParameterReferenceVisitor(this.parameters);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -65,24 +63,27 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     var declaration = node.parent;
-    if (declaration is ConstructorDeclaration) {
-      if (declaration.constKeyword == null) return;
-      var classDecl = declaration.thisOrAncestorOfType<ClassDeclaration>();
-      if (classDecl == null) return;
+    var constructorElement = switch (declaration) {
+      ConstructorDeclaration() => declaration.declaredFragment?.element,
+      PrimaryConstructorBody() =>
+        declaration.declaration?.declaredFragment?.element,
+      _ => null,
+    };
+    if (constructorElement == null) return;
+    if (!constructorElement.isConst) return;
 
-      var element = classDecl.declaredFragment?.element;
-      if (element == null) return;
+    var classElement = constructorElement.enclosingElement;
+    if (classElement is! ClassElement) return;
 
-      // no lint if several constructors
-      if (element.constructors.length > 1) return;
+    // No lint if several constructors.
+    if (classElement.constructors.length > 1) return;
 
-      var visitor = HasParameterReferenceVisitor(
-        declaration.parameters.parameterFragments,
-      );
-      node.expression.accept(visitor);
-      if (!visitor.useParameter) {
-        rule.reportAtNode(node);
-      }
+    var visitor = HasParameterReferenceVisitor(
+      constructorElement.formalParameters,
+    );
+    node.expression.accept(visitor);
+    if (!visitor.useParameter) {
+      rule.reportAtNode(node);
     }
   }
 
