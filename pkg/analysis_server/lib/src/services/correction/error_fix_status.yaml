@@ -1694,9 +1694,6 @@ wrong_number_of_parameters_for_operator_minus:
     removing all but a singular used parameter, if only one is used.
 wrong_number_of_type_arguments:
   status: hasFix
-wrong_number_of_type_arguments_anonymous_function:
-  status: needsFix
-  since: 2.15
 wrong_number_of_type_arguments_constructor:
   status: hasFix
 wrong_number_of_type_arguments_dot_shorthand_constructor:
@@ -1713,7 +1710,7 @@ wrong_number_of_type_arguments_extension:
 wrong_number_of_type_arguments_function:
   status: needsFix
   since: ~2.15
-wrong_number_of_type_arguments_method:
+wrong_number_of_type_arguments_element:
   status: hasFix
 wrong_type_parameter_variance_in_superinterface:
   status: noFix

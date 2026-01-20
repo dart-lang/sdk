@@ -109,7 +109,7 @@ void f() {
 }
 void g<T, U>() {}
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 14, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 14, 5)],
     );
   }
 
@@ -121,7 +121,7 @@ void f() {
 }
 void g<T>() {}
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 14, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 14, 13)],
     );
   }
 
@@ -135,7 +135,7 @@ class C {
   void call<T, U>() {}
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 12, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 12, 5)],
     );
   }
 
@@ -149,7 +149,7 @@ class C {
   void call<T>() {}
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 12, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 12, 13)],
     );
   }
 
@@ -161,7 +161,7 @@ f() {
   foo<int>;
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 33, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 33, 5)],
     );
   }
 
@@ -173,7 +173,7 @@ f() {
   foo<int, int>;
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 30, 10)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 30, 10)],
     );
   }
 
@@ -184,7 +184,7 @@ f(void Function<T, U>() foo, void Function<T, U>() bar) {
   (1 == 2 ? foo : bar)<int>;
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsAnonymousFunction, 80, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsFunction, 80, 5)],
     );
   }
 
@@ -211,13 +211,11 @@ void f() {}
 ''',
       [
         error(
-          diag.wrongNumberOfTypeArguments,
+          diag.wrongNumberOfTypeArgumentsElement,
           28,
           5,
           messageContains: [
-            // TODO(paulberry): This message text could be better. See
-            // https://github.com/dart-lang/sdk/issues/62398.
-            "The type 'A Function()'",
+            "The class 'A'",
             '0 type parameters',
             '1 type arguments',
           ],
@@ -320,10 +318,29 @@ Foo<int> bar<T>() => const .a<int>();
           154,
           5,
           messageContains: [
-            // TODO(paulberry): This message text could be better. See
-            // https://github.com/dart-lang/sdk/issues/62398.
-            "The constructor 'Foo<int>.a'",
-            "doesn't have type parameters",
+            "the constructor 'Foo.a'",
+            "type parameters can't be applied to dot shorthand constructor "
+                "invocations",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_dynamic() async {
+    await assertErrorsInCode(
+      r'''
+dynamic<int> v;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          0,
+          12,
+          messageContains: [
+            "The type 'dynamic'",
+            '0 type parameters',
+            '1 type arguments',
           ],
         ),
       ],
@@ -376,11 +393,11 @@ const y = (f)<int, String>;
 ''',
       [
         error(
-          diag.wrongNumberOfTypeArgumentsAnonymousFunction,
+          diag.wrongNumberOfTypeArgumentsFunction,
           49,
           13,
           messageContains: [
-            'This function',
+            "The type of this function is 'void Function<T>()'",
             '1 type parameters',
             '2 type arguments',
           ],
@@ -401,13 +418,11 @@ class C {
 ''',
       [
         error(
-          diag.wrongNumberOfTypeArgumentsFunction,
+          diag.wrongNumberOfTypeArgumentsElement,
           12,
           5,
           messageContains: [
-            // TODO(paulberry): This message text could be better. See
-            // https://github.com/dart-lang/sdk/issues/62398.
-            "The function 'call'",
+            "The method 'call'",
             '2 type parameters',
             '1 type arguments',
           ],
@@ -425,11 +440,11 @@ f(void Function<T, U>() foo, void Function<T, U>() bar) {
 ''',
       [
         error(
-          diag.wrongNumberOfTypeArgumentsAnonymousFunction,
+          diag.wrongNumberOfTypeArgumentsFunction,
           80,
           5,
           messageContains: [
-            'This function',
+            "The type of this function is 'void Function<T, U>()'",
             '2 type parameters',
             '1 type arguments',
           ],
@@ -448,7 +463,7 @@ f() {
 ''',
       [
         error(
-          diag.wrongNumberOfTypeArgumentsFunction,
+          diag.wrongNumberOfTypeArgumentsElement,
           33,
           5,
           messageContains: [
@@ -475,6 +490,26 @@ A<A>? a;
           messageContains: [
             "The type 'A'",
             '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_never() async {
+    await assertErrorsInCode(
+      r'''
+Never<int> f() => throw '';
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          0,
+          10,
+          messageContains: [
+            "The type 'Never'",
+            '0 type parameters',
             '1 type arguments',
           ],
         ),
@@ -520,13 +555,11 @@ void g<T, U>() {}
 ''',
       [
         error(
-          diag.wrongNumberOfTypeArgumentsMethod,
+          diag.wrongNumberOfTypeArgumentsElement,
           14,
           5,
           messageContains: [
-            // TODO(paulberry): This message text could be better. See
-            // https://github.com/dart-lang/sdk/issues/62398.
-            "The method 'void Function<T, U>()'",
+            "The function 'g'",
             '2 type parameters',
             '1 type arguments',
           ],
@@ -543,7 +576,7 @@ const g = foo<int>;
 ''',
       [
         error(
-          diag.wrongNumberOfTypeArgumentsFunction,
+          diag.wrongNumberOfTypeArgumentsElement,
           41,
           5,
           messageContains: [
@@ -598,6 +631,28 @@ var t = Fn<int>;
     );
   }
 
+  test_messageText_typeParameter() async {
+    await assertErrorsInCode(
+      r'''
+class C<T> {
+  late T<int> f;
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          20,
+          6,
+          messageContains: [
+            "The type 'T'",
+            '0 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
   test_metadata_1of0() async {
     await assertErrorsInCode(
       r'''
@@ -608,7 +663,7 @@ class A {
 @A<int>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 28, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 28, 5)],
     );
   }
 
@@ -624,7 +679,7 @@ typedef B = A;
 @B<int>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 44, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 44, 5)],
     );
   }
 
@@ -638,7 +693,7 @@ class A<T, U> {
 @A<int>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 34, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 34, 5)],
     );
   }
 
@@ -654,7 +709,7 @@ typedef B<T, U> = A;
 @B<int>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 50, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 50, 5)],
     );
   }
 
@@ -668,7 +723,7 @@ class A<T> {
 @A<int, String>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 31, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 31, 13)],
     );
   }
 
@@ -684,7 +739,7 @@ typedef B<T> = A;
 @B<int, String>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 47, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 47, 13)],
     );
   }
 
@@ -698,7 +753,7 @@ class C {
   void g<T, U>() {}
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 19, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 19, 5)],
     );
   }
 
@@ -712,7 +767,7 @@ class C {
   void g<T>() {}
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 19, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 19, 13)],
     );
   }
 

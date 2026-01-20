@@ -5,12 +5,12 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Handles possible rewrites of AST.
 ///
@@ -443,10 +443,13 @@ class AstRewriter {
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _diagnosticReporter.atNode(
-        typeArguments,
-        diag.wrongNumberOfTypeArgumentsConstructor,
-        arguments: [typeNameIdentifier.toString(), constructorIdentifier.name],
+      _diagnosticReporter.report(
+        diag.wrongNumberOfTypeArgumentsConstructor
+            .withArguments(
+              className: typeNameIdentifier.toString(),
+              constructorName: constructorIdentifier.name,
+            )
+            .at(typeArguments),
       );
     }
 
@@ -608,10 +611,13 @@ class AstRewriter {
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _diagnosticReporter.atNode(
-        typeArguments,
-        diag.wrongNumberOfTypeArgumentsConstructor,
-        arguments: [typeIdentifier.name, constructorIdentifier.name],
+      _diagnosticReporter.report(
+        diag.wrongNumberOfTypeArgumentsConstructor
+            .withArguments(
+              className: typeIdentifier.name,
+              constructorName: constructorIdentifier.name,
+            )
+            .at(typeArguments),
       );
     }
     var typeName = NamedTypeImpl(

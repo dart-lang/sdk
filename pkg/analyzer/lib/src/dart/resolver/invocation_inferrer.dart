@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
@@ -71,6 +71,7 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
     required super.argumentList,
     required super.contextType,
     required super.whyNotPromotedArguments,
+    required super.target,
     required this.constructorName,
   }) : super._();
 
@@ -85,10 +86,6 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
 
   @override
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
-
-  @override
-  DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      diag.wrongNumberOfTypeArguments;
 
   @override
   List<FormalParameterElement>? _storeResult(
@@ -119,6 +116,7 @@ class DotShorthandConstructorInvocationInferrer
     required super.argumentList,
     required super.contextType,
     required super.whyNotPromotedArguments,
+    required super.target,
   }) : super._();
 
   @override
@@ -136,7 +134,6 @@ class DotShorthandConstructorInvocationInferrer
   @override
   void _reportWrongNumberOfTypeArguments(
     TypeArgumentList typeArgumentList,
-    FunctionType rawType,
     List<TypeParameterElement> typeParameters,
   ) {
     // Error reporting for dot shorthand constructor invocations is done
@@ -171,6 +168,7 @@ class DotShorthandInvocationInferrer
     required super.argumentList,
     required super.contextType,
     required super.whyNotPromotedArguments,
+    required super.target,
   }) : super._();
 }
 
@@ -184,6 +182,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     required super.argumentList,
     required super.contextType,
     required super.whyNotPromotedArguments,
+    required super.target,
   });
 
   SyntacticEntity get _errorEntity => node;
@@ -195,9 +194,6 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   bool get _needsTypeArgumentBoundsCheck => false;
 
   TypeArgumentListImpl? get _typeArguments;
-
-  DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      diag.wrongNumberOfTypeArgumentsMethod;
 
   @override
   DartType resolveInvocation({required FunctionTypeImpl? rawType}) {
@@ -224,11 +220,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       if (rawType != null &&
           typeArgumentList.arguments.length != rawType.typeParameters.length) {
         var typeParameters = rawType.typeParameters;
-        _reportWrongNumberOfTypeArguments(
-          typeArgumentList,
-          rawType,
-          typeParameters,
-        );
+        _reportWrongNumberOfTypeArguments(typeArgumentList, typeParameters);
         typeArgumentTypes = List.filled(
           typeParameters.length,
           DynamicTypeImpl.instance,
@@ -391,17 +383,15 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
   void _reportWrongNumberOfTypeArguments(
     TypeArgumentList typeArgumentList,
-    FunctionType rawType,
     List<TypeParameterElement> typeParameters,
   ) {
-    resolver.diagnosticReporter.atNode(
-      typeArgumentList,
-      _wrongNumberOfTypeArgumentsErrorCode,
-      arguments: [
-        rawType,
-        typeParameters.length,
-        typeArgumentList.arguments.length,
-      ],
+    resolver.diagnosticReporter.report(
+      target!
+          .wrongNumberOfTypeArgumentsError(
+            typeParameterCount: typeParameters.length,
+            typeArgumentCount: typeArgumentList.arguments.length,
+          )
+          .at(typeArgumentList),
     );
   }
 
@@ -423,6 +413,7 @@ class FunctionExpressionInvocationInferrer
     required super.argumentList,
     required super.contextType,
     required super.whyNotPromotedArguments,
+    required super.target,
   }) : super._();
 
   @override
@@ -439,6 +430,7 @@ class InstanceCreationInferrer
     required super.argumentList,
     required super.contextType,
     required super.whyNotPromotedArguments,
+    required super.target,
   }) : super._();
 
   @override
@@ -460,7 +452,6 @@ class InstanceCreationInferrer
   @override
   void _reportWrongNumberOfTypeArguments(
     TypeArgumentList typeArgumentList,
-    FunctionType rawType,
     List<TypeParameterElement> typeParameters,
   ) {
     // Error reporting for instance creations is done elsewhere.
@@ -497,6 +488,7 @@ abstract class InvocationExpressionInferrer<
     required super.argumentList,
     required super.contextType,
     required super.whyNotPromotedArguments,
+    required super.target,
   }) : super._();
 
   @override
@@ -528,6 +520,14 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   final TypeImpl contextType;
   final List<WhyNotPromotedGetter> whyNotPromotedArguments;
 
+  /// An [InvocationTarget] describing the target of the invocation.
+  ///
+  /// This is used to select the proper error to report if the number of type
+  /// arguments supplied is incorrect.
+  // TODO(paulberry): consider whether it would be possible for the `rawType`
+  // parameter of [resolveInvocation] to be derived from this.
+  final InvocationTarget? target;
+
   /// Prepares to perform type inference on an invocation expression of type
   /// [Node].
   InvocationInferrer({
@@ -536,6 +536,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     required this.argumentList,
     required this.contextType,
     required this.whyNotPromotedArguments,
+    required this.target,
   });
 
   /// Determines whether [node] is an invocation of the core function
@@ -723,6 +724,7 @@ class MethodInvocationInferrer
     required super.argumentList,
     required super.contextType,
     required super.whyNotPromotedArguments,
+    required super.target,
   }) : super._();
 
   @override

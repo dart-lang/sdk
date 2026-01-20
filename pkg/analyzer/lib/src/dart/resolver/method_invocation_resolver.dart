@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
@@ -457,6 +458,7 @@ class MethodInvocationResolver with ScopeHelpers {
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
+      target: null,
     ).resolveInvocation(rawType: rawType is FunctionTypeImpl ? rawType : null);
     node.recordStaticType(staticStaticType, resolver: _resolver);
   }
@@ -473,6 +475,7 @@ class MethodInvocationResolver with ScopeHelpers {
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
+      target: null,
     ).resolveInvocation(rawType: rawType is FunctionTypeImpl ? rawType : null);
     node.recordStaticType(staticStaticType, resolver: _resolver);
   }
@@ -535,6 +538,7 @@ class MethodInvocationResolver with ScopeHelpers {
         method.type,
         whyNotPromotedArguments,
         contextType: contextType,
+        target: InvocationTargetExecutableElement(method),
       );
       return;
     }
@@ -621,6 +625,7 @@ class MethodInvocationResolver with ScopeHelpers {
       member.type,
       whyNotPromotedArguments,
       contextType: contextType,
+      target: InvocationTargetExecutableElement(member),
     );
   }
 
@@ -633,22 +638,24 @@ class MethodInvocationResolver with ScopeHelpers {
     var nameNode = node.methodName;
 
     var objectElement = _typeSystem.typeProvider.objectElement;
-    var target = objectElement.getMethod(nameNode.name);
+    var targetElement = objectElement.getMethod(nameNode.name);
 
+    InvocationTargetExecutableElement? target;
     FunctionType? rawType;
     if (receiverType is InvalidType) {
       nameNode.element = null;
       nameNode.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
       node.staticInvokeType = InvalidTypeImpl.instance;
       node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-    } else if (target != null &&
-        !target.isStatic &&
-        _hasMatchingObjectMethod(target, node.argumentList.arguments)) {
-      nameNode.element = target;
-      rawType = target.type;
-      nameNode.setPseudoExpressionStaticType(target.type);
-      node.staticInvokeType = target.type;
-      node.recordStaticType(target.returnType, resolver: _resolver);
+    } else if (targetElement != null &&
+        !targetElement.isStatic &&
+        _hasMatchingObjectMethod(targetElement, node.argumentList.arguments)) {
+      nameNode.element = targetElement;
+      rawType = targetElement.type;
+      target = InvocationTargetExecutableElement(targetElement);
+      nameNode.setPseudoExpressionStaticType(targetElement.type);
+      node.staticInvokeType = targetElement.type;
+      node.recordStaticType(targetElement.returnType, resolver: _resolver);
     } else {
       nameNode.element = null;
       nameNode.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
@@ -663,6 +670,7 @@ class MethodInvocationResolver with ScopeHelpers {
       argumentList: node.argumentList,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
+      target: target,
     ).resolveInvocation(
       // TODO(paulberry): eliminate this cast by changing the type of
       // `rawType`.
@@ -694,6 +702,7 @@ class MethodInvocationResolver with ScopeHelpers {
           objectMember.type,
           whyNotPromotedArguments,
           contextType: contextType,
+          target: InvocationTargetExecutableElement(objectMember),
         );
         return;
       } else {
@@ -717,6 +726,7 @@ class MethodInvocationResolver with ScopeHelpers {
         argumentList: node.argumentList,
         contextType: contextType,
         whyNotPromotedArguments: whyNotPromotedArguments,
+        target: null,
       ).resolveInvocation(rawType: null);
 
       _resolver.diagnosticReporter.report(
@@ -771,6 +781,7 @@ class MethodInvocationResolver with ScopeHelpers {
           element.type,
           whyNotPromotedArguments,
           contextType: contextType,
+          target: InvocationTargetExecutableElement(element),
         );
         return;
       }
@@ -899,6 +910,7 @@ class MethodInvocationResolver with ScopeHelpers {
               element.type,
               whyNotPromotedArguments,
               contextType: contextType,
+              target: InvocationTargetExecutableElement(element),
             );
             return;
           }
@@ -941,6 +953,7 @@ class MethodInvocationResolver with ScopeHelpers {
         element.type,
         whyNotPromotedArguments,
         contextType: contextType,
+        target: InvocationTargetExecutableElement(element),
       );
       return;
     }
@@ -1005,6 +1018,7 @@ class MethodInvocationResolver with ScopeHelpers {
         target.type,
         whyNotPromotedArguments,
         contextType: contextType,
+        target: InvocationTargetExecutableElement(target),
       );
       return;
     }
@@ -1020,6 +1034,7 @@ class MethodInvocationResolver with ScopeHelpers {
         target.type,
         whyNotPromotedArguments,
         contextType: contextType,
+        target: InvocationTargetExecutableElement(target),
       );
 
       _resolver.diagnosticReporter.report(
@@ -1075,6 +1090,7 @@ class MethodInvocationResolver with ScopeHelpers {
         callFunctionType,
         whyNotPromotedArguments,
         contextType: contextType,
+        target: InvocationTargetFunctionTypedExpression(callFunctionType),
       );
       // TODO(scheglov): Replace this with using FunctionType directly.
       // Here was erase resolution that _setResolution() sets.
@@ -1090,6 +1106,7 @@ class MethodInvocationResolver with ScopeHelpers {
         DynamicTypeImpl.instance,
         whyNotPromotedArguments,
         contextType: contextType,
+        target: null,
       );
       nameNode.element = null;
       nameNode.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
@@ -1143,6 +1160,7 @@ class MethodInvocationResolver with ScopeHelpers {
         target.type,
         whyNotPromotedArguments,
         contextType: contextType,
+        target: InvocationTargetExecutableElement(target),
       );
       return;
     }
@@ -1215,6 +1233,7 @@ class MethodInvocationResolver with ScopeHelpers {
           element.type,
           whyNotPromotedArguments,
           contextType: contextType,
+          target: InvocationTargetExecutableElement(element),
         );
       } else {
         _setInvalidTypeResolution(
@@ -1272,6 +1291,7 @@ class MethodInvocationResolver with ScopeHelpers {
         element.type,
         whyNotPromotedArguments,
         contextType: contextType,
+        target: InvocationTargetExecutableElement(element),
       );
       return null;
     } else if (receiver.getNamedConstructor(name)
@@ -1522,6 +1542,7 @@ class MethodInvocationResolver with ScopeHelpers {
     TypeImpl type,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
+    required InvocationTarget? target,
   }) {
     inferenceLogWriter?.recordLookupResult(
       expression: node,
@@ -1549,6 +1570,7 @@ class MethodInvocationResolver with ScopeHelpers {
         rawType: type,
         whyNotPromotedArguments: whyNotPromotedArguments,
         contextType: contextType,
+        target: target,
       );
       return;
     }
@@ -1576,6 +1598,7 @@ class MethodInvocationResolver with ScopeHelpers {
     TypeImpl type,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
+    required InvocationTarget target,
   }) {
     inferenceLogWriter?.recordLookupResult(
       expression: node,
@@ -1603,6 +1626,7 @@ class MethodInvocationResolver with ScopeHelpers {
         rawType: type,
         whyNotPromotedArguments: whyNotPromotedArguments,
         contextType: contextType,
+        target: target,
       );
       return;
     }
