@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_element2.dart';
@@ -67,7 +68,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   @override
-  Future<ResolvedUnitResult> getResolvedUnit(File file) async {
+  Future<ResolvedUnitResult> getResolvedUnit(
+    File file, {
+    List<DiagnosticCode>? ignore,
+  }) async {
     var session = await this.session;
     var libraryResult = await session.getResolvedContainingLibrary(file.path);
     var unitResult = libraryResult?.unitWithPath(file.path);
@@ -81,17 +85,26 @@ class AbstractSingleUnitTest extends AbstractContextTest {
       findNode = FindNode(unitResult.content, testUnit);
       findElement2 = FindElement2(testUnit);
     }
+
     if (verifyNoTestUnitErrors) {
+      var allIgnored = const <DiagnosticCode>{
+        diag.deadCode,
+        diag.unusedCatchClause,
+        diag.unusedCatchStack,
+        diag.unusedElement,
+        diag.unusedField,
+        diag.unusedImport,
+        diag.unusedLocalVariable,
+      };
+
+      if (ignore != null) {
+        allIgnored = {...allIgnored, ...ignore};
+      }
+
       expect(
-        unitResult.diagnostics.where((d) {
-          return d.diagnosticCode != diag.deadCode &&
-              d.diagnosticCode != diag.unusedCatchClause &&
-              d.diagnosticCode != diag.unusedCatchStack &&
-              d.diagnosticCode != diag.unusedElement &&
-              d.diagnosticCode != diag.unusedField &&
-              d.diagnosticCode != diag.unusedImport &&
-              d.diagnosticCode != diag.unusedLocalVariable;
-        }),
+        unitResult.diagnostics.where(
+          (d) => !allIgnored.contains(d.diagnosticCode),
+        ),
         isEmpty,
       );
     }
@@ -110,13 +123,16 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testFilePath = '$testPackageTestPath/test.dart';
   }
 
-  Future<void> resolveTestCode(String code) async {
+  Future<void> resolveTestCode(
+    String code, {
+    List<DiagnosticCode>? ignore,
+  }) async {
     addTestSource(code);
-    await resolveTestFile();
+    await resolveTestFile(ignore: ignore);
   }
 
-  Future<void> resolveTestFile() async {
-    await getResolvedUnit(testFile);
+  Future<void> resolveTestFile({List<DiagnosticCode>? ignore}) async {
+    await getResolvedUnit(testFile, ignore: ignore);
   }
 
   void updateTestSource(String code) {
