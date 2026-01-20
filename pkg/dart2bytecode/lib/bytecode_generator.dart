@@ -1538,12 +1538,12 @@ class BytecodeGenerator extends RecursiveVisitor {
     final bool? constantValue = _constantConditionValue(condition);
     if (constantValue != null) {
       if (constantValue == value) {
-        _emitSourcePosition();
+        asm.emitSourcePosition();
         asm.emitJump(dest);
       }
     } else if (condition is EqualsNull) {
       _generateNode(condition.expression);
-      _emitSourcePosition();
+      asm.emitSourcePosition();
       if (value) {
         asm.emitJumpIfNull(dest);
       } else {
@@ -1571,7 +1571,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (negated) {
         value = !value;
       }
-      _emitSourcePosition();
+      asm.emitSourcePosition();
       if (value) {
         asm.emitJumpIfTrue(dest);
       } else {
@@ -1704,7 +1704,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     _recordSourcePosition(startPosition, SourcePositions.syntheticFlag);
     _genPrologue(node, node.function);
     _setupInitialContext(node.function);
-    _emitFirstDebugCheck(node, node.function);
     _genEqualsOperatorNullHandling(node);
     if (node is Procedure && node.isInstanceMember) {
       _checkArguments(node.function);
@@ -2139,16 +2138,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     _recordSourcePosition(position, 0);
   }
 
-  void _emitFirstDebugCheck(TreeNode node, FunctionNode? function) {
-    if (options.emitDebuggerStops) {
-      // DebugCheck instruction should be emitted after parameter variables
-      // are declared and copied into context.
-      // The DebugCheck must be encountered each time an async op is reentered.
-      _recordInitialSourcePositionForFunction(node, function);
-      asm.emitDebugCheck();
-    }
-  }
-
   void _copyParamIfCaptured(VariableDeclaration variable) {
     if (locals.isCaptured(variable)) {
       if (options.emitLocalVarInfo) {
@@ -2493,7 +2482,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     _recordSourcePosition(function.fileOffset, SourcePositions.syntheticFlag);
     _genPrologue(node, function);
     _setupInitialContext(function);
-    _emitFirstDebugCheck(node, function);
     _checkArguments(function);
     _initSuspendableFunction(function);
 
@@ -2770,15 +2758,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     // Generate jump to the innermost finally (or to the original
     // continuation if there are no try-finally blocks).
     continuation();
-  }
-
-  // Emits a source position entry and/or debugger stop as appropriate.
-  void _emitSourcePosition() {
-    asm.emitSourcePosition();
-    if (options.emitDebuggerStops &&
-        (asm.currentSourcePositionFlags & SourcePositions.syntheticFlag) == 0) {
-      asm.emitDebugCheck();
-    }
   }
 
   /// Generates non-local transfer from inner node [from] into the outer
@@ -3597,7 +3576,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     final target = node.target;
     if (target is Field && !_needsSetter(target)) {
       int cpIndex = cp.addStaticField(target);
-      _emitSourcePosition();
       asm.emitStoreStaticTOS(cpIndex);
     } else {
       _genDirectCall(target, objectTable.getArgDescHandle(1), 1,
@@ -3650,7 +3628,6 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitThrow(Throw node) {
     _generateNode(node.expression);
 
-    _emitSourcePosition();
     asm.emitThrow(0);
   }
 
@@ -3751,7 +3728,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitStoreLocal(locals.tempIndexInFrame(node));
     }
     if (!v.isSynthesized) {
-      _emitSourcePosition();
+      asm.emitSourcePosition();
     }
     if (hasResult && !isCaptured) {
       asm.emitStoreLocal(locals.getVarIndexInFrame(v));
@@ -3867,7 +3844,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _generateNonLocalControlTransfer(node, node.target, () {
       _genUnwindContext(targetContextLevel);
-      _emitSourcePosition();
+      asm.emitSourcePosition();
       asm.emitJump(targetLabel);
     });
   }
@@ -3880,7 +3857,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _generateNonLocalControlTransfer(node, node.target.parent!, () {
       _genUnwindContext(targetContextLevel);
-      _emitSourcePosition();
+      asm.emitSourcePosition();
       asm.emitJump(targetLabel);
     });
   }
@@ -3975,7 +3952,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
     _genPushContextIfCaptured(node.variable);
     _genClosure(node, node.variable.name!, node.function);
-    _emitSourcePosition();
+    asm.emitSourcePosition();
     _genStoreVar(node.variable);
   }
 
@@ -4022,10 +3999,6 @@ class BytecodeGenerator extends RecursiveVisitor {
       _generateNode(expr);
       _genReturnTOS();
     } else {
-      if (options.emitDebuggerStops) {
-        // Stop on the return statement before executing finally blocks.
-        asm.emitDebugCheck();
-      }
       if (expr is BasicLiteral) {
         _addFinallyBlocks(tryFinallyBlocks, () {
           _generateNode(expr);
@@ -4382,7 +4355,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         if (initializer != null) {
           _recordSourcePosition(node.fileEqualsOffset);
         }
-        _emitSourcePosition();
+        asm.emitSourcePosition();
         if (isCaptured) {
           _genPushContextForVariable(node);
         }
