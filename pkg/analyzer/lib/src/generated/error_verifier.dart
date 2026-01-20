@@ -2862,7 +2862,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var field = instanceFields.single;
       diagnosticReporter.report(
         diag.constConstructorWithMixinWithField
-            .withArguments(p0: fieldName(field))
+            .withArguments(fieldName: fieldName(field))
             .atSourceRange(implicitErrorRange),
       );
       return true;
@@ -2870,7 +2870,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var fieldNames = instanceFields.map(fieldName).join(', ');
       diagnosticReporter.report(
         diag.constConstructorWithMixinWithFields
-            .withArguments(p0: fieldNames)
+            .withArguments(fieldNames: fieldNames)
             .atSourceRange(implicitErrorRange),
       );
       return true;

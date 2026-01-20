@@ -2909,7 +2909,7 @@ class ChildEntity {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassBody implements AstNode {}
 
-abstract final class ClassBodyImpl extends AstNodeImpl implements ClassBody {
+sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
   List<ClassMemberImpl> get members;
 }
 

@@ -116,7 +116,10 @@ void _validateAssetPath(
       var errorCode = isDirectoryEntry
           ? diag.assetDirectoryDoesNotExist
           : diag.assetDoesNotExist;
-      ctx.reportErrorForNode(errorField, errorCode, [pathValue]);
+      ctx.reportErrorForNode(
+        errorField,
+        errorCode.withArguments(path: pathValue),
+      );
     }
   }
 }

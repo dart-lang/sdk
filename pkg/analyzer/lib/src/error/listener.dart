@@ -469,17 +469,17 @@ class _TypeToConvert implements _ToConvert {
 /// Code that will be added to [DiagnosticReporter] when the new literate API
 /// for diagnostic reporting is exposed publicly.
 extension LiterateDiagnosticReporter on DiagnosticReporter {
-  /// Reports the given [diagnostic].
-  void report(LocatedDiagnostic diagnostic) {
-    var locatableDiagnostic = diagnostic.locatableDiagnostic;
-    reportError(
-      _createDiagnostic(
-        offset: diagnostic.offset,
-        length: diagnostic.length,
-        diagnosticCode: locatableDiagnostic.code,
-        arguments: locatableDiagnostic.arguments,
-        contextMessages: locatableDiagnostic.contextMessages.toList(),
-      ),
+  /// Reports the given [locatedDiagnostic].
+  Diagnostic report(LocatedDiagnostic locatedDiagnostic) {
+    var locatableDiagnostic = locatedDiagnostic.locatableDiagnostic;
+    var diagnostic = _createDiagnostic(
+      offset: locatedDiagnostic.offset,
+      length: locatedDiagnostic.length,
+      diagnosticCode: locatableDiagnostic.code,
+      arguments: locatableDiagnostic.arguments,
+      contextMessages: locatableDiagnostic.contextMessages.toList(),
     );
+    reportError(diagnostic);
+    return diagnostic;
   }
 }

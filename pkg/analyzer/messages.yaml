@@ -3314,8 +3314,8 @@ CompileTimeErrorCode:
   constConstructorWithMixinWithField:
     type: compileTimeError
     parameters:
-      String p0: the name of the instance field.
-    problemMessage: "This constructor can't be declared 'const' because a mixin adds the instance field: #p0."
+      String fieldName: the name of the instance field.
+    problemMessage: "This constructor can't be declared 'const' because a mixin adds the instance field: #fieldName."
     correctionMessage: "Try removing the 'const' keyword or removing the 'with' clause from the class declaration, or removing the field from the mixin class."
     hasPublishedDocs: false
     comment: |-
@@ -3331,9 +3331,9 @@ CompileTimeErrorCode:
   constConstructorWithMixinWithFields:
     type: compileTimeError
     parameters:
-      String p0: the names of the instance fields.
+      String fieldNames: the names of the instance fields.
     sharedName: constConstructorWithMixinWithField
-    problemMessage: "This constructor can't be declared 'const' because the mixins add the instance fields: #p0."
+    problemMessage: "This constructor can't be declared 'const' because the mixins add the instance fields: #fieldNames."
     correctionMessage: "Try removing the 'const' keyword or removing the 'with' clause from the class declaration, or removing the fields from the mixin classes."
     hasPublishedDocs: false
     comment: |-
@@ -23343,8 +23343,8 @@ PubspecWarningCode:
   assetDirectoryDoesNotExist:
     type: staticWarning
     parameters:
-      String p0: the path to the asset directory as given in the file.
-    problemMessage: "The asset directory '#p0' doesn't exist."
+      String path: the path to the asset directory as given in the file.
+    problemMessage: "The asset directory '#path' doesn't exist."
     correctionMessage: Try creating the directory or fixing the path to the directory.
     hasPublishedDocs: true
     documentation: |-
@@ -23376,8 +23376,8 @@ PubspecWarningCode:
   assetDoesNotExist:
     type: staticWarning
     parameters:
-      String p0: the path to the asset as given in the file.
-    problemMessage: "The asset file '#p0' doesn't exist."
+      String path: the path to the asset as given in the file.
+    problemMessage: "The asset file '#path' doesn't exist."
     correctionMessage: Try creating the file or fixing the path to the file.
     hasPublishedDocs: true
     documentation: |-
@@ -23614,8 +23614,8 @@ PubspecWarningCode:
   dependenciesFieldNotMap:
     type: staticWarning
     parameters:
-      String p0: the name of the field
-    problemMessage: "The value of the '#p0' field is expected to be a map."
+      String fieldName: the name of the field
+    problemMessage: "The value of the '#fieldName' field is expected to be a map."
     correctionMessage: Try converting the value to be a map.
     hasPublishedDocs: true
     documentation: |-
@@ -23649,8 +23649,8 @@ PubspecWarningCode:
   deprecatedField:
     type: staticWarning
     parameters:
-      String p0: the name of the field
-    problemMessage: "The '#p0' field is no longer used and can be removed."
+      String fieldName: the name of the field
+    problemMessage: "The '#fieldName' field is no longer used and can be removed."
     correctionMessage: Try removing the field.
     hasPublishedDocs: true
     documentation: |-
@@ -23724,9 +23724,9 @@ PubspecWarningCode:
   invalidDependency:
     type: staticWarning
     parameters:
-      String p0: the kind of dependency.
-    problemMessage: "Publishable packages can't have '#p0' dependencies."
-    correctionMessage: "Try adding a 'publish_to: none' entry to mark the package as not for publishing or remove the #p0 dependency."
+      String kind: the kind of dependency.
+    problemMessage: "Publishable packages can't have '#kind' dependencies."
+    correctionMessage: "Try adding a 'publish_to: none' entry to mark the package as not for publishing or remove the #kind dependency."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -23820,8 +23820,8 @@ PubspecWarningCode:
   unknownPlatform:
     type: staticWarning
     parameters:
-      Object p0: the unknown platform.
-    problemMessage: "The platform '#p0' is not a recognized platform."
+      String platform: the unknown platform.
+    problemMessage: "The platform '#platform' is not a recognized platform."
     correctionMessage: "Try correcting the platform name or removing it."
     hasPublishedDocs: true
     documentation: |-
@@ -24014,8 +24014,8 @@ PubspecWarningCode:
   pathDoesNotExist:
     type: staticWarning
     parameters:
-      String p0: the path to the dependency as given in the file.
-    problemMessage: "The path '#p0' doesn't exist."
+      String path: the path to the dependency as given in the file.
+    problemMessage: "The path '#path' doesn't exist."
     correctionMessage: Try creating the referenced path or using a path that exists.
     hasPublishedDocs: true
     documentation: |-
@@ -24046,8 +24046,8 @@ PubspecWarningCode:
   pathNotPosix:
     type: staticWarning
     parameters:
-      String p0: the path as given in the file.
-    problemMessage: "The path '#p0' isn't a POSIX-style path."
+      String path: the path as given in the file.
+    problemMessage: "The path '#path' isn't a POSIX-style path."
     correctionMessage: Try converting the value to a POSIX-style path.
     hasPublishedDocs: true
     documentation: |-
@@ -24075,8 +24075,8 @@ PubspecWarningCode:
   pathPubspecDoesNotExist:
     type: staticWarning
     parameters:
-      String p0: the path to the dependency as given in the file.
-    problemMessage: "The directory '#p0' doesn't contain a pubspec."
+      String path: the path to the dependency as given in the file.
+    problemMessage: "The directory '#path' doesn't contain a pubspec."
     correctionMessage: Try creating a pubspec in the referenced directory or using a path that has a pubspec.
     hasPublishedDocs: true
     documentation: |-
@@ -24113,8 +24113,8 @@ PubspecWarningCode:
   unnecessaryDevDependency:
     type: staticWarning
     parameters:
-      String p0: the name of the package in the dev_dependency list.
-    problemMessage: "The dev dependency on #p0 is unnecessary because there is also a normal dependency on that package."
+      String package: the name of the package in the dev_dependency list.
+    problemMessage: "The dev dependency on #package is unnecessary because there is also a normal dependency on that package."
     correctionMessage: Try removing the dev dependency.
     hasPublishedDocs: true
     documentation: |-
@@ -24225,8 +24225,8 @@ PubspecWarningCode:
   workspaceValueNotSubdirectory:
     type: staticWarning
     parameters:
-      String p0: the path of the directory that contains the pubspec.yaml file.
-    problemMessage: Workspace values must be a relative path of a subdirectory of '#p0'.
+      String path: the path of the directory that contains the pubspec.yaml file.
+    problemMessage: Workspace values must be a relative path of a subdirectory of '#path'.
     correctionMessage: Try using a subdirectory of the directory containing the 'pubspec.yaml' file.
     hasPublishedDocs: false
 
