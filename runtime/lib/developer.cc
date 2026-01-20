@@ -245,10 +245,10 @@ DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_streamTimelineTo, 0, 5) {
       Integer::CheckedHandle(zone, arguments->NativeArgAt(4));
 
   if (enable_profiler.value()) {
-    FLAG_profiler = true;
-    FLAG_profile_period = sampling_interval.Value();
-    Profiler::UpdateSamplePeriod();
-    Profiler::UpdateRunningState();
+    Profiler::SetConfig({
+        .enabled = true,
+        .period_us = sampling_interval.Value(),
+    });
   }
 #endif
 
@@ -268,10 +268,9 @@ DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_streamTimelineTo, 0, 5) {
 DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_stopStreamingTimeline, 0, 0) {
 #if defined(SUPPORT_TIMELINE)
 #if defined(DART_INCLUDE_PROFILER)
-  FLAG_profiler = false;
-  FLAG_profile_period = 1000;
-  Profiler::UpdateSamplePeriod();
-  Profiler::UpdateRunningState();
+  Profiler::SetConfig({
+      .enabled = false,
+  });
 #endif
   Timeline::StopStreaming();
 #else
