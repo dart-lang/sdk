@@ -12165,9 +12165,9 @@ nonConstArgumentForConstParameter = DiagnosticWithArguments(
 /// annotated with `@literal`.
 ///
 /// Parameters:
-/// String p0: the name of the class defining the annotated constructor
+/// String constructorName: the name of the annotated constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String constructorName})
 >
 nonConstCallToLiteralConstructor = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
@@ -12186,9 +12186,9 @@ nonConstCallToLiteralConstructor = DiagnosticWithArguments(
 /// using a constructor annotated with `@literal`.
 ///
 /// Parameters:
-/// String p0: the name of the class defining the annotated constructor
+/// String constructorName: the name of the annotated constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String constructorName})
 >
 nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
@@ -20548,17 +20548,19 @@ LocatableDiagnostic _withArgumentsNonConstArgumentForConstParameter({
 }
 
 LocatableDiagnostic _withArgumentsNonConstCallToLiteralConstructor({
-  required String p0,
+  required String constructorName,
 }) {
-  return LocatableDiagnosticImpl(diag.nonConstCallToLiteralConstructor, [p0]);
+  return LocatableDiagnosticImpl(diag.nonConstCallToLiteralConstructor, [
+    constructorName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsNonConstCallToLiteralConstructorUsingNew({
-  required String p0,
+  required String constructorName,
 }) {
   return LocatableDiagnosticImpl(
     diag.nonConstCallToLiteralConstructorUsingNew,
-    [p0],
+    [constructorName],
   );
 }
 

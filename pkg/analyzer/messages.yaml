@@ -28323,9 +28323,9 @@ WarningCode:
   nonConstCallToLiteralConstructorUsingNew:
     type: staticWarning
     parameters:
-      String p0: the name of the class defining the annotated constructor
+      String constructorName: the name of the annotated constructor
     sharedName: nonConstCallToLiteralConstructor
-    problemMessage: "This instance creation must be 'const', because the #p0 constructor is marked as '@literal'."
+    problemMessage: "This instance creation must be 'const', because the #constructorName constructor is marked as '@literal'."
     correctionMessage: "Try replacing the 'new' keyword with 'const'."
     hasPublishedDocs: true
     comment: |-
@@ -28334,8 +28334,8 @@ WarningCode:
   nonConstCallToLiteralConstructor:
     type: staticWarning
     parameters:
-      String p0: the name of the class defining the annotated constructor
-    problemMessage: "This instance creation must be 'const', because the #p0 constructor is marked as '@literal'."
+      String constructorName: the name of the annotated constructor
+    problemMessage: "This instance creation must be 'const', because the #constructorName constructor is marked as '@literal'."
     correctionMessage: "Try adding a 'const' keyword."
     hasPublishedDocs: true
     comment: |-
