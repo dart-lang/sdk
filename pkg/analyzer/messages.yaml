@@ -28770,11 +28770,11 @@ WarningCode:
   replacedLintUse:
     type: staticWarning
     parameters:
-      Object p0: the rule name
-      Object p1: the SDK version in which the lint was removed
-      Object p2: the name of a replacing lint
-    problemMessage: "'#p0' was replaced by '#p2' in Dart '#p1'."
-    correctionMessage: "Replace '#p0' with '#p1'."
+      Object ruleName: the rule name
+      Object since: the SDK version in which the lint was removed
+      Object replacement: the name of a replacing lint
+    problemMessage: "'#ruleName' was replaced by '#replacement' in Dart '#since'."
+    correctionMessage: "Replace '#ruleName' with '#replacement'."
     hasPublishedDocs: false
     comment: |-
       An error code indicating use of a removed lint rule.

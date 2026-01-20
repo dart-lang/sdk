@@ -213,11 +213,14 @@ class IgnoreValidator {
           } else if (state.isRemoved) {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
-              _diagnosticReporter.atOffset(
-                diagnosticCode: diag.replacedLintUse,
-                offset: ignoredName.offset,
-                length: name.length,
-                arguments: [name, since, replacedBy],
+              _diagnosticReporter.report(
+                diag.replacedLintUse
+                    .withArguments(
+                      ruleName: name,
+                      since: since,
+                      replacement: replacedBy,
+                    )
+                    .atOffset(offset: ignoredName.offset, length: name.length),
               );
               continue;
             } else {

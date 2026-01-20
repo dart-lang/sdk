@@ -14407,20 +14407,20 @@ replacedLint = DiagnosticWithArguments(
 /// An error code indicating use of a removed lint rule.
 ///
 /// Parameters:
-/// Object p0: the rule name
-/// Object p1: the SDK version in which the lint was removed
-/// Object p2: the name of a replacing lint
+/// Object ruleName: the rule name
+/// Object since: the SDK version in which the lint was removed
+/// Object replacement: the name of a replacing lint
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
+    required Object ruleName,
+    required Object since,
+    required Object replacement,
   })
 >
 replacedLintUse = DiagnosticWithArguments(
   name: 'replaced_lint_use',
   problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
-  correctionMessage: "Replace '{0}' with '{1}'.",
+  correctionMessage: "Replace '{0}' with '{2}'.",
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'replaced_lint_use',
   withArguments: _withArgumentsReplacedLintUse,
@@ -21049,11 +21049,15 @@ LocatableDiagnostic _withArgumentsReplacedLint({
 }
 
 LocatableDiagnostic _withArgumentsReplacedLintUse({
-  required Object p0,
-  required Object p1,
-  required Object p2,
+  required Object ruleName,
+  required Object since,
+  required Object replacement,
 }) {
-  return LocatableDiagnosticImpl(diag.replacedLintUse, [p0, p1, p2]);
+  return LocatableDiagnosticImpl(diag.replacedLintUse, [
+    ruleName,
+    since,
+    replacement,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsReturnOfDoNotStore({
