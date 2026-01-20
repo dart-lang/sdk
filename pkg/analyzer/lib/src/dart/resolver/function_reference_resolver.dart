@@ -70,7 +70,10 @@ class FunctionReferenceResolver {
           rawType: function.staticType,
           target: constructorElement == null
               ? null
-              : InvocationTargetConstructorElement(constructorElement),
+              : InvocationTargetConstructorElement(
+                  constructorElement,
+                  constructorElement.type,
+                ),
         );
       }
     } else {

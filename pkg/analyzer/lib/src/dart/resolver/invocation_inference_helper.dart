@@ -150,12 +150,10 @@ class InvocationInferenceHelper {
 
   /// Finish resolution of the [DotShorthandInvocation].
   ///
-  /// We have already found the invoked [ExecutableElement], and the [rawType]
-  /// is its not yet instantiated type. Here we perform downwards inference,
-  /// resolution of arguments, and upwards inference.
+  /// We have already found the invoked [ExecutableElement]. Here we perform
+  /// downwards inference, resolution of arguments, and upwards inference.
   void resolveDotShorthandInvocation({
     required DotShorthandInvocationImpl node,
-    required FunctionTypeImpl rawType,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required TypeImpl contextType,
     required InvocationTarget target,
@@ -167,18 +165,16 @@ class InvocationInferenceHelper {
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: target,
-    ).resolveInvocation(rawType: rawType);
+    ).resolveInvocation();
     node.recordStaticType(returnType, resolver: _resolver);
   }
 
   /// Finish resolution of the [MethodInvocation].
   ///
-  /// We have already found the invoked [ExecutableElement], and the [rawType]
-  /// is its not yet instantiated type. Here we perform downwards inference,
-  /// resolution of arguments, and upwards inference.
+  /// We have already found the invoked [ExecutableElement]. Here we perform
+  /// downwards inference, resolution of arguments, and upwards inference.
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
-    required FunctionTypeImpl rawType,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required TypeImpl contextType,
     required InvocationTarget? target,
@@ -190,7 +186,7 @@ class InvocationInferenceHelper {
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: target,
-    ).resolveInvocation(rawType: rawType);
+    ).resolveInvocation();
     node.recordStaticType(returnType, resolver: _resolver);
   }
 }

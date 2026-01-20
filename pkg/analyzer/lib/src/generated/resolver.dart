@@ -2733,7 +2733,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: target,
-    ).resolveInvocation(rawType: target?.type);
+    ).resolveInvocation();
 
     extensionResolver.resolveOverride(node, whyNotPromotedArguments);
     inferenceLogWriter?.exitExtensionOverride(node);
@@ -3804,8 +3804,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: element == null
           ? null
-          : InvocationTargetConstructorElement(element),
-    ).resolveInvocation(rawType: node.element?.type);
+          : InvocationTargetConstructorElement(element, element.type),
+    ).resolveInvocation();
     checkForArgumentTypesNotAssignableInList(
       node.argumentList,
       whyNotPromotedArguments,
@@ -3956,8 +3956,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: element == null
           ? null
-          : InvocationTargetConstructorElement(element),
-    ).resolveInvocation(rawType: node.element?.type);
+          : InvocationTargetConstructorElement(element, element.type),
+    ).resolveInvocation();
     checkForArgumentTypesNotAssignableInList(
       node.argumentList,
       whyNotPromotedArguments,

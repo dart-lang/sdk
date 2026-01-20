@@ -451,7 +451,6 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var rawType = node.memberName.staticType;
     DartType staticStaticType = DotShorthandInvocationInferrer(
       resolver: _resolver,
       node: node,
@@ -459,7 +458,7 @@ class MethodInvocationResolver with ScopeHelpers {
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: null,
-    ).resolveInvocation(rawType: rawType is FunctionTypeImpl ? rawType : null);
+    ).resolveInvocation();
     node.recordStaticType(staticStaticType, resolver: _resolver);
   }
 
@@ -468,7 +467,6 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var rawType = node.methodName.staticType;
     DartType staticStaticType = MethodInvocationInferrer(
       resolver: _resolver,
       node: node,
@@ -476,7 +474,7 @@ class MethodInvocationResolver with ScopeHelpers {
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: null,
-    ).resolveInvocation(rawType: rawType is FunctionTypeImpl ? rawType : null);
+    ).resolveInvocation();
     node.recordStaticType(staticStaticType, resolver: _resolver);
   }
 
@@ -641,7 +639,6 @@ class MethodInvocationResolver with ScopeHelpers {
     var targetElement = objectElement.getMethod(nameNode.name);
 
     InvocationTargetExecutableElement? target;
-    FunctionType? rawType;
     if (receiverType is InvalidType) {
       nameNode.element = null;
       nameNode.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
@@ -651,7 +648,6 @@ class MethodInvocationResolver with ScopeHelpers {
         !targetElement.isStatic &&
         _hasMatchingObjectMethod(targetElement, node.argumentList.arguments)) {
       nameNode.element = targetElement;
-      rawType = targetElement.type;
       target = InvocationTargetExecutableElement(targetElement);
       nameNode.setPseudoExpressionStaticType(targetElement.type);
       node.staticInvokeType = targetElement.type;
@@ -671,11 +667,7 @@ class MethodInvocationResolver with ScopeHelpers {
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
       target: target,
-    ).resolveInvocation(
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `rawType`.
-      rawType: rawType as FunctionTypeImpl?,
-    );
+    ).resolveInvocation();
   }
 
   /// Resolves the method invocation, [node], as an instance invocation on an
@@ -727,7 +719,7 @@ class MethodInvocationResolver with ScopeHelpers {
         contextType: contextType,
         whyNotPromotedArguments: whyNotPromotedArguments,
         target: null,
-      ).resolveInvocation(rawType: null);
+      ).resolveInvocation();
 
       _resolver.diagnosticReporter.report(
         diag.receiverOfTypeNever.at(receiver),
@@ -1567,7 +1559,6 @@ class MethodInvocationResolver with ScopeHelpers {
     if (type is FunctionTypeImpl) {
       _inferenceHelper.resolveMethodInvocation(
         node: node,
-        rawType: type,
         whyNotPromotedArguments: whyNotPromotedArguments,
         contextType: contextType,
         target: target,
@@ -1623,7 +1614,6 @@ class MethodInvocationResolver with ScopeHelpers {
     if (type is FunctionTypeImpl) {
       _inferenceHelper.resolveDotShorthandInvocation(
         node: node,
-        rawType: type,
         whyNotPromotedArguments: whyNotPromotedArguments,
         contextType: contextType,
         target: target,

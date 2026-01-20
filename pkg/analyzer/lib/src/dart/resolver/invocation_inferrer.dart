@@ -196,7 +196,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   TypeArgumentListImpl? get _typeArguments;
 
   @override
-  DartType resolveInvocation({required FunctionTypeImpl? rawType}) {
+  DartType resolveInvocation() {
+    var rawType = target?.rawType;
     var typeArgumentList = _typeArguments;
     var originalType = rawType;
 
@@ -524,8 +525,6 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   ///
   /// This is used to select the proper error to report if the number of type
   /// arguments supplied is incorrect.
-  // TODO(paulberry): consider whether it would be possible for the `rawType`
-  // parameter of [resolveInvocation] to be derived from this.
   final InvocationTarget? target;
 
   /// Prepares to perform type inference on an invocation expression of type
@@ -543,10 +542,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// `identical` (which needs special flow analysis treatment).
   bool get _isIdentical => false;
 
-  /// Performs type inference on the invocation expression.  [rawType] should be
-  /// the type of the function the invocation is resolved to (with type
-  /// arguments not applied yet).
-  void resolveInvocation({required FunctionTypeImpl? rawType}) {
+  /// Performs type inference on the invocation expression.
+  void resolveInvocation() {
+    var rawType = target?.rawType;
     var deferredFunctionLiterals = _visitArguments(
       parameterMap: _computeParameterMap(rawType?.formalParameters ?? const []),
     );
