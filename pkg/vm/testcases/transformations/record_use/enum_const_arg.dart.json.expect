@@ -5,11 +5,11 @@
       "value": 1
     },
     {
-      "type": "String",
+      "type": "string",
       "value": "b"
     },
     {
-      "type": "Instance",
+      "type": "instance",
       "value": {
         "index": 0,
         "_name": 1

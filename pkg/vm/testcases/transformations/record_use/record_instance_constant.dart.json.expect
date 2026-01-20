@@ -9,13 +9,13 @@
       "value": 42
     },
     {
-      "type": "Instance",
+      "type": "instance",
       "value": {
         "i": 0
       }
     },
     {
-      "type": "Instance",
+      "type": "instance",
       "value": {
         "a": 1
       }
