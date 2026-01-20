@@ -247,7 +247,7 @@ DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_streamTimelineTo, 0, 5) {
   if (enable_profiler.value()) {
     Profiler::SetConfig({
         .enabled = true,
-        .period_us = sampling_interval.Value(),
+        .period_us = static_cast<intptr_t>(sampling_interval.Value()),
     });
   }
 #endif
