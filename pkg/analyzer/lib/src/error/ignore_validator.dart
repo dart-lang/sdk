@@ -4,9 +4,9 @@
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
@@ -169,19 +169,20 @@ class IgnoreValidator {
     for (var ignoredElement in duplicated) {
       if (ignoredElement is IgnoredDiagnosticName) {
         var name = ignoredElement.name;
-        _diagnosticReporter.atOffset(
-          offset: ignoredElement.offset,
-          length: name.length,
-          diagnosticCode: diag.duplicateIgnore,
-          arguments: [name],
+        _diagnosticReporter.report(
+          diag.duplicateIgnore
+              .withArguments(name: name)
+              .atOffset(offset: ignoredElement.offset, length: name.length),
         );
         list.remove(ignoredElement);
       } else if (ignoredElement is IgnoredDiagnosticType) {
-        _diagnosticReporter.atOffset(
-          offset: ignoredElement.offset,
-          length: ignoredElement.length,
-          diagnosticCode: diag.duplicateIgnore,
-          arguments: [ignoredElement.type],
+        _diagnosticReporter.report(
+          diag.duplicateIgnore
+              .withArguments(name: ignoredElement.type)
+              .atOffset(
+                offset: ignoredElement.offset,
+                length: ignoredElement.length,
+              ),
         );
         list.remove(ignoredElement);
       }
