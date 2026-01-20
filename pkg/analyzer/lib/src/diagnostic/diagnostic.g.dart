@@ -6367,36 +6367,6 @@ const DiagnosticWithoutArguments getterInFunction =
     );
 
 /// Parameters:
-/// Object p0: the name of the getter
-/// Object p1: the type of the getter
-/// Object p2: the type of the setter
-/// Object p3: the name of the setter
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-  })
->
-getterNotAssignableSetterTypes = DiagnosticWithArguments(
-  name: 'getter_not_assignable_setter_types',
-  problemMessage:
-      "The return type of getter '{0}' is '{1}' which isn't assignable to the "
-      "type '{2}' of its setter '{3}'.",
-  correctionMessage: "Try changing the types so that they are compatible.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'getter_not_assignable_setter_types',
-  withArguments: _withArgumentsGetterNotAssignableSetterTypes,
-  expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-  ],
-);
-
-/// Parameters:
 /// Object getterName: the name of the getter
 /// Object getterType: the type of the getter
 /// Object setterType: the type of the setter
@@ -7085,26 +7055,6 @@ incompatibleLintIncluded = DiagnosticWithArguments(
   ],
 );
 
-/// 13.9 Switch: It is a compile-time error if values of the expressions
-/// <i>e<sub>k</sub></i> are not instances of the same class <i>C</i>, for all
-/// <i>1 &lt;= k &lt;= n</i>.
-///
-/// Parameters:
-/// Object p0: the expression source code that is the unexpected type
-/// Object p1: the name of the expected type
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
->
-inconsistentCaseExpressionTypes = DiagnosticWithArguments(
-  name: 'inconsistent_case_expression_types',
-  problemMessage:
-      "Case expressions must have the same types, '{0}' isn't a '{1}'.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'inconsistent_case_expression_types',
-  withArguments: _withArgumentsInconsistentCaseExpressionTypes,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
-);
-
 /// Parameters:
 /// String name: the name of the instance member with inconsistent
 ///              inheritance.
@@ -7729,188 +7679,6 @@ const DiagnosticWithoutArguments invalidAwaitNotRequiredAnnotation =
       uniqueName: 'invalid_await_not_required_annotation',
       expectedTypes: [],
     );
-
-/// This error is only reported in libraries which are not null safe.
-///
-/// Parameters:
-/// Object p0: the name of the function
-/// Object p1: the type of the function
-/// Object p2: the expected function type
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-  })
->
-invalidCastFunction = DiagnosticWithArguments(
-  name: 'invalid_cast_function',
-  problemMessage:
-      "The function '{0}' has type '{1}' that isn't of expected type '{2}'. This "
-      "means its parameter or return type doesn't match what is expected.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_cast_function',
-  withArguments: _withArgumentsInvalidCastFunction,
-  expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-  ],
-);
-
-/// This error is only reported in libraries which are not null safe.
-///
-/// Parameters:
-/// Object p0: the type of the torn-off function expression
-/// Object p1: the expected function type
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
->
-invalidCastFunctionExpr = DiagnosticWithArguments(
-  name: 'invalid_cast_function_expr',
-  problemMessage:
-      "The function expression type '{0}' isn't of type '{1}'. This means its "
-      "parameter or return type doesn't match what is expected. Consider "
-      "changing parameter type(s) or the returned type(s).",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_cast_function_expr',
-  withArguments: _withArgumentsInvalidCastFunctionExpr,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
-);
-
-/// This error is only reported in libraries which are not null safe.
-///
-/// Parameters:
-/// Object p0: the lexeme of the literal
-/// Object p1: the type of the literal
-/// Object p2: the expected type
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-  })
->
-invalidCastLiteral = DiagnosticWithArguments(
-  name: 'invalid_cast_literal',
-  problemMessage:
-      "The literal '{0}' with type '{1}' isn't of expected type '{2}'.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_cast_literal',
-  withArguments: _withArgumentsInvalidCastLiteral,
-  expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-  ],
-);
-
-/// This error is only reported in libraries which are not null safe.
-///
-/// Parameters:
-/// Object p0: the type of the list literal
-/// Object p1: the expected type
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
->
-invalidCastLiteralList = DiagnosticWithArguments(
-  name: 'invalid_cast_literal_list',
-  problemMessage:
-      "The list literal type '{0}' isn't of expected type '{1}'. The list's type "
-      "can be changed with an explicit generic type argument or by changing "
-      "the element types.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_cast_literal_list',
-  withArguments: _withArgumentsInvalidCastLiteralList,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
-);
-
-/// This error is only reported in libraries which are not null safe.
-///
-/// Parameters:
-/// Object p0: the type of the map literal
-/// Object p1: the expected type
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
->
-invalidCastLiteralMap = DiagnosticWithArguments(
-  name: 'invalid_cast_literal_map',
-  problemMessage:
-      "The map literal type '{0}' isn't of expected type '{1}'. The map's type "
-      "can be changed with an explicit generic type arguments or by changing "
-      "the key and value types.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_cast_literal_map',
-  withArguments: _withArgumentsInvalidCastLiteralMap,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
-);
-
-/// This error is only reported in libraries which are not null safe.
-///
-/// Parameters:
-/// Object p0: the type of the set literal
-/// Object p1: the expected type
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
->
-invalidCastLiteralSet = DiagnosticWithArguments(
-  name: 'invalid_cast_literal_set',
-  problemMessage:
-      "The set literal type '{0}' isn't of expected type '{1}'. The set's type "
-      "can be changed with an explicit generic type argument or by changing "
-      "the element types.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_cast_literal_set',
-  withArguments: _withArgumentsInvalidCastLiteralSet,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
-);
-
-/// This error is only reported in libraries which are not null safe.
-///
-/// Parameters:
-/// Object p0: the name of the torn-off method
-/// Object p1: the type of the torn-off method
-/// Object p2: the expected function type
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-  })
->
-invalidCastMethod = DiagnosticWithArguments(
-  name: 'invalid_cast_method',
-  problemMessage:
-      "The method tear-off '{0}' has type '{1}' that isn't of expected type "
-      "'{2}'. This means its parameter or return type doesn't match what is "
-      "expected.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_cast_method',
-  withArguments: _withArgumentsInvalidCastMethod,
-  expectedTypes: [
-    ExpectedType.object,
-    ExpectedType.object,
-    ExpectedType.object,
-  ],
-);
-
-/// This error is only reported in libraries which are not null safe.
-///
-/// Parameters:
-/// Object p0: the type of the instantiated object
-/// Object p1: the expected type
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
->
-invalidCastNewExpr = DiagnosticWithArguments(
-  name: 'invalid_cast_new_expr',
-  problemMessage:
-      "The constructor returns type '{0}' that isn't of expected type '{1}'.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_cast_new_expr',
-  withArguments: _withArgumentsInvalidCastNewExpr,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
-);
 
 /// Parameters:
 /// String escapeSequence: the invalid escape sequence
@@ -8811,23 +8579,6 @@ const DiagnosticCode invalidOperator = DiagnosticCodeWithExpectedTypes(
   type: DiagnosticType.SYNTACTIC_ERROR,
   uniqueName: 'invalid_operator',
   expectedTypes: [ExpectedType.token],
-);
-
-/// Only generated by the old parser.
-/// Replaced by INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER.
-///
-/// Parameters:
-/// Object p0: the operator being applied to 'super'
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
->
-invalidOperatorForSuper = DiagnosticWithArguments(
-  name: 'invalid_operator_for_super',
-  problemMessage: "The operator '{0}' can't be used with 'super'.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'invalid_operator_for_super',
-  withArguments: _withArgumentsInvalidOperatorForSuper,
-  expectedTypes: [ExpectedType.object],
 );
 
 /// No parameters.
@@ -10018,22 +9769,6 @@ const DiagnosticWithoutArguments missingConstInSetLiteral =
       uniqueName: 'missing_const_in_set_literal',
       expectedTypes: [],
     );
-
-/// Parameters:
-/// Object p0: the name of the library
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
->
-missingDartLibrary = DiagnosticWithArguments(
-  name: 'missing_dart_library',
-  problemMessage: "Required library '{0}' is missing.",
-  correctionMessage: "Re-install the Dart or Flutter SDK.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'missing_dart_library',
-  withArguments: _withArgumentsMissingDartLibrary,
-  expectedTypes: [ExpectedType.object],
-);
 
 /// Parameters:
 /// String name: the name of the parameter
@@ -19334,20 +19069,6 @@ LocatableDiagnostic _withArgumentsGenericStructSubclass({
   return LocatableDiagnosticImpl(diag.genericStructSubclass, [className]);
 }
 
-LocatableDiagnostic _withArgumentsGetterNotAssignableSetterTypes({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-  required Object p3,
-}) {
-  return LocatableDiagnosticImpl(diag.getterNotAssignableSetterTypes, [
-    p0,
-    p1,
-    p2,
-    p3,
-  ]);
-}
-
 LocatableDiagnostic _withArgumentsGetterNotSubtypeSetterTypes({
   required Object getterName,
   required Object getterType,
@@ -19520,16 +19241,6 @@ LocatableDiagnostic _withArgumentsIncompatibleLintIncluded({
     incompatibleRules,
     numIncludingFiles,
     pluralSuffix,
-  ]);
-}
-
-LocatableDiagnostic _withArgumentsInconsistentCaseExpressionTypes({
-  required Object p0,
-  required Object p1,
-}) {
-  return LocatableDiagnosticImpl(diag.inconsistentCaseExpressionTypes, [
-    p0,
-    p1,
   ]);
 }
 
@@ -19710,65 +19421,6 @@ LocatableDiagnostic _withArgumentsInvalidAssignment({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsInvalidCastFunction({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-}) {
-  return LocatableDiagnosticImpl(diag.invalidCastFunction, [p0, p1, p2]);
-}
-
-LocatableDiagnostic _withArgumentsInvalidCastFunctionExpr({
-  required Object p0,
-  required Object p1,
-}) {
-  return LocatableDiagnosticImpl(diag.invalidCastFunctionExpr, [p0, p1]);
-}
-
-LocatableDiagnostic _withArgumentsInvalidCastLiteral({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-}) {
-  return LocatableDiagnosticImpl(diag.invalidCastLiteral, [p0, p1, p2]);
-}
-
-LocatableDiagnostic _withArgumentsInvalidCastLiteralList({
-  required Object p0,
-  required Object p1,
-}) {
-  return LocatableDiagnosticImpl(diag.invalidCastLiteralList, [p0, p1]);
-}
-
-LocatableDiagnostic _withArgumentsInvalidCastLiteralMap({
-  required Object p0,
-  required Object p1,
-}) {
-  return LocatableDiagnosticImpl(diag.invalidCastLiteralMap, [p0, p1]);
-}
-
-LocatableDiagnostic _withArgumentsInvalidCastLiteralSet({
-  required Object p0,
-  required Object p1,
-}) {
-  return LocatableDiagnosticImpl(diag.invalidCastLiteralSet, [p0, p1]);
-}
-
-LocatableDiagnostic _withArgumentsInvalidCastMethod({
-  required Object p0,
-  required Object p1,
-  required Object p2,
-}) {
-  return LocatableDiagnosticImpl(diag.invalidCastMethod, [p0, p1, p2]);
-}
-
-LocatableDiagnostic _withArgumentsInvalidCastNewExpr({
-  required Object p0,
-  required Object p1,
-}) {
-  return LocatableDiagnosticImpl(diag.invalidCastNewExpr, [p0, p1]);
-}
-
 LocatableDiagnostic _withArgumentsInvalidCodePoint({
   required String escapeSequence,
 }) {
@@ -19885,12 +19537,6 @@ LocatableDiagnostic _withArgumentsInvalidNullAwareOperatorAfterShortCircuit({
     diag.invalidNullAwareOperatorAfterShortCircuit,
     [operator, replacement],
   );
-}
-
-LocatableDiagnostic _withArgumentsInvalidOperatorForSuper({
-  required Object p0,
-}) {
-  return LocatableDiagnosticImpl(diag.invalidOperatorForSuper, [p0]);
 }
 
 LocatableDiagnostic _withArgumentsInvalidOption({
@@ -20137,10 +19783,6 @@ LocatableDiagnostic _withArgumentsMissingAnnotationOnStructField({
     type,
     superclassName,
   ]);
-}
-
-LocatableDiagnostic _withArgumentsMissingDartLibrary({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.missingDartLibrary, [p0]);
 }
 
 LocatableDiagnostic _withArgumentsMissingDefaultValueForParameter({
