@@ -1408,7 +1408,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (declaredElement is FieldFormalParameterElement) {
         field = declaredElement.field;
       }
-      declarationHelper().addFieldsForInitializers(constructor, field);
+      if (node.thisKeyword.offset >= offset && node.requiredKeyword == null) {
+        keywordHelper.addKeyword(.REQUIRED);
+      }
+      if (node.thisKeyword.offset >= offset &&
+          (node.requiredKeyword == null ||
+              node.requiredKeyword!.end <= offset)) {
+        declarationHelper(mustBeType: true).addLexicalDeclarations(node);
+      }
+      if (node.period.end <= offset) {
+        declarationHelper().addFieldsForInitializers(constructor, field);
+      }
     }
   }
 
