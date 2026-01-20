@@ -15067,9 +15067,9 @@ const DiagnosticWithoutArguments tearoffOfGenerativeConstructorOfAbstractClass =
     );
 
 /// Parameters:
-/// String p0: the unicode sequence of the code point.
+/// String codePoint: the unicode sequence of the code point.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String codePoint})
 >
 textDirectionCodePointInComment = DiagnosticWithArguments(
   name: 'text_direction_code_point_in_comment',
@@ -15087,9 +15087,9 @@ textDirectionCodePointInComment = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the unicode sequence of the code point.
+/// String codePoint: the unicode sequence of the code point.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String codePoint})
 >
 textDirectionCodePointInLiteral = DiagnosticWithArguments(
   name: 'text_direction_code_point_in_literal',
@@ -20894,15 +20894,19 @@ LocatableDiagnostic _withArgumentsSuperInvocationNotLast({
 }
 
 LocatableDiagnostic _withArgumentsTextDirectionCodePointInComment({
-  required String p0,
+  required String codePoint,
 }) {
-  return LocatableDiagnosticImpl(diag.textDirectionCodePointInComment, [p0]);
+  return LocatableDiagnosticImpl(diag.textDirectionCodePointInComment, [
+    codePoint,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsTextDirectionCodePointInLiteral({
-  required String p0,
+  required String codePoint,
 }) {
-  return LocatableDiagnosticImpl(diag.textDirectionCodePointInLiteral, [p0]);
+  return LocatableDiagnosticImpl(diag.textDirectionCodePointInLiteral, [
+    codePoint,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsThrowOfInvalidType({required DartType type}) {

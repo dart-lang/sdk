@@ -29584,9 +29584,9 @@ WarningCode:
   textDirectionCodePointInComment:
     type: staticWarning
     parameters:
-      String p0: the unicode sequence of the code point.
-    problemMessage: The Unicode code point 'U+#p0' changes the appearance of text from how it's interpreted by the compiler.
-    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u#p0'.
+      String codePoint: the unicode sequence of the code point.
+    problemMessage: The Unicode code point 'U+#codePoint' changes the appearance of text from how it's interpreted by the compiler.
+    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u#codePoint'.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -29624,9 +29624,9 @@ WarningCode:
   textDirectionCodePointInLiteral:
     type: staticWarning
     parameters:
-      String p0: the unicode sequence of the code point.
-    problemMessage: The Unicode code point 'U+#p0' changes the appearance of text from how it's interpreted by the compiler.
-    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u#p0'.
+      String codePoint: the unicode sequence of the code point.
+    problemMessage: The Unicode code point 'U+#codePoint' changes the appearance of text from how it's interpreted by the compiler.
+    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u#codePoint'.
     hasPublishedDocs: true
     documentation: |-
       #### Description
