@@ -14,29 +14,29 @@
   (table $static2-0 (export "static2-0") 4 (ref null $type4))
   (table $static3-0 (export "static3-0") 4 (ref null $type6))
   (global $"C12 0" (ref $BoxedInt) <...>)
-  (global $"C393 \"FooConstBase(\"" (ref $JSStringImpl)
+  (global $"C395 \"FooConstBase(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".FooConstBase(")
     (struct.new $JSStringImpl))
-  (global $"C394 FooConst0" (ref $Object)
-    (i32.const 120)
+  (global $"C396 FooConst0" (ref $Object)
+    (i32.const 121)
     (i32.const 0)
     (struct.new $Object))
-  (global $"C395 \"FooConst0(\"" (ref $JSStringImpl)
+  (global $"C397 \"FooConst0(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".FooConst0(")
     (struct.new $JSStringImpl))
-  (global $"C511 \"foo0Code(\"" (ref $JSStringImpl) <...>)
+  (global $"C513 \"foo0Code(\"" (ref $JSStringImpl) <...>)
   (global $"C8 \")\"" (ref $JSStringImpl) <...>)
   (global $fooGlobal0 (mut (ref null $#Top))
     (ref.null none))
   (func $"foo0Code <noInline>" (export "func12") (param $var0 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C394 FooConst0"
+    global.get $"C396 FooConst0"
     call $print
     drop
-    global.get $"C511 \"foo0Code(\""
+    global.get $"C513 \"foo0Code(\""
     local.get $var0
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3
@@ -47,7 +47,7 @@
     ref.null none
   )
   (func $FooConst0.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C395 \"FooConst0(\""
+    global.get $"C397 \"FooConst0(\""
     local.get $var1
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3
@@ -60,7 +60,7 @@
     ref.null none
   )
   (func $FooConstBase.doit (export "func14") (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C393 \"FooConstBase(\""
+    global.get $"C395 \"FooConstBase(\""
     local.get $var1
     global.get $"C8 \")\""
     call $JSStringImpl._interpolate3

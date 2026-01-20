@@ -10,6 +10,7 @@
 #include "platform/thread_sanitizer.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
+#include "vm/profiler.h"
 #include "vm/thread_interrupter.h"
 #include "vm/timeline.h"
 
@@ -153,7 +154,7 @@ void OSThread::DisableThreadInterrupts() {
 void OSThread::EnableThreadInterrupts() {
   ASSERT(OSThread::Current() == this);
   uintptr_t old = thread_interrupt_disabled_.fetch_sub(1u);
-  if (FLAG_profiler && (old == 1)) {
+  if (Profiler::IsRunning() && (old == 1)) {
     ThreadInterrupter::WakeUp();
   }
   if (old == 0) {
