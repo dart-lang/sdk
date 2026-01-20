@@ -30377,8 +30377,8 @@ WarningCode:
   unusedCatchClause:
     type: staticWarning
     parameters:
-      Object p0: the name of the exception variable
-    problemMessage: "The exception variable '#p0' isn't used, so the 'catch' clause can be removed."
+      String name: the name of the exception variable
+    problemMessage: "The exception variable '#name' isn't used, so the 'catch' clause can be removed."
     correctionMessage: Try removing the catch clause.
     hasPublishedDocs: true
     documentation: |-
@@ -30418,8 +30418,8 @@ WarningCode:
   unusedCatchStack:
     type: staticWarning
     parameters:
-      Object p0: the name of the stack trace variable
-    problemMessage: "The stack trace variable '#p0' isn't used and can be removed."
+      String name: the name of the stack trace variable
+    problemMessage: "The stack trace variable '#name' isn't used and can be removed."
     correctionMessage: Try removing the stack trace variable, or using it.
     hasPublishedDocs: true
     documentation: |-
@@ -30460,9 +30460,9 @@ WarningCode:
   unusedElement:
     type: staticWarning
     parameters:
-      Object p0: the name that is declared but not referenced
-    problemMessage: "The declaration '#p0' isn't referenced."
-    correctionMessage: "Try removing the declaration of '#p0'."
+      String name: the name that is declared but not referenced
+    problemMessage: "The declaration '#name' isn't referenced."
+    correctionMessage: "Try removing the declaration of '#name'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -30499,8 +30499,8 @@ WarningCode:
   unusedElementParameter:
     type: staticWarning
     parameters:
-      Object p0: the name of the parameter that is declared but not used
-    problemMessage: "A value for optional parameter '#p0' isn't ever given."
+      String name: the name of the parameter that is declared but not used
+    problemMessage: "A value for optional parameter '#name' isn't ever given."
     correctionMessage: Try removing the unused parameter.
     hasPublishedDocs: true
     documentation: |-
@@ -30773,8 +30773,8 @@ WarningCode:
   unusedLocalVariable:
     type: staticWarning
     parameters:
-      Object p0: the name of the unused variable
-    problemMessage: "The value of the local variable '#p0' isn't used."
+      String name: the name of the unused variable
+    problemMessage: "The value of the local variable '#name' isn't used."
     correctionMessage: Try removing the variable or using it.
     hasPublishedDocs: true
     documentation: |-
