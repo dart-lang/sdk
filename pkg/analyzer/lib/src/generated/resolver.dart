@@ -4574,7 +4574,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required ArgumentList argumentList,
     required List<FormalParameterElement> formalParameters,
     DiagnosticReporter? diagnosticReporter,
-    ConstructorDeclaration? enclosingConstructor,
+    FormalParameterList? enclosingConstructorFormalParameterList,
   }) {
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
@@ -4623,9 +4623,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     Set<String>? usedNames;
-    if (enclosingConstructor != null) {
+    if (enclosingConstructorFormalParameterList != null) {
       var result = verifySuperFormalParameters(
-        formalParameterList: enclosingConstructor.parameters,
+        formalParameterList: enclosingConstructorFormalParameterList,
         hasExplicitPositionalArguments: positionalArgumentCount != 0,
         diagnosticReporter: diagnosticReporter,
       );
