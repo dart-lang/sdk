@@ -29712,9 +29712,9 @@ WarningCode:
   undefinedHiddenName:
     type: staticWarning
     parameters:
-      String p0: the name of the library being imported
-      String p1: the name in the hide clause that isn't defined in the library
-    problemMessage: "The library '#p0' doesn't export a member with the hidden name '#p1'."
+      String library: the name of the library being imported
+      String name: the name in the hide clause that isn't defined in the library
+    problemMessage: "The library '#library' doesn't export a member with the hidden name '#name'."
     correctionMessage: Try removing the name from the list of hidden members.
     hasPublishedDocs: true
     documentation: |-
@@ -29784,9 +29784,9 @@ WarningCode:
   undefinedShownName:
     type: staticWarning
     parameters:
-      String p0: the name of the library being imported
-      String p1: the name in the show clause that isn't defined in the library
-    problemMessage: "The library '#p0' doesn't export a member with the shown name '#p1'."
+      String library: the name of the library being imported
+      String name: the name in the show clause that isn't defined in the library
+    problemMessage: "The library '#library' doesn't export a member with the shown name '#name'."
     correctionMessage: Try removing the name from the list of shown members.
     hasPublishedDocs: true
     documentation: |-

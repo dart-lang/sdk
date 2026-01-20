@@ -16105,10 +16105,10 @@ undefinedGetterOnFunctionType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the library being imported
-/// String p1: the name in the hide clause that isn't defined in the library
+/// String library: the name of the library being imported
+/// String name: the name in the hide clause that isn't defined in the library
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({required String library, required String name})
 >
 undefinedHiddenName = DiagnosticWithArguments(
   name: 'undefined_hidden_name',
@@ -16342,10 +16342,10 @@ undefinedSetterOnFunctionType = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the library being imported
-/// String p1: the name in the show clause that isn't defined in the library
+/// String library: the name of the library being imported
+/// String name: the name in the show clause that isn't defined in the library
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({required String library, required String name})
 >
 undefinedShownName = DiagnosticWithArguments(
   name: 'undefined_shown_name',
@@ -21453,10 +21453,10 @@ LocatableDiagnostic _withArgumentsUndefinedGetterOnFunctionType({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedHiddenName({
-  required String p0,
-  required String p1,
+  required String library,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedHiddenName, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedHiddenName, [library, name]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedIdentifier({required String name}) {
@@ -21532,10 +21532,10 @@ LocatableDiagnostic _withArgumentsUndefinedSetterOnFunctionType({
 }
 
 LocatableDiagnostic _withArgumentsUndefinedShownName({
-  required String p0,
-  required String p1,
+  required String library,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedShownName, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.undefinedShownName, [library, name]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSuperGetter({
