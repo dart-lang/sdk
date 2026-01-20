@@ -6,6 +6,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -106,13 +107,13 @@ class InstanceCreationExpressionResolver {
           diag.instantiateAbstractClass.at(node),
         );
       } else if (typeArguments != null) {
-        _resolver.diagnosticReporter.atNode(
-          typeArguments,
-          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
-          arguments: [
-            dotShorthandContextType.getDisplayString(),
-            node.constructorName.name,
-          ],
+        _resolver.diagnosticReporter.report(
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor
+              .withArguments(
+                className: dotShorthandContextType.element.displayName,
+                constructorName: node.constructorName.name,
+              )
+              .at(typeArguments),
         );
       }
     } else {
@@ -140,6 +141,9 @@ class InstanceCreationExpressionResolver {
       constructorName: node.constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
+    var target = elementToInfer == null
+        ? null
+        : InvocationTargetConstructorElement(elementToInfer.element);
     var returnType =
         DotShorthandConstructorInvocationInferrer(
           resolver: _resolver,
@@ -147,6 +151,7 @@ class InstanceCreationExpressionResolver {
           argumentList: node.argumentList,
           contextType: contextType,
           whyNotPromotedArguments: whyNotPromotedArguments,
+          target: target,
         ).resolveInvocation(
           // TODO(paulberry): eliminate this cast by changing the type of
           // `ConstructorElementToInfer.asType`.
@@ -174,12 +179,16 @@ class InstanceCreationExpressionResolver {
       constructorName: node.constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );
+    var target = elementToInfer == null
+        ? null
+        : InvocationTargetConstructorElement(elementToInfer.element);
     InstanceCreationInferrer(
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
+      target: target,
     ).resolveInvocation(
       // TODO(paulberry): eliminate this cast by changing the type of
       // `ConstructorElementToInfer.asType`.

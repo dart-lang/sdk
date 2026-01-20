@@ -2102,7 +2102,6 @@ class B extends A {
 @reflectiveTest
 class ClassDeclarationResolutionTest_primaryConstructor_super
     extends PubPackageResolutionTest {
-  @failingTest
   test_named_N1_superFormals_N1_hasSuper_N1() async {
     await assertErrorsInCode(
       r'''
@@ -2113,11 +2112,10 @@ class B.named({required super.n1}) extends A {
   this : super.named(n1: 0);
 }
 ''',
-      [error(diag.duplicateNamedArgument, 107, 2)],
+      [error(diag.duplicateNamedArgument, 110, 2)],
     );
   }
 
-  @failingTest
   test_named_P_N1_n2_superFormals_P_hasSuper_n2() async {
     await assertErrorsInCode(
       r'''
@@ -2128,11 +2126,10 @@ class B.named(super.p1) extends A {
   this : super.named(n2: 1);
 }
 ''',
-      [error(diag.missingRequiredArgument, 101, 18)],
+      [error(diag.missingRequiredArgument, 104, 18)],
     );
   }
 
-  @failingTest
   test_named_P_n1_superFormals_P_hasSuper_n1() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2144,7 +2141,6 @@ class B.named(super.p1) extends A {
 ''');
   }
 
-  @failingTest
   test_named_P_N1_superFormals_P_N1_hasSuper_none() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2156,7 +2152,6 @@ class B.named(super.p1, {required super.n1}) extends A {
 ''');
   }
 
-  @failingTest
   test_named_PP_superFormals_P_hasSuper_P() async {
     await assertErrorsInCode(
       r'''
@@ -2167,7 +2162,7 @@ class B.named(super.p1) extends A {
   this : super.named(0);
 }
 ''',
-      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 75, 2)],
+      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 59, 2)],
     );
   }
 
@@ -2196,7 +2191,6 @@ class B({required super.n1}) extends A {
     );
   }
 
-  @failingTest
   test_unnamed_N1_N2_superFormals_N1_hasSuper_N2() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2219,7 +2213,6 @@ class B({super.n1}) extends A {
 ''');
   }
 
-  @failingTest
   test_unnamed_N1_N2_superFormals_N1_hasSuper_none() async {
     await assertErrorsInCode(
       r'''
@@ -2230,7 +2223,7 @@ class B({required super.n1}) extends A {
   this : super();
 }
 ''',
-      [error(diag.missingRequiredArgument, 100, 7)],
+      [error(diag.missingRequiredArgument, 103, 7)],
     );
   }
 
@@ -2275,7 +2268,6 @@ class B({required super.n1}) extends A {
 ''');
   }
 
-  @failingTest
   test_unnamed_N1_superFormals_N1_hasSuper_N1() async {
     await assertErrorsInCode(
       r'''
@@ -2286,11 +2278,10 @@ class B({required super.n1}) extends A {
   this : super(n1: 0);
 }
 ''',
-      [error(diag.duplicateNamedArgument, 89, 2)],
+      [error(diag.duplicateNamedArgument, 92, 2)],
     );
   }
 
-  @failingTest
   test_unnamed_n1_superFormals_n1_hasSuper_n1() async {
     await assertErrorsInCode(
       r'''
@@ -2323,7 +2314,6 @@ class B({super.n1}) extends A;
 ''');
   }
 
-  @failingTest
   test_unnamed_N1_superFormals_N1_noBody_N2_noSuper() async {
     await assertErrorsInCode(
       r'''
@@ -2333,8 +2323,8 @@ class A {
 class B({required super.n1}) extends A;
 ''',
       [
-        error(diag.implicitSuperInitializerMissingArguments, 58, 1),
-        error(diag.superFormalParameterWithoutAssociatedNamed, 76, 2),
+        error(diag.implicitSuperInitializerMissingArguments, 42, 1),
+        error(diag.superFormalParameterWithoutAssociatedNamed, 60, 2),
       ],
     );
   }
@@ -2405,7 +2395,6 @@ class B(super.p1) extends A;
     );
   }
 
-  @failingTest
   test_unnamed_P_n1_n2_superFormals_P_hasSuper_n1_n2() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2417,7 +2406,6 @@ class B(super.p1) extends A {
 ''');
   }
 
-  @failingTest
   test_unnamed_P_N1_n2_superFormals_P_hasSuper_n2() async {
     await assertErrorsInCode(
       r'''
@@ -2428,11 +2416,10 @@ class B(super.p1) extends A {
   this : super(n2: 1);
 }
 ''',
-      [error(diag.missingRequiredArgument, 89, 12)],
+      [error(diag.missingRequiredArgument, 92, 12)],
     );
   }
 
-  @failingTest
   test_unnamed_P_n1_n2_superFormals_P_n1_hasSuper_n2() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2453,7 +2440,6 @@ class B(super.p1, {super.n1, required super.n2}) extends A;
 ''');
   }
 
-  @failingTest
   test_unnamed_P_N1_n2_superFormals_P_n2_hasSuper_N1() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2465,7 +2451,6 @@ class B(super.p1, {super.n2}) extends A {
 ''');
   }
 
-  @failingTest
   test_unnamed_P_N1_superFormals_N1_hasSuper_P() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2502,7 +2487,6 @@ class B(super.p1) extends A {
     );
   }
 
-  @failingTest
   test_unnamed_P_n1_superFormals_P_hasSuper_n1() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2571,7 +2555,6 @@ class B({super.n1}) extends A;
     );
   }
 
-  @failingTest
   test_unnamed_P_superFormals_none_hasSuper_none() async {
     await assertErrorsInCode(
       r'''
@@ -2582,7 +2565,7 @@ class B() extends A {
   this : super();
 }
 ''',
-      [error(diag.notEnoughPositionalArgumentsNameSingular, 59, 1)],
+      [error(diag.notEnoughPositionalArgumentsNameSingular, 62, 1)],
     );
   }
 
@@ -2608,7 +2591,6 @@ class B() extends A {
 ''');
   }
 
-  @failingTest
   test_unnamed_P_superFormals_none_noBody() async {
     await assertErrorsInCode(
       r'''
@@ -2617,11 +2599,10 @@ class A {
 }
 class B() extends A;
 ''',
-      [error(diag.implicitSuperInitializerMissingArguments, 47, 1)],
+      [error(diag.implicitSuperInitializerMissingArguments, 31, 1)],
     );
   }
 
-  @failingTest
   test_unnamed_P_superFormals_none_noConstructor() async {
     await assertErrorsInCode(
       r'''
@@ -2630,7 +2611,7 @@ class A {
 }
 class B() extends A;
 ''',
-      [error(diag.noDefaultSuperConstructorImplicit, 31, 1)],
+      [error(diag.implicitSuperInitializerMissingArguments, 31, 1)],
     );
   }
 
@@ -2643,7 +2624,6 @@ class B([super.p1 = 1]) extends A;
 ''');
   }
 
-  @failingTest
   test_unnamed_P_superFormals_P_hasSuper_none() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2655,7 +2635,6 @@ class B(super.p1) extends A {
 ''');
   }
 
-  @failingTest
   test_unnamed_P_superFormals_p_hasSuper_none() async {
     await assertErrorsInCode(
       r'''
@@ -2666,11 +2645,10 @@ class B([super.p1]) extends A {
   this : super();
 }
 ''',
-      [error(diag.missingDefaultValueForParameterPositional, 56, 2)],
+      [error(diag.missingDefaultValueForParameterPositional, 40, 2)],
     );
   }
 
-  @failingTest
   test_unnamed_p_superFormals_p_hasSuper_p() async {
     await assertErrorsInCode(
       r'''
@@ -2694,7 +2672,6 @@ class B([super.p1]) extends A;
 ''');
   }
 
-  @failingTest
   test_unnamed_P_superFormals_P_noBody_wrongType() async {
     await assertErrorsInCode(
       r'''
@@ -2703,11 +2680,10 @@ class A {
 }
 class B(String super.p1) extends A;
 ''',
-      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 62, 2)],
+      [error(diag.superFormalParameterTypeIsNotSubtypeOfAssociated, 46, 2)],
     );
   }
 
-  @failingTest
   test_unnamed_P_superFormals_PP_noBody() async {
     await assertErrorsInCode(
       r'''
@@ -2716,11 +2692,10 @@ class A {
 }
 class B(super.p1, super.p2) extends A;
 ''',
-      [error(diag.superFormalParameterWithoutAssociatedPositional, 65, 2)],
+      [error(diag.superFormalParameterWithoutAssociatedPositional, 49, 2)],
     );
   }
 
-  @failingTest
   test_unnamed_PP_superFormals_P_hasSuper_none() async {
     await assertErrorsInCode(
       r'''
@@ -2731,11 +2706,10 @@ class B(super.p1) extends A {
   this : super();
 }
 ''',
-      [error(diag.notEnoughPositionalArgumentsNamePlural, 75, 1)],
+      [error(diag.notEnoughPositionalArgumentsNamePlural, 78, 1)],
     );
   }
 
-  @failingTest
   test_unnamed_PP_superFormals_P_hasSuper_P() async {
     await assertErrorsInCode(
       r'''
@@ -2746,7 +2720,7 @@ class B(super.p1) extends A {
   this : super(0);
 }
 ''',
-      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 63, 2)],
+      [error(diag.positionalSuperFormalParameterWithPositionalArgument, 47, 2)],
     );
   }
 

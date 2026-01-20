@@ -19329,10 +19329,10 @@ CompileTimeErrorCode:
   wrongNumberOfTypeArguments:
     type: compileTimeError
     parameters:
-      Object p0: the name of the type being referenced (<i>G</i>)
-      int p1: the number of type parameters that were declared
-      int p2: the number of type arguments provided
-    problemMessage: "The type '#p0' is declared with #p1 type parameters, but #p2 type arguments were given."
+      String type: the name of the type being referenced
+      int typeParameterCount: the number of type parameters that were declared
+      int typeArgumentCount: the number of type arguments provided
+    problemMessage: "The type '#type' is declared with #typeParameterCount type parameters, but #typeArgumentCount type arguments were given."
     correctionMessage: Try adjusting the number of type arguments to match the number of type parameters.
     hasPublishedDocs: true
     documentation: |-
@@ -19380,9 +19380,9 @@ CompileTimeErrorCode:
   wrongNumberOfTypeArgumentsConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the class being instantiated
-      String p1: the name of the constructor being invoked
-    problemMessage: "The constructor '#p0.#p1' doesn't have type parameters."
+      String className: the name of the class being instantiated
+      String constructorName: the name of the constructor being invoked
+    problemMessage: "The constructor '#className.#constructorName' doesn't have type parameters."
     correctionMessage: Try moving type arguments to after the type name.
     hasPublishedDocs: true
     documentation: |-
@@ -19431,19 +19431,19 @@ CompileTimeErrorCode:
   wrongNumberOfTypeArgumentsDotShorthandConstructor:
     type: compileTimeError
     parameters:
-      String p0: the name of the class being instantiated
-      String p1: the name of the constructor being invoked
+      String className: the name of the class being instantiated
+      String constructorName: the name of the constructor being invoked
     sharedName: wrongNumberOfTypeArgumentsConstructor
     experiment: dot-shorthands
-    problemMessage: "The constructor '#p0.#p1' doesn't have type parameters."
+    problemMessage: "The dot shorthand resolves to the constructor '#className.#constructorName', and type parameters can't be applied to dot shorthand constructor invocations."
     correctionMessage: Try removing the type arguments, or adding a class name, followed by the type arguments, then the constructor name.
     hasPublishedDocs: true
   wrongNumberOfTypeArgumentsEnum:
     type: compileTimeError
     parameters:
-      int p0: the number of type parameters that were declared
-      int p1: the number of type arguments provided
-    problemMessage: "The enum is declared with #p0 type parameters, but #p1 type arguments were given."
+      int typeParameterCount: the number of type parameters that were declared
+      int typeArgumentCount: the number of type arguments provided
+    problemMessage: "The enum is declared with #typeParameterCount type parameters, but #typeArgumentCount type arguments were given."
     correctionMessage: Try adjusting the number of type arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -19488,10 +19488,10 @@ CompileTimeErrorCode:
   wrongNumberOfTypeArgumentsExtension:
     type: compileTimeError
     parameters:
-      String p0: the name of the extension being referenced
-      int p1: the number of type parameters that were declared
-      int p2: the number of type arguments provided
-    problemMessage: "The extension '#p0' is declared with #p1 type parameters, but #p2 type arguments were given."
+      String extensionName: the name of the extension being referenced
+      int typeParameterCount: the number of type parameters that were declared
+      int typeArgumentCount: the number of type arguments provided
+    problemMessage: "The extension '#extensionName' is declared with #typeParameterCount type parameters, but #typeArgumentCount type arguments were given."
     correctionMessage: Try adjusting the number of type arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -19531,31 +19531,24 @@ CompileTimeErrorCode:
         E<int>(p).len;
       }
       ```
-  wrongNumberOfTypeArgumentsAnonymousFunction:
-    type: compileTimeError
-    parameters:
-      int typeParameterCount: the number of type parameters that were declared
-      int typeArgumentCount: the number of type arguments provided
-    sharedName: wrongNumberOfTypeArgumentsFunction
-    problemMessage: "This function is declared with #typeParameterCount type parameters, but #typeArgumentCount type arguments were given."
-    correctionMessage: Try adjusting the number of type arguments to match the number of type parameters.
-    hasPublishedDocs: false
   wrongNumberOfTypeArgumentsFunction:
     type: compileTimeError
     parameters:
-      String functionName: the name of the function being referenced
+      Type type: the function type
       int typeParameterCount: the number of type parameters that were declared
       int typeArgumentCount: the number of type arguments provided
-    problemMessage: "The function '#functionName' is declared with #typeParameterCount type parameters, but #typeArgumentCount type arguments were given."
+    sharedName: wrongNumberOfTypeArgumentsFunction
+    problemMessage: "The type of this function is '#type', which has #typeParameterCount type parameters, but #typeArgumentCount type arguments were given."
     correctionMessage: Try adjusting the number of type arguments to match the number of type parameters.
     hasPublishedDocs: false
-  wrongNumberOfTypeArgumentsMethod:
+  wrongNumberOfTypeArgumentsElement:
     type: compileTimeError
     parameters:
-      Type p0: the name of the method being referenced (<i>G</i>)
-      int p1: the number of type parameters that were declared
-      int p2: the number of type arguments provided
-    problemMessage: "The method '#p0' is declared with #p1 type parameters, but #p2 type arguments are given."
+      String kind: the name of the kind of the element being referenced
+      String element: the name of the element being referenced
+      int typeParameterCount: the number of type parameters that were declared
+      int typeArgumentCount: the number of type arguments provided
+    problemMessage: "The #kind '#element' is declared with #typeParameterCount type parameters, but #typeArgumentCount type arguments are given."
     correctionMessage: Try adjusting the number of type arguments.
     hasPublishedDocs: true
     documentation: |-
@@ -28330,9 +28323,9 @@ WarningCode:
   nonConstCallToLiteralConstructorUsingNew:
     type: staticWarning
     parameters:
-      String p0: the name of the class defining the annotated constructor
+      String constructorName: the name of the annotated constructor
     sharedName: nonConstCallToLiteralConstructor
-    problemMessage: "This instance creation must be 'const', because the #p0 constructor is marked as '@literal'."
+    problemMessage: "This instance creation must be 'const', because the #constructorName constructor is marked as '@literal'."
     correctionMessage: "Try replacing the 'new' keyword with 'const'."
     hasPublishedDocs: true
     comment: |-
@@ -28341,8 +28334,8 @@ WarningCode:
   nonConstCallToLiteralConstructor:
     type: staticWarning
     parameters:
-      String p0: the name of the class defining the annotated constructor
-    problemMessage: "This instance creation must be 'const', because the #p0 constructor is marked as '@literal'."
+      String constructorName: the name of the annotated constructor
+    problemMessage: "This instance creation must be 'const', because the #constructorName constructor is marked as '@literal'."
     correctionMessage: "Try adding a 'const' keyword."
     hasPublishedDocs: true
     comment: |-

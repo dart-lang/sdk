@@ -92,12 +92,11 @@ class RecordUseCollector {
     Map<String, String> environment,
     Map<OutputUnit, String> outputUnitToName,
   ) => Recordings(
-    metadata: Metadata.fromJson({
-      'comment': 'Resources referenced by annotated resource identifiers',
-      'AppTag': 'TBD',
-      'environment': environment,
-      "version": version.toString(),
-    }),
+    metadata: Metadata(
+      comment: 'Resources referenced by annotated resource identifiers',
+      version: version,
+      extension: {'AppTag': 'TBD', 'environment': environment},
+    ),
     callsForDefinition: callMap.map(
       (key, value) => MapEntry(
         Definition(

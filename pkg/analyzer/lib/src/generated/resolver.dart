@@ -69,6 +69,7 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/base_or_final_type_verifier.dart';
@@ -2707,28 +2708,32 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var receiverContextType = ExtensionMemberResolver(
       this,
     ).computeOverrideReceiverContextType(node);
+    InvocationTargetExtensionOverride? target;
+    if (receiverContextType != null) {
+      target = InvocationTargetExtensionOverride(
+        element: node.element,
+        type: FunctionTypeImpl.v2(
+          typeParameters: const [],
+          formalParameters: [
+            FormalParameterElementImpl.synthetic(
+              null,
+              receiverContextType,
+              ParameterKind.REQUIRED,
+            ),
+          ],
+          returnType: DynamicTypeImpl.instance,
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      );
+    }
     InvocationInferrer<ExtensionOverrideImpl>(
       resolver: this,
       node: node,
       argumentList: node.argumentList,
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(
-      rawType: receiverContextType == null
-          ? null
-          : FunctionTypeImpl.v2(
-              typeParameters: const [],
-              formalParameters: [
-                FormalParameterElementImpl.synthetic(
-                  null,
-                  receiverContextType,
-                  ParameterKind.REQUIRED,
-                ),
-              ],
-              returnType: DynamicTypeImpl.instance,
-              nullabilitySuffix: NullabilitySuffix.none,
-            ),
-    );
+      target: target,
+    ).resolveInvocation(rawType: target?.type);
 
     extensionResolver.resolveOverride(node, whyNotPromotedArguments);
     inferenceLogWriter?.exitExtensionOverride(node);
@@ -3790,12 +3795,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     elementResolver.visitRedirectingConstructorInvocation(
       node as RedirectingConstructorInvocationImpl,
     );
+    var element = node.element;
     InvocationInferrer<RedirectingConstructorInvocationImpl>(
       resolver: this,
       node: node,
       argumentList: node.argumentList,
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
+      target: element == null
+          ? null
+          : InvocationTargetConstructorElement(element),
     ).resolveInvocation(rawType: node.element?.type);
     checkForArgumentTypesNotAssignableInList(
       node.argumentList,
@@ -3938,12 +3947,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     elementResolver.visitSuperConstructorInvocation(
       node as SuperConstructorInvocationImpl,
     );
+    var element = node.element;
     InvocationInferrer<SuperConstructorInvocationImpl>(
       resolver: this,
       node: node,
       argumentList: node.argumentList,
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
+      target: element == null
+          ? null
+          : InvocationTargetConstructorElement(element),
     ).resolveInvocation(rawType: node.element?.type);
     checkForArgumentTypesNotAssignableInList(
       node.argumentList,
@@ -4561,7 +4574,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required ArgumentList argumentList,
     required List<FormalParameterElement> formalParameters,
     DiagnosticReporter? diagnosticReporter,
-    ConstructorDeclaration? enclosingConstructor,
+    FormalParameterList? enclosingConstructorFormalParameterList,
   }) {
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
@@ -4610,9 +4623,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     Set<String>? usedNames;
-    if (enclosingConstructor != null) {
+    if (enclosingConstructorFormalParameterList != null) {
       var result = verifySuperFormalParameters(
-        formalParameterList: enclosingConstructor.parameters,
+        formalParameterList: enclosingConstructorFormalParameterList,
         hasExplicitPositionalArguments: positionalArgumentCount != 0,
         diagnosticReporter: diagnosticReporter,
       );

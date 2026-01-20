@@ -88,11 +88,11 @@ Recordings _usages(
   Map<Identifier, String> loadingUnitForDefinition,
 ) {
   return Recordings(
-    metadata: Metadata.fromJson({
-      'comment':
+    metadata: Metadata(
+      comment:
           'Recorded usages of objects tagged with a `RecordUse` annotation',
-      'version': version.toString(),
-    }),
+      version: version,
+    ),
     callsForDefinition: calls.map(
       (key, value) => MapEntry(
         Definition(identifier: key, loadingUnit: loadingUnitForDefinition[key]),

@@ -1438,6 +1438,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+    var fragment = node.declaration?.declaredFragment;
+    if (fragment == null) {
+      return;
+    }
+
+    var element = fragment.element;
+    _withEnclosingExecutable(
+      element,
+      () {
+        super.visitPrimaryConstructorBody(node);
+      },
+      isAsynchronous: fragment.isAsynchronous,
+      isGenerator: fragment.isGenerator,
+    );
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
@@ -6383,6 +6401,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         } else if (parent.body is NativeFunctionBody) {
           return false;
         }
+        return true;
+      } else if (parent is PrimaryConstructorDeclaration) {
         return true;
       }
       return false;

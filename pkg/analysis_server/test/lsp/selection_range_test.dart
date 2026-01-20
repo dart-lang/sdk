@@ -372,7 +372,7 @@ class A(int a) {
 
   Future<void> test_primaryConstructor_declaration() async {
     var code = TestCode.parseNormalized('''
-class A(final int a, { final i^nt b });
+class A(final int a, { final i^nt b = 0 });
 ''');
 
     await initialize();
@@ -391,9 +391,10 @@ class A(final int a, { final i^nt b });
       equalsNormalized([
         'int',
         'final int b',
-        '(final int a, { final int b })',
-        'A(final int a, { final int b })',
-        'class A(final int a, { final int b });',
+        'final int b = 0',
+        '(final int a, { final int b = 0 })',
+        'A(final int a, { final int b = 0 })',
+        'class A(final int a, { final int b = 0 });',
       ]),
     );
   }

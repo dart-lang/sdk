@@ -15,6 +15,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// An object used by instances of [ResolverVisitor] to resolve references
 /// within the AST structure to the elements being referenced. The requirements
@@ -375,7 +376,12 @@ class ElementResolver {
     var parameters = _resolveArgumentsToFunction(
       argumentList,
       element,
-      enclosingConstructor: node.thisOrAncestorOfType<ConstructorDeclaration>(),
+      enclosingConstructorFormalParameterList:
+          node.parent.tryCast<ConstructorDeclarationImpl>()?.parameters ??
+          node.parent
+              .tryCast<PrimaryConstructorBodyImpl>()
+              ?.declaration
+              ?.formalParameters,
     );
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
@@ -409,7 +415,7 @@ class ElementResolver {
   List<InternalFormalParameterElement?>? _resolveArgumentsToFunction(
     ArgumentList argumentList,
     ExecutableElement? executableElement, {
-    ConstructorDeclaration? enclosingConstructor,
+    FormalParameterList? enclosingConstructorFormalParameterList,
   }) {
     if (executableElement == null) {
       return null;
@@ -418,7 +424,8 @@ class ElementResolver {
       argumentList: argumentList,
       formalParameters: executableElement.formalParameters,
       diagnosticReporter: _diagnosticReporter,
-      enclosingConstructor: enclosingConstructor,
+      enclosingConstructorFormalParameterList:
+          enclosingConstructorFormalParameterList,
     );
   }
 

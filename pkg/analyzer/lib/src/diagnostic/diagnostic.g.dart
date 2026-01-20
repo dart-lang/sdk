@@ -12165,9 +12165,9 @@ nonConstArgumentForConstParameter = DiagnosticWithArguments(
 /// annotated with `@literal`.
 ///
 /// Parameters:
-/// String p0: the name of the class defining the annotated constructor
+/// String constructorName: the name of the annotated constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String constructorName})
 >
 nonConstCallToLiteralConstructor = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
@@ -12186,9 +12186,9 @@ nonConstCallToLiteralConstructor = DiagnosticWithArguments(
 /// using a constructor annotated with `@literal`.
 ///
 /// Parameters:
-/// String p0: the name of the class defining the annotated constructor
+/// String constructorName: the name of the annotated constructor
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String constructorName})
 >
 nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
@@ -17718,14 +17718,14 @@ const DiagnosticWithoutArguments wrongNumberOfParametersForSetter =
     );
 
 /// Parameters:
-/// Object p0: the name of the type being referenced (<i>G</i>)
-/// int p1: the number of type parameters that were declared
-/// int p2: the number of type arguments provided
+/// String type: the name of the type being referenced
+/// int typeParameterCount: the number of type parameters that were declared
+/// int typeArgumentCount: the number of type arguments provided
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required Object p0,
-    required int p1,
-    required int p2,
+    required String type,
+    required int typeParameterCount,
+    required int typeArgumentCount,
   })
 >
 wrongNumberOfTypeArguments = DiagnosticWithArguments(
@@ -17740,37 +17740,17 @@ wrongNumberOfTypeArguments = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'wrong_number_of_type_arguments',
   withArguments: _withArgumentsWrongNumberOfTypeArguments,
-  expectedTypes: [ExpectedType.object, ExpectedType.int, ExpectedType.int],
+  expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
 );
 
 /// Parameters:
-/// int typeParameterCount: the number of type parameters that were declared
-/// int typeArgumentCount: the number of type arguments provided
+/// String className: the name of the class being instantiated
+/// String constructorName: the name of the constructor being invoked
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required int typeParameterCount,
-    required int typeArgumentCount,
+    required String className,
+    required String constructorName,
   })
->
-wrongNumberOfTypeArgumentsAnonymousFunction = DiagnosticWithArguments(
-  name: 'wrong_number_of_type_arguments_function',
-  problemMessage:
-      "This function is declared with {0} type parameters, but {1} type "
-      "arguments were given.",
-  correctionMessage:
-      "Try adjusting the number of type arguments to match the number of "
-      "type parameters.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'wrong_number_of_type_arguments_anonymous_function',
-  withArguments: _withArgumentsWrongNumberOfTypeArgumentsAnonymousFunction,
-  expectedTypes: [ExpectedType.int, ExpectedType.int],
-);
-
-/// Parameters:
-/// String p0: the name of the class being instantiated
-/// String p1: the name of the constructor being invoked
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
 >
 wrongNumberOfTypeArgumentsConstructor = DiagnosticWithArguments(
   name: 'wrong_number_of_type_arguments_constructor',
@@ -17784,14 +17764,19 @@ wrongNumberOfTypeArgumentsConstructor = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the class being instantiated
-/// String p1: the name of the constructor being invoked
+/// String className: the name of the class being instantiated
+/// String constructorName: the name of the constructor being invoked
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String className,
+    required String constructorName,
+  })
 >
 wrongNumberOfTypeArgumentsDotShorthandConstructor = DiagnosticWithArguments(
   name: 'wrong_number_of_type_arguments_constructor',
-  problemMessage: "The constructor '{0}.{1}' doesn't have type parameters.",
+  problemMessage:
+      "The dot shorthand resolves to the constructor '{0}.{1}', and type "
+      "parameters can't be applied to dot shorthand constructor invocations.",
   correctionMessage:
       "Try removing the type arguments, or adding a class name, followed by "
       "the type arguments, then the constructor name.",
@@ -17804,10 +17789,44 @@ wrongNumberOfTypeArgumentsDotShorthandConstructor = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// int p0: the number of type parameters that were declared
-/// int p1: the number of type arguments provided
+/// String kind: the name of the kind of the element being referenced
+/// String element: the name of the element being referenced
+/// int typeParameterCount: the number of type parameters that were declared
+/// int typeArgumentCount: the number of type arguments provided
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required int p0, required int p1})
+  LocatableDiagnostic Function({
+    required String kind,
+    required String element,
+    required int typeParameterCount,
+    required int typeArgumentCount,
+  })
+>
+wrongNumberOfTypeArgumentsElement = DiagnosticWithArguments(
+  name: 'wrong_number_of_type_arguments_element',
+  problemMessage:
+      "The {0} '{1}' is declared with {2} type parameters, but {3} type "
+      "arguments are given.",
+  correctionMessage: "Try adjusting the number of type arguments.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'wrong_number_of_type_arguments_element',
+  withArguments: _withArgumentsWrongNumberOfTypeArgumentsElement,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.int,
+    ExpectedType.int,
+  ],
+);
+
+/// Parameters:
+/// int typeParameterCount: the number of type parameters that were declared
+/// int typeArgumentCount: the number of type arguments provided
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required int typeParameterCount,
+    required int typeArgumentCount,
+  })
 >
 wrongNumberOfTypeArgumentsEnum = DiagnosticWithArguments(
   name: 'wrong_number_of_type_arguments_enum',
@@ -17823,14 +17842,14 @@ wrongNumberOfTypeArgumentsEnum = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the extension being referenced
-/// int p1: the number of type parameters that were declared
-/// int p2: the number of type arguments provided
+/// String extensionName: the name of the extension being referenced
+/// int typeParameterCount: the number of type parameters that were declared
+/// int typeArgumentCount: the number of type arguments provided
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required int p1,
-    required int p2,
+    required String extensionName,
+    required int typeParameterCount,
+    required int typeArgumentCount,
   })
 >
 wrongNumberOfTypeArgumentsExtension = DiagnosticWithArguments(
@@ -17847,12 +17866,12 @@ wrongNumberOfTypeArgumentsExtension = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String functionName: the name of the function being referenced
+/// Type type: the function type
 /// int typeParameterCount: the number of type parameters that were declared
 /// int typeArgumentCount: the number of type arguments provided
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String functionName,
+    required DartType type,
     required int typeParameterCount,
     required int typeArgumentCount,
   })
@@ -17860,38 +17879,14 @@ const DiagnosticWithArguments<
 wrongNumberOfTypeArgumentsFunction = DiagnosticWithArguments(
   name: 'wrong_number_of_type_arguments_function',
   problemMessage:
-      "The function '{0}' is declared with {1} type parameters, but {2} type "
-      "arguments were given.",
+      "The type of this function is '{0}', which has {1} type parameters, but "
+      "{2} type arguments were given.",
   correctionMessage:
       "Try adjusting the number of type arguments to match the number of "
       "type parameters.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'wrong_number_of_type_arguments_function',
   withArguments: _withArgumentsWrongNumberOfTypeArgumentsFunction,
-  expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
-);
-
-/// Parameters:
-/// Type p0: the name of the method being referenced (<i>G</i>)
-/// int p1: the number of type parameters that were declared
-/// int p2: the number of type arguments provided
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required DartType p0,
-    required int p1,
-    required int p2,
-  })
->
-wrongNumberOfTypeArgumentsMethod = DiagnosticWithArguments(
-  name: 'wrong_number_of_type_arguments_method',
-  problemMessage:
-      "The method '{0}' is declared with {1} type parameters, but {2} type "
-      "arguments are given.",
-  correctionMessage: "Try adjusting the number of type arguments.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'wrong_number_of_type_arguments_method',
-  withArguments: _withArgumentsWrongNumberOfTypeArgumentsMethod,
   expectedTypes: [ExpectedType.type, ExpectedType.int, ExpectedType.int],
 );
 
@@ -20553,17 +20548,19 @@ LocatableDiagnostic _withArgumentsNonConstArgumentForConstParameter({
 }
 
 LocatableDiagnostic _withArgumentsNonConstCallToLiteralConstructor({
-  required String p0,
+  required String constructorName,
 }) {
-  return LocatableDiagnosticImpl(diag.nonConstCallToLiteralConstructor, [p0]);
+  return LocatableDiagnosticImpl(diag.nonConstCallToLiteralConstructor, [
+    constructorName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsNonConstCallToLiteralConstructorUsingNew({
-  required String p0,
+  required String constructorName,
 }) {
   return LocatableDiagnosticImpl(
     diag.nonConstCallToLiteralConstructorUsingNew,
-    [p0],
+    [constructorName],
   );
 }
 
@@ -21830,84 +21827,83 @@ LocatableDiagnostic _withArgumentsWrongNumberOfParametersForOperatorMinus({
 }
 
 LocatableDiagnostic _withArgumentsWrongNumberOfTypeArguments({
-  required Object p0,
-  required int p1,
-  required int p2,
-}) {
-  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArguments, [p0, p1, p2]);
-}
-
-LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsAnonymousFunction({
+  required String type,
   required int typeParameterCount,
   required int typeArgumentCount,
 }) {
-  return LocatableDiagnosticImpl(
-    diag.wrongNumberOfTypeArgumentsAnonymousFunction,
-    [typeParameterCount, typeArgumentCount],
-  );
-}
-
-LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsConstructor({
-  required String p0,
-  required String p1,
-}) {
-  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsConstructor, [
-    p0,
-    p1,
-  ]);
-}
-
-LocatableDiagnostic
-_withArgumentsWrongNumberOfTypeArgumentsDotShorthandConstructor({
-  required String p0,
-  required String p1,
-}) {
-  return LocatableDiagnosticImpl(
-    diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
-    [p0, p1],
-  );
-}
-
-LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsEnum({
-  required int p0,
-  required int p1,
-}) {
-  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsEnum, [p0, p1]);
-}
-
-LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsExtension({
-  required String p0,
-  required int p1,
-  required int p2,
-}) {
-  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsExtension, [
-    p0,
-    p1,
-    p2,
-  ]);
-}
-
-LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsFunction({
-  required String functionName,
-  required int typeParameterCount,
-  required int typeArgumentCount,
-}) {
-  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsFunction, [
-    functionName,
+  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArguments, [
+    type,
     typeParameterCount,
     typeArgumentCount,
   ]);
 }
 
-LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsMethod({
-  required DartType p0,
-  required int p1,
-  required int p2,
+LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsConstructor({
+  required String className,
+  required String constructorName,
 }) {
-  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsMethod, [
-    p0,
-    p1,
-    p2,
+  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsConstructor, [
+    className,
+    constructorName,
+  ]);
+}
+
+LocatableDiagnostic
+_withArgumentsWrongNumberOfTypeArgumentsDotShorthandConstructor({
+  required String className,
+  required String constructorName,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
+    [className, constructorName],
+  );
+}
+
+LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsElement({
+  required String kind,
+  required String element,
+  required int typeParameterCount,
+  required int typeArgumentCount,
+}) {
+  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsElement, [
+    kind,
+    element,
+    typeParameterCount,
+    typeArgumentCount,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsEnum({
+  required int typeParameterCount,
+  required int typeArgumentCount,
+}) {
+  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsEnum, [
+    typeParameterCount,
+    typeArgumentCount,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsExtension({
+  required String extensionName,
+  required int typeParameterCount,
+  required int typeArgumentCount,
+}) {
+  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsExtension, [
+    extensionName,
+    typeParameterCount,
+    typeArgumentCount,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsFunction({
+  required DartType type,
+  required int typeParameterCount,
+  required int typeArgumentCount,
+}) {
+  return LocatableDiagnosticImpl(diag.wrongNumberOfTypeArgumentsFunction, [
+    type,
+    typeParameterCount,
+    typeArgumentCount,
   ]);
 }
 

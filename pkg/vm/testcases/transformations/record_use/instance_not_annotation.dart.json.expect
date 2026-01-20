@@ -1,7 +1,7 @@
 {
   "constants": [
     {
-      "type": "Instance"
+      "type": "instance"
     }
   ],
   "locations": [

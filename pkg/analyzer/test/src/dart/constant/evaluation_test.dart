@@ -2244,7 +2244,7 @@ const g = foo<true>;
 void foo<T, U>(T a, U b) {}
 const g = foo<int>;
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 41, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 41, 5)],
     );
     var result = _topLevelVar('g');
     _assertNull(result);
@@ -2256,7 +2256,7 @@ const g = foo<int>;
 void foo<T>(T a) {}
 const g = foo<int, String>;
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 33, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 33, 13)],
     );
     var result = _topLevelVar('g');
     _assertNull(result);

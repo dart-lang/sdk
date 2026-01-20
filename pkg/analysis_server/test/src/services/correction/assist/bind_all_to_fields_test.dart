@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,6 +19,28 @@ void main() {
 class BindToFieldTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.bindAllToFields;
+
+  Future<void> test_private_named_and_positional() async {
+    // This code is erroneous, but we still want to allow the assist since it
+    // will fix the error.
+    await resolveTestCode(
+      '''
+class A {
+  A(int ^_i, {String? _s});
+}
+''',
+      ignore: [diag.privateNamedNonFieldParameter],
+    );
+    await assertHasAssist('''
+class A {
+  int _i;
+
+  String? _s;
+
+  A(this._i, {this._s});
+}
+''');
+  }
 
   Future<void> test_typed_multiple_constructor_parameters() async {
     await resolveTestCode('''

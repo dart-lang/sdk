@@ -1245,10 +1245,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var warning = node.keyword?.keyword == Keyword.NEW
           ? diag.nonConstCallToLiteralConstructorUsingNew
           : diag.nonConstCallToLiteralConstructor;
-      _diagnosticReporter.atNode(
-        node,
-        warning,
-        arguments: [fullConstructorName],
+      _diagnosticReporter.report(
+        warning.withArguments(constructorName: fullConstructorName).at(node),
       );
     }
   }
@@ -1263,10 +1261,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var constructor = node.constructorName.element;
     if (constructor is! ConstructorElement) return;
     if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
-      _diagnosticReporter.atNode(
-        node,
-        diag.nonConstCallToLiteralConstructor,
-        arguments: [constructor.displayName],
+      _diagnosticReporter.report(
+        diag.nonConstCallToLiteralConstructor
+            .withArguments(constructorName: constructor.displayName)
+            .at(node),
       );
     }
   }

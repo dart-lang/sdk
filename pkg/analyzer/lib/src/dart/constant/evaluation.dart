@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -2685,24 +2686,19 @@ class DartObjectComputer {
     var rawType = function.type;
     if (rawType is FunctionTypeImpl) {
       if (typeArguments.length != rawType.typeParameters.length) {
+        InvocationTarget? target;
         if (node is SimpleIdentifier) {
-          return InvalidConstant.forEntity(
-            entity: typeArgumentsErrorNode,
-            locatableDiagnostic: diag.wrongNumberOfTypeArgumentsFunction
-                .withArguments(
-                  functionName: node.name,
-                  typeParameterCount: rawType.typeParameters.length,
-                  typeArgumentCount: typeArguments.length,
-                ),
-          );
+          if (node.element case ExecutableElement e) {
+            target = InvocationTargetExecutableElement(e);
+          }
         }
+        target ??= InvocationTargetFunctionTypedExpression(rawType);
         return InvalidConstant.forEntity(
           entity: typeArgumentsErrorNode,
-          locatableDiagnostic: diag.wrongNumberOfTypeArgumentsAnonymousFunction
-              .withArguments(
-                typeParameterCount: rawType.typeParameters.length,
-                typeArgumentCount: typeArguments.length,
-              ),
+          locatableDiagnostic: target.wrongNumberOfTypeArgumentsError(
+            typeParameterCount: rawType.typeParameters.length,
+            typeArgumentCount: typeArguments.length,
+          ),
         );
       }
       var type = rawType.instantiate(typeArguments);

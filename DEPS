@@ -50,6 +50,11 @@ vars = {
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution
   # in a cipd package used to run Dart scripts in the build and test
   # infrastructure, which is automatically built on the release commits.
+  #
+  # A SHA will work if it has all green release builds. The recommended way to
+  # choose which SHA to place here is to choose a release from
+  # https://dart.dev/get-dart/archive, and then look up the version SHA from
+  # the tag. Prefer using the stable channel when possible.
   "sdk_tag": "git_revision:bc20d999d68a261ae12c56bab7ba304bd0de5346",
 
   # co19 is a cipd package automatically generated for each co19 commit.
@@ -140,7 +145,7 @@ vars = {
   "i18n_rev": "dd8a792a8492370a594706c8304d2eb8db844d7a",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "c4f419cfc091aaa7bc7ce9e84ac49bc752e87b02", # rolled manually while record_use is experimental
+  "native_rev": "2f33e1af716668ab79346fdded6fa3f05ffd827b", # rolled manually while record_use is experimental
   "protobuf_rev": "9e30258e0aa6a6430ee36c84b75308a9702fde42",
   "pub_rev": "b21ac685bc64f6e81050ec0093aa83543d66e2fd", # rolled manually
   "shelf_rev": "dd830a0338b31bee92fe7ebc20b9bb963403b6b0",

@@ -1,6 +1,7 @@
 {
   "metadata": {
     "comment": "Resources referenced by annotated resource identifiers",
+    "version": "0.4.0",
     "AppTag": "TBD",
     "environment": {
       "dart.web.assertions_enabled": "false",
@@ -9,7 +10,6 @@
       "dart.tool.dart2js.disable_rti_optimization": "false",
       "dart.tool.dart2js.primitives:trust": "false",
       "dart.tool.dart2js.types:trust": "false"
-    },
-    "version": "0.4.0"
+    }
   }
 }

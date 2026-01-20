@@ -740,11 +740,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           diag.constInitializedWithNonConstantValueFromDeferredLibrary,
         ) ||
         identical(diagnosticCode, diag.patternConstantFromDeferredLibrary) ||
-        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsFunction) ||
-        identical(
-          diagnosticCode,
-          diag.wrongNumberOfTypeArgumentsAnonymousFunction,
-        )) {
+        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsElement) ||
+        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsFunction)) {
       _diagnosticReporter.report(
         error.locatableDiagnostic.atOffset(
           offset: error.offset,

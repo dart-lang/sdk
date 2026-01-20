@@ -55,7 +55,7 @@ extension type A(final int _) {}
   test_notUsed_class_declaringFormal_optionalNamed() async {
     await assertErrorsInCode(
       r'''
-class A({final int _i}) {}
+class A({final int _i = 0}) {}
 ''',
       [error(diag.unusedFieldFromPrimaryConstructor, 19, 2)],
     );
@@ -64,9 +64,10 @@ class A({final int _i}) {}
   test_notUsed_class_declaringFormal_optionalNamed_functionTyped() async {
     await assertErrorsInCode(
       r'''
-class A({final int _f()}) {}
+class A({final void _f() = _g}) {}
+void _g() {}
 ''',
-      [error(diag.unusedFieldFromPrimaryConstructor, 19, 2)],
+      [error(diag.unusedFieldFromPrimaryConstructor, 20, 2)],
     );
   }
 

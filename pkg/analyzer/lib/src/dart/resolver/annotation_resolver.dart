@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -125,6 +126,7 @@ class AnnotationResolver {
         contextType: UnknownInferredType.instance,
         whyNotPromotedArguments: whyNotPromotedArguments,
         constructorName: constructorName,
+        target: null,
       ).resolveInvocation(rawType: null);
       return;
     }
@@ -142,6 +144,7 @@ class AnnotationResolver {
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
       constructorName: constructorName,
+      target: InvocationTargetConstructorElement(constructorElement),
     ).resolveInvocation(
       // TODO(paulberry): eliminate this cast by changing the type of
       // `ConstructorElementToInfer.asType`.
@@ -476,6 +479,7 @@ class AnnotationResolver {
         contextType: UnknownInferredType.instance,
         whyNotPromotedArguments: whyNotPromotedArguments,
         constructorName: null,
+        target: null,
       ).resolveInvocation(rawType: null);
     }
   }
