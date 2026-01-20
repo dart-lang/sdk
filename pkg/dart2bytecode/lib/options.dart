@@ -7,7 +7,6 @@ class BytecodeOptions {
   static Map<String, String> commandLineFlags = {
     'annotations': 'Emit Dart annotations',
     'local-var-info': 'Emit debug information about local variables',
-    'debugger-stops': 'Emit bytecode instructions for stopping in the debugger',
     'show-bytecode-size-stat': 'Show bytecode size breakdown',
     'source-positions': 'Emit source positions',
     'instance-field-initializers': 'Emit separate instance field initializers',
@@ -21,7 +20,6 @@ class BytecodeOptions {
   bool enableAsserts;
   bool emitSourcePositions;
   bool emitLocalVarInfo;
-  bool emitDebuggerStops;
   bool emitAnnotations;
   bool emitInstanceFieldInitializers;
   bool omitAssertSourcePositions;
@@ -34,7 +32,6 @@ class BytecodeOptions {
     this.enableAsserts = false,
     this.emitSourcePositions = false,
     this.emitLocalVarInfo = false,
-    this.emitDebuggerStops = false,
     this.emitAnnotations = false,
     this.emitInstanceFieldInitializers = false,
     this.omitAssertSourcePositions = false,
@@ -55,9 +52,6 @@ class BytecodeOptions {
           break;
         case 'local-var-info':
           emitLocalVarInfo = true;
-          break;
-        case 'debugger-stops':
-          emitDebuggerStops = true;
           break;
         case 'annotations':
           emitAnnotations = true;
