@@ -40,7 +40,6 @@ List<Diagnostic> analyzeAnalysisOptions(
     sourceFactory,
   );
   String? firstPluginName;
-  Map<Source, SourceSpan> includeChain = {};
 
   // TODO(srawlins): This code is getting quite complex, with multiple local
   // functions, and should be refactored to a class maintaining state, with less
@@ -78,7 +77,13 @@ List<Diagnostic> analyzeAnalysisOptions(
   }
 
   // Validates the specified options and any included option files.
-  void validate(Source source, YamlMap options, {required String contextRoot}) {
+  void validate(
+    Source source,
+    YamlMap options, {
+    required String contextRoot,
+    Map<Source, SourceSpan>? includeChain,
+  }) {
+    includeChain ??= {};
     var isSourcePrimary = initialIncludeSpan == null;
     var validationErrors = OptionsFileValidator(
       source,
@@ -107,7 +112,10 @@ List<Diagnostic> analyzeAnalysisOptions(
       return;
     }
 
-    void validateInclude(YamlNode includeNode) {
+    void validateInclude(
+      YamlNode includeNode,
+      Map<Source, SourceSpan> includeChain,
+    ) {
       var includeSpan = includeNode.span;
       initialIncludeSpan ??= includeSpan;
       var includeUri = includeSpan.text;
@@ -170,7 +178,12 @@ List<Diagnostic> analyzeAnalysisOptions(
         var includedOptions = optionsProvider.getOptionsFromString(
           includedSource.contents.data,
         );
-        validate(includedSource, includedOptions, contextRoot: contextRoot);
+        validate(
+          includedSource,
+          includedOptions,
+          contextRoot: contextRoot,
+          includeChain: includeChain,
+        );
         firstPluginName ??= _firstPluginName(includedOptions);
         // Validate the 'plugins' option in [options], taking into account any
         // plugins enabled by [includedOptions].
@@ -215,7 +228,7 @@ List<Diagnostic> analyzeAnalysisOptions(
         initialIncludeSpan = null;
         includeChain.clear();
       }
-      validateInclude(includeValue);
+      validateInclude(includeValue, {...includeChain});
     }
   }
 
