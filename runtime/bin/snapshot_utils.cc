@@ -958,11 +958,11 @@ static void StreamingWriteCallback(void* callback_data,
 
 void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
   File* file = File::Open(nullptr, snapshot_filename, File::kWriteTruncate);
-  RefCntReleaseScope<File> rs(file);
   if (file == nullptr) {
     ErrorExit(kErrorExitCode, "Unable to open file %s for writing snapshot\n",
               snapshot_filename);
   }
+  RefCntReleaseScope<File> rs(file);
   Dart_Handle result = Dart_CreateAppAOTSnapshotAsAssembly(
       StreamingWriteCallback, file, /*stripped=*/false,
       /*debug_callback_data=*/nullptr);
