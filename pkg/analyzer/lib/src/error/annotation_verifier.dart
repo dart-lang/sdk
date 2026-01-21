@@ -526,7 +526,7 @@ class AnnotationVerifier {
         _diagnosticReporter.atNode(
           undefinedParameter,
           diag.undefinedReferencedParameter,
-          arguments: [parameterName ?? undefinedParameter, name],
+          arguments: [parameterName ?? undefinedParameter.toString(), name],
         );
       }
     }

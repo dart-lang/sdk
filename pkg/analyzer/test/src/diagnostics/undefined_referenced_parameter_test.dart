@@ -21,6 +21,50 @@ class UndefinedReferencedParameterTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_messageText_literalString() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+class Foo {
+  @UseResult.unless(parameterDefined: 'undef')
+  int foo([int? value]) => value ?? 0;
+}
+''',
+      [
+        error(
+          diag.undefinedReferencedParameter,
+          84,
+          7,
+          messageContains: ["The parameter 'undef'", "isn't defined by 'foo'"],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_stringReference() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+const s = 'undef';
+
+class Foo {
+  @UseResult.unless(parameterDefined: s)
+  int foo([int? value]) => value ?? 0;
+}
+''',
+      [
+        error(
+          diag.undefinedReferencedParameter,
+          104,
+          1,
+          messageContains: ["The parameter 's'", "isn't defined by 'foo'"],
+        ),
+      ],
+    );
+  }
+
   test_method() async {
     await assertErrorsInCode(
       r'''
