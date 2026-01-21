@@ -75,9 +75,9 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:14.5.180",
-  "jsshell_tag": "version:146.0.1",
-  "jsc_tag": "version:305230",
+  "d8_tag": "version:14.6.51",
+  "jsshell_tag": "version:147.0.1",
+  "jsc_tag": "version:305906",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:f77ce52b56d025399f489a8c0aad8c18c4b06045",
@@ -168,9 +168,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "144.0.7559.31",
+  "chrome_tag": "145.0.7632.5",
   "download_firefox": False,
-  "firefox_tag": "146.0.1",
+  "firefox_tag": "147.0.1",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,

@@ -16852,9 +16852,9 @@ const DiagnosticWithoutArguments unterminatedStringLiteral =
     );
 
 /// Parameters:
-/// Object p0: the name of the exception variable
+/// String name: the name of the exception variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unusedCatchClause = DiagnosticWithArguments(
   name: 'unused_catch_clause',
@@ -16866,13 +16866,13 @@ unusedCatchClause = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unused_catch_clause',
   withArguments: _withArgumentsUnusedCatchClause,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: the name of the stack trace variable
+/// String name: the name of the stack trace variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unusedCatchStack = DiagnosticWithArguments(
   name: 'unused_catch_stack',
@@ -16883,13 +16883,13 @@ unusedCatchStack = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unused_catch_stack',
   withArguments: _withArgumentsUnusedCatchStack,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: the name that is declared but not referenced
+/// String name: the name that is declared but not referenced
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unusedElement = DiagnosticWithArguments(
   name: 'unused_element',
@@ -16899,13 +16899,13 @@ unusedElement = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unused_element',
   withArguments: _withArgumentsUnusedElement,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: the name of the parameter that is declared but not used
+/// String name: the name of the parameter that is declared but not used
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unusedElementParameter = DiagnosticWithArguments(
   name: 'unused_element_parameter',
@@ -16915,7 +16915,7 @@ unusedElementParameter = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unused_element_parameter',
   withArguments: _withArgumentsUnusedElementParameter,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -16990,9 +16990,9 @@ unusedLabel = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Object p0: the name of the unused variable
+/// String name: the name of the unused variable
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unusedLocalVariable = DiagnosticWithArguments(
   name: 'unused_local_variable',
@@ -17002,7 +17002,7 @@ unusedLocalVariable = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'unused_local_variable',
   withArguments: _withArgumentsUnusedLocalVariable,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
@@ -21354,20 +21354,22 @@ LocatableDiagnostic _withArgumentsUnsupportedValue({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUnusedCatchClause({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unusedCatchClause, [p0]);
+LocatableDiagnostic _withArgumentsUnusedCatchClause({required String name}) {
+  return LocatableDiagnosticImpl(diag.unusedCatchClause, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnusedCatchStack({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unusedCatchStack, [p0]);
+LocatableDiagnostic _withArgumentsUnusedCatchStack({required String name}) {
+  return LocatableDiagnosticImpl(diag.unusedCatchStack, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnusedElement({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unusedElement, [p0]);
+LocatableDiagnostic _withArgumentsUnusedElement({required String name}) {
+  return LocatableDiagnosticImpl(diag.unusedElement, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnusedElementParameter({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unusedElementParameter, [p0]);
+LocatableDiagnostic _withArgumentsUnusedElementParameter({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.unusedElementParameter, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnusedField({required Object fieldName}) {
@@ -21392,8 +21394,8 @@ LocatableDiagnostic _withArgumentsUnusedLabel({required String p0}) {
   return LocatableDiagnosticImpl(diag.unusedLabel, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsUnusedLocalVariable({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unusedLocalVariable, [p0]);
+LocatableDiagnostic _withArgumentsUnusedLocalVariable({required String name}) {
+  return LocatableDiagnosticImpl(diag.unusedLocalVariable, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnusedResult({required String p0}) {

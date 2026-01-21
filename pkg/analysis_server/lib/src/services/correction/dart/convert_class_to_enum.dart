@@ -23,6 +23,8 @@ import 'package:collection/collection.dart';
 
 import '../../../utilities/extensions/ast.dart';
 
+typedef _Constructors = Map<ConstructorElement, _Constructor>;
+
 class ConvertClassToEnum extends ResolvedCorrectionProducer {
   ConvertClassToEnum({required super.context});
 
@@ -112,7 +114,6 @@ class _ConstantField extends _Field {
     super.element,
     super.declaration,
     super.declarationList,
-    super.fieldDeclaration,
     this.instanceCreation,
     this.constructorElement,
     this.indexValue,
@@ -130,49 +131,32 @@ class _Constructor {
   _Constructor(this.declaration, this.element);
 }
 
-/// Information about the constructors in the class being converted.
-class _Constructors {
-  /// A map from elements to constructors.
-  final Map<ConstructorElement, _Constructor> byElement = {};
-
-  _Constructors();
-
-  /// Return the constructors in this collection.
-  Iterable<_Constructor> get constructors => byElement.values;
-
-  /// Add the given [constructor] to this collection.
-  void add(_Constructor constructor) {
-    byElement[constructor.element] = constructor;
-  }
-
-  /// Return the constructor with the given [element].
-  _Constructor? forElement(ConstructorElement element) {
-    return byElement[element];
-  }
-}
-
 /// A description of how to convert the class to an enum.
 class _EnumDescription {
   /// The class declaration being converted.
   final ClassDeclaration classDeclaration;
 
   /// A map from constructor declarations to information about the parameter
-  /// corresponding to the index field. The map is `null` if there is no index
+  /// corresponding to the 'index' field, or `null` if there is no 'index'
   /// field.
-  final Map<_Constructor, _Parameter>? constructorMap;
+  final Map<_Constructor, _Parameter>? _constructorMap;
 
   /// A list of the declarations to be converted into enum constants.
-  final _Fields fields;
+  final List<_ConstantField> fieldsToConvert;
+
+  /// The 'index' field, if there is one.
+  final _Field? _indexField;
 
   /// A list of the indexes of members that need to be deleted.
-  final List<int> membersToDelete;
+  final List<int> membersToDelete = [];
 
   _EnumDescription({
     required this.classDeclaration,
-    required this.constructorMap,
-    required this.fields,
-    required this.membersToDelete,
-  });
+    required Map<_Constructor, _Parameter>? constructorMap,
+    required this.fieldsToConvert,
+    required _Field? indexField,
+  }) : _indexField = indexField,
+       _constructorMap = constructorMap;
 
   /// Return the offset immediately following the opening brace for the class
   /// body.
@@ -201,10 +185,7 @@ class _EnumDescription {
     var indent = utils.oneIndent;
     var eol = utils.endOfLine;
     var constantsBuffer = StringBuffer();
-    var fieldsToConvert = fields.fieldsToConvert;
-    fieldsToConvert.sort(
-      (first, second) => first.indexValue.compareTo(second.indexValue),
-    );
+    fieldsToConvert.sort((a, b) => a.indexValue.compareTo(b.indexValue));
     for (var field in fieldsToConvert) {
       // Compute the declaration of the corresponding enum constant.
       var documentationComment = field.fieldDeclaration.documentationComment;
@@ -225,10 +206,10 @@ class _EnumDescription {
       var invocation = field.instanceCreation;
       var constructorNameNode = invocation.constructorName;
       var invokedConstructorElement = field.constructorElement;
-      var invokedConstructor = constructorMap?.keys.firstWhere(
+      var invokedConstructor = _constructorMap?.keys.firstWhere(
         (constructor) => constructor.element == invokedConstructorElement,
       );
-      var parameterData = constructorMap?[invokedConstructor];
+      var parameterData = _constructorMap?[invokedConstructor];
       var typeArguments = constructorNameNode.type.typeArguments;
       if (typeArguments != null) {
         constantsBuffer.write(utils.getNodeText(typeArguments));
@@ -280,9 +261,8 @@ class _EnumDescription {
     }
 
     // Remove the index field.
-    var indexField = fields.indexField;
-    if (indexField != null) {
-      _deleteField(builder, indexField, members);
+    if (_indexField != null) {
+      _deleteField(builder, _indexField, members);
     }
 
     // Update the constructors.
@@ -317,7 +297,7 @@ class _EnumDescription {
     _Field field,
     List<ClassMember> members,
   ) {
-    var variableList = field.declarationList;
+    var variableList = field.fieldDeclaration.fields;
     if (variableList.variables.length == 1) {
       membersToDelete.add(members.indexOf(field.fieldDeclaration));
     } else {
@@ -343,7 +323,7 @@ class _EnumDescription {
     var parameters = constructor.parameters.parameters;
     // If there's only one constructor, then there can only be one entry in the
     // constructor map.
-    var parameterData = constructorMap?.entries.first.value;
+    var parameterData = _constructorMap?.entries.first.value;
     // `parameterData` should only be `null` if there is no index field.
     var updatedParameterCount =
         parameters.length - (parameterData == null ? 0 : 1);
@@ -360,19 +340,17 @@ class _EnumDescription {
     DartFileEditBuilder builder,
     ConstructorDeclaration? removedConstructor,
   ) {
-    var constructorMap = this.constructorMap;
-    if (constructorMap == null) {
-      return;
-    }
-    for (var constructor in constructorMap.keys) {
-      if (constructor.declaration != removedConstructor) {
-        var parameterData = constructorMap[constructor];
-        if (parameterData != null) {
-          var parameters = constructor.declaration.parameters.parameters;
-          builder.addDeletion(
-            range.nodeInList(parameters, parameters[parameterData.index]),
-          );
-        }
+    if (_constructorMap == null) return;
+
+    for (var constructor in _constructorMap.keys) {
+      if (constructor.declaration == removedConstructor) continue;
+
+      var parameterData = _constructorMap[constructor];
+      if (parameterData != null) {
+        var parameters = constructor.declaration.parameters.parameters;
+        builder.addDeletion(
+          range.nodeInList(parameters, parameters[parameterData.index]),
+        );
       }
     }
   }
@@ -412,11 +390,11 @@ class _EnumDescription {
     //
     // The instance fields must all be final.
     var fields = _validateFields(node, classElement, strictCasts: strictCasts);
-    if (fields == null || fields.fieldsToConvert.isEmpty) {
-      return null;
-    }
+    if (fields == null) return null;
+    var (fieldsToConvert, indexField) = fields;
+    if (fieldsToConvert.isEmpty) return null;
 
-    var visitor = _EnumVisitor(classElement, fields.fieldsToConvert);
+    var visitor = _EnumVisitor(classElement, fieldsToConvert);
     try {
       node.accept(visitor);
     } on _CannotConvertException {
@@ -432,18 +410,24 @@ class _EnumDescription {
       return null;
     }
 
-    var usedConstructors = _computeUsedConstructors(constructors, fields);
-    var constructorMap = _indexFieldData(usedConstructors, fields);
-    if (fields.indexField != null && constructorMap == null) {
+    var usedConstructors = _computeUsedConstructors(
+      constructors,
+      fieldsToConvert,
+    );
+    var constructorMap = _indexFieldData(
+      usedConstructors,
+      fieldsToConvert,
+      indexField,
+    );
+    if (indexField != null && constructorMap == null) {
       return null;
     }
 
-    var membersToDelete = <int>[];
     return _EnumDescription(
       classDeclaration: node,
       constructorMap: constructorMap,
-      fields: fields,
-      membersToDelete: membersToDelete,
+      fieldsToConvert: fieldsToConvert,
+      indexField: indexField,
     );
   }
 
@@ -451,20 +435,12 @@ class _EnumDescription {
   /// converted.
   static _Constructors _computeUsedConstructors(
     _Constructors constructors,
-    _Fields fields,
+    List<_ConstantField> fieldsToConvert,
   ) {
-    var usedElements = <ConstructorElement>{};
-    for (var field in fields.fieldsToConvert) {
-      usedElements.add(field.constructorElement);
-    }
-    var usedConstructors = _Constructors();
-    for (var element in usedElements) {
-      var constructor = constructors.forElement(element);
-      if (constructor != null) {
-        usedConstructors.add(constructor);
-      }
-    }
-    return usedConstructors;
+    var usedElements = {
+      for (var field in fieldsToConvert) field.constructorElement,
+    };
+    return {for (var element in usedElements) element: ?constructors[element]};
   }
 
   /// If the index field can be removed, return a map describing the changes
@@ -472,16 +448,15 @@ class _EnumDescription {
   /// constructors. Otherwise, return `null`.
   static Map<_Constructor, _Parameter>? _indexFieldData(
     _Constructors usedConstructors,
-    _Fields fields,
+    List<_ConstantField> fieldsToConvert,
+    _Field? indexField,
   ) {
-    var indexField = fields.indexField;
-    if (indexField == null) {
-      return null;
-    }
+    if (indexField == null) return null;
+
     // Ensure that the index field has a corresponding field formal initializer
     // in each of the used constructors.
     var constructorMap = <_Constructor, _Parameter>{};
-    for (var constructor in usedConstructors.constructors) {
+    for (var constructor in usedConstructors.values) {
       var parameterData = _indexParameter(constructor, indexField);
       if (parameterData == null) {
         return null;
@@ -489,18 +464,17 @@ class _EnumDescription {
       constructorMap[constructor] = parameterData;
     }
 
-    var fieldsToConvert = fields.fieldsToConvert;
     var values = <int>{};
     for (var field in fieldsToConvert) {
       var constructorElement = field.constructorElement;
-      var constructor = usedConstructors.forElement(constructorElement);
+      var constructor = usedConstructors[constructorElement];
       if (constructor == null) {
-        // We should never reach this point.
+        assert(false, 'Missing _Constructor for $constructorElement');
         return null;
       }
       var parameterData = constructorMap[constructor];
       if (parameterData == null) {
-        // We should never reach this point.
+        assert(false, 'Missing _Parameter for $constructor');
         return null;
       }
       var arguments = field.instanceCreation.argumentList.arguments;
@@ -526,24 +500,19 @@ class _EnumDescription {
     return null;
   }
 
+  /// Returns a [_Parameter] which describes the [FieldFormalParameterElement]
+  /// for the 'index' field, if there is one, and `null` if there is not.
   static _Parameter? _indexParameter(
     _Constructor constructor,
-    _Field? indexField,
+    _Field indexField,
   ) {
-    if (indexField == null) {
-      return null;
-    }
     var parameters = constructor.declaration.parameters.parameters;
     var indexFieldElement = indexField.element;
     for (var i = 0; i < parameters.length; i++) {
       var element = parameters[i].declaredFragment!.element;
       if (element is FieldFormalParameterElement) {
         if (element.field == indexFieldElement) {
-          if (element.isPositional) {
-            return _Parameter(i, element);
-          } else {
-            return _Parameter(i, element);
-          }
+          return _Parameter(i, element);
         }
       }
     }
@@ -558,33 +527,31 @@ class _EnumDescription {
     ClassDeclaration classDeclaration,
     ClassElement classElement,
   ) {
-    var constructors = _Constructors();
+    var constructorMap = <ConstructorElement, _Constructor>{};
     for (var member in classDeclaration.members2) {
-      if (member is ConstructorDeclaration) {
-        var constructor = member.declaredFragment?.element;
-        if (constructor is ConstructorElement) {
-          if (!classElement.isPrivate && !constructor.isPrivate) {
-            // Public constructor in public enum.
-            return null;
-          } else if (!constructor.isFactory && !constructor.isConst) {
-            // Non-const constructor.
-            return null;
-          }
-          constructors.add(_Constructor(member, constructor));
-        } else {
-          // Not resolved.
-          return null;
-        }
+      if (member is! ConstructorDeclaration) continue;
+
+      var constructor = member.declaredFragment?.element;
+      if (constructor is! ConstructorElement) return null;
+
+      if (!classElement.isPrivate && !constructor.isPrivate) {
+        // Public constructor in public enum.
+        return null;
+      } else if (!constructor.isFactory && !constructor.isConst) {
+        // Non-const generative constructor.
+        return null;
       }
+      constructorMap[constructor] = _Constructor(member, constructor);
     }
-    return constructors;
+    return constructorMap;
   }
 
   /// Return a representation of all of the constructors declared by the
   /// [classDeclaration], or `null` if the class can't be converted.
   ///
   /// The [classElement] must be the element declared by the [classDeclaration].
-  static _Fields? _validateFields(
+  static (List<_ConstantField> fieldsToConvert, _Field? indexField)?
+  _validateFields(
     ClassDeclaration classDeclaration,
     ClassElement classElement, {
     required bool strictCasts,
@@ -593,65 +560,62 @@ class _EnumDescription {
     _Field? indexField;
 
     for (var member in classDeclaration.members2) {
-      if (member is FieldDeclaration) {
-        var fieldList = member.fields;
-        var fields = fieldList.variables;
-        if (member.isStatic) {
-          for (var field in fields) {
-            var fieldElement = field.declaredFragment?.element;
-            if (fieldElement is FieldElement) {
-              var fieldType = fieldElement.type;
-              // The field can be converted to be an enum constant if it
-              // - is a const field,
-              // - has a type equal to the type of the class, and
-              // - is initialized by an instance creation expression defined in this
-              //   class.
-              if (fieldElement.isConst &&
-                  fieldType is InterfaceType &&
-                  fieldType.element == classElement) {
-                var initializer = field.initializer;
-                if (initializer is InstanceCreationExpression) {
-                  var constructorElement = initializer.constructorName.element;
-                  if (constructorElement != null &&
-                      !constructorElement.isFactory &&
-                      constructorElement.enclosingElement == classElement) {
-                    var fieldValue = fieldElement.computeConstantValue();
-                    if (fieldValue != null) {
-                      if (fieldList.variables.length != 1) {
-                        // Too many constants in the field declaration.
-                        return null;
-                      }
-                      potentialFieldsToConvert
-                          .putIfAbsent(fieldValue, () => [])
-                          .add(
-                            _ConstantField(
-                              fieldElement,
-                              field,
-                              fieldList,
-                              member,
-                              initializer,
-                              constructorElement,
-                              fieldValue.getField('index')?.toIntValue() ?? -1,
-                            ),
-                          );
-                    }
-                  }
-                }
+      if (member is! FieldDeclaration) continue;
+
+      var fields = member.fields.variables;
+      if (member.isStatic) {
+        for (var field in fields) {
+          var fieldElement = field.declaredFragment?.element;
+          if (fieldElement is! FieldElement) continue;
+
+          var fieldType = fieldElement.type;
+          // The field can be converted to be an enum constant if it
+          // - is a const field,
+          // - has a type equal to the type of the class, and
+          // - is initialized by an instance creation expression in this class.
+          if (fieldElement.isConst &&
+              fieldType is InterfaceType &&
+              fieldType.element == classElement) {
+            var initializer = field.initializer;
+            if (initializer is! InstanceCreationExpression) continue;
+
+            var constructorElement = initializer.constructorName.element;
+            if (constructorElement != null &&
+                !constructorElement.isFactory &&
+                constructorElement.enclosingElement == classElement) {
+              var fieldValue = fieldElement.computeConstantValue();
+              if (fieldValue == null) continue;
+
+              if (member.fields.variables.length != 1) {
+                // Too many constants in the field declaration.
+                return null;
               }
+              potentialFieldsToConvert
+                  .putIfAbsent(fieldValue, () => [])
+                  .add(
+                    _ConstantField(
+                      fieldElement,
+                      field,
+                      member,
+                      initializer,
+                      constructorElement,
+                      fieldValue.getField('index')?.toIntValue() ?? -1,
+                    ),
+                  );
             }
           }
-        } else {
-          for (var field in fields) {
-            if (!field.isFinal) {
-              // Non-final instance field.
-              return null;
-            }
-            var fieldElement = field.declaredFragment?.element;
-            if (fieldElement is FieldElement) {
-              var fieldType = fieldElement.type;
-              if (fieldElement.name == 'index' && fieldType.isDartCoreInt) {
-                indexField = _Field(fieldElement, field, fieldList, member);
-              }
+        }
+      } else {
+        for (var field in fields) {
+          if (!field.isFinal) {
+            // Non-final instance field.
+            return null;
+          }
+          var fieldElement = field.declaredFragment?.element;
+          if (fieldElement is FieldElement) {
+            var fieldType = fieldElement.type;
+            if (fieldElement.name == 'index' && fieldType.isDartCoreInt) {
+              indexField = _Field(fieldElement, field, member);
             }
           }
         }
@@ -671,7 +635,7 @@ class _EnumDescription {
         return null;
       }
     }
-    return _Fields(fieldsToConvert, indexField);
+    return (fieldsToConvert, indexField);
   }
 
   /// Return `true` if the [classDeclaration] does not contain any methods that
@@ -738,32 +702,13 @@ class _Field {
   /// The declaration of the field.
   final VariableDeclaration declaration;
 
-  /// The list containing the [declaration]
-  final VariableDeclarationList declarationList;
-
-  /// The field declaration containing the [declarationList].
+  /// The field declaration containing the [declaration].
   final FieldDeclaration fieldDeclaration;
 
-  _Field(
-    this.element,
-    this.declaration,
-    this.declarationList,
-    this.fieldDeclaration,
-  );
+  _Field(this.element, this.declaration, this.fieldDeclaration);
 
   /// Return the name of the field.
   String get name => declaration.name.lexeme;
-}
-
-/// A representation of all the fields of interest in the class being converted.
-class _Fields {
-  /// The fields to be converted into enum constants.
-  List<_ConstantField> fieldsToConvert;
-
-  /// The index field, or `null` if there is no index field.
-  _Field? indexField;
-
-  _Fields(this.fieldsToConvert, this.indexField);
 }
 
 /// A visitor that visits everything in the library other than the class being
