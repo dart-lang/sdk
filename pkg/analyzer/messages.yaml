@@ -27635,10 +27635,10 @@ WarningCode:
   returnOfInvalidTypeFromCatchError:
     type: staticWarning
     parameters:
-      Type p0: the return type as declared in the return statement
-      Type p1: the expected return type as defined by the type of the Future
+      Type actualType: the return type as declared in the return statement
+      Type expectedType: the expected return type as defined by the type of the Future
     sharedName: invalidReturnTypeForCatchError
-    problemMessage: "A value of type '#p0' can't be returned by the 'onError' handler because it must be assignable to '#p1'."
+    problemMessage: "A value of type '#actualType' can't be returned by the 'onError' handler because it must be assignable to '#expectedType'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -27917,10 +27917,10 @@ WarningCode:
   invalidWidgetPreviewPrivateArgument:
     type: staticWarning
     parameters:
-      String p0: the name of the private symbol
-      String p1: the name of the proposed public symbol equivalent
+      String privateSymbolName: the name of the private symbol
+      String suggestedName: the name of the proposed public symbol equivalent
     problemMessage: "'@Preview(...)' can only accept arguments that consist of literals and public symbols."
-    correctionMessage: "Rename private symbol '#p0' to '#p1'."
+    correctionMessage: "Rename private symbol '#privateSymbolName' to '#suggestedName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -28048,8 +28048,8 @@ WarningCode:
   missingRequiredParam:
     type: staticWarning
     parameters:
-      String p0: the name of the parameter
-    problemMessage: "The parameter '#p0' is required."
+      String name: the name of the parameter
+    problemMessage: "The parameter '#name' is required."
     hasPublishedDocs: true
     comment: |-
       Generates a warning for a constructor, function or method invocation where
@@ -28094,10 +28094,10 @@ WarningCode:
   missingRequiredParamWithDetails:
     type: staticWarning
     parameters:
-      String p0: the name of the parameter
-      String p1: message details
+      String name: the name of the parameter
+      String details: message details
     sharedName: missingRequiredParam
-    problemMessage: "The parameter '#p0' is required. #p1."
+    problemMessage: "The parameter '#name' is required. #details."
     hasPublishedDocs: true
     comment: |-
       Generates a warning for a constructor, function or method invocation where
@@ -28138,8 +28138,8 @@ WarningCode:
   mixinOnSealedClass:
     type: staticWarning
     parameters:
-      String p0: the name of the sealed class
-    problemMessage: "The class '#p0' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have '#p0' as a superclass."
+      String name: the name of the sealed class
+    problemMessage: "The class '#name' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have '#name' as a superclass."
     correctionMessage: Try composing with this class, or refer to its documentation for more information.
     hasPublishedDocs: true
     comment: |-
@@ -28182,8 +28182,8 @@ WarningCode:
   mustBeImmutable:
     type: staticWarning
     parameters:
-      String p0: the name of the class
-    problemMessage: "This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: #p0"
+      String fieldNames: the names of the non-final field names, joined with commas
+    problemMessage: "This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: #fieldNames"
     hasPublishedDocs: true
     comment: |-
       Generates a warning for classes that inherit from classes annotated with
@@ -28242,8 +28242,8 @@ WarningCode:
   mustCallSuper:
     type: staticWarning
     parameters:
-      String p0: the name of the class declaring the overridden method
-    problemMessage: "This method overrides a method annotated as '@mustCallSuper' in '#p0', but doesn't invoke the overridden method."
+      String className: the name of the class declaring the overridden method
+    problemMessage: "This method overrides a method annotated as '@mustCallSuper' in '#className', but doesn't invoke the overridden method."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -28293,8 +28293,8 @@ WarningCode:
   nonConstArgumentForConstParameter:
     type: staticWarning
     parameters:
-      String p0: the name of the argument
-    problemMessage: "Argument '#p0' must be a constant."
+      String name: the name of the argument
+    problemMessage: "Argument '#name' must be a constant."
     correctionMessage: Try replacing the argument with a constant.
     hasPublishedDocs: true
     documentation: |-
@@ -28470,9 +28470,9 @@ WarningCode:
   nullArgumentToNonNullType:
     type: staticWarning
     parameters:
-      String p0: the name of the method being invoked
-      String p1: the type argument associated with the method
-    problemMessage: "'#p0' shouldn't be called with a 'null' argument for the non-nullable type argument '#p1'."
+      String memberName: the name of the member being invoked
+      String typeArgumentName: the type argument associated with the method
+    problemMessage: "'#memberName' shouldn't be called with a 'null' argument for the non-nullable type argument '#typeArgumentName'."
     correctionMessage: Try adding a non-null argument.
     hasPublishedDocs: true
     documentation: |-
@@ -28619,9 +28619,9 @@ WarningCode:
   patternNeverMatchesValueType:
     type: staticWarning
     parameters:
-      Type p0: the matched value type
-      Type p1: the required pattern type
-    problemMessage: "The matched value type '#p0' can never match the required type '#p1'."
+      Type matchedValueType: the matched value type
+      Type requiredType: the required pattern type
+    problemMessage: "The matched value type '#matchedValueType' can never match the required type '#requiredType'."
     correctionMessage: "Try using a different pattern."
     hasPublishedDocs: true
     documentation: |-
@@ -28677,8 +28677,8 @@ WarningCode:
   redeclareOnNonRedeclaringMember:
     type: staticWarning
     parameters:
-      String p0: the kind of member
-    problemMessage: "The #p0 doesn't redeclare a #p0 declared in a superinterface."
+      String kind: the kind of member
+    problemMessage: "The #kind doesn't redeclare a #kind declared in a superinterface."
     correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.
     hasPublishedDocs: true
     comment: |-
@@ -28742,10 +28742,10 @@ WarningCode:
   removedLintUse:
     type: staticWarning
     parameters:
-      Object p0: the rule name
-      Object p1: the SDK version in which the lint was removed
-    problemMessage: "'#p0' was removed in Dart '#p1'"
-    correctionMessage: "Remove the reference to '#p0'."
+      String ruleName: the rule name
+      String since: the SDK version in which the lint was removed
+    problemMessage: "'#ruleName' was removed in Dart '#since'"
+    correctionMessage: "Remove the reference to '#ruleName'."
     hasPublishedDocs: true
     comment: |-
       An error code indicating use of a removed lint rule.
@@ -28793,10 +28793,10 @@ WarningCode:
   returnOfDoNotStore:
     type: staticWarning
     parameters:
-      String p0: the name of the annotated function being invoked
-      String p1: the name of the function containing the return
-    problemMessage: "'#p0' is annotated with 'doNotStore' and shouldn't be returned unless '#p1' is also annotated."
-    correctionMessage: "Annotate '#p1' with 'doNotStore'."
+      String invokedFunction: the name of the annotated function being invoked
+      String returningFunction: the name of the function containing the return
+    problemMessage: "'#invokedFunction' is annotated with 'doNotStore' and shouldn't be returned unless '#returningFunction' is also annotated."
+    correctionMessage: "Annotate '#returningFunction' with 'doNotStore'."
     hasPublishedDocs: true
     documentation: |-
       #### Description

@@ -624,10 +624,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           errorNode = pattern.type;
         }
         errorNode ??= pattern;
-        diagnosticReporter.atNode(
-          errorNode,
-          diag.patternNeverMatchesValueType,
-          arguments: [matchedValueType, requiredType],
+        diagnosticReporter.report(
+          diag.patternNeverMatchesValueType
+              .withArguments(
+                matchedValueType: matchedValueType,
+                requiredType: requiredType,
+              )
+              .at(errorNode),
         );
       }
     }

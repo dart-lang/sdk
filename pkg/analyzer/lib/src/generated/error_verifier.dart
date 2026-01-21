@@ -4471,10 +4471,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     for (var constructor in mixinElement.constructors) {
       if (constructor.isOriginDeclaration && !constructor.isFactory) {
-        diagnosticReporter.atNode(
-          mixinName,
-          diag.mixinClassDeclaresConstructor,
-          arguments: [mixinElement.name!],
+        diagnosticReporter.report(
+          diag.mixinClassDeclaresConstructor
+              .withArguments(className: mixinElement.name!)
+              .at(mixinName),
         );
         return true;
       }

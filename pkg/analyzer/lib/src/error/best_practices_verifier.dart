@@ -1143,10 +1143,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               element.superclassConstraints.contains(supertype)) {
             // This is a special violation of the sealed class contract,
             // requiring specific messaging.
-            _diagnosticReporter.atNode(
-              node,
-              diag.mixinOnSealedClass,
-              arguments: [superclass.name.toString()],
+            _diagnosticReporter.report(
+              diag.mixinOnSealedClass
+                  .withArguments(name: superclass.name.toString())
+                  .at(node),
             );
           } else {
             // This is a regular violation of the sealed class contract.
@@ -1364,13 +1364,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
         // named elements, so we can safely assume `entry.value.name` is
         // non-`null`.
-        _diagnosticReporter.atNode(
-          entry.key,
-          diag.returnOfDoNotStore,
-          arguments: [
-            entry.value.name!,
-            parent.declaredFragment!.element.displayName,
-          ],
+        _diagnosticReporter.report(
+          diag.returnOfDoNotStore
+              .withArguments(
+                invokedFunction: entry.value.name!,
+                returningFunction: parent.declaredFragment!.element.displayName,
+              )
+              .at(entry.key),
         );
       }
     }

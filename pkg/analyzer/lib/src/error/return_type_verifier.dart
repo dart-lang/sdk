@@ -143,10 +143,10 @@ class ReturnTypeVerifier {
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
-        _diagnosticReporter.atNode(
-          expression,
-          diag.returnOfInvalidTypeFromCatchError,
-          arguments: [S, T],
+        _diagnosticReporter.report(
+          diag.returnOfInvalidTypeFromCatchError
+              .withArguments(actualType: S, expectedType: T)
+              .at(expression),
         );
       } else if (enclosingExecutable.isClosure) {
         _diagnosticReporter.report(

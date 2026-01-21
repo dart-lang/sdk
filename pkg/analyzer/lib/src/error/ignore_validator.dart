@@ -224,11 +224,10 @@ class IgnoreValidator {
               );
               continue;
             } else {
-              _diagnosticReporter.atOffset(
-                diagnosticCode: diag.removedLintUse,
-                offset: ignoredName.offset,
-                length: name.length,
-                arguments: [name, since],
+              _diagnosticReporter.report(
+                diag.removedLintUse
+                    .withArguments(ruleName: name, since: since)
+                    .atOffset(offset: ignoredName.offset, length: name.length),
               );
               continue;
             }
