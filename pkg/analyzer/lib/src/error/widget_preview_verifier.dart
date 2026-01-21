@@ -251,10 +251,13 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (Identifier.isPrivateName(node.name)) {
-      diagnosticReporter.atNode(
-        rootArgument!,
-        diag.invalidWidgetPreviewPrivateArgument,
-        arguments: [node.name, node.name.replaceFirst(RegExp('_*'), '')],
+      diagnosticReporter.report(
+        diag.invalidWidgetPreviewPrivateArgument
+            .withArguments(
+              privateSymbolName: node.name,
+              suggestedName: node.name.replaceFirst(RegExp('_*'), ''),
+            )
+            .at(rootArgument!),
       );
     }
     super.visitSimpleIdentifier(node);

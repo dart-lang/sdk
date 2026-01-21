@@ -177,16 +177,16 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
           )) {
             var reason = annotation.getReason(strictCasts: true);
             if (reason != null) {
-              _errorReporter.atEntity(
-                errorEntity,
-                diag.missingRequiredParamWithDetails,
-                arguments: [parameterName, reason],
+              _errorReporter.report(
+                diag.missingRequiredParamWithDetails
+                    .withArguments(name: parameterName, details: reason)
+                    .at(errorEntity),
               );
             } else {
-              _errorReporter.atEntity(
-                errorEntity,
-                diag.missingRequiredParam,
-                arguments: [parameterName],
+              _errorReporter.report(
+                diag.missingRequiredParam
+                    .withArguments(name: parameterName)
+                    .at(errorEntity),
               );
             }
           }

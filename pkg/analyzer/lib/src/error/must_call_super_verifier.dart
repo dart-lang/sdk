@@ -7,9 +7,9 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 class MustCallSuperVerifier {
   final DiagnosticReporter _diagnosticReporter;
@@ -184,10 +184,10 @@ class MustCallSuperVerifier {
     if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
-      _diagnosticReporter.atToken(
-        node.name,
-        diag.mustCallSuper,
-        arguments: [overriddenEnclosingName!],
+      _diagnosticReporter.report(
+        diag.mustCallSuper
+            .withArguments(className: overriddenEnclosingName!)
+            .at(node.name),
       );
     }
     return;

@@ -16,7 +16,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -3377,13 +3376,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [diag.mixinDeferredClass].
   bool _checkForExtendsOrImplementsDeferredClass(
     NamedType namedType,
-    DiagnosticCode code,
+    LocatableDiagnostic locatableDiagnostic,
   ) {
     if (namedType.isSynthetic) {
       return false;
     }
     if (namedType.isDeferred) {
-      diagnosticReporter.atNode(namedType, code);
+      diagnosticReporter.report(locatableDiagnostic.at(namedType));
       return true;
     }
     return false;
@@ -4471,10 +4470,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     for (var constructor in mixinElement.constructors) {
       if (constructor.isOriginDeclaration && !constructor.isFactory) {
-        diagnosticReporter.atNode(
-          mixinName,
-          diag.mixinClassDeclaresConstructor,
-          arguments: [mixinElement.name!],
+        diagnosticReporter.report(
+          diag.mixinClassDeclaresConstructor
+              .withArguments(className: mixinElement.name!)
+              .at(mixinName),
         );
         return true;
       }

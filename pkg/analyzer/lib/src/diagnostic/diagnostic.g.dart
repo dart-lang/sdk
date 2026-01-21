@@ -9194,10 +9194,13 @@ invalidWidgetPreviewApplication = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the private symbol
-/// String p1: the name of the proposed public symbol equivalent
+/// String privateSymbolName: the name of the private symbol
+/// String suggestedName: the name of the proposed public symbol equivalent
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String privateSymbolName,
+    required String suggestedName,
+  })
 >
 invalidWidgetPreviewPrivateArgument = DiagnosticWithArguments(
   name: 'invalid_widget_preview_private_argument',
@@ -10232,9 +10235,9 @@ missingRequiredArgument = DiagnosticWithArguments(
 /// a required parameter is missing.
 ///
 /// Parameters:
-/// String p0: the name of the parameter
+/// String name: the name of the parameter
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 missingRequiredParam = DiagnosticWithArguments(
   name: 'missing_required_param',
@@ -10250,10 +10253,10 @@ missingRequiredParam = DiagnosticWithArguments(
 /// a required parameter is missing.
 ///
 /// Parameters:
-/// String p0: the name of the parameter
-/// String p1: message details
+/// String name: the name of the parameter
+/// String details: message details
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({required String name, required String details})
 >
 missingRequiredParamWithDetails = DiagnosticWithArguments(
   name: 'missing_required_param',
@@ -10587,9 +10590,9 @@ const DiagnosticWithoutArguments mixinOfTypeAliasExpandsToTypeParameter =
 /// a superclass constraint of a mixin.
 ///
 /// Parameters:
-/// String p0: the name of the sealed class
+/// String name: the name of the sealed class
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 mixinOnSealedClass = DiagnosticWithArguments(
   name: 'mixin_on_sealed_class',
@@ -11034,9 +11037,10 @@ mustBeASubtype = DiagnosticWithArguments(
 /// `@immutable` but that are not immutable.
 ///
 /// Parameters:
-/// String p0: the name of the class
+/// String fieldNames: the names of the non-final field names, joined with
+///                    commas
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String fieldNames})
 >
 mustBeImmutable = DiagnosticWithArguments(
   name: 'must_be_immutable',
@@ -11052,9 +11056,9 @@ mustBeImmutable = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the class declaring the overridden method
+/// String className: the name of the class declaring the overridden method
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String className})
 >
 mustCallSuper = DiagnosticWithArguments(
   name: 'must_call_super',
@@ -11881,9 +11885,9 @@ nonConstantTypeArgument = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the argument
+/// String name: the name of the argument
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String name})
 >
 nonConstArgumentForConstParameter = DiagnosticWithArguments(
   name: 'non_const_argument_for_const_parameter',
@@ -12686,10 +12690,13 @@ const DiagnosticWithoutArguments nullableTypeInWithClause =
     );
 
 /// Parameters:
-/// String p0: the name of the method being invoked
-/// String p1: the type argument associated with the method
+/// String memberName: the name of the member being invoked
+/// String typeArgumentName: the type argument associated with the method
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String memberName,
+    required String typeArgumentName,
+  })
 >
 nullArgumentToNonNullType = DiagnosticWithArguments(
   name: 'null_argument_to_non_null_type',
@@ -13079,10 +13086,13 @@ const DiagnosticWithoutArguments patternConstantFromDeferredLibrary =
     );
 
 /// Parameters:
-/// Type p0: the matched value type
-/// Type p1: the required pattern type
+/// Type matchedValueType: the matched value type
+/// Type requiredType: the required pattern type
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType matchedValueType,
+    required DartType requiredType,
+  })
 >
 patternNeverMatchesValueType = DiagnosticWithArguments(
   name: 'pattern_never_matches_value_type',
@@ -13784,9 +13794,9 @@ recursiveInterfaceInheritanceWith = DiagnosticWithArguments(
 /// An error code indicating the use of a redeclare annotation on a member that does not redeclare.
 ///
 /// Parameters:
-/// String p0: the kind of member
+/// String kind: the kind of member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String kind})
 >
 redeclareOnNonRedeclaringMember = DiagnosticWithArguments(
   name: 'redeclare_on_non_redeclaring_member',
@@ -14096,10 +14106,13 @@ removedLint = DiagnosticWithArguments(
 /// An error code indicating use of a removed lint rule.
 ///
 /// Parameters:
-/// Object p0: the rule name
-/// Object p1: the SDK version in which the lint was removed
+/// String ruleName: the rule name
+/// String since: the SDK version in which the lint was removed
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
+  LocatableDiagnostic Function({
+    required String ruleName,
+    required String since,
+  })
 >
 removedLintUse = DiagnosticWithArguments(
   name: 'removed_lint_use',
@@ -14109,7 +14122,7 @@ removedLintUse = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'removed_lint_use',
   withArguments: _withArgumentsRemovedLintUse,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// An error code indicating a removed lint rule.
@@ -14244,10 +14257,13 @@ returnInGenerator = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// String p0: the name of the annotated function being invoked
-/// String p1: the name of the function containing the return
+/// String invokedFunction: the name of the annotated function being invoked
+/// String returningFunction: the name of the function containing the return
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String invokedFunction,
+    required String returningFunction,
+  })
 >
 returnOfDoNotStore = DiagnosticWithArguments(
   name: 'return_of_do_not_store',
@@ -14263,10 +14279,14 @@ returnOfDoNotStore = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the return type as declared in the return statement
-/// Type p1: the expected return type as defined by the type of the Future
+/// Type actualType: the return type as declared in the return statement
+/// Type expectedType: the expected return type as defined by the type of the
+///                    Future
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required DartType p0, required DartType p1})
+  LocatableDiagnostic Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 returnOfInvalidTypeFromCatchError = DiagnosticWithArguments(
   name: 'invalid_return_type_for_catch_error',
@@ -19686,12 +19706,12 @@ LocatableDiagnostic _withArgumentsInvalidVisibilityAnnotation({
 }
 
 LocatableDiagnostic _withArgumentsInvalidWidgetPreviewPrivateArgument({
-  required String p0,
-  required String p1,
+  required String privateSymbolName,
+  required String suggestedName,
 }) {
   return LocatableDiagnosticImpl(diag.invalidWidgetPreviewPrivateArgument, [
-    p0,
-    p1,
+    privateSymbolName,
+    suggestedName,
   ]);
 }
 
@@ -19854,17 +19874,17 @@ LocatableDiagnostic _withArgumentsMissingRequiredArgument({
   return LocatableDiagnosticImpl(diag.missingRequiredArgument, [name]);
 }
 
-LocatableDiagnostic _withArgumentsMissingRequiredParam({required String p0}) {
-  return LocatableDiagnosticImpl(diag.missingRequiredParam, [p0]);
+LocatableDiagnostic _withArgumentsMissingRequiredParam({required String name}) {
+  return LocatableDiagnosticImpl(diag.missingRequiredParam, [name]);
 }
 
 LocatableDiagnostic _withArgumentsMissingRequiredParamWithDetails({
-  required String p0,
-  required String p1,
+  required String name,
+  required String details,
 }) {
   return LocatableDiagnosticImpl(diag.missingRequiredParamWithDetails, [
-    p0,
-    p1,
+    name,
+    details,
   ]);
 }
 
@@ -19950,8 +19970,8 @@ LocatableDiagnostic _withArgumentsMixinOfDisallowedClass({
   return LocatableDiagnosticImpl(diag.mixinOfDisallowedClass, [disallowedType]);
 }
 
-LocatableDiagnostic _withArgumentsMixinOnSealedClass({required String p0}) {
-  return LocatableDiagnosticImpl(diag.mixinOnSealedClass, [p0]);
+LocatableDiagnostic _withArgumentsMixinOnSealedClass({required String name}) {
+  return LocatableDiagnosticImpl(diag.mixinOnSealedClass, [name]);
 }
 
 LocatableDiagnostic _withArgumentsMixinsSuperClass({
@@ -20037,12 +20057,14 @@ LocatableDiagnostic _withArgumentsMustBeASubtype({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsMustBeImmutable({required String p0}) {
-  return LocatableDiagnosticImpl(diag.mustBeImmutable, [p0]);
+LocatableDiagnostic _withArgumentsMustBeImmutable({
+  required String fieldNames,
+}) {
+  return LocatableDiagnosticImpl(diag.mustBeImmutable, [fieldNames]);
 }
 
-LocatableDiagnostic _withArgumentsMustCallSuper({required String p0}) {
-  return LocatableDiagnosticImpl(diag.mustCallSuper, [p0]);
+LocatableDiagnostic _withArgumentsMustCallSuper({required String className}) {
+  return LocatableDiagnosticImpl(diag.mustCallSuper, [className]);
 }
 
 LocatableDiagnostic _withArgumentsMustReturnVoid({required DartType type}) {
@@ -20184,9 +20206,11 @@ LocatableDiagnostic _withArgumentsNonConstantTypeArgument({
 }
 
 LocatableDiagnostic _withArgumentsNonConstArgumentForConstParameter({
-  required String p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.nonConstArgumentForConstParameter, [p0]);
+  return LocatableDiagnosticImpl(diag.nonConstArgumentForConstParameter, [
+    name,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsNonConstCallToLiteralConstructor({
@@ -20371,10 +20395,13 @@ LocatableDiagnostic _withArgumentsNotInitializedNonNullableVariable({
 }
 
 LocatableDiagnostic _withArgumentsNullArgumentToNonNullType({
-  required String p0,
-  required String p1,
+  required String memberName,
+  required String typeArgumentName,
 }) {
-  return LocatableDiagnosticImpl(diag.nullArgumentToNonNullType, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.nullArgumentToNonNullType, [
+    memberName,
+    typeArgumentName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsOnRepeated({required String interfaceName}) {
@@ -20427,10 +20454,13 @@ LocatableDiagnostic _withArgumentsPathPubspecDoesNotExist({
 }
 
 LocatableDiagnostic _withArgumentsPatternNeverMatchesValueType({
-  required DartType p0,
-  required DartType p1,
+  required DartType matchedValueType,
+  required DartType requiredType,
 }) {
-  return LocatableDiagnosticImpl(diag.patternNeverMatchesValueType, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.patternNeverMatchesValueType, [
+    matchedValueType,
+    requiredType,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsPatternTypeMismatchInIrrefutableContext({
@@ -20588,9 +20618,9 @@ LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceWith({
 }
 
 LocatableDiagnostic _withArgumentsRedeclareOnNonRedeclaringMember({
-  required String p0,
+  required String kind,
 }) {
-  return LocatableDiagnosticImpl(diag.redeclareOnNonRedeclaringMember, [p0]);
+  return LocatableDiagnosticImpl(diag.redeclareOnNonRedeclaringMember, [kind]);
 }
 
 LocatableDiagnostic _withArgumentsRedirectGenerativeToMissingConstructor({
@@ -20672,10 +20702,10 @@ LocatableDiagnostic _withArgumentsRemovedLint({
 }
 
 LocatableDiagnostic _withArgumentsRemovedLintUse({
-  required Object p0,
-  required Object p1,
+  required String ruleName,
+  required String since,
 }) {
-  return LocatableDiagnosticImpl(diag.removedLintUse, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.removedLintUse, [ruleName, since]);
 }
 
 LocatableDiagnostic _withArgumentsReplacedLint({
@@ -20703,19 +20733,22 @@ LocatableDiagnostic _withArgumentsReplacedLintUse({
 }
 
 LocatableDiagnostic _withArgumentsReturnOfDoNotStore({
-  required String p0,
-  required String p1,
+  required String invokedFunction,
+  required String returningFunction,
 }) {
-  return LocatableDiagnosticImpl(diag.returnOfDoNotStore, [p0, p1]);
+  return LocatableDiagnosticImpl(diag.returnOfDoNotStore, [
+    invokedFunction,
+    returningFunction,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromCatchError({
-  required DartType p0,
-  required DartType p1,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   return LocatableDiagnosticImpl(diag.returnOfInvalidTypeFromCatchError, [
-    p0,
-    p1,
+    actualType,
+    expectedType,
   ]);
 }
 
