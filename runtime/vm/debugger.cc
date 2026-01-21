@@ -1584,7 +1584,6 @@ Debugger::Debugger(Isolate* isolate)
       stepping_fp_(0),
       last_stepping_fp_(0),
       last_stepping_pos_(TokenPosition::kNoSource),
-      skip_next_step_(false),
       exc_pause_info_(kNoPauseOnExceptions) {}
 
 Debugger::~Debugger() {
@@ -3190,16 +3189,9 @@ void Debugger::ResumptionBreakpoint() {
             "ResumptionBreakpoint - hit a breakpoint, continue single "
             "stepping\n");
       }
-#if defined(DART_DYNAMIC_MODULES)
-      if (top_frame->IsInterpreted()) {
-        // The interpreter calls the single step handler on every instruction,
-        // so set the last stepping fp/position to the current fp/position when
-        // stepping over so the debugger doesn't pause until it reaches
-        // a _new_ source position.
-        last_stepping_fp_ = top_frame->fp();
-        last_stepping_pos_ = top_frame->TokenPos();
-      }
-#endif
+      // Resumption breakpoints are for stepping out of await expressions,
+      // so record its information to avoid pausing within it.
+      SetLastSteppingInformation(top_frame);
       EnterSingleStepMode();
       return;
     }
@@ -3519,28 +3511,43 @@ void Debugger::ResetSteppingFramePointer() {
 #endif
 }
 
-void Debugger::SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
-  if (stack_trace->Length() > 0) {
-    auto* const frame = stack_trace->FrameAt(0);
-    stepping_fp_ = frame->fp();
-#if defined(DART_DYNAMIC_MODULES)
-    stepping_fp_from_interpreted_frame_ = frame->IsInterpreted();
-    // The interpreter calls the single step handler on every instruction,
-    // so set the last stepping fp/position to the current fp/position when
-    // stepping over so the debugger doesn't pause until it reaches
-    // a _new_ source position.
-    last_stepping_fp_ = frame->fp();
-    last_stepping_pos_ = frame->TokenPos();
-#endif
-  } else {
-    stepping_fp_ = 0;
-#if defined(DART_DYNAMIC_MODULES)
-    stepping_fp_from_interpreted_frame_ = false;
-#endif
-  }
+void Debugger::ResetLastSteppingInformation() {
+  last_stepping_fp_ = 0;
+  last_stepping_pos_ = TokenPosition::kNoSource;
 }
 
-void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
+void Debugger::SetLastSteppingInformation(ActivationFrame* frame) {
+  last_stepping_fp_ = frame->fp();
+  last_stepping_pos_ = frame->TokenPos();
+}
+
+void Debugger::SetLastSteppingInformation(BreakpointLocation* bpt_location) {
+  // Continue stepping until we reach a token position that is not the one at
+  // which the breakpoint was set.
+  last_stepping_fp_ = 0;
+  last_stepping_pos_ = bpt_location->token_pos();
+}
+
+bool Debugger::MatchesLastSteppingInformation(ActivationFrame* frame) {
+  // No information for the last event emitted was recorded.
+  if (last_stepping_pos_ == TokenPosition::kNoSource) {
+    return false;
+  }
+  // If a specific FP was recorded, then it must match as well.
+  if (last_stepping_fp_ != 0 && last_stepping_fp_ != frame->fp()) {
+    return false;
+  }
+  return last_stepping_pos_ == frame->TokenPos();
+}
+
+void Debugger::SetSyncSteppingFramePointer(ActivationFrame* frame) {
+  stepping_fp_ = frame->fp();
+#if defined(DART_DYNAMIC_MODULES)
+  stepping_fp_from_interpreted_frame_ = frame->IsInterpreted();
+#endif
+}
+
+void Debugger::HandleSteppingRequest() {
   ResetSteppingFramePointer();
   if (resume_action_ == kStepInto) {
     // When single stepping, we need to deoptimize because we might be
@@ -3549,47 +3556,55 @@ void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
     // as well.  We need to deoptimize the world in case we are about
     // to call an optimized function.
     NotifySingleStepping(true);
-    skip_next_step_ = skip_next_step;
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest - kStepInto\n");
     }
   } else if (resume_action_ == kStepOver) {
     NotifySingleStepping(true);
-    skip_next_step_ = skip_next_step;
-    SetSyncSteppingFramePointer(stack_trace_);
+    if (stack_trace_->Length() > 0) {
+      SetSyncSteppingFramePointer(stack_trace_->FrameAt(0));
+    }
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest - kStepOver stepping_fp=%" Px "\n",
                    stepping_fp_);
     }
   } else if (resume_action_ == kStepOut) {
-    // Check if we have an asynchronous awaiter for the current frame.
-    if (async_awaiter_stack_trace_ != nullptr &&
-        async_awaiter_stack_trace_->Length() > 2 &&
-        async_awaiter_stack_trace_->FrameAt(1)->kind() ==
-            ActivationFrame::kAsyncSuspensionMarker) {
-      auto awaiter_frame = async_awaiter_stack_trace_->FrameAt(2);
-      AsyncStepInto(awaiter_frame->closure());
-      if (FLAG_verbose_debug) {
-        OS::PrintErr("HandleSteppingRequest - continue to async awaiter %s\n",
-                     Function::Handle(awaiter_frame->closure().function())
-                         .ToFullyQualifiedCString());
-      }
-      return;
-    }
-
-    // Fall through to synchronous stepping.
-    NotifySingleStepping(true);
-    // Find topmost caller that is debuggable.
-    for (intptr_t i = 1; i < stack_trace_->Length(); i++) {
-      ActivationFrame* frame = stack_trace_->FrameAt(i);
-      if (frame->IsDebuggable()) {
-        stepping_fp_ = frame->fp();
-#if defined(DART_DYNAMIC_MODULES)
-        stepping_fp_from_interpreted_frame_ = frame->IsInterpreted();
-#endif
+    auto* const trace = async_awaiter_stack_trace_ != nullptr
+                            ? async_awaiter_stack_trace_
+                            : stack_trace_;
+    ActivationFrame* sync_caller = nullptr;
+    ActivationFrame* last_awaiter = nullptr;
+    for (intptr_t i = 1; i < trace->Length(); i++) {
+      auto* const frame = trace->FrameAt(i);
+      if (frame->kind() == ActivationFrame::kAsyncSuspensionMarker) {
+        last_awaiter = async_awaiter_stack_trace_->FrameAt(i + 1);
+      } else if (frame->IsDebuggable()) {
+        if (last_awaiter != nullptr) {
+          AsyncStepInto(last_awaiter->closure());
+          if (FLAG_verbose_debug) {
+            OS::PrintErr(
+                "HandleSteppingRequest - continue to async awaiter %s\n",
+                Function::Handle(last_awaiter->closure().function())
+                    .ToFullyQualifiedCString());
+          }
+          return;
+        }
+        sync_caller = frame;
         break;
       }
     }
+    // If there is no debuggable synchronous caller (i.e., an attempt to step
+    // out of the main function), just use the closest caller so the debugger
+    // doesn't emit another pause in the current function before exiting.
+    if (sync_caller == nullptr) {
+      ASSERT(trace->Length() > 1);
+      if (FLAG_verbose_debug) {
+        OS::PrintErr("HandleSteppingRequest - no debuggable callers\n");
+      }
+      sync_caller = trace->FrameAt(1);
+    }
+    NotifySingleStepping(true);
+    SetSyncSteppingFramePointer(sync_caller);
     if (FLAG_verbose_debug) {
       OS::PrintErr("HandleSteppingRequest- kStepOut %" Px "\n", stepping_fp_);
     }
@@ -4066,10 +4081,6 @@ ErrorPtr Debugger::PauseStepping() {
   if (IsPaused()) {
     return Error::null();
   }
-  if (skip_next_step_) {
-    skip_next_step_ = false;
-    return Error::null();
-  }
 
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != nullptr);
@@ -4112,12 +4123,17 @@ ErrorPtr Debugger::PauseStepping() {
     return Error::null();
   }
 
-  if (frame->fp() == last_stepping_fp_ &&
-      frame->TokenPos() == last_stepping_pos_) {
+  if (MatchesLastSteppingInformation(frame)) {
     // Do not stop multiple times for the same token position.
-    // Several 'debug checked' opcodes may be issued in the same token range.
+    // Several 'debug checked' opcodes may be issued in the same token range,
+    // a breakpoint could be set at a given pause point, or we could be in the
+    // bytecode interpreter which checks single stepping at each instruction.
     return Error::null();
   }
+
+  // If there is an active breakpoint at this pc, then the last stepping
+  // information should have been set appropriately to bail out above.
+  ASSERT(!group_debugger()->HasActiveBreakpoint(frame->pc()));
 
   // TODO(dartbug.com/48378): Consider aligning async/async* functions
   // with regular function wrt the first stop in the function prologue.
@@ -4130,15 +4146,6 @@ ErrorPtr Debugger::PauseStepping() {
     return Error::null();
   }
 
-  // We are stopping in this frame at the token pos.
-  last_stepping_fp_ = frame->fp();
-  last_stepping_pos_ = frame->TokenPos();
-
-  // If there is an active breakpoint at this pc, then we should have
-  // already bailed out of this function in the skip_next_step_ test
-  // above.
-  ASSERT(!group_debugger()->HasActiveBreakpoint(frame->pc()));
-
   if (FLAG_verbose_debug) {
     OS::PrintErr(">>> single step break at %s:%" Pd ":%" Pd
                  " (func %s token %s address %#" Px " offset %#" Px ")\n",
@@ -4149,6 +4156,7 @@ ErrorPtr Debugger::PauseStepping() {
                  frame->pc() - frame->PayloadStart());
   }
 
+  SetLastSteppingInformation(frame);
   CacheStackTraces(DebuggerStackTrace::Collect(),
                    DebuggerStackTrace::CollectAsyncAwaiters());
   SignalPausedEvent(frame, nullptr);
@@ -4207,11 +4215,13 @@ ErrorPtr Debugger::PauseBreakpoint() {
                  top_frame->pc() - top_frame->PayloadStart());
   }
 
+  // Set the last stepping information before handling the stepping request in
+  // case the breakpoint is disabled either because it is a one shot or because
+  // a service call disables it before the next stepping request.
+  SetLastSteppingInformation(bpt_location);
   CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncAwaiters());
   SignalPausedEvent(top_frame, bpt_hit);
-  // When we single step from a user breakpoint, our next stepping
-  // point will be at the exact same pc.  Skip it.
-  HandleSteppingRequest(/*skip_next_step=*/true);
+  HandleSteppingRequest();
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
@@ -4258,7 +4268,10 @@ void Debugger::PauseDeveloper(const String& msg) {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || IsPaused()) {
+  //
+  // Also ignore it if single stepping, as the debugger already generated
+  // an appropriate pause for the user call to the function before this point.
+  if (ignore_breakpoints_ || IsPaused() || IsSingleStepping()) {
     return;
   }
 
@@ -4270,6 +4283,8 @@ void Debugger::PauseDeveloper(const String& msg) {
   // gets a better experience by not seeing this call. To accomplish
   // this, we continue execution until the call exits (step out).
   SetResumeAction(kStepOut);
+  // Reset the last stepping information to ensure we pause after stepping out.
+  ResetLastSteppingInformation();
   HandleSteppingRequest();
   ClearCachedStackTraces();
 }
