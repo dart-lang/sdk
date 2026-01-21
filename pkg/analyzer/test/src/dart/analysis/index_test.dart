@@ -435,6 +435,73 @@ class A {
 ''');
   }
 
+  test_ConstructorElement_class_named_newHead() async {
+    await _indexTestUnit('''
+/// [new A.foo] and [A.foo]
+class A {
+  new foo() {}
+  new bar() : this.foo();
+  factory baz() = A.foo;
+}
+class B extends A {
+  new () : super.foo();
+}
+void useConstructor() {
+  A.foo();
+  A.foo;
+  A a = .foo();
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedLocalVariable, 200, 1),
+    ]);
+    var element = findElement2.constructor('foo');
+    assertElementIndexText(element, r'''
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+22 1:23 |.foo| IS_REFERENCED_BY qualified
+71 4:19 |.foo| IS_INVOKED_BY qualified
+98 5:20 |.foo| IS_REFERENCED_BY qualified
+142 8:17 |.foo| IS_INVOKED_BY qualified
+179 11:4 |.foo| IS_INVOKED_BY qualified
+190 12:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+205 13:10 |foo| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
+  test_ConstructorElement_class_named_primary() async {
+    await _indexTestUnit('''
+/// [new A.foo] and [A.foo]
+class A.foo() {
+  new bar() : this.foo();
+  factory baz() = A.foo;
+}
+class B() extends A {
+  this : super.foo();
+}
+void useConstructor() {
+  A.foo();
+  A.foo;
+  A a = .foo();
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedLocalVariable, 191, 1),
+    ]);
+    var element = findElement2.constructor('foo');
+    assertElementIndexText(element, r'''
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+22 1:23 |.foo| IS_REFERENCED_BY qualified
+62 3:19 |.foo| IS_INVOKED_BY qualified
+89 4:20 |.foo| IS_REFERENCED_BY qualified
+133 7:15 |.foo| IS_INVOKED_BY qualified
+170 10:4 |.foo| IS_INVOKED_BY qualified
+181 11:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+196 12:10 |foo| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
   test_ConstructorElement_class_named_typeName() async {
     await _indexTestUnit('''
 /// [new A.foo] and [A.foo]
@@ -544,6 +611,73 @@ class C extends A {}
 49 7:3 |B.bar| IS_INVOKED_BY qualified
 79 8:22 || IS_REFERENCED_BY qualified
 90 11:7 |C| IS_INVOKED_BY qualified
+''');
+  }
+
+  test_ConstructorElement_class_unnamed_newHead() async {
+    await _indexTestUnit('''
+/// [new A] and [A.new]
+class A {
+  new () {}
+  new bar() : this();
+  factory baz() = A;
+}
+class B extends A {
+  new () : super();
+}
+void useConstructor() {
+  A();
+  A.new;
+  A a = .new();
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedLocalVariable, 177, 1),
+    ]);
+    var element = findElement2.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+10 1:11 || IS_REFERENCED_BY qualified
+18 1:19 |.new| IS_REFERENCED_BY qualified
+64 4:19 || IS_INVOKED_BY qualified
+87 5:20 || IS_REFERENCED_BY qualified
+127 8:17 || IS_INVOKED_BY qualified
+160 11:4 || IS_INVOKED_BY qualified
+167 12:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+182 13:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
+  test_ConstructorElement_class_unnamed_primary() async {
+    await _indexTestUnit('''
+/// [new A] and [A.new]
+class A() {
+  new bar() : this();
+  factory baz() = A;
+}
+class B() extends A {
+  this : super();
+}
+void useConstructor() {
+  A();
+  A.new;
+  A a = .new();
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedLocalVariable, 167, 1),
+    ]);
+    var element = findElement2.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+10 1:11 || IS_REFERENCED_BY qualified
+18 1:19 |.new| IS_REFERENCED_BY qualified
+54 3:19 || IS_INVOKED_BY qualified
+77 4:20 || IS_REFERENCED_BY qualified
+117 7:15 || IS_INVOKED_BY qualified
+150 10:4 || IS_INVOKED_BY qualified
+157 11:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+172 12:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 ''');
   }
 
@@ -667,6 +801,79 @@ void useConstructor() {
     // No additional validation, but it should not fail with stack overflow.
   }
 
+  test_ConstructorElement_enum_named_newHead() async {
+    await _indexTestUnit('''
+/// [new E.foo] and [E.foo]
+enum E {
+  v.foo();
+  const new foo();
+  const new bar() : this.foo();
+  const factory baz() = E.foo;
+}
+void useConstructor() {
+  E.foo();
+  E.foo;
+  E a = .foo();
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedElement, 79, 3),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 123, 5),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 158, 5),
+      error(diag.invalidReferenceToGenerativeEnumConstructorTearoff, 169, 5),
+      error(diag.unusedLocalVariable, 180, 1),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 185, 3),
+    ]);
+    var element = findElement2.constructor('foo');
+    assertElementIndexText(element, r'''
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+22 1:23 |.foo| IS_REFERENCED_BY qualified
+40 3:4 |.foo| IS_INVOKED_BY qualified
+91 5:25 |.foo| IS_INVOKED_BY qualified
+124 6:26 |.foo| IS_REFERENCED_BY qualified
+159 9:4 |.foo| IS_INVOKED_BY qualified
+170 10:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+185 11:10 |foo| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
+  test_ConstructorElement_enum_named_primary() async {
+    await _indexTestUnit('''
+/// [new E.foo] and [E.foo]
+enum E.foo() {
+  v.foo();
+  const new bar() : this.foo();
+  const factory baz() = E.foo;
+}
+void useConstructor() {
+  E.foo();
+  E.foo;
+  E a = .foo();
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedElement, 66, 3),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 110, 5),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 145, 5),
+      error(diag.invalidReferenceToGenerativeEnumConstructorTearoff, 156, 5),
+      error(diag.unusedLocalVariable, 167, 1),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 172, 3),
+    ]);
+    var element = findElement2.constructor('foo');
+    assertElementIndexText(element, r'''
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+22 1:23 |.foo| IS_REFERENCED_BY qualified
+46 3:4 |.foo| IS_INVOKED_BY qualified
+78 4:25 |.foo| IS_INVOKED_BY qualified
+111 5:26 |.foo| IS_REFERENCED_BY qualified
+146 8:4 |.foo| IS_INVOKED_BY qualified
+157 9:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+172 10:10 |foo| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
   test_ConstructorElement_enum_named_typeName() async {
     await _indexTestUnit('''
 /// [new E.foo] and [E.foo]
@@ -738,6 +945,81 @@ void useConstructor() {
 119 9:4 || IS_INVOKED_BY qualified
 126 10:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
 141 11:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
+  test_ConstructorElement_enum_unnamed_newHead() async {
+    await _indexTestUnit('''
+/// [new E] and [E.new]
+enum E {
+  v1,
+  v2(),
+  v3.new();
+  const new ();
+  const factory other() = E.new;
+}
+void useConstructor() {
+  E();
+  E.new;
+  E a = .new();
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 101, 5),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 136, 1),
+      error(diag.invalidReferenceToGenerativeEnumConstructorTearoff, 143, 5),
+      error(diag.unusedLocalVariable, 154, 1),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 159, 3),
+    ]);
+    var element = findElement2.unnamedConstructor('E');
+    assertElementIndexText(element, r'''
+10 1:11 || IS_REFERENCED_BY qualified
+18 1:19 |.new| IS_REFERENCED_BY qualified
+37 3:5 || IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
+43 4:5 || IS_INVOKED_BY qualified
+51 5:5 |.new| IS_INVOKED_BY qualified
+102 7:28 |.new| IS_REFERENCED_BY qualified
+137 10:4 || IS_INVOKED_BY qualified
+144 11:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+159 12:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
+  test_ConstructorElement_enum_unnamed_primary() async {
+    await _indexTestUnit('''
+/// [new E] and [E.new]
+enum E() {
+  v1,
+  v2(),
+  v3.new();
+  const factory other() = E.new;
+}
+void useConstructor() {
+  E();
+  E.new;
+  E a = .new();
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 87, 5),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 122, 1),
+      error(diag.invalidReferenceToGenerativeEnumConstructorTearoff, 129, 5),
+      error(diag.unusedLocalVariable, 140, 1),
+      error(diag.invalidReferenceToGenerativeEnumConstructor, 145, 3),
+    ]);
+    var element = findElement2.unnamedConstructor('E');
+    assertElementIndexText(element, r'''
+10 1:11 || IS_REFERENCED_BY qualified
+18 1:19 |.new| IS_REFERENCED_BY qualified
+39 3:5 || IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
+45 4:5 || IS_INVOKED_BY qualified
+53 5:5 |.new| IS_INVOKED_BY qualified
+88 6:28 |.new| IS_REFERENCED_BY qualified
+123 9:4 || IS_INVOKED_BY qualified
+130 10:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+145 11:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 ''');
   }
 
@@ -817,6 +1099,65 @@ void useConstructor() {
 ''');
   }
 
+  test_ConstructorElement_extensionType_named_newHead() async {
+    await _indexTestUnit('''
+/// [new A.foo] and [A.foo]
+extension type A(int it) {
+  new foo(this.it);
+  new bar() : this.foo(0);
+  factory baz(int it) = A.foo;
+}
+void useConstructor() {
+  A.foo(0);
+  A.foo;
+  A a = .foo(0);
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedLocalVariable, 184, 1),
+    ]);
+    var element = findElement2.constructor('foo');
+    assertElementIndexText(element, r'''
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+22 1:23 |.foo| IS_REFERENCED_BY qualified
+93 4:19 |.foo| IS_INVOKED_BY qualified
+127 5:26 |.foo| IS_REFERENCED_BY qualified
+162 8:4 |.foo| IS_INVOKED_BY qualified
+174 9:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+189 10:10 |foo| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
+  test_ConstructorElement_extensionType_named_primary() async {
+    await _indexTestUnit('''
+/// [new A.foo] and [A.foo]
+extension type A.foo(int it) {
+  new bar() : this.foo(0);
+  factory baz(int it) = A.foo;
+}
+void useConstructor() {
+  A.foo(0);
+  A.foo;
+  A a = .foo(0);
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedLocalVariable, 168, 1),
+    ]);
+    var element = findElement2.constructor('foo');
+    assertElementIndexText(element, r'''
+10 1:11 |.foo| IS_REFERENCED_BY qualified
+22 1:23 |.foo| IS_REFERENCED_BY qualified
+77 3:19 |.foo| IS_INVOKED_BY qualified
+111 4:26 |.foo| IS_REFERENCED_BY qualified
+146 7:4 |.foo| IS_INVOKED_BY qualified
+158 8:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+173 9:10 |foo| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
   test_ConstructorElement_extensionType_named_typeName() async {
     await _indexTestUnit('''
 /// [new A.foo] and [A.foo]
@@ -844,6 +1185,65 @@ void useConstructor() {
 160 8:4 |.foo| IS_INVOKED_BY qualified
 172 9:4 |.foo| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
 187 10:10 |foo| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
+  test_ConstructorElement_extensionType_unnamed_newHead() async {
+    await _indexTestUnit('''
+/// [new A] and [A.new]
+extension type A.named(int it) {
+  new (this.it);
+  new bar() : this(0);
+  factory baz(int it) = A.new;
+}
+void useConstructor() {
+  A(0);
+  A.new;
+  A a = .new(0);
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedLocalVariable, 175, 1),
+    ]);
+    var element = findElement2.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+10 1:11 || IS_REFERENCED_BY qualified
+18 1:19 |.new| IS_REFERENCED_BY qualified
+92 4:19 || IS_INVOKED_BY qualified
+122 5:26 |.new| IS_REFERENCED_BY qualified
+157 8:4 || IS_INVOKED_BY qualified
+165 9:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+180 10:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+''');
+  }
+
+  test_ConstructorElement_extensionType_unnamed_primary() async {
+    await _indexTestUnit('''
+/// [new A] and [A.new]
+extension type A(int it) {
+  new bar() : this(0);
+  factory baz(int it) = A.new;
+}
+void useConstructor() {
+  A(0);
+  A.new;
+  A a = .new(0);
+}
+''');
+    assertErrorsInResult([
+      error(diag.deprecatedNewInCommentReference, 5, 3),
+      error(diag.unusedLocalVariable, 152, 1),
+    ]);
+    var element = findElement2.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+10 1:11 || IS_REFERENCED_BY qualified
+18 1:19 |.new| IS_REFERENCED_BY qualified
+69 3:19 || IS_INVOKED_BY qualified
+99 4:26 |.new| IS_REFERENCED_BY qualified
+134 7:4 || IS_INVOKED_BY qualified
+142 8:4 |.new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+157 9:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
 ''');
   }
 
@@ -1507,7 +1907,115 @@ void f() {
     assertErrorsInResult([error(diag.ambiguousImport, 48, 3)]);
   }
 
-  test_FormalParameterElement_ofConstructor_optionalNamed() async {
+  test_FormalParameterElement_ofConstructor_primary_optionalNamed() async {
+    await _indexTestUnit('''
+/// [test]
+class A({int? test}) {
+  this : assert(test != null) {
+    test;
+  }
+}
+
+void f() {
+  A(test: 0);
+  A _ = .new(test: 0);
+}
+''');
+    assertErrorsInResult([]);
+    var element = findElement2.parameter('test');
+    assertElementIndexText(element, r'''
+98 9:5 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+121 10:14 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+''');
+  }
+
+  test_FormalParameterElement_ofConstructor_primary_optionalNamed_genericClass() async {
+    await _indexTestUnit('''
+/// [test]
+class A<T>({T? test}) {
+  this : assert(test != null) {
+    test;
+  }
+}
+
+void f() {
+  A(test: 0);
+  A<int> _ = .new(test: 0);
+}
+''');
+    assertErrorsInResult([]);
+    var element = findElement2.parameter('test');
+    assertElementIndexText(element, r'''
+99 9:5 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+127 10:19 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+''');
+  }
+
+  test_FormalParameterElement_ofConstructor_primary_optionalPositional() async {
+    await _indexTestUnit('''
+/// [test]
+class A([int? test]) {
+  this : assert(test != null) {
+    test;
+  }
+}
+
+void f() {
+  A(0);
+  A _ = .new(0);
+}
+''');
+    assertErrorsInResult([]);
+    var element = findElement2.parameter('test');
+    assertElementIndexText(element, r'''
+98 9:5 || IS_REFERENCED_BY qualified
+115 10:14 || IS_REFERENCED_BY qualified
+''');
+  }
+
+  test_FormalParameterElement_ofConstructor_primary_requiredNamed() async {
+    await _indexTestUnit('''
+/// [test]
+class A({required int test}) {
+  this : assert(test != -1) {
+    test;
+  }
+}
+
+void f() {
+  A(test: 0);
+  A _ = .new(test: 0);
+}
+''');
+    assertErrorsInResult([]);
+    var element = findElement2.parameter('test');
+    assertElementIndexText(element, r'''
+104 9:5 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+127 10:14 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
+''');
+  }
+
+  test_FormalParameterElement_ofConstructor_primary_requiredPositional() async {
+    await _indexTestUnit('''
+/// [test]
+class A(int test) {
+  this : assert(test != -1) {
+    test;
+  }
+}
+
+void f() {
+  A(0);
+  A _ = .new(0);
+}
+''');
+    assertErrorsInResult([]);
+    var element = findElement2.parameter('test');
+    assertElementIndexText(element, r'''
+''');
+  }
+
+  test_FormalParameterElement_ofConstructor_typeName_optionalNamed() async {
     await _indexTestUnit('''
 class A {
   /// [test]
@@ -1529,7 +2037,7 @@ void f() {
 ''');
   }
 
-  test_FormalParameterElement_ofConstructor_optionalNamed_genericClass() async {
+  test_FormalParameterElement_ofConstructor_typeName_optionalNamed_genericClass() async {
     await _indexTestUnit('''
 class A<T> {
   /// [test]
@@ -1551,7 +2059,7 @@ void f() {
 ''');
   }
 
-  test_FormalParameterElement_ofConstructor_optionalPositional() async {
+  test_FormalParameterElement_ofConstructor_typeName_optionalPositional() async {
     await _indexTestUnit('''
 class A {
   /// [test]
@@ -1573,7 +2081,7 @@ void f() {
 ''');
   }
 
-  test_FormalParameterElement_ofConstructor_requiredNamed() async {
+  test_FormalParameterElement_ofConstructor_typeName_requiredNamed() async {
     await _indexTestUnit('''
 class A {
   /// [test]
@@ -1595,7 +2103,7 @@ void f() {
 ''');
   }
 
-  test_FormalParameterElement_ofConstructor_requiredPositional() async {
+  test_FormalParameterElement_ofConstructor_typeName_requiredPositional() async {
     await _indexTestUnit('''
 class A {
   /// [test]
