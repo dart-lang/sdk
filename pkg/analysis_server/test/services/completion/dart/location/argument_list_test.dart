@@ -564,7 +564,6 @@ suggestions
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/62326')
   Future<void> test_required_beforeRequired_constructor() async {
     allowedIdentifiers = {'required'};
     await computeSuggestions('''
@@ -690,6 +689,36 @@ class C {
 suggestions
   int
     kind: class
+''');
+  }
+
+  Future<void> test_typeParameters_constructor() async {
+    allowedIdentifiers = {'LocalType'};
+    await computeSuggestions('''
+class C<LocalType> {
+  final int a;
+  C({
+    ^
+    this.a,
+  });
+}
+''');
+    assertResponse(r'''
+suggestions
+  this
+    kind: keyword
+  void
+    kind: keyword
+  LocalType
+    kind: typeParameter
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  required
+    kind: keyword
+  super
+    kind: keyword
 ''');
   }
 }
