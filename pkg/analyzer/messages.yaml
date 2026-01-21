@@ -7746,6 +7746,7 @@ CompileTimeErrorCode:
       Object p1: the type of the getter
       Object p2: the type of the setter
       Object p3: the name of the setter
+    removedIn: "3.4"
     problemMessage: "The return type of getter '#p0' is '#p1' which isn't assignable to the type '#p2' of its setter '#p3'."
     correctionMessage: Try changing the types so that they are compatible.
     hasPublishedDocs: false
@@ -8390,6 +8391,7 @@ CompileTimeErrorCode:
     parameters:
       Object p0: the expression source code that is the unexpected type
       Object p1: the name of the expected type
+    removedIn: "3.4"
     problemMessage: "Case expressions must have the same types, '#p0' isn't a '#p1'."
     hasPublishedDocs: false
     comment: |-
@@ -9336,6 +9338,7 @@ CompileTimeErrorCode:
       Object p0: the name of the function
       Object p1: the type of the function
       Object p2: the expected function type
+    removedIn: "3.0"
     problemMessage: "The function '#p0' has type '#p1' that isn't of expected type '#p2'. This means its parameter or return type doesn't match what is expected."
     hasPublishedDocs: false
     comment: |-
@@ -9345,6 +9348,7 @@ CompileTimeErrorCode:
     parameters:
       Object p0: the type of the torn-off function expression
       Object p1: the expected function type
+    removedIn: "3.0"
     problemMessage: The function expression type '#p0' isn't of type '#p1'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s).
     hasPublishedDocs: false
     comment: |-
@@ -9355,6 +9359,7 @@ CompileTimeErrorCode:
       Object p0: the lexeme of the literal
       Object p1: the type of the literal
       Object p2: the expected type
+    removedIn: "3.0"
     problemMessage: "The literal '#p0' with type '#p1' isn't of expected type '#p2'."
     hasPublishedDocs: false
     comment: |-
@@ -9364,6 +9369,7 @@ CompileTimeErrorCode:
     parameters:
       Object p0: the type of the list literal
       Object p1: the expected type
+    removedIn: "3.0"
     problemMessage: "The list literal type '#p0' isn't of expected type '#p1'. The list's type can be changed with an explicit generic type argument or by changing the element types."
     hasPublishedDocs: false
     comment: |-
@@ -9373,6 +9379,7 @@ CompileTimeErrorCode:
     parameters:
       Object p0: the type of the map literal
       Object p1: the expected type
+    removedIn: "3.0"
     problemMessage: "The map literal type '#p0' isn't of expected type '#p1'. The map's type can be changed with an explicit generic type arguments or by changing the key and value types."
     hasPublishedDocs: false
     comment: |-
@@ -9382,6 +9389,7 @@ CompileTimeErrorCode:
     parameters:
       Object p0: the type of the set literal
       Object p1: the expected type
+    removedIn: "3.0"
     problemMessage: "The set literal type '#p0' isn't of expected type '#p1'. The set's type can be changed with an explicit generic type argument or by changing the element types."
     hasPublishedDocs: false
     comment: |-
@@ -9392,6 +9400,7 @@ CompileTimeErrorCode:
       Object p0: the name of the torn-off method
       Object p1: the type of the torn-off method
       Object p2: the expected function type
+    removedIn: "3.0"
     problemMessage: "The method tear-off '#p0' has type '#p1' that isn't of expected type '#p2'. This means its parameter or return type doesn't match what is expected."
     hasPublishedDocs: false
     comment: |-
@@ -9401,6 +9410,7 @@ CompileTimeErrorCode:
     parameters:
       Object p0: the type of the instantiated object
       Object p1: the expected type
+    removedIn: "3.0"
     problemMessage: "The constructor returns type '#p0' that isn't of expected type '#p1'."
     hasPublishedDocs: false
     comment: |-
@@ -10957,6 +10967,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       Object p0: the name of the library
+    removedIn: "3.10"
     problemMessage: "Required library '#p0' is missing."
     correctionMessage: Re-install the Dart or Flutter SDK.
     hasPublishedDocs: true
@@ -22894,6 +22905,7 @@ ParserErrorCode:
     type: syntacticError
     parameters:
       Object p0: the operator being applied to 'super'
+    removedIn: "3.10"
     problemMessage: "The operator '#p0' can't be used with 'super'."
     hasPublishedDocs: false
     comment: |-
@@ -28770,11 +28782,11 @@ WarningCode:
   replacedLintUse:
     type: staticWarning
     parameters:
-      Object p0: the rule name
-      Object p1: the SDK version in which the lint was removed
-      Object p2: the name of a replacing lint
-    problemMessage: "'#p0' was replaced by '#p2' in Dart '#p1'."
-    correctionMessage: "Replace '#p0' with '#p1'."
+      Object ruleName: the rule name
+      Object since: the SDK version in which the lint was removed
+      Object replacement: the name of a replacing lint
+    problemMessage: "'#ruleName' was replaced by '#replacement' in Dart '#since'."
+    correctionMessage: "Replace '#ruleName' with '#replacement'."
     hasPublishedDocs: false
     comment: |-
       An error code indicating use of a removed lint rule.
@@ -29572,9 +29584,9 @@ WarningCode:
   textDirectionCodePointInComment:
     type: staticWarning
     parameters:
-      String p0: the unicode sequence of the code point.
-    problemMessage: The Unicode code point 'U+#p0' changes the appearance of text from how it's interpreted by the compiler.
-    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u#p0'.
+      String codePoint: the unicode sequence of the code point.
+    problemMessage: The Unicode code point 'U+#codePoint' changes the appearance of text from how it's interpreted by the compiler.
+    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u#codePoint'.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -29612,9 +29624,9 @@ WarningCode:
   textDirectionCodePointInLiteral:
     type: staticWarning
     parameters:
-      String p0: the unicode sequence of the code point.
-    problemMessage: The Unicode code point 'U+#p0' changes the appearance of text from how it's interpreted by the compiler.
-    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u#p0'.
+      String codePoint: the unicode sequence of the code point.
+    problemMessage: The Unicode code point 'U+#codePoint' changes the appearance of text from how it's interpreted by the compiler.
+    correctionMessage: Try removing the code point or using the Unicode escape sequence '\u#codePoint'.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -29712,9 +29724,9 @@ WarningCode:
   undefinedHiddenName:
     type: staticWarning
     parameters:
-      String p0: the name of the library being imported
-      String p1: the name in the hide clause that isn't defined in the library
-    problemMessage: "The library '#p0' doesn't export a member with the hidden name '#p1'."
+      String library: the name of the library being imported
+      String name: the name in the hide clause that isn't defined in the library
+    problemMessage: "The library '#library' doesn't export a member with the hidden name '#name'."
     correctionMessage: Try removing the name from the list of hidden members.
     hasPublishedDocs: true
     documentation: |-
@@ -29784,9 +29796,9 @@ WarningCode:
   undefinedShownName:
     type: staticWarning
     parameters:
-      String p0: the name of the library being imported
-      String p1: the name in the show clause that isn't defined in the library
-    problemMessage: "The library '#p0' doesn't export a member with the shown name '#p1'."
+      String library: the name of the library being imported
+      String name: the name in the show clause that isn't defined in the library
+    problemMessage: "The library '#library' doesn't export a member with the shown name '#name'."
     correctionMessage: Try removing the name from the list of shown members.
     hasPublishedDocs: true
     documentation: |-

@@ -143,20 +143,20 @@ class InstanceCreationExpressionResolver {
     );
     var target = elementToInfer == null
         ? null
-        : InvocationTargetConstructorElement(elementToInfer.element);
-    var returnType =
-        DotShorthandConstructorInvocationInferrer(
-          resolver: _resolver,
-          node: node,
-          argumentList: node.argumentList,
-          contextType: contextType,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          target: target,
-        ).resolveInvocation(
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `ConstructorElementToInfer.asType`.
-          rawType: elementToInfer?.asType as FunctionTypeImpl?,
-        );
+        : InvocationTargetConstructorElement(
+            elementToInfer.element,
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `ConstructorElementToInfer.asType`.
+            elementToInfer.asType as FunctionTypeImpl,
+          );
+    var returnType = DotShorthandConstructorInvocationInferrer(
+      resolver: _resolver,
+      node: node,
+      argumentList: node.argumentList,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+      target: target,
+    ).resolveInvocation();
     node.recordStaticType(returnType, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
       node.argumentList,
@@ -181,7 +181,12 @@ class InstanceCreationExpressionResolver {
     );
     var target = elementToInfer == null
         ? null
-        : InvocationTargetConstructorElement(elementToInfer.element);
+        : InvocationTargetConstructorElement(
+            elementToInfer.element,
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `ConstructorElementToInfer.asType`.
+            elementToInfer.asType as FunctionTypeImpl,
+          );
     InstanceCreationInferrer(
       resolver: _resolver,
       node: node,
@@ -189,11 +194,7 @@ class InstanceCreationExpressionResolver {
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: target,
-    ).resolveInvocation(
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `ConstructorElementToInfer.asType`.
-      rawType: elementToInfer?.asType as FunctionTypeImpl?,
-    );
+    ).resolveInvocation();
     node.recordStaticType(node.constructorName.type.type!, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
       node.argumentList,

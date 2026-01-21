@@ -127,7 +127,7 @@ class AnnotationResolver {
         whyNotPromotedArguments: whyNotPromotedArguments,
         constructorName: constructorName,
         target: null,
-      ).resolveInvocation(rawType: null);
+      ).resolveInvocation();
       return;
     }
 
@@ -144,12 +144,13 @@ class AnnotationResolver {
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
       constructorName: constructorName,
-      target: InvocationTargetConstructorElement(constructorElement),
-    ).resolveInvocation(
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `ConstructorElementToInfer.asType`.
-      rawType: constructorRawType as FunctionTypeImpl,
-    );
+      target: InvocationTargetConstructorElement(
+        constructorElement,
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `ConstructorElementToInfer.asType`.
+        constructorRawType as FunctionTypeImpl,
+      ),
+    ).resolveInvocation();
   }
 
   void _extensionGetter(
@@ -480,7 +481,7 @@ class AnnotationResolver {
         whyNotPromotedArguments: whyNotPromotedArguments,
         constructorName: null,
         target: null,
-      ).resolveInvocation(rawType: null);
+      ).resolveInvocation();
     }
   }
 }

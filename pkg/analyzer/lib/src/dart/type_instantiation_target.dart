@@ -15,12 +15,19 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// An entity in the program being analyzed that might have ordinary arguments
 /// (and possibly type arguments) applied to it.
-sealed class InvocationTarget extends TypeInstantiationTarget {}
+sealed class InvocationTarget extends TypeInstantiationTarget {
+  /// The function type of the thing being invoked, prior to type argument
+  /// instantiation.
+  FunctionTypeImpl get rawType;
+}
 
 /// Invocation target representing a constructor.
 class InvocationTargetConstructorElement
     extends InvocationTargetExecutableElement {
-  InvocationTargetConstructorElement(super.element);
+  @override
+  final FunctionTypeImpl rawType;
+
+  InvocationTargetConstructorElement(super.element, this.rawType);
 
   @override
   LocatableDiagnostic wrongNumberOfTypeArgumentsError({
@@ -56,6 +63,11 @@ class InvocationTargetExecutableElement extends TypeInstantiationTargetElement
   }
 
   @override
+  FunctionTypeImpl get rawType =>
+      // TODO(paulberry): get rid of this cast.
+      element.type as FunctionTypeImpl;
+
+  @override
   LocatableDiagnostic wrongNumberOfTypeArgumentsError({
     required int typeParameterCount,
     required int typeArgumentCount,
@@ -87,6 +99,9 @@ class InvocationTargetExtensionOverride extends InvocationTarget {
   });
 
   @override
+  FunctionTypeImpl get rawType => type;
+
+  @override
   LocatableDiagnostic wrongNumberOfTypeArgumentsError({
     required int typeParameterCount,
     required int typeArgumentCount,
@@ -112,6 +127,9 @@ class InvocationTargetFunctionTypedExpression extends InvocationTarget {
   final FunctionTypeImpl type;
 
   InvocationTargetFunctionTypedExpression(this.type);
+
+  @override
+  FunctionTypeImpl get rawType => type;
 
   @override
   LocatableDiagnostic wrongNumberOfTypeArgumentsError({

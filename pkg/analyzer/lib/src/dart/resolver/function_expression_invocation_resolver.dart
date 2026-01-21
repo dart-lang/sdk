@@ -71,7 +71,6 @@ class FunctionExpressionInvocationResolver {
       );
       _resolve(
         node,
-        receiverType,
         whyNotPromotedArguments,
         contextType: contextType,
         target: InvocationTargetFunctionTypedExpression(receiverType),
@@ -133,10 +132,8 @@ class FunctionExpressionInvocationResolver {
     }
 
     node.element = callElement;
-    var rawType = callElement.type;
     _resolve(
       node,
-      rawType,
       whyNotPromotedArguments,
       contextType: contextType,
       target: InvocationTargetExecutableElement(callElement),
@@ -167,24 +164,18 @@ class FunctionExpressionInvocationResolver {
 
   void _resolve(
     FunctionExpressionInvocationImpl node,
-    FunctionType rawType,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
     required InvocationTarget target,
   }) {
-    var returnType =
-        FunctionExpressionInvocationInferrer(
-          resolver: _resolver,
-          node: node,
-          argumentList: node.argumentList,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          contextType: contextType,
-          target: target,
-        ).resolveInvocation(
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `rawType`.
-          rawType: rawType as FunctionTypeImpl,
-        );
+    var returnType = FunctionExpressionInvocationInferrer(
+      resolver: _resolver,
+      node: node,
+      argumentList: node.argumentList,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+      contextType: contextType,
+      target: target,
+    ).resolveInvocation();
 
     node.recordStaticType(returnType, resolver: _resolver);
   }
@@ -222,10 +213,8 @@ class FunctionExpressionInvocationResolver {
       );
     }
 
-    var rawType = callElement.type;
     _resolve(
       node,
-      rawType,
       whyNotPromotedArguments,
       contextType: contextType,
       target: InvocationTargetExecutableElement(callElement),
@@ -246,7 +235,7 @@ class FunctionExpressionInvocationResolver {
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: null,
-    ).resolveInvocation(rawType: null);
+    ).resolveInvocation();
     node.staticInvokeType = type;
     node.recordStaticType(type, resolver: _resolver);
   }

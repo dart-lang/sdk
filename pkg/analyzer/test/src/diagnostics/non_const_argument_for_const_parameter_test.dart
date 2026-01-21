@@ -61,6 +61,28 @@ class A {
     );
   }
 
+  test_binaryOperator_fails_inAssignment() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+void f(A a) {
+  var b = A();
+  a += b;
+}
+
+class A {
+  A operator +(@mustBeConst A other) => this;
+}
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 87, 1),
+        error(diag.experimentalMemberUse, 119, 11),
+      ],
+    );
+  }
+
   test_binaryOperator_succeeds() async {
     await assertErrorsInCode(
       r'''
@@ -80,6 +102,29 @@ class A {
       [
         error(diag.experimentalMemberUse, 37, 11),
         error(diag.experimentalMemberUse, 137, 11),
+      ],
+    );
+  }
+
+  test_binaryOperator_succeeds_inAssignment() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+void f(A a) {
+  const b = A();
+  a += b;
+}
+
+class A {
+  const A();
+
+  A operator +(@mustBeConst A other) => this;
+}
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 135, 11),
       ],
     );
   }
