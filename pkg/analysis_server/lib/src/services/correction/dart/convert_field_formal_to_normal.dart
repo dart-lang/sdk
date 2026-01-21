@@ -48,9 +48,7 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
       // corresponding public name while the field keeps the private name.
       if (parameter.isNamed) {
         if (correspondingPublicName(parameterName) case var publicName?) {
-          builder.addReplacement(range.token(parameter.name), (builder) {
-            builder.write(publicName);
-          });
+          builder.addSimpleReplacement(range.token(parameter.name), publicName);
           parameterName = publicName;
         }
       }
