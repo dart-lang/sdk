@@ -376,6 +376,30 @@ class TransitionVMToBlocked : public TransitionSafepointState {
   DISALLOW_COPY_AND_ASSIGN(TransitionVMToBlocked);
 };
 
+class TransitionVMToBlockedReloadableStealable
+    : public TransitionSafepointState {
+ public:
+  explicit TransitionVMToBlockedReloadableStealable(Thread* T)
+      : TransitionSafepointState(T) {
+    ASSERT(T->CanAcquireSafepointLocks());
+    // A thread blocked on a monitor is considered to be at a safepoint.
+    ASSERT(T->execution_state() == Thread::kThreadInVM);
+    T->set_execution_state(Thread::kThreadInReloadableBlockedState);
+    T->EnterSafepointToNative();
+  }
+
+  ~TransitionVMToBlockedReloadableStealable() {
+    // We are returning to vm code and so we are not at a safepoint anymore.
+    ASSERT(thread()->execution_state() ==
+           Thread::kThreadInReloadableBlockedState);
+    thread()->ExitSafepointFromNative();
+    thread()->set_execution_state(Thread::kThreadInVM);
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TransitionVMToBlockedReloadableStealable);
+};
+
 // TransitionVMToNative is used to transition the safepoint state of a
 // thread from "running vm code" to "running native code" and ensures
 // that the state is reverted back to "running vm code" when

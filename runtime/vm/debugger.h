@@ -962,7 +962,7 @@ class Debugger {
   // interrupts, etc.
   void Pause(ServiceEvent* event);
 
-  void HandleSteppingRequest(bool skip_next_step = false);
+  void HandleSteppingRequest();
 
   void CacheStackTraces(DebuggerStackTrace* stack_trace,
                         DebuggerStackTrace* async_awaiter_stack_trace);
@@ -975,7 +975,12 @@ class Debugger {
                               intptr_t post_deopt_frame_index);
 
   void ResetSteppingFramePointer();
-  void SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
+  void SetSyncSteppingFramePointer(ActivationFrame* frame);
+
+  void ResetLastSteppingInformation();
+  void SetLastSteppingInformation(ActivationFrame* frame);
+  void SetLastSteppingInformation(BreakpointLocation* bpt_location);
+  bool MatchesLastSteppingInformation(ActivationFrame* frame);
 
   GroupDebugger* group_debugger() { return isolate_->group()->debugger(); }
 
@@ -1020,11 +1025,6 @@ class Debugger {
   // token position range.
   uword last_stepping_fp_;
   TokenPosition last_stepping_pos_;
-
-  // If we step while at a breakpoint, we would hit the same pc twice.
-  // We use this field to let us skip the next single-step after a
-  // breakpoint.
-  bool skip_next_step_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
 
