@@ -1146,14 +1146,10 @@ class _TopLevelOptionValidator extends OptionsValidator {
   final String sectionName;
   final Set<String> supportedOptions;
   final String _valueProposal;
-  final DiagnosticCode _warningCode;
 
   _TopLevelOptionValidator(this.sectionName, this.supportedOptions)
     : assert(supportedOptions.isNotEmpty),
-      _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
-      _warningCode = supportedOptions.length == 1
-          ? diag.unsupportedOptionWithLegalValue
-          : diag.unsupportedOptionWithLegalValues;
+      _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd;
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
@@ -1172,11 +1168,19 @@ class _TopLevelOptionValidator extends OptionsValidator {
     node.nodes.forEach((k, v) {
       if (k is YamlScalar) {
         if (!supportedOptions.contains(k.value)) {
-          reporter.atSourceSpan(
-            k.span,
-            _warningCode,
-            arguments: [sectionName, k.valueOrThrow, _valueProposal],
-          );
+          var optionKey = k.valueOrThrow.toString();
+          var locatableDiagnostic = supportedOptions.length == 1
+              ? diag.unsupportedOptionWithLegalValue.withArguments(
+                  sectionName: sectionName,
+                  optionKey: optionKey,
+                  legalValue: _valueProposal,
+                )
+              : diag.unsupportedOptionWithLegalValues.withArguments(
+                  sectionName: sectionName,
+                  optionKey: optionKey,
+                  legalValues: _valueProposal,
+                );
+          reporter.report(locatableDiagnostic.atSourceSpan(k.span));
         }
       }
       // TODO(pq): consider an error if the node is not a Scalar.
