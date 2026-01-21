@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/annotation_verifier.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_functionality_verifier.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/error/doc_comment_verifier.dart';
@@ -1163,23 +1164,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForInvariantNanComparison(BinaryExpression node) {
     void reportStartEnd(
-      DiagnosticCode diagnosticCode,
+      LocatableDiagnostic locatableDiagnostic,
       SyntacticEntity startEntity,
       SyntacticEntity endEntity,
     ) {
       var offset = startEntity.offset;
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: endEntity.end - offset,
-        diagnosticCode: diagnosticCode,
+      _diagnosticReporter.report(
+        locatableDiagnostic.atOffset(
+          offset: offset,
+          length: endEntity.end - offset,
+        ),
       );
     }
 
-    void checkLeftRight(DiagnosticCode diagnosticCode) {
+    void checkLeftRight(LocatableDiagnostic locatableDiagnostic) {
       if (node.leftOperand.isDoubleNan) {
-        reportStartEnd(diagnosticCode, node.leftOperand, node.operator);
+        reportStartEnd(locatableDiagnostic, node.leftOperand, node.operator);
       } else if (node.rightOperand.isDoubleNan) {
-        reportStartEnd(diagnosticCode, node.operator, node.rightOperand);
+        reportStartEnd(locatableDiagnostic, node.operator, node.rightOperand);
       }
     }
 

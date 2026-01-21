@@ -28040,7 +28040,7 @@ WarningCode:
     parameters:
       String firstMember: the name of the first member
       String secondMember: the name of the second member
-      String additionalCount: the number of additional missing members that aren't listed
+      int additionalCount: the number of additional missing members that aren't listed
     sharedName: missingOverrideOfMustBeOverridden
     problemMessage: "Missing a required override of '#firstMember', '#secondMember', and #additionalCount more."
     correctionMessage: Try overriding the missing members.

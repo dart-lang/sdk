@@ -1016,28 +1016,31 @@ class _ClassVerifier {
         .toSet()
         .toList();
 
-    if (namesForError.length == 1) {
-      reporter.atToken(
-        classNameToken,
-        diag.missingOverrideOfMustBeOverriddenOne,
-        arguments: namesForError,
-      );
-    } else if (namesForError.length == 2) {
-      reporter.atToken(
-        classNameToken,
-        diag.missingOverrideOfMustBeOverriddenTwo,
-        arguments: namesForError,
-      );
-    } else {
-      reporter.report(
-        diag.missingOverrideOfMustBeOverriddenThreePlus
+    LocatableDiagnostic locatableDiagnostic;
+    switch (namesForError) {
+      case [var member]:
+        locatableDiagnostic = diag.missingOverrideOfMustBeOverriddenOne
+            .withArguments(member: member);
+      case [var firstMember, var secondMember]:
+        locatableDiagnostic = diag.missingOverrideOfMustBeOverriddenTwo
             .withArguments(
-              firstMember: namesForError[0],
-              secondMember: namesForError[1],
-              additionalCount: (namesForError.length - 2).toString(),
-            )
-            .at(classNameToken),
-      );
+              firstMember: firstMember,
+              secondMember: secondMember,
+            );
+      case [var firstMember, var secondMember, ...var remainingMembers]:
+        locatableDiagnostic = diag.missingOverrideOfMustBeOverriddenThreePlus
+            .withArguments(
+              firstMember: firstMember,
+              secondMember: secondMember,
+              additionalCount: remainingMembers.length,
+            );
+      default:
+        // Should be unreachable since the above cases cover all possible counts
+        // other than zero, and this function has an early exit if
+        // `notOverridden.isEmpty`.
+        assert(false);
+        return;
     }
+    reporter.report(locatableDiagnostic.at(classNameToken));
   }
 }

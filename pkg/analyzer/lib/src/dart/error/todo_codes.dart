@@ -5,6 +5,11 @@
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
+typedef TodoDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required String message})
+    >;
+
 /// Static helper methods and properties for working with [DiagnosticType.TODO]
 /// codes.
 class Todo {
@@ -49,5 +54,5 @@ class Todo {
   }
 
   /// Returns the TodoCode for [kind], falling back to [diag.todo].
-  static DiagnosticCode forKind(String kind) => _codes[kind] ?? diag.todo;
+  static TodoDiagnosticCode forKind(String kind) => _codes[kind] ?? diag.todo;
 }

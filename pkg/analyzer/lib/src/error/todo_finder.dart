@@ -4,9 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 /// Instances of the class `ToDoFinder` find to-do comments in Dart code.
 class TodoFinder {
@@ -134,11 +134,10 @@ class TodoFinder {
         }
       }
 
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: end - offset,
-        diagnosticCode: Todo.forKind(todoKind),
-        arguments: [todoText],
+      _diagnosticReporter.report(
+        Todo.forKind(todoKind)
+            .withArguments(message: todoText)
+            .atOffset(offset: offset, length: end - offset),
       );
     }
 

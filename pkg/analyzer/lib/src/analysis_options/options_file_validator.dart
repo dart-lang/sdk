@@ -544,53 +544,51 @@ class _EnableExperimentsValidator extends OptionsValidator {
 
 /// Builds error reports with value proposals.
 class _ErrorBuilder {
-  static DiagnosticCode get noProposalCode =>
-      diag.unsupportedOptionWithoutValues;
-
-  static DiagnosticCode get pluralProposalCode =>
-      diag.unsupportedOptionWithLegalValues;
-
-  static DiagnosticCode get singularProposalCode =>
-      diag.unsupportedOptionWithLegalValue;
-
-  final String proposal;
-
-  final DiagnosticCode code;
+  /// Report an unsupported `node` value, defined in the given `scopeName`.
+  void Function(DiagnosticReporter reporter, String scopeName, YamlNode node)
+  reportError;
 
   /// Create a builder for the given [supportedOptions].
   factory _ErrorBuilder(Set<String> supportedOptions) {
-    var proposal = supportedOptions.quotedAndCommaSeparatedWithAnd;
     if (supportedOptions.isEmpty) {
-      return _ErrorBuilder._(proposal: proposal, code: noProposalCode);
+      return _ErrorBuilder._(
+        reportError: (reporter, scopeName, node) => reporter.report(
+          diag.unsupportedOptionWithoutValues
+              .withArguments(
+                sectionName: scopeName,
+                optionKey: node.valueOrThrow.toString(),
+              )
+              .atSourceSpan(node.span),
+        ),
+      );
     } else if (supportedOptions.length == 1) {
-      return _ErrorBuilder._(proposal: proposal, code: singularProposalCode);
-    } else {
-      return _ErrorBuilder._(proposal: proposal, code: pluralProposalCode);
-    }
-  }
-
-  _ErrorBuilder._({required this.proposal, required this.code});
-
-  /// Report an unsupported [node] value, defined in the given [scopeName].
-  void reportError(
-    DiagnosticReporter reporter,
-    String scopeName,
-    YamlNode node,
-  ) {
-    if (proposal.isNotEmpty) {
-      reporter.atSourceSpan(
-        node.span,
-        code,
-        arguments: [scopeName, node.valueOrThrow, proposal],
+      return _ErrorBuilder._(
+        reportError: (reporter, scopeName, node) => reporter.report(
+          diag.unsupportedOptionWithLegalValue
+              .withArguments(
+                sectionName: scopeName,
+                optionKey: node.valueOrThrow.toString(),
+                legalValue: supportedOptions.single,
+              )
+              .atSourceSpan(node.span),
+        ),
       );
     } else {
-      reporter.atSourceSpan(
-        node.span,
-        code,
-        arguments: [scopeName, node.valueOrThrow],
+      return _ErrorBuilder._(
+        reportError: (reporter, scopeName, node) => reporter.report(
+          diag.unsupportedOptionWithLegalValues
+              .withArguments(
+                sectionName: scopeName,
+                optionKey: node.valueOrThrow.toString(),
+                legalValues: supportedOptions.quotedAndCommaSeparatedWithAnd,
+              )
+              .atSourceSpan(node.span),
+        ),
       );
     }
   }
+
+  _ErrorBuilder._({required this.reportError});
 }
 
 /// Validates `analyzer` error filter options.
