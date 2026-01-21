@@ -10121,13 +10121,13 @@ missingOverrideOfMustBeOverriddenOne = DiagnosticWithArguments(
 /// Parameters:
 /// String firstMember: the name of the first member
 /// String secondMember: the name of the second member
-/// String additionalCount: the number of additional missing members that
-///                         aren't listed
+/// int additionalCount: the number of additional missing members that aren't
+///                      listed
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
     required String firstMember,
     required String secondMember,
-    required String additionalCount,
+    required int additionalCount,
   })
 >
 missingOverrideOfMustBeOverriddenThreePlus = DiagnosticWithArguments(
@@ -10138,11 +10138,7 @@ missingOverrideOfMustBeOverriddenThreePlus = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'missing_override_of_must_be_overridden_three_plus',
   withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenThreePlus,
-  expectedTypes: [
-    ExpectedType.string,
-    ExpectedType.string,
-    ExpectedType.string,
-  ],
+  expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.int],
 );
 
 /// Parameters:
@@ -19850,7 +19846,7 @@ LocatableDiagnostic _withArgumentsMissingOverrideOfMustBeOverriddenOne({
 LocatableDiagnostic _withArgumentsMissingOverrideOfMustBeOverriddenThreePlus({
   required String firstMember,
   required String secondMember,
-  required String additionalCount,
+  required int additionalCount,
 }) {
   return LocatableDiagnosticImpl(
     diag.missingOverrideOfMustBeOverriddenThreePlus,
