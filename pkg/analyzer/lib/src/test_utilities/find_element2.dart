@@ -103,6 +103,24 @@ class FindElement2 extends _FindElementBase {
     return result!;
   }
 
+  LibraryFragmentImpl libraryFragmentByUri(String targetUri) {
+    LibraryFragment? result;
+
+    for (var fragment in libraryElement.fragments) {
+      if ('${fragment.source.uri}' == targetUri) {
+        if (result != null) {
+          throw StateError('Not unique: $targetUri');
+        }
+        result = fragment;
+      }
+    }
+
+    if (result != null) {
+      return result as LibraryFragmentImpl;
+    }
+    throw StateError('Not found: $targetUri');
+  }
+
   LocalFunctionElement localFunction(String name) {
     LocalFunctionElement? result;
 
