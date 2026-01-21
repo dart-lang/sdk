@@ -111,9 +111,7 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     if (verbose) {
       log.stdout('Using the following options: $options');
     }
-    final packageConfigProvider = PhysicalPackageConfigProvider();
-    final packageBuilder = PubPackageBuilder(
-        config, pubPackageMetaProvider, packageConfigProvider);
+    final packageBuilder = PubPackageBuilder(config, pubPackageMetaProvider);
     Dartdoc.fromContext(config, packageBuilder).executeGuarded();
     return 0;
   }
