@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/session_logger/entry_keys.dart' as key;
 import 'package:analysis_server/src/session_logger/entry_kind.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
+import 'package:language_server_protocol/protocol_special.dart' show Either2;
 
 /// A representation of an entry in a [Log].
 ///
@@ -39,7 +40,18 @@ extension type LogEntry(JsonMap map) {
 extension type Message(JsonMap map) {
   /// The ID of the message. All request messages have IDs, but notifications
   /// do not.
-  int? get id => map['id'] as int?;
+  Either2<int, String>? get id {
+    // The id in the JSON could be either an int or String (LSP is JSON-RPC 2
+    // which allows either).
+    return switch (map['id']) {
+      int i => Either2<int, String>.t1(i),
+      String s => Either2<int, String>.t2(s),
+      null => null,
+      _ => throw Exception(
+        'Message ID was unexpected type ${map['id'].runtimeType}',
+      ),
+    };
+  }
 
   /// Whether this message is a notification that a file has changed.
   bool get isDidChange => method == 'textDocument/didChange';
@@ -107,5 +119,6 @@ extension type Message(JsonMap map) {
       (params?['textDocument'] as Map<String, Object?>?)?['uri'] as String?;
 
   /// Whether this message is a response to the request with the [requestId].
-  bool isResponseTo(int requestId) => isResponse && id == requestId;
+  bool isResponseTo(Either2<int, String> requestId) =>
+      isResponse && id == requestId;
 }
