@@ -1016,6 +1016,7 @@ void Object::Init(IsolateGroup* isolate_group) {
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     empty_array_->untag()->set_length(Smi::New(0));
     empty_array_->SetCanonical();
+    empty_array_->SetDeeplyImmutable();
   }
   {
     uword address = heap->Allocate(thread, Array::InstanceSize(0), Heap::kOld);
@@ -1024,6 +1025,7 @@ void Object::Init(IsolateGroup* isolate_group) {
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     mutable_empty_array_->untag()->set_length(Smi::New(0));
     mutable_empty_array_->SetCanonical();
+    mutable_empty_array_->SetDeeplyImmutable();
   }
 
   Smi& smi = Smi::Handle();
@@ -21633,6 +21635,7 @@ InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
   }
   ASSERT(result.IsOld());
   result.SetCanonical();
+  result.SetDeeplyImmutable();
   return cls.InsertCanonicalConstant(zone, result);
 }
 
