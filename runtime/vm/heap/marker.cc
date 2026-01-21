@@ -666,7 +666,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
     // was allocated after the concurrent marker started. It can read either a
     // zero or the header of an object allocated black, both of which appear
     // marked.
-    uword tags = obj->untag()->tags_ignore_race();
+    // No ASAN/MSAN: expensive without offering much insight for GC bugs.
+    uword tags = obj->untag()->tags_no_sanitize();
     if (UntaggedObject::IsMarked(tags)) {
       return UntaggedObject::IsEvacuationCandidate(tags);
     }

@@ -7,9 +7,11 @@
 
 #include <type_traits>
 
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/globals.h"
+#include "platform/memory_sanitizer.h"
 #include "platform/no_tsan.h"
 #include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
@@ -33,7 +35,8 @@ class AtomicBitFieldContainer {
   }
 
   T load(std::memory_order order) const { return field_.load(order); }
-  NO_SANITIZE_THREAD T load_ignore_race() const {
+  NO_SANITIZE_ADDRESS NO_SANITIZE_MEMORY NO_SANITIZE_THREAD T
+  load_no_sanitize() const {
     return *reinterpret_cast<const T*>(&field_);
   }
   void store(T value, std::memory_order order) { field_.store(value, order); }

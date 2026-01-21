@@ -302,7 +302,7 @@ class UntaggedObject {
   }
 
   uword tags() const { return tags_; }
-  uword tags_ignore_race() const { return tags_.load_ignore_race(); }
+  uword tags_no_sanitize() const { return tags_.load_no_sanitize(); }
 
   // Support for GC marking bit. Marked objects are either grey (not yet
   // visited) or black (already visited).
