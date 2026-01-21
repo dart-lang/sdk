@@ -389,9 +389,25 @@ mixin B implements A {}
 ''');
   }
 
+  Future<void> test_noClauses_emptyBody() async {
+    await resolveTestCode('''
+class ^A;
+''');
+    await assertHasAssist('''
+mixin A;
+''');
+  }
+
   Future<void> test_noClauses_invalidSelection() async {
     await resolveTestCode('''
 class A ^{}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_noClauses_primaryConstructor() async {
+    await resolveTestCode('''
+class ^A();
 ''');
     await assertNoAssist();
   }

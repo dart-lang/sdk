@@ -35,16 +35,15 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
         selectionEnd < classDeclaration.classKeyword.offset) {
       return;
     }
-    if (classDeclaration.members2.any(
-      (member) => member is ConstructorDeclaration,
-    )) {
-      return;
-    }
     if (classDeclaration.finalKeyword != null ||
         classDeclaration.interfaceKeyword != null ||
         classDeclaration.sealedKeyword != null) {
       return;
     }
+    if (classDeclaration.members2.any((e) => e is ConstructorDeclaration)) {
+      return;
+    }
+    if (classDeclaration.namePart is PrimaryConstructorDeclaration) return;
     var finder = _SuperclassReferenceFinder();
     classDeclaration.accept(finder);
     var referencedClasses = finder.referencedClasses;
@@ -70,12 +69,16 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
       }
     }
     interfaces.addAll(classElement.interfaces);
+    var rangeEnd = switch (classDeclaration.body) {
+      BlockClassBody body => body.leftBracket,
+      EmptyClassBody body => body.semicolon,
+    };
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(
         range.startStart(
           classDeclaration.abstractKeyword ?? classDeclaration.classKeyword,
-          (classDeclaration.body as BlockClassBody).leftBracket,
+          rangeEnd,
         ),
         (builder) {
           builder.write('mixin ');
@@ -83,7 +86,9 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
           builder.writeTypeParameters(classElement.typeParameters);
           builder.writeTypes(superclassConstraints, prefix: ' on ');
           builder.writeTypes(interfaces, prefix: ' implements ');
-          builder.write(' ');
+          if (classDeclaration.body is BlockClassBody) {
+            builder.write(' ');
+          }
         },
       );
     });
