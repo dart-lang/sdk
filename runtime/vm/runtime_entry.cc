@@ -5231,7 +5231,11 @@ DEFINE_LEAF_RUNTIME_ENTRY(PropagateError,
                           DLRT_PropagateError);
 
 DEFINE_RUNTIME_ENTRY(InitializeSharedField, 1) {
-  SafepointWriteRwLocker locker(
+  // Running the initializer means running arbitrary Dart code that might yield
+  // to a reload safepoint or have its active mutator slot stolen. Make sure we
+  // likewise yield while waiting for the lock to avoid the holder of the lock
+  // being blocked on locker-waiters for reload or a mutator slot.
+  ReloadableStealableWriteRwLocker locker(
       thread, thread->isolate_group()->shared_field_initializer_rwlock());
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   Object& result = Object::Handle(zone, field.StaticValue());

@@ -198,6 +198,32 @@ void SafepointRwLock::EnterWrite() {
   }
 }
 
+void SafepointRwLock::EnterWriteReloadableStealable() {
+  // No need to safepoint if the current thread is not attached.
+  auto thread = Thread::Current();
+  // Attempt to acquire a lock while owning a safepoint could lead to a deadlock
+  // (some other thread might be forced to a safepoint while holding this lock).
+  //
+  // Though if the lock was already acquired by this thread before entering a
+  // safepoint, we do allow the nested acquire (which is a NOP).
+  ASSERT(thread == nullptr || thread->execution_state() == Thread::kThreadInVM);
+  DEBUG_ASSERT(thread == nullptr || thread->CanAcquireSafepointLocks() ||
+               IsCurrentThreadWriter());
+
+  const bool can_block_without_safepoint = thread == nullptr;
+
+  RELEASE_ASSERT(can_block_without_safepoint ||
+                 thread->current_safepoint_level() >=
+                     expected_safepoint_level_);
+
+  if (!TryEnterWrite(can_block_without_safepoint)) {
+    // Important: must never hold monitor_ when blocking for safepoint.
+    TransitionVMToBlockedReloadableStealable transition(thread);
+    const bool ok = TryEnterWrite(/*can_block=*/true);
+    RELEASE_ASSERT(ok);
+  }
+}
+
 bool SafepointRwLock::TryEnterWrite(bool can_block) {
   MonitorLocker ml(&monitor_);
   if (IsCurrentThreadWriter()) {

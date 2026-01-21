@@ -1108,7 +1108,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     kThreadInVM = 0,
     kThreadInGenerated,
     kThreadInNative,
-    kThreadInBlockedState
+    kThreadInBlockedState,
+    kThreadInReloadableBlockedState
   };
 
   ExecutionState execution_state() const {
@@ -1317,7 +1318,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     if (no_reload_scope_depth_ > 0) {
       return SafepointLevel::kGCAndDeopt;
     }
-    if (execution_state_ == kThreadInNative) {
+    if (execution_state_ == kThreadInNative ||
+        execution_state_ == kThreadInReloadableBlockedState) {
       return SafepointLevel::kGCAndDeoptAndReload;
     }
     if (allow_reload_scope_depth_ <= 0) {
