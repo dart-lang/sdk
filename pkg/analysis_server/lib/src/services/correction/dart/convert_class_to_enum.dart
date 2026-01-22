@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
@@ -100,7 +101,7 @@ class _CannotConvertException implements Exception {
 
 /// A representation of a static field in the class being converted that will be
 /// replaced by an enum constant.
-class _ConstantField extends _Field {
+class _ConstantField extends _FieldDeclaredInVariableDeclaration {
   /// The element representing the constructor used to initialize the field.
   ConstructorElement constructorElement;
 
@@ -120,15 +121,24 @@ class _ConstantField extends _Field {
   );
 }
 
-/// Information about a single constructor in the class being converted.
+/// Information about a single constructor (regular or primary) in the class
+/// being converted.
 class _Constructor {
-  /// The declaration of the constructor.
-  final ConstructorDeclaration declaration;
+  /// The declaration of the constructor, either a [ConstructorDeclaration] or a
+  /// [PrimaryConstructorDeclaration].
+  final AstNode declaration;
+
+  /// The parameter list for this constructor.
+  final FormalParameterList parameters;
 
   /// The element representing the constructor.
   final ConstructorElement element;
 
-  _Constructor(this.declaration, this.element);
+  _Constructor(this.declaration, this.parameters, this.element)
+    : assert(
+        declaration is ConstructorDeclaration ||
+            declaration is PrimaryConstructorDeclaration,
+      );
 }
 
 /// A description of how to convert the class to an enum.
@@ -147,8 +157,11 @@ class _EnumDescription {
   /// The 'index' field, if there is one.
   final _Field? _indexField;
 
-  /// A list of the indexes of members that need to be deleted.
+  /// The indexes of members that need to be deleted.
   final List<int> membersToDelete = [];
+
+  /// The indexes of primary constructor parameters that need to be deleted.
+  final List<int> parametersToDelete = [];
 
   _EnumDescription({
     required this.classDeclaration,
@@ -202,7 +215,7 @@ class _EnumDescription {
         constantsBuffer.write(utils.getNodeText(documentationComment));
         constantsBuffer.write('$eol$indent');
       }
-      constantsBuffer.write(field.name);
+      constantsBuffer.write(field.declaration.name.lexeme);
       var invocation = field.instanceCreation;
       var constructorNameNode = invocation.constructorName;
       var invokedConstructorElement = field.constructorElement;
@@ -266,8 +279,7 @@ class _EnumDescription {
     }
 
     // Update the constructors.
-    var removedConstructor = _removeUnnamedConstructor();
-    _transformConstructors(builder, removedConstructor);
+    _transformConstructors(builder);
 
     // Special case replacing all of the members.
     if (membersToDelete.length == members.length) {
@@ -289,65 +301,102 @@ class _EnumDescription {
     for (var range in range.nodesInList(members, membersToDelete)) {
       builder.addDeletion(range);
     }
+
+    var primaryConstructor = classDeclaration.namePart;
+    if (primaryConstructor is PrimaryConstructorDeclaration) {
+      parametersToDelete.sort();
+      for (var range in range.nodesInList(
+        primaryConstructor.formalParameters.parameters,
+        parametersToDelete,
+      )) {
+        builder.addDeletion(range);
+      }
+    }
   }
 
-  /// Use the [builder] to delete the [field].
+  /// Use the [builder] to delete the [fieldData].
   void _deleteField(
     DartFileEditBuilder builder,
-    _Field field,
+    _Field fieldData,
     List<ClassMember> members,
   ) {
-    var variableList = field.fieldDeclaration.fields;
-    if (variableList.variables.length == 1) {
-      membersToDelete.add(members.indexOf(field.fieldDeclaration));
-    } else {
-      builder.addDeletion(
-        range.nodeInList(variableList.variables, field.declaration),
-      );
+    if (fieldData is _FieldDeclaredInVariableDeclaration) {
+      var variableList = fieldData.fieldDeclaration.fields;
+      if (variableList.variables.length == 1) {
+        membersToDelete.add(members.indexOf(fieldData.fieldDeclaration));
+      } else {
+        builder.addDeletion(
+          range.nodeInList(variableList.variables, fieldData.declaration),
+        );
+      }
+    } else if (fieldData is _FieldDeclaredInPrimaryConstructor) {
+      var parameters = fieldData.parameterList.parameters;
+      parametersToDelete.add(parameters.indexOf(fieldData.parameter));
     }
   }
 
-  /// If the unnamed constructor is the only constructor, and if it has no
-  /// parameters other than potentially the index field, then remove it.
-  ConstructorDeclaration? _removeUnnamedConstructor() {
+  /// Adds the unnamed constructor declaration to [membersToDelete], and returns
+  /// it, if it is the only constructor, and if it has no parameters other than
+  /// potentially the index field.
+  AstNode? /* ConstructorDeclaration? | PrimaryConstructorDeclaration? */
+  _removeUnnamedConstructor() {
     var members = classDeclaration.members2;
     var constructors = members.whereType<ConstructorDeclaration>().toList();
-    if (constructors.length != 1) {
-      return null;
+    var primaryConstructor = classDeclaration.namePart
+        .ifTypeOrNull<PrimaryConstructorDeclaration>();
+
+    if (primaryConstructor == null) {
+      if (constructors.length != 1) return null;
+
+      var constructor = constructors[0];
+      var name = constructor.name?.lexeme;
+      if (name != null && name != 'new') return null;
+
+      var parameters = constructor.parameters.parameters;
+      // If there's only one constructor, then there can only be one entry in the
+      // constructor map.
+      var parameterData = _constructorMap?.entries.first.value;
+      // `parameterData` should only be `null` if there is no index field.
+      var updatedParameterCount =
+          parameters.length - (parameterData == null ? 0 : 1);
+      if (updatedParameterCount != 0) return null;
+
+      membersToDelete.add(members.indexOf(constructor));
+      return constructor;
+    } else {
+      if (constructors.isNotEmpty) return null; // Other constructors.
+
+      var name = primaryConstructor.constructorName?.name.lexeme;
+      if (name != null && name != 'new') return null;
+
+      var parameters = primaryConstructor.formalParameters.parameters;
+      // If there's only one constructor, then there can only be one entry in the
+      // constructor map.
+      var parameterData = _constructorMap?.entries.first.value;
+      // `parameterData` should only be `null` if there is no index field.
+      var updatedParameterCount =
+          parameters.length - (parameterData == null ? 0 : 1);
+      if (updatedParameterCount != 0) return null;
+
+      // TODO(srawlins): Mark `primaryConstructor` as "to be deleted."
+      return primaryConstructor;
     }
-    var constructor = constructors[0];
-    var name = constructor.name?.lexeme;
-    if (name != null && name != 'new') {
-      return null;
-    }
-    var parameters = constructor.parameters.parameters;
-    // If there's only one constructor, then there can only be one entry in the
-    // constructor map.
-    var parameterData = _constructorMap?.entries.first.value;
-    // `parameterData` should only be `null` if there is no index field.
-    var updatedParameterCount =
-        parameters.length - (parameterData == null ? 0 : 1);
-    if (updatedParameterCount != 0) {
-      return null;
-    }
-    membersToDelete.add(members.indexOf(constructor));
-    return constructor;
   }
 
   /// Transform the used constructors by removing the parameter corresponding to
   /// the index field.
-  void _transformConstructors(
-    DartFileEditBuilder builder,
-    ConstructorDeclaration? removedConstructor,
-  ) {
+  void _transformConstructors(DartFileEditBuilder builder) {
+    var removedConstructor = _removeUnnamedConstructor();
+
     if (_constructorMap == null) return;
 
-    for (var constructor in _constructorMap.keys) {
-      if (constructor.declaration == removedConstructor) continue;
+    for (var constructorData in _constructorMap.keys) {
+      // The removed constructor is simply removed; don't change its parameters.
+      if (constructorData.declaration == removedConstructor) continue;
 
-      var parameterData = _constructorMap[constructor];
+      var parameterData = _constructorMap[constructorData];
       if (parameterData != null) {
-        var parameters = constructor.declaration.parameters.parameters;
+        var parameters = constructorData.parameters.parameters;
         builder.addDeletion(
           range.nodeInList(parameters, parameters[parameterData.index]),
         );
@@ -504,16 +553,15 @@ class _EnumDescription {
   /// for the 'index' field, if there is one, and `null` if there is not.
   static _Parameter? _indexParameter(
     _Constructor constructor,
-    _Field indexField,
+    _Field indexFieldData,
   ) {
-    var parameters = constructor.declaration.parameters.parameters;
-    var indexFieldElement = indexField.element;
+    var parameters = constructor.parameters.parameters;
+    var indexFieldElement = indexFieldData.element;
     for (var i = 0; i < parameters.length; i++) {
       var element = parameters[i].declaredFragment!.element;
-      if (element is FieldFormalParameterElement) {
-        if (element.field == indexFieldElement) {
-          return _Parameter(i, element);
-        }
+      if (element is FieldFormalParameterElement &&
+          element.field == indexFieldElement) {
+        return _Parameter(i, element);
       }
     }
     return null;
@@ -527,26 +575,41 @@ class _EnumDescription {
     ClassDeclaration classDeclaration,
     ClassElement classElement,
   ) {
-    var constructorMap = <ConstructorElement, _Constructor>{};
-    for (var member in classDeclaration.members2) {
-      if (member is! ConstructorDeclaration) continue;
+    if (classElement.constructors.any(
+      (c) => c.isPublic && classElement.isPublic,
+    )) {
+      return null;
+    }
+    if (classElement.constructors.any((c) => !c.isFactory && !c.isConst)) {
+      return null;
+    }
 
+    var constructorMap = <ConstructorElement, _Constructor>{};
+    for (var member
+        in classDeclaration.members2.whereType<ConstructorDeclaration>()) {
       var constructor = member.declaredFragment?.element;
       if (constructor is! ConstructorElement) return null;
 
-      if (!classElement.isPrivate && !constructor.isPrivate) {
-        // Public constructor in public enum.
-        return null;
-      } else if (!constructor.isFactory && !constructor.isConst) {
-        // Non-const generative constructor.
-        return null;
-      }
-      constructorMap[constructor] = _Constructor(member, constructor);
+      constructorMap[constructor] = _Constructor(
+        member,
+        member.parameters,
+        constructor,
+      );
+    }
+    if (classDeclaration.namePart
+        case PrimaryConstructorDeclaration constructor) {
+      var constructorElement = constructor.declaredFragment?.element;
+      if (constructorElement == null) return null;
+      constructorMap[constructorElement] = _Constructor(
+        constructor,
+        constructor.formalParameters,
+        constructorElement,
+      );
     }
     return constructorMap;
   }
 
-  /// Return a representation of all of the constructors declared by the
+  /// Return a representation of all of the fields declared by the
   /// [classDeclaration], or `null` if the class can't be converted.
   ///
   /// The [classElement] must be the element declared by the [classDeclaration].
@@ -557,8 +620,9 @@ class _EnumDescription {
     required bool strictCasts,
   }) {
     var potentialFieldsToConvert = <DartObject, List<_ConstantField>>{};
-    _Field? indexField;
+    _Field? indexFieldData;
 
+    // First, look through variable declarations.
     for (var member in classDeclaration.members2) {
       if (member is! FieldDeclaration) continue;
 
@@ -586,10 +650,8 @@ class _EnumDescription {
               var fieldValue = fieldElement.computeConstantValue();
               if (fieldValue == null) continue;
 
-              if (member.fields.variables.length != 1) {
-                // Too many constants in the field declaration.
-                return null;
-              }
+              // Too many constants in the field declaration.
+              if (fields.length != 1) return null;
               potentialFieldsToConvert
                   .putIfAbsent(fieldValue, () => [])
                   .add(
@@ -607,16 +669,40 @@ class _EnumDescription {
         }
       } else {
         for (var field in fields) {
-          if (!field.isFinal) {
-            // Non-final instance field.
-            return null;
-          }
+          if (!field.isFinal) return null;
+
           var fieldElement = field.declaredFragment?.element;
-          if (fieldElement is FieldElement) {
-            var fieldType = fieldElement.type;
-            if (fieldElement.name == 'index' && fieldType.isDartCoreInt) {
-              indexField = _Field(fieldElement, field, member);
-            }
+          if (fieldElement is! FieldElement) continue;
+
+          if (fieldElement.name == 'index' && fieldElement.type.isDartCoreInt) {
+            indexFieldData = _FieldDeclaredInVariableDeclaration(
+              fieldElement,
+              field,
+              member,
+            );
+          }
+        }
+      }
+    }
+
+    // Second, look through the primary constructor.
+    if (classDeclaration.namePart
+        case PrimaryConstructorDeclaration primaryConstructor) {
+      for (var parameter in primaryConstructor.formalParameters.parameters) {
+        var element = parameter.declaredFragment?.element;
+        // ignore: experimental_member_use
+        if (element is! FieldFormalParameterElement || !element.isDeclaring) {
+          continue;
+        }
+        if (element.field case FieldElement fieldElement) {
+          if (!fieldElement.isFinal) return null;
+
+          if (fieldElement.name == 'index' && fieldElement.type.isDartCoreInt) {
+            indexFieldData = _FieldDeclaredInPrimaryConstructor(
+              fieldElement,
+              primaryConstructor.formalParameters,
+              parameter,
+            );
           }
         }
       }
@@ -635,7 +721,7 @@ class _EnumDescription {
         return null;
       }
     }
-    return (fieldsToConvert, indexField);
+    return (fieldsToConvert, indexFieldData);
   }
 
   /// Return `true` if the [classDeclaration] does not contain any methods that
@@ -694,9 +780,33 @@ class _EnumVisitor extends _BaseVisitor {
   }
 }
 
-/// A representation of a field of interest in the class being converted.
-class _Field {
+/// Data pertaining to a field of interest in the class being converted.
+sealed class _Field {
   /// The element representing the field.
+  FieldElement get element;
+}
+
+/// Data pertaining to a field, declared in a primary constructor.
+class _FieldDeclaredInPrimaryConstructor implements _Field {
+  @override
+  final FieldElement element;
+
+  /// The parameter list of the primary constructor.
+  final FormalParameterList parameterList;
+
+  /// The parameter that corresponds to [element].
+  final FormalParameter parameter;
+
+  _FieldDeclaredInPrimaryConstructor(
+    this.element,
+    this.parameterList,
+    this.parameter,
+  );
+}
+
+/// Data pertaining to a field, declared in a variable declaration.
+class _FieldDeclaredInVariableDeclaration implements _Field {
+  @override
   final FieldElement element;
 
   /// The declaration of the field.
@@ -705,10 +815,11 @@ class _Field {
   /// The field declaration containing the [declaration].
   final FieldDeclaration fieldDeclaration;
 
-  _Field(this.element, this.declaration, this.fieldDeclaration);
-
-  /// Return the name of the field.
-  String get name => declaration.name.lexeme;
+  _FieldDeclaredInVariableDeclaration(
+    this.element,
+    this.declaration,
+    this.fieldDeclaration,
+  );
 }
 
 /// A visitor that visits everything in the library other than the class being
