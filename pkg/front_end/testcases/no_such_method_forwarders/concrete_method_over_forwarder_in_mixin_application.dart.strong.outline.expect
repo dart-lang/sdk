@@ -41,4 +41,4 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///concrete_method_over_forward
 Evaluated: ListLiteral @ org-dartlang-testcase:///concrete_method_over_forwarder_in_mixin_application.dart:17:13 -> ListConstant(const <Type>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///concrete_method_over_forwarder_in_mixin_application.dart:17:13 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///concrete_method_over_forwarder_in_mixin_application.dart:17:13 -> MapConstant(const <Symbol, dynamic>{})
-Extra constant evaluation: evaluated: 11, effectively constant: 4
+Extra constant evaluation: evaluated: 12, effectively constant: 4

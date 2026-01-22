@@ -40,8 +40,12 @@ SuperMethodInvocation createSuperMethodInvocation(
   Arguments arguments, {
   required int fileOffset,
 }) {
-  return new SuperMethodInvocation(name, arguments, target)
-    ..fileOffset = fileOffset;
+  return new SuperMethodInvocation(
+    new ThisExpression(),
+    name,
+    arguments,
+    target,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates a `== null` test on [expression].

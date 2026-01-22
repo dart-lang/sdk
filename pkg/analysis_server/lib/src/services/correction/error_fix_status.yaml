@@ -3345,6 +3345,8 @@ flutter_field_not_map:
   since: ~2.15
 invalid_dependency:
   status: noFix
+invalid_covariant_modifier_in_primary_constructor:
+  status: needsEvaluation
 invalid_platforms_field:
   status: needsEvaluation
 missing_dependency:

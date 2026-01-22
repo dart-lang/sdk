@@ -284,29 +284,6 @@ class RegularFieldDeclaration
   }
 
   @override
-  void buildFieldInitializer({
-    required TypeInferrer typeInferrer,
-    required CoreTypes coreTypes,
-    required Uri fileUri,
-    Expression? initializer,
-  }) {
-    if (initializer != null) {
-      if (!hasBodyBeenBuilt) {
-        initializer = typeInferrer
-            .inferFieldInitializer(
-              fileUri: fileUri,
-              declaredType: fieldType,
-              initializer: initializer,
-            )
-            .expression;
-        buildBody(coreTypes, initializer);
-      }
-    } else if (!hasBodyBeenBuilt) {
-      buildBody(coreTypes, null);
-    }
-  }
-
-  @override
   void buildImplicitDefaultValue() {
     _encoding.buildImplicitDefaultValue();
   }
@@ -953,7 +930,6 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
   Expression? get cachedFieldInitializer => _fieldInitializerCache;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void buildFieldInitializer({
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,

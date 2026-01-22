@@ -292,4 +292,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:78:28
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:89:28 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:67:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod1})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:68:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod2})
-Extra constant evaluation: evaluated: 20, effectively constant: 6
+Extra constant evaluation: evaluated: 21, effectively constant: 6

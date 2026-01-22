@@ -86,26 +86,42 @@ class BusyLoopProcess {
     String tag,
     io.Directory tempDir, {
     bool startIsolate = false,
+    bool aot = false,
   }) async {
+    final busyLoopArgs = ['--tag', tag, if (startIsolate) '--start-isolate'];
+
     final stdout = <String>[];
-    return BusyLoopProcess._(
-      await runProcess(
-        io.Platform.executable,
-        [
-          'run',
-          p.join(testsDir, 'common', 'busy_loop.dart'),
-          '--tag',
-          tag,
-          if (startIsolate) '--start-isolate',
-        ],
-        tag: 'busy-loop($tag)',
-        waitFor: 'BUSY LOOP READY',
-        environment: {'DART_DATA_HOME': tempDir.path},
-        stdout: stdout,
-      ),
-      tag,
-      stdout,
+    final String executable;
+    if (aot) {
+      executable = p.join(tempDir.path, 'busyLoop.exe');
+      final result = await io.Process.run(io.Platform.executable, [
+        'compile',
+        'exe',
+        '-o',
+        executable,
+        p.join(testsDir, 'common', 'busy_loop.dart'),
+      ]);
+      if (result.exitCode != 0) {
+        throw 'Failed to compile busyLoop script to a binary';
+      }
+    } else {
+      executable = io.Platform.executable;
+      busyLoopArgs.insertAll(0, [
+        'run',
+        p.join(testsDir, 'common', 'busy_loop.dart'),
+      ]);
+    }
+
+    final process = await runProcess(
+      executable,
+      busyLoopArgs,
+      tag: 'busy-loop($tag)',
+      waitFor: 'BUSY LOOP READY',
+      environment: {'DART_DATA_HOME': tempDir.path},
+      stdout: stdout,
     );
+
+    return BusyLoopProcess._(process, tag, stdout);
   }
 
   int get pid {
@@ -190,7 +206,7 @@ void main() {
       tempDir.deleteSync(recursive: true);
     });
 
-    test('end-to-end test with recorder script', () async {
+    test('end-to-end test with recorder script (JIT)', () async {
       final outputDir = io.Directory('${tempDir.path}/output')..createSync();
 
       // Run the recorder in a separate process.
@@ -217,6 +233,47 @@ void main() {
       expect(trace.packet.any((p) => p.hasPerfSample()), isTrue);
       // Dart track should be enabled by default.
       expect(extractSeenEvents(trace), containsAll(['sleep']));
+    });
+
+    test('end-to-end test with recorder script (AOT)', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      final busyLoopAotProcess = await BusyLoopProcess.start(
+        'busy-loop-aot',
+        tempDir,
+        aot: true,
+      );
+
+      // Run the recorder in a separate process.
+      final recorder = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        tag: 'busy-loop-aot',
+      );
+      await Future.delayed(const Duration(seconds: 2));
+      await recorder.stop();
+
+      final timelineFiles = outputDir
+          .listSync()
+          .whereType<io.File>()
+          .where((file) => file.path.endsWith('.timeline'))
+          .toList();
+
+      final timelines = timelineFiles.map((e) => p.basename(e.path)).toList();
+      expect(
+        timelines,
+        equals(['${busyLoopAotProcess.pid}.timeline']),
+        reason: 'Expected timeline file to be created',
+      );
+
+      final trace = Trace()
+        ..mergeFromBuffer(timelineFiles.first.readAsBytesSync());
+      expect(trace.packet, isNotEmpty);
+      expect(trace.packet.any((p) => p.hasPerfSample()), isTrue);
+      // Dart track should be enabled by default.
+      expect(extractSeenEvents(trace), containsAll(['sleep']));
+
+      await busyLoopAotProcess.process.askToExit();
     });
 
     test('end-to-end test with recorder script - early exit', () async {

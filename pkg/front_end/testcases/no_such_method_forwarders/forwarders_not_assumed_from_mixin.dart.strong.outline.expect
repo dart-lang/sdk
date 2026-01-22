@@ -41,4 +41,4 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_
 Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:17:7 -> ListConstant(const <Type>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:17:7 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:17:7 -> MapConstant(const <Symbol, dynamic>{})
-Extra constant evaluation: evaluated: 18, effectively constant: 8
+Extra constant evaluation: evaluated: 19, effectively constant: 8

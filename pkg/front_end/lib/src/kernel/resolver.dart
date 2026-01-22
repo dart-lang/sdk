@@ -864,6 +864,12 @@ class Resolver {
                 fileUri: fileUri,
                 hasImmediatelyDeclaredInitializer: false,
                 isWildcard: isWildcard,
+                isClosureContextLoweringEnabled: libraryBuilder
+                    .loader
+                    .target
+                    .backendTarget
+                    .flags
+                    .isClosureContextLoweringEnabled,
               )..variable = formal;
             },
             growable: false,
@@ -897,6 +903,17 @@ class Resolver {
 
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
+    // TODO(cstefantsova): Remove special-casing over
+    // ExpressionCompilerProcedureBodyBuildContext below by computing formals in
+    // it.
+    List<VariableDeclaration> formalParameters =
+        bodyBuilderContext is ExpressionCompilerProcedureBodyBuildContext
+        ? []
+        : <VariableDeclaration>[
+            for (FormalParameterBuilder formal
+                in bodyBuilderContext.formals ?? [])
+              formal.variable!,
+          ];
     InferredFunctionBody inferredFunctionBody = context.typeInferrer
         .inferFunctionBody(
           fileUri: fileUri,
@@ -905,6 +922,8 @@ class Resolver {
           asyncMarker: AsyncMarker.Sync,
           body: fakeReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
+          parameters: formalParameters,
+          function: bodyBuilderContext.function,
         );
     assert(
       fakeReturn == inferredFunctionBody.body,
@@ -1161,11 +1180,19 @@ class Resolver {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
         VariableDeclaration variable = parameter.variable!;
-        typeInferrer.flowAnalysis.declare(
-          variable,
-          new SharedTypeView(variable.type),
-          initialized: true,
-        );
+        // TODO(62401): Ensure `variable` is an InternalExpressionVariable.
+        if (variable
+            case InternalExpressionVariable(
+                  astVariable: ExpressionVariable variable,
+                ) ||
+                // Coverage-ignore(suite): Not run.
+                ExpressionVariable variable) {
+          typeInferrer.flowAnalysis.declare(
+            variable,
+            new SharedTypeView(variable.type),
+            initialized: true,
+          );
+        }
       }
     }
   }
@@ -1336,6 +1363,12 @@ class Resolver {
         returnType: bodyBuilderContext.returnTypeContext,
         asyncMarker: asyncModifier,
         body: body,
+        parameters: <VariableDeclaration>[
+          for (FormalParameterBuilder formal
+              in bodyBuilderContext.formals ?? [])
+            formal.variable!,
+        ],
+        function: bodyBuilderContext.function,
       );
       body = inferredFunctionBody.body;
       function.emittedValueType = inferredFunctionBody.emittedValueType;
@@ -1378,6 +1411,9 @@ class Resolver {
         ])..fileOffset = body.fileOffset;
       }
     }
-    bodyBuilderContext.registerFunctionBody(body);
+    bodyBuilderContext.registerFunctionBody(
+      body,
+      inferredFunctionBody?.scopeProviderInfo,
+    );
   }
 }

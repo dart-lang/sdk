@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic field1;
+  field core::int? field2 = 42 as{Unchecked} core::int?;
+  constructor c1(dynamic field1, core::int? field2) → self::C
+    : self::C::field1 = field1, self::C::field2 = field2, super core::Object::•()
+    ;
+  constructor c2() → self::C
+    : self::C::field1 = 0, self::C::field2 = 1, super core::Object::•()
+    ;
+  constructor c3() → self::C
+    : self::C::field1 = null, super core::Object::•()
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: AsExpression @ org-dartlang-testcase:///field_initializer.dart:7:19 -> IntConstant(42)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

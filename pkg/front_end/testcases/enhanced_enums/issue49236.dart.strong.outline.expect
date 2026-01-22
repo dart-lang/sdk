@@ -138,4 +138,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:39:1
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:39:6 -> ListConstant(const <E6>[const E6{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49236.dart:42:3 -> InstanceConstant(const E7{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue49236.dart:41:6 -> ListConstant(const <E7>[const E7{_Enum.index: 0, _Enum._name: "element"}])
-Extra constant evaluation: evaluated: 61, effectively constant: 14
+Extra constant evaluation: evaluated: 65, effectively constant: 14

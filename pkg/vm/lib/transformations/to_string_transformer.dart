@@ -92,6 +92,7 @@ class ToStringVisitor extends RecursiveVisitor {
       node.function.body!.replaceWith(
         ReturnStatement(
           SuperMethodInvocation(
+            ThisExpression(),
             node.name,
             Arguments(<Expression>[]),
             findSuperMethod(node.enclosingClass!.superclass!),

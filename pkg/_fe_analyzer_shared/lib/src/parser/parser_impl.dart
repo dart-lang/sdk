@@ -326,7 +326,7 @@ class Parser {
   final bool _isEnhancedPartsFeatureEnabled;
 
   /// `true` if the 'primary-constructors' feature is enabled.
-  final bool _isPrimaryConstructorsFeatureEnabled;
+  final bool isPrimaryConstructorsFeatureEnabled;
 
   /// `true` if the 'anonymous-methods' feature is enabled.
   final bool _isAnonymousMethodsFeatureEnabled;
@@ -354,7 +354,7 @@ class Parser {
        ),
        _isEnhancedPartsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.enhancedParts),
-       _isPrimaryConstructorsFeatureEnabled = experimentalFeatures
+       isPrimaryConstructorsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.primaryConstructors),
        _isAnonymousMethodsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.anonymousMethods);
@@ -2217,7 +2217,7 @@ class Parser {
                 codes.codeFunctionTypedParameterVar,
               );
             } else {
-              if (!_isPrimaryConstructorsFeatureEnabled) {
+              if (!isPrimaryConstructorsFeatureEnabled) {
                 reportExperimentNotEnabled(
                   ExperimentalFlag.primaryConstructors,
                   varFinalOrConst,
@@ -2239,7 +2239,7 @@ class Parser {
             codes.codeFunctionTypedParameterVar,
           );
         } else {
-          if (!_isPrimaryConstructorsFeatureEnabled) {
+          if (!isPrimaryConstructorsFeatureEnabled) {
             reportExperimentNotEnabled(
               ExperimentalFlag.primaryConstructors,
               varFinalOrConst,
@@ -2260,7 +2260,7 @@ class Parser {
           if (memberKind != MemberKind.PrimaryConstructor) {
             reportRecoverableError(varFinalOrConst, codes.codeTypeAfterVar);
           } else {
-            if (!_isPrimaryConstructorsFeatureEnabled) {
+            if (!isPrimaryConstructorsFeatureEnabled) {
               reportExperimentNotEnabled(
                 ExperimentalFlag.primaryConstructors,
                 varOrFinal,
@@ -3049,7 +3049,7 @@ class Parser {
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
-      if (!_isPrimaryConstructorsFeatureEnabled) {
+      if (!isPrimaryConstructorsFeatureEnabled) {
         reportExperimentNotEnabled(
           ExperimentalFlag.primaryConstructors,
           semicolonToken,
@@ -3764,7 +3764,7 @@ class Parser {
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
-      if (!_isPrimaryConstructorsFeatureEnabled) {
+      if (!isPrimaryConstructorsFeatureEnabled) {
         reportExperimentNotEnabled(
           ExperimentalFlag.primaryConstructors,
           semicolonToken,
@@ -5186,7 +5186,7 @@ class Parser {
     bool nameIsRecovered = false;
     if (next.isA(Keyword.NEW)) {
       newToken = next;
-      if (!_isPrimaryConstructorsFeatureEnabled) {
+      if (!isPrimaryConstructorsFeatureEnabled) {
         reportExperimentNotEnabled(
           ExperimentalFlag.primaryConstructors,
           newToken,
@@ -5230,7 +5230,7 @@ class Parser {
           );
           listener.endMember();
           return token;
-        } else if (_isPrimaryConstructorsFeatureEnabled &&
+        } else if (isPrimaryConstructorsFeatureEnabled &&
             next2.isA(TokenType.OPEN_PAREN)) {
           if (typeInfo == noType &&
               covariantToken == null &&
@@ -5327,7 +5327,7 @@ class Parser {
         if (next2.isA(TokenType.COLON) ||
             next2.isA(TokenType.SEMICOLON) ||
             next2.isA(TokenType.OPEN_CURLY_BRACKET)) {
-          if (!_isPrimaryConstructorsFeatureEnabled) {
+          if (!isPrimaryConstructorsFeatureEnabled) {
             reportExperimentNotEnabled(
               ExperimentalFlag.primaryConstructors,
               next,

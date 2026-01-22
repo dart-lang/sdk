@@ -596,6 +596,8 @@ abstract class StatementVisitor<R> {
   R visitPatternVariableDeclaration(PatternVariableDeclaration node);
   R visitFunctionDeclaration(FunctionDeclaration node);
   R visitVariableStatement(VariableStatement node);
+  R visitPositionalParameter(PositionalParameter node);
+  R visitNamedParameter(NamedParameter node);
 }
 
 /// Helper mixin for [StatementVisitor] that implements visit methods by
@@ -662,6 +664,11 @@ mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
   @override
   R visitVariableStatement(VariableStatement node) =>
       visitVariableDeclaration(node);
+  @override
+  R visitPositionalParameter(PositionalParameter node) =>
+      defaultStatement(node);
+  @override
+  R visitNamedParameter(NamedParameter node) => defaultStatement(node);
 }
 
 abstract class MemberVisitor<R> {
@@ -817,8 +824,6 @@ abstract class TreeVisitor<R>
   R visitComponent(Component node);
   R visitTypeVariable(TypeVariable node);
   R visitLocalVariable(LocalVariable node);
-  R visitPositionalParameter(PositionalParameter node);
-  R visitNamedParameter(NamedParameter node);
   R visitThisVariable(ThisVariable node);
   R visitSyntheticVariable(SyntheticVariable node);
   R visitVariableContext(VariableContext node);
@@ -881,10 +886,6 @@ mixin TreeVisitorDefaultMixin<R> implements TreeVisitor<R> {
   R visitTypeVariable(TypeVariable node) => defaultTreeNode(node);
   @override
   R visitLocalVariable(LocalVariable node) => defaultTreeNode(node);
-  @override
-  R visitPositionalParameter(PositionalParameter node) => defaultTreeNode(node);
-  @override
-  R visitNamedParameter(NamedParameter node) => defaultTreeNode(node);
   @override
   R visitThisVariable(ThisVariable node) => defaultTreeNode(node);
   @override
@@ -957,8 +958,6 @@ abstract class TreeVisitor1<R, A>
   R visitComponent(Component node, A arg);
   R visitTypeVariable(TypeVariable node, A arg);
   R visitLocalVariable(LocalVariable node, A arg);
-  R visitPositionalParameter(PositionalParameter node, A arg);
-  R visitNamedParameter(NamedParameter node, A arg);
   R visitThisVariable(ThisVariable node, A arg);
   R visitSyntheticVariable(SyntheticVariable node, A arg);
   R visitVariableContext(VariableContext node, A arg);
@@ -1027,12 +1026,6 @@ mixin TreeVisitor1DefaultMixin<R, A> implements TreeVisitor1<R, A> {
   R visitTypeVariable(TypeVariable node, A arg) => defaultTreeNode(node, arg);
   @override
   R visitLocalVariable(LocalVariable node, A arg) => defaultTreeNode(node, arg);
-  @override
-  R visitPositionalParameter(PositionalParameter node, A arg) =>
-      defaultTreeNode(node, arg);
-  @override
-  R visitNamedParameter(NamedParameter node, A arg) =>
-      defaultTreeNode(node, arg);
   @override
   R visitThisVariable(ThisVariable node, A arg) => defaultTreeNode(node, arg);
   @override
@@ -2895,6 +2888,8 @@ abstract class StatementVisitor1<R, A> {
   R visitPatternVariableDeclaration(PatternVariableDeclaration node, A arg);
   R visitFunctionDeclaration(FunctionDeclaration node, A arg);
   R visitVariableStatement(VariableStatement node, A arg);
+  R visitPositionalParameter(PositionalParameter node, A arg);
+  R visitNamedParameter(NamedParameter node, A arg);
 }
 
 /// Helper mixin for [StatementVisitor1] that implements visit methods by
@@ -2972,6 +2967,12 @@ mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
   @override
   R visitVariableStatement(VariableStatement node, A arg) =>
       visitVariableDeclaration(node, arg);
+  @override
+  R visitPositionalParameter(PositionalParameter node, A arg) =>
+      defaultStatement(node, arg);
+  @override
+  R visitNamedParameter(NamedParameter node, A arg) =>
+      defaultStatement(node, arg);
 }
 
 /// [DartTypeVisitorExperimentExclusionMixin] is intended to reduce the effects
@@ -3288,6 +3289,20 @@ mixin StatementVisitorExperimentExclusionMixin<R>
   R visitVariableStatement(VariableStatement node) {
     return visitVariableDeclaration(node);
   }
+
+  @override
+  R visitPositionalParameter(PositionalParameter node) {
+    throw StateError(
+      "${runtimeType}.visitPositionalParameter isn't supported.",
+    );
+  }
+
+  @override
+  R visitNamedParameter(NamedParameter node) {
+    throw StateError(
+      "${runtimeType}.visitNamedParameter isn't supported.",
+    );
+  }
 }
 
 /// [StatementVisitor1ExperimentExclusionMixin] is intended to reduce the
@@ -3319,6 +3334,20 @@ mixin StatementVisitor1ExperimentExclusionMixin<R, A>
   @override
   R visitVariableStatement(VariableStatement node, A arg) {
     return visitVariableDeclaration(node, arg);
+  }
+
+  @override
+  R visitPositionalParameter(PositionalParameter node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitPositionalParameter isn't supported.",
+    );
+  }
+
+  @override
+  R visitNamedParameter(NamedParameter node, A arg) {
+    throw StateError(
+      "${runtimeType}.visitNamedParameter isn't supported.",
+    );
   }
 }
 
@@ -3404,20 +3433,6 @@ mixin TreeVisitorExperimentExclusionMixin<R> implements TreeVisitor<R> {
   }
 
   @override
-  R visitPositionalParameter(PositionalParameter node) {
-    throw StateError(
-      "${runtimeType}.visitPositionalParameter isn't supported.",
-    );
-  }
-
-  @override
-  R visitNamedParameter(NamedParameter node) {
-    throw StateError(
-      "${runtimeType}.visitNamedParameter isn't supported.",
-    );
-  }
-
-  @override
   R visitThisVariable(ThisVariable node) {
     throw StateError(
       "${runtimeType}.visitThisVariable isn't supported.",
@@ -3479,20 +3494,6 @@ mixin TreeVisitor1ExperimentExclusionMixin<R, A> implements TreeVisitor1<R, A> {
   R visitLocalVariable(LocalVariable node, A arg) {
     throw StateError(
       "${runtimeType}.visitLocalVariable isn't supported.",
-    );
-  }
-
-  @override
-  R visitPositionalParameter(PositionalParameter node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitPositionalParameter isn't supported.",
-    );
-  }
-
-  @override
-  R visitNamedParameter(NamedParameter node, A arg) {
-    throw StateError(
-      "${runtimeType}.visitNamedParameter isn't supported.",
     );
   }
 

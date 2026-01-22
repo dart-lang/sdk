@@ -531,7 +531,11 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     vm_isolate_group()->heap()->Verify("Dart::DartInit", kRequireMarked);
 #endif
   }
-  NOT_IN_PRODUCT(Profiler::Init());
+
+#if defined(DART_INCLUDE_PROFILER)
+  Profiler::Init();
+#endif
+
   // Allocate the "persistent" scoped handles for the predefined API
   // values (such as Dart_True, Dart_False and Dart_Null).
   Api::InitHandles();
@@ -676,13 +680,13 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
 
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
                  UptimeMillis());
   }
   Profiler::Cleanup();
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_INCLUDE_PROFILER)
 
   NativeSymbolResolver::Cleanup();
 

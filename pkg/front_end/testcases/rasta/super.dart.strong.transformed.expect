@@ -747,4 +747,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:245:11 -> IntConsta
 Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:245:11 -> IntConstant(87)
 Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:246:15 -> IntConstant(87)
 Evaluated: VariableGet @ org-dartlang-testcase:///super.dart:246:15 -> IntConstant(87)
-Extra constant evaluation: evaluated: 578, effectively constant: 25
+Extra constant evaluation: evaluated: 797, effectively constant: 25

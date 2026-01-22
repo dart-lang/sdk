@@ -7816,6 +7816,19 @@ invalidConstructorName = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments invalidCovariantModifierInPrimaryConstructor =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_covariant_modifier_in_primary_constructor',
+      problemMessage:
+          "The 'covariant' modifier can only be used on non-final declaring "
+          "parameters.",
+      correctionMessage: "Try removing 'covariant'.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'invalid_covariant_modifier_in_primary_constructor',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String kind: the kind of dependency.
 const DiagnosticWithArguments<

@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 127;
+  UInt32 formatVersion = 128;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -609,6 +609,7 @@ type SpecializedVariableSet extends Expression {
 type AbstractSuperPropertyGet extends Expression {
   Byte tag = 22;
   FileOffset fileOffset;
+  Expression receiver;
   Name name;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin;
@@ -617,6 +618,7 @@ type AbstractSuperPropertyGet extends Expression {
 type AbstractSuperPropertySet extends Expression {
   Byte tag = 23;
   FileOffset fileOffset;
+  Expression receiver;
   Name name;
   Expression value;
   MemberReference interfaceTarget;
@@ -626,6 +628,7 @@ type AbstractSuperPropertySet extends Expression {
 type SuperPropertyGet extends Expression {
   Byte tag = 24;
   FileOffset fileOffset;
+  Expression receiver;
   Name name;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin;
@@ -634,6 +637,7 @@ type SuperPropertyGet extends Expression {
 type SuperPropertySet extends Expression {
   Byte tag = 25;
   FileOffset fileOffset;
+  Expression receiver;
   Name name;
   Expression value;
   MemberReference interfaceTarget;
@@ -864,6 +868,7 @@ type EqualsCall extends Expression {
 type AbstractSuperMethodInvocation extends Expression {
   Byte tag = 28;
   FileOffset fileOffset;
+  Expression receiver;
   Name name;
   Arguments arguments;
   MemberReference interfaceTarget;
@@ -873,6 +878,7 @@ type AbstractSuperMethodInvocation extends Expression {
 type SuperMethodInvocation extends Expression {
   Byte tag = 29;
   FileOffset fileOffset;
+  Expression receiver;
   Name name;
   Arguments arguments;
   MemberReference interfaceTarget;

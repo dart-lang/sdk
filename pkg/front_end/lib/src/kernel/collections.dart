@@ -397,6 +397,12 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   Expression? problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
+  /// Variable [Scope] of this [ForInElement].
+  ///
+  /// Since [ForInElement] is desugared, its [scope] is passed on to other
+  /// [ScopeProvider] nodes in the output.
+  Scope? scope;
+
   ForInElement(
     this.expressionVariable,
     this.iterable,
@@ -1096,6 +1102,12 @@ class ForInMapEntry extends TreeNode
   MapLiteralEntry body;
   Expression? problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
+
+  /// Variable [Scope] of this [ForInMapEntry].
+  ///
+  /// Since [ForInMapEntry] is desugared, its [scope] is passed on to other
+  /// [ScopeProvider] nodes in the output.
+  Scope? scope;
 
   ForInMapEntry(
     this.expressionVariable,

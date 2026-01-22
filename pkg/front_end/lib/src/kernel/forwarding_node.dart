@@ -416,13 +416,18 @@ class ForwardingNode {
           named: namedArguments,
         );
         superCall = new SuperMethodInvocation(
+          new ThisExpression(),
           name,
           arguments,
           superTarget as Procedure,
         );
         break;
       case ProcedureKind.Getter:
-        superCall = new SuperPropertyGet(name, superTarget);
+        superCall = new SuperPropertyGet(
+          new ThisExpression(),
+          name,
+          superTarget,
+        );
         break;
       case ProcedureKind.Setter:
         DartType superParameterType = _combinedMemberSignature
@@ -445,7 +450,12 @@ class ForwardingNode {
               ..fileOffset = fileOffset;
           }
         }
-        superCall = new SuperPropertySet(name, expression, superTarget);
+        superCall = new SuperPropertySet(
+          new ThisExpression(),
+          name,
+          expression,
+          superTarget,
+        );
         break;
       // Coverage-ignore(suite): Not run.
       default:

@@ -551,6 +551,7 @@ class SynthesizedExtensionSignature {
     required TypeParameterFactory typeParameterFactory,
     required Uri fileUri,
     required int fileOffset,
+    required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
         .copyTypeParameters(
@@ -578,6 +579,7 @@ class SynthesizedExtensionSignature {
       fileUri: fileUri,
       isExtensionThis: true,
       hasImmediatelyDeclaredInitializer: false,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
     return new SynthesizedExtensionSignature._(
       clonedDeclarationTypeParameters,
@@ -603,6 +605,7 @@ class SynthesizedExtensionTypeSignature {
     required TypeParameterFactory typeParameterFactory,
     required Uri fileUri,
     required int fileOffset,
+    required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
         .copyTypeParameters(
@@ -647,6 +650,7 @@ class SynthesizedExtensionTypeSignature {
       fileUri: fileUri,
       isExtensionThis: true,
       hasImmediatelyDeclaredInitializer: false,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
 
     return new SynthesizedExtensionTypeSignature._(

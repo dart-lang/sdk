@@ -1264,7 +1264,8 @@ class SuperPropertyAccessGenerator extends Generator {
         kind: UnresolvedKind.Getter,
       );
     } else {
-      return new SuperPropertyGet(name, getter)..fileOffset = fileOffset;
+      return new SuperPropertyGet(new ThisExpression(), name, getter)
+        ..fileOffset = fileOffset;
     }
   }
 
@@ -1283,7 +1284,8 @@ class SuperPropertyAccessGenerator extends Generator {
         kind: UnresolvedKind.Setter,
       );
     } else {
-      return new SuperPropertySet(name, value, setter)..fileOffset = offset;
+      return new SuperPropertySet(new ThisExpression(), name, value, setter)
+        ..fileOffset = offset;
     }
   }
 

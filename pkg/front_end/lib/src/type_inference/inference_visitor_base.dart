@@ -41,6 +41,7 @@ import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
+import 'context_allocation_strategy.dart';
 import 'external_ast_helper.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
@@ -2198,8 +2199,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Let `(P0 x0, ..., Pm xm)` be the set of formal parameters of the closure
     // (including required, positional optional, and named optional parameters).
     // If any type `Pi` is missing, denote it as `_`.
-    List<VariableDeclaration> formals = function.positionalParameters.toList()
-      ..addAll(function.namedParameters);
+    List<VariableDeclaration> formals = [
+      ...function.positionalParameters,
+      ...function.namedParameters,
+    ];
 
     // Let `B` denote the closure body.  If `B` is an expression function body
     // (`=> e`), treat it as equivalent to a block function body containing a
@@ -2255,7 +2258,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      VariableDeclarationImpl formal = formals[i] as VariableDeclarationImpl;
+      InternalExpressionVariable formal =
+          formals[i] as InternalExpressionVariable;
       if (formal.isImplicitlyTyped) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
@@ -2293,11 +2297,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           !formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
           codeOptionalNonNullableWithoutInitializerError.withArgumentsOld(
-            formal.name!,
+            formal.cosmeticName!,
             formal.type,
           ),
           formal.fileOffset,
-          formal.name!.length,
+          formal.cosmeticName!.length,
           fileUri,
         );
         formal.isErroneouslyInitialized = true;
@@ -2308,11 +2312,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
       VariableDeclaration parameter = positionalParameters[i];
-      flowAnalysis.declare(
-        parameter,
-        new SharedTypeView(parameter.type),
-        initialized: true,
-      );
+      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
+      if (parameter
+          case InternalExpressionVariable(
+                astVariable: ExpressionVariable parameter,
+              ) ||
+              // Coverage-ignore(suite): Not run.
+              ExpressionVariable parameter) {
+        flowAnalysis.declare(
+          parameter,
+          new SharedTypeView(parameter.type),
+          initialized: true,
+        );
+      }
       inferMetadata(visitor, parameter);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
@@ -2324,11 +2336,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     for (VariableDeclaration parameter in function.namedParameters) {
-      flowAnalysis.declare(
-        parameter,
-        new SharedTypeView(parameter.type),
-        initialized: true,
-      );
+      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
+      if (parameter
+          case InternalExpressionVariable(
+                astVariable: ExpressionVariable parameter,
+              ) ||
+              // Coverage-ignore(suite): Not run.
+              ExpressionVariable parameter) {
+        flowAnalysis.declare(
+          parameter,
+          new SharedTypeView(parameter.type),
+          initialized: true,
+        );
+      }
       inferMetadata(visitor, parameter);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
@@ -2341,15 +2361,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     for (VariableDeclaration parameter in function.namedParameters) {
-      VariableDeclarationImpl formal = parameter as VariableDeclarationImpl;
+      InternalExpressionVariable formal =
+          parameter as InternalExpressionVariable;
       // Required named parameters shouldn't have initializers.
       if (formal.isRequired && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
           codeRequiredNamedParameterHasDefaultValueError.withArgumentsOld(
-            formal.name!,
+            formal.cosmeticName!,
           ),
           formal.fileOffset,
-          formal.name!.length,
+          formal.cosmeticName!.length,
           fileUri,
         );
       }
@@ -4110,7 +4131,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // TODO(johnniwinther): Create an [AbstractSuperPropertyGet] if
         //  [isAbstract] is `true`, once [AbstractSuperPropertyGet] is
         //  supported by backends.
-        new SuperPropertyGet(name, member)..fileOffset = nameOffset;
+        new SuperPropertyGet(new ThisExpression(), name, member)
+          ..fileOffset = nameOffset;
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, node);
     }
@@ -4174,7 +4196,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       node.value = rhs..parent = node;
     } else {
       assert(node == null, "Unexpected node for super property set $node.");
-      node = new SuperPropertySet(name, rhs, member)..fileOffset = nameOffset;
+      node = new SuperPropertySet(new ThisExpression(), name, rhs, member)
+        ..fileOffset = nameOffset;
     }
     return new ExpressionInferenceResult(rhsResult.inferredType, node!);
   }
@@ -5512,6 +5535,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// inference to visit a node.  This performs assertions to make sure that
   /// temporary type inference state has been properly cleaned up.
   void checkCleanState();
+
+  /// Performs preliminary computations before inferring the body of a function.
+  ///
+  /// [parameters] are those of the function being inferred.
+  ScopeProviderInfo beginFunctionBodyInference(
+    List<VariableDeclaration> parameters,
+  );
+
+  /// Performs finishing computations after inferring the body of a function.
+  void endFunctionBodyInference(ScopeProviderInfo scopeProviderInfo);
 }
 
 /// Describes assignability kind of one type to another.

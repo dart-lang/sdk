@@ -1,0 +1,9 @@
+class C {
+  C.c1(this.field1, this.field2);
+  C.c2()
+      : field1 = 0,
+        field2 = 1;
+  C.c3();
+  var field1;
+  var field2 = 42 as int?;
+}

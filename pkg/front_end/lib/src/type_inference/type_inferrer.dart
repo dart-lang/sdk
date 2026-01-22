@@ -16,6 +16,7 @@ import '../kernel/internal_ast.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'closure_context.dart';
+import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'inference_visitor_base.dart';
@@ -56,6 +57,8 @@ abstract class TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required FunctionNode function,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   });
 
@@ -164,6 +167,13 @@ class TypeInferrerImpl implements TypeInferrer {
             libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled,
       );
 
+  bool get isClosureContextLoweringEnabled => libraryBuilder
+      .loader
+      .target
+      .backendTarget
+      .flags
+      .isClosureContextLoweringEnabled;
+
   InferenceVisitorBase _createInferenceVisitor({
     required Uri fileUri,
     SourceConstructorBuilder? constructorBuilder,
@@ -219,6 +229,8 @@ class TypeInferrerImpl implements TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required FunctionNode function,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
@@ -231,10 +243,17 @@ class TypeInferrerImpl implements TypeInferrer {
       returnType,
       false,
     );
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
+      scopeProviderInfo = visitor.beginFunctionBodyInference(parameters);
+    }
     StatementInferenceResult result = visitor.inferStatement(
       body,
       closureContext,
     );
+    if (scopeProviderInfo != null) {
+      visitor.endFunctionBodyInference(scopeProviderInfo);
+    }
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       if (!flowAnalysis.isReachable) {
@@ -256,6 +275,7 @@ class TypeInferrerImpl implements TypeInferrer {
     return new InferredFunctionBody(
       result.hasChanged ? result.statement : body,
       emittedValueType,
+      scopeProviderInfo,
     );
   }
 
@@ -433,6 +453,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required FunctionNode function,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
@@ -443,6 +465,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       asyncMarker: asyncMarker,
       body: body,
       expressionEvaluationHelper: expressionEvaluationHelper,
+      parameters: parameters,
+      function: function,
     );
     benchmarker.endSubdivide();
     return result;
@@ -525,6 +549,11 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
 class InferredFunctionBody {
   final Statement body;
   final DartType? emittedValueType;
+  final ScopeProviderInfo? scopeProviderInfo;
 
-  InferredFunctionBody(this.body, this.emittedValueType);
+  InferredFunctionBody(
+    this.body,
+    this.emittedValueType,
+    this.scopeProviderInfo,
+  );
 }

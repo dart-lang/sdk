@@ -2573,23 +2573,31 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
 
   Class& klass = GetSuperOrDie();
 
-  StringIndex name_index = ReadStringReference();  // read name index.
-  NameIndex library_reference =
-      ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_')
-          ? ReadCanonicalNameReference()  // read library index.
-          : NameIndex();
-  const String& getter_name = H.DartGetterName(library_reference, name_index);
-  const String& method_name = H.DartMethodName(library_reference, name_index);
+  const String* getter_name = nullptr;
+  const String* method_name = nullptr;
+  {
+    AlternativeReadingScope alt(&reader_);
+    SkipExpression();  // skip receiver
 
-  SkipInterfaceMemberNameReference();  // skip target_reference.
+    StringIndex name_index = ReadStringReference();  // read name index.
+    NameIndex library_reference =
+        ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_')
+            ? ReadCanonicalNameReference()  // read library index.
+            : NameIndex();
+    getter_name = &H.DartGetterName(library_reference, name_index);
+    method_name = &H.DartMethodName(library_reference, name_index);
+  }
 
   // Search the superclass chain for the selector looking for either getter or
   // method.
   Function& function = Function::Handle(Z);
   if (!klass.IsNull() && klass.EnsureIsFinalized(thread()) == Error::null()) {
     while (!klass.IsNull()) {
-      function = Resolver::ResolveDynamicFunction(Z, klass, method_name);
+      function = Resolver::ResolveDynamicFunction(Z, klass, *method_name);
       if (!function.IsNull()) {
+        SkipExpression();                    // skip receiver
+        SkipName();                          // skip name
+        SkipInterfaceMemberNameReference();  // skip target_reference.
         Function& target =
             Function::ZoneHandle(Z, function.ImplicitClosureFunction());
         ASSERT(!target.IsNull());
@@ -2597,7 +2605,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
         // which captures `this`.
         return B->BuildImplicitClosureCreation(position, target);
       }
-      function = Resolver::ResolveDynamicFunction(Z, klass, getter_name);
+      function = Resolver::ResolveDynamicFunction(Z, klass, *getter_name);
       if (!function.IsNull()) break;
       klass = klass.SuperClass();
     }
@@ -2605,6 +2613,10 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
 
   Fragment instructions;
   if (klass.IsNull()) {
+    SkipExpression();                    // skip receiver
+    SkipName();                          // skip name
+    SkipInterfaceMemberNameReference();  // skip target_reference.
+
     instructions +=
         Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
     instructions += IntConstant(1);  // array size
@@ -2614,7 +2626,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
     Class& parent_klass = GetSuperOrDie();
 
     instructions += BuildAllocateInvocationMirrorCall(
-        position, getter_name,
+        position, *getter_name,
         /* num_type_arguments = */ 0,
         /* num_arguments = */ 1,
         /* argument_names = */ Object::empty_array(), actuals_array,
@@ -2629,7 +2641,9 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
     ASSERT(!klass.IsNull());
     ASSERT(!function.IsNull());
 
-    instructions += LoadLocal(parsed_function()->receiver_var());
+    instructions += BuildExpression();   // read receiver.
+    SkipName();                          // skip name
+    SkipInterfaceMemberNameReference();  // skip target_reference.
 
     instructions +=
         StaticCall(position, Function::ZoneHandle(Z, function.ptr()),
@@ -2646,17 +2660,25 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
 
   Class& klass = GetSuperOrDie();
 
-  const String& setter_name = ReadNameAsSetterName();  // read name.
+  const String* setter_name = nullptr;
+  {
+    AlternativeReadingScope alt(&reader_);
+    SkipExpression();                       // skip receiver
+    setter_name = &ReadNameAsSetterName();  // read name
+  }
 
   Function& function = Function::Handle(Z);
   if (klass.EnsureIsFinalized(thread()) == Error::null()) {
-    function = Resolver::ResolveDynamicFunction(Z, klass, setter_name);
+    function = Resolver::ResolveDynamicFunction(Z, klass, *setter_name);
   }
 
   Fragment instructions(MakeTemp());
   LocalVariable* value = MakeTemporary();  // this holds RHS value
 
   if (function.IsNull()) {
+    SkipExpression();  // skip receiver
+    SkipName();        // skip name
+
     instructions +=
         Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
     instructions += IntConstant(2);  // array size
@@ -2671,7 +2693,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
     build_rest_of_actuals += StoreIndexed(kArrayCid);
 
     instructions += BuildAllocateInvocationMirrorCall(
-        position, setter_name, /* num_type_arguments = */ 0,
+        position, *setter_name, /* num_type_arguments = */ 0,
         /* num_arguments = */ 2,
         /* argument_names = */ Object::empty_array(), actuals_array,
         build_rest_of_actuals);
@@ -2685,9 +2707,8 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
     instructions += Drop();  // Drop result of NoSuchMethod invocation
     instructions += Drop();  // Drop array
   } else {
-    // receiver
-    instructions += LoadLocal(parsed_function()->receiver_var());
-
+    instructions += BuildExpression();  // read receiver
+    SkipName();                         // skip name
     instructions += BuildExpression();  // read value.
     instructions += StoreLocal(position, value);
 
@@ -3220,27 +3241,19 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
-  intptr_t type_args_len = 0;
-  {
-    AlternativeReadingScope alt(&reader_);
-    SkipName();                        // skip method name
-    ReadUInt();                        // read argument count.
-    type_args_len = ReadListLength();  // read types list length.
-  }
-
   Class& klass = GetSuperOrDie();
 
-  // Search the superclass chain for the selector.
-  const String& method_name = ReadNameAsMethodName();  // read name.
-
-  // Figure out selector signature.
-  intptr_t argument_count;
+  intptr_t type_args_len = 0;
+  const String* method_name = nullptr;
+  intptr_t argument_count = 0;
   Array& argument_names = Array::Handle(Z);
   {
     AlternativeReadingScope alt(&reader_);
-    argument_count = ReadUInt();
+    SkipExpression();                       // skip receiver
+    method_name = &ReadNameAsMethodName();  // read name.
+    argument_count = ReadUInt();            // read argument count.
+    type_args_len = PeekListLength();       // read types list length.
     SkipListOfDartTypes();
-
     SkipListOfExpressions();
     intptr_t named_list_length = ReadListLength();
     argument_names = Array::New(named_list_length, H.allocation_space());
@@ -3251,12 +3264,15 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
     }
   }
 
+  // Search the superclass chain for the selector.
   Function& function = FindMatchingFunction(
-      klass, method_name, type_args_len,
+      klass, *method_name, type_args_len,
       argument_count + 1 /* account for 'this' */, argument_names);
 
   if (function.IsNull()) {
-    ReadUInt();  // argument count
+    SkipExpression();  // skip receiver
+    SkipName();        // skip name
+    ReadUInt();        // argument count
     intptr_t type_list_length = ReadListLength();
 
     Fragment instructions;
@@ -3306,7 +3322,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
       }
     }
     instructions += BuildAllocateInvocationMirrorCall(
-        position, method_name, type_list_length,
+        position, *method_name, type_list_length,
         /* num_arguments = */ argument_count + 1, argument_names, actuals_array,
         build_rest_of_actuals);
 
@@ -3323,6 +3339,8 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 
     {
       AlternativeReadingScope alt(&reader_);
+      SkipExpression();                         // skip receiver
+      SkipName();                               // skip name
       ReadUInt();                               // read argument count.
       intptr_t list_length = ReadListLength();  // read types list length.
       if (list_length > 0) {
@@ -3332,8 +3350,8 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
       }
     }
 
-    // receiver
-    instructions += LoadLocal(parsed_function()->receiver_var());
+    instructions += BuildExpression();  // read receiver
+    SkipName();                         // skip name
 
     Array& argument_names = Array::ZoneHandle(Z);
     intptr_t argument_count;

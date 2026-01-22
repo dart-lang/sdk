@@ -270,8 +270,17 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
     if (needsSynthesizedDefaultConstructor) {
+      bool isClosureContextLoweringEnabled = libraryBuilder
+          .loader
+          .target
+          .backendTarget
+          .flags
+          .isClosureContextLoweringEnabled;
       ConstructorEncodingStrategy encodingStrategy =
-          new ConstructorEncodingStrategy(this);
+          new ConstructorEncodingStrategy(
+            this,
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          );
 
       FormalParameterBuilder nameFormalParameterBuilder =
           new FormalParameterBuilder(
@@ -283,6 +292,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fileOffset: fileOffset,
             fileUri: fileUri,
             hasImmediatelyDeclaredInitializer: false,
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
           );
 
       FormalParameterBuilder indexFormalParameterBuilder =
@@ -295,6 +305,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fileOffset: fileOffset,
             fileUri: fileUri,
             hasImmediatelyDeclaredInitializer: false,
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
           );
 
       ConstructorDeclaration constructorDeclaration =
@@ -537,6 +548,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
       _procedure.transformerFlags |= TransformerFlag.superCalls;
       _procedure.function.body = new ReturnStatement(
         new SuperMethodInvocation(
+          new ThisExpression(),
           toStringName,
           new Arguments([]),
           toStringSuperTarget,

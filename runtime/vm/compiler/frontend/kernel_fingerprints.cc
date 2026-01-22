@@ -456,11 +456,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       break;
     case kSuperPropertyGet:
       ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
       BuildHash(ReadNameAsGetterName().Hash());  // read name.
       CalculateGetterNameFingerprint();  // read interface_target_reference.
       return;
     case kSuperPropertySet:
       ReadPosition();                            // read position.
+      CalculateExpressionFingerprint();          // read receiver.
       BuildHash(ReadNameAsSetterName().Hash());  // read name.
       CalculateExpressionFingerprint();          // read value.
       CalculateSetterNameFingerprint();  // read interface_target_reference.
@@ -524,6 +526,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       break;
     case kSuperMethodInvocation:
       ReadPosition();                             // read position.
+      CalculateExpressionFingerprint();           // read receiver.
       BuildHash(ReadNameAsMethodName().Hash());   // read name.
       CalculateArgumentsFingerprint();            // read arguments.
       CalculateInterfaceMemberNameFingerprint();  // read target_reference.
