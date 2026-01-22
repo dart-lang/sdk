@@ -76,4 +76,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue31767.dart:29:7
 Evaluated: StaticGet @ org-dartlang-testcase:///issue31767_lib.dart:12:25 -> IntConstant(3)
 Evaluated: StaticGet @ org-dartlang-testcase:///issue31767_lib.dart:12:43 -> IntConstant(3)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue31767_lib.dart:12:68 -> InstanceConstant(const _A{_A.field: 5})
-Extra constant evaluation: evaluated: 16, effectively constant: 6
+Extra constant evaluation: evaluated: 18, effectively constant: 6

@@ -548,6 +548,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
       _procedure.transformerFlags |= TransformerFlag.superCalls;
       _procedure.function.body = new ReturnStatement(
         new SuperMethodInvocation(
+          new ThisExpression(),
           toStringName,
           new Arguments([]),
           toStringSuperTarget,

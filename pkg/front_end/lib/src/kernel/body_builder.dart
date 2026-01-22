@@ -10396,8 +10396,11 @@ class BodyBuilderImpl extends StackListenerImpl
         length: noLength,
       );
     } else {
-      Expression receiver = new SuperPropertyGet(name, target)
-        ..fileOffset = offset;
+      Expression receiver = new SuperPropertyGet(
+        new ThisExpression(),
+        name,
+        target,
+      )..fileOffset = offset;
       return forest.createExpressionInvocation(
         arguments.fileOffset,
         receiver,

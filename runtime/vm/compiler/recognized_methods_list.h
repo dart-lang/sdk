@@ -578,8 +578,8 @@ namespace dart {
     0x75c3bc94)                                                                \
   V(CoreLibrary, _OneByteString, _substringUncheckedNative,                    \
     OneByteString_substringUnchecked, 0x9afb019e)                              \
-  V(CoreLibrary, _OneByteString, ==, OneByteString_equality, 0x4e8cc609)       \
-  V(CoreLibrary, _TwoByteString, ==, TwoByteString_equality, 0x4e8cc609)       \
+  V(CoreLibrary, _OneByteString, ==, OneByteString_equality, 0x82728a15)       \
+  V(CoreLibrary, _TwoByteString, ==, TwoByteString_equality, 0x82728a15)       \
   V(CoreLibrary, _AbstractType, get:hashCode, AbstractType_getHashCode,        \
     0x75c3bc94)                                                                \
   V(CoreLibrary, _AbstractType, ==, AbstractType_equality, 0x463b50ee)         \

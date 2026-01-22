@@ -85,4 +85,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///issue55372.dart:48:15 -> BoolC
 Evaluated: VariableGet @ org-dartlang-testcase:///issue55372.dart:48:22 -> StringConstant("hello")
 Evaluated: VariableGet @ org-dartlang-testcase:///issue55372.dart:48:35 -> IntConstant(1)
 Evaluated: VariableGet @ org-dartlang-testcase:///issue55372.dart:48:35 -> IntConstant(1)
-Extra constant evaluation: evaluated: 154, effectively constant: 20
+Extra constant evaluation: evaluated: 158, effectively constant: 20

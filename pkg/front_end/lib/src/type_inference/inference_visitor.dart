@@ -9598,6 +9598,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       'Unexpected index set target $indexSetTarget.',
     );
     Expression assignment = new SuperMethodInvocation(
+      new ThisExpression(),
       indexSetName,
       new Arguments(<Expression>[index, value])..fileOffset = node.fileOffset,
       indexSetTarget.classMember as Procedure,
@@ -10121,6 +10122,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     assert(readTarget.isInstanceMember || readTarget.isSuperMember);
     Expression read = new SuperMethodInvocation(
+      new ThisExpression(),
       indexGetName,
       new Arguments(<Expression>[readIndex])..fileOffset = node.readOffset,
       readTarget.classMember as Procedure,
@@ -10160,6 +10162,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     assert(writeTarget.isInstanceMember || writeTarget.isSuperMember);
     Expression write = new SuperMethodInvocation(
+      new ThisExpression(),
       indexSetName,
       new Arguments(<Expression>[writeIndex, value])
         ..fileOffset = node.writeOffset,
@@ -11757,6 +11760,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     assert(readTarget.isInstanceMember || readTarget.isSuperMember);
     Expression read = new SuperMethodInvocation(
+      new ThisExpression(),
       indexGetName,
       new Arguments(<Expression>[readIndex])..fileOffset = node.readOffset,
       readTarget.classMember as Procedure,
@@ -11819,6 +11823,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     assert(writeTarget.isInstanceMember || writeTarget.isSuperMember);
     Expression write = new SuperMethodInvocation(
+      new ThisExpression(),
       indexSetName,
       new Arguments(<Expression>[writeIndex, valueExpression])
         ..fileOffset = node.writeOffset,

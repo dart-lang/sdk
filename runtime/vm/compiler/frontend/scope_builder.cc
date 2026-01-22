@@ -787,14 +787,14 @@ void ScopeBuilder::VisitExpression() {
       UNREACHABLE();
       break;
     case kSuperPropertyGet:
-      HandleLoadReceiver();
       helper_.ReadPosition();                      // read position.
+      VisitExpression();                           // read receiver.
       helper_.SkipName();                          // read name.
       helper_.SkipInterfaceMemberNameReference();  // read target_reference.
       return;
     case kSuperPropertySet:
-      HandleLoadReceiver();
       helper_.ReadPosition();                      // read position.
+      VisitExpression();                           // read receiver.
       helper_.SkipName();                          // read name.
       VisitExpression();                           // read value.
       helper_.SkipInterfaceMemberNameReference();  // read target_reference.
@@ -862,8 +862,8 @@ void ScopeBuilder::VisitExpression() {
       UNREACHABLE();
       break;
     case kSuperMethodInvocation:
-      HandleLoadReceiver();
       helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
       helper_.SkipName();      // read name.
       VisitArguments();        // read arguments.
       // read interface_target_reference.

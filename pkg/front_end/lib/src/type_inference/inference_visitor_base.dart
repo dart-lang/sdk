@@ -4131,7 +4131,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // TODO(johnniwinther): Create an [AbstractSuperPropertyGet] if
         //  [isAbstract] is `true`, once [AbstractSuperPropertyGet] is
         //  supported by backends.
-        new SuperPropertyGet(name, member)..fileOffset = nameOffset;
+        new SuperPropertyGet(new ThisExpression(), name, member)
+          ..fileOffset = nameOffset;
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, node);
     }
@@ -4195,7 +4196,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       node.value = rhs..parent = node;
     } else {
       assert(node == null, "Unexpected node for super property set $node.");
-      node = new SuperPropertySet(name, rhs, member)..fileOffset = nameOffset;
+      node = new SuperPropertySet(new ThisExpression(), name, rhs, member)
+        ..fileOffset = nameOffset;
     }
     return new ExpressionInferenceResult(rhsResult.inferredType, node!);
   }

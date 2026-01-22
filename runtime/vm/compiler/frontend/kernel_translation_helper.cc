@@ -2632,11 +2632,13 @@ void KernelReaderHelper::SkipExpression() {
       break;
     case kSuperPropertyGet:
       ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
       SkipName();                          // read name.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertySet:
       ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
       SkipName();                          // read name.
       SkipExpression();                    // read value.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
@@ -2700,6 +2702,7 @@ void KernelReaderHelper::SkipExpression() {
       break;
     case kSuperMethodInvocation:
       ReadPosition();                      // read position.
+      SkipExpression();                    // read receiver.
       SkipName();                          // read name.
       SkipArguments();                     // read arguments.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.

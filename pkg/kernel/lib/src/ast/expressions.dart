@@ -935,16 +935,26 @@ class InstanceSet extends Expression {
 ///
 /// This may invoke a getter, read a field, or tear off a method.
 class AbstractSuperPropertyGet extends Expression {
+  Expression receiver;
+
   Name name;
 
   Reference interfaceTargetReference;
 
-  AbstractSuperPropertyGet(Name name, Member interfaceTarget)
-      : this.byReference(
-            name, getNonNullableMemberReferenceGetter(interfaceTarget));
+  AbstractSuperPropertyGet(
+    Expression receiver,
+    Name name,
+    Member interfaceTarget,
+  ) : this.byReference(receiver, name,
+            getNonNullableMemberReferenceGetter(interfaceTarget));
 
   AbstractSuperPropertyGet.byReference(
-      this.name, this.interfaceTargetReference);
+    this.receiver,
+    this.name,
+    this.interfaceTargetReference,
+  ) {
+    receiver.parent = this;
+  }
 
   Member get interfaceTarget => interfaceTargetReference.asMember;
 
@@ -974,15 +984,22 @@ class AbstractSuperPropertyGet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
   }
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+  }
 
   @override
   String toString() {
@@ -1000,15 +1017,20 @@ class AbstractSuperPropertyGet extends Expression {
 ///
 /// This may invoke a getter, read a field, or tear off a method.
 class SuperPropertyGet extends Expression {
+  Expression receiver;
+
   Name name;
 
   Reference interfaceTargetReference;
 
-  SuperPropertyGet(Name name, Member interfaceTarget)
-      : this.byReference(
-            name, getNonNullableMemberReferenceGetter(interfaceTarget));
+  SuperPropertyGet(Expression receiver, Name name, Member interfaceTarget)
+      : this.byReference(receiver, name,
+            getNonNullableMemberReferenceGetter(interfaceTarget));
 
-  SuperPropertyGet.byReference(this.name, this.interfaceTargetReference);
+  SuperPropertyGet.byReference(
+      this.receiver, this.name, this.interfaceTargetReference) {
+    receiver.parent = this;
+  }
 
   Member get interfaceTarget => interfaceTargetReference.asMember;
 
@@ -1038,15 +1060,22 @@ class SuperPropertyGet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
   }
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+  }
 
   @override
   String toString() {
@@ -1087,17 +1116,20 @@ class SuperPropertyGet extends Expression {
 ///
 /// This may invoke a setter or assign a field.
 class AbstractSuperPropertySet extends Expression {
+  Expression receiver;
   Name name;
   Expression value;
 
   Reference interfaceTargetReference;
 
-  AbstractSuperPropertySet(Name name, Expression value, Member interfaceTarget)
-      : this.byReference(
-            name, value, getNonNullableMemberReferenceSetter(interfaceTarget));
+  AbstractSuperPropertySet(
+      Expression receiver, Name name, Expression value, Member interfaceTarget)
+      : this.byReference(receiver, name, value,
+            getNonNullableMemberReferenceSetter(interfaceTarget));
 
   AbstractSuperPropertySet.byReference(
-      this.name, this.value, this.interfaceTargetReference) {
+      this.receiver, this.name, this.value, this.interfaceTargetReference) {
+    receiver.parent = this;
     value.parent = this;
   }
 
@@ -1120,6 +1152,7 @@ class AbstractSuperPropertySet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
     value.accept(v);
@@ -1127,12 +1160,16 @@ class AbstractSuperPropertySet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     value = v.transform(value);
     value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     value = v.transform(value);
     value.parent = this;
   }
@@ -1157,17 +1194,20 @@ class AbstractSuperPropertySet extends Expression {
 ///
 /// Evaluates to the value of [value].
 class SuperPropertySet extends Expression {
+  Expression receiver;
   Name name;
   Expression value;
 
   Reference interfaceTargetReference;
 
-  SuperPropertySet(Name name, Expression value, Member interfaceTarget)
-      : this.byReference(
-            name, value, getNonNullableMemberReferenceSetter(interfaceTarget));
+  SuperPropertySet(
+      Expression receiver, Name name, Expression value, Member interfaceTarget)
+      : this.byReference(receiver, name, value,
+            getNonNullableMemberReferenceSetter(interfaceTarget));
 
   SuperPropertySet.byReference(
-      this.name, this.value, this.interfaceTargetReference) {
+      this.receiver, this.name, this.value, this.interfaceTargetReference) {
+    receiver.parent = this;
     value.parent = this;
   }
 
@@ -1190,6 +1230,7 @@ class SuperPropertySet extends Expression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
     value.accept(v);
@@ -1197,12 +1238,16 @@ class SuperPropertySet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     value = v.transform(value);
     value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     value = v.transform(value);
     value.parent = this;
   }
@@ -2399,6 +2444,8 @@ class EqualsCall extends Expression {
 ///    class Class extends Super with Mixin {}
 ///
 class AbstractSuperMethodInvocation extends InvocationExpression {
+  Expression receiver;
+
   @override
   Name name;
 
@@ -2408,15 +2455,25 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
   Reference interfaceTargetReference;
 
   AbstractSuperMethodInvocation(
-      Name name, Arguments arguments, Procedure interfaceTarget)
-      : this.byReference(
-            name,
-            arguments,
-            // An invocation doesn't refer to the setter.
-            getNonNullableMemberReferenceGetter(interfaceTarget));
+    Expression receiver,
+    Name name,
+    Arguments arguments,
+    Procedure interfaceTarget,
+  ) : this.byReference(
+          receiver,
+          name,
+          arguments,
+          // An invocation doesn't refer to the setter.
+          getNonNullableMemberReferenceGetter(interfaceTarget),
+        );
 
   AbstractSuperMethodInvocation.byReference(
-      this.name, this.arguments, this.interfaceTargetReference) {
+    this.receiver,
+    this.name,
+    this.arguments,
+    this.interfaceTargetReference,
+  ) {
+    receiver.parent = this;
     arguments.parent = this;
   }
 
@@ -2450,6 +2507,7 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
@@ -2457,12 +2515,16 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     arguments = v.transform(arguments);
     arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     arguments = v.transform(arguments);
     arguments.parent = this;
   }
@@ -2484,6 +2546,8 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 ///
 /// The provided arguments might not match the parameters of the target.
 class SuperMethodInvocation extends InvocationExpression {
+  Expression receiver;
+
   @override
   Name name;
 
@@ -2493,15 +2557,25 @@ class SuperMethodInvocation extends InvocationExpression {
   Reference interfaceTargetReference;
 
   SuperMethodInvocation(
-      Name name, Arguments arguments, Procedure interfaceTarget)
-      : this.byReference(
-            name,
-            arguments,
-            // An invocation doesn't refer to the setter.
-            getNonNullableMemberReferenceGetter(interfaceTarget));
+    Expression receiver,
+    Name name,
+    Arguments arguments,
+    Procedure interfaceTarget,
+  ) : this.byReference(
+          receiver,
+          name,
+          arguments,
+          // An invocation doesn't refer to the setter.
+          getNonNullableMemberReferenceGetter(interfaceTarget),
+        );
 
   SuperMethodInvocation.byReference(
-      this.name, this.arguments, this.interfaceTargetReference) {
+    this.receiver,
+    this.name,
+    this.arguments,
+    this.interfaceTargetReference,
+  ) {
+    receiver.parent = this;
     arguments.parent = this;
   }
 
@@ -2534,6 +2608,7 @@ class SuperMethodInvocation extends InvocationExpression {
 
   @override
   void visitChildren(Visitor v) {
+    receiver.accept(v);
     interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
@@ -2541,12 +2616,16 @@ class SuperMethodInvocation extends InvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     arguments = v.transform(arguments);
     arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    receiver = v.transform(receiver);
+    receiver.parent = this;
     arguments = v.transform(arguments);
     arguments.parent = this;
   }

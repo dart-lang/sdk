@@ -61,4 +61,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_const
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:23:3 -> InstanceConstant(const G{_Enum.index: 1, _Enum._name: "g2"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///synthetic_enum_constructor.dart:24:3 -> InstanceConstant(const G{_Enum.index: 2, _Enum._name: "g3"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///synthetic_enum_constructor.dart:21:6 -> ListConstant(const <G>[const G{_Enum.index: 0, _Enum._name: "g1"}, const G{_Enum.index: 1, _Enum._name: "g2"}, const G{_Enum.index: 2, _Enum._name: "g3"}])
-Extra constant evaluation: evaluated: 30, effectively constant: 12
+Extra constant evaluation: evaluated: 31, effectively constant: 12

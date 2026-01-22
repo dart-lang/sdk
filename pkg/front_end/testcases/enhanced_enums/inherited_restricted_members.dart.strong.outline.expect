@@ -314,4 +314,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted
 Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:75:6 -> ListConstant(const <E9>[const E9{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inherited_restricted_members.dart:86:3 -> InstanceConstant(const E10{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_restricted_members.dart:85:6 -> ListConstant(const <E10>[const E10{_Enum.index: 0, _Enum._name: "element"}])
-Extra constant evaluation: evaluated: 100, effectively constant: 20
+Extra constant evaluation: evaluated: 108, effectively constant: 20

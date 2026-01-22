@@ -2619,6 +2619,9 @@ class EquivalenceStrategy {
     if (other is! AbstractSuperPropertyGet) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
+    if (!checkAbstractSuperPropertyGet_receiver(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkAbstractSuperPropertyGet_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -2640,6 +2643,9 @@ class EquivalenceStrategy {
     if (other is! SuperPropertyGet) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
+    if (!checkSuperPropertyGet_receiver(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkSuperPropertyGet_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -2660,6 +2666,9 @@ class EquivalenceStrategy {
     if (other is! AbstractSuperPropertySet) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
+    if (!checkAbstractSuperPropertySet_receiver(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkAbstractSuperPropertySet_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -2684,6 +2693,9 @@ class EquivalenceStrategy {
     if (other is! SuperPropertySet) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
+    if (!checkSuperPropertySet_receiver(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkSuperPropertySet_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -2911,6 +2923,9 @@ class EquivalenceStrategy {
     if (other is! AbstractSuperMethodInvocation) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
+    if (!checkAbstractSuperMethodInvocation_receiver(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkAbstractSuperMethodInvocation_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -2935,6 +2950,9 @@ class EquivalenceStrategy {
     if (other is! SuperMethodInvocation) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
+    if (!checkSuperMethodInvocation_receiver(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkSuperMethodInvocation_name(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -7236,6 +7254,11 @@ class EquivalenceStrategy {
     return checkExpression_fileOffset(visitor, node, other);
   }
 
+  bool checkAbstractSuperPropertyGet_receiver(EquivalenceVisitor visitor,
+      AbstractSuperPropertyGet node, AbstractSuperPropertyGet other) {
+    return visitor.checkNodes(node.receiver, other.receiver, 'receiver');
+  }
+
   bool checkAbstractSuperPropertyGet_name(EquivalenceVisitor visitor,
       AbstractSuperPropertyGet node, AbstractSuperPropertyGet other) {
     return visitor.checkNodes(node.name, other.name, 'name');
@@ -7254,6 +7277,11 @@ class EquivalenceStrategy {
     return checkExpression_fileOffset(visitor, node, other);
   }
 
+  bool checkSuperPropertyGet_receiver(EquivalenceVisitor visitor,
+      SuperPropertyGet node, SuperPropertyGet other) {
+    return visitor.checkNodes(node.receiver, other.receiver, 'receiver');
+  }
+
   bool checkSuperPropertyGet_name(EquivalenceVisitor visitor,
       SuperPropertyGet node, SuperPropertyGet other) {
     return visitor.checkNodes(node.name, other.name, 'name');
@@ -7270,6 +7298,11 @@ class EquivalenceStrategy {
   bool checkSuperPropertyGet_fileOffset(EquivalenceVisitor visitor,
       SuperPropertyGet node, SuperPropertyGet other) {
     return checkExpression_fileOffset(visitor, node, other);
+  }
+
+  bool checkAbstractSuperPropertySet_receiver(EquivalenceVisitor visitor,
+      AbstractSuperPropertySet node, AbstractSuperPropertySet other) {
+    return visitor.checkNodes(node.receiver, other.receiver, 'receiver');
   }
 
   bool checkAbstractSuperPropertySet_name(EquivalenceVisitor visitor,
@@ -7293,6 +7326,11 @@ class EquivalenceStrategy {
   bool checkAbstractSuperPropertySet_fileOffset(EquivalenceVisitor visitor,
       AbstractSuperPropertySet node, AbstractSuperPropertySet other) {
     return checkExpression_fileOffset(visitor, node, other);
+  }
+
+  bool checkSuperPropertySet_receiver(EquivalenceVisitor visitor,
+      SuperPropertySet node, SuperPropertySet other) {
+    return visitor.checkNodes(node.receiver, other.receiver, 'receiver');
   }
 
   bool checkSuperPropertySet_name(EquivalenceVisitor visitor,
@@ -7531,6 +7569,11 @@ class EquivalenceStrategy {
     return checkInvocationExpression_fileOffset(visitor, node, other);
   }
 
+  bool checkAbstractSuperMethodInvocation_receiver(EquivalenceVisitor visitor,
+      AbstractSuperMethodInvocation node, AbstractSuperMethodInvocation other) {
+    return visitor.checkNodes(node.receiver, other.receiver, 'receiver');
+  }
+
   bool checkAbstractSuperMethodInvocation_name(EquivalenceVisitor visitor,
       AbstractSuperMethodInvocation node, AbstractSuperMethodInvocation other) {
     return visitor.checkNodes(node.name, other.name, 'name');
@@ -7552,6 +7595,11 @@ class EquivalenceStrategy {
   bool checkAbstractSuperMethodInvocation_fileOffset(EquivalenceVisitor visitor,
       AbstractSuperMethodInvocation node, AbstractSuperMethodInvocation other) {
     return checkInvocationExpression_fileOffset(visitor, node, other);
+  }
+
+  bool checkSuperMethodInvocation_receiver(EquivalenceVisitor visitor,
+      SuperMethodInvocation node, SuperMethodInvocation other) {
+    return visitor.checkNodes(node.receiver, other.receiver, 'receiver');
   }
 
   bool checkSuperMethodInvocation_name(EquivalenceVisitor visitor,
