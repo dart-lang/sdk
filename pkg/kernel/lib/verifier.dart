@@ -240,8 +240,16 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         origin: origin);
   }
 
+  // TODO(cstefantsova): Remove this method when the new variable model is
+  //  supported.
+  bool _isNewModelVariable(TreeNode node) {
+    return node is ExpressionVariable && node is! VariableDeclaration ||
+        node is FunctionParameter;
+  }
+
   TreeNode? enterParent(TreeNode node) {
-    if (!identical(node.parent, currentParent)) {
+    // TODO(cstefantsova): Support new variable model.
+    if (!_isNewModelVariable(node) && !identical(node.parent, currentParent)) {
       problem(
           node,
           "Incorrect parent pointer on ${node}:"
@@ -1087,6 +1095,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitVariableGet(VariableGet node) {
+    // TODO(cstefantsova): Support new variable model.
+    if (_isNewModelVariable(node.expressionVariable)) {
+      return;
+    }
     enterTreeNode(node);
     checkVariableInScope(node.expressionVariable, node);
     visitChildren(node);
@@ -1102,6 +1114,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitVariableSet(VariableSet node) {
+    // TODO(cstefantsova): Support new variable model.
+    if (_isNewModelVariable(node.expressionVariable)) {
+      return;
+    }
     enterTreeNode(node);
     checkVariableInScope(node.expressionVariable, node);
     visitChildren(node);

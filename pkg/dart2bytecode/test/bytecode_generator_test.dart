@@ -168,6 +168,13 @@ main() {
     'type_ops.dart',
     'try_blocks.dart',
     'loops.dart',
+    'instance_creation.dart',
+    'super_calls.dart',
+    'literals.dart',
+    'asserts.dart',
+    'field_initializers.dart',
+    'optional_params.dart',
+    'bootstrapping.dart',
   };
 
   group('gen-bytecode-with-closure-context-lowering', () {

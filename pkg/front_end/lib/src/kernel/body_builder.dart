@@ -371,13 +371,30 @@ class BodyBuilderImpl extends StackListenerImpl
     this.constantContext = constantContext;
     if (formalParameterScope != null) {
       for (VariableBuilder builder in formalParameterScope!.localVariables) {
-        assignedVariables.declare(builder.variable!);
+        // TODO(62401): Ensure `builder.variable!` is an
+        // InternalExpressionVariable.
+        if (builder.variable!
+            case InternalExpressionVariable(
+                  astVariable: ExpressionVariable variable,
+                ) ||
+                // Coverage-ignore(suite): Not run.
+                ExpressionVariable variable) {
+          assignedVariables.declare(variable);
+        }
       }
     }
     if (thisVariable != null && context.isConstructor) {
       // The this variable is not part of the [formalParameterScope] in
       // constructors.
-      assignedVariables.declare(thisVariable!);
+      // TODO(62401): Ensure `thisVariable!` is an InternalExpressionVariable.
+      if (thisVariable!
+          case InternalExpressionVariable(
+                astVariable: ExpressionVariable variable,
+              ) ||
+              // Coverage-ignore(suite): Not run.
+              ExpressionVariable variable) {
+        assignedVariables.declare(variable);
+      }
     }
   }
 
@@ -5437,9 +5454,10 @@ class BodyBuilderImpl extends StackListenerImpl
         hasImmediatelyDeclaredInitializer: initializerStart != null,
         isWildcard: isWildcard,
         publicName: publicName,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
     }
-    VariableDeclaration variable = parameter.build(libraryBuilder);
+    VariableDeclaration functionParameter = parameter.build(libraryBuilder);
     Expression? initializer = name?.initializer;
     if (initializer != null) {
       if (_context.isRedirectingFactory) {
@@ -5450,31 +5468,40 @@ class BodyBuilderImpl extends StackListenerImpl
           initializer.fileOffset,
           noLength,
         );
-        variable.isErroneouslyInitialized = true;
+        functionParameter.isErroneouslyInitialized = true;
       } else {
         if (!parameter.initializerWasInferred) {
-          variable.initializer = initializer..parent = variable;
+          functionParameter.initializer = initializer
+            ..parent = functionParameter;
         }
       }
     } else if (kind.isOptional) {
-      variable.initializer ??= forest.createNullLiteral(noLocation)
-        ..parent = variable;
+      functionParameter.initializer ??= forest.createNullLiteral(noLocation)
+        ..parent = functionParameter;
     }
     if (annotations != null) {
-      variable.clearAnnotations();
+      functionParameter.clearAnnotations();
       for (Expression annotation in annotations) {
-        variable.addAnnotation(annotation);
+        functionParameter.addAnnotation(annotation);
       }
       // TODO(johnniwinther): This seems wrong. If we add the annotations, we
       //  should infer them.
       if (functionNestingLevel == 0) {
-        _registerSingleTargetAnnotations(variable);
+        _registerSingleTargetAnnotations(functionParameter);
       }
     }
     push(parameter);
     // We pass `ignoreDuplicates: true` because the variable might have been
     // previously passed to `declare` in the `BodyBuilder` constructor.
-    assignedVariables.declare(variable, ignoreDuplicates: true);
+    // TODO(62401): Ensure `functionParameter` is an InternalExpressionVariable.
+    if (functionParameter
+        case InternalExpressionVariable(
+              astVariable: ExpressionVariable variable,
+            ) ||
+            // Coverage-ignore(suite): Not run.
+            ExpressionVariable variable) {
+      assignedVariables.declare(variable, ignoreDuplicates: true);
+    }
   }
 
   @override
@@ -5790,6 +5817,18 @@ class BodyBuilderImpl extends StackListenerImpl
         }
       }
     }
+    assert(
+      exception == null ||
+          exception.kind == FormalParameterKind.requiredPositional ||
+          // Coverage-ignore(suite): Not run.
+          exception.kind == FormalParameterKind.optionalPositional,
+    );
+    assert(
+      stackTrace == null ||
+          stackTrace.kind == FormalParameterKind.requiredPositional ||
+          // Coverage-ignore(suite): Not run.
+          stackTrace.kind == FormalParameterKind.optionalPositional,
+    );
     push(
       forest.createCatch(
         offsetForToken(onKeyword ?? catchKeyword),

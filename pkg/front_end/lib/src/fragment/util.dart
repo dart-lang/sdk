@@ -190,6 +190,13 @@ class ExtensionInstancePropertyEncodingStrategy
       onTypeBuilder: declarationBuilder.onType,
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
+      isClosureContextLoweringEnabled: builder
+          .libraryBuilder
+          .loader
+          .target
+          .backendTarget
+          .flags
+          .isClosureContextLoweringEnabled,
     );
     return new ExtensionInstanceGetterEncoding(
       fragment,
@@ -214,6 +221,13 @@ class ExtensionInstancePropertyEncodingStrategy
       onTypeBuilder: declarationBuilder.onType,
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
+      isClosureContextLoweringEnabled: builder
+          .libraryBuilder
+          .loader
+          .target
+          .backendTarget
+          .flags
+          .isClosureContextLoweringEnabled,
     );
     return new ExtensionInstanceSetterEncoding(
       fragment,
@@ -266,6 +280,13 @@ class ExtensionTypeInstancePropertyEncodingStrategy
           typeParameterFactory: typeParameterFactory,
           fileUri: fragment.fileUri,
           fileOffset: fragment.nameOffset,
+          isClosureContextLoweringEnabled: builder
+              .libraryBuilder
+              .loader
+              .target
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled,
         );
     return new ExtensionTypeInstanceGetterEncoding(
       fragment,
@@ -290,6 +311,13 @@ class ExtensionTypeInstancePropertyEncodingStrategy
           typeParameterFactory: typeParameterFactory,
           fileUri: fragment.fileUri,
           fileOffset: fragment.nameOffset,
+          isClosureContextLoweringEnabled: builder
+              .libraryBuilder
+              .loader
+              .target
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled,
         );
     return new ExtensionTypeInstanceSetterEncoding(
       fragment,

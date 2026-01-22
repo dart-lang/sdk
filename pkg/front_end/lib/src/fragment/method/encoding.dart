@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/names.dart';
@@ -541,6 +542,11 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         typeParameters.add(t.parameter);
       }
     }
+    assert(
+      _thisFormal.kind == FormalParameterKind.requiredPositional ||
+          // Coverage-ignore(suite): Not run.
+          _thisFormal.kind == FormalParameterKind.optionalPositional,
+    );
     FunctionNode function =
         new FunctionNode(
             isAbstractOrExternal ? null : new EmptyStatement(),
@@ -966,6 +972,13 @@ class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
       onTypeBuilder: declarationBuilder.onType,
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
+      isClosureContextLoweringEnabled: builder
+          .libraryBuilder
+          .loader
+          .target
+          .backendTarget
+          .flags
+          .isClosureContextLoweringEnabled,
     );
     return fragment.isOperator
         ? new _ExtensionInstanceOperatorEncoding(
@@ -1097,6 +1110,13 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
           typeParameterFactory: typeParameterFactory,
           fileUri: fragment.fileUri,
           fileOffset: fragment.nameOffset,
+          isClosureContextLoweringEnabled: builder
+              .libraryBuilder
+              .loader
+              .target
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled,
         );
     return fragment.isOperator
         ? new _ExtensionTypeInstanceOperatorEncoding(

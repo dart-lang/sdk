@@ -3681,6 +3681,37 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  void beginFunctionBodyInference(
+    FunctionNode function,
+    List<VariableDeclaration> parameters,
+  ) {
+    _contextAllocationStrategy.enterScopeProvider(function);
+    _handleDeclarationsOfParameters(parameters);
+  }
+
+  @override
+  void endFunctionBodyInference(FunctionNode function) {
+    _contextAllocationStrategy.exitScopeProvider(function);
+  }
+
+  void _handleDeclarationsOfParameters(List<VariableDeclaration> parameters) {
+    for (VariableDeclaration parameter in parameters) {
+      // TODO(62401): Ensure `parameter` is an InternalExpressionVariable.
+      if (parameter
+          case InternalExpressionVariable(
+                astVariable: ExpressionVariable parameter,
+              ) ||
+              // Coverage-ignore(suite): Not run.
+              ExpressionVariable parameter) {
+        _contextAllocationStrategy.handleDeclarationOfVariable(
+          parameter,
+          captureKind: _captureKindForVariable(parameter),
+        );
+      }
+    }
+  }
+
+  @override
   ExpressionInferenceResult visitFunctionExpression(
     FunctionExpression node,
     DartType typeContext,
@@ -3689,6 +3720,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.function,
       _capturedVariablesForNode(node),
     );
+    _handleDeclarationsOfParameters([
+      ...node.function.positionalParameters,
+      ...node.function.namedParameters,
+    ]);
 
     bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
     _inTryOrLocalFunction = true;

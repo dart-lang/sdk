@@ -1060,10 +1060,225 @@ class InternalLocalVariable extends TreeNode
   }
 }
 
+class InternalPositionalParameter extends TreeNode
+    with InternalExpressionVariableMixin, DelegatingVariableMixin
+    implements PositionalParameter, InternalExpressionVariable {
+  @override
+  PositionalParameter astVariable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  @override
+  final bool isLocalFunction;
+
+  InternalPositionalParameter({
+    required this.astVariable,
+    required this.isImplicitlyTyped,
+    this.forSyntheticToken = false,
+    this.isLocalFunction = false,
+  });
+
+  @override
+  R accept<R>(StatementVisitor<R> v) => v.visitPositionalParameter(astVariable);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitPositionalParameter(astVariable, arg);
+
+  @override
+  String toString() {
+    return "InternalPositionalParameter(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(astVariable);
+    List<String> modifiers = [
+      if (forSyntheticToken) "forSyntheticToken",
+      if (isImplicitlyTyped) "isImplicitlyTyped",
+      if (isLocalFunction) "isLocalFunction",
+    ];
+    if (modifiers.isNotEmpty) {
+      printer.write("[${modifiers.join(",")}]");
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression? get defaultValue => astVariable.defaultValue;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set defaultValue(Expression? value) {
+    astVariable.defaultValue = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredDefaultType => astVariable.hasDeclaredDefaultType;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredDefaultType(bool value) {
+    astVariable.hasDeclaredDefaultType = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void clearAnnotations() {
+    astVariable.clearAnnotations();
+  }
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExpressionVariable get variable => this;
+
+  @override
+  void set variable(ExpressionVariable value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+}
+
+class InternalNamedParameter extends TreeNode
+    with InternalExpressionVariableMixin, DelegatingVariableMixin
+    implements NamedParameter, InternalExpressionVariable {
+  @override
+  NamedParameter astVariable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  @override
+  final bool isLocalFunction;
+
+  InternalNamedParameter({
+    required this.astVariable,
+    required this.isImplicitlyTyped,
+    this.forSyntheticToken = false,
+    this.isLocalFunction = false,
+  });
+
+  @override
+  R accept<R>(StatementVisitor<R> v) => v.visitNamedParameter(astVariable);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitNamedParameter(astVariable, arg);
+
+  @override
+  String toString() {
+    return "InternalNamedParameter(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(astVariable);
+    List<String> modifiers = [
+      if (forSyntheticToken) "forSyntheticToken",
+      if (isImplicitlyTyped) "isImplicitlyTyped",
+      if (isLocalFunction) "isLocalFunction",
+    ];
+    if (modifiers.isNotEmpty) {
+      printer.write("[${modifiers.join(",")}]");
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression? get defaultValue => astVariable.defaultValue;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set defaultValue(Expression? value) {
+    astVariable.defaultValue = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredDefaultType => astVariable.hasDeclaredDefaultType;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredDefaultType(bool value) {
+    astVariable.hasDeclaredDefaultType = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void clearAnnotations() {
+    astVariable.clearAnnotations();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String get parameterName => astVariable.parameterName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set parameterName(String value) {
+    astVariable.parameterName = value;
+  }
+
+  @override
+  int binaryOffsetNoTag = -1;
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ExpressionVariable get variable => this;
+
+  @override
+  void set variable(ExpressionVariable value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+}
+
 mixin DelegatingVariableMixin on InternalExpressionVariableMixin
     implements InternalExpressionVariable {
   @override
   String? get cosmeticName => astVariable.cosmeticName;
+
+  @override
+  TreeNode? get parent => astVariable.parent;
+
+  @override
+  void set parent(TreeNode? value) {
+    astVariable.parent = value;
+  }
+
+  @override
+  List<Expression> get annotations => astVariable.annotations;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set annotations(List<Expression> value) {
+    astVariable.annotations = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void addAnnotation(Expression node) {
+    astVariable.addAnnotation(node);
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1072,7 +1287,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasDeclaredInitializer => astVariable.hasDeclaredInitializer;
 
   @override
@@ -1082,7 +1296,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   Expression? get initializer => astVariable.initializer;
 
   @override
@@ -1101,7 +1314,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isCovariantByClass => astVariable.isCovariantByClass;
 
   @override
@@ -1111,15 +1323,12 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  bool get isCovariantByDeclaration {
-    // TODO(cstefantsova): Should it return `false` instead?
-    throw new UnsupportedError("${astVariable.runtimeType}");
-  }
+  bool get isCovariantByDeclaration => astVariable.isCovariantByDeclaration;
 
   @override
+  // Coverage-ignore(suite): Not run.
   void set isCovariantByDeclaration(bool value) {
-    // TODO(cstefantsova): Should it do nothing instead?
-    throw new UnsupportedError("${astVariable.runtimeType}");
+    astVariable.isCovariantByDeclaration = value;
   }
 
   @override
@@ -1170,7 +1379,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isLowered => astVariable.isLowered;
 
   @override
@@ -1180,7 +1388,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isRequired => astVariable.isRequired;
 
   @override
@@ -1241,15 +1448,12 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   bool get isAssignable => astVariable.isAssignable;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsFinal => astVariable.hasIsFinal;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsConst => astVariable.hasIsConst;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsLate => astVariable.hasIsLate;
 
   @override
@@ -1257,11 +1461,9 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   bool get hasIsInitializingFormal => astVariable.hasIsInitializingFormal;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsSynthesized => astVariable.hasIsSynthesized;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsHoisted => astVariable.hasIsHoisted;
 
   @override
@@ -1269,24 +1471,19 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   bool get hasHasDeclaredInitializer => astVariable.hasHasDeclaredInitializer;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsCovariantByClass => astVariable.hasIsCovariantByClass;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsRequired => astVariable.hasIsRequired;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsCovariantByDeclaration =>
       astVariable.hasIsCovariantByDeclaration;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsLowered => astVariable.hasIsLowered;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsWildcard => astVariable.hasIsWildcard;
 
   @override
@@ -1295,7 +1492,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
       astVariable.hasIsSuperInitializingFormal;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasIsErroneouslyInitialized =>
       astVariable.hasIsErroneouslyInitialized;
 
@@ -1303,12 +1499,10 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   int get fileOffset => astVariable.fileOffset;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set fileOffset(int value) {
     astVariable.fileOffset = value;
   }
 
-  // Coverage-ignore(suite): Not run.
   int get flags => astVariable.flags;
 
   // Coverage-ignore(suite): Not run.
@@ -1317,13 +1511,22 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   R accept<R>(TreeVisitor<R> v) {
-    throw new UnsupportedError("${this.runtimeType}");
+    return astVariable.accept(v);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    throw new UnsupportedError("${this.runtimeType}");
+    return astVariable.accept1(v, arg);
+  }
+
+  String? get name => astVariable.cosmeticName;
+
+  // Coverage-ignore(suite): Not run.
+  void set name(String? value) {
+    astVariable.cosmeticName = value;
   }
 
   VariableContext get context {
@@ -1347,10 +1550,6 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
 
   @override
   Location? get location {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  String? get name {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -1398,7 +1597,7 @@ mixin DelegatingVariableMixin on InternalExpressionVariableMixin
 }
 
 abstract interface class InternalExpressionVariable
-    implements IExpressionVariable {
+    implements IExpressionVariable, Annotatable {
   /// This is the output variable that the clients receive.
   ///
   /// Most of the calls to variable properties are delegated to [astVariable],
@@ -1459,6 +1658,9 @@ abstract interface class InternalExpressionVariable
   /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
   /// lowering is enabled.
   abstract String? lateName;
+
+  @override
+  abstract List<Expression> annotations;
 }
 
 mixin InternalExpressionVariableMixin on TreeNode

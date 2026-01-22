@@ -11,7 +11,9 @@ import 'package:kernel/ast.dart'
         DynamicType,
         Expression,
         InvalidExpression,
+        NamedParameter,
         NullLiteral,
+        PositionalParameter,
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
@@ -20,7 +22,11 @@ import '../base/lookup_result.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder_context.dart';
-import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/internal_ast.dart'
+    show
+        InternalNamedParameter,
+        InternalPositionalParameter,
+        VariableDeclarationImpl;
 import '../kernel/resolver.dart';
 import '../kernel/wildcard_lowering.dart';
 import '../source/fragment_factory.dart';
@@ -118,6 +124,8 @@ class FormalParameterBuilder extends NamedBuilderImpl
 
   final int? nameOffset;
 
+  final bool isClosureContextLoweringEnabled;
+
   FormalParameterBuilder({
     required this.kind,
     required this.modifiers,
@@ -131,6 +139,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
     this.isWildcard = false,
     this.publicName,
     required this.nameOffset,
+    required this.isClosureContextLoweringEnabled,
   }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
        this._initializerToken = initializerToken {
     type.registerInferredTypeListener(this);
@@ -199,21 +208,61 @@ class FormalParameterBuilder extends NamedBuilderImpl
         _ => name,
       };
 
-      variable = new VariableDeclarationImpl(
-        variableName,
-        // [VariableDeclarationImpl] uses `null` to signal an omitted type.
-        type: isTypeOmitted ? null : builtType,
-        isFinal: modifiers.isFinal,
-        isConst: false,
-        isInitializingFormal: isInitializingFormal,
-        isSuperInitializingFormal: isSuperInitializingFormal,
-        isCovariantByDeclaration: isCovariantByDeclaration,
-        isRequired: isRequiredNamed,
-        hasDeclaredInitializer: hasDeclaredInitializer,
-        isLowered: isExtensionThis,
-        isSynthesized: name == noNameSentinel,
-        isWildcard: isWildcard,
-      )..fileOffset = fileOffset;
+      if (isClosureContextLoweringEnabled) {
+        switch (kind) {
+          case FormalParameterKind.requiredPositional:
+          case FormalParameterKind.optionalPositional:
+            variable = new InternalPositionalParameter(
+              astVariable: new PositionalParameter(
+                cosmeticName: variableName,
+                type: isTypeOmitted ? const DynamicType() : builtType,
+                defaultValue: null,
+                isCovariantByDeclaration: isCovariantByDeclaration,
+                isInitializingFormal: isInitializingFormal,
+                isFinal: modifiers.isFinal,
+                hasDeclaredDefaultType: hasDeclaredInitializer,
+                isLowered: isExtensionThis,
+                isSynthesized: name == noNameSentinel,
+                isWildcard: isWildcard,
+              )..fileOffset = fileOffset,
+              isImplicitlyTyped: isTypeOmitted,
+            )..fileOffset = fileOffset;
+          case FormalParameterKind.requiredNamed:
+          // Coverage-ignore(suite): Not run.
+          case FormalParameterKind.optionalNamed:
+            variable = new InternalNamedParameter(
+              astVariable: new NamedParameter(
+                parameterName: variableName!,
+                type: isTypeOmitted ? const DynamicType() : builtType,
+                defaultValue: null,
+                isCovariantByDeclaration: isCovariantByDeclaration,
+                isRequired: isRequiredNamed,
+                isInitializingFormal: isInitializingFormal,
+                isFinal: modifiers.isFinal,
+                hasDeclaredDefaultType: hasDeclaredInitializer,
+                isSynthesized: name == noNameSentinel,
+                isWildcard: isWildcard,
+              )..fileOffset = fileOffset,
+              isImplicitlyTyped: isTypeOmitted,
+            )..fileOffset = fileOffset;
+        }
+      } else {
+        variable = new VariableDeclarationImpl(
+          variableName,
+          // [VariableDeclarationImpl] uses `null` to signal an omitted type.
+          type: isTypeOmitted ? null : builtType,
+          isFinal: modifiers.isFinal,
+          isConst: false,
+          isInitializingFormal: isInitializingFormal,
+          isSuperInitializingFormal: isSuperInitializingFormal,
+          isCovariantByDeclaration: isCovariantByDeclaration,
+          isRequired: isRequiredNamed,
+          hasDeclaredInitializer: hasDeclaredInitializer,
+          isLowered: isExtensionThis,
+          isSynthesized: name == noNameSentinel,
+          isWildcard: isWildcard,
+        )..fileOffset = fileOffset;
+      }
     }
     return variable!;
   }
@@ -238,6 +287,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
       initializerToken: _takeInitializerToken(),
       hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
       publicName: publicName,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     )..variable = variable;
   }
 
@@ -254,6 +304,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
         publicName: publicName,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       )..variable = variable;
     } else if (isSuperInitializingFormal) {
       return new FormalParameterBuilder(
@@ -268,6 +319,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
         publicName: publicName,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       )..variable = variable;
     } else {
       return this;

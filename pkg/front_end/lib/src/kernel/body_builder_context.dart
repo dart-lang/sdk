@@ -811,4 +811,7 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
   void registerSuperCall() {
     _procedure.transformerFlags |= TransformerFlag.superCalls;
   }
+
+  @override
+  FunctionNode get function => _procedure.function;
 }

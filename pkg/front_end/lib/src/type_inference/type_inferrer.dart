@@ -56,6 +56,8 @@ abstract class TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required FunctionNode function,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   });
 
@@ -219,6 +221,8 @@ class TypeInferrerImpl implements TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required FunctionNode function,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
@@ -231,10 +235,12 @@ class TypeInferrerImpl implements TypeInferrer {
       returnType,
       false,
     );
+    visitor.beginFunctionBodyInference(function, parameters);
     StatementInferenceResult result = visitor.inferStatement(
       body,
       closureContext,
     );
+    visitor.endFunctionBodyInference(function);
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       if (!flowAnalysis.isReachable) {
@@ -433,6 +439,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required FunctionNode function,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
@@ -443,6 +451,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       asyncMarker: asyncMarker,
       body: body,
       expressionEvaluationHelper: expressionEvaluationHelper,
+      parameters: parameters,
+      function: function,
     );
     benchmarker.endSubdivide();
     return result;
