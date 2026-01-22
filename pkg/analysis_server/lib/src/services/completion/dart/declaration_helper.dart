@@ -1349,7 +1349,6 @@ class DeclarationHelper {
         case CommentReference():
           return currentNode;
         case ConstructorDeclaration():
-          _visitParameterList(currentNode.parameters);
           return currentNode;
         case FieldDeclaration():
           return currentNode;

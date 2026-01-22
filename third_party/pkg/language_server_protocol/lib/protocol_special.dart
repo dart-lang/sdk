@@ -67,6 +67,7 @@ class Either2<T1, T2> implements ToJsonable {
   @override
   bool operator ==(other) =>
       other is Either2<T1, T2> &&
+      other._which == _which &&
       lspEquals(other._t1, _t1) &&
       lspEquals(other._t2, _t2);
 
@@ -111,6 +112,7 @@ class Either3<T1, T2, T3> implements ToJsonable {
   @override
   bool operator ==(other) =>
       other is Either3<T1, T2, T3> &&
+      other._which == _which &&
       lspEquals(other._t1, _t1) &&
       lspEquals(other._t2, _t2) &&
       lspEquals(other._t3, _t3);
@@ -176,6 +178,7 @@ class Either4<T1, T2, T3, T4> implements ToJsonable {
   @override
   bool operator ==(other) =>
       other is Either4<T1, T2, T3, T4> &&
+      other._which == _which &&
       lspEquals(other._t1, _t1) &&
       lspEquals(other._t2, _t2) &&
       lspEquals(other._t3, _t3) &&

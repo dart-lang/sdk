@@ -12,6 +12,7 @@ import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:collection/collection.dart';
+import 'package:language_server_protocol/protocol_special.dart' show Either2;
 
 import 'log.dart';
 import 'message_equality.dart';
@@ -20,7 +21,7 @@ import 'server_driver.dart';
 /// Some messages from the analysis server should just be ignored.
 bool _shouldSkip(Message message) =>
     // This is the response to the initialize request.
-    message.id == 0 ||
+    (message.id?.valueEquals(0) ?? false) ||
     // Notifications, we can skip these.
     message.id == null ||
     // These are unpredictable and noisy, we can silently ignore them for now.
@@ -63,10 +64,10 @@ class LogPlayer {
     var extraServerMessages = <Message>[];
     // Maps the recorded message IDs for messages initiated by the analysis
     // server to the actual message IDs observed for this run.
-    var actualServerMessageIds = <int, int>{};
+    var actualServerMessageIds = <Either2<int, String>, Either2<int, String>>{};
     // Original recorded ids for work progress notifications. We will skip the
     // responses to these and not expect the requests as they are unreliable.
-    var workProgressIds = <int>{};
+    var workProgressIds = <Either2<int, String>>{};
     try {
       while (nextIndex < entries.length) {
         try {
@@ -192,7 +193,7 @@ class LogPlayer {
     Message message,
     ServerDriver? server,
     List<Message> pendingServerMessageExpectations,
-    Map<int, int> actualServerMessageIds,
+    Map<Either2<int, String>, Either2<int, String>> actualServerMessageIds,
     List<Message> extraServerMessages,
   ) {
     var isServerInitiatedRequest = message.method != null;
@@ -339,5 +340,8 @@ extension MessageExtension on Message {
       _messageEquality.equals(this, other, skipMatchId: skipMatchId);
 
   // Can't be a setter https://github.com/dart-lang/language/issues/4334
-  void setId(int newId) => map['id'] = newId;
+  void setId(Either2<int, String> newId) =>
+      // We always store the underlying value in the map, not the Either2,
+      // because that matches what a real JSON map would have.
+      map['id'] = newId.map((i) => i, (s) => s);
 }

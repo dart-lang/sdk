@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
+import 'package:language_server_protocol/protocol_special.dart' show Either2;
 
 /// A sink for a session logger that will write entries to a file.
 class SessionLoggerFileSink extends SessionLoggerSink {
@@ -148,12 +149,11 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   ///
   /// This assumes that the entries are all from the same process. If that isn't
   /// true, then the returned list may contain duplicate ids.
-  List<int> _getRequestIds(List<LogEntry> entries) {
+  List<Either2<int, String>> _getRequestIds(List<LogEntry> entries) {
     return entries
         .where((entry) => entry.isMessage)
         .map((entry) => entry.message.id)
-        .where((id) => id != null)
-        .cast<int>()
+        .nonNulls
         .toList();
   }
 
