@@ -124,13 +124,15 @@ class BinaryExpressionResolver {
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
-      flow?.equalityOperation_end(
+      flow?.storeExpressionInfo(
         node,
-        leftInfo,
-        SharedTypeView(left.typeOrThrow),
-        flow.equalityOperand_end(right),
-        SharedTypeView(right.typeOrThrow),
-        notEqual: notEqual,
+        flow.equalityOperation_end(
+          leftInfo,
+          SharedTypeView(left.typeOrThrow),
+          flow.equalityOperand_end(right),
+          SharedTypeView(right.typeOrThrow),
+          notEqual: notEqual,
+        ),
       );
     }
 
@@ -272,7 +274,10 @@ class BinaryExpressionResolver {
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
-    flow?.logicalBinaryOp_end(node, right, isAnd: true);
+    flow?.storeExpressionInfo(
+      node,
+      flow.logicalBinaryOp_end(right, isAnd: true),
+    );
 
     _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
     _checkNonBoolOperand(right, '&&', whyNotPromoted: rightWhyNotPromoted);
@@ -306,7 +311,10 @@ class BinaryExpressionResolver {
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
-    flow?.logicalBinaryOp_end(node, right, isAnd: false);
+    flow?.storeExpressionInfo(
+      node,
+      flow.logicalBinaryOp_end(right, isAnd: false),
+    );
 
     _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);
     _checkNonBoolOperand(right, '||', whyNotPromoted: rightWhyNotPromoted);

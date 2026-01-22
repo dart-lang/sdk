@@ -311,7 +311,9 @@ abstract class FlowAnalysis<
   void assignMatchedPatternVariable(Variable variable, int promotionKey);
 
   /// Call this method when visiting a boolean literal expression.
-  void booleanLiteral(Expression expression, bool value);
+  ///
+  /// Returns the expression info for the boolean literal.
+  ExpressionInfo booleanLiteral(bool value);
 
   /// Call this method just after visiting the target of a cascade expression.
   ///
@@ -366,13 +368,13 @@ abstract class FlowAnalysis<
   /// Call this method when finishing the visit of a conditional expression
   /// ("?:").
   ///
-  /// [elseExpression] should be the expression following the ":", and
-  /// [conditionalExpression] should be the whole conditional expression.
+  /// [elseExpression] should be the expression following the ":".
   /// [elseType] should be the static type of the expression following the ":",
   /// and [conditionalExpressionType] should be the static type of the whole
   /// conditional expression.
-  void conditional_end(
-    Expression conditionalExpression,
+  ///
+  /// Returns the expression info for the whole conditional expression.
+  ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
     Expression elseExpression,
     SharedTypeView elseType,
@@ -482,8 +484,9 @@ abstract class FlowAnalysis<
   /// [equalityOperand_end] for the left and right operands. [leftOperandType]
   /// and [rightOperandType] should be the static types of the left and right
   /// operands.
-  void equalityOperation_end(
-    Expression wholeExpression,
+  ///
+  /// Returns the expression info for the `==` or `!=` expression.
+  ExpressionInfo? equalityOperation_end(
     ExpressionInfo? leftOperandInfo,
     SharedTypeView leftOperandType,
     ExpressionInfo? rightOperandInfo,
@@ -769,13 +772,13 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the LHS of an "is" expression.
   ///
-  /// [isExpression] should be the complete expression. [subExpression] should
-  /// be the expression to which the "is" check was applied, and
-  /// [subExpressionType] should be its static type. [isNot] should be a
-  /// boolean indicating whether this is an "is" or an "is!" expression.
+  /// [subExpression] should be the expression to which the "is" check was
+  /// applied, and [subExpressionType] should be its static type. [isNot] should
+  /// be a boolean indicating whether this is an "is" or an "is!" expression.
   /// [checkedType] should be the type being checked.
-  void isExpression_end(
-    Expression isExpression,
+  ///
+  /// Returns the expression info for the complete "is" expression.
+  ExpressionInfo? isExpression_end(
     Expression subExpression,
     bool isNot, {
     required SharedTypeView subExpressionType,
@@ -806,11 +809,11 @@ abstract class FlowAnalysis<
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
   ///
-  /// [wholeExpression] should be the whole logical binary expression.
   /// [rightOperand] should be the RHS. [isAnd] should indicate whether the
   /// logical operator is "&&" or "||".
-  void logicalBinaryOp_end(
-    Expression wholeExpression,
+  ///
+  /// Returns the expression info for the whole logical binary expression.
+  ExpressionInfo logicalBinaryOp_end(
     Expression rightOperand, {
     required bool isAnd,
   });
@@ -884,7 +887,9 @@ abstract class FlowAnalysis<
   /// Call this method when encountering an expression that is a `null` literal.
   ///
   /// [type] should be the static type of the literal (i.e. the type `Null`).
-  void nullLiteral(Expression expression, SharedTypeView type);
+  ///
+  /// Returns the expression info for the null literal.
+  ExpressionInfo nullLiteral(SharedTypeView type);
 
   /// Call this method just after visiting a parenthesized expression.
   ///
@@ -938,7 +943,14 @@ abstract class FlowAnalysis<
 
   /// Call this method when writing to the [variable] with type [writtenType] in
   /// a postfix increment or decrement operation.
-  void postIncDec(Node node, Variable variable, SharedTypeView writtenType);
+  ///
+  /// Returns the expression info for the full post increment or decrement
+  /// expression.
+  ExpressionInfo? postIncDec(
+    Node node,
+    Variable variable,
+    SharedTypeView writtenType,
+  );
 
   /// The type that a property named [propertyName] is promoted to, if
   /// the property is currently promoted.
@@ -1214,13 +1226,13 @@ abstract class FlowAnalysis<
   /// pseudo-expression `super`, in the case of the analyzer, which represents
   /// `super.x` as a property get whose target is `super`).
   ///
-  /// [expression] should be the `this` or `super` expression. [staticType]
-  /// should be the static type of `this`.
+  /// [staticType] should be the static type of `this`.
   ///
   /// [isSuper] indicates whether the expression that was visited was the
   /// pseudo-expression `super`.
-  void thisOrSuper(
-    Expression expression,
+  ///
+  /// Returns the expression info for the `this` or `super` expression.
+  ExpressionInfo thisOrSuper(
     SharedTypeView staticType, {
     required bool isSuper,
   });
@@ -1327,9 +1339,12 @@ abstract class FlowAnalysis<
   /// Call this method when encountering an expression that reads the value of
   /// a variable.
   ///
-  /// If the variable's type is currently promoted, the promoted type is
-  /// returned. Otherwise `null` is returned.
-  SharedTypeView? variableRead(Expression expression, Variable variable);
+  /// Returns a pair:
+  /// - If the variable's type is currently promoted, the first element of the
+  ///   pair is the promoted type. Otherwise it is `null`.
+  /// - The second element of the pair is the expression info for the variable
+  ///   read.
+  (SharedTypeView?, ExpressionInfo) variableRead(Variable variable);
 
   /// Call this method after visiting the condition part of a "while" statement.
   ///
@@ -1415,9 +1430,11 @@ abstract class FlowAnalysis<
   /// source code (this happens, for example, with compound assignments and with
   /// for-each loops).
   ///
+  /// Returns the expression info for the full assignment expression.
+  ///
   /// This method should not be used for the implicit write to a non-final
   /// variable in its initializer; in that case, use [initialize] instead.
-  void write(
+  ExpressionInfo? write(
     Node node,
     Variable variable,
     SharedTypeView writtenType,
@@ -1526,10 +1543,12 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void booleanLiteral(Expression expression, bool value) {
-    _wrap(
-      'booleanLiteral($expression, $value)',
-      () => _wrapped.booleanLiteral(expression, value),
+  ExpressionInfo booleanLiteral(bool value) {
+    return _wrap(
+      'booleanLiteral($value)',
+      () => _wrapped.booleanLiteral(value),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -1582,21 +1601,21 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void conditional_end(
-    Expression conditionalExpression,
+  ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
     Expression elseExpression,
     SharedTypeView elseType,
   ) {
-    _wrap(
-      'conditional_end($conditionalExpression, $conditionalExpressionType, '
+    return _wrap(
+      'conditional_end($conditionalExpressionType, '
       '$elseExpression, $elseType)',
       () => _wrapped.conditional_end(
-        conditionalExpression,
         conditionalExpressionType,
         elseExpression,
         elseType,
       ),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -1711,26 +1730,26 @@ class FlowAnalysisDebug<
   );
 
   @override
-  void equalityOperation_end(
-    Expression wholeExpression,
+  ExpressionInfo? equalityOperation_end(
     ExpressionInfo? leftOperandInfo,
     SharedTypeView leftOperandType,
     ExpressionInfo? rightOperandInfo,
     SharedTypeView rightOperandType, {
     bool notEqual = false,
   }) {
-    _wrap(
-      'equalityOperation_end($wholeExpression, $leftOperandInfo, '
+    return _wrap(
+      'equalityOperation_end($leftOperandInfo, '
       '$leftOperandType, $rightOperandInfo, $rightOperandType, notEqual: '
       '$notEqual)',
       () => _wrapped.equalityOperation_end(
-        wholeExpression,
         leftOperandInfo,
         leftOperandType,
         rightOperandInfo,
         rightOperandType,
         notEqual: notEqual,
       ),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -1968,23 +1987,23 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void isExpression_end(
-    Expression isExpression,
+  ExpressionInfo? isExpression_end(
     Expression subExpression,
     bool isNot, {
     required SharedTypeView subExpressionType,
     required SharedTypeView checkedType,
   }) {
-    _wrap(
-      'isExpression_end($isExpression, $subExpression, $isNot, '
+    return _wrap(
+      'isExpression_end($subExpression, $isNot, '
       'subExpressionType: $subExpressionType, checkedType: $checkedType)',
       () => _wrapped.isExpression_end(
-        isExpression,
         subExpression,
         isNot,
         subExpressionType: subExpressionType,
         checkedType: checkedType,
       ),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2032,18 +2051,15 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void logicalBinaryOp_end(
-    Expression wholeExpression,
+  ExpressionInfo logicalBinaryOp_end(
     Expression rightOperand, {
     required bool isAnd,
   }) {
-    _wrap(
-      'logicalBinaryOp_end($wholeExpression, $rightOperand, isAnd: $isAnd)',
-      () => _wrapped.logicalBinaryOp_end(
-        wholeExpression,
-        rightOperand,
-        isAnd: isAnd,
-      ),
+    return _wrap(
+      'logicalBinaryOp_end($rightOperand, isAnd: $isAnd)',
+      () => _wrapped.logicalBinaryOp_end(rightOperand, isAnd: isAnd),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2117,7 +2133,7 @@ class FlowAnalysisDebug<
 
   @override
   void nullAwareAccess_rightBegin(
-    Expression? target,
+    Expression target,
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
@@ -2183,10 +2199,12 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void nullLiteral(Expression expression, SharedTypeView type) {
-    _wrap(
-      'nullLiteral($expression, $type)',
-      () => _wrapped.nullLiteral(expression, type),
+  ExpressionInfo nullLiteral(SharedTypeView type) {
+    return _wrap(
+      'nullLiteral($type)',
+      () => _wrapped.nullLiteral(type),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2261,10 +2279,16 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void postIncDec(Node node, Variable variable, SharedTypeView writtenType) {
-    _wrap(
+  ExpressionInfo? postIncDec(
+    Node node,
+    Variable variable,
+    SharedTypeView writtenType,
+  ) {
+    return _wrap(
       'postIncDec()',
       () => _wrapped.postIncDec(node, variable, writtenType),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2487,14 +2511,15 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void thisOrSuper(
-    Expression expression,
+  ExpressionInfo thisOrSuper(
     SharedTypeView staticType, {
     required bool isSuper,
   }) {
     return _wrap(
-      'thisOrSuper($expression, $staticType, isSuper: $isSuper)',
-      () => _wrapped.thisOrSuper(expression, staticType, isSuper: isSuper),
+      'thisOrSuper($staticType, isSuper: $isSuper)',
+      () => _wrapped.thisOrSuper(staticType, isSuper: isSuper),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2578,10 +2603,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  SharedTypeView? variableRead(Expression expression, Variable variable) {
+  (SharedTypeView?, ExpressionInfo) variableRead(Variable variable) {
     return _wrap(
-      'variableRead($expression, $variable)',
-      () => _wrapped.variableRead(expression, variable),
+      'variableRead($variable)',
+      () => _wrapped.variableRead(variable),
       isQuery: true,
       isPure: false,
     );
@@ -2635,15 +2660,17 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void write(
+  ExpressionInfo? write(
     Node node,
     Variable variable,
     SharedTypeView writtenType,
     Expression? writtenExpression,
   ) {
-    _wrap(
+    return _wrap(
       'write($node, $variable, $writtenType, $writtenExpression)',
       () => _wrapped.write(node, variable, writtenType, writtenExpression),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2736,7 +2763,7 @@ abstract interface class FlowAnalysisNullShortingInterface<
   /// be called once upon reaching each `?.`, but [nullAwareAccess_end] should
   /// not be called until after processing the method call to `z(x)`.
   void nullAwareAccess_rightBegin(
-    Expression? target,
+    Expression target,
     SharedTypeView targetType, {
     Variable? guardVariable,
   });
@@ -5207,22 +5234,21 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void booleanLiteral(Expression expression, bool value) {
+  ExpressionInfo booleanLiteral(bool value) {
     FlowModel unreachable = _current.setUnreachable();
-    _storeExpressionInfo(
-      expression,
-      value
-          ? new ExpressionInfo(
-              type: boolType,
-              ifTrue: _current,
-              ifFalse: unreachable,
-            )
-          : new ExpressionInfo(
-              type: boolType,
-              ifTrue: unreachable,
-              ifFalse: _current,
-            ),
-    );
+    if (value) {
+      return new ExpressionInfo(
+        type: boolType,
+        ifTrue: _current,
+        ifFalse: unreachable,
+      );
+    } else {
+      return new ExpressionInfo(
+        type: boolType,
+        ifTrue: unreachable,
+        ifFalse: _current,
+      );
+    }
   }
 
   @override
@@ -5258,20 +5284,14 @@ class _FlowAnalysisImpl<
     _cascadeTargetStack.add(
       _makeTemporaryReference(ssaNode, promotedTargetType),
     );
-    // Calling `_getExpressionReference` had the effect of clearing
-    // `_expressionReference` (because normally the caller doesn't pass the same
-    // expression to flow analysis twice, so the expression reference isn't
-    // needed anymore). However, in the case of null-aware cascades, this call
-    // will be followed by a call to [nullAwareAccess_rightBegin], and the
-    // expression reference will be needed again. So store it back.
-    if (expressionReference != null) {
-      _storeExpressionInfo(target, expressionReference);
-    }
     if (isNullAware) {
-      _nullAwareAccess_rightBegin(
+      _storeExpressionInfo(
         target,
-        targetType,
-        guardVariable: guardVariable,
+        _nullAwareAccess_rightBegin(
+          expressionReference,
+          targetType,
+          guardVariable: guardVariable,
+        ),
       );
     }
     return promotedTargetType;
@@ -5311,8 +5331,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void conditional_end(
-    Expression conditionalExpression,
+  ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
     Expression elseExpression,
     SharedTypeView elseType,
@@ -5325,13 +5344,10 @@ class _FlowAnalysisImpl<
         _makeTrivialExpressionInfo(elseType);
     FlowModel elseModel = _current;
     _current = _join(thenModel, elseModel).unsplit();
-    _storeExpressionInfo(
-      conditionalExpression,
-      new ExpressionInfo(
-        type: conditionalExpressionType,
-        ifTrue: _join(thenInfo.ifTrue, elseInfo.ifTrue).unsplit(),
-        ifFalse: _join(thenInfo.ifFalse, elseInfo.ifFalse).unsplit(),
-      ),
+    return new ExpressionInfo(
+      type: conditionalExpressionType,
+      ifTrue: _join(thenInfo.ifTrue, elseInfo.ifTrue).unsplit(),
+      ifFalse: _join(thenInfo.ifFalse, elseInfo.ifFalse).unsplit(),
     );
   }
 
@@ -5462,8 +5478,7 @@ class _FlowAnalysisImpl<
       _getExpressionInfo(operand);
 
   @override
-  void equalityOperation_end(
-    Expression wholeExpression,
+  ExpressionInfo? equalityOperation_end(
     ExpressionInfo? leftOperandInfo,
     SharedTypeView leftOperandType,
     ExpressionInfo? rightOperandInfo,
@@ -5485,12 +5500,12 @@ class _FlowAnalysisImpl<
         // Both operands are known by flow analysis to compare equal, so the
         // whole expression behaves equivalently to a boolean (either `true` or
         // `false` depending whether the check uses the `!=` operator).
-        booleanLiteral(wholeExpression, !notEqual);
+        return booleanLiteral(!notEqual);
       case _GuaranteedNotEqual():
         // Both operands are known by flow analysis to compare unequal, so the
         // whole expression behaves equivalently to a boolean (either `true` or
         // `false` depending whether the check uses the `!=` operator).
-        booleanLiteral(wholeExpression, notEqual);
+        return booleanLiteral(notEqual);
 
       // SAFETY: we can assume `reference` is a `_Reference<Type>` because we
       // require clients not to mix data obtained from different
@@ -5499,7 +5514,7 @@ class _FlowAnalysisImpl<
         if (reference == null) {
           // One side of the equality check is `null`, but the other side is not
           // a promotable reference.  So there's no promotion to do.
-          return;
+          return null;
         }
         // The equality check is a null check of something potentially
         // promotable (e.g. a local variable).  Record the necessary information
@@ -5509,19 +5524,15 @@ class _FlowAnalysisImpl<
           this,
           reference,
         );
-        _storeExpressionInfo(
-          wholeExpression,
-          notEqual ? equalityInfo : equalityInfo._invert(),
-        );
+        return notEqual ? equalityInfo : equalityInfo._invert();
 
       case _NoEqualityInformation():
-      // Since flow analysis can't garner any information from this equality
-      // check, nothing needs to be done; by not calling `_storeExpressionInfo`,
-      // we ensure that if `_getExpressionInfo` is later called on this
-      // expression, `null` will be returned.  That means that if this
-      // expression winds up being used for a conditional branch, flow analysis
-      // will consider both code paths reachable and won't perform any
-      // promotions on either path.
+        // Since flow analysis can't garner any information from this equality
+        // check, nothing needs to be done; by not returning any expression
+        // info, we ensure that if this expression winds up being used for a
+        // conditional branch, flow analysis will consider both code paths
+        // reachable and won't perform any promotions on either path.
+        return null;
     }
   }
 
@@ -5812,8 +5823,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void isExpression_end(
-    Expression isExpression,
+  ExpressionInfo? isExpression_end(
     Expression subExpression,
     bool isNot, {
     required SharedTypeView subExpressionType,
@@ -5824,7 +5834,7 @@ class _FlowAnalysisImpl<
           staticType: subExpressionType,
           checkedType: checkedType,
         )) {
-      booleanLiteral(isExpression, isNot);
+      return booleanLiteral(isNot);
     } else {
       _Reference? subExpressionReference = _getExpressionReference(
         _getExpressionInfo(subExpression),
@@ -5835,15 +5845,14 @@ class _FlowAnalysisImpl<
           subExpressionReference,
           checkedType,
         );
-        _storeExpressionInfo(
-          isExpression,
-          isNot ? expressionInfo._invert() : expressionInfo,
-        );
+        return isNot ? expressionInfo._invert() : expressionInfo;
       } else if (_isTypeCheckGuaranteedToSucceedWithSoundNullSafety(
         staticType: subExpressionType,
         checkedType: checkedType,
       )) {
-        booleanLiteral(isExpression, !isNot);
+        return booleanLiteral(!isNot);
+      } else {
+        return null;
       }
     }
   }
@@ -5927,8 +5936,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void logicalBinaryOp_end(
-    Expression wholeExpression,
+  ExpressionInfo logicalBinaryOp_end(
     Expression rightOperand, {
     required bool isAnd,
   }) {
@@ -5947,13 +5955,10 @@ class _FlowAnalysisImpl<
       falseResult = rhsInfo.ifFalse;
     }
     _current = _join(trueResult, falseResult).unsplit();
-    _storeExpressionInfo(
-      wholeExpression,
-      new ExpressionInfo(
-        type: boolType,
-        ifTrue: trueResult.unsplit(),
-        ifFalse: falseResult.unsplit(),
-      ),
+    return new ExpressionInfo(
+      type: boolType,
+      ifTrue: trueResult.unsplit(),
+      ifFalse: falseResult.unsplit(),
     );
   }
 
@@ -6043,14 +6048,17 @@ class _FlowAnalysisImpl<
 
   @override
   void nullAwareAccess_rightBegin(
-    Expression? target,
+    Expression target,
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
-    _nullAwareAccess_rightBegin(
+    _storeExpressionInfo(
       target,
-      targetType,
-      guardVariable: guardVariable,
+      _nullAwareAccess_rightBegin(
+        _getExpressionInfo(target),
+        targetType,
+        guardVariable: guardVariable,
+      ),
     );
   }
 
@@ -6136,11 +6144,8 @@ class _FlowAnalysisImpl<
   void nullCheckOrAssertPattern_end() {}
 
   @override
-  void nullLiteral(Expression expression, SharedTypeView type) {
-    _storeExpressionInfo(
-      expression,
-      new _NullInfo(model: _current, type: type),
-    );
+  ExpressionInfo nullLiteral(SharedTypeView type) {
+    return new _NullInfo(model: _current, type: type);
   }
 
   @override
@@ -6209,8 +6214,12 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void postIncDec(Node node, Variable variable, SharedTypeView writtenType) {
-    _write(node, variable, writtenType, null, isPostfixIncDec: true);
+  ExpressionInfo? postIncDec(
+    Node node,
+    Variable variable,
+    SharedTypeView writtenType,
+  ) {
+    return _write(node, variable, writtenType, null, isPostfixIncDec: true);
   }
 
   @override
@@ -6608,16 +6617,11 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void thisOrSuper(
-    Expression expression,
+  ExpressionInfo thisOrSuper(
     SharedTypeView staticType, {
     required bool isSuper,
   }) {
-    TrivialVariableReference reference = _thisOrSuperReference(
-      staticType,
-      isSuper: isSuper,
-    );
-    _storeExpressionInfo(expression, reference);
+    return _thisOrSuperReference(staticType, isSuper: isSuper);
   }
 
   @override
@@ -6742,7 +6746,7 @@ class _FlowAnalysisImpl<
       const [];
 
   @override
-  SharedTypeView? variableRead(Expression expression, Variable variable) {
+  (SharedTypeView?, ExpressionInfo) variableRead(Variable variable) {
     SharedTypeView unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     PromotionModel? promotionModel = _current.promotionInfo?.get(
@@ -6763,8 +6767,7 @@ class _FlowAnalysisImpl<
           this,
           _current,
         );
-    _storeExpressionInfo(expression, expressionInfo);
-    return promotionModel.promotedTypes.lastOrNull;
+    return (promotionModel.promotedTypes.lastOrNull, expressionInfo);
   }
 
   @override
@@ -6832,13 +6835,18 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void write(
+  ExpressionInfo? write(
     Node node,
     Variable variable,
     SharedTypeView writtenType,
     Expression? writtenExpression,
   ) {
-    _write(node, variable, writtenType, _getExpressionInfo(writtenExpression));
+    return _write(
+      node,
+      variable,
+      writtenType,
+      _getExpressionInfo(writtenExpression),
+    );
   }
 
   /// Computes a [FlowModel] representing the state of execution after the
@@ -7542,16 +7550,14 @@ class _FlowAnalysisImpl<
   ExpressionInfo _makeTrivialExpressionInfo(SharedTypeView type) =>
       new ExpressionInfo.trivial(model: _current, type: type);
 
-  void _nullAwareAccess_rightBegin(
-    Expression? target,
+  ExpressionInfo? _nullAwareAccess_rightBegin(
+    ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     required Variable? guardVariable,
   }) {
     _current = _current.split();
     FlowModel shortcutControlPath = _current;
-    _Reference? targetReference = _getExpressionReference(
-      _getExpressionInfo(target),
-    );
+    _Reference? targetReference = _getExpressionReference(targetInfo);
     if (targetReference != null) {
       _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
     }
@@ -7571,6 +7577,7 @@ class _FlowAnalysisImpl<
     }
     _stack.add(new _NullAwareAccessContext(shortcutControlPath));
     SsaNode? targetSsaNode;
+    ExpressionInfo? nullAwareExpressionInfo = targetReference;
     if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
       // Pick up the target SSA node so that it can be used for field promotion.
       targetSsaNode = targetReference?.ssaNode;
@@ -7578,7 +7585,7 @@ class _FlowAnalysisImpl<
       // Field promotion was broken for null-aware field accesses prior to the
       // implementation of sound flow analysis. So to replicate the bug, destroy
       // the target reference so that it can't be used for field promotion.
-      if (target != null) _storeExpressionInfo(target, null);
+      nullAwareExpressionInfo = null;
     }
     if (guardVariable != null) {
       // Promote the guard variable as well.
@@ -7596,6 +7603,7 @@ class _FlowAnalysisImpl<
         ),
       );
     }
+    return nullAwareExpressionInfo;
   }
 
   /// Computes an updated flow model representing the result of a null check
@@ -7749,7 +7757,7 @@ class _FlowAnalysisImpl<
   ///
   /// If [isPostfixIncDec] is `true`, the [node] is a postfix expression and we
   /// won't store information about [variable].
-  void _write(
+  ExpressionInfo? _write(
     Node node,
     Variable variable,
     SharedTypeView writtenType,
@@ -7774,12 +7782,13 @@ class _FlowAnalysisImpl<
     );
 
     // Update the type of the variable for looking up the write expression.
+    TrivialVariableReference? reference;
     if (typeAnalyzerOptions.inferenceUpdate4Enabled &&
         node is Expression &&
         !isPostfixIncDec) {
-      _Reference reference = _variableReference(variableKey, unpromotedType);
-      _storeExpressionInfo(node, reference);
+      reference = _variableReference(variableKey, unpromotedType);
     }
+    return reference;
   }
 }
 

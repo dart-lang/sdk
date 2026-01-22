@@ -255,10 +255,12 @@ class StaticTypeAnalyzer {
 
   void visitSuperExpression(covariant SuperExpressionImpl node) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow?.thisOrSuper(
+    _resolver.flowAnalysis.flow?.storeExpressionInfo(
       node,
-      SharedTypeView(thisType ?? _dynamicType),
-      isSuper: true,
+      _resolver.flowAnalysis.flow?.thisOrSuper(
+        SharedTypeView(thisType ?? _dynamicType),
+        isSuper: true,
+      ),
     );
     if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
@@ -278,10 +280,12 @@ class StaticTypeAnalyzer {
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow?.thisOrSuper(
+    _resolver.flowAnalysis.flow?.storeExpressionInfo(
       node,
-      SharedTypeView(thisType ?? _dynamicType),
-      isSuper: false,
+      _resolver.flowAnalysis.flow?.thisOrSuper(
+        SharedTypeView(thisType ?? _dynamicType),
+        isSuper: false,
+      ),
     );
     if (thisType == null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been

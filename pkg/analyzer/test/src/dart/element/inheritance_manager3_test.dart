@@ -2341,7 +2341,7 @@ extension type B(A it) implements A {
 
     var element = library.getExtensionType('B')!;
     _assertGetOverridden(element, 'foo', r'''
-A.foo: void Function()
+<null>
 ''');
   }
 

@@ -1258,7 +1258,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     BoolLiteral node,
     DartType typeContext,
   ) {
-    flowAnalysis.booleanLiteral(node, node.value);
+    flowAnalysis.storeExpressionInfo(
+      node,
+      flowAnalysis.booleanLiteral(node.value),
+    );
     return new ExpressionInferenceResult(
       coreTypes.boolRawType(Nullability.nonNullable),
       node,
@@ -1458,11 +1461,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = t;
     }
 
-    flowAnalysis.conditional_end(
+    flowAnalysis.storeExpressionInfo(
       node,
-      new SharedTypeView(inferredType),
-      node.otherwise,
-      new SharedTypeView(otherwiseResult.inferredType),
+      flowAnalysis.conditional_end(
+        new SharedTypeView(inferredType),
+        node.otherwise,
+        new SharedTypeView(otherwiseResult.inferredType),
+      ),
     );
     node.staticType = inferredType;
     return new ExpressionInferenceResult(inferredType, node);
@@ -4065,12 +4070,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: false,
     );
     node.operand = operandResult.expression..parent = node;
-    flowAnalysis.isExpression_end(
+    flowAnalysis.storeExpressionInfo(
       node,
-      node.operand,
-      /*isNot:*/ false,
-      subExpressionType: new SharedTypeView(operandResult.inferredType),
-      checkedType: new SharedTypeView(node.type),
+      flowAnalysis.isExpression_end(
+        node.operand,
+        /*isNot:*/ false,
+        subExpressionType: new SharedTypeView(operandResult.inferredType),
+        checkedType: new SharedTypeView(node.type),
+      ),
     );
     return new ExpressionInferenceResult(
       coreTypes.boolRawType(Nullability.nonNullable),
@@ -4983,10 +4990,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Expression right = ensureAssignableResult(boolType, rightResult).expression;
     node.right = right..parent = node;
-    flowAnalysis.logicalBinaryOp_end(
+    flowAnalysis.storeExpressionInfo(
       node,
-      node.right,
-      isAnd: node.operatorEnum == LogicalExpressionOperator.AND,
+      flowAnalysis.logicalBinaryOp_end(
+        node.right,
+        isAnd: node.operatorEnum == LogicalExpressionOperator.AND,
+      ),
     );
     return new ExpressionInferenceResult(boolType, node);
   }
@@ -10516,13 +10525,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (isNot) {
         equals = new Not(equals)..fileOffset = fileOffset;
       }
-      flowAnalysis.equalityOperation_end(
+      flowAnalysis.storeExpressionInfo(
         equals,
-        equalityInfo,
-        new SharedTypeView(leftType),
-        flowAnalysis.equalityOperand_end(rightResult.expression),
-        new SharedTypeView(rightResult.inferredType),
-        notEqual: isNot,
+        flowAnalysis.equalityOperation_end(
+          equalityInfo,
+          new SharedTypeView(leftType),
+          flowAnalysis.equalityOperand_end(rightResult.expression),
+          new SharedTypeView(rightResult.inferredType),
+          notEqual: isNot,
+        ),
       );
       return new ExpressionInferenceResult(
         coreTypes.boolRawType(Nullability.nonNullable),
@@ -10571,13 +10582,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       equals = new Not(equals)..fileOffset = fileOffset;
     }
 
-    flowAnalysis.equalityOperation_end(
+    flowAnalysis.storeExpressionInfo(
       equals,
-      equalityInfo,
-      new SharedTypeView(leftType),
-      flowAnalysis.equalityOperand_end(right),
-      new SharedTypeView(rightResult.inferredType),
-      notEqual: isNot,
+      flowAnalysis.equalityOperation_end(
+        equalityInfo,
+        new SharedTypeView(leftType),
+        flowAnalysis.equalityOperand_end(right),
+        new SharedTypeView(rightResult.inferredType),
+        notEqual: isNot,
+      ),
     );
     return new ExpressionInferenceResult(
       equalsTarget.isNever
@@ -12136,7 +12149,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     const NullType nullType = const NullType();
-    flowAnalysis.nullLiteral(node, new SharedTypeView(nullType));
+    flowAnalysis.storeExpressionInfo(
+      node,
+      flowAnalysis.nullLiteral(new SharedTypeView(nullType)),
+    );
     return new ExpressionInferenceResult(nullType, node);
   }
 
@@ -13436,10 +13452,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ThisExpression node,
     DartType typeContext,
   ) {
-    flowAnalysis.thisOrSuper(
+    flowAnalysis.storeExpressionInfo(
       node,
-      new SharedTypeView(thisType!),
-      isSuper: false,
+      flowAnalysis.thisOrSuper(new SharedTypeView(thisType!), isSuper: false),
     );
     return new ExpressionInferenceResult(thisType!, node);
   }

@@ -1967,12 +1967,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (isIdenticalCall) {
-      flowAnalysis.equalityOperation_end(
+      flowAnalysis.storeExpressionInfo(
         actualArguments.parent as Expression,
-        argumentsInfo[0].identicalInfo,
-        new SharedTypeView(argumentsInfo[0].actualType),
-        argumentsInfo[1].identicalInfo,
-        new SharedTypeView(argumentsInfo[1].actualType),
+        flowAnalysis.equalityOperation_end(
+          argumentsInfo[0].identicalInfo,
+          new SharedTypeView(argumentsInfo[0].actualType),
+          argumentsInfo[1].identicalInfo,
+          new SharedTypeView(argumentsInfo[1].actualType),
+        ),
       );
     }
 
@@ -4275,18 +4277,21 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     node ??= new VariableGet(variable.astVariable)..fileOffset = nameOffset;
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
+    ExpressionInfo? expressionInfo;
     if (isExtensionThis(variable.astVariable)) {
-      flowAnalysis.thisOrSuper(
-        node,
+      expressionInfo = flowAnalysis.thisOrSuper(
         new SharedTypeView(variable.type),
         isSuper: true,
       );
     } else if (!variable.isLocalFunction) {
       // Don't promote local functions.
-      promotedType = flowAnalysis
-          .variableRead(node, variable.astVariable)
-          ?.unwrapTypeView();
+      SharedTypeView? wrappedPromotedType;
+      (wrappedPromotedType, expressionInfo) = flowAnalysis.variableRead(
+        variable.astVariable,
+      );
+      promotedType = wrappedPromotedType?.unwrapTypeView();
     }
+    flowAnalysis.storeExpressionInfo(node, expressionInfo);
     node.promotedType = promotedType;
     DartType resultType = promotedType ?? declaredOrInferredType;
     Expression resultExpression;
@@ -4419,11 +4424,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression rhs = rhsResult.expression;
     node ??= new VariableSet(variable.astVariable, rhs)
       ..fileOffset = nameOffset;
-    flowAnalysis.write(
+    flowAnalysis.storeExpressionInfo(
       node,
-      variable.astVariable,
-      new SharedTypeView(rhsResult.inferredType),
-      rhsResult.expression,
+      flowAnalysis.write(
+        node,
+        variable.astVariable,
+        new SharedTypeView(rhsResult.inferredType),
+        rhsResult.expression,
+      ),
     );
     DartType resultType = rhsResult.inferredType;
     Expression resultExpression;
