@@ -13426,9 +13426,9 @@ LinterLintCode:
   unnecessaryIgnore:
     type: lint
     parameters:
-      Object p0: undocumented
+      String name: The diagnostic name.
     sharedName: unnecessaryIgnore
-    problemMessage: "The diagnostic '#p0' isn't produced at this location so it doesn't need to be ignored."
+    problemMessage: "The diagnostic '#name' isn't produced at this location so it doesn't need to be ignored."
     correctionMessage: "Try removing the ignore comment."
     state:
       experimental: "3.8"
@@ -13462,25 +13462,25 @@ LinterLintCode:
   unnecessaryIgnoreFile:
     type: lint
     parameters:
-      Object p0: undocumented
+      String name: The diagnostic name.
     sharedName: unnecessaryIgnore
-    problemMessage: "The diagnostic '#p0' isn't produced in this file so it doesn't need to be ignored."
+    problemMessage: "The diagnostic '#name' isn't produced in this file so it doesn't need to be ignored."
     correctionMessage: "Try removing the ignore comment."
     hasPublishedDocs: false
   unnecessaryIgnoreName:
     type: lint
     parameters:
-      Object p0: undocumented
+      String name: The diagnostic name.
     sharedName: unnecessaryIgnore
-    problemMessage: "The diagnostic '#p0' isn't produced at this location so it doesn't need to be ignored."
+    problemMessage: "The diagnostic '#name' isn't produced at this location so it doesn't need to be ignored."
     correctionMessage: "Try removing the name from the list."
     hasPublishedDocs: false
   unnecessaryIgnoreNameFile:
     type: lint
     parameters:
-      Object p0: undocumented
+      String name: The diagnostic name.
     sharedName: unnecessaryIgnore
-    problemMessage: "The diagnostic '#p0' isn't produced in this file so it doesn't need to be ignored."
+    problemMessage: "The diagnostic '#name' isn't produced in this file so it doesn't need to be ignored."
     correctionMessage: "Try removing the name from the list."
     hasPublishedDocs: false
   unnecessaryLambdas:

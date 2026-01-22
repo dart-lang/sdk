@@ -6,9 +6,15 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/registry.dart';
+
+typedef UnnecessaryIgnoreDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required String name})
+    >;
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
@@ -22,10 +28,11 @@ class IgnoreValidator {
   ///
   /// These codes are set when the `UnnecessaryIgnore` lint rule is instantiated and
   /// registered by the linter.
-  static late DiagnosticCode unnecessaryIgnoreLocationLintCode;
-  static late DiagnosticCode unnecessaryIgnoreFileLintCode;
-  static late DiagnosticCode unnecessaryIgnoreNameLocationLintCode;
-  static late DiagnosticCode unnecessaryIgnoreNameFileLintCode;
+  static late UnnecessaryIgnoreDiagnosticCode unnecessaryIgnoreLocationLintCode;
+  static late UnnecessaryIgnoreDiagnosticCode unnecessaryIgnoreFileLintCode;
+  static late UnnecessaryIgnoreDiagnosticCode
+  unnecessaryIgnoreNameLocationLintCode;
+  static late UnnecessaryIgnoreDiagnosticCode unnecessaryIgnoreNameFileLintCode;
 
   /// The diagnostic reporter to which diagnostics are to be reported.
   final DiagnosticReporter _diagnosticReporter;
@@ -264,7 +271,7 @@ class IgnoreValidator {
           }
         }
 
-        late DiagnosticCode lintCode;
+        late UnnecessaryIgnoreDiagnosticCode lintCode;
         if (forFile) {
           lintCode = diagnosticsOnLine > 1
               ? unnecessaryIgnoreNameFileLintCode
@@ -275,11 +282,10 @@ class IgnoreValidator {
               : unnecessaryIgnoreLocationLintCode;
         }
 
-        _diagnosticReporter.atOffset(
-          diagnosticCode: lintCode,
-          offset: ignoredName.offset,
-          length: name.length,
-          arguments: [name],
+        _diagnosticReporter.report(
+          lintCode
+              .withArguments(name: name)
+              .atOffset(offset: ignoredName.offset, length: name.length),
         );
       }
     }
