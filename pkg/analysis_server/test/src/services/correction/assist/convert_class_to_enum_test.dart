@@ -611,6 +611,44 @@ enum _E {
 ''');
   }
 
+  Future<void> test_minimal_privateClass_constructorHasAnnotation() async {
+    await resolveTestCode('''
+class _^E {
+  static const _E c = _E();
+
+  @deprecated
+  const _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c;
+
+  @deprecated
+  const _E();
+}
+''');
+  }
+
+  Future<void> test_minimal_privateClass_constructorHasDocComment() async {
+    await resolveTestCode('''
+class _^E {
+  static const _E c = _E();
+
+  /// Doc comment.
+  const _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c;
+
+  /// Doc comment.
+  const _E();
+}
+''');
+  }
+
   Future<void> test_minimal_publicClass() async {
     await resolveTestCode('''
 class ^E {
