@@ -398,6 +398,7 @@ class InformativeDataApplier {
       fragment.setCodeRange(info.codeOffset, info.codeLength);
       fragment.firstTokenOffset = info.firstTokenOffset;
       fragment.nameOffset = info.nameOffset;
+      fragment.documentationComment = info.documentationComment;
       _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
       _applyToFormalParameters(fragment.formalParameters, info.parameters);
     });
@@ -859,6 +860,7 @@ class _InfoBuilder {
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset: node.name?.offsetIfNotEmpty,
+      documentationComment: _getDocumentationComment(notDefault),
       typeParameters: _buildTypeParameters(typeParameters),
       parameters: _buildFormalParameters(parameters),
     );
@@ -1418,9 +1420,10 @@ class _InfoFormalParameter extends _InfoNode {
     required super.codeOffset,
     required super.codeLength,
     required super.nameOffset,
+    required super.documentationComment,
     required this.typeParameters,
     required this.parameters,
-  }) : super(documentationComment: null);
+  });
 
   _InfoFormalParameter.read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),

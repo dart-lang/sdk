@@ -2804,6 +2804,18 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
+  String? get documentationComment {
+    if (isOriginDeclaringFormalParameter) {
+      if (declaringFormalParameter case var declaringFormalParameter?) {
+        return declaringFormalParameter.documentationComment;
+      }
+    }
+
+    return super.documentationComment;
+  }
+
+  @override
   @trackedIncludedInId
   InstanceElementImpl get enclosingElement {
     return _firstFragment.enclosingFragment.element;
@@ -2950,6 +2962,12 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
+    if (isOriginDeclaringFormalParameter) {
+      if (declaringFormalParameter case var declaringFormalParameter?) {
+        return declaringFormalParameter.metadata;
+      }
+    }
+
     var annotations = <ElementAnnotationImpl>[];
     for (var fragment in _fragments) {
       annotations.addAll(fragment.metadata.annotations);

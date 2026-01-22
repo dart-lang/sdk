@@ -675,6 +675,44 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_typeName_formalParameter_functionTyped_documentationComment() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A(
+    /// aaa
+    int a(String x),
+  );
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: FunctionTypedFormalParameter
+      documentationComment: Comment
+        tokens
+          /// aaa
+      returnType: NamedType
+        name: int
+      name: a
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: String
+          name: x
+        rightParenthesis: )
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_constructor_typeName_formalParameter_functionTyped_final() {
     var parseResult = parseStringWithErrors(r'''
 class A {
@@ -725,6 +763,37 @@ ConstructorDeclaration
     leftParenthesis: (
     parameter: SimpleFormalParameter
       keyword: const
+      type: NamedType
+        name: int
+      name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_formalParameter_simple_documentationComment() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A(
+    /// aaa
+    int a,
+  );
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      documentationComment: Comment
+        tokens
+          /// aaa
       type: NamedType
         name: int
       name: a
@@ -1134,6 +1203,45 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_declaringFormalParameter_default_namedRequired_final_documentationComment() {
+    var parseResult = parseStringWithErrors(r'''
+class A({
+  /// aaa
+  required final int a = 0,
+}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          requiredKeyword: required
+          keyword: final
+          type: NamedType
+            name: int
+          name: a
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_var() {
     var parseResult = parseStringWithErrors(r'''
 class A({required var int a = 0}) {}
@@ -1296,6 +1404,45 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_declaringFormalParameter_functionTyped_final_documentationComment() {
+    var parseResult = parseStringWithErrors(r'''
+class A(
+  /// aaa
+  final int a(String x)
+) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: FunctionTypedFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        keyword: final
+        returnType: NamedType
+          name: int
+        name: a
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: String
+            name: x
+          rightParenthesis: )
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_primaryConstructor_declaringFormalParameter_functionTyped_var() {
     var parseResult = parseStringWithErrors(r'''
 class A(var int a(String x)) {}
@@ -1370,6 +1517,38 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: int
+        name: a
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_simple_final_documentationComment() {
+    var parseResult = parseStringWithErrors(r'''
+class A(
+  /// aaa
+  final int a
+) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
         keyword: final
         type: NamedType
           name: int

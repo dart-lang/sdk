@@ -765,6 +765,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeFragmentReference('firstFragment', e.firstFragment);
       _writeType('type', e.type);
+      _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
       _writeElementList(
@@ -826,6 +827,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
+      _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
       _writeFragmentList(

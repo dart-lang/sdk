@@ -1807,7 +1807,10 @@ class AstBuilder extends StackListener {
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(
       metadata,
-      thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken,
+      modifiers?.beginToken ??
+          thisKeyword ??
+          typeOrFunctionTypedParameter?.beginToken ??
+          nameToken,
     );
 
     NormalFormalParameterImpl node;
