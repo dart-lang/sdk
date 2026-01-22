@@ -296,12 +296,14 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    flow!.isExpression_end(
+    flow!.storeExpressionInfo(
       node,
-      expression,
-      node.notOperator != null,
-      subExpressionType: SharedTypeView(expression.typeOrThrow),
-      checkedType: SharedTypeView(typeAnnotation.typeOrThrow),
+      flow!.isExpression_end(
+        expression,
+        node.notOperator != null,
+        subExpressionType: SharedTypeView(expression.typeOrThrow),
+        checkedType: SharedTypeView(typeAnnotation.typeOrThrow),
+      ),
     );
   }
 

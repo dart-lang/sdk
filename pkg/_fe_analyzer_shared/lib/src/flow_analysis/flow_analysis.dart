@@ -368,13 +368,13 @@ abstract class FlowAnalysis<
   /// Call this method when finishing the visit of a conditional expression
   /// ("?:").
   ///
-  /// [elseExpression] should be the expression following the ":", and
-  /// [conditionalExpression] should be the whole conditional expression.
+  /// [elseExpression] should be the expression following the ":".
   /// [elseType] should be the static type of the expression following the ":",
   /// and [conditionalExpressionType] should be the static type of the whole
   /// conditional expression.
-  void conditional_end(
-    Expression conditionalExpression,
+  ///
+  /// Returns the expression info for the whole conditional expression.
+  ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
     Expression elseExpression,
     SharedTypeView elseType,
@@ -484,8 +484,9 @@ abstract class FlowAnalysis<
   /// [equalityOperand_end] for the left and right operands. [leftOperandType]
   /// and [rightOperandType] should be the static types of the left and right
   /// operands.
-  void equalityOperation_end(
-    Expression wholeExpression,
+  ///
+  /// Returns the expression info for the `==` or `!=` expression.
+  ExpressionInfo? equalityOperation_end(
     ExpressionInfo? leftOperandInfo,
     SharedTypeView leftOperandType,
     ExpressionInfo? rightOperandInfo,
@@ -771,13 +772,13 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the LHS of an "is" expression.
   ///
-  /// [isExpression] should be the complete expression. [subExpression] should
-  /// be the expression to which the "is" check was applied, and
-  /// [subExpressionType] should be its static type. [isNot] should be a
-  /// boolean indicating whether this is an "is" or an "is!" expression.
+  /// [subExpression] should be the expression to which the "is" check was
+  /// applied, and [subExpressionType] should be its static type. [isNot] should
+  /// be a boolean indicating whether this is an "is" or an "is!" expression.
   /// [checkedType] should be the type being checked.
-  void isExpression_end(
-    Expression isExpression,
+  ///
+  /// Returns the expression info for the complete "is" expression.
+  ExpressionInfo? isExpression_end(
     Expression subExpression,
     bool isNot, {
     required SharedTypeView subExpressionType,
@@ -808,11 +809,11 @@ abstract class FlowAnalysis<
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
   ///
-  /// [wholeExpression] should be the whole logical binary expression.
   /// [rightOperand] should be the RHS. [isAnd] should indicate whether the
   /// logical operator is "&&" or "||".
-  void logicalBinaryOp_end(
-    Expression wholeExpression,
+  ///
+  /// Returns the expression info for the whole logical binary expression.
+  ExpressionInfo logicalBinaryOp_end(
     Expression rightOperand, {
     required bool isAnd,
   });
@@ -1600,21 +1601,21 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void conditional_end(
-    Expression conditionalExpression,
+  ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
     Expression elseExpression,
     SharedTypeView elseType,
   ) {
-    _wrap(
-      'conditional_end($conditionalExpression, $conditionalExpressionType, '
+    return _wrap(
+      'conditional_end($conditionalExpressionType, '
       '$elseExpression, $elseType)',
       () => _wrapped.conditional_end(
-        conditionalExpression,
         conditionalExpressionType,
         elseExpression,
         elseType,
       ),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -1729,26 +1730,26 @@ class FlowAnalysisDebug<
   );
 
   @override
-  void equalityOperation_end(
-    Expression wholeExpression,
+  ExpressionInfo? equalityOperation_end(
     ExpressionInfo? leftOperandInfo,
     SharedTypeView leftOperandType,
     ExpressionInfo? rightOperandInfo,
     SharedTypeView rightOperandType, {
     bool notEqual = false,
   }) {
-    _wrap(
-      'equalityOperation_end($wholeExpression, $leftOperandInfo, '
+    return _wrap(
+      'equalityOperation_end($leftOperandInfo, '
       '$leftOperandType, $rightOperandInfo, $rightOperandType, notEqual: '
       '$notEqual)',
       () => _wrapped.equalityOperation_end(
-        wholeExpression,
         leftOperandInfo,
         leftOperandType,
         rightOperandInfo,
         rightOperandType,
         notEqual: notEqual,
       ),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -1986,23 +1987,23 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void isExpression_end(
-    Expression isExpression,
+  ExpressionInfo? isExpression_end(
     Expression subExpression,
     bool isNot, {
     required SharedTypeView subExpressionType,
     required SharedTypeView checkedType,
   }) {
-    _wrap(
-      'isExpression_end($isExpression, $subExpression, $isNot, '
+    return _wrap(
+      'isExpression_end($subExpression, $isNot, '
       'subExpressionType: $subExpressionType, checkedType: $checkedType)',
       () => _wrapped.isExpression_end(
-        isExpression,
         subExpression,
         isNot,
         subExpressionType: subExpressionType,
         checkedType: checkedType,
       ),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2050,18 +2051,15 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void logicalBinaryOp_end(
-    Expression wholeExpression,
+  ExpressionInfo logicalBinaryOp_end(
     Expression rightOperand, {
     required bool isAnd,
   }) {
-    _wrap(
-      'logicalBinaryOp_end($wholeExpression, $rightOperand, isAnd: $isAnd)',
-      () => _wrapped.logicalBinaryOp_end(
-        wholeExpression,
-        rightOperand,
-        isAnd: isAnd,
-      ),
+    return _wrap(
+      'logicalBinaryOp_end($rightOperand, isAnd: $isAnd)',
+      () => _wrapped.logicalBinaryOp_end(rightOperand, isAnd: isAnd),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -5333,8 +5331,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void conditional_end(
-    Expression conditionalExpression,
+  ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
     Expression elseExpression,
     SharedTypeView elseType,
@@ -5347,13 +5344,10 @@ class _FlowAnalysisImpl<
         _makeTrivialExpressionInfo(elseType);
     FlowModel elseModel = _current;
     _current = _join(thenModel, elseModel).unsplit();
-    _storeExpressionInfo(
-      conditionalExpression,
-      new ExpressionInfo(
-        type: conditionalExpressionType,
-        ifTrue: _join(thenInfo.ifTrue, elseInfo.ifTrue).unsplit(),
-        ifFalse: _join(thenInfo.ifFalse, elseInfo.ifFalse).unsplit(),
-      ),
+    return new ExpressionInfo(
+      type: conditionalExpressionType,
+      ifTrue: _join(thenInfo.ifTrue, elseInfo.ifTrue).unsplit(),
+      ifFalse: _join(thenInfo.ifFalse, elseInfo.ifFalse).unsplit(),
     );
   }
 
@@ -5484,8 +5478,7 @@ class _FlowAnalysisImpl<
       _getExpressionInfo(operand);
 
   @override
-  void equalityOperation_end(
-    Expression wholeExpression,
+  ExpressionInfo? equalityOperation_end(
     ExpressionInfo? leftOperandInfo,
     SharedTypeView leftOperandType,
     ExpressionInfo? rightOperandInfo,
@@ -5507,12 +5500,12 @@ class _FlowAnalysisImpl<
         // Both operands are known by flow analysis to compare equal, so the
         // whole expression behaves equivalently to a boolean (either `true` or
         // `false` depending whether the check uses the `!=` operator).
-        _storeExpressionInfo(wholeExpression, booleanLiteral(!notEqual));
+        return booleanLiteral(!notEqual);
       case _GuaranteedNotEqual():
         // Both operands are known by flow analysis to compare unequal, so the
         // whole expression behaves equivalently to a boolean (either `true` or
         // `false` depending whether the check uses the `!=` operator).
-        _storeExpressionInfo(wholeExpression, booleanLiteral(notEqual));
+        return booleanLiteral(notEqual);
 
       // SAFETY: we can assume `reference` is a `_Reference<Type>` because we
       // require clients not to mix data obtained from different
@@ -5521,7 +5514,7 @@ class _FlowAnalysisImpl<
         if (reference == null) {
           // One side of the equality check is `null`, but the other side is not
           // a promotable reference.  So there's no promotion to do.
-          return;
+          return null;
         }
         // The equality check is a null check of something potentially
         // promotable (e.g. a local variable).  Record the necessary information
@@ -5531,19 +5524,15 @@ class _FlowAnalysisImpl<
           this,
           reference,
         );
-        _storeExpressionInfo(
-          wholeExpression,
-          notEqual ? equalityInfo : equalityInfo._invert(),
-        );
+        return notEqual ? equalityInfo : equalityInfo._invert();
 
       case _NoEqualityInformation():
-      // Since flow analysis can't garner any information from this equality
-      // check, nothing needs to be done; by not calling `_storeExpressionInfo`,
-      // we ensure that if `_getExpressionInfo` is later called on this
-      // expression, `null` will be returned.  That means that if this
-      // expression winds up being used for a conditional branch, flow analysis
-      // will consider both code paths reachable and won't perform any
-      // promotions on either path.
+        // Since flow analysis can't garner any information from this equality
+        // check, nothing needs to be done; by not returning any expression
+        // info, we ensure that if this expression winds up being used for a
+        // conditional branch, flow analysis will consider both code paths
+        // reachable and won't perform any promotions on either path.
+        return null;
     }
   }
 
@@ -5834,8 +5823,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void isExpression_end(
-    Expression isExpression,
+  ExpressionInfo? isExpression_end(
     Expression subExpression,
     bool isNot, {
     required SharedTypeView subExpressionType,
@@ -5846,7 +5834,7 @@ class _FlowAnalysisImpl<
           staticType: subExpressionType,
           checkedType: checkedType,
         )) {
-      _storeExpressionInfo(isExpression, booleanLiteral(isNot));
+      return booleanLiteral(isNot);
     } else {
       _Reference? subExpressionReference = _getExpressionReference(
         _getExpressionInfo(subExpression),
@@ -5857,15 +5845,14 @@ class _FlowAnalysisImpl<
           subExpressionReference,
           checkedType,
         );
-        _storeExpressionInfo(
-          isExpression,
-          isNot ? expressionInfo._invert() : expressionInfo,
-        );
+        return isNot ? expressionInfo._invert() : expressionInfo;
       } else if (_isTypeCheckGuaranteedToSucceedWithSoundNullSafety(
         staticType: subExpressionType,
         checkedType: checkedType,
       )) {
-        _storeExpressionInfo(isExpression, booleanLiteral(!isNot));
+        return booleanLiteral(!isNot);
+      } else {
+        return null;
       }
     }
   }
@@ -5949,8 +5936,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void logicalBinaryOp_end(
-    Expression wholeExpression,
+  ExpressionInfo logicalBinaryOp_end(
     Expression rightOperand, {
     required bool isAnd,
   }) {
@@ -5969,13 +5955,10 @@ class _FlowAnalysisImpl<
       falseResult = rhsInfo.ifFalse;
     }
     _current = _join(trueResult, falseResult).unsplit();
-    _storeExpressionInfo(
-      wholeExpression,
-      new ExpressionInfo(
-        type: boolType,
-        ifTrue: trueResult.unsplit(),
-        ifFalse: falseResult.unsplit(),
-      ),
+    return new ExpressionInfo(
+      type: boolType,
+      ifTrue: trueResult.unsplit(),
+      ifFalse: falseResult.unsplit(),
     );
   }
 

@@ -2210,11 +2210,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     typeAnalyzer.visitConditionalExpression(node, contextType: contextType);
     if (flow != null) {
-      flow.conditional_end(
+      flow.storeExpressionInfo(
         node,
-        SharedTypeView(node.typeOrThrow),
-        elseExpression,
-        SharedTypeView(elseExpression.typeOrThrow),
+        flow.conditional_end(
+          SharedTypeView(node.typeOrThrow),
+          elseExpression,
+          SharedTypeView(elseExpression.typeOrThrow),
+        ),
       );
       nullSafetyDeadCodeVerifier.flowEnd(elseExpression);
     }

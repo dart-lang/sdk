@@ -570,12 +570,14 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     if (identicalArgumentInfo != null) {
       var leftOperandInfo = identicalArgumentInfo[0]!;
       var rightOperandInfo = identicalArgumentInfo[1]!;
-      flow?.equalityOperation_end(
+      flow?.storeExpressionInfo(
         argumentList.parent as ExpressionImpl,
-        leftOperandInfo.expressionInfo,
-        SharedTypeView(leftOperandInfo.staticType),
-        rightOperandInfo.expressionInfo,
-        SharedTypeView(rightOperandInfo.staticType),
+        flow.equalityOperation_end(
+          leftOperandInfo.expressionInfo,
+          SharedTypeView(leftOperandInfo.staticType),
+          rightOperandInfo.expressionInfo,
+          SharedTypeView(rightOperandInfo.staticType),
+        ),
       );
     }
   }

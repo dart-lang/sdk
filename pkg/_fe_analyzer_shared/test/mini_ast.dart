@@ -6513,16 +6513,21 @@ class _MiniAstTypeAnalyzer
     }
     var rightType = analyzeExpression(rhs, operations.unknownType).type;
     if (isEquals) {
-      flow.equalityOperation_end(
+      flow.storeExpressionInfo(
         node,
-        leftInfo,
-        leftType,
-        flow.equalityOperand_end(rhs),
-        rightType,
-        notEqual: isNot,
+        flow.equalityOperation_end(
+          leftInfo,
+          leftType,
+          flow.equalityOperand_end(rhs),
+          rightType,
+          notEqual: isNot,
+        ),
       );
     } else if (isLogical) {
-      flow.logicalBinaryOp_end(node, rhs, isAnd: isAnd);
+      flow.storeExpressionInfo(
+        node,
+        flow.logicalBinaryOp_end(rhs, isAnd: isAnd),
+      );
     }
     return new ExpressionTypeAnalysisResult(type: operations.boolType);
   }
@@ -6555,7 +6560,10 @@ class _MiniAstTypeAnalyzer
     flow.conditional_elseBegin(ifTrue, ifTrueType);
     var ifFalseType = analyzeExpression(ifFalse, operations.unknownType).type;
     var lubType = operations.lub(ifTrueType, ifFalseType);
-    flow.conditional_end(node, lubType, ifFalse, ifFalseType);
+    flow.storeExpressionInfo(
+      node,
+      flow.conditional_end(lubType, ifFalse, ifFalseType),
+    );
     return new ExpressionTypeAnalysisResult(type: lubType);
   }
 
@@ -6850,12 +6858,14 @@ class _MiniAstTypeAnalyzer
       expression,
       operations.unknownType,
     ).type;
-    flow.isExpression_end(
+    flow.storeExpressionInfo(
       node,
-      expression,
-      isInverted,
-      subExpressionType: subExpressionType,
-      checkedType: SharedTypeView(type),
+      flow.isExpression_end(
+        expression,
+        isInverted,
+        subExpressionType: subExpressionType,
+        checkedType: SharedTypeView(type),
+      ),
     );
     return new ExpressionTypeAnalysisResult(type: operations.boolType);
   }

@@ -1967,12 +1967,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (isIdenticalCall) {
-      flowAnalysis.equalityOperation_end(
+      flowAnalysis.storeExpressionInfo(
         actualArguments.parent as Expression,
-        argumentsInfo[0].identicalInfo,
-        new SharedTypeView(argumentsInfo[0].actualType),
-        argumentsInfo[1].identicalInfo,
-        new SharedTypeView(argumentsInfo[1].actualType),
+        flowAnalysis.equalityOperation_end(
+          argumentsInfo[0].identicalInfo,
+          new SharedTypeView(argumentsInfo[0].actualType),
+          argumentsInfo[1].identicalInfo,
+          new SharedTypeView(argumentsInfo[1].actualType),
+        ),
       );
     }
 
