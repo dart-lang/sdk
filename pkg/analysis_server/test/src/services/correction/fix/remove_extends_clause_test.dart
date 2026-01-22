@@ -78,4 +78,15 @@ class A {}
 mixin class B {}
 ''');
   }
+
+  Future<void> test_mixinClass_extends_class_emptyBody() async {
+    await resolveTestCode('''
+class A {}
+mixin class B extends A;
+''');
+    await assertHasFix('''
+class A {}
+mixin class B;
+''');
+  }
 }
