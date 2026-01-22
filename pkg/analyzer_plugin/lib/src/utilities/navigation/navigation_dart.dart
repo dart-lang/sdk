@@ -627,7 +627,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
-    if (node.parent case ExtensionTypeDeclaration declaration) {
+    if (node.parent case Declaration declaration) {
       computer._addRegionForFragment(
         node.typeName,
         declaration.declaredFragment,
