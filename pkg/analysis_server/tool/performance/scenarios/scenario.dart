@@ -63,10 +63,14 @@ class Scenario {
       for (var i = 0; i < workspace.workspaceDirectories.length; i++)
         '{{workspaceFolder-$i}}': workspace.workspaceDirectories
             .elementAt(i)
-            .path,
-      '{{dartSdkRoot}}': sdkPath,
+            .path
+            .replaceAll(r'\', r'\\'),
+      '{{dartSdkRoot}}': sdkPath.replaceAll(r'\', r'\\'),
       for (var package in workspace.contextRoots.single.packageConfig.packages)
-        '{{package-root:${package.name}}}': package.root.toString(),
+        '{{package-root:${package.name}}}': package.root.toString().replaceAll(
+          r'\',
+          r'\\',
+        ),
     });
 
     print('Creating log player');
