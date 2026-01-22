@@ -47,6 +47,26 @@ class A {
 ''');
   }
 
+  Future<void> test_namedParameter_atInitializer() async {
+    await resolveTestCode('''
+class A {
+  int? aaa;
+  A({int? aaa}) : aaa = ^aaa;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_namedParameter_atParameter() async {
+    await resolveTestCode('''
+class A {
+  int? aaa;
+  A({int? ^aaa}) : aaa = aaa;
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_notPureAssignment() async {
     await resolveTestCode('''
 class A {
@@ -89,6 +109,26 @@ class A {
   }
 }
 ''');
+  }
+
+  Future<void> test_optionalParameter_atInitializer() async {
+    await resolveTestCode('''
+class A {
+  int? aaa;
+  A([int? aaa]) : aaa = ^aaa;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_optionalParameter_atParameter() async {
+    await resolveTestCode('''
+class A {
+  int? aaa;
+  A([int? ^aaa]) : aaa = aaa;
+}
+''');
+    await assertNoAssist();
   }
 
   Future<void> test_secondInitializer() async {
