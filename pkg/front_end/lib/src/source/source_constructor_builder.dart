@@ -46,22 +46,7 @@ class InferableConstructor implements InferableMember {
 
   @override
   void reportCyclicDependency() {
-    // There is a cyclic dependency where inferring the types of the
-    // initializing formals of a constructor required us to infer the
-    // corresponding field type which required us to know the type of the
-    // constructor.
-    String name = _builder.declarationBuilder.name;
-    if (_builder.name.isNotEmpty) {
-      // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
-      // instead. However, `inferrer.helper` may be null.
-      name += ".${_builder.name}";
-    }
-    _builder.libraryBuilder.addProblem(
-      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
-      _builder.fileOffset,
-      name.length,
-      _builder.fileUri,
-    );
+    _builder._reportCyclicDependency();
   }
 }
 
@@ -483,6 +468,24 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       // Coverage-ignore-block(suite): Not run.
       augmentation.markAsErroneous();
     }
+  }
+
+  void _reportCyclicDependency() {
+    // There is a cyclic dependency where inferring the types of the
+    // initializing formals of a constructor required us to infer the
+    // corresponding field type which required us to know the type of the
+    // constructor.
+    String constructorName = declarationBuilder.name;
+    if (name.isNotEmpty) {
+      constructorName += ".${name}";
+    }
+    libraryBuilder.addProblem(
+      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
+      fileOffset,
+      constructorName.length,
+      fileUri,
+    );
+    markAsErroneous();
   }
 }
 
