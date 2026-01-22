@@ -6865,7 +6865,8 @@ class _MiniAstTypeAnalyzer
     Var variable,
     void Function(Type?)? callback,
   ) {
-    var promotedType = flow.variableRead(node, variable);
+    var (promotedType, expressionInfo) = flow.variableRead(variable);
+    flow.storeExpressionInfo(node, expressionInfo);
     callback?.call(promotedType?.unwrapTypeView());
     return new ExpressionTypeAnalysisResult(
       type: promotedType ?? SharedTypeView(variable.type),

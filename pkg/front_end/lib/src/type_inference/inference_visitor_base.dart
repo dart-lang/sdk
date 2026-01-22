@@ -4275,20 +4275,21 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     node ??= new VariableGet(variable.astVariable)..fileOffset = nameOffset;
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
+    ExpressionInfo? expressionInfo;
     if (isExtensionThis(variable.astVariable)) {
-      flowAnalysis.storeExpressionInfo(
-        node,
-        flowAnalysis.thisOrSuper(
-          new SharedTypeView(variable.type),
-          isSuper: true,
-        ),
+      expressionInfo = flowAnalysis.thisOrSuper(
+        new SharedTypeView(variable.type),
+        isSuper: true,
       );
     } else if (!variable.isLocalFunction) {
       // Don't promote local functions.
-      promotedType = flowAnalysis
-          .variableRead(node, variable.astVariable)
-          ?.unwrapTypeView();
+      SharedTypeView? wrappedPromotedType;
+      (wrappedPromotedType, expressionInfo) = flowAnalysis.variableRead(
+        variable.astVariable,
+      );
+      promotedType = wrappedPromotedType?.unwrapTypeView();
     }
+    flowAnalysis.storeExpressionInfo(node, expressionInfo);
     node.promotedType = promotedType;
     DartType resultType = promotedType ?? declaredOrInferredType;
     Expression resultExpression;

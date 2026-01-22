@@ -1338,9 +1338,12 @@ abstract class FlowAnalysis<
   /// Call this method when encountering an expression that reads the value of
   /// a variable.
   ///
-  /// If the variable's type is currently promoted, the promoted type is
-  /// returned. Otherwise `null` is returned.
-  SharedTypeView? variableRead(Expression expression, Variable variable);
+  /// Returns a pair:
+  /// - If the variable's type is currently promoted, the first element of the
+  ///   pair is the promoted type. Otherwise it is `null`.
+  /// - The second element of the pair is the expression info for the variable
+  ///   read.
+  (SharedTypeView?, ExpressionInfo) variableRead(Variable variable);
 
   /// Call this method after visiting the condition part of a "while" statement.
   ///
@@ -2602,10 +2605,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  SharedTypeView? variableRead(Expression expression, Variable variable) {
+  (SharedTypeView?, ExpressionInfo) variableRead(Variable variable) {
     return _wrap(
-      'variableRead($expression, $variable)',
-      () => _wrapped.variableRead(expression, variable),
+      'variableRead($variable)',
+      () => _wrapped.variableRead(variable),
       isQuery: true,
       isPure: false,
     );
@@ -6760,7 +6763,7 @@ class _FlowAnalysisImpl<
       const [];
 
   @override
-  SharedTypeView? variableRead(Expression expression, Variable variable) {
+  (SharedTypeView?, ExpressionInfo) variableRead(Variable variable) {
     SharedTypeView unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     PromotionModel? promotionModel = _current.promotionInfo?.get(
@@ -6781,8 +6784,7 @@ class _FlowAnalysisImpl<
           this,
           _current,
         );
-    _storeExpressionInfo(expression, expressionInfo);
-    return promotionModel.promotedTypes.lastOrNull;
+    return (promotionModel.promotedTypes.lastOrNull, expressionInfo);
   }
 
   @override
