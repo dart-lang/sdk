@@ -1258,7 +1258,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     BoolLiteral node,
     DartType typeContext,
   ) {
-    flowAnalysis.booleanLiteral(node, node.value);
+    flowAnalysis.storeExpressionInfo(
+      node,
+      flowAnalysis.booleanLiteral(node.value),
+    );
     return new ExpressionInferenceResult(
       coreTypes.boolRawType(Nullability.nonNullable),
       node,
@@ -12136,7 +12139,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     const NullType nullType = const NullType();
-    flowAnalysis.nullLiteral(node, new SharedTypeView(nullType));
+    flowAnalysis.storeExpressionInfo(
+      node,
+      flowAnalysis.nullLiteral(new SharedTypeView(nullType)),
+    );
     return new ExpressionInferenceResult(nullType, node);
   }
 
@@ -13436,10 +13442,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ThisExpression node,
     DartType typeContext,
   ) {
-    flowAnalysis.thisOrSuper(
+    flowAnalysis.storeExpressionInfo(
       node,
-      new SharedTypeView(thisType!),
-      isSuper: false,
+      flowAnalysis.thisOrSuper(new SharedTypeView(thisType!), isSuper: false),
     );
     return new ExpressionInferenceResult(thisType!, node);
   }

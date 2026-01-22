@@ -4276,10 +4276,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (isExtensionThis(variable.astVariable)) {
-      flowAnalysis.thisOrSuper(
+      flowAnalysis.storeExpressionInfo(
         node,
-        new SharedTypeView(variable.type),
-        isSuper: true,
+        flowAnalysis.thisOrSuper(
+          new SharedTypeView(variable.type),
+          isSuper: true,
+        ),
       );
     } else if (!variable.isLocalFunction) {
       // Don't promote local functions.

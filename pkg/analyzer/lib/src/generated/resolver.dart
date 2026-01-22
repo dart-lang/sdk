@@ -2027,7 +2027,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    flowAnalysis.flow?.booleanLiteral(node, node.value);
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.booleanLiteral(node.value),
+    );
     checkUnreachableNode(node);
     node.visitChildren(this);
     typeAnalyzer.visitBooleanLiteral(node);
@@ -3493,7 +3496,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     node.visitChildren(this);
     typeAnalyzer.visitNullLiteral(node as NullLiteralImpl);
-    flowAnalysis.flow?.nullLiteral(node, SharedTypeView(node.typeOrThrow));
+    flowAnalysis.flow?.storeExpressionInfo(
+      node,
+      flowAnalysis.flow?.nullLiteral(SharedTypeView(node.typeOrThrow)),
+    );
     checkUnreachableNode(node);
     inferenceLogWriter?.exitExpression(node);
   }

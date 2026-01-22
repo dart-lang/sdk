@@ -311,7 +311,9 @@ abstract class FlowAnalysis<
   void assignMatchedPatternVariable(Variable variable, int promotionKey);
 
   /// Call this method when visiting a boolean literal expression.
-  void booleanLiteral(Expression expression, bool value);
+  ///
+  /// Returns the expression info for the boolean literal.
+  ExpressionInfo booleanLiteral(bool value);
 
   /// Call this method just after visiting the target of a cascade expression.
   ///
@@ -884,7 +886,9 @@ abstract class FlowAnalysis<
   /// Call this method when encountering an expression that is a `null` literal.
   ///
   /// [type] should be the static type of the literal (i.e. the type `Null`).
-  void nullLiteral(Expression expression, SharedTypeView type);
+  ///
+  /// Returns the expression info for the null literal.
+  ExpressionInfo nullLiteral(SharedTypeView type);
 
   /// Call this method just after visiting a parenthesized expression.
   ///
@@ -1221,13 +1225,13 @@ abstract class FlowAnalysis<
   /// pseudo-expression `super`, in the case of the analyzer, which represents
   /// `super.x` as a property get whose target is `super`).
   ///
-  /// [expression] should be the `this` or `super` expression. [staticType]
-  /// should be the static type of `this`.
+  /// [staticType] should be the static type of `this`.
   ///
   /// [isSuper] indicates whether the expression that was visited was the
   /// pseudo-expression `super`.
-  void thisOrSuper(
-    Expression expression,
+  ///
+  /// Returns the expression info for the `this` or `super` expression.
+  ExpressionInfo thisOrSuper(
     SharedTypeView staticType, {
     required bool isSuper,
   });
@@ -1535,10 +1539,12 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void booleanLiteral(Expression expression, bool value) {
-    _wrap(
-      'booleanLiteral($expression, $value)',
-      () => _wrapped.booleanLiteral(expression, value),
+  ExpressionInfo booleanLiteral(bool value) {
+    return _wrap(
+      'booleanLiteral($value)',
+      () => _wrapped.booleanLiteral(value),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2192,10 +2198,12 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void nullLiteral(Expression expression, SharedTypeView type) {
-    _wrap(
-      'nullLiteral($expression, $type)',
-      () => _wrapped.nullLiteral(expression, type),
+  ExpressionInfo nullLiteral(SharedTypeView type) {
+    return _wrap(
+      'nullLiteral($type)',
+      () => _wrapped.nullLiteral(type),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2502,14 +2510,15 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void thisOrSuper(
-    Expression expression,
+  ExpressionInfo thisOrSuper(
     SharedTypeView staticType, {
     required bool isSuper,
   }) {
     return _wrap(
-      'thisOrSuper($expression, $staticType, isSuper: $isSuper)',
-      () => _wrapped.thisOrSuper(expression, staticType, isSuper: isSuper),
+      'thisOrSuper($staticType, isSuper: $isSuper)',
+      () => _wrapped.thisOrSuper(staticType, isSuper: isSuper),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -5224,22 +5233,21 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void booleanLiteral(Expression expression, bool value) {
+  ExpressionInfo booleanLiteral(bool value) {
     FlowModel unreachable = _current.setUnreachable();
-    _storeExpressionInfo(
-      expression,
-      value
-          ? new ExpressionInfo(
-              type: boolType,
-              ifTrue: _current,
-              ifFalse: unreachable,
-            )
-          : new ExpressionInfo(
-              type: boolType,
-              ifTrue: unreachable,
-              ifFalse: _current,
-            ),
-    );
+    if (value) {
+      return new ExpressionInfo(
+        type: boolType,
+        ifTrue: _current,
+        ifFalse: unreachable,
+      );
+    } else {
+      return new ExpressionInfo(
+        type: boolType,
+        ifTrue: unreachable,
+        ifFalse: _current,
+      );
+    }
   }
 
   @override
@@ -5502,12 +5510,12 @@ class _FlowAnalysisImpl<
         // Both operands are known by flow analysis to compare equal, so the
         // whole expression behaves equivalently to a boolean (either `true` or
         // `false` depending whether the check uses the `!=` operator).
-        booleanLiteral(wholeExpression, !notEqual);
+        _storeExpressionInfo(wholeExpression, booleanLiteral(!notEqual));
       case _GuaranteedNotEqual():
         // Both operands are known by flow analysis to compare unequal, so the
         // whole expression behaves equivalently to a boolean (either `true` or
         // `false` depending whether the check uses the `!=` operator).
-        booleanLiteral(wholeExpression, notEqual);
+        _storeExpressionInfo(wholeExpression, booleanLiteral(notEqual));
 
       // SAFETY: we can assume `reference` is a `_Reference<Type>` because we
       // require clients not to mix data obtained from different
@@ -5841,7 +5849,7 @@ class _FlowAnalysisImpl<
           staticType: subExpressionType,
           checkedType: checkedType,
         )) {
-      booleanLiteral(isExpression, isNot);
+      _storeExpressionInfo(isExpression, booleanLiteral(isNot));
     } else {
       _Reference? subExpressionReference = _getExpressionReference(
         _getExpressionInfo(subExpression),
@@ -5860,7 +5868,7 @@ class _FlowAnalysisImpl<
         staticType: subExpressionType,
         checkedType: checkedType,
       )) {
-        booleanLiteral(isExpression, !isNot);
+        _storeExpressionInfo(isExpression, booleanLiteral(!isNot));
       }
     }
   }
@@ -6153,11 +6161,8 @@ class _FlowAnalysisImpl<
   void nullCheckOrAssertPattern_end() {}
 
   @override
-  void nullLiteral(Expression expression, SharedTypeView type) {
-    _storeExpressionInfo(
-      expression,
-      new _NullInfo(model: _current, type: type),
-    );
+  ExpressionInfo nullLiteral(SharedTypeView type) {
+    return new _NullInfo(model: _current, type: type);
   }
 
   @override
@@ -6629,16 +6634,11 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void thisOrSuper(
-    Expression expression,
+  ExpressionInfo thisOrSuper(
     SharedTypeView staticType, {
     required bool isSuper,
   }) {
-    TrivialVariableReference reference = _thisOrSuperReference(
-      staticType,
-      isSuper: isSuper,
-    );
-    _storeExpressionInfo(expression, reference);
+    return _thisOrSuperReference(staticType, isSuper: isSuper);
   }
 
   @override

@@ -6534,7 +6534,7 @@ class _MiniAstTypeAnalyzer
   }
 
   Type analyzeBoolLiteral(Expression node, bool value) {
-    flow.booleanLiteral(node, value);
+    flow.storeExpressionInfo(node, flow.booleanLiteral(value));
     return operations.boolType.unwrapTypeView();
   }
 
@@ -6703,7 +6703,7 @@ class _MiniAstTypeAnalyzer
   }
 
   ExpressionTypeAnalysisResult analyzeNullLiteral(Expression node) {
-    flow.nullLiteral(node, SharedTypeView(nullType));
+    flow.storeExpressionInfo(node, flow.nullLiteral(SharedTypeView(nullType)));
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(nullType));
   }
 
@@ -6749,7 +6749,10 @@ class _MiniAstTypeAnalyzer
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
     var thisType = this.thisType;
-    flow.thisOrSuper(node, SharedTypeView(thisType), isSuper: false);
+    flow.storeExpressionInfo(
+      node,
+      flow.thisOrSuper(SharedTypeView(thisType), isSuper: false),
+    );
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(thisType));
   }
 
