@@ -17,6 +17,8 @@ class ElementsBuilder with Builder<ir.Elements> {
 
   ElementsBuilder(this._moduleBuilder);
 
+  bool get hasActiveElementSegments => _functionTableBuilders.isNotEmpty;
+
   ActiveFunctionSegmentBuilder activeFunctionSegmentBuilderFor(ir.Table table) {
     assert(table.type.isSubtypeOf(ir.RefType.func(nullable: true)));
     assert(table.enclosingModule == _moduleBuilder.module);

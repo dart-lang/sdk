@@ -86,6 +86,21 @@ class WasmCompilerOptions {
           ? path.basename(filePath)
           : path.basename(path.setExtension(filePath, '_module$id.wasm'));
 
+  int? idForModuleName(String mainWasmFilename, String moduleFilename) {
+    assert(mainWasmFilename.endsWith('.wasm') &&
+        !mainWasmFilename.contains(path.separator));
+
+    if (mainWasmFilename == moduleFilename) return mainModuleId;
+
+    final prefix = '${path.basenameWithoutExtension(mainWasmFilename)}_module';
+    if (!moduleFilename.startsWith(prefix) ||
+        !moduleFilename.endsWith('.wasm')) {
+      return null;
+    }
+    return int.tryParse(moduleFilename.substring(
+        prefix.length, moduleFilename.length - '.wasm'.length));
+  }
+
   static int _defaultMaxActiveWasmOptProcesses() {
     try {
       return Platform.numberOfProcessors;

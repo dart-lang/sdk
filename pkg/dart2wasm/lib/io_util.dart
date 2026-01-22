@@ -145,25 +145,20 @@ class CompilerPhaseInputOutputManager {
     return await Process.run(executable, args);
   }
 
-  Future<int> getModuleCount(String mainWasmFile) async {
-    final files = (await Directory(path.dirname(mainWasmFile)).list().toList());
-    final prefix = path.basenameWithoutExtension(mainWasmFile);
-    bool isMultiModule = false;
-    int maxModuleId = 0;
+  Future<Set<int>> getModuleIds(String mainWasmFilePath) async {
+    final files =
+        (await Directory(path.dirname(mainWasmFilePath)).list().toList());
+    final mainWasmFilename = path.basename(mainWasmFilePath);
+    final moduleIds = <int>{};
     for (final file in files) {
       if (file is! File) continue;
-      final fileBase = path.basename(file.path);
-      if (!fileBase.startsWith(prefix)) continue;
-      if (path.extension(fileBase) != '.wasm') continue;
-      final fileSuffix =
-          path.setExtension(fileBase, '').substring(prefix.length);
-      if (!fileSuffix.startsWith('_module')) continue;
-      isMultiModule = true;
-      final moduleId = int.tryParse(fileSuffix.substring('_module'.length));
-      if (moduleId == null) continue;
-      maxModuleId = moduleId > maxModuleId ? moduleId : maxModuleId;
+      final moduleId =
+          options.idForModuleName(mainWasmFilename, path.basename(file.path));
+      if (moduleId != null) {
+        moduleIds.add(moduleId);
+      }
     }
-    return isMultiModule ? maxModuleId + 1 : 1;
+    return moduleIds;
   }
 
   Future<Uint8List> readMainDynModuleMetadataBytes() async {
