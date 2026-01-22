@@ -854,27 +854,19 @@ class _SignatureUpdater {
       }
 
       var notDefault = existing.notDefault;
-      switch (notDefault) {
-        case NormalFormalParameter():
-          switch (update.kind) {
-            case FormalParameterKind.requiredPositional:
-              var text = withoutRequired(
-                notDefault,
-                withSuper: update.withSuper,
-              );
-              requiredPositionalWrites.add(text);
-            case FormalParameterKind.optionalPositional:
-              var text = withoutRequired(existing, withSuper: update.withSuper);
-              optionalPositionalWrites.add(text);
-            case FormalParameterKind.requiredNamed:
-              var text = withRequired(existing, withSuper: update.withSuper);
-              namedWrites.add(text);
-            case FormalParameterKind.optionalNamed:
-              var text = withoutRequired(existing, withSuper: update.withSuper);
-              namedWrites.add(text);
-          }
-        default:
-          return ChangeStatusFailure();
+      switch (update.kind) {
+        case FormalParameterKind.requiredPositional:
+          var text = withoutRequired(notDefault, withSuper: update.withSuper);
+          requiredPositionalWrites.add(text);
+        case FormalParameterKind.optionalPositional:
+          var text = withoutRequired(existing, withSuper: update.withSuper);
+          optionalPositionalWrites.add(text);
+        case FormalParameterKind.requiredNamed:
+          var text = withRequired(existing, withSuper: update.withSuper);
+          namedWrites.add(text);
+        case FormalParameterKind.optionalNamed:
+          var text = withoutRequired(existing, withSuper: update.withSuper);
+          namedWrites.add(text);
       }
     }
 

@@ -178,12 +178,13 @@ extension FormalParameterExtension on FormalParameter {
     return thisOrAncestorOfType<FunctionBody>() != null;
   }
 
-  FormalParameter get notDefault {
-    var self = this;
-    if (self is DefaultFormalParameter) {
-      return self.parameter;
+  NormalFormalParameter get notDefault {
+    switch (this) {
+      case DefaultFormalParameter self:
+        return self.parameter;
+      case NormalFormalParameter self:
+        return self;
     }
-    return self;
   }
 
   FormalParameterList get parentFormalParameterList {
