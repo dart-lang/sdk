@@ -7,7 +7,7 @@ import 'package:analyzer_testing/resource_provider_mixin.dart';
 abstract class EmbedderRelatedTest with ResourceProviderMixin {
   final String emptyPath = '/home/.pub-cache/empty';
   final String foxPath = '/home/.pub-cache/fox';
-  final String foxLib = '/home/.pub-cache/fox/lib';
+  final String foxLibPath = '/home/.pub-cache/fox/lib';
 
   void setUp() {
     newFolder('/home/.pub-cache/empty');
