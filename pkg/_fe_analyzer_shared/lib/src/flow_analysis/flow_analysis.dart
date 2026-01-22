@@ -5283,20 +5283,14 @@ class _FlowAnalysisImpl<
     _cascadeTargetStack.add(
       _makeTemporaryReference(ssaNode, promotedTargetType),
     );
-    // Calling `_getExpressionReference` had the effect of clearing
-    // `_expressionReference` (because normally the caller doesn't pass the same
-    // expression to flow analysis twice, so the expression reference isn't
-    // needed anymore). However, in the case of null-aware cascades, this call
-    // will be followed by a call to [nullAwareAccess_rightBegin], and the
-    // expression reference will be needed again. So store it back.
-    if (expressionReference != null) {
-      _storeExpressionInfo(target, expressionReference);
-    }
     if (isNullAware) {
-      _nullAwareAccess_rightBegin(
+      _storeExpressionInfo(
         target,
-        targetType,
-        guardVariable: guardVariable,
+        _nullAwareAccess_rightBegin(
+          expressionReference,
+          targetType,
+          guardVariable: guardVariable,
+        ),
       );
     }
     return promotedTargetType;
@@ -6072,10 +6066,13 @@ class _FlowAnalysisImpl<
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
-    _nullAwareAccess_rightBegin(
+    _storeExpressionInfo(
       target,
-      targetType,
-      guardVariable: guardVariable,
+      _nullAwareAccess_rightBegin(
+        _getExpressionInfo(target),
+        targetType,
+        guardVariable: guardVariable,
+      ),
     );
   }
 
@@ -7568,16 +7565,14 @@ class _FlowAnalysisImpl<
   ExpressionInfo _makeTrivialExpressionInfo(SharedTypeView type) =>
       new ExpressionInfo.trivial(model: _current, type: type);
 
-  void _nullAwareAccess_rightBegin(
-    Expression target,
+  ExpressionInfo? _nullAwareAccess_rightBegin(
+    ExpressionInfo? targetInfo,
     SharedTypeView targetType, {
     required Variable? guardVariable,
   }) {
     _current = _current.split();
     FlowModel shortcutControlPath = _current;
-    _Reference? targetReference = _getExpressionReference(
-      _getExpressionInfo(target),
-    );
+    _Reference? targetReference = _getExpressionReference(targetInfo);
     if (targetReference != null) {
       _current = _current.tryMarkNonNullable(this, targetReference).ifTrue;
     }
@@ -7597,6 +7592,7 @@ class _FlowAnalysisImpl<
     }
     _stack.add(new _NullAwareAccessContext(shortcutControlPath));
     SsaNode? targetSsaNode;
+    ExpressionInfo? nullAwareExpressionInfo = targetReference;
     if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
       // Pick up the target SSA node so that it can be used for field promotion.
       targetSsaNode = targetReference?.ssaNode;
@@ -7604,7 +7600,7 @@ class _FlowAnalysisImpl<
       // Field promotion was broken for null-aware field accesses prior to the
       // implementation of sound flow analysis. So to replicate the bug, destroy
       // the target reference so that it can't be used for field promotion.
-      _storeExpressionInfo(target, null);
+      nullAwareExpressionInfo = null;
     }
     if (guardVariable != null) {
       // Promote the guard variable as well.
@@ -7622,6 +7618,7 @@ class _FlowAnalysisImpl<
         ),
       );
     }
+    return nullAwareExpressionInfo;
   }
 
   /// Computes an updated flow model representing the result of a null check
