@@ -1886,23 +1886,27 @@ class _InvalidAccessVerifier {
     );
   }
 
-  // void a({@doNotSubmit int? b}) {}
-  // void c() {
-  //   // Error: `b` is annotated with `@doNotSubmit` and it's a parameter.
-  //   a(b: 0);
-  // }
+  // Checks for invalid parameters annotated with `@doNotSubmit`. For example:
+  //
+  //     void a({@doNotSubmit int? b}) {}
+  //     void c() {
+  //       // Error: `b` is annotated with `@doNotSubmit` and it's a parameter.
+  //       a(b: 0);
+  //     }
   void _checkForInvalidDoNotSubmitParameter(ArgumentList node) {
-    // void a({@doNotSubmit int? b}) {
-    //   // OK: `b` is annotated with `@doNotSubmit` but it's a parameter.
-    //   print(b);
-    // }
+    // Examples:
     //
-    // void c({@doNotSubmit int? b}) {
-    //   void d() {
-    //     // OK: `b` is annotated with `@doNotSubmit` but it's a parent arg.
-    //     print(b);
-    //   }
-    // }
+    //     void a({@doNotSubmit int? b}) {
+    //       // OK: `b` is annotated with `@doNotSubmit` but it's a parameter.
+    //       print(b);
+    //     }
+    //
+    //     void c({@doNotSubmit int? b}) {
+    //       void d() {
+    //         // OK: `b` is annotated with `@doNotSubmit` but it's a parent arg.
+    //         print(b);
+    //       }
+    //     }
 
     // Check if the method being called is a parent method of the current node.
     var bodyParent = node.thisOrAncestorOfType<FunctionBody>()?.parent;
