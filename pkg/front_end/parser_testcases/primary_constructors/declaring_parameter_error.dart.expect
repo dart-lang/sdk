@@ -8,27 +8,19 @@ parser/primary_constructors/declaring_parameter_error:4:5: Variables can't be de
   C(var a b) {}
     ^^^
 
-parser/primary_constructors/declaring_parameter_error:7:9: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:7:9: The 'covariant' modifier can only be used on non-final declaring parameters.
 class C(covariant a) {}
         ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:8:9: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:8:9: The 'covariant' modifier can only be used on non-final declaring parameters.
 class C(covariant a b) {}
         ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:9:9: Can't have modifier 'covariant' in a primary constructor.
-class C(covariant var a) {}
-        ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:10:9: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:10:9: The 'covariant' modifier can only be used on non-final declaring parameters.
 class C(covariant final a) {}
         ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:11:9: Can't have modifier 'covariant' in a primary constructor.
-class C(covariant var a b) {}
-        ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:12:9: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:12:9: The 'covariant' modifier can only be used on non-final declaring parameters.
 class C(covariant final a b) {}
         ^^^^^^^^^
 
@@ -48,27 +40,19 @@ parser/primary_constructors/declaring_parameter_error:16:9: Can't have modifier 
 class C(const void f<T>()) {}
         ^^^^^
 
-parser/primary_constructors/declaring_parameter_error:18:8: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:18:8: The 'covariant' modifier can only be used on non-final declaring parameters.
 enum E(covariant a) {}
        ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:19:8: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:19:8: The 'covariant' modifier can only be used on non-final declaring parameters.
 enum E(covariant a b) {}
        ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:20:8: Can't have modifier 'covariant' in a primary constructor.
-enum E(covariant var a) {}
-       ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:21:8: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:21:8: The 'covariant' modifier can only be used on non-final declaring parameters.
 enum E(covariant final a) {}
        ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:22:8: Can't have modifier 'covariant' in a primary constructor.
-enum E(covariant var a b) {}
-       ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:23:8: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:23:8: The 'covariant' modifier can only be used on non-final declaring parameters.
 enum E(covariant final a b) {}
        ^^^^^^^^^
 
@@ -92,27 +76,19 @@ parser/primary_constructors/declaring_parameter_error:30:6: Variables can't be d
   ET(var a b) {}
      ^^^
 
-parser/primary_constructors/declaring_parameter_error:33:19: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:33:19: The 'covariant' modifier can only be used on non-final declaring parameters.
 extension type ET(covariant a) {}
                   ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:34:19: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:34:19: The 'covariant' modifier can only be used on non-final declaring parameters.
 extension type ET(covariant a b) {}
                   ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:35:19: Can't have modifier 'covariant' in a primary constructor.
-extension type ET(covariant var a) {}
-                  ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:36:19: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:36:19: The 'covariant' modifier can only be used on non-final declaring parameters.
 extension type ET(covariant final a) {}
                   ^^^^^^^^^
 
-parser/primary_constructors/declaring_parameter_error:37:19: Can't have modifier 'covariant' in a primary constructor.
-extension type ET(covariant var a b) {}
-                  ^^^^^^^^^
-
-parser/primary_constructors/declaring_parameter_error:38:19: Can't have modifier 'covariant' in a primary constructor.
+parser/primary_constructors/declaring_parameter_error:38:19: The 'covariant' modifier can only be used on non-final declaring parameters.
 extension type ET(covariant final a b) {}
                   ^^^^^^^^^
 
@@ -208,7 +184,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleNoType(covariant)
             handleIdentifier(a, formalParameterDeclaration)
@@ -235,7 +211,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -264,7 +240,6 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleNoType(var)
             handleIdentifier(a, formalParameterDeclaration)
@@ -291,7 +266,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleNoType(final)
             handleIdentifier(a, formalParameterDeclaration)
@@ -318,7 +293,6 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -347,7 +321,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -520,7 +494,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleNoType(covariant)
             handleIdentifier(a, formalParameterDeclaration)
@@ -546,7 +520,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -574,7 +548,6 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleNoType(var)
             handleIdentifier(a, formalParameterDeclaration)
@@ -600,7 +573,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleNoType(final)
             handleIdentifier(a, formalParameterDeclaration)
@@ -626,7 +599,6 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -654,7 +626,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -869,7 +841,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleNoType(covariant)
             handleIdentifier(a, formalParameterDeclaration)
@@ -891,7 +863,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, null)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -915,7 +887,6 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleNoType(var)
             handleIdentifier(a, formalParameterDeclaration)
@@ -937,7 +908,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleNoType(final)
             handleIdentifier(a, formalParameterDeclaration)
@@ -959,7 +930,6 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, var)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)
@@ -983,7 +953,7 @@ beginCompilationUnit(m)
         beginFormalParameters((, MemberKind.PrimaryConstructor)
           beginMetadataStar(covariant)
           endMetadataStar(0)
-          handleRecoverableError(Message[Template(ExtraneousModifierInPrimaryConstructor), Can't have modifier 'covariant' in a primary constructor., Try removing 'covariant'., {lexeme: covariant}], covariant, covariant)
+          handleRecoverableError(InvalidCovariantModifierInPrimaryConstructor, covariant, covariant)
           beginFormalParameter(covariant, MemberKind.PrimaryConstructor, null, covariant, final)
             handleIdentifier(a, typeReference)
             handleNoTypeArguments(b)

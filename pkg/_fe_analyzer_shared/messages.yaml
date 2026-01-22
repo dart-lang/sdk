@@ -962,8 +962,21 @@ extraneousModifierInPrimaryConstructor:
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: extraneousModifierInPrimaryConstructor
   hasPublishedDocs: false
+  script: |
+    // @dart=3.10
+    extension type ET(covariant String i) { }
+
+invalidCovariantModifierInPrimaryConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The 'covariant' modifier can only be used on non-final declaring parameters."
+  correctionMessage: "Try removing 'covariant'."
+  analyzerCode: invalidCovariantModifierInPrimaryConstructor
+  hasPublishedDocs: false
+  experiments: primary-constructors
   script:
-    - "extension type ET(covariant String i) { }"
+    - "class C(covariant String i);"
+    - "class C(covariant final String i);"
 
 finalAndCovariant:
   type: syntacticError

@@ -1997,6 +1997,16 @@ Message _withArgumentsOldInvalidConstantPatternUnary(String name) =>
     _withArgumentsInvalidConstantPatternUnary(name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+codeInvalidCovariantModifierInPrimaryConstructor = const MessageCode(
+  "InvalidCovariantModifierInPrimaryConstructor",
+  sharedCode: SharedCode.invalidCovariantModifierInPrimaryConstructor,
+  problemMessage:
+      """The 'covariant' modifier can only be used on non-final declaring parameters.""",
+  correctionMessage: """Try removing 'covariant'.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidEscapeStarted = const MessageCode(
   "InvalidEscapeStarted",
   sharedCode: SharedCode.invalidUnicodeEscapeStarted,
@@ -3394,6 +3404,7 @@ enum SharedCode {
   invalidConstantPatternNegation,
   invalidConstantPatternUnary,
   invalidConstructorName,
+  invalidCovariantModifierInPrimaryConstructor,
   invalidHexEscape,
   invalidInitializer,
   invalidInsideUnaryPattern,

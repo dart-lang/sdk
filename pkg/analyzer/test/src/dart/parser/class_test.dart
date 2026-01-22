@@ -1463,6 +1463,90 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_formalParameters_keyword_covariant() {
+    var parseResult = parseStringWithErrors(r'''
+class A(covariant int it) {}
+''');
+    parseResult.assertErrors([
+      error(diag.invalidCovariantModifierInPrimaryConstructor, 8, 9),
+    ]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_covariant_final() {
+    var parseResult = parseStringWithErrors(r'''
+class A(covariant final int it) {}
+''');
+    parseResult.assertErrors([
+      error(diag.invalidCovariantModifierInPrimaryConstructor, 8, 9),
+    ]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        keyword: final
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_covariant_var() {
+    var parseResult = parseStringWithErrors(r'''
+class A(covariant var int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        keyword: var
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_primaryConstructor_notConst_hasTypeParameters_named() {
     var parseResult = parseStringWithErrors(r'''
 class A<T, U>.named() {}
