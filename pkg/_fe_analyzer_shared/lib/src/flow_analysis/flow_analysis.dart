@@ -2117,7 +2117,7 @@ class FlowAnalysisDebug<
 
   @override
   void nullAwareAccess_rightBegin(
-    Expression? target,
+    Expression target,
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
@@ -2736,7 +2736,7 @@ abstract interface class FlowAnalysisNullShortingInterface<
   /// be called once upon reaching each `?.`, but [nullAwareAccess_end] should
   /// not be called until after processing the method call to `z(x)`.
   void nullAwareAccess_rightBegin(
-    Expression? target,
+    Expression target,
     SharedTypeView targetType, {
     Variable? guardVariable,
   });
@@ -6043,7 +6043,7 @@ class _FlowAnalysisImpl<
 
   @override
   void nullAwareAccess_rightBegin(
-    Expression? target,
+    Expression target,
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
@@ -7543,7 +7543,7 @@ class _FlowAnalysisImpl<
       new ExpressionInfo.trivial(model: _current, type: type);
 
   void _nullAwareAccess_rightBegin(
-    Expression? target,
+    Expression target,
     SharedTypeView targetType, {
     required Variable? guardVariable,
   }) {
@@ -7578,7 +7578,7 @@ class _FlowAnalysisImpl<
       // Field promotion was broken for null-aware field accesses prior to the
       // implementation of sound flow analysis. So to replicate the bug, destroy
       // the target reference so that it can't be used for field promotion.
-      if (target != null) _storeExpressionInfo(target, null);
+      _storeExpressionInfo(target, null);
     }
     if (guardVariable != null) {
       // Promote the guard variable as well.
