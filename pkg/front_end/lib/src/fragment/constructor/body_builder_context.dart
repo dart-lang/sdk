@@ -13,6 +13,7 @@ import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../../type_inference/inference_results.dart';
 import '../../type_inference/type_inferrer.dart';
 import 'declaration.dart';
@@ -140,8 +141,14 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void registerFunctionBody(Statement? body) {
+  void registerFunctionBody(
+    Statement? body,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     _declaration.registerFunctionBody(body);
+    function.scope =
+        // Coverage-ignore(suite): Not run.
+        scopeProviderInfo?.scope;
   }
 
   @override

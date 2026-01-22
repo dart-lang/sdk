@@ -10,6 +10,7 @@ import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_factory_builder.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import 'declaration.dart';
 
 class FactoryBodyBuilderContext extends BodyBuilderContext {
@@ -77,8 +78,14 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void registerFunctionBody(Statement? body) {
+  void registerFunctionBody(
+    Statement? body,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     _declaration.registerFunctionBody(body);
+    function.scope =
+        // Coverage-ignore(suite): Not run.
+        scopeProviderInfo?.scope;
   }
 
   @override

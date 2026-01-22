@@ -16,6 +16,7 @@ import '../kernel/internal_ast.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'closure_context.dart';
+import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'inference_visitor_base.dart';
@@ -166,6 +167,13 @@ class TypeInferrerImpl implements TypeInferrer {
             libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled,
       );
 
+  bool get isClosureContextLoweringEnabled => libraryBuilder
+      .loader
+      .target
+      .backendTarget
+      .flags
+      .isClosureContextLoweringEnabled;
+
   InferenceVisitorBase _createInferenceVisitor({
     required Uri fileUri,
     SourceConstructorBuilder? constructorBuilder,
@@ -235,12 +243,17 @@ class TypeInferrerImpl implements TypeInferrer {
       returnType,
       false,
     );
-    visitor.beginFunctionBodyInference(function, parameters);
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
+      scopeProviderInfo = visitor.beginFunctionBodyInference(parameters);
+    }
     StatementInferenceResult result = visitor.inferStatement(
       body,
       closureContext,
     );
-    visitor.endFunctionBodyInference(function);
+    if (scopeProviderInfo != null) {
+      visitor.endFunctionBodyInference(scopeProviderInfo);
+    }
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       if (!flowAnalysis.isReachable) {
@@ -262,6 +275,7 @@ class TypeInferrerImpl implements TypeInferrer {
     return new InferredFunctionBody(
       result.hasChanged ? result.statement : body,
       emittedValueType,
+      scopeProviderInfo,
     );
   }
 
@@ -535,6 +549,11 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
 class InferredFunctionBody {
   final Statement body;
   final DartType? emittedValueType;
+  final ScopeProviderInfo? scopeProviderInfo;
 
-  InferredFunctionBody(this.body, this.emittedValueType);
+  InferredFunctionBody(
+    this.body,
+    this.emittedValueType,
+    this.scopeProviderInfo,
+  );
 }

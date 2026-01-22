@@ -5,22 +5,32 @@
 import 'package:kernel/ast.dart';
 import '../util/local_stack.dart';
 
+enum ScopeProviderInfoKind {
+  Block,
+  BlockExpression,
+  Catch,
+  ForInStatement,
+  ForStatement,
+  FunctionNode,
+}
+
+class ScopeProviderInfo {
+  final ScopeProviderInfoKind kind;
+
+  Scope? scope;
+
+  ScopeProviderInfo({required this.kind});
+}
+
 abstract class ContextAllocationStrategy {
-  // TODO(cstefantsova): Replace this flag by implementing the default strategy.
-  bool isClosureContextLoweringEnabled;
-
-  final LocalStack<TreeNode> _scopeProviderOrSubstituteStack =
-      new LocalStack<TreeNode>(<TreeNode>[]);
-
-  final Map<TreeNode, Scope> _scopeBySubstitute = {};
+  final LocalStack<ScopeProviderInfo> _scopeProviderInfoStack =
+      new LocalStack<ScopeProviderInfo>(<ScopeProviderInfo>[]);
 
   bool _enableDebugLogging = true;
   StringBuffer? _debugLog;
 
-  ContextAllocationStrategy({required this.isClosureContextLoweringEnabled});
-
-  TreeNode? get _currentScopeProviderOrSubstitute =>
-      _scopeProviderOrSubstituteStack.currentOrNull;
+  ScopeProviderInfo? get _currentScopeProviderInfo =>
+      _scopeProviderInfoStack.currentOrNull;
 
   void _writeDebugLine(String line) {
     if (_enableDebugLogging) {
@@ -33,82 +43,46 @@ abstract class ContextAllocationStrategy {
     return _debugLog?.toString() ?? "";
   }
 
-  void enterScopeProvider(ScopeProvider scopeProvider) {
-    if (isClosureContextLoweringEnabled) {
-      assert(() {
-        _writeDebugLine(
-          "Entered ${scopeProvider.runtimeType} "
-          "(id=${identityHashCode(scopeProvider)}).",
-        );
-        return true;
-      }());
-      _scopeProviderOrSubstituteStack.push(scopeProvider);
-    }
-  }
+  /// Creates and returns a tracking object for the entered [ScopeProvider].
+  ScopeProviderInfo enterScopeProvider({required ScopeProviderInfoKind kind}) {
+    ScopeProviderInfo scopeProviderInfo = new ScopeProviderInfo(kind: kind);
+    _scopeProviderInfoStack.push(scopeProviderInfo);
 
-  void exitScopeProvider(ScopeProvider scopeProvider) {
-    if (isClosureContextLoweringEnabled) {
-      assert(() {
-        _writeDebugLine(
-          "Exited ${scopeProvider.runtimeType} "
-          "(id=${identityHashCode(scopeProvider)}).",
-        );
-        return true;
-      }());
-      assert(
-        identical(_currentScopeProviderOrSubstitute, scopeProvider),
-        "Expected the current scope provider "
-        "to be identical to the exited one: "
-        "current=${_currentScopeProviderOrSubstitute.runtimeType}, "
-        "exited=${scopeProvider.runtimeType}."
-        "\nDebug log:\n${_readDebugLog()}",
+    assert(() {
+      _writeDebugLine(
+        "Entered ${scopeProviderInfo.kind} "
+        "(id=${identityHashCode(scopeProviderInfo)}).",
       );
-      _scopeProviderOrSubstituteStack.pop();
-    }
+      return true;
+    }());
+
+    return scopeProviderInfo;
   }
 
-  void enterScopeProviderSubstitute(TreeNode substitute) {
-    if (isClosureContextLoweringEnabled) {
-      assert(() {
-        _writeDebugLine(
-          "Entered ${substitute.runtimeType} "
-          "(id=${identityHashCode(substitute)}).",
-        );
-        return true;
-      }());
-      _scopeProviderOrSubstituteStack.push(substitute);
-    }
-  }
-
-  void exitScopeProviderSubstitute(TreeNode substitute) {
-    if (isClosureContextLoweringEnabled) {
-      assert(() {
-        _writeDebugLine(
-          "Exited ${substitute.runtimeType} "
-          "(id=${identityHashCode(substitute)}).",
-        );
-        return true;
-      }());
-      assert(
-        identical(_currentScopeProviderOrSubstitute, substitute),
-        "Expected the current scope provider substitute "
-        "to be identical to the exited one: "
-        "current=${_currentScopeProviderOrSubstitute.runtimeType}, "
-        "exited=${substitute.runtimeType}."
-        "\nDebug log:\n${_readDebugLog()}",
+  /// Ensures that the tracking object [scopeProviderInfo] for the exited
+  /// [ScopeProvider] matches the one previously entered.
+  void exitScopeProvider(ScopeProviderInfo scopeProviderInfo) {
+    assert(() {
+      _writeDebugLine(
+        "Exited ${scopeProviderInfo.kind} "
+        "(id=${identityHashCode(scopeProviderInfo)}).",
       );
-      _scopeProviderOrSubstituteStack.pop();
-    }
+      return true;
+    }());
+    assert(
+      identical(_currentScopeProviderInfo, scopeProviderInfo),
+      "Expected the current scope provider "
+      "to be identical to the exited one: "
+      "current=${_currentScopeProviderInfo?.kind}, "
+      "exited=${scopeProviderInfo.kind}."
+      "\nDebug log:\n${_readDebugLog()}",
+    );
+    _scopeProviderInfoStack.pop();
   }
 
   Scope _ensureCurrentScope() {
-    assert(_currentScopeProviderOrSubstitute != null);
-    if (_currentScopeProviderOrSubstitute case ScopeProvider scopeProvider) {
-      return scopeProvider.scope ??= new Scope(contexts: []);
-    } else {
-      return _scopeBySubstitute[_currentScopeProviderOrSubstitute!] ??=
-          new Scope(contexts: []);
-    }
+    assert(_currentScopeProviderInfo != null);
+    return _currentScopeProviderInfo!.scope ??= new Scope(contexts: []);
   }
 
   VariableContext _ensureVariableContextInCurrentScope({
@@ -129,11 +103,6 @@ abstract class ContextAllocationStrategy {
     return context;
   }
 
-  void transferScope(TreeNode from, ScopeProvider to) {
-    to.scope = _scopeBySubstitute[from];
-    _scopeBySubstitute.remove(from);
-  }
-
   void handleDeclarationOfVariable(
     ExpressionVariable variable, {
     required CaptureKind captureKind,
@@ -146,21 +115,17 @@ abstract class ContextAllocationStrategy {
 }
 
 class TrivialContextAllocationStrategy extends ContextAllocationStrategy {
-  TrivialContextAllocationStrategy({
-    required super.isClosureContextLoweringEnabled,
-  });
+  TrivialContextAllocationStrategy();
 
   @override
   void handleDeclarationOfVariable(
     ExpressionVariable variable, {
     required CaptureKind captureKind,
   }) {
-    if (isClosureContextLoweringEnabled) {
-      assert(_currentScopeProviderOrSubstitute != null);
-      _ensureVariableContextInCurrentScope(
-        captureKind: captureKind,
-      ).addVariable(variable);
-    }
+    assert(_currentScopeProviderInfo != null);
+    _ensureVariableContextInCurrentScope(
+      captureKind: captureKind,
+    ).addVariable(variable);
   }
 
   @override
@@ -168,11 +133,9 @@ class TrivialContextAllocationStrategy extends ContextAllocationStrategy {
     FunctionNode node,
     List<Variable> variables,
   ) {
-    if (isClosureContextLoweringEnabled) {
-      Set<VariableContext> contexts = {
-        for (Variable variable in variables) variable.context,
-      };
-      (node.contexts ??= []).addAll(contexts);
-    }
+    Set<VariableContext> contexts = {
+      for (Variable variable in variables) variable.context,
+    };
+    (node.contexts ??= []).addAll(contexts);
   }
 }

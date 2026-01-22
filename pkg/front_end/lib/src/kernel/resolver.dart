@@ -1411,6 +1411,9 @@ class Resolver {
         ])..fileOffset = body.fileOffset;
       }
     }
-    bodyBuilderContext.registerFunctionBody(body);
+    bodyBuilderContext.registerFunctionBody(
+      body,
+      inferredFunctionBody?.scopeProviderInfo,
+    );
   }
 }

@@ -11,6 +11,7 @@ import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
 import 'declaration.dart';
@@ -69,10 +70,14 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
       _declaration.getTearOffParameter(index);
 
   @override
-  void registerFunctionBody(Statement? body) {
+  void registerFunctionBody(
+    Statement? body,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     if (body != null) {
       function.body = body..parent = function;
     }
+    function.scope = scopeProviderInfo?.scope;
   }
 
   @override

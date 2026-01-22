@@ -41,6 +41,7 @@ import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
+import 'context_allocation_strategy.dart';
 import 'external_ast_helper.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
@@ -5533,17 +5534,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// temporary type inference state has been properly cleaned up.
   void checkCleanState();
 
-  /// Performs preliminary computations before inferring body of [function].
+  /// Performs preliminary computations before inferring the body of a function.
   ///
-  /// At the point of invocation, [parameters] may not yet be attached to the
-  /// [function] node; therefore, they are passed separately.
-  void beginFunctionBodyInference(
-    FunctionNode function,
+  /// [parameters] are those of the function being inferred.
+  ScopeProviderInfo beginFunctionBodyInference(
     List<VariableDeclaration> parameters,
   );
 
-  /// Performs finishing computations after inferring body of [function].
-  void endFunctionBodyInference(FunctionNode function);
+  /// Performs finishing computations after inferring the body of a function.
+  void endFunctionBodyInference(ScopeProviderInfo scopeProviderInfo);
 }
 
 /// Describes assignability kind of one type to another.
