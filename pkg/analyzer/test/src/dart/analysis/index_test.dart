@@ -72,10 +72,8 @@ class B_q extends p.A {}
 
     var element = findElement2.class_('A');
     assertElementIndexText(element, r'''
-44 5:7 |B| IS_ANCESTOR_OF
 54 5:17 |A| IS_EXTENDED_BY
 54 5:17 |A| IS_REFERENCED_BY
-65 6:7 |B_q| IS_ANCESTOR_OF
 79 6:21 |A| IS_EXTENDED_BY qualified
 79 6:21 |A| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
@@ -88,7 +86,6 @@ class A {}
 ''');
     var element = typeProvider.objectType.element;
     assertElementIndexText(element, r'''
-6 1:7 |A| IS_ANCESTOR_OF
 6 1:7 || IS_EXTENDED_BY qualified
 ''');
   }
@@ -106,10 +103,8 @@ class B_q implements p.A {}
 
     var element = findElement2.class_('A');
     assertElementIndexText(element, r'''
-44 5:7 |B| IS_ANCESTOR_OF
 57 5:20 |A| IS_IMPLEMENTED_BY
 57 5:20 |A| IS_REFERENCED_BY
-68 6:7 |B_q| IS_ANCESTOR_OF
 85 6:24 |A| IS_IMPLEMENTED_BY qualified
 85 6:24 |A| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
@@ -132,10 +127,8 @@ class D_q extends Object with p.A {}
 
     var element = findElement2.class_('A');
     assertElementIndexText(element, r'''
-44 5:7 |D| IS_ANCESTOR_OF
 66 5:29 |A| IS_MIXED_IN_BY
 66 5:29 |A| IS_REFERENCED_BY
-77 6:7 |D_q| IS_ANCESTOR_OF
 103 6:33 |A| IS_MIXED_IN_BY qualified
 103 6:33 |A| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
@@ -158,10 +151,8 @@ class D2_q = Object with p.A;
 
     var element = findElement2.class_('A');
     assertElementIndexText(element, r'''
-44 5:7 |D2| IS_ANCESTOR_OF
 61 5:24 |A| IS_MIXED_IN_BY
 61 5:24 |A| IS_REFERENCED_BY
-70 6:7 |D2_q| IS_ANCESTOR_OF
 91 6:28 |A| IS_MIXED_IN_BY qualified
 91 6:28 |A| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
@@ -181,10 +172,8 @@ enum E_q implements p.A { v }
 
     var element = findElement2.class_('A');
     assertElementIndexText(element, r'''
-43 5:6 |E| IS_ANCESTOR_OF
 56 5:19 |A| IS_IMPLEMENTED_BY
 56 5:19 |A| IS_REFERENCED_BY
-69 6:6 |E_q| IS_ANCESTOR_OF
 86 6:23 |A| IS_IMPLEMENTED_BY qualified
 86 6:23 |A| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
@@ -204,11 +193,9 @@ extension type Et_q(A it) implements p.A {}
 
     var element = findElement2.class_('A');
     assertElementIndexText(element, r'''
-53 5:16 |Et| IS_ANCESTOR_OF
 56 5:19 |A| IS_REFERENCED_BY
 73 5:36 |A| IS_IMPLEMENTED_BY
 73 5:36 |A| IS_REFERENCED_BY
-93 6:16 |Et_q| IS_ANCESTOR_OF
 98 6:21 |A| IS_REFERENCED_BY
 117 6:40 |A| IS_IMPLEMENTED_BY qualified
 117 6:40 |A| IS_REFERENCED_BY qualified
@@ -229,10 +216,8 @@ mixin M_q implements p.A {}
 
     var element = findElement2.class_('A');
     assertElementIndexText(element, r'''
-44 5:7 |M| IS_ANCESTOR_OF
 57 5:20 |A| IS_IMPLEMENTED_BY
 57 5:20 |A| IS_REFERENCED_BY
-68 6:7 |M_q| IS_ANCESTOR_OF
 85 6:24 |A| IS_IMPLEMENTED_BY qualified
 85 6:24 |A| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
@@ -252,10 +237,8 @@ mixin M2_q on p.A {}
 
     var element = findElement2.class_('A');
     assertElementIndexText(element, r'''
-44 5:7 |M2| IS_ANCESTOR_OF
 50 5:13 |A| CONSTRAINS
 50 5:13 |A| IS_REFERENCED_BY
-61 6:7 |M2_q| IS_ANCESTOR_OF
 71 6:17 |A| CONSTRAINS qualified
 71 6:17 |A| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
@@ -1484,10 +1467,8 @@ extension type B_q(int it) implements p.A {}
 
     var element = findElement2.extensionType('A');
     assertElementIndexText(element, r'''
-70 5:16 |B| IS_ANCESTOR_OF
 91 5:37 |A| IS_IMPLEMENTED_BY
 91 5:37 |A| IS_REFERENCED_BY
-111 6:16 |B_q| IS_ANCESTOR_OF
 136 6:41 |A| IS_IMPLEMENTED_BY qualified
 136 6:41 |A| IS_REFERENCED_BY qualified
 Prefixes: (unprefixed),p
@@ -3068,7 +3049,6 @@ class B implements A {}
 
     var element = findElement2.mixin('A');
     assertElementIndexText(element, r'''
-17 2:7 |B| IS_ANCESTOR_OF
 30 2:20 |A| IS_IMPLEMENTED_BY
 30 2:20 |A| IS_REFERENCED_BY
 ''');
@@ -3083,7 +3063,6 @@ class B extends Object with A {}
 
     var element = findElement2.mixin('A');
     assertElementIndexText(element, r'''
-17 2:7 |B| IS_ANCESTOR_OF
 39 2:29 |A| IS_MIXED_IN_BY
 39 2:29 |A| IS_REFERENCED_BY
 ''');
@@ -3098,7 +3077,6 @@ class B = Object with A;
 
     var element = findElement2.mixin('A');
     assertElementIndexText(element, r'''
-17 2:7 |B| IS_ANCESTOR_OF
 33 2:23 |A| IS_MIXED_IN_BY
 33 2:23 |A| IS_REFERENCED_BY
 ''');
@@ -3115,7 +3093,6 @@ enum E implements A {
 
     var element = findElement2.mixin('A');
     assertElementIndexText(element, r'''
-16 2:6 |E| IS_ANCESTOR_OF
 29 2:19 |A| IS_IMPLEMENTED_BY
 29 2:19 |A| IS_REFERENCED_BY
 ''');
@@ -3132,7 +3109,6 @@ enum E with A {
 
     var element = findElement2.mixin('A');
     assertElementIndexText(element, r'''
-16 2:6 |E| IS_ANCESTOR_OF
 23 2:13 |A| IS_MIXED_IN_BY
 23 2:13 |A| IS_REFERENCED_BY
 ''');
@@ -3147,7 +3123,6 @@ extension type E(A it) implements A {}
 
     var element = findElement2.mixin('A');
     assertElementIndexText(element, r'''
-26 2:16 |E| IS_ANCESTOR_OF
 28 2:18 |A| IS_REFERENCED_BY
 45 2:35 |A| IS_IMPLEMENTED_BY
 45 2:35 |A| IS_REFERENCED_BY
@@ -3163,7 +3138,6 @@ mixin M implements A {}
 
     var element = findElement2.mixin('A');
     assertElementIndexText(element, r'''
-17 2:7 |M| IS_ANCESTOR_OF
 30 2:20 |A| IS_IMPLEMENTED_BY
 30 2:20 |A| IS_REFERENCED_BY
 ''');
@@ -3178,7 +3152,6 @@ mixin M on A {}
 
     var element = findElement2.mixin('A');
     assertElementIndexText(element, r'''
-17 2:7 |M| IS_ANCESTOR_OF
 22 2:12 |A| CONSTRAINS
 22 2:12 |A| IS_REFERENCED_BY
 ''');

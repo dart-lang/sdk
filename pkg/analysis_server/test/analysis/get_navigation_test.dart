@@ -555,6 +555,18 @@ import 'dart:io' as _;
     assertHasTarget('_');
   }
 
+  Future<void> test_primaryConstructor() async {
+    addTestFile('''
+class Foo(final int a);
+
+final a = Foo(1);
+''');
+    await waitForTasksFinished();
+
+    await _getNavigation(search: 'Foo(1);');
+    assertHasRegionTarget('Foo(1)', 'Foo(final int a)');
+  }
+
   Future<void> test_topLevelVariable_underscore() async {
     addTestFile('''
 var _ = 0;

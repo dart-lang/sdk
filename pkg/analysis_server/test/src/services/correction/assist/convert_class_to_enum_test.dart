@@ -148,7 +148,7 @@ class const ^_E(final int index, final String code) {
 }
 ''');
     await assertHasAssist('''
-enum const _E(final String code) {
+enum _E(final String code) {
   c0('a'),
   c1('b')
 }
@@ -590,7 +590,7 @@ class const ^E._() {
 }
 ''');
     await assertHasAssist('''
-enum const E._() {
+enum E._() {
   c._()
 }
 ''');
@@ -682,7 +682,7 @@ class const ^E._(final String name) {
 }
 ''');
     await assertHasAssist('''
-enum const E._(final String name) {
+enum E._(final String name) {
   c0._('c0'),
   c1._('c1')
 }

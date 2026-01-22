@@ -185,6 +185,12 @@ class _EnumDescription {
       'enum',
     );
 
+    if (classDeclaration.namePart case PrimaryConstructorDeclaration(
+      :var constKeyword?,
+    )) {
+      builder.addDeletion(range.startStart(constKeyword, constKeyword.next!));
+    }
+
     // Remove the extends clause if there is one.
     var extendsClause = classDeclaration.extendsClause;
     if (extendsClause != null) {

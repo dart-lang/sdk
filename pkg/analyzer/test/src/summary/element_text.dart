@@ -633,7 +633,7 @@ class _Element2Writer extends _AbstractElementWriter {
       if (e.hasEnclosingTypeParameterReference) {
         _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
       }
-      // _writeDocumentation(e.documentationComment);
+      _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
@@ -715,7 +715,7 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
-      // _writeDocumentation(f.documentationComment);
+      _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       // _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);

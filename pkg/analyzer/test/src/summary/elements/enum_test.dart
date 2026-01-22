@@ -5131,6 +5131,7 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration a (nameOffset:32) (firstTokenOffset:11) (offset:32)
               element: <testLibrary>::@enum::E::@field::a
+              documentationComment: /**\n   * aaa\n   */
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5145,6 +5146,7 @@ library
                   staticType: E
             #F3 hasInitializer isOriginDeclaration b (nameOffset:47) (firstTokenOffset:37) (offset:47)
               element: <testLibrary>::@enum::E::@field::b
+              documentationComment: /// bbb
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5193,6 +5195,7 @@ library
         static const enumConstant hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
+          documentationComment: /**\n   * aaa\n   */
           type: E
           constantInitializer
             fragment: #F2
@@ -5201,6 +5204,7 @@ library
         static const enumConstant hasImplicitType hasInitializer isOriginDeclaration b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
+          documentationComment: /// bbb
           type: E
           constantInitializer
             fragment: #F3
@@ -5264,6 +5268,7 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration a (nameOffset:46) (firstTokenOffset:11) (offset:46)
               element: <testLibrary>::@enum::E::@field::a
+              documentationComment: /**\n   * aaa\n   */
               metadata
                 Annotation
                   atSign: @ @32
@@ -5286,6 +5291,7 @@ library
                   staticType: E
             #F3 hasInitializer isOriginDeclaration b (nameOffset:75) (firstTokenOffset:51) (offset:75)
               element: <testLibrary>::@enum::E::@field::b
+              documentationComment: /// bbb
               metadata
                 Annotation
                   atSign: @ @61
@@ -5352,6 +5358,7 @@ library
         static const enumConstant hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
+          documentationComment: /**\n   * aaa\n   */
           metadata
             Annotation
               atSign: @ @32
@@ -5368,6 +5375,7 @@ library
         static const enumConstant hasImplicitType hasInitializer isOriginDeclaration b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
+          documentationComment: /// bbb
           metadata
             Annotation
               atSign: @ @61

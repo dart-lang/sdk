@@ -187,6 +187,22 @@ mixin [!^M!] {}
     await testContents(contents);
   }
 
+  Future<void> test_atDeclaration_primaryConstructor() async {
+    var contents = '''
+class [!^A!]();
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_primaryConstructor_parameter() async {
+    var contents = '''
+class A(final int [!^b!]);
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_atDeclaration_typeAlias_functionType() async {
     var contents = '''
 typedef void [!^F!]();
@@ -1305,6 +1321,50 @@ void f(Object? x) {
       expect(loc.targetRange, equals(code.ranges[index].range));
       expect(loc.targetSelectionRange, equals(code.ranges[index].range));
     }
+  }
+
+  Future<void> test_primaryConstructor() async {
+    var contents = '''
+final a = A^();
+
+class [!A!]();
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_primaryConstructor_body_declaringParameter() async {
+    var contents = '''
+class A(final int [!i!]) {
+  this {
+    ^i;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_primaryConstructor_body_parameter() async {
+    var contents = '''
+class A(int [!i!]) {
+  this {
+    ^i;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_primaryConstructor_parameterList_typeName() async {
+    var contents = '''
+class [!B!] {}
+
+class A(final ^B b);
+''';
+
+    await testContents(contents);
   }
 
   Future<void> test_sameLine() async {

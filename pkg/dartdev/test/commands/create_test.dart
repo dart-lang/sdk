@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:dartdev/src/commands/create.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/templates.dart' as templates;
+import 'package:dartdev/src/utils.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -113,7 +114,7 @@ void defineCreateTests() {
     }
   });
 
-  test('project with normalized package name', () async {
+  test('project with normalized package name, with -', () async {
     final p = project();
     final result =
         await p.run(['create', '--no-pub', 'requires-normalization']);
@@ -123,6 +124,41 @@ void defineCreateTests() {
         contains(
             'Created project requires_normalization in requires-normalization!'));
     expect(result.exitCode, 0);
+  });
+
+  test('project with normalized package name, with camel case', () async {
+    final p = project();
+    final result = await p.run(['create', '--no-pub', 'RequiresNormalization']);
+    expect(result.stderr, isEmpty);
+    expect(
+        result.stdout,
+        contains(
+            'Created project requires_normalization in RequiresNormalization!'));
+    expect(result.exitCode, 0);
+  });
+
+  test('project with normalized package name, all upper case', () async {
+    final p = project();
+    final result = await p.run(['create', '--no-pub', 'HTML']);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('Created project html in HTML!'));
+    expect(result.exitCode, 0);
+  });
+
+  test('project name to lower case', () {
+    expect(projectNameToLowerCase('lower_case'), 'lower_case');
+    expect(projectNameToLowerCase('camelCase'), 'camel_case');
+    expect(projectNameToLowerCase('PascalCase'), 'pascal_case');
+    expect(projectNameToLowerCase('already_snake_case'), 'already_snake_case');
+    expect(
+      projectNameToLowerCase('mixedCamel_AndPascal_and_snake'),
+      'mixed_camel_and_pascal_and_snake',
+    );
+    expect(projectNameToLowerCase('with123Numbers'), 'with123_numbers');
+    expect(
+      projectNameToLowerCase('CONSECUTIVE_UPPER_CASE'),
+      'consecutive_upper_case',
+    );
   });
 
   test('project with an invalid package name', () async {

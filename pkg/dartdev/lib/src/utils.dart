@@ -256,9 +256,46 @@ const Set<String> _keywords = <String>{
 bool isValidPackageName(String name) =>
     _identifierRegExp.hasMatch(name) && !_keywords.contains(name);
 
+/// RegExp used for converting camel case to snake case in
+/// [projectNameToLowerCase].
+final _toSnakeCaseRegExp = RegExp('_?[A-Z]');
+
+/// Converts [name] to lower case only.
+String projectNameToLowerCase(String name) {
+  if (name.toLowerCase() == name) {
+    // No conversion needed.
+    return name;
+  } else if (name.toUpperCase() == name) {
+    // Convert all uppercase to lowercase.
+    return name.toLowerCase();
+  } else {
+    // This is copied from `pkg/analyzer_utilities/lib/extensions/string.dart`:
+
+    // Convert mixed case to snake case, as if input is camel case.
+    var parts = <String>[];
+    var i = 0;
+    var wordStarts = _toSnakeCaseRegExp.allMatches(name);
+    for (var RegExpMatch(:start) in wordStarts) {
+      if (i < start) {
+        parts.add(name.substring(i, start).toLowerCase());
+        i = start;
+      }
+      if (name[i] == '_' && parts.isNotEmpty) {
+        // Avoid doubling up the `_`. This handles strings that are already in
+        // snake case like `foo_Bar` (which translates to `foo_bar`).
+        i++;
+      }
+    }
+    if (i < name.length) {
+      parts.add(name.substring(i).toLowerCase());
+    }
+    return parts.join('_');
+  }
+}
+
 /// Convert a directory name into a reasonably legal pub package name.
 String normalizeProjectName(String name) {
-  name = name.replaceAll('-', '_').replaceAll(' ', '_');
+  name = projectNameToLowerCase(name).replaceAll('-', '_').replaceAll(' ', '_');
   // Strip any extension (like .dart).
   var dotIndex = name.indexOf('.');
   if (dotIndex >= 0) {
