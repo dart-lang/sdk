@@ -14,10 +14,10 @@ class CupertinoColors {
 
   static const CupertinoDynamicColor systemBlue =
       CupertinoDynamicColor.withBrightnessAndContrast(
-        color: Color.fromARGB(255, 0, 0, 0xFF),
-        darkColor: Color.fromARGB(255, 0, 0, 0x99),
-        highContrastColor: Color.fromARGB(255, 0, 0, 0x66),
-        darkHighContrastColor: Color.fromARGB(255, 0, 0, 0x33),
+        color: Color.fromARGB(255, 0, 122, 255),
+        darkColor: Color.fromARGB(255, 10, 132, 255),
+        highContrastColor: Color.fromARGB(255, 0, 64, 221),
+        darkHighContrastColor: Color.fromARGB(255, 64, 156, 255),
       );
 }
 

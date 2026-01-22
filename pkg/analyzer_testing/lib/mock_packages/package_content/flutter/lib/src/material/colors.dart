@@ -51,31 +51,25 @@ class Colors {
   static const Color white = Color(0xFFFFFFFF);
 
   static const MaterialColor red = MaterialColor(_redPrimaryValue, <int, Color>{
-    // For simpler testing, these values are not the real Flutter values
-    // but just varying alphas on a primary value.
-    50: Color(0x05FF0000),
-    100: Color(0x10FF0000),
-    200: Color(0x20FF0000),
-    300: Color(0x30FF0000),
-    400: Color(0x40FF0000),
-    500: Color(0x50FF0000),
-    600: Color(0x60FF0000),
-    700: Color(0x70FF0000),
-    800: Color(0x80FF0000),
-    900: Color(0x90FF0000),
+    50: Color(0xFFFFEBEE),
+    100: Color(0xFFFFCDD2),
+    200: Color(0xFFEF9A9A),
+    300: Color(0xFFE57373),
+    400: Color(0xFFEF5350),
+    500: Color(_redPrimaryValue),
+    600: Color(0xFFE53935),
+    700: Color(0xFFD32F2F),
+    800: Color(0xFFC62828),
+    900: Color(0xFFB71C1C),
   });
-  static const int _redPrimaryValue = 0xFFFF0000;
+  static const int _redPrimaryValue = 0xFFF44336;
 
-  static const MaterialAccentColor redAccent = MaterialAccentColor(
-    _redAccentValue,
-    <int, Color>{
-      // For simpler testing, these values are not the real Flutter values
-      // but just varying alphas on a primary value.
-      100: Color(0x10FFAA00),
-      200: Color(0x20FFAA00),
-      400: Color(0x40FFAA00),
-      700: Color(0x70FFAA00),
-    },
-  );
-  static const int _redAccentValue = 0xFFFFAA00;
+  static const MaterialAccentColor redAccent =
+      MaterialAccentColor(_redAccentValue, <int, Color>{
+        100: Color(0xFFFF8A80),
+        200: Color(_redAccentValue),
+        400: Color(0xFFFF1744),
+        700: Color(0xFFD50000),
+      });
+  static const int _redAccentValue = 0xFFFF5252;
 }

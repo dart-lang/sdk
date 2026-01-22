@@ -1592,7 +1592,7 @@ import 'package:flutter/material.dart';
 var a = Colors.re^
 ''';
 
-    await expectColorCompletion(content, 'red', '#FF0000');
+    await expectColorCompletion(content, 'red', '#F44336');
   }
 
   Future<void> test_color_materialAccent() async {
@@ -1601,7 +1601,7 @@ import 'package:flutter/material.dart';
 var a = Colors.redAcce^
 ''';
 
-    await expectColorCompletion(content, 'redAccent', '#FFAA00');
+    await expectColorCompletion(content, 'redAccent', '#FF5252');
   }
 
   Future<void> test_comment() async {

@@ -54,8 +54,8 @@ class ColorComputerTest extends AbstractContextTest {
     'const ColorSwatch(0xFF89ABCD, {})': 0xFF89ABCD,
     'const ColorSwatch.new(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Material
-    'Colors.red': 0xFFFF0000,
-    'Colors.redAccent': 0xFFFFAA00,
+    'Colors.red': 0xFFF44336,
+    'Colors.redAccent': 0xFFFF5252,
     'MaterialAccentColor(0xFF89ABCD, {})': 0xFF89ABCD,
     'MaterialAccentColor.new(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Material with const keyword
@@ -63,8 +63,8 @@ class ColorComputerTest extends AbstractContextTest {
     'const MaterialAccentColor.new(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Cupertino
     'CupertinoColors.black': 0xFF000000,
-    'CupertinoColors.systemBlue': 0xFF0000FF,
-    'CupertinoColors.activeBlue': 0xFF0000FF,
+    'CupertinoColors.systemBlue': 0xFF007AFF,
+    'CupertinoColors.activeBlue': 0xFF007AFF,
   };
 
   /// A map of Dart source code that represents different types/formats
@@ -73,17 +73,17 @@ class ColorComputerTest extends AbstractContextTest {
   /// Values are the color that should be discovered (in 0xAARRGGBB format).
   static const colorCodesNonConst = {
     // Flutter Material
-    'Colors.red.shade100': 0x10FF0000,
-    'Colors.red[100]': 0x10FF0000,
+    'Colors.red.shade100': 0xFFFFCDD2,
+    'Colors.red[100]': 0xFFFFCDD2,
     // Flutter Cupertino
-    'CupertinoColors.systemBlue.color': 0xFF0000FF,
-    'CupertinoColors.systemBlue.darkColor': 0xFF000099,
-    'CupertinoColors.activeBlue.color': 0xFF0000FF,
-    'CupertinoColors.activeBlue.darkColor': 0xFF000099,
-    'CupertinoColors.activeBlue.highContrastColor': 0xFF000066,
-    'CupertinoColors.activeBlue.darkHighContrastColor': 0xFF000033,
-    'CupertinoColors.activeBlue.elevatedColor': 0xFF0000FF,
-    'CupertinoColors.activeBlue.darkElevatedColor': 0xFF000099,
+    'CupertinoColors.systemBlue.color': 0xFF007AFF,
+    'CupertinoColors.systemBlue.darkColor': 0xFF0A84FF,
+    'CupertinoColors.activeBlue.color': 0xFF007AFF,
+    'CupertinoColors.activeBlue.darkColor': 0xFF0A84FF,
+    'CupertinoColors.activeBlue.highContrastColor': 0xFF0040DD,
+    'CupertinoColors.activeBlue.darkHighContrastColor': 0xFF409CFF,
+    'CupertinoColors.activeBlue.elevatedColor': 0xFF007AFF,
+    'CupertinoColors.activeBlue.darkElevatedColor': 0xFF0A84FF,
   };
 
   /// A map of Dart source code that creates multiple nested color references.
@@ -280,9 +280,9 @@ class MyTheme {
 ''';
     await expectColors(testCode, {
       'MyTheme.staticWhite': 0xFFFFFFFF,
-      'MyTheme.staticMaterialRedAccent': 0xFFFFAA00,
+      'MyTheme.staticMaterialRedAccent': 0xFFFF5252,
       'theme.instanceWhite': 0xFFFFFFFF,
-      'theme.instanceMaterialRedAccent': 0xFFFFAA00,
+      'theme.instanceMaterialRedAccent': 0xFFFF5252,
     }, otherCode: otherCode);
   }
 
@@ -302,7 +302,7 @@ const myThemeMaterialRedAccent = Colors.redAccent;
 ''';
     await expectColors(testCode, {
       'myThemeWhite': 0xFFFFFFFF,
-      'myThemeMaterialRedAccent': 0xFFFFAA00,
+      'myThemeMaterialRedAccent': 0xFFFF5252,
     }, otherCode: otherCode);
   }
 
