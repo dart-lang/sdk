@@ -1113,8 +1113,10 @@ library
           fields
             #F2 isOriginDeclaration hasDocComment (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: <testLibrary>::@class::C::@field::hasDocComment
+              documentationComment: /// Comment 1.\n/// Comment 2.
             #F3 isOriginDeclaration hasDocComment2 (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@class::C::@field::hasDocComment2
+              documentationComment: /// Comment 1.\n/// Comment 2.
             #F4 isOriginDeclaration hasAnnotation (nameOffset:100) (firstTokenOffset:100) (offset:100)
               element: <testLibrary>::@class::C::@field::hasAnnotation
               metadata
@@ -1143,6 +1145,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
             #F6 isOriginDeclaration annotationThenComment (nameOffset:184) (firstTokenOffset:184) (offset:184)
               element: <testLibrary>::@class::C::@field::annotationThenComment
+              documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
                   atSign: @ @134
@@ -1156,6 +1159,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
             #F7 isOriginDeclaration annotationThenComment2 (nameOffset:207) (firstTokenOffset:207) (offset:207)
               element: <testLibrary>::@class::C::@field::annotationThenComment2
+              documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
                   atSign: @ @134
@@ -1169,6 +1173,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
             #F8 isOriginDeclaration commentThenAnnotation (nameOffset:284) (firstTokenOffset:284) (offset:284)
               element: <testLibrary>::@class::C::@field::commentThenAnnotation
+              documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
                   atSign: @ @268
@@ -1182,6 +1187,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
             #F9 isOriginDeclaration commentThenAnnotation2 (nameOffset:307) (firstTokenOffset:307) (offset:307)
               element: <testLibrary>::@class::C::@field::commentThenAnnotation2
+              documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
                 Annotation
                   atSign: @ @268
@@ -1195,6 +1201,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
             #F10 isOriginDeclaration commentAroundAnnotation (nameOffset:384) (firstTokenOffset:384) (offset:384)
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation
+              documentationComment: /// Comment 2.
               metadata
                 Annotation
                   atSign: @ @351
@@ -1208,6 +1215,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
             #F11 isOriginDeclaration commentAroundAnnotation2 (nameOffset:409) (firstTokenOffset:409) (offset:409)
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation2
+              documentationComment: /// Comment 2.
               metadata
                 Annotation
                   atSign: @ @351
@@ -1303,12 +1311,14 @@ library
         isOriginDeclaration hasDocComment
           reference: <testLibrary>::@class::C::@field::hasDocComment
           firstFragment: #F2
+          documentationComment: /// Comment 1.\n/// Comment 2.
           type: int
           getter: <testLibrary>::@class::C::@getter::hasDocComment
           setter: <testLibrary>::@class::C::@setter::hasDocComment
         isOriginDeclaration hasDocComment2
           reference: <testLibrary>::@class::C::@field::hasDocComment2
           firstFragment: #F3
+          documentationComment: /// Comment 1.\n/// Comment 2.
           type: int
           getter: <testLibrary>::@class::C::@getter::hasDocComment2
           setter: <testLibrary>::@class::C::@setter::hasDocComment2
@@ -1349,6 +1359,7 @@ library
         isOriginDeclaration annotationThenComment
           reference: <testLibrary>::@class::C::@field::annotationThenComment
           firstFragment: #F6
+          documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
               atSign: @ @134
@@ -1366,6 +1377,7 @@ library
         isOriginDeclaration annotationThenComment2
           reference: <testLibrary>::@class::C::@field::annotationThenComment2
           firstFragment: #F7
+          documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
               atSign: @ @134
@@ -1383,6 +1395,7 @@ library
         isOriginDeclaration commentThenAnnotation
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation
           firstFragment: #F8
+          documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
               atSign: @ @268
@@ -1400,6 +1413,7 @@ library
         isOriginDeclaration commentThenAnnotation2
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation2
           firstFragment: #F9
+          documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
             Annotation
               atSign: @ @268
@@ -1417,6 +1431,7 @@ library
         isOriginDeclaration commentAroundAnnotation
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation
           firstFragment: #F10
+          documentationComment: /// Comment 2.
           metadata
             Annotation
               atSign: @ @351
@@ -1434,6 +1449,7 @@ library
         isOriginDeclaration commentAroundAnnotation2
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation2
           firstFragment: #F11
+          documentationComment: /// Comment 2.
           metadata
             Annotation
               atSign: @ @351

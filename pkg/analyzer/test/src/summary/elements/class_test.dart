@@ -8021,6 +8021,7 @@ library
           fields
             #F2 isOriginDeclaration x (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: <testLibrary>::@class::C::@field::x
+              documentationComment: /**\n   * Docs\n   */
           constructors
             #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
@@ -8042,6 +8043,7 @@ library
         hasImplicitType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
+          documentationComment: /**\n   * Docs\n   */
           type: dynamic
           getter: <testLibrary>::@class::C::@getter::x
           setter: <testLibrary>::@class::C::@setter::x
