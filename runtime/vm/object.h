@@ -4584,6 +4584,13 @@ class Field : public Object {
     return untag()->kind_bits_.Read<NoSanitizeThreadBit>();
   }
 
+  void set_has_deeply_immutable_type(bool value) const {
+    untag()->kind_bits_.UpdateBool<HasDeeplyImmutableTypeBit>(value);
+  }
+  bool has_deeply_immutable_type() const {
+    return untag()->kind_bits_.Read<HasDeeplyImmutableTypeBit>();
+  }
+
 #if defined(DART_DYNAMIC_MODULES)
   bool is_declared_in_bytecode() const;
 #else
@@ -4997,6 +5004,10 @@ class Field : public Object {
                              HasInitializerBit::kNextBit>;
   using NoSanitizeThreadBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, SharedBit::kNextBit>;
+  using HasDeeplyImmutableTypeBit =
+      BitField<decltype(UntaggedField::kind_bits_),
+               bool,
+               NoSanitizeThreadBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
