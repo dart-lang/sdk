@@ -160,7 +160,7 @@ class ProfilerStackWalker : public ValueObject {
       return true;
     }
 #if defined(DART_INCLUDE_PROFILER)
-    if (total_frames_ >= FLAG_max_profile_depth) {
+    if (total_frames_ >= Profiler::CurrentConfig().max_depth) {
       sample_->set_truncated_trace(true);
       return false;
     }
@@ -610,10 +610,15 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
 #if defined(DART_INCLUDE_PROFILER)
 
-RelaxedAtomic<bool> Profiler::initialized_ = false;
+Monitor* Profiler::monitor_ = nullptr;
+Profiler::Config Profiler::config_ = {.enabled = false,
+                                      .period_us = 0,
+                                      .max_depth = 0};
+RelaxedAtomic<bool> Profiler::running_ = false;
 SampleBlockBuffer* Profiler::sample_block_buffer_ = nullptr;
 Profiler::ProfileProcessorCallback Profiler::process_profile_callback_ =
     nullptr;
+
 bool SampleBlockProcessor::initialized_ = false;
 bool SampleBlockProcessor::shutdown_ = false;
 bool SampleBlockProcessor::drain_ = false;
@@ -623,24 +628,85 @@ ThreadJoinId SampleBlockProcessor::processor_thread_id_ =
 Monitor* SampleBlockProcessor::monitor_ = nullptr;
 
 void Profiler::Init() {
-  // Place some sane restrictions on user controlled flags.
-  SetSampleDepth(FLAG_max_profile_depth);
-  if (!FLAG_profiler) {
-    return;
-  }
-  ASSERT(!initialized_);
-  // The profiler may have been shutdown previously, in which case the sample
-  // buffer will have already been initialized.
-  if (sample_block_buffer_ == nullptr) {
-    intptr_t num_blocks = CalculateSampleBufferCapacity();
-    sample_block_buffer_ = new SampleBlockBuffer(num_blocks);
-  }
-  UpdateFlagProfilePeriod(FLAG_profile_period);
-  ThreadInterrupter::Init(FLAG_profile_period);
-  ThreadInterrupter::Startup();
+  monitor_ = new Monitor();
+  ThreadInterrupter::Init();
   SampleBlockProcessor::Init();
+  SetConfig({});
+}
+
+void Profiler::Cleanup() {
+  {
+    SafepointMonitorLocker lock(monitor_);
+    StopLocked();
+  }
+
+  SampleBlockProcessor::Cleanup();
+  ThreadInterrupter::Cleanup();
+  delete monitor_;
+}
+
+namespace {
+Profiler::Config NormalizeConfig(const Profiler::Config& config) {
+  const intptr_t kMinimumDepth = 2;
+  const intptr_t kMaximumDepth = 255;
+  const intptr_t kMinimumProfilePeriodUs = 50;
+  return {
+      .enabled = config.enabled,
+      .period_us = Utils::Maximum(kMinimumProfilePeriodUs, config.period_us),
+      .max_depth = Utils::Minimum(
+          kMaximumDepth,
+          Utils::Maximum(kMinimumDepth, config.max_depth.load())),
+  };
+}
+}  // namespace
+
+void Profiler::SetConfig(const Profiler::Config& config) {
+  SafepointMonitorLocker lock(monitor_);
+
+  const auto new_config = NormalizeConfig(config);
+  const auto old_config = config_;
+  config_ = new_config;
+
+  if (new_config.enabled != old_config.enabled) {
+    // Update running state.
+    if (new_config.enabled) {
+      StartLocked();
+    } else {
+      StopLocked();
+    }
+  } else if (old_config.enabled) {
+    // Check if we need to reconfigure a running profiler.
+    //
+    // Note: this will not resize the sampling buffer, you
+    // need to stop and restart the profiler to resize it.
+    if (new_config.period_us != old_config.period_us) {
+      ThreadInterrupter::SetInterruptPeriod(new_config.period_us);
+    }
+
+    // Profiling thread will automatically pickup a change in
+    // config_.max_depth, but to resize underlying buffer
+    // you need to start and stop the profiler.
+  }
+}
+
+void Profiler::StartLocked() {
+  RELEASE_ASSERT(!running_);
+
+  // The profiler may have been shutdown previously, in which case the sample
+  // buffer will have already been initialized. However it might be too small.
+  const intptr_t sample_buffer_capacity = CalculateSampleBufferCapacity();
+  if (sample_block_buffer_ != nullptr &&
+      sample_buffer_capacity > sample_block_buffer_->Capacity()) {
+    delete sample_block_buffer_;
+    sample_block_buffer_ = nullptr;
+  }
+  if (sample_block_buffer_ == nullptr) {
+    sample_block_buffer_ = new SampleBlockBuffer(sample_buffer_capacity);
+  }
+  ThreadInterrupter::SetInterruptPeriod(config_.period_us);
+  ThreadInterrupter::Startup();
   SampleBlockProcessor::Startup();
-  initialized_ = true;
+  running_ = true;
 }
 
 class SampleBlockCleanupVisitor : public IsolateVisitor {
@@ -654,45 +720,20 @@ class SampleBlockCleanupVisitor : public IsolateVisitor {
   }
 };
 
-void Profiler::Cleanup() {
-  if (!FLAG_profiler && !initialized_) {
+void Profiler::StopLocked() {
+  if (!running_) {
     return;
   }
-  ASSERT(initialized_);
-  ThreadInterrupter::Cleanup();
+
+  ThreadInterrupter::Shutdown();
 
   const bool should_drain = process_profile_callback_ != nullptr;
-  SampleBlockProcessor::Cleanup(should_drain);
+  SampleBlockProcessor::Shutdown(should_drain);
 
   SampleBlockCleanupVisitor visitor;
   Isolate::VisitIsolates(&visitor);
 
-  initialized_ = false;
-}
-
-void Profiler::UpdateRunningState() {
-  if (!FLAG_profiler && initialized_) {
-    Cleanup();
-  } else if (FLAG_profiler && !initialized_) {
-    Init();
-  }
-}
-
-void Profiler::SetSampleDepth(intptr_t depth) {
-  const int kMinimumDepth = 2;
-  const int kMaximumDepth = 255;
-  if (depth < kMinimumDepth) {
-    FLAG_max_profile_depth = kMinimumDepth;
-  } else if (depth > kMaximumDepth) {
-    FLAG_max_profile_depth = kMaximumDepth;
-  } else {
-    FLAG_max_profile_depth = depth;
-  }
-}
-
-static intptr_t SamplesPerSecond() {
-  const intptr_t kMicrosPerSec = 1000000;
-  return kMicrosPerSec / FLAG_profile_period;
+  running_ = false;
 }
 
 intptr_t Profiler::CalculateSampleBufferCapacity() {
@@ -706,25 +747,13 @@ intptr_t Profiler::CalculateSampleBufferCapacity() {
   // We use the fact that `ceil((float)a / (float)b) == (a + b - 1) / b` when
   // `a` and `b` are positive integers below.
   const intptr_t max_sample_chain_length =
-      (FLAG_max_profile_depth + Sample::kPCArraySizeInWords - 1) /
+      (config_.max_depth + Sample::kPCArraySizeInWords - 1) /
       Sample::kPCArraySizeInWords;
+  const intptr_t kMicrosPerSec = 1000000;
+  const intptr_t samples_per_second = kMicrosPerSec / config_.period_us;
   const intptr_t sample_count = FLAG_sample_buffer_duration *
-                                SamplesPerSecond() * max_sample_chain_length;
+                                samples_per_second * max_sample_chain_length;
   return (sample_count / SampleBlock::kSamplesPerBlock) + 1;
-}
-
-void Profiler::UpdateFlagProfilePeriod(intptr_t period) {
-  const int kMinimumProfilePeriod = 50;
-  if (period < kMinimumProfilePeriod) {
-    FLAG_profile_period = kMinimumProfilePeriod;
-  } else {
-    FLAG_profile_period = period;
-  }
-}
-
-void Profiler::UpdateSamplePeriod() {
-  UpdateFlagProfilePeriod(FLAG_profile_period);
-  ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
 }
 
 SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
@@ -1880,19 +1909,24 @@ ProcessedSampleBuffer::ProcessedSampleBuffer()
 
 void SampleBlockProcessor::Init() {
   ASSERT(!initialized_);
-  if (monitor_ == nullptr) {
-    monitor_ = new Monitor();
-  }
-  ASSERT(monitor_ != nullptr);
+  monitor_ = new Monitor();
   initialized_ = true;
-  shutdown_ = false;
+  shutdown_ = true;
   drain_ = false;
+}
+
+void SampleBlockProcessor::Cleanup() {
+  Shutdown();
+  initialized_ = false;
+  delete monitor_;
 }
 
 void SampleBlockProcessor::Startup() {
   ASSERT(initialized_);
   ASSERT(processor_thread_id_ == OSThread::kInvalidThreadJoinId);
   SafepointMonitorLocker startup_ml(monitor_);
+  shutdown_ = false;
+  drain_ = false;
   OSThread::Start("Dart Profiler SampleBlockProcessor", ThreadMain, 0);
   while (!thread_running_) {
     startup_ml.Wait();
@@ -1900,7 +1934,7 @@ void SampleBlockProcessor::Startup() {
   ASSERT(processor_thread_id_ != OSThread::kInvalidThreadJoinId);
 }
 
-void SampleBlockProcessor::Cleanup(bool drain /* = false */) {
+void SampleBlockProcessor::Shutdown(bool drain /* = false */) {
   {
     SafepointMonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
@@ -1924,7 +1958,6 @@ void SampleBlockProcessor::Cleanup(bool drain /* = false */) {
     OSThread::Join(processor_thread_id_);
   }
   processor_thread_id_ = OSThread::kInvalidThreadJoinId;
-  initialized_ = false;
   ASSERT(!thread_running_);
 }
 

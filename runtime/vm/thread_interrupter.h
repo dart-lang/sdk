@@ -22,10 +22,17 @@ struct InterruptedThreadState {
 
 class ThreadInterrupter : public AllStatic {
  public:
-  static void Init(intptr_t period);
+  // Initialize thread interrupter state on VM startup.
+  static void Init();
 
-  static void Startup();
+  // Cleanup thread interrupter state on VM shutdown.
   static void Cleanup();
+
+  // Startup underlying thread.
+  static void Startup();
+
+  // Shutdown the underlying thread.
+  static void Shutdown();
 
   // Delay between interrupts.
   //

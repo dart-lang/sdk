@@ -189,11 +189,13 @@ class Scanner {
 
     var latestVersion = ExperimentStatus.currentVersion;
     if (overrideVersion > latestVersion) {
-      _diagnosticReporter.atOffset(
-        offset: versionToken.offset,
-        length: versionToken.length,
-        diagnosticCode: diag.invalidLanguageVersionOverrideGreater,
-        arguments: [latestVersion.major, latestVersion.minor],
+      _diagnosticReporter.report(
+        diag.invalidLanguageVersionOverrideGreater
+            .withArguments(
+              latestMajor: latestVersion.major,
+              latestMinor: latestVersion.minor,
+            )
+            .atOffset(offset: versionToken.offset, length: versionToken.length),
       );
       _overrideVersion = null;
     } else {

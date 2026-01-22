@@ -186,17 +186,23 @@ class PostfixExpressionResolver {
           if (_resolver.definingLibrary.featureSet.isEnabled(
             Feature.inference_update_4,
           )) {
-            _resolver.flowAnalysis.flow?.postIncDec(
+            _resolver.flowAnalysis.flow?.storeExpressionInfo(
               node,
-              element,
-              SharedTypeView(operatorReturnType),
+              _resolver.flowAnalysis.flow?.postIncDec(
+                node,
+                element,
+                SharedTypeView(operatorReturnType),
+              ),
             );
           } else {
-            _resolver.flowAnalysis.flow?.write(
+            _resolver.flowAnalysis.flow?.storeExpressionInfo(
               node,
-              element,
-              SharedTypeView(operatorReturnType),
-              null,
+              _resolver.flowAnalysis.flow?.write(
+                node,
+                element,
+                SharedTypeView(operatorReturnType),
+                null,
+              ),
             );
           }
         }

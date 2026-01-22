@@ -159,4 +159,4 @@ Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///all_kinds.dart:170:13 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///all_kinds.dart:170:17 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///all_kinds.dart:170:24 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 374, effectively constant: 3
+Extra constant evaluation: evaluated: 377, effectively constant: 3

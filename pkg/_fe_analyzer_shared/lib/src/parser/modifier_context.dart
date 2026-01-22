@@ -224,7 +224,21 @@ class ModifierContext {
       case MemberKind.ExtensionTypeStaticMethod:
         reportExtraneousModifierInExtensionType(this.covariantToken);
       case MemberKind.PrimaryConstructor:
-        reportExtraneousModifierInPrimaryConstructor(this.covariantToken);
+        if (covariantToken != null) {
+          if (parser.isPrimaryConstructorsFeatureEnabled) {
+            if (varFinalOrConst == null || !varFinalOrConst!.isA(Keyword.VAR)) {
+              parser.reportRecoverableError(
+                covariantToken!,
+                codes.codeInvalidCovariantModifierInPrimaryConstructor,
+              );
+            }
+          } else {
+            parser.reportRecoverableErrorWithToken(
+              covariantToken!,
+              codes.codeExtraneousModifierInPrimaryConstructor,
+            );
+          }
+        }
       case MemberKind.Catch:
       case MemberKind.Factory:
       case MemberKind.FunctionTypeAlias:

@@ -421,10 +421,14 @@ class ExtensionMemberResolver {
         // We can safely assume `element.name` is non-`null` because type
         // arguments can only be applied to explicit extension overrides, and
         // explicit extension overrides cannot refer to unnamed extensions.
-        _diagnosticReporter.atNode(
-          typeArguments,
-          diag.wrongNumberOfTypeArgumentsExtension,
-          arguments: [element.name!, typeParameters.length, arguments.length],
+        _diagnosticReporter.report(
+          diag.wrongNumberOfTypeArgumentsExtension
+              .withArguments(
+                extensionName: element.name!,
+                typeParameterCount: typeParameters.length,
+                typeArgumentCount: arguments.length,
+              )
+              .at(typeArguments),
         );
         return _listOfDynamic(typeParameters);
       }

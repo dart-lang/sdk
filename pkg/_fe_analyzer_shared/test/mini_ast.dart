@@ -5888,10 +5888,13 @@ class VariableReference extends LValue {
     Expression postIncDecExpression,
     Type writtenType,
   ) {
-    h.flow.postIncDec(
+    h.flow.storeExpressionInfo(
       postIncDecExpression,
-      variable,
-      SharedTypeView(writtenType),
+      h.flow.postIncDec(
+        postIncDecExpression,
+        variable,
+        SharedTypeView(writtenType),
+      ),
     );
   }
 
@@ -5902,11 +5905,14 @@ class VariableReference extends LValue {
     Type writtenType,
     Expression? rhs,
   ) {
-    h.flow.write(
+    h.flow.storeExpressionInfo(
       assignmentExpression,
-      variable,
-      SharedTypeView(writtenType),
-      rhs,
+      h.flow.write(
+        assignmentExpression,
+        variable,
+        SharedTypeView(writtenType),
+        rhs,
+      ),
     );
   }
 }
@@ -6507,16 +6513,21 @@ class _MiniAstTypeAnalyzer
     }
     var rightType = analyzeExpression(rhs, operations.unknownType).type;
     if (isEquals) {
-      flow.equalityOperation_end(
+      flow.storeExpressionInfo(
         node,
-        leftInfo,
-        leftType,
-        flow.equalityOperand_end(rhs),
-        rightType,
-        notEqual: isNot,
+        flow.equalityOperation_end(
+          leftInfo,
+          leftType,
+          flow.equalityOperand_end(rhs),
+          rightType,
+          notEqual: isNot,
+        ),
       );
     } else if (isLogical) {
-      flow.logicalBinaryOp_end(node, rhs, isAnd: isAnd);
+      flow.storeExpressionInfo(
+        node,
+        flow.logicalBinaryOp_end(rhs, isAnd: isAnd),
+      );
     }
     return new ExpressionTypeAnalysisResult(type: operations.boolType);
   }
@@ -6528,7 +6539,7 @@ class _MiniAstTypeAnalyzer
   }
 
   Type analyzeBoolLiteral(Expression node, bool value) {
-    flow.booleanLiteral(node, value);
+    flow.storeExpressionInfo(node, flow.booleanLiteral(value));
     return operations.boolType.unwrapTypeView();
   }
 
@@ -6549,7 +6560,10 @@ class _MiniAstTypeAnalyzer
     flow.conditional_elseBegin(ifTrue, ifTrueType);
     var ifFalseType = analyzeExpression(ifFalse, operations.unknownType).type;
     var lubType = operations.lub(ifTrueType, ifFalseType);
-    flow.conditional_end(node, lubType, ifFalse, ifFalseType);
+    flow.storeExpressionInfo(
+      node,
+      flow.conditional_end(lubType, ifFalse, ifFalseType),
+    );
     return new ExpressionTypeAnalysisResult(type: lubType);
   }
 
@@ -6697,7 +6711,7 @@ class _MiniAstTypeAnalyzer
   }
 
   ExpressionTypeAnalysisResult analyzeNullLiteral(Expression node) {
-    flow.nullLiteral(node, SharedTypeView(nullType));
+    flow.storeExpressionInfo(node, flow.nullLiteral(SharedTypeView(nullType)));
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(nullType));
   }
 
@@ -6743,7 +6757,10 @@ class _MiniAstTypeAnalyzer
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
     var thisType = this.thisType;
-    flow.thisOrSuper(node, SharedTypeView(thisType), isSuper: false);
+    flow.storeExpressionInfo(
+      node,
+      flow.thisOrSuper(SharedTypeView(thisType), isSuper: false),
+    );
     return new ExpressionTypeAnalysisResult(type: SharedTypeView(thisType));
   }
 
@@ -6841,12 +6858,14 @@ class _MiniAstTypeAnalyzer
       expression,
       operations.unknownType,
     ).type;
-    flow.isExpression_end(
+    flow.storeExpressionInfo(
       node,
-      expression,
-      isInverted,
-      subExpressionType: subExpressionType,
-      checkedType: SharedTypeView(type),
+      flow.isExpression_end(
+        expression,
+        isInverted,
+        subExpressionType: subExpressionType,
+        checkedType: SharedTypeView(type),
+      ),
     );
     return new ExpressionTypeAnalysisResult(type: operations.boolType);
   }
@@ -6856,7 +6875,8 @@ class _MiniAstTypeAnalyzer
     Var variable,
     void Function(Type?)? callback,
   ) {
-    var promotedType = flow.variableRead(node, variable);
+    var (promotedType, expressionInfo) = flow.variableRead(variable);
+    flow.storeExpressionInfo(node, expressionInfo);
     callback?.call(promotedType?.unwrapTypeView());
     return new ExpressionTypeAnalysisResult(
       type: promotedType ?? SharedTypeView(variable.type),

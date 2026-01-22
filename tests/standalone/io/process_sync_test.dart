@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // OtherResources=process_sync_script.dart
+// Environment=TSAN_OPTIONS=report_thread_leaks=0
 
 import "dart:io";
 import "package:expect/expect.dart";

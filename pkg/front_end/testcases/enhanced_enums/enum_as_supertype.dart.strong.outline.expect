@@ -116,4 +116,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.da
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:24:6 -> ListConstant(const <EM>[const EM{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_as_supertype.dart:31:18 -> InstanceConstant(const EN{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype.dart:31:6 -> ListConstant(const <EN>[const EN{_Enum.index: 0, _Enum._name: "element"}])
-Extra constant evaluation: evaluated: 40, effectively constant: 8
+Extra constant evaluation: evaluated: 44, effectively constant: 8

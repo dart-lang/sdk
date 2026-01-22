@@ -70,6 +70,7 @@ void FUNCTION_NAME(Namespace_Create)(Dart_NativeArguments args) {
   // OS-level error.
   if (namespc == nullptr) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    return;
   }
 
   // Set the Dart objects native field to the native wrapper.

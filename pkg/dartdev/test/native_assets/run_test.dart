@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.18
-
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -38,13 +36,20 @@ void main([List<String> args = const []]) async {
   // No --source option, `dart run` from source does not output target program
   // stdout.
 
-  for (final verbose in [true, false]) {
-    final testModifier = verbose ? ' verbose' : '';
+  for (final (verbose, residentCompiler) in [
+    (true, false),
+    (false, false),
+    (false, true),
+  ]) {
+    var testModifier = '';
+    testModifier += residentCompiler ? ' resident' : '';
+    testModifier += verbose ? ' verbose' : '';
     test('dart run$testModifier', timeout: longTimeout, () async {
       await nativeAssetsTest('dart_app', (dartAppUri) async {
         final result = await runDart(
           arguments: [
             'run',
+            if (residentCompiler) '-r',
             if (verbose) '-v',
           ],
           workingDirectory: dartAppUri,

@@ -152,6 +152,11 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
     final processArgs = [
       ...vmArgs,
+      // We want to use 'dart run' in order to support things like native assets
+      // https://github.com/dart-lang/sdk/issues/62421#issuecomment-3760452486
+      // but because users may have been putting `run` into `toolArgs` to work
+      // around this, only add it if it's not already there.
+      if (!toolArgs.contains('run')) 'run',
       ...toolArgs,
       normalizePath(args.program),
       ...?args.args,

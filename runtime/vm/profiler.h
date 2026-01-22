@@ -51,20 +51,43 @@ struct ProfilerCounters {
 #undef DECLARE_PROFILER_COUNTER
 };
 
+DECLARE_FLAG(int, profile_period);
+DECLARE_FLAG(int, max_profile_depth);
+
 class Profiler : public AllStatic {
  public:
+  // Initialize profiler's state on VM startup.
+  //
+  // To reconfigure profiler (e.g. to start or stop) use |SetConfig|.
   static void Init();
+
+  // Cleanup profiler's state on VM shutdown.
   static void Cleanup();
 
-  static void SetSampleDepth(intptr_t depth);
-  // Sets |FLAG_profile_period| to |max(period, 50)|.
-  static void UpdateFlagProfilePeriod(intptr_t period);
-  // Restarts sampling with a given profile period. This is called after the
-  // profile period is changed via the service protocol.
-  static void UpdateSamplePeriod();
-  // Starts or shuts down the profiler after --profiler is changed via the
-  // service protocol.
-  static void UpdateRunningState();
+  struct Config {
+    bool enabled = FLAG_profiler;
+    intptr_t period_us = FLAG_profile_period;
+    RelaxedAtomic<intptr_t> max_depth = FLAG_max_profile_depth;
+  };
+
+  // Configure the profiler.
+  //
+  // Can be used to start/stop the profiler (by toggling |Config::enabled|) or
+  // to reconfigure profiler (e.g. change sampling period or depth).
+  //
+  // Note: changing |Config::max_depth| or |Config::period_us| while profiler
+  // is running will not resize the underlying sample buffer. To resize the
+  // buffer stop and then restart the profiler.
+  static void SetConfig(const Config& config);
+  static const Config& CurrentConfig() { return config_; }
+
+  DART_FORCE_INLINE static bool IsRunning() {
+#if defined(DART_INCLUDE_PROFILER)
+    return running_;
+#else
+    return false;
+#endif  // defined(DART_INCLUDE_PROFILER)
+  }
 
   typedef void (*ProfileProcessorCallback)(Profile&);
 
@@ -109,6 +132,16 @@ class Profiler : public AllStatic {
   static void IsolateShutdown(Thread* thread);
 
  private:
+  // Start the profiler.
+  //
+  // Must be called by a thread holding |monitor_|.
+  static void StartLocked();
+
+  // Stop the profiler.
+  //
+  // Must be called by a thread holding |monitor_|.
+  static void StopLocked();
+
   static void DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash);
 
   // Calculates the sample buffer capacity. Returns
@@ -122,7 +155,12 @@ class Profiler : public AllStatic {
   static void SampleThreadSingleFrame(Thread* thread,
                                       Sample* sample,
                                       uintptr_t pc);
-  static RelaxedAtomic<bool> initialized_;
+
+  static Monitor* monitor_;
+
+  static Profiler::Config config_;
+
+  static RelaxedAtomic<bool> running_;
 
   static SampleBlockBuffer* sample_block_buffer_;
 
@@ -783,6 +821,8 @@ class SampleBlockBuffer {
 
   intptr_t Size() const { return memory_->size(); }
 
+  intptr_t Capacity() const { return capacity_; }
+
   ProcessedSampleBuffer* BuildProcessedSampleBuffer(
       Isolate* isolate,
       SampleFilter* filter,
@@ -926,10 +966,17 @@ class ProcessedSampleBuffer : public ZoneAllocated {
 
 class SampleBlockProcessor : public AllStatic {
  public:
+  // Initialize the state on VM startup.
   static void Init();
 
+  // Cleanup the state on VM shutdown.
+  static void Cleanup();
+
+  // Start the worker thread.
   static void Startup();
-  static void Cleanup(bool drain = false);
+
+  // Shutdown the worker thread.
+  static void Shutdown(bool drain = false);
 
  private:
   static constexpr intptr_t kMaxThreads = 4096;

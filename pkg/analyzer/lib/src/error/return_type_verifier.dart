@@ -5,13 +5,13 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 
@@ -81,10 +81,13 @@ class ReturnTypeVerifier {
       return;
     }
 
-    void checkElement(ClassElementImpl expectedElement, DiagnosticCode code) {
+    void checkElement(
+      ClassElementImpl expectedElement,
+      LocatableDiagnostic locatableDiagnostic,
+    ) {
       void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
-        _diagnosticReporter.atNode(returnType, code);
+        _diagnosticReporter.report(locatableDiagnostic.at(returnType));
       }
 
       // It is a compile-time error if the declared return type of
@@ -143,10 +146,10 @@ class ReturnTypeVerifier {
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
-        _diagnosticReporter.atNode(
-          expression,
-          diag.returnOfInvalidTypeFromCatchError,
-          arguments: [S, T],
+        _diagnosticReporter.report(
+          diag.returnOfInvalidTypeFromCatchError
+              .withArguments(actualType: S, expectedType: T)
+              .at(expression),
         );
       } else if (enclosingExecutable.isClosure) {
         _diagnosticReporter.report(

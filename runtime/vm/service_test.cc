@@ -685,15 +685,8 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
 // TODO(zra): Remove when tests are ready to enable.
 #if !defined(TARGET_ARCH_ARM64)
 
-static void EnableProfiler() {
-  if (!FLAG_profiler) {
-    FLAG_profiler = true;
-    Profiler::Init();
-  }
-}
-
 ISOLATE_UNIT_TEST_CASE(Service_Profile) {
-  EnableProfiler();
+  Dart_StartProfiling();
   const char* kScript =
       "@pragma('vm:entry-point', 'set')\n"
       "var port;\n"  // Set to our mock port by C++.

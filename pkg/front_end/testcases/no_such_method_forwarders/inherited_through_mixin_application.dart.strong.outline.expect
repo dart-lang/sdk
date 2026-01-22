@@ -47,4 +47,4 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///inherited_through_mixin_appl
 Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_through_mixin_application.dart:11:7 -> ListConstant(const <Type>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///inherited_through_mixin_application.dart:11:7 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///inherited_through_mixin_application.dart:11:7 -> MapConstant(const <Symbol, dynamic>{})
-Extra constant evaluation: evaluated: 12, effectively constant: 4
+Extra constant evaluation: evaluated: 14, effectively constant: 4

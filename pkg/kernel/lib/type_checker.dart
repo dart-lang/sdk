@@ -330,7 +330,9 @@ class TypeCheckingVisitor
   }
 
   DartType handleCall(Arguments arguments, DartType functionType,
-      {Substitution receiver = Substitution.empty, required Member target}) {
+      {Substitution receiver = Substitution.empty,
+      required Member target,
+      bool isErroneousTarget = false}) {
     if (functionType is FunctionType) {
       if (arguments.positional.length < functionType.requiredParameterCount) {
         fail(arguments, 'Too few positional arguments');
@@ -361,7 +363,7 @@ class TypeCheckingVisitor
       bool targetIsEquals = target is Procedure &&
           target.kind == ProcedureKind.Operator &&
           target.name == equalsName;
-      if (!targetIsEquals) {
+      if (!isErroneousTarget && !targetIsEquals) {
         for (int i = 0; i < arguments.positional.length; ++i) {
           DartType expectedType = functionType.positionalParameters[i];
           arguments.positional[i] = checkExpressionAndAssignability(
@@ -521,7 +523,8 @@ class TypeCheckingVisitor
         arguments,
         target.function
             .computeThisFunctionType(class_.enclosingLibrary.nonNullable),
-        target: target);
+        target: target,
+        isErroneousTarget: target.isErroneous);
     return new InterfaceType(
         target.enclosingClass, currentLibrary!.nonNullable, arguments.types);
   }

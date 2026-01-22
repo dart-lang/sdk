@@ -57,7 +57,6 @@ import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -65,6 +64,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/fasta/doc_comment_builder.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
@@ -2558,7 +2558,7 @@ class AstBuilder extends StackListener {
     ImplementsClauseImpl? implementsClause;
     if (implementsKeyword != null) {
       var interfaces = _popNamedTypeList(
-        code: diag.expectedNamedTypeImplements,
+        locatableDiagnostic: diag.expectedNamedTypeImplements,
       );
       implementsClause = ImplementsClauseImpl(
         implementsKeyword: implementsKeyword,
@@ -3908,7 +3908,9 @@ class AstBuilder extends StackListener {
   @override
   void handleClassWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
-    var mixinTypes = _popNamedTypeList(code: diag.expectedNamedTypeWith);
+    var mixinTypes = _popNamedTypeList(
+      locatableDiagnostic: diag.expectedNamedTypeWith,
+    );
     push(WithClauseImpl(withKeyword: withKeyword, mixinTypes: mixinTypes));
   }
 
@@ -4189,7 +4191,9 @@ class AstBuilder extends StackListener {
   @override
   void handleEnumWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
-    var mixinTypes = _popNamedTypeList(code: diag.expectedNamedTypeWith);
+    var mixinTypes = _popNamedTypeList(
+      locatableDiagnostic: diag.expectedNamedTypeWith,
+    );
     push(WithClauseImpl(withKeyword: withKeyword, mixinTypes: mixinTypes));
   }
 
@@ -4484,7 +4488,7 @@ class AstBuilder extends StackListener {
     if (implementsKeyword != null) {
       endTypeList(interfacesCount);
       var interfaces = _popNamedTypeList(
-        code: diag.expectedNamedTypeImplements,
+        locatableDiagnostic: diag.expectedNamedTypeImplements,
       );
       push(
         ImplementsClauseImpl(
@@ -4912,7 +4916,9 @@ class AstBuilder extends StackListener {
 
     if (onKeyword != null) {
       endTypeList(typeCount);
-      var onTypes = _popNamedTypeList(code: diag.expectedNamedTypeOn);
+      var onTypes = _popNamedTypeList(
+        locatableDiagnostic: diag.expectedNamedTypeOn,
+      );
       push(
         MixinOnClauseImpl(onKeyword: onKeyword, superclassConstraints: onTypes),
       );
@@ -4926,7 +4932,7 @@ class AstBuilder extends StackListener {
     assert(optional('with', withKeyword));
     // This is an error case. An error has been issued already.
     // Possibly the data could be used for help though.
-    _popNamedTypeList(code: diag.expectedNamedTypeWith);
+    _popNamedTypeList(locatableDiagnostic: diag.expectedNamedTypeWith);
   }
 
   @override
@@ -4948,7 +4954,9 @@ class AstBuilder extends StackListener {
   @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     assert(optionalOrNull('with', withKeyword));
-    var mixinTypes = _popNamedTypeList(code: diag.expectedNamedTypeWith);
+    var mixinTypes = _popNamedTypeList(
+      locatableDiagnostic: diag.expectedNamedTypeWith,
+    );
     push(WithClauseImpl(withKeyword: withKeyword, mixinTypes: mixinTypes));
   }
 
@@ -6304,14 +6312,18 @@ class AstBuilder extends StackListener {
     );
   }
 
-  List<NamedTypeImpl> _popNamedTypeList({required DiagnosticCode code}) {
+  List<NamedTypeImpl> _popNamedTypeList({
+    required LocatableDiagnostic locatableDiagnostic,
+  }) {
     var types = pop() as List<TypeAnnotationImpl>;
     var namedTypes = <NamedTypeImpl>[];
     for (var type in types) {
       if (type is NamedTypeImpl) {
         namedTypes.add(type);
       } else {
-        diagnosticReporter.diagnosticReporter?.atNode(type, code);
+        diagnosticReporter.diagnosticReporter?.report(
+          locatableDiagnostic.at(type),
+        );
       }
     }
     return namedTypes;

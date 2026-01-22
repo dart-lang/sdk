@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -125,7 +126,8 @@ class AnnotationResolver {
         contextType: UnknownInferredType.instance,
         whyNotPromotedArguments: whyNotPromotedArguments,
         constructorName: constructorName,
-      ).resolveInvocation(rawType: null);
+        target: null,
+      ).resolveInvocation();
       return;
     }
 
@@ -142,11 +144,13 @@ class AnnotationResolver {
       contextType: UnknownInferredType.instance,
       whyNotPromotedArguments: whyNotPromotedArguments,
       constructorName: constructorName,
-    ).resolveInvocation(
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `ConstructorElementToInfer.asType`.
-      rawType: constructorRawType as FunctionTypeImpl,
-    );
+      target: InvocationTargetConstructorElement(
+        constructorElement,
+        // TODO(paulberry): eliminate this cast by changing the type of
+        // `ConstructorElementToInfer.asType`.
+        constructorRawType as FunctionTypeImpl,
+      ),
+    ).resolveInvocation();
   }
 
   void _extensionGetter(
@@ -476,7 +480,8 @@ class AnnotationResolver {
         contextType: UnknownInferredType.instance,
         whyNotPromotedArguments: whyNotPromotedArguments,
         constructorName: null,
-      ).resolveInvocation(rawType: null);
+        target: null,
+      ).resolveInvocation();
     }
   }
 }

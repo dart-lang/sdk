@@ -5,23 +5,23 @@
       "value": 42
     },
     {
-      "type": "Instance",
+      "type": "instance",
       "value": {
         "i": 0
       }
     },
     {
-      "type": "String",
+      "type": "string",
       "value": "test"
     },
     {
-      "type": "Instance",
+      "type": "instance",
       "value": {
         "i": 2
       }
     },
     {
-      "type": "Instance"
+      "type": "instance"
     }
   ],
   "locations": [

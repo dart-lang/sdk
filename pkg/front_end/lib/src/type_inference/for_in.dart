@@ -71,11 +71,14 @@ class LocalForInVariable implements ForInVariable {
     );
 
     variableSet.value = rhs..parent = variableSet;
-    visitor.flowAnalysis.write(
+    visitor.flowAnalysis.storeExpressionInfo(
       variableSet,
-      variableSet.variable,
-      new SharedTypeView(rhsType),
-      null,
+      visitor.flowAnalysis.write(
+        variableSet,
+        variableSet.variable,
+        new SharedTypeView(rhsType),
+        null,
+      ),
     );
     return variableSet;
   }

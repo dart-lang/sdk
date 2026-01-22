@@ -203,11 +203,13 @@ final class DocCommentBuilder {
           // `null`.
           var openingTag = builder.openingTag;
           if (openingTag != null) {
-            _diagnosticReporter?.atOffset(
-              offset: openingTag.offset,
-              length: openingTag.end - openingTag.offset,
-              diagnosticCode: diag.docDirectiveMissingClosingTag,
-              arguments: [openingTag.type.opposingName!],
+            _diagnosticReporter?.report(
+              diag.docDirectiveMissingClosingTag
+                  .withArguments(tagName: openingTag.type.opposingName!)
+                  .atOffset(
+                    offset: openingTag.offset,
+                    length: openingTag.end - openingTag.offset,
+                  ),
             );
           }
           higherDirective.push(builder.build());
@@ -220,11 +222,13 @@ final class DocCommentBuilder {
     }
 
     // No matching opening tag was found.
-    _diagnosticReporter?.atOffset(
-      offset: closingTag.offset,
-      length: closingTag.end - closingTag.offset,
-      diagnosticCode: diag.docDirectiveMissingOpeningTag,
-      arguments: [closingTag.type.name],
+    _diagnosticReporter?.report(
+      diag.docDirectiveMissingOpeningTag
+          .withArguments(tagName: closingTag.type.name)
+          .atOffset(
+            offset: closingTag.offset,
+            length: closingTag.end - closingTag.offset,
+          ),
     );
     _pushDocDirective(SimpleDocDirective(closingTag));
   }
@@ -302,11 +306,13 @@ final class DocCommentBuilder {
       // `null`.
       var openingTag = builder.openingTag;
       if (openingTag != null) {
-        _diagnosticReporter?.atOffset(
-          offset: openingTag.offset,
-          length: openingTag.end - openingTag.offset,
-          diagnosticCode: diag.docDirectiveMissingClosingTag,
-          arguments: [openingTag.type.opposingName!],
+        _diagnosticReporter?.report(
+          diag.docDirectiveMissingClosingTag
+              .withArguments(tagName: openingTag.type.opposingName!)
+              .atOffset(
+                offset: openingTag.offset,
+                length: openingTag.end - openingTag.offset,
+              ),
         );
       }
       _pushBlockDocDirectiveAndInnerDirectives(builder);
@@ -393,11 +399,13 @@ final class DocCommentBuilder {
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.youtube));
         return true;
     }
-    _diagnosticReporter?.atOffset(
-      offset: _characterSequence._offset + nameIndex,
-      length: nameEnd - nameIndex,
-      diagnosticCode: diag.docDirectiveUnknown,
-      arguments: [name],
+    _diagnosticReporter?.report(
+      diag.docDirectiveUnknown
+          .withArguments(directive: name)
+          .atOffset(
+            offset: _characterSequence._offset + nameIndex,
+            length: nameEnd - nameIndex,
+          ),
     );
     return false;
   }

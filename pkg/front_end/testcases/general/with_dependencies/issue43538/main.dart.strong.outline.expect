@@ -41,4 +41,4 @@ abstract class _B&A&M = con::A with con::M /*isAnonymousMixin,hasConstConstructo
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:7:21 -> InstanceConstant(const B{A.d: 2.71, A.s: "default"})
-Extra constant evaluation: evaluated: 7, effectively constant: 1
+Extra constant evaluation: evaluated: 8, effectively constant: 1

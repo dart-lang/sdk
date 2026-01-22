@@ -16,7 +16,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -1435,6 +1434,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForIntNotAssignable(operand);
     }
     super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+    var fragment = node.declaration?.declaredFragment;
+    if (fragment == null) {
+      return;
+    }
+
+    var element = fragment.element;
+    _withEnclosingExecutable(
+      element,
+      () {
+        super.visitPrimaryConstructorBody(node);
+      },
+      isAsynchronous: fragment.isAsynchronous,
+      isGenerator: fragment.isGenerator,
+    );
   }
 
   @override
@@ -2862,7 +2879,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var field = instanceFields.single;
       diagnosticReporter.report(
         diag.constConstructorWithMixinWithField
-            .withArguments(p0: fieldName(field))
+            .withArguments(fieldName: fieldName(field))
             .atSourceRange(implicitErrorRange),
       );
       return true;
@@ -2870,7 +2887,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var fieldNames = instanceFields.map(fieldName).join(', ');
       diagnosticReporter.report(
         diag.constConstructorWithMixinWithFields
-            .withArguments(p0: fieldNames)
+            .withArguments(fieldNames: fieldNames)
             .atSourceRange(implicitErrorRange),
       );
       return true;
@@ -3359,13 +3376,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [diag.mixinDeferredClass].
   bool _checkForExtendsOrImplementsDeferredClass(
     NamedType namedType,
-    DiagnosticCode code,
+    LocatableDiagnostic locatableDiagnostic,
   ) {
     if (namedType.isSynthetic) {
       return false;
     }
     if (namedType.isDeferred) {
-      diagnosticReporter.atNode(namedType, code);
+      diagnosticReporter.report(locatableDiagnostic.at(namedType));
       return true;
     }
     return false;
@@ -4422,22 +4439,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         for (var constantName in constantNames) {
           int offset = statement.offset;
           int end = statement.rightParenthesis.end;
-          diagnosticReporter.atOffset(
-            offset: offset,
-            length: end - offset,
-            diagnosticCode: diag.missingEnumConstantInSwitch,
-            arguments: [constantName!],
+          diagnosticReporter.report(
+            diag.missingEnumConstantInSwitch
+                .withArguments(constant: constantName!)
+                .atOffset(offset: offset, length: end - offset),
           );
         }
 
         if (typeSystem.isNullable(expressionType) && !hasCaseNull) {
           int offset = statement.offset;
           int end = statement.rightParenthesis.end;
-          diagnosticReporter.atOffset(
-            offset: offset,
-            length: end - offset,
-            diagnosticCode: diag.missingEnumConstantInSwitch,
-            arguments: ['null'],
+          diagnosticReporter.report(
+            diag.missingEnumConstantInSwitch
+                .withArguments(constant: 'null')
+                .atOffset(offset: offset, length: end - offset),
           );
         }
       }
@@ -4455,10 +4470,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     for (var constructor in mixinElement.constructors) {
       if (constructor.isOriginDeclaration && !constructor.isFactory) {
-        diagnosticReporter.atNode(
-          mixinName,
-          diag.mixinClassDeclaresConstructor,
-          arguments: [mixinElement.name!],
+        diagnosticReporter.report(
+          diag.mixinClassDeclaresConstructor
+              .withArguments(className: mixinElement.name!)
+              .at(mixinName),
         );
         return true;
       }
@@ -4481,18 +4496,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is ClassElementImpl && element.isMixinClass) {
       // Check that the class does not have a constructor.
       for (ClassMember member in members) {
-        if (member is ConstructorDeclarationImpl) {
-          if (!member.isSynthetic && member.factoryKeyword == null) {
-            // Report errors on non-trivial generative constructors on mixin
-            // classes.
-            if (!member.isTrivial) {
-              diagnosticReporter.atNode(
-                // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-                member.typeName!,
-                diag.mixinClassDeclaresConstructor,
-                arguments: [element.name!],
+        if (member case ConstructorDeclarationImpl constructor) {
+          if (!constructor.isSynthetic && constructor.isGenerative) {
+            if (!constructor.isTrivial) {
+              diagnosticReporter.report(
+                diag.mixinClassDeclaresConstructor
+                    .withArguments(className: element.name!)
+                    .atSourceRange(constructor.errorRange),
               );
             }
+          }
+        }
+      }
+      if (node is ClassDeclarationImpl) {
+        if (node.namePart
+            case PrimaryConstructorDeclarationImpl primaryConstructor) {
+          if (!primaryConstructor.isTrivial) {
+            diagnosticReporter.report(
+              diag.mixinClassDeclaresConstructor
+                  .withArguments(className: element.name!)
+                  .atSourceRange(primaryConstructor.errorRange),
+            );
           }
         }
       }
@@ -5622,10 +5646,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (superUnnamedConstructor.isFactory) {
-      diagnosticReporter.atSourceRange(
-        errorRange,
-        diag.nonGenerativeConstructor,
-        arguments: [superUnnamedConstructor],
+      diagnosticReporter.report(
+        diag.nonGenerativeConstructor
+            .withArguments(constructor: superUnnamedConstructor)
+            .atSourceRange(errorRange),
       );
       return;
     }
@@ -5972,10 +5996,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       return true;
     } else if ("-" == name && numParameters > 1) {
-      diagnosticReporter.atToken(
-        nameToken,
-        diag.wrongNumberOfParametersForOperatorMinus,
-        arguments: [numParameters],
+      diagnosticReporter.report(
+        diag.wrongNumberOfParametersForOperatorMinus
+            .withArguments(actualCount: numParameters)
+            .at(nameToken),
       );
       return true;
     }
@@ -6153,14 +6177,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     SyntacticEntity errorTarget,
   ) {
     if (!variance.greaterThanOrEqual(typeParameter.variance)) {
-      diagnosticReporter.atEntity(
-        errorTarget,
-        diag.wrongTypeParameterVariancePosition,
-        arguments: [
-          typeParameter.variance.keyword,
-          typeParameter.name ?? '',
-          variance.keyword,
-        ],
+      diagnosticReporter.report(
+        diag.wrongTypeParameterVariancePosition
+            .withArguments(
+              modifier: typeParameter.variance.keyword,
+              typeParameterName: typeParameter.name ?? '',
+              variancePosition: variance.keyword,
+            )
+            .at(errorTarget),
       );
     }
   }
@@ -6376,6 +6400,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         } else if (parent.body is NativeFunctionBody) {
           return false;
         }
+        return true;
+      } else if (parent is PrimaryConstructorDeclaration) {
         return true;
       }
       return false;

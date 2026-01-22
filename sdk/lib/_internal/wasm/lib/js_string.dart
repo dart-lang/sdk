@@ -40,6 +40,7 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
     assert(_checkRefType(_ref));
   }
 
+  @pragma('wasm:entry-point')
   factory JSStringImpl.fromRef(WasmExternRef? ref) {
     if (!_checkRefType(ref)) {
       throw minify
@@ -47,6 +48,20 @@ final class JSStringImpl implements String, StringUncheckedOperationsBase {
           : ArgumentError("JS reference is not a string");
     }
     return JSStringImpl.fromRefUnchecked(ref);
+  }
+
+  @pragma('wasm:entry-point')
+  static JSStringImpl? fromRefNullable(WasmExternRef? ref) {
+    final int refType = js.JS<WasmI32>('''o => {
+        if (o === null || o === undefined) return 0;
+        if (typeof(o) === 'string') return 1;
+        return 2;
+      }''', ref).toIntUnsigned();
+    if (refType == 0) return null;
+    if (refType == 1) return JSStringImpl.fromRefUnchecked(ref);
+    throw minify
+        ? ArgumentError()
+        : ArgumentError("JS reference is not a string");
   }
 
   @pragma("wasm:prefer-inline")

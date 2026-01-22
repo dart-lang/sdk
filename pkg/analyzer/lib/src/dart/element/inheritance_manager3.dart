@@ -268,9 +268,6 @@ class InheritanceManager3 {
     Name name,
   ) {
     var interface = getInterface(element);
-    if (element is ExtensionTypeElementImpl) {
-      return interface.redeclared[name];
-    }
     return interface.overridden[name];
   }
 

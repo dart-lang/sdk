@@ -1563,21 +1563,15 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
 }
 
 DART_EXPORT void Dart_StartProfiling() {
-#if !defined(PRODUCT)
-  if (!FLAG_profiler) {
-    FLAG_profiler = true;
-    Profiler::Init();
-  }
-#endif  // !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
+  Profiler::SetConfig({.enabled = true});
+#endif  // defined(DART_INCLUDE_PROFILER)
 }
 
 DART_EXPORT void Dart_StopProfiling() {
-#if !defined(PRODUCT)
-  if (FLAG_profiler) {
-    Profiler::Cleanup();
-    FLAG_profiler = false;
-  }
-#endif  // !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
+  Profiler::SetConfig({.enabled = false});
+#endif  // defined(DART_INCLUDE_PROFILER)
 }
 
 DART_EXPORT void Dart_ThreadDisableProfiling() {
@@ -1611,7 +1605,7 @@ DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
 #if defined(PRODUCT)
   return false;
 #else
-  if (!FLAG_profiler) {
+  if (!Profiler::IsRunning()) {
     if (error != nullptr) {
       *error = Utils::StrDup("The profiler is not running.");
     }

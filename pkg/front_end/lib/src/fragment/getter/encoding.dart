@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -572,6 +573,11 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         typeParameters.add(t.parameter);
       }
     }
+    assert(
+      _thisFormal.kind == FormalParameterKind.requiredPositional ||
+          // Coverage-ignore(suite): Not run.
+          _thisFormal.kind == FormalParameterKind.optionalPositional,
+    );
     FunctionNode function =
         new FunctionNode(
             isAbstractOrExternal ? null : new EmptyStatement(),

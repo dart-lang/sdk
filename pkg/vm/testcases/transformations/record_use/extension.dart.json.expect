@@ -1,7 +1,7 @@
 {
   "constants": [
     {
-      "type": "String",
+      "type": "string",
       "value": "42"
     }
   ],

@@ -140,6 +140,21 @@ enum E {
 ''');
   }
 
+  Future<void> test_index_namedIndex_first_primaryConstructor() async {
+    await resolveTestCode('''
+class const ^_E(final int index, final String code) {
+  static const _E c0 = _E(0, 'a');
+  static const _E c1 = _E(1, 'b');
+}
+''');
+    await assertHasAssist('''
+enum const _E(final String code) {
+  c0('a'),
+  c1('b')
+}
+''');
+  }
+
   Future<void> test_index_namedIndex_first_privateClass() async {
     await resolveTestCode('''
 class _^E {
@@ -247,6 +262,26 @@ class _^E {
   final int index;
 
   const _E(this.index);
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c0,
+  c1
+}
+''');
+  }
+
+  @FailingTest(reason: 'To implement next.')
+  Future<void>
+  test_index_namedIndex_only_privateClass_primaryConstructor() async {
+    // TODO(srawlins): Test with primary constructor with non-declaring index
+    // parameter.
+    // TODO(srawlins): Test with private primary constructor on a public class.
+    await resolveTestCode('''
+class const _^E(final int index) {
+  static const _E c0 = _E(0);
+  static const _E c1 = _E(1);
 }
 ''');
     await assertHasAssist('''
@@ -500,6 +535,15 @@ class _^E {
     await assertNoAssist();
   }
 
+  Future<void> test_invalid_nonConstPrimaryConstructor() async {
+    await resolveTestCode('''
+class _^E() {
+  static _E c = _E();
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_invalid_overrides_equal() async {
     await resolveTestCode('''
 class _^E {
@@ -537,6 +581,19 @@ sealed class ^E {
 }
 ''');
     await assertNoAssist();
+  }
+
+  Future<void> test_minimal_primaryConstructor() async {
+    await resolveTestCode('''
+class const ^E._() {
+  static const E c = E._();
+}
+''');
+    await assertHasAssist('''
+enum const E._() {
+  c._()
+}
+''');
   }
 
   Future<void> test_minimal_privateClass() async {
@@ -613,6 +670,21 @@ enum E {
   final int count;
 
   const E._(this.count);
+}
+''');
+  }
+
+  Future<void> test_noIndex_notInt_primaryClass() async {
+    await resolveTestCode('''
+class const ^E._(final String name) {
+  static const E c0 = E._('c0');
+  static const E c1 = E._('c1');
+}
+''');
+    await assertHasAssist('''
+enum const E._(final String name) {
+  c0._('c0'),
+  c1._('c1')
 }
 ''');
   }

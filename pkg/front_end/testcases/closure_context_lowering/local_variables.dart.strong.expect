@@ -48,14 +48,18 @@ static method testForCounterCaptured() → dynamic /* scope=[
   }
   return closures;
 }
-static method testForInCounterNotCaptured(core::List<core::int> list) → dynamic /* scope=[
+static method testForInCounterNotCaptured(positional-parameter list) → dynamic/* scope=[
   #ctx7: not-captured VariableContext([
+    positional-parameter list;
+  ]),
+] */ /* scope=[
+  #ctx8: not-captured VariableContext([
     local-variable a;
   ]),
 ] */ {
   a := 0;
   for /* scope=[
-    #ctx8: not-captured VariableContext([
+    #ctx9: not-captured VariableContext([
       local-variable i;
     ]),
   ] */ (local-variable i in list) {
@@ -63,30 +67,38 @@ static method testForInCounterNotCaptured(core::List<core::int> list) → dynami
   }
   return a;
 }
-static method testForInCounterCaptured(core::List<core::int> list) → dynamic /* scope=[
-  #ctx9: not-captured VariableContext([
+static method testForInCounterCaptured(positional-parameter list) → dynamic/* scope=[
+  #ctx10: not-captured VariableContext([
+    positional-parameter list;
+  ]),
+] */ /* scope=[
+  #ctx11: not-captured VariableContext([
     local-variable closures;
   ]),
 ] */ {
   closures := <core::Function>[];
   for /* scope=[
-    #ctx10: captured VariableContext([
+    #ctx12: captured VariableContext([
       local-variable i;
     ]),
   ] */ (local-variable i in list) {
-    closures.{core::List::add}(() /* #ctx10 */ → core::int => i){(core::Function) → void};
+    closures.{core::List::add}(() /* #ctx12 */ → core::int => i){(core::Function) → void};
   }
   return closures;
 }
-static method testForInElementCounterNotCaptured(core::List<core::int> list) → dynamic /* scope=[
-  #ctx11: not-captured VariableContext([
+static method testForInElementCounterNotCaptured(positional-parameter list) → dynamic/* scope=[
+  #ctx13: not-captured VariableContext([
+    positional-parameter list;
+  ]),
+] */ /* scope=[
+  #ctx14: not-captured VariableContext([
     local-variable list2;
   ]),
 ] */ {
   list2 := block {
     final core::List<core::int> #t1 = <core::int>[];
     for /* scope=[
-      #ctx12: not-captured VariableContext([
+      #ctx15: not-captured VariableContext([
         local-variable i;
       ]),
     ] */ (local-variable i in list)
@@ -94,31 +106,39 @@ static method testForInElementCounterNotCaptured(core::List<core::int> list) →
   } =>#t1;
   return list2;
 }
-static method testForInElementCounterCaptured(core::List<core::int> list) → dynamic /* scope=[
-  #ctx13: not-captured VariableContext([
+static method testForInElementCounterCaptured(positional-parameter list) → dynamic/* scope=[
+  #ctx16: not-captured VariableContext([
+    positional-parameter list;
+  ]),
+] */ /* scope=[
+  #ctx17: not-captured VariableContext([
     local-variable closures;
   ]),
 ] */ {
   closures := block {
     final core::List<core::Function> #t2 = <core::Function>[];
     for /* scope=[
-      #ctx14: captured VariableContext([
+      #ctx18: captured VariableContext([
         local-variable i;
       ]),
     ] */ (local-variable i in list)
-      #t2.{core::List::add}{Invariant}(() /* #ctx14 */ → core::int => i){(core::Function) → void};
+      #t2.{core::List::add}{Invariant}(() /* #ctx18 */ → core::int => i){(core::Function) → void};
   } =>#t2;
   return closures;
 }
-static method testForInMapEntryCounterNotCaptured(core::List<core::int> list) → dynamic /* scope=[
-  #ctx15: not-captured VariableContext([
+static method testForInMapEntryCounterNotCaptured(positional-parameter list) → dynamic/* scope=[
+  #ctx19: not-captured VariableContext([
+    positional-parameter list;
+  ]),
+] */ /* scope=[
+  #ctx20: not-captured VariableContext([
     local-variable list2;
   ]),
 ] */ {
   list2 := block {
     final core::Map<core::int, core::String> #t3 = <core::int, core::String>{};
     for /* scope=[
-      #ctx16: not-captured VariableContext([
+      #ctx21: not-captured VariableContext([
         local-variable i;
       ]),
     ] */ (local-variable i in list)
@@ -126,19 +146,23 @@ static method testForInMapEntryCounterNotCaptured(core::List<core::int> list) �
   } =>#t3;
   return list2;
 }
-static method testForInMapEntryCounterCaptured(core::List<core::int> list) → dynamic /* scope=[
-  #ctx17: not-captured VariableContext([
+static method testForInMapEntryCounterCaptured(positional-parameter list) → dynamic/* scope=[
+  #ctx22: not-captured VariableContext([
+    positional-parameter list;
+  ]),
+] */ /* scope=[
+  #ctx23: not-captured VariableContext([
     local-variable closures;
   ]),
 ] */ {
   closures := block {
     final core::Map<core::int, core::Function> #t4 = <core::int, core::Function>{};
     for /* scope=[
-      #ctx18: captured VariableContext([
+      #ctx24: captured VariableContext([
         local-variable i;
       ]),
     ] */ (local-variable i in list)
-      #t4.{core::Map::[]=}{Invariant}(i, () /* #ctx18 */ → core::int => i){(core::int, core::Function) → void};
+      #t4.{core::Map::[]=}{Invariant}(i, () /* #ctx24 */ → core::int => i){(core::int, core::Function) → void};
   } =>#t4;
   return closures;
 }

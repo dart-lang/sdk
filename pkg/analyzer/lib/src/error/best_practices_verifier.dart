@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/annotation_verifier.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_functionality_verifier.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/error/doc_comment_verifier.dart';
@@ -500,13 +501,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           // Overridden members are always inside classes or mixins, which are
           // always named, so we can safely assume
           // `overriddenElement.enclosingElement3.name` is non-`null`.
-          _diagnosticReporter.atToken(
-            field.name,
-            diag.invalidOverrideOfNonVirtualMember,
-            arguments: [
-              field.name.lexeme,
-              overriddenElement.enclosingElement!.displayName,
-            ],
+          _diagnosticReporter.report(
+            diag.invalidOverrideOfNonVirtualMember
+                .withArguments(
+                  memberName: field.name.lexeme,
+                  definingClass:
+                      overriddenElement.enclosingElement!.displayName,
+                )
+                .at(field.name),
           );
         }
       }
@@ -726,13 +728,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // Overridden members are always inside classes or mixins, which are
         // always named, so we can safely assume
         // `overriddenElement.enclosingElement3.name` is non-`null`.
-        _diagnosticReporter.atToken(
-          nameToken,
-          diag.invalidOverrideOfNonVirtualMember,
-          arguments: [
-            nameToken.lexeme,
-            overriddenElement.enclosingElement!.displayName,
-          ],
+        _diagnosticReporter.report(
+          diag.invalidOverrideOfNonVirtualMember
+              .withArguments(
+                memberName: nameToken.lexeme,
+                definingClass: overriddenElement.enclosingElement!.displayName,
+              )
+              .at(nameToken),
         );
       }
 
@@ -1035,10 +1037,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
       // named elements, so we can safely assume `entry.value.name` is
       // non-`null`.
-      _diagnosticReporter.atNode(
-        entry.key,
-        diag.assignmentOfDoNotStore,
-        arguments: [entry.value.name!],
+      _diagnosticReporter.report(
+        diag.assignmentOfDoNotStore
+            .withArguments(name: entry.value.name!)
+            .at(entry.key),
       );
     }
   }
@@ -1081,10 +1083,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (libraryElement == null) return;
 
     if (libraryElement.metadata.hasInternal) {
-      _diagnosticReporter.atNode(
-        node,
-        diag.invalidExportOfInternalElement,
-        arguments: [libraryElement.displayName],
+      _diagnosticReporter.report(
+        diag.invalidExportOfInternalElement
+            .withArguments(name: libraryElement.displayName)
+            .at(node),
       );
     }
     var exportNamespace = NamespaceBuilder().createExportNamespaceForDirective2(
@@ -1092,10 +1094,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     );
     exportNamespace.definedNames2.forEach((String name, Element element) {
       if (element.metadata.hasInternal) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.invalidExportOfInternalElement,
-          arguments: [element.displayName],
+        _diagnosticReporter.report(
+          diag.invalidExportOfInternalElement
+              .withArguments(name: element.displayName)
+              .at(node),
         );
         return;
       }
@@ -1108,10 +1110,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         for (var type in signatureTypes) {
           var aliasElement = type?.alias?.element;
           if (aliasElement != null && aliasElement.metadata.hasInternal) {
-            _diagnosticReporter.atNode(
-              node,
-              diag.invalidExportOfInternalElementIndirectly,
-              arguments: [aliasElement.name!, element.displayName],
+            _diagnosticReporter.report(
+              diag.invalidExportOfInternalElementIndirectly
+                  .withArguments(
+                    internalElementName: aliasElement.name!,
+                    exportedElementName: element.displayName,
+                  )
+                  .at(node),
             );
           }
         }
@@ -1139,10 +1144,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               element.superclassConstraints.contains(supertype)) {
             // This is a special violation of the sealed class contract,
             // requiring specific messaging.
-            _diagnosticReporter.atNode(
-              node,
-              diag.mixinOnSealedClass,
-              arguments: [superclass.name.toString()],
+            _diagnosticReporter.report(
+              diag.mixinOnSealedClass
+                  .withArguments(name: superclass.name.toString())
+                  .at(node),
             );
           } else {
             // This is a regular violation of the sealed class contract.
@@ -1159,23 +1164,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForInvariantNanComparison(BinaryExpression node) {
     void reportStartEnd(
-      DiagnosticCode diagnosticCode,
+      LocatableDiagnostic locatableDiagnostic,
       SyntacticEntity startEntity,
       SyntacticEntity endEntity,
     ) {
       var offset = startEntity.offset;
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: endEntity.end - offset,
-        diagnosticCode: diagnosticCode,
+      _diagnosticReporter.report(
+        locatableDiagnostic.atOffset(
+          offset: offset,
+          length: endEntity.end - offset,
+        ),
       );
     }
 
-    void checkLeftRight(DiagnosticCode diagnosticCode) {
+    void checkLeftRight(LocatableDiagnostic locatableDiagnostic) {
       if (node.leftOperand.isDoubleNan) {
-        reportStartEnd(diagnosticCode, node.leftOperand, node.operator);
+        reportStartEnd(locatableDiagnostic, node.leftOperand, node.operator);
       } else if (node.rightOperand.isDoubleNan) {
-        reportStartEnd(diagnosticCode, node.operator, node.rightOperand);
+        reportStartEnd(locatableDiagnostic, node.operator, node.rightOperand);
       }
     }
 
@@ -1241,10 +1247,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var warning = node.keyword?.keyword == Keyword.NEW
           ? diag.nonConstCallToLiteralConstructorUsingNew
           : diag.nonConstCallToLiteralConstructor;
-      _diagnosticReporter.atNode(
-        node,
-        warning,
-        arguments: [fullConstructorName],
+      _diagnosticReporter.report(
+        warning.withArguments(constructorName: fullConstructorName).at(node),
       );
     }
   }
@@ -1259,10 +1263,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var constructor = node.constructorName.element;
     if (constructor is! ConstructorElement) return;
     if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
-      _diagnosticReporter.atNode(
-        node,
-        diag.nonConstCallToLiteralConstructor,
-        arguments: [constructor.displayName],
+      _diagnosticReporter.report(
+        diag.nonConstCallToLiteralConstructor
+            .withArguments(constructorName: constructor.displayName)
+            .at(node),
       );
     }
   }
@@ -1362,13 +1366,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
         // named elements, so we can safely assume `entry.value.name` is
         // non-`null`.
-        _diagnosticReporter.atNode(
-          entry.key,
-          diag.returnOfDoNotStore,
-          arguments: [
-            entry.value.name!,
-            parent.declaredFragment!.element.displayName,
-          ],
+        _diagnosticReporter.report(
+          diag.returnOfDoNotStore
+              .withArguments(
+                invokedFunction: entry.value.name!,
+                returningFunction: parent.declaredFragment!.element.displayName,
+              )
+              .at(entry.key),
         );
       }
     }
@@ -1752,10 +1756,10 @@ class _InvalidAccessVerifier {
         }
       }
 
-      _diagnosticReporter.atToken(
-        operator,
-        diag.invalidUseOfVisibleForOverridingMember,
-        arguments: [operator.type.lexeme],
+      _diagnosticReporter.report(
+        diag.invalidUseOfVisibleForOverridingMember
+            .withArguments(name: operator.type.lexeme)
+            .at(operator),
       );
     }
   }
@@ -1769,10 +1773,10 @@ class _InvalidAccessVerifier {
       // `stringValue` is if its string contains an interpolation, in which case
       // the element would never have resolved in the first place.  So we can
       // safely assume `node.uri.stringValue` is non-`null`.
-      _diagnosticReporter.atNode(
-        node,
-        diag.invalidUseOfInternalMember,
-        arguments: [node.uri.stringValue!],
+      _diagnosticReporter.report(
+        diag.invalidUseOfInternalMember
+            .withArguments(name: node.uri.stringValue!)
+            .at(node),
       );
     }
   }
@@ -1822,10 +1826,10 @@ class _InvalidAccessVerifier {
       }
       var errorEntity = node.errorEntity;
 
-      _diagnosticReporter.atEntity(
-        errorEntity,
-        diag.invalidUseOfInternalMember,
-        arguments: [element.displayName],
+      _diagnosticReporter.report(
+        diag.invalidUseOfInternalMember
+            .withArguments(name: element.displayName)
+            .at(errorEntity),
       );
     }
 
@@ -1841,10 +1845,10 @@ class _InvalidAccessVerifier {
     if (element != null &&
         element.isInternal &&
         !_isLibraryInWorkspacePackage(element.library)) {
-      _diagnosticReporter.atNode(
-        node,
-        diag.invalidUseOfInternalMember,
-        arguments: [element.name!],
+      _diagnosticReporter.report(
+        diag.invalidUseOfInternalMember
+            .withArguments(name: element.name!)
+            .at(node),
       );
     }
   }
@@ -1875,11 +1879,10 @@ class _InvalidAccessVerifier {
     }
 
     var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
-    _diagnosticReporter.atOffset(
-      offset: errorEntity.offset,
-      length: errorEntity.length,
-      diagnosticCode: diag.invalidUseOfDoNotSubmitMember,
-      arguments: [name],
+    _diagnosticReporter.report(
+      diag.invalidUseOfDoNotSubmitMember
+          .withArguments(name: name)
+          .atOffset(offset: errorEntity.offset, length: errorEntity.length),
     );
   }
 
@@ -1920,18 +1923,20 @@ class _InvalidAccessVerifier {
             argument,
             element,
           );
-          _diagnosticReporter.atOffset(
-            offset: errorEntity.offset,
-            length: errorEntity.length,
-            diagnosticCode: diag.invalidUseOfDoNotSubmitMember,
-            arguments: [name],
+          _diagnosticReporter.report(
+            diag.invalidUseOfDoNotSubmitMember
+                .withArguments(name: name)
+                .atOffset(
+                  offset: errorEntity.offset,
+                  length: errorEntity.length,
+                ),
           );
         } else {
           // For positional arguments.
-          _diagnosticReporter.atNode(
-            argument,
-            diag.invalidUseOfDoNotSubmitMember,
-            arguments: [element.displayName],
+          _diagnosticReporter.report(
+            diag.invalidUseOfDoNotSubmitMember
+                .withArguments(name: element.displayName)
+                .at(argument),
           );
         }
       }
@@ -1957,10 +1962,8 @@ class _InvalidAccessVerifier {
         node = nameToken;
       }
 
-      _diagnosticReporter.atEntity(
-        node,
-        diag.invalidUseOfInternalMember,
-        arguments: [name],
+      _diagnosticReporter.report(
+        diag.invalidUseOfInternalMember.withArguments(name: name).at(node),
       );
     }
   }
@@ -2014,34 +2017,37 @@ class _InvalidAccessVerifier {
     }
 
     if (hasProtected) {
-      _diagnosticReporter.atEntity(
-        errorEntity,
-        diag.invalidUseOfProtectedMember,
-        arguments: [name, definingClass.displayName],
+      _diagnosticReporter.report(
+        diag.invalidUseOfProtectedMember
+            .withArguments(
+              memberName: name,
+              definingClass: definingClass.displayName,
+            )
+            .at(errorEntity),
       );
     }
 
     if (isVisibleForTemplateApplied) {
-      _diagnosticReporter.atEntity(
-        errorEntity,
-        diag.invalidUseOfVisibleForTemplateMember,
-        arguments: [name, definingClass.library!.uri],
+      _diagnosticReporter.report(
+        diag.invalidUseOfVisibleForTemplateMember
+            .withArguments(memberName: name, uri: definingClass.library!.uri)
+            .at(errorEntity),
       );
     }
 
     if (hasVisibleForTesting) {
-      _diagnosticReporter.atEntity(
-        errorEntity,
-        diag.invalidUseOfVisibleForTestingMember,
-        arguments: [name, definingClass.library!.uri],
+      _diagnosticReporter.report(
+        diag.invalidUseOfVisibleForTestingMember
+            .withArguments(memberName: name, uri: definingClass.library!.uri)
+            .at(errorEntity),
       );
     }
 
     if (hasVisibleForOverriding) {
-      _diagnosticReporter.atEntity(
-        errorEntity,
-        diag.invalidUseOfVisibleForOverridingMember,
-        arguments: [name],
+      _diagnosticReporter.report(
+        diag.invalidUseOfVisibleForOverridingMember
+            .withArguments(name: name)
+            .at(errorEntity),
       );
     }
   }

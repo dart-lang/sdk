@@ -24,9 +24,7 @@ main() {
 @reflectiveTest
 class EmbedderSdkTest extends EmbedderRelatedTest {
   void test_allowedExperimentsJson() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
+    var locator = EmbedderYamlLocator.forLibFolder(getFolder(foxLib));
     EmbedderSdk sdk = EmbedderSdk(
       resourceProvider,
       locator.embedderYamls,
@@ -40,9 +38,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
   }
 
   void test_creation() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
+    var locator = EmbedderYamlLocator.forLibFolder(getFolder(foxLib));
     EmbedderSdk sdk = EmbedderSdk(
       resourceProvider,
       locator.embedderYamls,
@@ -53,9 +49,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
   }
 
   void test_fromFileUri() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
+    var locator = EmbedderYamlLocator.forLibFolder(getFolder(foxLib));
     EmbedderSdk sdk = EmbedderSdk(
       resourceProvider,
       locator.embedderYamls,
@@ -76,9 +70,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
   }
 
   void test_getSdkLibrary() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
+    var locator = EmbedderYamlLocator.forLibFolder(getFolder(foxLib));
     EmbedderSdk sdk = EmbedderSdk(
       resourceProvider,
       locator.embedderYamls,
@@ -92,9 +84,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
   }
 
   void test_mapDartUri() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
+    var locator = EmbedderYamlLocator.forLibFolder(getFolder(foxLib));
     EmbedderSdk sdk = EmbedderSdk(
       resourceProvider,
       locator.embedderYamls,

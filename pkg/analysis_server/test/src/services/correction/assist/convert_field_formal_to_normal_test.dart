@@ -53,6 +53,23 @@ class C {
 ''');
   }
 
+  Future<void> test_optionalNamed_private() async {
+    await resolveTestCode('''
+class C {
+  num _f;
+
+  C({int this.^_f = 0});
+}
+''');
+    await assertHasAssist('''
+class C {
+  num _f;
+
+  C({int f = 0}) : _f = f;
+}
+''');
+  }
+
   Future<void> test_optionalPositional_explicitType() async {
     await resolveTestCode('''
 class C {
@@ -222,6 +239,23 @@ class C {
   int f;
 
   C({required int f}) : f = f;
+}
+''');
+  }
+
+  Future<void> test_requiredNamed_private() async {
+    await resolveTestCode('''
+class C {
+  num _f;
+
+  C({required int this.^_f});
+}
+''');
+    await assertHasAssist('''
+class C {
+  num _f;
+
+  C({required int f}) : _f = f;
 }
 ''');
   }

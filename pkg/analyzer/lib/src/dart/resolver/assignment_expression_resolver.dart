@@ -106,11 +106,14 @@ class AssignmentExpressionResolver {
 
     if (flow != null) {
       if (writeElement2 is PromotableElementImpl) {
-        flow.write(
+        flow.storeExpressionInfo(
           node,
-          writeElement2,
-          SharedTypeView(node.typeOrThrow),
-          hasRead ? null : right,
+          flow.write(
+            node,
+            writeElement2,
+            SharedTypeView(node.typeOrThrow),
+            hasRead ? null : right,
+          ),
         );
       }
       if (isIfNull) {

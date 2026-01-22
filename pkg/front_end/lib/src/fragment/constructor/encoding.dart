@@ -1067,11 +1067,16 @@ class ExtensionConstructorEncoding
 }
 
 abstract class ConstructorEncodingStrategy {
-  factory ConstructorEncodingStrategy(DeclarationBuilder declarationBuilder) {
+  factory ConstructorEncodingStrategy(
+    DeclarationBuilder declarationBuilder, {
+    required bool isClosureContextLoweringEnabled,
+  }) {
     switch (declarationBuilder) {
       case ClassBuilder():
         if (declarationBuilder.isEnum) {
-          return const EnumConstructorEncodingStrategy();
+          return new EnumConstructorEncodingStrategy(
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          );
         } else {
           return const RegularConstructorEncodingStrategy();
         }
@@ -1133,7 +1138,11 @@ class RegularConstructorEncodingStrategy
 }
 
 class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
-  const EnumConstructorEncodingStrategy();
+  final bool isClosureContextLoweringEnabled;
+
+  const EnumConstructorEncodingStrategy({
+    required this.isClosureContextLoweringEnabled,
+  });
 
   @override
   ConstructorEncoding createEncoding({required bool isExternal}) {
@@ -1160,6 +1169,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileUri: fileUri,
         nameOffset: null,
         hasImmediatelyDeclaredInitializer: false,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       ),
       new FormalParameterBuilder(
         kind: FormalParameterKind.requiredPositional,
@@ -1170,6 +1180,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileUri: fileUri,
         nameOffset: null,
         hasImmediatelyDeclaredInitializer: false,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       ),
       ...?formals,
     ];

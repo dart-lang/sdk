@@ -303,6 +303,7 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
       nameOffset: null,
       fileUri: dummyUri,
       hasImmediatelyDeclaredInitializer: false,
+      isClosureContextLoweringEnabled: false,
     );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(

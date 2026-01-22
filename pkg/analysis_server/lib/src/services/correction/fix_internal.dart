@@ -1187,7 +1187,7 @@ final _builtInNonLintMultiGenerators = {
   diag.wrongNumberOfTypeArguments: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
-  diag.wrongNumberOfTypeArgumentsMethod: [DataDriven.new],
+  diag.wrongNumberOfTypeArgumentsElement: [DataDriven.new],
   diag.deprecatedMemberUse: [DataDriven.new],
   diag.deprecatedMemberUseWithMessage: [DataDriven.new],
   diag.deprecatedExportUse: [DataDriven.new],

@@ -289,10 +289,10 @@ class AnnotationVerifier {
     }
     var returnType = parent.returnType?.type;
     if (returnType is VoidType) {
-      _diagnosticReporter.atToken(
-        parent.name,
-        diag.invalidFactoryMethodDecl,
-        arguments: [parent.name.lexeme],
+      _diagnosticReporter.report(
+        diag.invalidFactoryMethodDecl
+            .withArguments(name: parent.name.lexeme)
+            .at(parent.name),
       );
       return;
     }
@@ -319,10 +319,10 @@ class AnnotationVerifier {
       }
     }
 
-    _diagnosticReporter.atToken(
-      parent.name,
-      diag.invalidFactoryMethodImpl,
-      arguments: [parent.name.lexeme],
+    _diagnosticReporter.report(
+      diag.invalidFactoryMethodImpl
+          .withArguments(name: parent.name.lexeme)
+          .at(parent.name),
     );
   }
 
@@ -395,10 +395,10 @@ class AnnotationVerifier {
         var kindNames = kinds.map((kind) => kind.displayString).toList()
           ..sort();
         var validKinds = kindNames.commaSeparatedWithOr;
-        _diagnosticReporter.atNode(
-          node.name,
-          diag.invalidAnnotationTarget,
-          arguments: [name!, validKinds],
+        _diagnosticReporter.report(
+          diag.invalidAnnotationTarget
+              .withArguments(annotationName: name!, validTargets: validKinds)
+              .at(node.name),
         );
         return;
       }
@@ -441,10 +441,13 @@ class AnnotationVerifier {
     if (parent2 is! BlockClassBody ||
         parent3 is! ExtensionTypeDeclaration ||
         parent is MethodDeclaration && parent.isStatic) {
-      _diagnosticReporter.atNode(
-        node.name,
-        diag.invalidAnnotationTarget,
-        arguments: [node.name.name, 'instance members of extension types'],
+      _diagnosticReporter.report(
+        diag.invalidAnnotationTarget
+            .withArguments(
+              annotationName: node.name.name,
+              validTargets: 'instance members of extension types',
+            )
+            .at(node.name),
       );
     }
   }
@@ -523,7 +526,7 @@ class AnnotationVerifier {
         _diagnosticReporter.atNode(
           undefinedParameter,
           diag.undefinedReferencedParameter,
-          arguments: [parameterName ?? undefinedParameter, name],
+          arguments: [parameterName ?? undefinedParameter.toString(), name],
         );
       }
     }
@@ -542,10 +545,10 @@ class AnnotationVerifier {
     void reportInvalidAnnotation(String name) {
       // This method is only called on named elements, so it is safe to
       // assume that `declaredElement.name` is non-`null`.
-      _diagnosticReporter.atNode(
-        node.name,
-        diag.invalidVisibilityAnnotation,
-        arguments: [name, node.name.name],
+      _diagnosticReporter.report(
+        diag.invalidVisibilityAnnotation
+            .withArguments(memberName: name, annotationName: node.name.name)
+            .at(node.name),
       );
     }
 

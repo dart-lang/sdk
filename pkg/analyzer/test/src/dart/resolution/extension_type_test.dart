@@ -1024,7 +1024,7 @@ ExtensionTypeDeclaration
       r'''
 extension type A(covariant int it) {}
 ''',
-      [error(diag.extraneousModifierInPrimaryConstructor, 17, 9)],
+      [error(diag.invalidCovariantModifierInPrimaryConstructor, 17, 9)],
     );
 
     var node = findNode.singleExtensionTypeDeclaration;

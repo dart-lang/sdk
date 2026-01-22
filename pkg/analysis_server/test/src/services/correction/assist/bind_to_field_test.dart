@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -178,7 +179,27 @@ class A {
 ''');
   }
 
-  Future<void> test_private_parameter() async {
+  Future<void> test_private_named_parameter() async {
+    // This code is erroneous, but we still want to allow the assist since it
+    // will fix the error.
+    await resolveTestCode(
+      '''
+class A {
+  A({int? ^_i});
+}
+''',
+      ignore: [diag.privateNamedNonFieldParameter],
+    );
+    await assertHasAssist('''
+class A {
+  int? _i;
+
+  A({this._i});
+}
+''');
+  }
+
+  Future<void> test_private_positional_parameter() async {
     await resolveTestCode('''
 class A {
   A(int ^_i);

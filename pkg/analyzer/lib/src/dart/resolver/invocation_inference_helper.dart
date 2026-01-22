@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Information about a constructor element to instantiate.
@@ -149,14 +150,13 @@ class InvocationInferenceHelper {
 
   /// Finish resolution of the [DotShorthandInvocation].
   ///
-  /// We have already found the invoked [ExecutableElement], and the [rawType]
-  /// is its not yet instantiated type. Here we perform downwards inference,
-  /// resolution of arguments, and upwards inference.
+  /// We have already found the invoked [ExecutableElement]. Here we perform
+  /// downwards inference, resolution of arguments, and upwards inference.
   void resolveDotShorthandInvocation({
     required DotShorthandInvocationImpl node,
-    required FunctionTypeImpl rawType,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required TypeImpl contextType,
+    required InvocationTarget target,
   }) {
     var returnType = DotShorthandInvocationInferrer(
       resolver: _resolver,
@@ -164,20 +164,20 @@ class InvocationInferenceHelper {
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(rawType: rawType);
+      target: target,
+    ).resolveInvocation();
     node.recordStaticType(returnType, resolver: _resolver);
   }
 
   /// Finish resolution of the [MethodInvocation].
   ///
-  /// We have already found the invoked [ExecutableElement], and the [rawType]
-  /// is its not yet instantiated type. Here we perform downwards inference,
-  /// resolution of arguments, and upwards inference.
+  /// We have already found the invoked [ExecutableElement]. Here we perform
+  /// downwards inference, resolution of arguments, and upwards inference.
   void resolveMethodInvocation({
     required MethodInvocationImpl node,
-    required FunctionTypeImpl rawType,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required TypeImpl contextType,
+    required InvocationTarget? target,
   }) {
     var returnType = MethodInvocationInferrer(
       resolver: _resolver,
@@ -185,7 +185,8 @@ class InvocationInferenceHelper {
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(rawType: rawType);
+      target: target,
+    ).resolveInvocation();
     node.recordStaticType(returnType, resolver: _resolver);
   }
 }

@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
@@ -135,16 +136,21 @@ class NamedTypeResolver with ScopeHelpers {
   List<TypeImpl> _buildTypeArguments(
     NamedType node,
     TypeArgumentList argumentList,
-    int parameterCount,
-  ) {
+    int parameterCount, {
+    required TypeInstantiationTarget target,
+  }) {
     var arguments = argumentList.arguments;
+
     var argumentCount = arguments.length;
 
     if (argumentCount != parameterCount) {
-      diagnosticReporter.atNode(
-        node,
-        diag.wrongNumberOfTypeArguments,
-        arguments: [node.name.lexeme, parameterCount, argumentCount],
+      diagnosticReporter.report(
+        target
+            .wrongNumberOfTypeArgumentsError(
+              typeParameterCount: parameterCount,
+              typeArgumentCount: argumentCount,
+            )
+            .at(node),
       );
       return List.filled(parameterCount, InvalidTypeImpl.instance);
     }
@@ -217,6 +223,7 @@ class NamedTypeResolver with ScopeHelpers {
           node,
           argumentList,
           element.typeParameters.length,
+          target: TypeInstantiationTargetInterfaceElement(element),
         );
         return element.instantiateImpl(
           typeArguments: typeArguments,
@@ -227,6 +234,7 @@ class NamedTypeResolver with ScopeHelpers {
           node,
           argumentList,
           element.typeParameters.length,
+          target: TypeInstantiationTargetTypeAliasElement(element),
         );
         var type = element.instantiateImpl(
           typeArguments: typeArguments,
@@ -237,13 +245,28 @@ class NamedTypeResolver with ScopeHelpers {
         _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
         return InvalidTypeImpl.instance;
       } else if (element is DynamicElementImpl) {
-        _buildTypeArguments(node, argumentList, 0);
+        _buildTypeArguments(
+          node,
+          argumentList,
+          0,
+          target: const TypeInstantiationTargetDynamicTypeElement(),
+        );
         return DynamicTypeImpl.instance;
       } else if (element is NeverElementImpl) {
-        _buildTypeArguments(node, argumentList, 0);
+        _buildTypeArguments(
+          node,
+          argumentList,
+          0,
+          target: const TypeInstantiationTargetNeverTypeElement(),
+        );
         return _instantiateElementNever(nullability);
       } else if (element is TypeParameterElementImpl) {
-        _buildTypeArguments(node, argumentList, 0);
+        _buildTypeArguments(
+          node,
+          argumentList,
+          0,
+          target: TypeInstantiationTargetTypeParameterElement(element),
+        );
         return element.instantiate(nullabilitySuffix: nullability);
       } else {
         _ErrorHelper(
@@ -353,10 +376,13 @@ class NamedTypeResolver with ScopeHelpers {
         constructorName.name == null) {
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
-        diagnosticReporter.atNode(
-          typeArguments,
-          diag.wrongNumberOfTypeArgumentsConstructor,
-          arguments: [importPrefix.name.lexeme, nameToken.lexeme],
+        diagnosticReporter.report(
+          diag.wrongNumberOfTypeArgumentsConstructor
+              .withArguments(
+                className: importPrefix.name.lexeme,
+                constructorName: nameToken.lexeme,
+              )
+              .at(typeArguments),
         );
         var instanceCreation = constructorName.parent;
         if (instanceCreation is InstanceCreationExpressionImpl) {

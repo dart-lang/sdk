@@ -5,12 +5,13 @@
 import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/pubspec/validators/dependency_validator.dart';
@@ -162,17 +163,8 @@ final class PubspecValidationContext {
   /// Report an error for the given node.
   void reportErrorForNode(
     YamlNode node,
-    DiagnosticCode diagnosticCode, [
-    List<Object>? arguments,
-    List<DiagnosticMessage>? messages,
-  ]) {
-    var span = node.span;
-    reporter.atOffset(
-      offset: span.start.offset,
-      length: span.length,
-      diagnosticCode: diagnosticCode,
-      arguments: arguments,
-      contextMessages: messages,
-    );
+    LocatableDiagnostic locatableDiagnostic,
+  ) {
+    reporter.report(locatableDiagnostic.atSourceSpan(node.span));
   }
 }

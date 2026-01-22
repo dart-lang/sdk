@@ -149,6 +149,7 @@ String createCompileJitJson({
   required ArgResults args,
   String? packages,
   bool verbose = false,
+  String? nativeAssetsYaml,
 }) {
   return jsonEncode(
     <String, Object?>{
@@ -168,6 +169,7 @@ String createCompileJitJson({
       if (packages != null) packageString: packages,
       if (args.wasParsed(verbosityOption))
         verbosityOption: args[verbosityOption],
+      if (nativeAssetsYaml != null) nativeAssetsOption: nativeAssetsYaml,
     },
   );
 }

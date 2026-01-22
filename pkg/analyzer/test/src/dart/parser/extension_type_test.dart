@@ -1142,7 +1142,7 @@ ExtensionTypeDeclaration
 extension type A(covariant int it) {}
 ''');
     parseResult.assertErrors([
-      error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
+      error(diag.invalidCovariantModifierInPrimaryConstructor, 17, 9),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -1171,7 +1171,7 @@ ExtensionTypeDeclaration
 extension type A(covariant final int it) {}
 ''');
     parseResult.assertErrors([
-      error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
+      error(diag.invalidCovariantModifierInPrimaryConstructor, 17, 9),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -1216,6 +1216,34 @@ ExtensionTypeDeclaration
       leftParenthesis: (
       parameter: SimpleFormalParameter
         covariantKeyword: covariant
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_covariant_var() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(covariant var int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        keyword: var
         type: NamedType
           name: int
         name: it

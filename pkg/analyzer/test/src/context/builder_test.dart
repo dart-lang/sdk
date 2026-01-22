@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,22 +17,12 @@ main() {
 @reflectiveTest
 class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
   void test_empty() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(emptyPath)],
-    });
-    expect(locator.embedderYamls, hasLength(0));
-  }
-
-  void test_invalid() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator(null);
-    locator.addEmbedderYaml(getFolder(foxLib), r'''{{{,{{}}},}}''');
-    expect(locator.embedderYamls, hasLength(0));
+    var locator = EmbedderYamlLocator.forLibFolder(getFolder(emptyPath));
+    expect(locator.embedderYamls, isEmpty);
   }
 
   void test_valid() {
-    EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[getFolder(foxLib)],
-    });
+    var locator = EmbedderYamlLocator.forLibFolder(getFolder(foxLib));
     expect(locator.embedderYamls, hasLength(1));
   }
 }

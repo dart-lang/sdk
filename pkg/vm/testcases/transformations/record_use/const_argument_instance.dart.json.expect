@@ -5,7 +5,7 @@
       "value": 14
     },
     {
-      "type": "Instance",
+      "type": "instance",
       "value": {
         "i": 0
       }

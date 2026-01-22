@@ -12,6 +12,7 @@ import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../../type_inference/type_schema.dart';
 import 'declaration.dart';
 
@@ -69,12 +70,18 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
-  void registerFunctionBody(Statement? body) {
+  void registerFunctionBody(
+    Statement? body,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     _declaration.registerFunctionBody(
       compilerContext: _builder.libraryBuilder.loader.target.context,
       problemReporting: _builder.libraryBuilder,
       body: body,
     );
+    function.scope =
+        // Coverage-ignore(suite): Not run.
+        scopeProviderInfo?.scope;
   }
 
   @override

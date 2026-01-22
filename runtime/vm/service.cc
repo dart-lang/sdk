@@ -562,7 +562,7 @@ static bool CheckDebuggerDisabled(Thread* thread, JSONStream* js) {
 }
 
 static bool CheckProfilerDisabled(Thread* thread, JSONStream* js) {
-  if (!FLAG_profiler) {
+  if (!Profiler::IsRunning()) {
     js->PrintError(kFeatureDisabled, "Profiler is disabled.");
     return true;
   }
@@ -4669,10 +4669,7 @@ static const MethodParameter* const enable_profiler_params[] = {
 };
 
 static void EnableProfiler(Thread* thread, JSONStream* js) {
-  if (!FLAG_profiler) {
-    FLAG_profiler = true;
-    Profiler::Init();
-  }
+  Dart_StartProfiling();
   PrintSuccess(js);
 }
 
@@ -5990,13 +5987,9 @@ static void SetFlag(Thread* thread, JSONStream* js) {
   const char* error = nullptr;
   if (Flags::SetFlag(flag_name, flag_value, &error)) {
     PrintSuccess(js);
-    if (profile_period) {
-      // FLAG_profile_period has already been set to the new value. Now we need
-      // to notify the ThreadInterrupter to pick up the change.
-      Profiler::UpdateSamplePeriod();
-    } else if (profiler) {
-      // FLAG_profiler has already been set to the new value.
-      Profiler::UpdateRunningState();
+    if (profile_period || profiler) {
+      // Update profiler config based on FLAG_* values.
+      Profiler::SetConfig({});
     }
     if (Service::vm_stream.enabled()) {
       ServiceEvent event(ServiceEvent::kVMFlagUpdate);

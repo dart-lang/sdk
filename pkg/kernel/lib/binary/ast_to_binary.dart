@@ -1668,6 +1668,7 @@ class BinaryPrinter
   void visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) {
     writeByte(Tag.AbstractSuperPropertyGet);
     writeOffset(node.fileOffset);
+    writeNode(node.receiver);
     writeName(node.name);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
@@ -1676,6 +1677,7 @@ class BinaryPrinter
   void visitAbstractSuperPropertySet(AbstractSuperPropertySet node) {
     writeByte(Tag.AbstractSuperPropertySet);
     writeOffset(node.fileOffset);
+    writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.value);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
@@ -1685,6 +1687,7 @@ class BinaryPrinter
   void visitSuperPropertyGet(SuperPropertyGet node) {
     writeByte(Tag.SuperPropertyGet);
     writeOffset(node.fileOffset);
+    writeNode(node.receiver);
     writeName(node.name);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
@@ -1693,6 +1696,7 @@ class BinaryPrinter
   void visitSuperPropertySet(SuperPropertySet node) {
     writeByte(Tag.SuperPropertySet);
     writeOffset(node.fileOffset);
+    writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.value);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
@@ -1824,6 +1828,7 @@ class BinaryPrinter
   void visitAbstractSuperMethodInvocation(AbstractSuperMethodInvocation node) {
     writeByte(Tag.AbstractSuperMethodInvocation);
     writeOffset(node.fileOffset);
+    writeNode(node.receiver);
     writeName(node.name);
     writeArgumentsNode(node.arguments);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
@@ -1833,6 +1838,7 @@ class BinaryPrinter
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeByte(Tag.SuperMethodInvocation);
     writeOffset(node.fileOffset);
+    writeNode(node.receiver);
     writeName(node.name);
     writeArgumentsNode(node.arguments);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);

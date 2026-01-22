@@ -143,4 +143,4 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///access_no_nsm.dart:27:7 -> S
 Evaluated: ListLiteral @ org-dartlang-testcase:///access_no_nsm.dart:27:7 -> ListConstant(const <Type>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///access_no_nsm.dart:27:7 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///access_no_nsm.dart:27:7 -> MapConstant(const <Symbol, dynamic>{})
-Extra constant evaluation: evaluated: 22, effectively constant: 8
+Extra constant evaluation: evaluated: 26, effectively constant: 8

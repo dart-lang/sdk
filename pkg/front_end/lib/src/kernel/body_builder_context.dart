@@ -26,6 +26,7 @@ import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
+import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
@@ -370,7 +371,10 @@ abstract class BodyBuilderContext {
   }
 
   /// Registers [body] as the result of the body building.
-  void registerFunctionBody(Statement? body) {
+  void registerFunctionBody(
+    Statement? body,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     throw new UnsupportedError("${runtimeType}.registerFunctionBody");
   }
 
@@ -811,4 +815,7 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
   void registerSuperCall() {
     _procedure.transformerFlags |= TransformerFlag.superCalls;
   }
+
+  @override
+  FunctionNode get function => _procedure.function;
 }

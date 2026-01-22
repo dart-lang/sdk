@@ -2909,7 +2909,7 @@ class ChildEntity {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassBody implements AstNode {}
 
-abstract final class ClassBodyImpl extends AstNodeImpl implements ClassBody {
+sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
   List<ClassMemberImpl> get members;
 }
 
@@ -4886,6 +4886,10 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
       return name;
     }
     return parameters.beginToken;
+  }
+
+  bool get isGenerative {
+    return factoryKeyword == null;
   }
 
   /// Whether this is a trivial constructor.
@@ -19889,6 +19893,20 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   @generated
   set formalParameters(FormalParameterListImpl formalParameters) {
     _formalParameters = _becomeParentOf(formalParameters);
+  }
+
+  /// Whether this is a trivial constructor.
+  ///
+  /// A trivial primary constructor declares no parameters, has no initializer
+  /// list, and has no body (or an empty one).
+  bool get isTrivial {
+    if (formalParameters.parameters.isNotEmpty) {
+      return false;
+    }
+    if (body case var body?) {
+      return body.initializers.isEmpty && body.body is EmptyFunctionBody;
+    }
+    return true;
   }
 
   @generated

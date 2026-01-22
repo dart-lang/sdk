@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// A verifier that checks for unsafe Unicode text.
 /// See: https://nvd.nist.gov/vuln/detail/CVE-2021-22567
@@ -28,11 +28,10 @@ class UnicodeTextVerifier {
             ? diag.textDirectionCodePointInLiteral
             : diag.textDirectionCodePointInComment;
         var code = codeUnit.toRadixString(16).toUpperCase();
-        _diagnosticReporter.atOffset(
-          offset: offset,
-          length: 1,
-          diagnosticCode: diagnosticCode,
-          arguments: [code],
+        _diagnosticReporter.report(
+          diagnosticCode
+              .withArguments(codePoint: code)
+              .atOffset(offset: offset, length: 1),
         );
       }
     }

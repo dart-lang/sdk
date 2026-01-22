@@ -232,7 +232,7 @@ E e() {
     await assertNoFix();
   }
 
-  Future<void> test_named_non_zero() async {
+  Future<void> test_named_nonZeroParameters() async {
     await resolveTestCode('''
 enum E {
   ONE.named(1);
@@ -249,7 +249,7 @@ E e() {
     await assertNoFix();
   }
 
-  Future<void> test_named_non_zero_dotShorthand() async {
+  Future<void> test_named_nonZeroParameters_dotShorthand() async {
     await resolveTestCode('''
 enum E {
   ONE.named(1);
@@ -278,6 +278,36 @@ enum E {
 E e() {
   return E.TWO;
 }
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_namedPrimary() async {
+    await resolveTestCode('''
+enum E.named() {
+  one.named();
+}
+
+E e = E.two;
+''');
+
+    await assertHasFix('''
+enum E.named() {
+  one.named(), two.named();
+}
+
+E e = E.two;
+''');
+  }
+
+  Future<void> test_namedPrimary_nonZeroParameters() async {
+    await resolveTestCode('''
+enum E.named(final int i) {
+  one.named(1);
+}
+
+E e = E.two;
 ''');
 
     await assertNoFix();
@@ -381,7 +411,7 @@ E e() {
 ''');
   }
 
-  Future<void> test_unnamed_non_zero() async {
+  Future<void> test_unnamed_nonZeroParameters() async {
     await resolveTestCode('''
 enum E {
   ONE(1);
@@ -393,6 +423,36 @@ enum E {
 E e() {
   return E.TWO;
 }
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_unnamedPrimary() async {
+    await resolveTestCode('''
+enum E() {
+  one;
+}
+
+E e = E.two;
+''');
+
+    await assertHasFix('''
+enum E() {
+  one, two;
+}
+
+E e = E.two;
+''');
+  }
+
+  Future<void> test_unnamedPrimary_nonZeroParameters() async {
+    await resolveTestCode('''
+enum E(final int i) {
+  one(1);
+}
+
+E e = E.two;
 ''');
 
     await assertNoFix();

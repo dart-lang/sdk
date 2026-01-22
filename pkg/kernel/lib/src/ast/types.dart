@@ -2361,7 +2361,18 @@ class TypeVariable extends Variable {
   /// Function type parameter this [TypeVariable] is associated with.
   final TypeParameter parameter;
 
+  @override
+  List<Expression> annotations = const <Expression>[];
+
   TypeVariable({this.cosmeticName, required this.parameter});
+
+  @override
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
 
   @override
   R accept<R>(TreeVisitor<R> v) {

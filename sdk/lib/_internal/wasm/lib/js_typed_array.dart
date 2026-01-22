@@ -9,9 +9,10 @@ part of "dart:_js_types";
 ///
 /// Constants are preferred over enums for performance.
 abstract final class _ArrayBufferType {
-  static const int arrayBuffer = 0;
-  static const int sharedArrayBuffer = 1;
-  static const int unknown = 2;
+  static const int nullOrUndefined = 0;
+  static const int arrayBuffer = 1;
+  static const int sharedArrayBuffer = 2;
+  static const int unknown = 3;
 }
 
 /// A JS `ArrayBuffer` or `SharedArrayBuffer`.
@@ -23,16 +24,17 @@ final class JSArrayBufferImpl implements ByteBuffer {
 
   late int _refType = _getRefType(_ref);
 
-  static int _getRefType(WasmExternRef? _ref) =>
+  static int _getRefType(WasmExternRef? ref) =>
       // Feature check for `SharedArrayBuffer` before doing a type-check.
       js.JS<WasmI32>('''o => {
-          if (o instanceof ArrayBuffer) return 0;
+          if (o === null || o === undefined) return 0;
+          if (o instanceof ArrayBuffer) return 1;
           if (globalThis.SharedArrayBuffer !== undefined &&
               o instanceof SharedArrayBuffer) {
-            return 1;
+            return 2;
           }
-          return 2;
-        }''', _ref).toIntUnsigned();
+          return 3;
+        }''', ref).toIntUnsigned();
 
   bool get isArrayBuffer => _refType == _ArrayBufferType.arrayBuffer;
 
@@ -50,6 +52,14 @@ final class JSArrayBufferImpl implements ByteBuffer {
     if (refType == _ArrayBufferType.unknown) {
       return _throwConversionFailureError("ByteBuffer");
     }
+    return JSArrayBufferImpl.fromRefUnchecked(ref);
+  }
+
+  static JSArrayBufferImpl? fromRefNullable(WasmExternRef? ref) {
+    final refType = _getRefType(ref);
+    if (refType == _ArrayBufferType.nullOrUndefined) return null;
+    if (refType == _ArrayBufferType.unknown)
+      return _throwConversionFailureError("ByteBuffer");
     return JSArrayBufferImpl.fromRefUnchecked(ref);
   }
 
@@ -286,11 +296,14 @@ final class JSDataViewImpl implements ByteData {
 
   final bool _immutable;
 
-  static bool _checkRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof DataView', ref);
+  static int _getRefType(WasmExternRef? ref) => js.JS<WasmI32>('''o => {
+          if (o === null || o === undefined) return 0;
+          if (o instanceof DataView) return 1;
+          return 2;
+        }''', ref).toIntUnsigned();
 
   JSDataViewImpl._(this._ref, this.lengthInBytes, this._immutable) {
-    assert(_checkRefType(_ref));
+    assert(_getRefType(_ref) == 1);
   }
 
   JSDataViewImpl(this.lengthInBytes)
@@ -302,10 +315,16 @@ final class JSDataViewImpl implements ByteData {
       _immutable = false;
 
   factory JSDataViewImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
-      return _throwConversionFailureError("ByteData");
-    }
+    final refType = _getRefType(ref);
+    if (refType != 1) return _throwConversionFailureError("ByteData");
     return JSDataViewImpl.fromRefUnchecked(ref);
+  }
+
+  static JSDataViewImpl? fromRefNullable(WasmExternRef? ref) {
+    final refType = _getRefType(ref);
+    if (refType == 0) return null;
+    if (refType == 2) return JSDataViewImpl.fromRefUnchecked(ref);
+    return _throwConversionFailureError("ByteData");
   }
 
   JSDataViewImpl.immutable(this._ref, this.lengthInBytes) : _immutable = true;
@@ -825,19 +844,29 @@ final class JSUint8ArrayImpl extends JSIntegerArrayBase
   factory JSUint8ArrayImpl(int length) =>
       JSUint8ArrayImpl._(_newDataView(length));
 
-  static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Uint8Array', ref);
+  static int _getRefType(WasmExternRef? ref) => js.JS<WasmI32>('''o => {
+          if (o === null || o === undefined) return 0;
+          if (o instanceof Uint8Array) return 1;
+          return 2;
+        }''', ref).toIntUnsigned();
 
-  factory JSUint8ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
-    _checkArrayRefType(ref);
+  factory JSUint8ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+    assert(_getRefType(ref) == 1);
     return JSUint8ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint8ArrayImpl.fromArrayRef(WasmExternRef? ref) {
-    if (!_checkArrayRefType(ref)) {
+  factory JSUint8ArrayImpl.fromRef(WasmExternRef? ref) {
+    if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Uint8List");
     }
-    return JSUint8ArrayImpl.fromArrayRefUnchecked(ref);
+    return JSUint8ArrayImpl.fromRefUnchecked(ref);
+  }
+
+  static JSUint8ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    final refType = _getRefType(ref);
+    if (refType == 0) return null;
+    if (refType == 1) return JSUint8ArrayImpl.fromRefUnchecked(ref);
+    return _throwConversionFailureError("Uint8List");
   }
 
   factory JSUint8ArrayImpl.view(
@@ -931,19 +960,29 @@ final class JSInt8ArrayImpl extends JSIntegerArrayBase
   factory JSInt8ArrayImpl(int length) =>
       JSInt8ArrayImpl._(_newDataView(length));
 
-  static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Int8Array', ref);
+  static int _getRefType(WasmExternRef? ref) => js.JS<WasmI32>('''o => {
+          if (o === null || o === undefined) return 0;
+          if (o instanceof Int8Array) return 1;
+          return 2;
+        }''', ref).toIntUnsigned();
 
-  factory JSInt8ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
-    assert(_checkArrayRefType(ref));
+  factory JSInt8ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+    assert(_getRefType(ref) == 1);
     return JSInt8ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSInt8ArrayImpl.fromArrayRef(WasmExternRef? ref) {
-    if (!_checkArrayRefType(ref)) {
+  factory JSInt8ArrayImpl.fromRef(WasmExternRef? ref) {
+    if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Int8List");
     }
-    return JSInt8ArrayImpl.fromArrayRefUnchecked(ref);
+    return JSInt8ArrayImpl.fromRefUnchecked(ref);
+  }
+
+  static JSInt8ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    final refType = _getRefType(ref);
+    if (refType == 0) return null;
+    if (refType == 1) return JSInt8ArrayImpl.fromRefUnchecked(ref);
+    return _throwConversionFailureError("Int8List");
   }
 
   factory JSInt8ArrayImpl.view(
@@ -1042,16 +1081,26 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
   static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Uint8ClampedArray', ref);
 
-  factory JSUint8ClampedArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+  factory JSUint8ClampedArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
     assert(_checkArrayRefType(ref));
     return JSUint8ClampedArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint8ClampedArrayImpl.fromArrayRef(WasmExternRef? ref) {
+  factory JSUint8ClampedArrayImpl.fromRef(WasmExternRef? ref) {
     if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Uint8ClampedList");
     }
-    return JSUint8ClampedArrayImpl.fromArrayRefUnchecked(ref);
+    return JSUint8ClampedArrayImpl.fromRefUnchecked(ref);
+  }
+
+  static JSUint8ClampedArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
+      if (ref.isNull) {
+        return null;
+      }
+      return _throwConversionFailureError("Uint8ClampedList");
+    }
+    return JSUint8ClampedArrayImpl.fromRefUnchecked(ref);
   }
 
   factory JSUint8ClampedArrayImpl.view(
@@ -1134,16 +1183,26 @@ final class JSUint16ArrayImpl extends JSIntegerArrayBase
   static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Uint16Array', ref);
 
-  factory JSUint16ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+  factory JSUint16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
     assert(_checkArrayRefType(ref));
     return JSUint16ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint16ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+  factory JSUint16ArrayImpl.fromRef(WasmExternRef? ref) {
     if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Uint16List");
     }
-    return JSUint16ArrayImpl.fromArrayRefUnchecked(ref);
+    return JSUint16ArrayImpl.fromRefUnchecked(ref);
+  }
+
+  static JSUint16ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
+      if (ref.isNull) {
+        return null;
+      }
+      return _throwConversionFailureError("Uint16List");
+    }
+    return JSUint16ArrayImpl.fromRefUnchecked(ref);
   }
 
   factory JSUint16ArrayImpl.view(
@@ -1247,16 +1306,26 @@ final class JSInt16ArrayImpl extends JSIntegerArrayBase
   static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Int16Array', ref);
 
-  factory JSInt16ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+  factory JSInt16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
     assert(_checkArrayRefType(ref));
     return JSInt16ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSInt16ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+  factory JSInt16ArrayImpl.fromRef(WasmExternRef? ref) {
     if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Int16List");
     }
-    return JSInt16ArrayImpl.fromArrayRefUnchecked(ref);
+    return JSInt16ArrayImpl.fromRefUnchecked(ref);
+  }
+
+  static JSInt16ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
+      if (ref.isNull) {
+        return null;
+      }
+      return _throwConversionFailureError("Int16List");
+    }
+    return JSInt16ArrayImpl.fromRefUnchecked(ref);
   }
 
   factory JSInt16ArrayImpl.view(
@@ -1357,19 +1426,29 @@ final class JSUint32ArrayImpl extends JSIntegerArrayBase
   factory JSUint32ArrayImpl(int length) =>
       JSUint32ArrayImpl._(_newDataView(length * 4));
 
-  static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Uint32Array', ref);
+  static int _getRefType(WasmExternRef? ref) => js.JS<WasmI32>('''o => {
+          if (o === null || o === undefined) return 0;
+          if (o instanceof Uint32Array) return 1;
+          return 2;
+        }''', ref).toIntUnsigned();
 
-  factory JSUint32ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
-    assert(_checkArrayRefType(ref));
+  factory JSUint32ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+    assert(_getRefType(ref) == 1);
     return JSUint32ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint32ArrayImpl.fromArrayRef(WasmExternRef? ref) {
-    if (!_checkArrayRefType(ref)) {
+  factory JSUint32ArrayImpl.fromRef(WasmExternRef? ref) {
+    if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Uint32List");
     }
-    return JSUint32ArrayImpl.fromArrayRefUnchecked(ref);
+    return JSUint32ArrayImpl.fromRefUnchecked(ref);
+  }
+
+  static JSUint32ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    final refType = _getRefType(ref);
+    if (refType == 0) return null;
+    if (refType == 1) return JSUint32ArrayImpl.fromRefUnchecked(ref);
+    return _throwConversionFailureError("Uint32List");
   }
 
   factory JSUint32ArrayImpl.view(
@@ -1470,19 +1549,29 @@ final class JSInt32ArrayImpl extends JSIntegerArrayBase
   factory JSInt32ArrayImpl(int length) =>
       JSInt32ArrayImpl._(_newDataView(length * 4));
 
-  static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Int32Array', ref);
+  static int _getRefType(WasmExternRef? ref) => js.JS<WasmI32>('''o => {
+          if (o === null || o === undefined) return 0;
+          if (o instanceof Int32Array) return 1;
+          return 2;
+        }''', ref).toIntUnsigned();
 
-  factory JSInt32ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
-    assert(_checkArrayRefType(ref));
+  factory JSInt32ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+    assert(_getRefType(ref) == 1);
     return JSInt32ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSInt32ArrayImpl.fromArrayRef(WasmExternRef? ref) {
-    if (!_checkArrayRefType(ref)) {
+  factory JSInt32ArrayImpl.fromRef(WasmExternRef? ref) {
+    if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Int32List");
     }
-    return JSInt32ArrayImpl.fromArrayRefUnchecked(ref);
+    return JSInt32ArrayImpl.fromRefUnchecked(ref);
+  }
+
+  static JSInt32ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    final refType = _getRefType(ref);
+    if (refType == 0) return null;
+    if (refType == 1) return JSInt32ArrayImpl.fromRefUnchecked(ref);
+    return _throwConversionFailureError("Int32List");
   }
 
   factory JSInt32ArrayImpl.view(
@@ -2222,19 +2311,29 @@ final class JSFloat32ArrayImpl extends JSFloatArrayBase
   factory JSFloat32ArrayImpl(int length) =>
       JSFloat32ArrayImpl._(_newDataView(length * 4));
 
-  static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Float32Array', ref);
+  static int _getRefType(WasmExternRef? ref) => js.JS<WasmI32>('''o => {
+          if (o === null || o === undefined) return 0;
+          if (o instanceof Float32Array) return 1;
+          return 2;
+        }''', ref).toIntUnsigned();
 
-  factory JSFloat32ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
-    assert(_checkArrayRefType(ref));
+  factory JSFloat32ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+    assert(_getRefType(ref) == 1);
     return JSFloat32ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSFloat32ArrayImpl.fromArrayRef(WasmExternRef? ref) {
-    if (!_checkArrayRefType(ref)) {
+  factory JSFloat32ArrayImpl.fromRef(WasmExternRef? ref) {
+    if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Float32List");
     }
-    return JSFloat32ArrayImpl.fromArrayRefUnchecked(ref);
+    return JSFloat32ArrayImpl.fromRefUnchecked(ref);
+  }
+
+  static JSFloat32ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    final refType = _getRefType(ref);
+    if (refType == 0) return null;
+    if (refType == 1) return JSFloat32ArrayImpl.fromRefUnchecked(ref);
+    return _throwConversionFailureError("Float32List");
   }
 
   factory JSFloat32ArrayImpl.view(
@@ -2336,19 +2435,29 @@ final class JSFloat64ArrayImpl extends JSFloatArrayBase
   factory JSFloat64ArrayImpl(int length) =>
       JSFloat64ArrayImpl._(_newDataView(length * 8));
 
-  static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Float64Array', ref);
+  static int _getRefType(WasmExternRef? ref) => js.JS<WasmI32>('''o => {
+          if (o === null || o === undefined) return 0;
+          if (o instanceof Float64Array) return 1;
+          return 2;
+        }''', ref).toIntUnsigned();
 
-  factory JSFloat64ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
-    assert(_checkArrayRefType(ref));
+  factory JSFloat64ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+    assert(_getRefType(ref) == 1);
     return JSFloat64ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSFloat64ArrayImpl.fromArrayRef(WasmExternRef? ref) {
-    if (!_checkArrayRefType(ref)) {
+  factory JSFloat64ArrayImpl.fromRef(WasmExternRef? ref) {
+    if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Float64List");
     }
-    return JSFloat64ArrayImpl.fromArrayRefUnchecked(ref);
+    return JSFloat64ArrayImpl.fromRefUnchecked(ref);
+  }
+
+  static JSFloat64ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    final refType = _getRefType(ref);
+    if (refType == 0) return null;
+    if (refType == 1) return JSFloat64ArrayImpl.fromRefUnchecked(ref);
+    return _throwConversionFailureError("Float64List");
   }
 
   factory JSFloat64ArrayImpl.view(

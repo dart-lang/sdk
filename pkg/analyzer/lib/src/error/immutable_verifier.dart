@@ -9,9 +9,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:meta/meta.dart';
 
 /// Checks whether a declaration violates the rules of [immutable].
@@ -41,10 +41,10 @@ class ImmutableVerifier extends SimpleAstVisitor<void> {
           HashSet<InterfaceElement>(),
         );
     if (nonFinalFieldNames.isNotEmpty) {
-      _diagnosticReporter.atToken(
-        nameToken,
-        diag.mustBeImmutable,
-        arguments: [nonFinalFieldNames.join(', ')],
+      _diagnosticReporter.report(
+        diag.mustBeImmutable
+            .withArguments(fieldNames: nonFinalFieldNames.join(', '))
+            .at(nameToken),
       );
     }
   }

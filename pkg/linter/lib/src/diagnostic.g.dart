@@ -3118,9 +3118,9 @@ const LinterLintWithoutArguments unnecessaryGettersSetters =
     );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String name: The diagnostic name.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unnecessaryIgnore = LinterLintTemplate(
   name: 'unnecessary_ignore',
@@ -3131,13 +3131,13 @@ unnecessaryIgnore = LinterLintTemplate(
   hasPublishedDocs: true,
   uniqueName: 'unnecessary_ignore',
   withArguments: _withArgumentsUnnecessaryIgnore,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String name: The diagnostic name.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unnecessaryIgnoreFile = LinterLintTemplate(
   name: 'unnecessary_ignore',
@@ -3147,13 +3147,13 @@ unnecessaryIgnoreFile = LinterLintTemplate(
   correctionMessage: "Try removing the ignore comment.",
   uniqueName: 'unnecessary_ignore_file',
   withArguments: _withArgumentsUnnecessaryIgnoreFile,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String name: The diagnostic name.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unnecessaryIgnoreName = LinterLintTemplate(
   name: 'unnecessary_ignore',
@@ -3163,13 +3163,13 @@ unnecessaryIgnoreName = LinterLintTemplate(
   correctionMessage: "Try removing the name from the list.",
   uniqueName: 'unnecessary_ignore_name',
   withArguments: _withArgumentsUnnecessaryIgnoreName,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String name: The diagnostic name.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String name})
 >
 unnecessaryIgnoreNameFile = LinterLintTemplate(
   name: 'unnecessary_ignore',
@@ -3179,7 +3179,7 @@ unnecessaryIgnoreNameFile = LinterLintTemplate(
   correctionMessage: "Try removing the name from the list.",
   uniqueName: 'unnecessary_ignore_name_file',
   withArguments: _withArgumentsUnnecessaryIgnoreNameFile,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -4282,22 +4282,26 @@ LocatableDiagnostic _withArgumentsThrowInFinally({required Object p0}) {
   return LocatableDiagnosticImpl(diag.throwInFinally, [p0]);
 }
 
-LocatableDiagnostic _withArgumentsUnnecessaryIgnore({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unnecessaryIgnore, [p0]);
+LocatableDiagnostic _withArgumentsUnnecessaryIgnore({required String name}) {
+  return LocatableDiagnosticImpl(diag.unnecessaryIgnore, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnnecessaryIgnoreFile({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreFile, [p0]);
+LocatableDiagnostic _withArgumentsUnnecessaryIgnoreFile({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreFile, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnnecessaryIgnoreName({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreName, [p0]);
+LocatableDiagnostic _withArgumentsUnnecessaryIgnoreName({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreName, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnnecessaryIgnoreNameFile({
-  required Object p0,
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreNameFile, [p0]);
+  return LocatableDiagnosticImpl(diag.unnecessaryIgnoreNameFile, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUnreachableFromMain({required Object p0}) {

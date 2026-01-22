@@ -1587,9 +1587,8 @@ ProfileCode* Profile::GetCodeFromPC(uword pc, int64_t timestamp) {
 void Profile::PrintHeaderJSON(JSONObject* obj) {
   intptr_t pid = OS::ProcessId();
 
-  obj->AddProperty("samplePeriod", static_cast<intptr_t>(FLAG_profile_period));
-  obj->AddProperty("maxStackDepth",
-                   static_cast<intptr_t>(FLAG_max_profile_depth));
+  obj->AddProperty("samplePeriod", Profiler::CurrentConfig().period_us);
+  obj->AddProperty("maxStackDepth", Profiler::CurrentConfig().max_depth.load());
   obj->AddProperty("sampleCount", sample_count());
   obj->AddPropertyTimeMicros("timeOriginMicros", min_time());
   obj->AddPropertyTimeMicros("timeExtentMicros", GetTimeSpan());

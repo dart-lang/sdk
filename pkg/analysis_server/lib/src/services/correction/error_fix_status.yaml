@@ -791,8 +791,6 @@ generic_function_type_cannot_be_type_argument:
 generic_method_type_instantiation_on_dynamic:
   status: needsFix
   since: 2.15
-getter_not_assignable_setter_types:
-  status: noFix
 getter_not_subtype_setter_types:
   status: noFix
 if_element_condition_from_deferred_library:
@@ -857,8 +855,6 @@ import_internal_library:
   status: hasFix
 import_of_non_library:
   status: hasFix
-inconsistent_case_expression_types:
-  status: noFix
 inconsistent_inheritance:
   status: needsFix
   notes: |-
@@ -925,38 +921,6 @@ invalid_annotation_from_deferred_library:
     Remove the `deferred` keyword from the import.
 invalid_assignment:
   status: hasFix
-invalid_cast_function:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_function_expr:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_literal:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_literal_list:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_literal_map:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_literal_set:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_method:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
-invalid_cast_new_expr:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0
 invalid_constant:
   status: hasFix
   notes: |-
@@ -1085,8 +1049,6 @@ missing_const_in_set_literal:
   status: noFix
   notes: |-
     Not displayed to users.
-missing_dart_library:
-  status: noFix
 missing_default_value_for_parameter:
   status: hasFix
 missing_default_value_for_parameter_positional:
@@ -1694,9 +1656,6 @@ wrong_number_of_parameters_for_operator_minus:
     removing all but a singular used parameter, if only one is used.
 wrong_number_of_type_arguments:
   status: hasFix
-wrong_number_of_type_arguments_anonymous_function:
-  status: needsFix
-  since: 2.15
 wrong_number_of_type_arguments_constructor:
   status: hasFix
 wrong_number_of_type_arguments_dot_shorthand_constructor:
@@ -1713,7 +1672,7 @@ wrong_number_of_type_arguments_extension:
 wrong_number_of_type_arguments_function:
   status: needsFix
   since: ~2.15
-wrong_number_of_type_arguments_method:
+wrong_number_of_type_arguments_element:
   status: hasFix
 wrong_type_parameter_variance_in_superinterface:
   status: noFix
@@ -2998,8 +2957,6 @@ invalid_literal_in_configuration:
   status: noFix
 invalid_operator:
   status: noFix
-invalid_operator_for_super:
-  status: noFix
 invalid_operator_questionmark_period_for_super:
   status: needsFix
   notes: |-
@@ -3388,6 +3345,8 @@ flutter_field_not_map:
   since: ~2.15
 invalid_dependency:
   status: noFix
+invalid_covariant_modifier_in_primary_constructor:
+  status: needsEvaluation
 invalid_platforms_field:
   status: needsEvaluation
 missing_dependency:

@@ -219,7 +219,6 @@ Try #0 start:
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r5
   PopLocal             r4
   Push                 r4
   Push                 r4
@@ -270,7 +269,6 @@ Try #0 handler:
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r5
   PopLocal             r6
   Push                 r6
   ReturnTOS
@@ -282,7 +280,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 20, end 58, handler 58, needs-stack-trace, types [CP#6]
+  try-index 0, outer -1, start 20, end 56, handler 56, needs-stack-trace, types [CP#6]
 }
 ConstantPool {
   [0] = ClosureFunction 0
@@ -309,7 +307,7 @@ ConstantPool {
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/try_blocks.dart::testTryCatch3::'foo' () -> void
 ClosureCode {
-  Entry                6
+  Entry                5
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
@@ -323,7 +321,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
-  SetFrame             6
+  SetFrame             5
   Push                 r2
   PopLocal             r0
   MoveSpecial          exception, r2
@@ -594,7 +592,6 @@ Try #1 start:
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r8
   PopLocal             r7
   Push                 r7
   Push                 r7
@@ -651,8 +648,8 @@ L3:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 53, end 136, handler 136, needs-stack-trace, synthetic, types [CP#11]
-  try-index 1, outer 0, start 70, end 98, handler 98, needs-stack-trace, synthetic, types [CP#11]
+  try-index 0, outer -1, start 53, end 134, handler 134, needs-stack-trace, synthetic, types [CP#11]
+  try-index 1, outer 0, start 70, end 96, handler 96, needs-stack-trace, synthetic, types [CP#11]
 }
 ConstantPool {
   [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
@@ -697,7 +694,7 @@ Function 'testTryFinally3', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                6
+  Entry                5
   CheckStack           0
   AllocateContext      0, 1
   PopLocal             r0
@@ -713,12 +710,11 @@ Try #0 start:
   Push                 r0
   PushNull
   AllocateClosure
-  StoreLocal           r5
   PopLocal             r2
   Jump                 L1
 Try #0 end:
 Try #0 handler:
-  SetFrame             6
+  SetFrame             5
   Push                 r3
   PopLocal             r0
   MoveSpecial          exception, r3
@@ -750,7 +746,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 23, end 37, handler 37, needs-stack-trace, synthetic, types [CP#6]
+  try-index 0, outer -1, start 23, end 35, handler 35, needs-stack-trace, synthetic, types [CP#6]
 }
 ConstantPool {
   [0] = ClosureFunction 0

@@ -31,6 +31,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -148,10 +149,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           matchedValueType = matchedValueType?.extensionTypeErasure;
           if (matchedValueType != null) {
             if (!_canBeEqual(constantType, matchedValueType)) {
-              _diagnosticReporter.atNode(
-                node,
-                diag.constantPatternNeverMatchesValueType,
-                arguments: [matchedValueType, constantType],
+              _diagnosticReporter.report(
+                diag.constantPatternNeverMatchesValueType
+                    .withArguments(
+                      matchedType: matchedValueType,
+                      constantType: constantType,
+                    )
+                    .at(node),
               );
               return;
             }
@@ -561,7 +565,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// See [diag.constWithTypeParameters].
   void _checkForConstWithTypeParameters(
     TypeAnnotation type,
-    DiagnosticCode diagnosticCode, {
+    LocatableDiagnostic locatableDiagnostic, {
     Set<TypeParameterElement>? allowedTypeParameters,
   }) {
     allowedTypeParameters = {...?allowedTypeParameters};
@@ -569,7 +573,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // Should not be a type parameter.
       if (type.element is TypeParameterElement &&
           !allowedTypeParameters.contains(type.element)) {
-        _diagnosticReporter.atNode(type, diagnosticCode);
+        _diagnosticReporter.report(locatableDiagnostic.at(type));
         return;
       }
       // Check type arguments.
@@ -578,7 +582,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         for (var argument in typeArguments.arguments) {
           _checkForConstWithTypeParameters(
             argument,
-            diagnosticCode,
+            locatableDiagnostic,
             allowedTypeParameters: allowedTypeParameters,
           );
         }
@@ -596,7 +600,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           if (bound != null) {
             _checkForConstWithTypeParameters(
               bound,
-              diagnosticCode,
+              locatableDiagnostic,
               allowedTypeParameters: allowedTypeParameters,
             );
           }
@@ -606,7 +610,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (returnType != null) {
         _checkForConstWithTypeParameters(
           returnType,
-          diagnosticCode,
+          locatableDiagnostic,
           allowedTypeParameters: allowedTypeParameters,
         );
       }
@@ -618,7 +622,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           if (parameterType != null) {
             _checkForConstWithTypeParameters(
               parameterType,
-              diagnosticCode,
+              locatableDiagnostic,
               allowedTypeParameters: allowedTypeParameters,
             );
           }
@@ -737,11 +741,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           diag.constInitializedWithNonConstantValueFromDeferredLibrary,
         ) ||
         identical(diagnosticCode, diag.patternConstantFromDeferredLibrary) ||
-        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsFunction) ||
-        identical(
-          diagnosticCode,
-          diag.wrongNumberOfTypeArgumentsAnonymousFunction,
-        )) {
+        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsElement) ||
+        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsFunction)) {
       _diagnosticReporter.report(
         error.locatableDiagnostic.atOffset(
           offset: error.offset,

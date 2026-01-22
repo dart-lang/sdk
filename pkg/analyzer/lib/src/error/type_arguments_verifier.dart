@@ -132,10 +132,13 @@ class TypeArgumentsVerifier {
     if (typeArgumentList != null &&
         typeArgumentNodes != null &&
         typeArgumentNodes.length != typeParameters.length) {
-      _diagnosticReporter.atNode(
-        typeArgumentList,
-        diag.wrongNumberOfTypeArgumentsEnum,
-        arguments: [typeParameters.length, typeArgumentNodes.length],
+      _diagnosticReporter.report(
+        diag.wrongNumberOfTypeArgumentsEnum
+            .withArguments(
+              typeParameterCount: typeParameters.length,
+              typeArgumentCount: typeArgumentNodes.length,
+            )
+            .at(typeArgumentList),
       );
     }
 

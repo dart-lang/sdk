@@ -749,6 +749,120 @@ EnumDeclaration
 ''');
   }
 
+  test_primaryConstructor_formalParameters_keyword_covariant() {
+    var parseResult = parseStringWithErrors(r'''
+enum A(covariant int it) { a(0) }
+''');
+    parseResult.assertErrors([
+      error(diag.invalidCovariantModifierInPrimaryConstructor, 7, 9),
+    ]);
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: a
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
+              IntegerLiteral
+                literal: 0
+            rightParenthesis: )
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_covariant_final() {
+    var parseResult = parseStringWithErrors(r'''
+enum A(covariant final int it) { a(0) }
+''');
+    parseResult.assertErrors([
+      error(diag.invalidCovariantModifierInPrimaryConstructor, 7, 9),
+    ]);
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        keyword: final
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: a
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
+              IntegerLiteral
+                literal: 0
+            rightParenthesis: )
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_covariant_var() {
+    var parseResult = parseStringWithErrors(r'''
+enum A(covariant var int it) { a(0) }
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        covariantKeyword: covariant
+        keyword: var
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: a
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
+              IntegerLiteral
+                literal: 0
+            rightParenthesis: )
+    rightBracket: }
+''');
+  }
+
   test_primaryConstructor_notConst_hasTypeParameters_named() {
     var parseResult = parseStringWithErrors(r'''
 enum E<T, U>.named() {v}

@@ -225,4 +225,58 @@ void f(int? x) {
 ''');
     await assertNoAssist();
   }
+
+  Future<void> test_parent_block() async {
+    await resolveTestCode('''
+void f(int? x) {
+  var y = x;
+  ^if (y != null) {}
+}
+''');
+    await assertHasAssist('''
+void f(int? x) {
+  if (x case var y?) {}
+}
+''');
+  }
+
+  Future<void> test_parent_switchDefault() async {
+    await resolveTestCode('''
+void f(int? x) {
+  switch (0) {
+    default:
+      var y = x;
+      ^if (y != null) {}
+  }
+}
+''');
+    await assertHasAssist('''
+void f(int? x) {
+  switch (0) {
+    default:
+      if (x case var y?) {}
+  }
+}
+''');
+  }
+
+  Future<void> test_parent_switchPatternCase() async {
+    await resolveTestCode('''
+void f(int? x) {
+  switch (0) {
+    case 0:
+      var y = x;
+      ^if (y != null) {}
+  }
+}
+''');
+    await assertHasAssist('''
+void f(int? x) {
+  switch (0) {
+    case 0:
+      if (x case var y?) {}
+  }
+}
+''');
+  }
 }

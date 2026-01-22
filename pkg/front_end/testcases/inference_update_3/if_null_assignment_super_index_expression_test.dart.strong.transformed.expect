@@ -69,4 +69,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_super_index
 Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_super_index_expression_test.dart:42:21 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_super_index_expression_test.dart:50:32 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///if_null_assignment_super_index_expression_test.dart:50:32 -> IntConstant(0)
-Extra constant evaluation: evaluated: 43, effectively constant: 4
+Extra constant evaluation: evaluated: 47, effectively constant: 4

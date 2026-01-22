@@ -2501,7 +2501,7 @@ bool Timeline::StreamTo(const char* recorder_kind,
   is_streaming_timeline.store(true);
 
 #if defined(DART_INCLUDE_PROFILER) && defined(SUPPORT_PERFETTO)
-  if (FLAG_profiler && (strcmp(recorder_kind, "perfettofile") == 0)) {
+  if (Profiler::IsRunning() && (strcmp(recorder_kind, "perfettofile") == 0)) {
     Profiler::SetProfileProcessorCallback([](auto& profile) {
       RecorderSynchronizationLockScope ls;
       if (recorder_ != nullptr && ls.IsActive() &&
