@@ -1,5 +1,5 @@
 > [!info]
-> **Google Summer of Code 2026 is currently accepting applications until April 8, 2026.**
+> **Google Summer of Code 2026 is currently accepting applications until March 31st, 2026.**
 
 The list of accepted projects will be announced on [summerofcode.withgoogle.com](https://summerofcode.withgoogle.com/organizations/).
 
@@ -31,7 +31,7 @@ mentors available, and will only be able to accept a few applicants.
 
 Applications can be submitted through the [summerofcode.withgoogle.com](https://summerofcode.withgoogle.com/) website. Applicants are encouraged to submit draft proposals, linking to Google Docs with permission for mentors to comment. See also the [contributor guide](https://google.github.io/gsocguides/student/writing-a-proposal) on writing a proposal.
 
-**IMPORTANT**: Remember to submit _final proposals_ before [the April 8th deadline](https://developers.google.com/open-source/gsoc/timeline).
+**IMPORTANT**: Remember to submit _final proposals_ before [the March 31st deadline](https://developers.google.com/open-source/gsoc/timeline).
 
 ## TODO: More ideas as they come!
 
