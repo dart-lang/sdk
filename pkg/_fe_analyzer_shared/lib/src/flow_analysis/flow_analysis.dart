@@ -938,7 +938,14 @@ abstract class FlowAnalysis<
 
   /// Call this method when writing to the [variable] with type [writtenType] in
   /// a postfix increment or decrement operation.
-  void postIncDec(Node node, Variable variable, SharedTypeView writtenType);
+  ///
+  /// Returns the expression info for the full post increment or decrement
+  /// expression.
+  ExpressionInfo? postIncDec(
+    Node node,
+    Variable variable,
+    SharedTypeView writtenType,
+  );
 
   /// The type that a property named [propertyName] is promoted to, if
   /// the property is currently promoted.
@@ -1415,9 +1422,11 @@ abstract class FlowAnalysis<
   /// source code (this happens, for example, with compound assignments and with
   /// for-each loops).
   ///
+  /// Returns the expression info for the full assignment expression.
+  ///
   /// This method should not be used for the implicit write to a non-final
   /// variable in its initializer; in that case, use [initialize] instead.
-  void write(
+  ExpressionInfo? write(
     Node node,
     Variable variable,
     SharedTypeView writtenType,
@@ -2261,10 +2270,16 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void postIncDec(Node node, Variable variable, SharedTypeView writtenType) {
-    _wrap(
+  ExpressionInfo? postIncDec(
+    Node node,
+    Variable variable,
+    SharedTypeView writtenType,
+  ) {
+    return _wrap(
       'postIncDec()',
       () => _wrapped.postIncDec(node, variable, writtenType),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2635,15 +2650,17 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void write(
+  ExpressionInfo? write(
     Node node,
     Variable variable,
     SharedTypeView writtenType,
     Expression? writtenExpression,
   ) {
-    _wrap(
+    return _wrap(
       'write($node, $variable, $writtenType, $writtenExpression)',
       () => _wrapped.write(node, variable, writtenType, writtenExpression),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -6209,8 +6226,12 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void postIncDec(Node node, Variable variable, SharedTypeView writtenType) {
-    _write(node, variable, writtenType, null, isPostfixIncDec: true);
+  ExpressionInfo? postIncDec(
+    Node node,
+    Variable variable,
+    SharedTypeView writtenType,
+  ) {
+    return _write(node, variable, writtenType, null, isPostfixIncDec: true);
   }
 
   @override
@@ -6832,13 +6853,18 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void write(
+  ExpressionInfo? write(
     Node node,
     Variable variable,
     SharedTypeView writtenType,
     Expression? writtenExpression,
   ) {
-    _write(node, variable, writtenType, _getExpressionInfo(writtenExpression));
+    return _write(
+      node,
+      variable,
+      writtenType,
+      _getExpressionInfo(writtenExpression),
+    );
   }
 
   /// Computes a [FlowModel] representing the state of execution after the
@@ -7749,7 +7775,7 @@ class _FlowAnalysisImpl<
   ///
   /// If [isPostfixIncDec] is `true`, the [node] is a postfix expression and we
   /// won't store information about [variable].
-  void _write(
+  ExpressionInfo? _write(
     Node node,
     Variable variable,
     SharedTypeView writtenType,
@@ -7774,12 +7800,13 @@ class _FlowAnalysisImpl<
     );
 
     // Update the type of the variable for looking up the write expression.
+    TrivialVariableReference? reference;
     if (typeAnalyzerOptions.inferenceUpdate4Enabled &&
         node is Expression &&
         !isPostfixIncDec) {
-      _Reference reference = _variableReference(variableKey, unpromotedType);
-      _storeExpressionInfo(node, reference);
+      reference = _variableReference(variableKey, unpromotedType);
     }
+    return reference;
   }
 }
 

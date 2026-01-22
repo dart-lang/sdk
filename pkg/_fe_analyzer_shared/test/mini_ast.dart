@@ -5888,10 +5888,13 @@ class VariableReference extends LValue {
     Expression postIncDecExpression,
     Type writtenType,
   ) {
-    h.flow.postIncDec(
+    h.flow.storeExpressionInfo(
       postIncDecExpression,
-      variable,
-      SharedTypeView(writtenType),
+      h.flow.postIncDec(
+        postIncDecExpression,
+        variable,
+        SharedTypeView(writtenType),
+      ),
     );
   }
 
@@ -5902,11 +5905,14 @@ class VariableReference extends LValue {
     Type writtenType,
     Expression? rhs,
   ) {
-    h.flow.write(
+    h.flow.storeExpressionInfo(
       assignmentExpression,
-      variable,
-      SharedTypeView(writtenType),
-      rhs,
+      h.flow.write(
+        assignmentExpression,
+        variable,
+        SharedTypeView(writtenType),
+        rhs,
+      ),
     );
   }
 }

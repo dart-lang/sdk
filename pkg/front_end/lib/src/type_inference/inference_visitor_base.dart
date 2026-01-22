@@ -4419,11 +4419,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression rhs = rhsResult.expression;
     node ??= new VariableSet(variable.astVariable, rhs)
       ..fileOffset = nameOffset;
-    flowAnalysis.write(
+    flowAnalysis.storeExpressionInfo(
       node,
-      variable.astVariable,
-      new SharedTypeView(rhsResult.inferredType),
-      rhsResult.expression,
+      flowAnalysis.write(
+        node,
+        variable.astVariable,
+        new SharedTypeView(rhsResult.inferredType),
+        rhsResult.expression,
+      ),
     );
     DartType resultType = rhsResult.inferredType;
     Expression resultExpression;

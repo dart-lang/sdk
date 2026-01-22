@@ -243,11 +243,14 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.element;
           if (element is PromotableElementImpl) {
-            _resolver.flowAnalysis.flow?.write(
+            _resolver.flowAnalysis.flow?.storeExpressionInfo(
               node,
-              element,
-              SharedTypeView(staticType),
-              null,
+              _resolver.flowAnalysis.flow?.write(
+                node,
+                element,
+                SharedTypeView(staticType),
+                null,
+              ),
             );
           }
         }
