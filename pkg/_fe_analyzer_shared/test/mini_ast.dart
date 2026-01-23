@@ -912,10 +912,10 @@ class Cascade extends Expression {
         Kind.expression,
         location: location,
       );
-      h.flow.nullAwareAccess_end(wholeExpression: this);
+      h.flow.nullAwareAccess_end();
     }
     h.irBuilder.let(targetTmp, location: location);
-    h.flow.cascadeExpression_end(this);
+    h.flow.storeExpressionInfo(this, h.flow.cascadeExpression_end());
     h.typeAnalyzer._currentCascadeTargetIR = previousCascadeTargetIR;
     h.typeAnalyzer._currentCascadeTargetType = previousCascadeType;
     return ExpressionTypeAnalysisResult(type: targetType);

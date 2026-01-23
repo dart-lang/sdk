@@ -350,8 +350,8 @@ abstract class FlowAnalysis<
   ///
   /// See [cascadeExpression_afterTarget] for details.
   ///
-  /// [wholeExpression] should be the whole cascade expression.
-  void cascadeExpression_end(Expression wholeExpression);
+  /// Returns the expression info for the whole cascade expression.
+  ExpressionInfo cascadeExpression_end();
 
   /// Call this method just before visiting a conditional expression ("?:").
   void conditional_conditionBegin();
@@ -1134,13 +1134,6 @@ abstract class FlowAnalysis<
   @visibleForTesting
   SsaNode? ssaNodeForTesting(Variable variable);
 
-  /// Associates [expression] with the given [expressionInfo] object, for later
-  /// retrieval by [getExpressionInfo].
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  );
-
   /// Call this method just after visiting a `case` or `default` body.
   ///
   /// See [switchStatement_expressionEnd] for details.
@@ -1593,10 +1586,12 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void cascadeExpression_end(Expression wholeExpression) {
-    _wrap(
-      'cascadeExpression_end($wholeExpression)',
-      () => _wrapped.cascadeExpression_end(wholeExpression),
+  ExpressionInfo cascadeExpression_end() {
+    return _wrap(
+      'cascadeExpression_end()',
+      () => _wrapped.cascadeExpression_end(),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2150,20 +2145,17 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void nullAwareAccess_end({required Expression wholeExpression}) {
-    _wrap(
-      'nullAwareAccess_end(wholeExpression: $wholeExpression)',
-      () => _wrapped.nullAwareAccess_end(wholeExpression: wholeExpression),
-    );
+  void nullAwareAccess_end() {
+    _wrap('nullAwareAccess_end()', () => _wrapped.nullAwareAccess_end());
   }
 
   @override
-  void nullAwareAccess_rightBegin(
+  ExpressionInfo? nullAwareAccess_rightBegin(
     Expression target,
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
-    _wrap(
+    return _wrap(
       'nullAwareAccess_rightBegin($target, $targetType, '
       'guardVariable: $guardVariable)',
       () => _wrapped.nullAwareAccess_rightBegin(
@@ -2171,6 +2163,8 @@ class FlowAnalysisDebug<
         targetType,
         guardVariable: guardVariable,
       ),
+      isQuery: true,
+      isPure: false,
     );
   }
 
@@ -2765,7 +2759,7 @@ abstract interface class FlowAnalysisNullShortingInterface<
   Variable extends Object
 > {
   /// Call this method after visiting an expression using `?.`.
-  void nullAwareAccess_end({required Expression wholeExpression});
+  void nullAwareAccess_end();
 
   /// Call this method after visiting a null-aware operator such as `?.` or
   /// `?[`.
@@ -2791,11 +2785,21 @@ abstract interface class FlowAnalysisNullShortingInterface<
   /// code being analyzed is `x?.y?.z(x)`, [nullAwareAccess_rightBegin] should
   /// be called once upon reaching each `?.`, but [nullAwareAccess_end] should
   /// not be called until after processing the method call to `z(x)`.
-  void nullAwareAccess_rightBegin(
+  ///
+  /// Returns the expression info for the target of the null-aware access, when
+  /// it is not null.
+  ExpressionInfo? nullAwareAccess_rightBegin(
     Expression target,
     SharedTypeView targetType, {
     Variable? guardVariable,
   });
+
+  /// Associates [expression] with the given [expressionInfo] object, for later
+  /// retrieval by [FlowAnalysis.getExpressionInfo].
+  void storeExpressionInfo(
+    Expression expression,
+    ExpressionInfo? expressionInfo,
+  );
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by
@@ -5313,31 +5317,27 @@ class _FlowAnalysisImpl<
       _makeTemporaryReference(ssaNode, promotedTargetType),
     );
     if (isNullAware) {
-      _storeExpressionInfo(
-        target,
-        _nullAwareAccess_rightBegin(
-          expressionReference,
-          targetType,
-          guardVariable: guardVariable,
-        ),
+      _nullAwareAccess_rightBegin(
+        expressionReference,
+        targetType,
+        guardVariable: guardVariable,
       );
     }
     return promotedTargetType;
   }
 
   @override
-  void cascadeExpression_end(Expression wholeExpression) {
+  ExpressionInfo cascadeExpression_end() {
     // TODO(paulberry): if the cascade expression is null-aware, do the
     // equivalent of `nullAwareAccess_end`, so that the caller doesn't have to
     // have a separate call to `nullAwareAccess_end`.
 
     // Pop the reference for the temporary variable that holds the target of the
-    // cascade stack, and store it as the reference for `wholeExpression`. This
+    // cascade stack. It becomes the reference for the whole expression. This
     // ensures that field accesses performed on the whole cascade expression
     // (e.g. `(x..f())._field` will still receive the benefit of field
     // promotion.
-    _Reference targetInfo = _cascadeTargetStack.removeLast();
-    _storeExpressionInfo(wholeExpression, targetInfo);
+    return _cascadeTargetStack.removeLast();
   }
 
   @override
@@ -6057,29 +6057,22 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void nullAwareAccess_end({required Expression wholeExpression}) {
+  void nullAwareAccess_end() {
     _NullAwareAccessContext context =
         _stack.removeLast() as _NullAwareAccessContext;
     _current = _join(_current, context._previous).unsplit();
-    // If any expression info or expression reference was stored for the
-    // null-aware expression, it was only valid in the case where the target
-    // expression was not null. So it needs to be cleared now.
-    _storeExpressionInfo(wholeExpression, null);
   }
 
   @override
-  void nullAwareAccess_rightBegin(
+  ExpressionInfo? nullAwareAccess_rightBegin(
     Expression target,
     SharedTypeView targetType, {
     Variable? guardVariable,
   }) {
-    _storeExpressionInfo(
-      target,
-      _nullAwareAccess_rightBegin(
-        _getExpressionInfo(target),
-        targetType,
-        guardVariable: guardVariable,
-      ),
+    return _nullAwareAccess_rightBegin(
+      _getExpressionInfo(target),
+      targetType,
+      guardVariable: guardVariable,
     );
   }
 

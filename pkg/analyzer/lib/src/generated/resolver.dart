@@ -2076,9 +2076,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     typeAnalyzer.visitCascadeExpression(node);
 
     if (node.isNullAware) {
-      flowAnalysis.flow!.nullAwareAccess_end(wholeExpression: node);
+      flowAnalysis.flow!.nullAwareAccess_end();
     }
-    flowAnalysis.flow!.cascadeExpression_end(node);
+    flowAnalysis.flow!.storeExpressionInfo(
+      node,
+      flowAnalysis.flow!.cascadeExpression_end(),
+    );
     _insertImplicitCallReference(node, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyCascadeExpression(node);
     inferenceLogWriter?.exitExpression(node);

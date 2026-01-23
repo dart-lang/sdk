@@ -1338,7 +1338,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       pushRewrite(replacement);
       SharedTypeView inferredType = new SharedTypeView(result.inferredType);
       // End non-nullable promotion of the null-aware variable.
-      flow.nullAwareAccess_end(wholeExpression: node);
+      flow.nullAwareAccess_end();
       handleNullShortingStep(
         new ExpressionTypeAnalysisResult(type: inferredType),
         nullAwareGuard,
@@ -1349,7 +1349,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = new Let(node.variable, replacement)
         ..fileOffset = node.fileOffset;
     }
-    flowAnalysis.cascadeExpression_end(replacement);
+    flowAnalysis.storeExpressionInfo(
+      replacement,
+      flowAnalysis.cascadeExpression_end(),
+    );
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
