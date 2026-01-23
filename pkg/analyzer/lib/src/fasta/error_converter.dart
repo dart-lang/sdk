@@ -125,10 +125,11 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.illegalCharacter:
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: diag.illegalCharacter,
+        var codePoint = (arguments['unicode'] ?? arguments['character']) as int;
+        diagnosticReporter?.report(
+          diag.illegalCharacter
+              .withArguments(codePoint: codePoint)
+              .atOffset(offset: offset, length: length),
         );
         return;
       case PseudoSharedCode.invalidInlineFunctionType:

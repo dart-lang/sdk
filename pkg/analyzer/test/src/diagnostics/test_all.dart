@@ -372,6 +372,7 @@ import 'if_element_condition_from_deferred_library_test.dart'
 import 'illegal_async_generator_return_type_test.dart'
     as illegal_async_generator_return_type;
 import 'illegal_async_return_type_test.dart' as illegal_async_return_type;
+import 'illegal_character_test.dart' as illegal_character;
 import 'illegal_concrete_enum_member_declaration_test.dart'
     as illegal_concrete_enum_member_declaration;
 import 'illegal_concrete_enum_member_inheritance_test.dart'
@@ -1203,6 +1204,7 @@ main() {
     if_element_condition_from_deferred_library.main();
     illegal_async_generator_return_type.main();
     illegal_async_return_type.main();
+    illegal_character.main();
     illegal_concrete_enum_member_declaration.main();
     illegal_concrete_enum_member_inheritance.main();
     illegal_enum_values_declaration.main();
