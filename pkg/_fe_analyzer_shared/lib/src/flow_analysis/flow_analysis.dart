@@ -672,10 +672,10 @@ abstract class FlowAnalysis<
   /// Call this method after visiting the scrutinee expression of an if-case
   /// statement.
   ///
-  /// [scrutinee] is the scrutinee expression, and [scrutineeType] is its static
-  /// type.
+  /// [scrutineeInfo] is the expression info for the scrutinee expression, and
+  /// [scrutineeType] is its static type.
   void ifCaseStatement_afterExpression(
-    Expression scrutinee,
+    ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   );
 
@@ -911,8 +911,12 @@ abstract class FlowAnalysis<
   /// Call this method just after visiting the right hand side of a pattern
   /// assignment expression, and before visiting the pattern.
   ///
-  /// [rhs] is the right hand side expression, and [rhsType] is its static type.
-  void patternAssignment_afterRhs(Expression rhs, SharedTypeView rhsType);
+  /// [rhsInfo] is the expression info for the right hand side expression, and
+  /// [rhsType] is its static type.
+  void patternAssignment_afterRhs(
+    ExpressionInfo? rhsInfo,
+    SharedTypeView rhsType,
+  );
 
   /// Call this method after visiting a pattern assignment expression.
   void patternAssignment_end();
@@ -930,10 +934,10 @@ abstract class FlowAnalysis<
   /// Call this method just after visiting the initializer of a pattern variable
   /// declaration, and before visiting the pattern.
   ///
-  /// [initializer] is the declaration's initializer expression, and
-  /// [initializerType] is its static type.
+  /// [initializerInfo] is the expression info for the declaration's initializer
+  /// expression, and [initializerType] is its static type.
   void patternVariableDeclaration_afterInitializer(
-    Expression initializer,
+    ExpressionInfo? initializerInfo,
     SharedTypeView initializerType,
   );
 
@@ -1224,11 +1228,12 @@ abstract class FlowAnalysis<
   ///   - Call [switchStatement_afterCase].
   /// - Call [switchStatement_end].
   ///
-  /// [scrutinee] should be the expression appearing in parentheses after the
-  /// `switch` keyword, and [scrutineeType] should be its static type.
+  /// [scrutineeInfo] should be the expression info for the expression appearing
+  /// in parentheses after the `switch` keyword, and [scrutineeType] should be
+  /// its static type.
   void switchStatement_expressionEnd(
     Statement? switchStatement,
-    Expression scrutinee,
+    ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   );
 
@@ -1900,12 +1905,15 @@ class FlowAnalysisDebug<
 
   @override
   void ifCaseStatement_afterExpression(
-    Expression scrutinee,
+    ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   ) {
     _wrap(
-      'ifCaseStatement_afterExpression($scrutinee, $scrutineeType)',
-      () => _wrapped.ifCaseStatement_afterExpression(scrutinee, scrutineeType),
+      'ifCaseStatement_afterExpression($scrutineeInfo, $scrutineeType)',
+      () => _wrapped.ifCaseStatement_afterExpression(
+        scrutineeInfo,
+        scrutineeType,
+      ),
     );
   }
 
@@ -2238,10 +2246,13 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void patternAssignment_afterRhs(Expression rhs, SharedTypeView rhsType) {
+  void patternAssignment_afterRhs(
+    ExpressionInfo? rhsInfo,
+    SharedTypeView rhsType,
+  ) {
     _wrap(
-      'patternAssignment_afterRhs($rhs, $rhsType)',
-      () => _wrapped.patternAssignment_afterRhs(rhs, rhsType),
+      'patternAssignment_afterRhs($rhsInfo, $rhsType)',
+      () => _wrapped.patternAssignment_afterRhs(rhsInfo, rhsType),
     );
   }
 
@@ -2265,14 +2276,14 @@ class FlowAnalysisDebug<
 
   @override
   void patternVariableDeclaration_afterInitializer(
-    Expression initializer,
+    ExpressionInfo? initializerInfo,
     SharedTypeView initializerType,
   ) {
     _wrap(
-      'patternVariableDeclaration_afterInitializer($initializer, '
+      'patternVariableDeclaration_afterInitializer($initializerInfo, '
       '$initializerType)',
       () => _wrapped.patternVariableDeclaration_afterInitializer(
-        initializer,
+        initializerInfo,
         initializerType,
       ),
     );
@@ -2514,15 +2525,15 @@ class FlowAnalysisDebug<
   @override
   void switchStatement_expressionEnd(
     Statement? switchStatement,
-    Expression scrutinee,
+    ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   ) {
     _wrap(
-      'switchStatement_expressionEnd($switchStatement, $scrutinee, '
+      'switchStatement_expressionEnd($switchStatement, $scrutineeInfo, '
       '$scrutineeType)',
       () => _wrapped.switchStatement_expressionEnd(
         switchStatement,
-        scrutinee,
+        scrutineeInfo,
         scrutineeType,
       ),
     );
@@ -5697,7 +5708,7 @@ class _FlowAnalysisImpl<
 
   @override
   void ifCaseStatement_afterExpression(
-    Expression scrutinee,
+    ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   ) {
     // If S0 is the statement `if (E0 case P when E1) S1 else S2`, then:
@@ -5707,7 +5718,11 @@ class _FlowAnalysisImpl<
     // `before(E1) = matched(P)`, because we store both the "matched" state for
     // patterns and the "before" state for expressions in `_current`.
     _pushPattern(
-      _pushScrutinee(scrutinee, scrutineeType, allowScrutineePromotion: true),
+      _pushScrutinee(
+        scrutineeInfo,
+        scrutineeType,
+        allowScrutineePromotion: true,
+      ),
     );
   }
 
@@ -6163,8 +6178,13 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void patternAssignment_afterRhs(Expression rhs, SharedTypeView rhsType) {
-    _pushPattern(_pushScrutinee(rhs, rhsType, allowScrutineePromotion: false));
+  void patternAssignment_afterRhs(
+    ExpressionInfo? rhsInfo,
+    SharedTypeView rhsType,
+  ) {
+    _pushPattern(
+      _pushScrutinee(rhsInfo, rhsType, allowScrutineePromotion: false),
+    );
   }
 
   @override
@@ -6188,12 +6208,12 @@ class _FlowAnalysisImpl<
 
   @override
   void patternVariableDeclaration_afterInitializer(
-    Expression initializer,
+    ExpressionInfo? initializerInfo,
     SharedTypeView initializerType,
   ) {
     _pushPattern(
       _pushScrutinee(
-        initializer,
+        initializerInfo,
         initializerType,
         allowScrutineePromotion: false,
       ),
@@ -6602,11 +6622,11 @@ class _FlowAnalysisImpl<
   @override
   void switchStatement_expressionEnd(
     Statement? switchStatement,
-    Expression scrutinee,
+    ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   ) {
     _Reference matchedValueInfo = _pushScrutinee(
-      scrutinee,
+      scrutineeInfo,
       scrutineeType,
       allowScrutineePromotion: true,
     );
@@ -7687,10 +7707,11 @@ class _FlowAnalysisImpl<
   }
 
   /// Updates the [_stack] to reflect the fact that flow analysis is entering
-  /// into a construct that performs pattern matching.  [scrutinee] should be
-  /// the expression that is being matched (or `null` if there is no expression
-  /// that's being matched directly, as happens when in `for-in` loops).
-  /// [scrutineeType] should be the static type of the scrutinee.
+  /// into a construct that performs pattern matching.  [scrutineeInfo] should
+  /// be the expression info for the expression that is being matched (or `null`
+  /// if there is no expression that's being matched directly, as happens when
+  /// in `for-in` loops). [scrutineeType] should be the static type of the
+  /// scrutinee.
   ///
   /// [allowScrutineePromotion] indicates whether pattern matches should cause
   /// the scrutinee to be promoted.
@@ -7698,11 +7719,10 @@ class _FlowAnalysisImpl<
   /// The returned value is the [_Reference] representing the value being
   /// matched.  It should be passed to [_pushPattern].
   _Reference _pushScrutinee(
-    Expression? scrutinee,
+    ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType, {
     required bool allowScrutineePromotion,
   }) {
-    ExpressionInfo? scrutineeInfo = _getExpressionInfo(scrutinee);
     _stack.add(
       new _ScrutineeContext(previousScrutineeReference: _scrutineeReference),
     );

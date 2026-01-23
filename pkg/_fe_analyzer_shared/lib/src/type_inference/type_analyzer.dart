@@ -665,7 +665,10 @@ mixin TypeAnalyzer<
       expression,
       operations.unknownType,
     ).type;
-    flow.ifCaseStatement_afterExpression(expression, initializerType);
+    flow.ifCaseStatement_afterExpression(
+      flow.getExpressionInfo(expression),
+      initializerType,
+    );
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
@@ -739,7 +742,10 @@ mixin TypeAnalyzer<
       expression,
       operations.unknownType,
     ).type;
-    flow.ifCaseStatement_afterExpression(expression, initializerType);
+    flow.ifCaseStatement_afterExpression(
+      flow.getExpressionInfo(expression),
+      initializerType,
+    );
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
@@ -1484,7 +1490,7 @@ mixin TypeAnalyzer<
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
     SharedTypeView rhsType = analyzeExpression(rhs, patternSchema).type;
     // Stack: (Expression)
-    flow.patternAssignment_afterRhs(rhs, rhsType);
+    flow.patternAssignment_afterRhs(flow.getExpressionInfo(rhs), rhsType);
     Map<String, List<Variable>> componentVariables = {};
     Map<String, int> patternVariablePromotionKeys = {};
     dispatchPattern(
@@ -1614,7 +1620,7 @@ mixin TypeAnalyzer<
     ).type;
     // Stack: (Expression)
     flow.patternVariableDeclaration_afterInitializer(
-      initializer,
+      flow.getExpressionInfo(initializer),
       initializerType,
     );
     Map<String, List<Variable>> componentVariables = {};
@@ -1917,7 +1923,11 @@ mixin TypeAnalyzer<
     ).type;
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
-    flow.switchStatement_expressionEnd(null, scrutinee, expressionType);
+    flow.switchStatement_expressionEnd(
+      null,
+      flow.getExpressionInfo(scrutinee),
+      expressionType,
+    );
 
     // - If the switch expression has no cases, its static type is `Never`.
     Map<int, Error>? nonBooleanGuardErrors;
@@ -2054,7 +2064,11 @@ mixin TypeAnalyzer<
     ).type;
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
-    flow.switchStatement_expressionEnd(node, scrutinee, scrutineeType);
+    flow.switchStatement_expressionEnd(
+      node,
+      flow.getExpressionInfo(scrutinee),
+      scrutineeType,
+    );
     bool hasDefault = false;
     bool lastCaseTerminates = true;
     Map<int, Error>? switchCaseCompletesNormallyErrors;
