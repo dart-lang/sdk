@@ -395,8 +395,8 @@ abstract class FlowAnalysis<
 
   /// Call this method after processing a constant pattern.
   ///
-  /// [expression] should be the pattern's constant expression, and [type]
-  /// should be its static type.
+  /// [expressionInfo] should be the expression info for the pattern's constant
+  /// expression, and [type] should be its static type.
   ///
   /// [matchedValueType] should be the type returned by [getMatchedValueType].
   ///
@@ -405,7 +405,7 @@ abstract class FlowAnalysis<
   /// support is disabled and this constant pattern is one of the cases of a
   /// legacy switch statement.
   void constantPattern_end(
-    Expression expression,
+    ExpressionInfo? expressionInfo,
     SharedTypeView type, {
     required bool patternsEnabled,
     required SharedTypeView matchedValueType,
@@ -504,13 +504,13 @@ abstract class FlowAnalysis<
   /// Call this method after processing a relational pattern that uses an
   /// equality operator (either `==` or `!=`).
   ///
-  /// [operand] should be the operand to the right of the operator,
-  /// [operandType] should be its static type, and [notEqual] should be `true`
-  /// iff the operator was `!=`.
+  /// [operandInfo] should be the expression info for the operand to the right
+  /// of the operator, [operandType] should be its static type, and [notEqual]
+  /// should be `true` iff the operator was `!=`.
   ///
   /// [matchedValueType] should be the type returned by [getMatchedValueType].
   void equalityRelationalPattern_end(
-    Expression operand,
+    ExpressionInfo? operandInfo,
     SharedTypeView operandType, {
     bool notEqual = false,
     required SharedTypeView matchedValueType,
@@ -1643,17 +1643,17 @@ class FlowAnalysisDebug<
 
   @override
   void constantPattern_end(
-    Expression expression,
+    ExpressionInfo? expressionInfo,
     SharedTypeView type, {
     required bool patternsEnabled,
     required SharedTypeView matchedValueType,
   }) {
     _wrap(
-      'constantPattern_end($expression, $type, '
+      'constantPattern_end($expressionInfo, $type, '
       'patternsEnabled: $patternsEnabled, '
       'matchedValueType: $matchedValueType)',
       () => _wrapped.constantPattern_end(
-        expression,
+        expressionInfo,
         type,
         patternsEnabled: patternsEnabled,
         matchedValueType: matchedValueType,
@@ -1769,16 +1769,16 @@ class FlowAnalysisDebug<
 
   @override
   void equalityRelationalPattern_end(
-    Expression operand,
+    ExpressionInfo? operandInfo,
     SharedTypeView operandType, {
     bool notEqual = false,
     required SharedTypeView matchedValueType,
   }) {
     _wrap(
-      'equalityRelationalPattern_end($operand, $operandType, '
+      'equalityRelationalPattern_end($operandInfo, $operandType, '
       'notEqual: $notEqual, matchedValueType: $matchedValueType)',
       () => _wrapped.equalityRelationalPattern_end(
-        operand,
+        operandInfo,
         operandType,
         notEqual: notEqual,
         matchedValueType: matchedValueType,
@@ -5373,7 +5373,7 @@ class _FlowAnalysisImpl<
 
   @override
   void constantPattern_end(
-    Expression expression,
+    ExpressionInfo? expressionInfo,
     SharedTypeView type, {
     required bool patternsEnabled,
     required SharedTypeView matchedValueType,
@@ -5381,7 +5381,7 @@ class _FlowAnalysisImpl<
     assert(_stack.last is _PatternContext);
     if (patternsEnabled) {
       _handleEqualityCheckPattern(
-        expression,
+        expressionInfo,
         type,
         notEqual: false,
         matchedValueType: matchedValueType,
@@ -5549,13 +5549,13 @@ class _FlowAnalysisImpl<
 
   @override
   void equalityRelationalPattern_end(
-    Expression operand,
+    ExpressionInfo? operandInfo,
     SharedTypeView operandType, {
     bool notEqual = false,
     required SharedTypeView matchedValueType,
   }) {
     _handleEqualityCheckPattern(
-      operand,
+      operandInfo,
       operandType,
       notEqual: notEqual,
       matchedValueType: matchedValueType,
@@ -7280,14 +7280,14 @@ class _FlowAnalysisImpl<
   }
 
   /// Common code for handling patterns that perform an equality check.
-  /// [operand] is the expression that the matched value is being compared to,
-  /// and [operandType] is its type.
+  /// [operandInfo] is the expression info for the expression that the matched
+  /// value is being compared to, and [operandType] is its type.
   ///
   /// If [notEqual] is `true`, the pattern matches if the matched value is *not*
   /// equal to the operand; otherwise, it matches if the matched value is
   /// *equal* to the operand.
   void _handleEqualityCheckPattern(
-    Expression operand,
+    ExpressionInfo? operandInfo,
     SharedTypeView operandType, {
     required bool notEqual,
     required SharedTypeView matchedValueType,
@@ -7307,7 +7307,7 @@ class _FlowAnalysisImpl<
     switch (_equalityCheck(
       lhsReference,
       matchedValueType,
-      _getExpressionInfo(operand),
+      operandInfo,
       operandType,
     )) {
       case _NoEqualityInformation():

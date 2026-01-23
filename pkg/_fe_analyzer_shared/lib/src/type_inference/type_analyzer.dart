@@ -455,7 +455,7 @@ mixin TypeAnalyzer<
       operations.typeToSchema(matchedValueType),
     ).type;
     flow.constantPattern_end(
-      expression,
+      flow.getExpressionInfo(expression),
       expressionType,
       patternsEnabled: typeAnalyzerOptions.patternsEnabled,
       matchedValueType: matchedValueType,
@@ -1831,7 +1831,7 @@ mixin TypeAnalyzer<
     SharedTypeView operandType = analyzeExpression(operand, operandSchema).type;
     if (isEquality) {
       flow.equalityRelationalPattern_end(
-        operand,
+        flow.getExpressionInfo(operand),
         operandType,
         notEqual: operator?.kind == RelationalOperatorKind.notEquals,
         matchedValueType: matchedValueType,
