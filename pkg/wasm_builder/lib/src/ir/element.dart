@@ -53,13 +53,15 @@ final class ActiveFunctionElementSegment extends ActiveElementSegment {
     Tables tables,
     Globals globals,
   ) {
-    const int tableIndex = 0;
     final byte = d.readByte();
     assert(byte == 0x00 || byte == 0x02);
 
+    final useTable0Encoding = byte == 0x00;
+    final tableIndex = useTable0Encoding ? 0 : d.readUnsigned();
+
     final offset = d.deserializeTableOffset(types, functions, globals);
 
-    if (byte == 0x02) {
+    if (!useTable0Encoding) {
       final elemKind = d.readByte();
       if (elemKind != _ElemKind.refFunc) {
         throw UnimplementedError('Unsupported element kind.');
