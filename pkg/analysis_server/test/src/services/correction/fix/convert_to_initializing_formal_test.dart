@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -74,6 +75,53 @@ class C {
   C({this.a = 1});
 }
 ''');
+  }
+
+  Future<void> test_assignment_named_private() async {
+    await resolveTestCode('''
+class C {
+  int? _a;
+  C({int? a = 1}) {
+    this._a = a;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int? _a;
+  C({this._a = 1});
+}
+''', filter: (d) => d.diagnosticCode != diag.unusedField);
+  }
+
+  Future<void> test_assignment_named_private_unsupported() async {
+    await resolveTestCode('''
+// @dart=3.10
+class C {
+  int? _a;
+  C({int? a = 1}) {
+    this._a = a;
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_assignment_named_private_withType() async {
+    await resolveTestCode('''
+class C {
+  num? _a;
+  C({int? a = 1}) {
+    this._a = a;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  num? _a;
+  C({int? this._a = 1});
+}
+''', filter: (d) => d.diagnosticCode != diag.unusedField);
   }
 
   Future<void> test_assignment_notEmptyAfterRemoval() async {
@@ -156,6 +204,47 @@ class C {
   C({String? this.a});
 }
 ''');
+  }
+
+  Future<void> test_initializer_named_private() async {
+    await resolveTestCode('''
+class C {
+  Object? _a;
+  C({Object? a}) : _a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  Object? _a;
+  C({this._a});
+}
+''', filter: (d) => d.diagnosticCode != diag.unusedField);
+  }
+
+  Future<void> test_initializer_named_private_unsupported() async {
+    await resolveTestCode('''
+// @dart=3.10
+class C {
+  Object? _a;
+  C({Object? a}) : _a = a;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_initializer_named_private_withType() async {
+    await resolveTestCode('''
+class C {
+  Object? _a;
+  C({int? a}) : _a = a;
+}
+''');
+    await assertHasFix('''
+class C {
+  Object? _a;
+  C({int? this._a});
+}
+''', filter: (d) => d.diagnosticCode != diag.unusedField);
   }
 
   Future<void> test_initializer_notEmptyAfterRemoval() async {

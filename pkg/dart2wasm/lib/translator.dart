@@ -554,25 +554,27 @@ class Translator with KernelNodes {
       _outputToBuilder[outputModule] = builder;
       _builderToOutput[builder] = outputModule;
       moduleToBuilder[builder.module] = builder;
-      final thisModuleSetter = builder.functions.define(
-          typesBuilder.defineFunction(
-              const [w.RefType.extern(nullable: false)], const []),
-          "setThisModule");
-      builder.exports.export("\$setThisModule", thisModuleSetter);
-      final ib = thisModuleSetter.body;
-      ib.local_get(thisModuleSetter.locals[0]);
-      ib.global_set(getThisModuleGlobal(builder));
-      ib.end();
     }
   }
 
   w.Global getThisModuleGlobal(w.ModuleBuilder module) {
     return _thisModuleGlobals.putIfAbsent(module, () {
-      final global =
-          module.globals.define(w.GlobalType(w.RefType.extern(nullable: true)));
-      final ib = global.initializer;
-      ib.ref_null(w.HeapType.extern);
-      ib.end();
+      final global = module.globals
+          .define(w.GlobalType(w.RefType.extern(nullable: true)), 'thisModule');
+      final gb = global.initializer;
+      gb.ref_null(w.HeapType.extern);
+      gb.end();
+
+      final thisModuleSetter = module.functions.define(
+          typesBuilder.defineFunction(
+              const [w.RefType.extern(nullable: false)], const []),
+          "setThisModule");
+      module.exports.export("\$setThisModule", thisModuleSetter);
+      final fb = thisModuleSetter.body;
+      fb.local_get(thisModuleSetter.locals[0]);
+      fb.global_set(global);
+      fb.end();
+
       return global;
     });
   }
@@ -629,6 +631,27 @@ class Translator with KernelNodes {
     }
     _printFunction(initFunction, "init");
 
+    // Remove empty modules.
+    _outputToBuilder.removeWhere((outputModule, moduleBuilder) {
+      if (moduleBuilder == mainModule) {
+        assert(!moduleBuilder.hasNoEffect);
+        return false;
+      }
+      return moduleBuilder.hasNoEffect;
+    });
+
+    // Now that we know which modules we're going to emit, let's prune the
+    // loading map to only contain those modules.
+    for (final loadList in loadingMap.moduleMap) {
+      loadList.removeWhere(
+          (moduleMetadata) => !_outputToBuilder.containsKey(moduleMetadata));
+    }
+
+    // Ensure non-empty modules expose `$setThisModule` function.
+    for (final moduleBuilder in _outputToBuilder.values) {
+      getThisModuleGlobal(moduleBuilder);
+    }
+
     // This getter will be null if we pass e.g. `--load-ids=<uri>` as the
     // runtime code will then be pruned to call out to embedder instead of
     // consulting the load mapping bundled in the app.
@@ -644,6 +667,7 @@ class Translator with KernelNodes {
         _patchLoadingMapGetter(function);
       }
     }
+
     // If original program uses deferred loading this will be non-null.
     final loadingMapNamesGetter = dartInternalLoadingMapNamesGetter;
     if (loadingMapNamesGetter != null) {

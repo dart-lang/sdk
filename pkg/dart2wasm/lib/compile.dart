@@ -18,6 +18,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
+import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart' as pool;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
@@ -85,10 +86,16 @@ class TfaResult extends CompilationSuccess {
 }
 
 class CodegenResult extends CompilationSuccess {
+  /// The main wasm file of the compiled application.
   final String mainWasmFile;
-  final int numModules;
 
-  CodegenResult(this.mainWasmFile, this.numModules);
+  /// The ids of all emitted wasm modules, including the special `0` id
+  /// for the main module.
+  final Set<int> moduleIds;
+
+  CodegenResult(this.mainWasmFile, this.moduleIds) {
+    assert(moduleIds.contains(compiler.WasmCompilerOptions.mainModuleId));
+  }
 }
 
 class OptResult extends CompilationSuccess {
@@ -586,7 +593,7 @@ Future<CompilationResult> _runTfaPhase(
 Future<CodegenResult> _loadCodegenResult(compiler.WasmCompilerOptions options,
     CompilerPhaseInputOutputManager ioManager) async {
   final mainUri = (await ioManager.resolveUri(options.mainUri))!.toFilePath();
-  return CodegenResult(mainUri, await ioManager.getModuleCount(mainUri));
+  return CodegenResult(mainUri, await ioManager.getModuleIds(mainUri));
 }
 
 Future<CompilationResult> _runCodegenPhase(
@@ -676,40 +683,42 @@ Future<CompilationResult> _runCodegenPhase(
     await writeLoadIdsFile(component, coreTypes, options, loadingMap);
   }
 
+  final wasmOutputFilename = path.basename(options.outputFile);
+  final moduleIds = modules.keys
+      .map<int>((moduleMetadata) => options.idForModuleName(
+          wasmOutputFilename, moduleMetadata.moduleName)!)
+      .toSet();
+
   await ioManager.writeJsRuntime(jsRuntime);
   await ioManager.writeSupportJs(supportJs);
 
-  return CodegenResult(options.outputFile, modules.length);
+  return CodegenResult(options.outputFile, moduleIds);
 }
 
 Future<CompilationResult> _runOptPhase(
     CodegenResult codegenResult,
     compiler.WasmCompilerOptions options,
     CompilerPhaseInputOutputManager ioManager) async {
-  final numModules = codegenResult.numModules;
+  final moduleIdsToOptimize = options.moduleIdsToOptimize.isEmpty
+      ? codegenResult.moduleIds
+      : options.moduleIdsToOptimize;
+
+  final numModules = moduleIdsToOptimize.length;
   final optPool = pool.Pool(options.maxActiveWasmOptProcesses == -1
       ? numModules
       : options.maxActiveWasmOptProcesses);
 
-  final iterator = options.moduleIdsToOptimize.isEmpty
-      ? List.generate(numModules, (i) => i).iterator
-      : options.moduleIdsToOptimize.iterator;
-
-  while (iterator.moveNext()) {
-    final moduleId = iterator.current;
-    if (moduleId < 0 || moduleId >= numModules) {
-      throw ArgumentError('Invalid module ID to optimize: $moduleId');
-    }
-    final resource = await optPool.request();
-    ioManager
-        .runWasmOpt(
+  await Future.wait([
+    for (final moduleId in moduleIdsToOptimize)
+      optPool.withResource(() async {
+        await ioManager.runWasmOpt(
             codegenResult.mainWasmFile,
             moduleId,
             options.useMultiModuleOpt
                 ? _binaryenFlagsMultiModule
-                : _binaryenFlags)
-        .then((_) => resource.release());
-  }
+                : _binaryenFlags);
+      }),
+  ]);
   await optPool.close();
   return OptResult(options.outputFile, numModules);
 }

@@ -9,7 +9,7 @@ import 'basic.dart';
 import 'framework.dart';
 
 class DefaultTextStyle extends StatelessWidget {
-  DefaultTextStyle({Widget child});
+  DefaultTextStyle({required TextStyle style, required Widget child});
 }
 
 class Text extends StatelessWidget {

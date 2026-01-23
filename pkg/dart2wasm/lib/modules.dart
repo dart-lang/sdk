@@ -209,6 +209,9 @@ class DeferredModuleLoadingMap {
   final List<LibraryDependency> loadIdToDeferredImport;
 
   // Maps (library, import-name)-id to list of needed modules.
+  //
+  // NOTE: The load lists are mutable and may get pruned by the compiler after
+  // code generation to avoid emitting & loading empty modules.
   final List<List<ModuleMetadata>> moduleMap;
 
   DeferredModuleLoadingMap._(
