@@ -935,11 +935,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var contextType = _computeContextType(node);
       contextType = _resolveFutureOrType(contextType);
       if (contextType is! InterfaceType) return;
-      declarationHelper(
-        mustBeConstant: node.isConst,
-        suggestingDotShorthand: true,
-        suggestUnnamedAsNew: true,
-      ).addConstructorNamesForType(type: contextType);
+      if (contextType.element.isAccessibleIn(state.libraryElement)) {
+        declarationHelper(
+          mustBeConstant: node.isConst,
+          suggestingDotShorthand: true,
+          suggestUnnamedAsNew: true,
+        ).addConstructorNamesForType(type: contextType);
+      }
     }
   }
 
@@ -953,12 +955,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
       var element = contextType.element;
       if (element == null) return;
-
-      declarationHelper(
-        mustBeConstant: node.inConstantContext,
-        suggestingDotShorthand: true,
-        suggestUnnamedAsNew: true,
-      ).addStaticMembersOfElement(element);
+      if (element.isAccessibleIn(state.libraryElement)) {
+        declarationHelper(
+          mustBeConstant: node.inConstantContext,
+          suggestingDotShorthand: true,
+          suggestUnnamedAsNew: true,
+        ).addStaticMembersOfElement(element);
+      }
     }
   }
 
@@ -974,14 +977,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // Add all getters, methods, and constructors.
     // When the user needs completing with a `.` or a `.prefix`, the suggestions
     // can be any of the three.
-    declarationHelper(
-      suggestingDotShorthand: true,
-      mustBeConstant: node.inConstantContext,
-      preferNonInvocation:
-          element is InterfaceElement &&
-          state.request.shouldSuggestTearOff(element),
-      suggestUnnamedAsNew: true,
-    ).addStaticMembersOfElement(element);
+    if (element.isAccessibleIn(state.libraryElement)) {
+      declarationHelper(
+        suggestingDotShorthand: true,
+        mustBeConstant: node.inConstantContext,
+        preferNonInvocation:
+            element is InterfaceElement &&
+            state.request.shouldSuggestTearOff(element),
+        suggestUnnamedAsNew: true,
+      ).addStaticMembersOfElement(element);
+    }
   }
 
   @override

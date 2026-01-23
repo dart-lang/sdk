@@ -1,3 +1,12 @@
+## 3.10.8
+
+This is a patch release that:
+
+- Removes code completion of private declarations in other libraries for dot
+  shorthands. (issue [dart-lang/sdk#62416])
+
+[dart-lang/sdk#62416]: https://github.com/dart-lang/sdk/issues/62416
+
 ## 3.10.7
 
 **Released on:** 2025-12-23
