@@ -719,6 +719,92 @@ EnumDeclaration
 ''');
   }
 
+  test_primaryConstructor_declaringFormalParameter_default_namedRequired_final_documentationComment() {
+    var parseResult = parseStringWithErrors(r'''
+enum const E({
+  /// aaa
+  required final int a = 0,
+}) {v}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          requiredKeyword: required
+          keyword: final
+          type: NamedType
+            name: int
+          name: a
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: }
+      rightParenthesis: )
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_functionTyped_final_documentationComment() {
+    var parseResult = parseStringWithErrors(r'''
+enum const E(
+  /// aaa
+  final int a(String x)
+) {v}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: FunctionTypedFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        keyword: final
+        returnType: NamedType
+          name: int
+        name: a
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: String
+            name: x
+          rightParenthesis: )
+      rightParenthesis: )
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
   test_primaryConstructor_declaringFormalParameter_simple_final() {
     var parseResult = parseStringWithErrors(r'''
 enum const E(final int a) {v}
@@ -735,6 +821,42 @@ EnumDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: int
+        name: a
+      rightParenthesis: )
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_simple_final_documentationComment() {
+    var parseResult = parseStringWithErrors(r'''
+enum const E(
+  /// aaa
+  final int a
+) {v}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
         keyword: final
         type: NamedType
           name: int

@@ -17,12 +17,12 @@ main() {
 @reflectiveTest
 class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
   void test_empty() {
-    var locator = EmbedderYamlLocator.forLibFolder(getFolder(emptyPath));
-    expect(locator.embedderYamls, isEmpty);
+    var embedderYamls = locateEmbedderYamlFor(getFolder(emptyPath));
+    expect(embedderYamls, isNull);
   }
 
   void test_valid() {
-    var locator = EmbedderYamlLocator.forLibFolder(getFolder(foxLib));
-    expect(locator.embedderYamls, hasLength(1));
+    var embedderYamls = locateEmbedderYamlFor(getFolder(foxLibPath));
+    expect(embedderYamls, isNotNull);
   }
 }

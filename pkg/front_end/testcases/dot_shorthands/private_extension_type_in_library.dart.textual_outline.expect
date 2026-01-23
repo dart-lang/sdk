@@ -1,0 +1,19 @@
+extension type _E(int x) {
+  static _E get getter => _E(1);
+  static _E method() => _E(1);
+  _E.named(this.x);
+}
+
+typedef Public_E = _E;
+
+final Public_E one = _E(1);
+
+extension type const _EConst(int x) {
+  const _EConst.named(this.x);
+}
+
+typedef Public_EConst = _EConst;
+
+const Public_EConst constOne = _EConst(1);
+
+void test() {}

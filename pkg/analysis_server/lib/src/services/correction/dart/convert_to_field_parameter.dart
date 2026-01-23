@@ -83,6 +83,14 @@ class ConvertToFieldParameter extends ResolvedCorrectionProducer {
   }
 
   static _Context? _findParameter(AstNode node) {
+    // TODO(rnystrom): This code only matches parameter AST nodes whose parent
+    // is a [FormalParameterList]. Optional positional parameters and named
+    // parameters (optional or not) wrap the SimpleFormalParameter in a
+    // DefaultFormalParameter, which means the assist doesn't apply to them.
+    // It might be worth expanding this assist to support those. If so, care
+    // will have to be taken to ensure the assist doesn't rename a named
+    // parameter, since that's an API change.
+
     var parent = node.parent;
     if (node is SimpleFormalParameter) {
       var identifier = node.name;

@@ -394,4 +394,92 @@ ISOLATE_UNIT_TEST_CASE(
   EXPECT_EQ(0xFEEDFEED, Integer::Cast(const_value->value()).Value());
 }
 
+ISOLATE_UNIT_TEST_CASE(
+    StreamingFlowGraphBuilder_DeeplyImmutableTypeCheckPresent) {
+  const char* kScript = R"(
+    @pragma("vm:deeply-immutable")
+    final class Foo {
+      final void Function(int) baz;
+      Foo(this.baz);
+    }
+
+    @pragma("vm:entry-point", "call")
+    test() {
+      Foo((int x) { x = x + 1; } );
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  EXPECT(ClassFinalizer::ProcessPendingClasses());
+  const Class& foo = Class::Handle(GetClass(root_library, "Foo"));
+  const auto& error = foo.EnsureIsFinalized(thread);
+  const auto& constructor = Function::Handle(
+      foo.LookupConstructor(String::Handle(String::New("Foo."))));
+
+  EXPECT(error == Error::null());
+  Invoke(root_library, "test");
+
+  TestPipeline pipeline(constructor, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMoveDebugStepChecks,
+      kMatchAndMoveGuardFieldClass,
+      kMatchAndMoveCheckFieldImmutability,
+      kMatchAndMoveStoreField,
+  }));
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    StreamingFlowGraphBuilder_DeeplyImmutableTypeCheckOmitted) {
+  const char* kScript = R"(
+    @pragma("vm:deeply-immutable")
+    final class Foo {
+      final int baz;
+      Foo(this.baz);
+    }
+
+    @pragma("vm:entry-point", "call")
+    test() {
+      Foo(42);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  EXPECT(ClassFinalizer::ProcessPendingClasses());
+  const Class& foo = Class::Handle(GetClass(root_library, "Foo"));
+  const auto& error = foo.EnsureIsFinalized(thread);
+  const auto& constructor = Function::Handle(
+      foo.LookupConstructor(String::Handle(String::New("Foo."))));
+
+  EXPECT(error == Error::null());
+
+  Invoke(root_library, "test");
+
+  TestPipeline pipeline(constructor, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMoveDebugStepChecks,
+      kMatchAndMoveGuardFieldClass,
+      kMatchAndMoveStoreField,
+  }));
+}
+
 }  // namespace dart

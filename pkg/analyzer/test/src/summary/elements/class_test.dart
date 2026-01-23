@@ -23471,7 +23471,12 @@ library
 
   test_primaryConstructor_declaringFormalParameter_requiredPositional_functionTyped_final() async {
     var library = await buildLibrary('''
-class A(final int foo()) {}
+class A(
+  /// first
+  /// second
+  @deprecated
+  final int foo(),
+) {}
 ''');
     checkElementText(library, r'''
 library
@@ -23491,8 +23496,17 @@ library
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional final this.foo (nameOffset:18) (firstTokenOffset:8) (offset:18)
+                #F4 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:36) (offset:60)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+                  documentationComment: /// first\n/// second
+                  metadata
+                    Annotation
+                      atSign: @ @36
+                      name: SimpleIdentifier
+                        token: deprecated @37
+                        element: dart:core::@getter::deprecated
+                        staticType: null
+                      element: dart:core::@getter::deprecated
           getters
             #F5 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
@@ -23504,6 +23518,15 @@ library
         synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
+          documentationComment: /// first\n/// second
+          metadata
+            Annotation
+              atSign: @ @36
+              name: SimpleIdentifier
+                token: deprecated @37
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
           type: int Function()
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
@@ -23515,6 +23538,15 @@ library
             #E0 requiredPositional final declaring this.foo
               firstFragment: #F4
               type: int Function()
+              documentationComment: /// first\n/// second
+              metadata
+                Annotation
+                  atSign: @ @36
+                  name: SimpleIdentifier
+                    token: deprecated @37
+                    element: dart:core::@getter::deprecated
+                    staticType: null
+                  element: dart:core::@getter::deprecated
               field: <testLibrary>::@class::A::@field::foo
       getters
         synthetic isOriginVariable foo
@@ -23599,8 +23631,13 @@ library
   }
 
   test_primaryConstructor_declaringFormalParameter_requiredPositional_simple_final() async {
-    var library = await buildLibrary('''
-class A(final int foo) {}
+    var library = await buildLibrary(r'''
+class A(
+  /// first
+  /// second
+  @deprecated
+  final int foo,
+);
 ''');
     checkElementText(library, r'''
 library
@@ -23620,8 +23657,17 @@ library
               typeName: A
               typeNameOffset: 6
               formalParameters
-                #F4 requiredPositional final this.foo (nameOffset:18) (firstTokenOffset:8) (offset:18)
+                #F4 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:36) (offset:60)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+                  documentationComment: /// first\n/// second
+                  metadata
+                    Annotation
+                      atSign: @ @36
+                      name: SimpleIdentifier
+                        token: deprecated @37
+                        element: dart:core::@getter::deprecated
+                        staticType: null
+                      element: dart:core::@getter::deprecated
           getters
             #F5 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@getter::foo
@@ -23633,6 +23679,15 @@ library
         synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
+          documentationComment: /// first\n/// second
+          metadata
+            Annotation
+              atSign: @ @36
+              name: SimpleIdentifier
+                token: deprecated @37
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
@@ -23644,6 +23699,15 @@ library
             #E0 requiredPositional final declaring this.foo
               firstFragment: #F4
               type: int
+              documentationComment: /// first\n/// second
+              metadata
+                Annotation
+                  atSign: @ @36
+                  name: SimpleIdentifier
+                    token: deprecated @37
+                    element: dart:core::@getter::deprecated
+                    staticType: null
+                  element: dart:core::@getter::deprecated
               field: <testLibrary>::@class::A::@field::foo
       getters
         synthetic isOriginVariable foo

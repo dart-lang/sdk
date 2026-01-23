@@ -75,6 +75,16 @@ final List<Scenario> scenarios = () {
         '9b97ea08021ee68947873bcdd4a550c0feb393a4',
       ),
     ),
+    Scenario(
+      name: 'cory_devtoolscompanion_test',
+      logFile: fileSystem.getFile(
+        logsRoot.resolve('DAS-test1-norm.json').toFilePath(),
+      ),
+      project: GitCloneProjectGenerator(
+        'https://github.com/elliette/devtools_companion',
+        '6c1673d7024f58776b2db67f2f1ecf5ad1aacaa0',
+      ),
+    ),
   ];
 }();
 

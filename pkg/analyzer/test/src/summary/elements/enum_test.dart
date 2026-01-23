@@ -7706,8 +7706,15 @@ library
   }
 
   test_primaryConstructor_declaringFormalParameter_requiredPositional_functionTyped_final() async {
-    var library = await buildLibrary('''
-enum A(final int foo()) {v(0)}
+    var library = await buildLibrary(r'''
+enum A(
+  /// first
+  /// second
+  @deprecated
+  final void foo(),
+) {
+  v();
+}
 ''');
     checkElementText(library, r'''
 library
@@ -7719,7 +7726,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer isOriginDeclaration v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:73) (firstTokenOffset:73) (offset:73)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7730,12 +7737,8 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @26
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @27
-                        staticType: int
-                    rightParenthesis: ) @28
+                    leftParenthesis: ( @74
+                    rightParenthesis: ) @75
                   staticType: A
             #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -7757,10 +7760,19 @@ library
               typeName: A
               typeNameOffset: 5
               formalParameters
-                #F6 requiredPositional final this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
+                #F6 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:35) (offset:60)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+                  documentationComment: /// first\n/// second
+                  metadata
+                    Annotation
+                      atSign: @ @35
+                      name: SimpleIdentifier
+                        token: deprecated @36
+                        element: dart:core::@getter::deprecated
+                        staticType: null
+                      element: dart:core::@getter::deprecated
           getters
-            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -7791,7 +7803,16 @@ library
         synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
-          type: int Function()
+          documentationComment: /// first\n/// second
+          metadata
+            Annotation
+              atSign: @ @35
+              name: SimpleIdentifier
+                token: deprecated @36
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          type: void Function()
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
@@ -7801,7 +7822,16 @@ library
           formalParameters
             #E0 requiredPositional final declaring this.foo
               firstFragment: #F6
-              type: int Function()
+              type: void Function()
+              documentationComment: /// first\n/// second
+              metadata
+                Annotation
+                  atSign: @ @35
+                  name: SimpleIdentifier
+                    token: deprecated @36
+                    element: dart:core::@getter::deprecated
+                    staticType: null
+                  element: dart:core::@getter::deprecated
               field: <testLibrary>::@enum::A::@field::foo
       getters
         synthetic static isOriginVariable v
@@ -7817,14 +7847,21 @@ library
         synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
-          returnType: int Function()
+          returnType: void Function()
           variable: <testLibrary>::@enum::A::@field::foo
 ''');
   }
 
   test_primaryConstructor_declaringFormalParameter_requiredPositional_simple_final() async {
-    var library = await buildLibrary('''
-enum A(final int foo) {v(0)}
+    var library = await buildLibrary(r'''
+enum A(
+  /// first
+  /// second
+  @deprecated
+  final int foo,
+) {
+  v(0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -7836,7 +7873,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer isOriginDeclaration v (nameOffset:23) (firstTokenOffset:23) (offset:23)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:70) (firstTokenOffset:70) (offset:70)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7847,12 +7884,12 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @24
+                    leftParenthesis: ( @71
                     arguments
                       IntegerLiteral
-                        literal: 0 @25
+                        literal: 0 @72
                         staticType: int
-                    rightParenthesis: ) @26
+                    rightParenthesis: ) @73
                   staticType: A
             #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -7874,10 +7911,19 @@ library
               typeName: A
               typeNameOffset: 5
               formalParameters
-                #F6 requiredPositional final this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
+                #F6 requiredPositional final this.foo (nameOffset:59) (firstTokenOffset:35) (offset:59)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+                  documentationComment: /// first\n/// second
+                  metadata
+                    Annotation
+                      atSign: @ @35
+                      name: SimpleIdentifier
+                        token: deprecated @36
+                        element: dart:core::@getter::deprecated
+                        staticType: null
+                      element: dart:core::@getter::deprecated
           getters
-            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -7908,6 +7954,15 @@ library
         synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
+          documentationComment: /// first\n/// second
+          metadata
+            Annotation
+              atSign: @ @35
+              name: SimpleIdentifier
+                token: deprecated @36
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -7919,6 +7974,15 @@ library
             #E0 requiredPositional final declaring this.foo
               firstFragment: #F6
               type: int
+              documentationComment: /// first\n/// second
+              metadata
+                Annotation
+                  atSign: @ @35
+                  name: SimpleIdentifier
+                    token: deprecated @36
+                    element: dart:core::@getter::deprecated
+                    staticType: null
+                  element: dart:core::@getter::deprecated
               field: <testLibrary>::@enum::A::@field::foo
       getters
         synthetic static isOriginVariable v

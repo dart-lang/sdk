@@ -534,9 +534,11 @@ const red = [!Colors.red!];
 
     var color = colors[0];
     expect(color.range, code.range.range);
+
+    // Material red primary value is 0xFFF44336.
     expect(color.color.alpha, equals(1));
-    expect(color.color.red, equals(1));
-    expect(color.color.green, equals(0));
-    expect(color.color.blue, equals(0));
+    expect(color.color.red, inInclusiveRange(0xF3 / 0xFF, 0xF5 / 0xFF));
+    expect(color.color.green, inInclusiveRange(0x42 / 0xFF, 0x44 / 0xFF));
+    expect(color.color.blue, inInclusiveRange(0x35 / 0xFF, 0x37 / 0xFF));
   }
 }

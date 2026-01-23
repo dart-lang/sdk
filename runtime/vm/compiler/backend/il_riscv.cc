@@ -2742,8 +2742,9 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      FLAG_experimental_shared_data && field().is_shared() ? 1 : 0;
+  const bool need_temp = FLAG_experimental_shared_data && field().is_shared() &&
+                         !field().has_deeply_immutable_type();
+  const intptr_t kNumTemps = need_temp ? 1 : 0;
   const bool can_call_to_throw = FLAG_experimental_shared_data;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
@@ -2751,7 +2752,7 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                         : LocationSummary::kNoCall);
   locs->set_in(
       0, Location::RegisterLocation(CheckedStoreIntoSharedStubABI::kValueReg));
-  if (FLAG_experimental_shared_data && field().is_shared()) {
+  if (need_temp) {
     locs->set_temp(0, Location::RegisterLocation(
                           CheckedStoreIntoSharedStubABI::kFieldReg));
   }
@@ -2772,27 +2773,28 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadIsolate(TMP);
       __ BranchIfZero(TMP, slow_path->entry_label());
     } else {
-      const Register temp = locs()->temp(0).reg();
+      if (!field().has_deeply_immutable_type()) {
+        const Register temp = locs()->temp(0).reg();
 
-      // TODO(dartbug.com/61078): use field static type information to decide
-      // whether the following value check is needed or not.
-      checked_store_into_shared_slow_path =
-          new CheckedStoreIntoSharedSlowPath(this, value);
-      compiler->AddSlowPathCode(checked_store_into_shared_slow_path);
+        checked_store_into_shared_slow_path =
+            new CheckedStoreIntoSharedSlowPath(this, value);
+        compiler->AddSlowPathCode(checked_store_into_shared_slow_path);
 
-      compiler::Label allow_store;
-      __ BranchIfSmi(value, &allow_store, compiler::Assembler::kNearJump);
-      __ lbu(TMP, compiler::FieldAddress(
-                      value, compiler::target::Object::tags_offset()));
-      __ andi(temp, TMP, 1 << compiler::target::UntaggedObject::kCanonicalBit);
-      // If canonical bit is set, no need for runtime check.
-      __ bnez(temp, &allow_store);
-      __ andi(temp, TMP,
-              1 << compiler::target::UntaggedObject::kDeeplyImmutableBit);
-      // If deeply immutability bit is not set, go to runtime.
-      __ beqz(temp, checked_store_into_shared_slow_path->entry_label());
+        compiler::Label allow_store;
+        __ BranchIfSmi(value, &allow_store, compiler::Assembler::kNearJump);
+        __ lbu(TMP, compiler::FieldAddress(
+                        value, compiler::target::Object::tags_offset()));
+        __ andi(temp, TMP,
+                1 << compiler::target::UntaggedObject::kCanonicalBit);
+        // If canonical bit is set, no need for runtime check.
+        __ bnez(temp, &allow_store);
+        __ andi(temp, TMP,
+                1 << compiler::target::UntaggedObject::kDeeplyImmutableBit);
+        // If deeply immutability bit is not set, go to runtime.
+        __ beqz(temp, checked_store_into_shared_slow_path->entry_label());
 
-      __ Bind(&allow_store);
+        __ Bind(&allow_store);
+      }
     }
   }
 
@@ -2811,7 +2813,8 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      compiler::target::FieldTable::OffsetOf(field()));
   }
 
-  if (FLAG_experimental_shared_data && field().is_shared()) {
+  if (FLAG_experimental_shared_data && field().is_shared() &&
+      !field().has_deeply_immutable_type()) {
     __ Bind(checked_store_into_shared_slow_path->exit_label());
   }
 }

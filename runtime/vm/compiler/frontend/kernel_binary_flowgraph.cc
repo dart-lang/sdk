@@ -179,10 +179,9 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
     instructions += Drop();
   } else {
     const auto& klass = Class::Handle(field.Owner());
-    // TODO(dartbug.com/61078): Use static type to avoid runtime check.
     instructions += flow_graph_builder_->StoreFieldGuarded(
         field, StoreFieldInstr::Kind::kInitializing,
-        klass.is_deeply_immutable());
+        klass.is_deeply_immutable() && !field.has_deeply_immutable_type());
   }
   return instructions;
 }

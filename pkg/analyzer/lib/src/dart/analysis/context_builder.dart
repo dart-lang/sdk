@@ -9,7 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
+import 'package:analyzer/src/context/builder.dart' show locateEmbedderYamlFor;
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
@@ -255,12 +255,12 @@ class ContextBuilderImpl {
       if (embedderYamlSource != null) {
         var embedderYamlPath = embedderYamlSource.fullName;
         var libFolder = resourceProvider.getFile(embedderYamlPath).parent;
-        var locator = EmbedderYamlLocator.forLibFolder(libFolder);
-        var embedderMap = locator.embedderYamls;
-        if (embedderMap.isNotEmpty) {
-          return EmbedderSdk(
+        var embedderYaml = locateEmbedderYamlFor(libFolder);
+        if (embedderYaml != null) {
+          return EmbedderSdk.new2(
             resourceProvider,
-            embedderMap,
+            libFolder,
+            embedderYaml,
             languageVersion: folderSdk.languageVersion,
           );
         }

@@ -16479,6 +16479,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return _unhandledStatement(node);
   }
 
+  bool _isPrivateFromAnotherLibrary(TypeDeclaration typeDeclaration) {
+    return switch (typeDeclaration) {
+      Class(:var enclosingLibrary) ||
+      ExtensionTypeDeclaration(:var enclosingLibrary) =>
+        typeDeclaration.name.startsWith('_') &&
+            enclosingLibrary != libraryBuilder.library,
+    };
+  }
+
   ExpressionInferenceResult visitDotShorthand(
     DotShorthand node,
     DartType typeContext,
@@ -16503,6 +16512,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // `FutureOr<S>`.
     while (cachedContext is FutureOrType) {
       cachedContext = cachedContext.typeArgument;
+    }
+
+    // If the context type declaration is private and is in a different library,
+    // we can't access it with a dot shorthand. This is a compile-time
+    // error.
+    if (cachedContext is TypeDeclarationType &&
+        _isPrivateFromAnotherLibrary(cachedContext.typeDeclaration)) {
+      return new ExpressionInferenceResult(
+        const DynamicType(),
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeDotShorthandsInvalidContext.withArgumentsOld(
+            node.name.text,
+          ),
+          fileUri: fileUri,
+          fileOffset: node.nameOffset,
+          length: node.name.text.length,
+        ),
+      );
     }
 
     Member? member = findStaticMember(
@@ -16749,6 +16777,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // `FutureOr<S>`.
     while (cachedContext is FutureOrType) {
       cachedContext = cachedContext.typeArgument;
+    }
+
+    // If the context type declaration is private and is in a different library,
+    // we can't access it with a dot shorthand. This is a compile-time
+    // error.
+    if (cachedContext is TypeDeclarationType &&
+        _isPrivateFromAnotherLibrary(cachedContext.typeDeclaration)) {
+      return new ExpressionInferenceResult(
+        const DynamicType(),
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeDotShorthandsInvalidContext.withArgumentsOld(
+            node.name.text,
+          ),
+          fileUri: fileUri,
+          fileOffset: node.nameOffset,
+          length: node.name.text.length,
+        ),
+      );
     }
 
     Member? member = findStaticMember(

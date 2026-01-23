@@ -1055,6 +1055,119 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_primaryConstructor_formalParameters_documentationComment_requiredNamed_final_functionTyped() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(
+  /// aaa
+  final int a(String x)
+) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: FunctionTypedFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        keyword: final
+        returnType: NamedType
+          name: int
+        name: a
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: String
+            name: x
+          rightParenthesis: )
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_documentationComment_requiredNamed_final_simple() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A({
+  /// aaa
+  required final int a = 0,
+}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          requiredKeyword: required
+          keyword: final
+          type: NamedType
+            name: int
+          name: a
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_documentationComment_requiredPositional_final_simple() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(
+  /// aaa
+  final int a
+) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        documentationComment: Comment
+          tokens
+            /// aaa
+        keyword: final
+        type: NamedType
+          name: int
+        name: a
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_primaryConstructor_formalParameters_fieldFormalParameter() {
     var parseResult = parseStringWithErrors(r'''
 extension type A(this.it) {}

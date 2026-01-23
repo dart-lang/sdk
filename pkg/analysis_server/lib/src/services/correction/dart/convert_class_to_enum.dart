@@ -342,8 +342,8 @@ class _EnumDescription {
   }
 
   /// Adds the unnamed constructor declaration to [membersToDelete], and returns
-  /// it, if it is the only constructor, and if it has no parameters other than
-  /// potentially the index field.
+  /// it, if it is the only constructor, has no parameters (other than
+  /// potentially the index field), has no metadata, and has no doc comments.
   AstNode? /* ConstructorDeclaration? | PrimaryConstructorDeclaration? */
   _removeUnnamedConstructor() {
     var members = classDeclaration.members2;
@@ -357,6 +357,9 @@ class _EnumDescription {
       var constructor = constructors[0];
       var name = constructor.name?.lexeme;
       if (name != null && name != 'new') return null;
+
+      if (constructor.documentationComment != null) return null;
+      if (constructor.metadata.isNotEmpty) return null;
 
       var parameters = constructor.parameters.parameters;
       // If there's only one constructor, then there can only be one entry in the
@@ -374,6 +377,9 @@ class _EnumDescription {
 
       var name = primaryConstructor.constructorName?.name.lexeme;
       if (name != null && name != 'new') return null;
+
+      if (primaryConstructor.body?.documentationComment != null) return null;
+      if (primaryConstructor.body?.metadata.isNotEmpty ?? false) return null;
 
       var parameters = primaryConstructor.formalParameters.parameters;
       // If there's only one constructor, then there can only be one entry in the

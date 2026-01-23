@@ -36,9 +36,25 @@ void validateLibraries(
   }
 }
 
+class _CheckResult {
+  final bool isImmutable;
+  final bool requiresRuntimeCheck;
+
+  const _CheckResult({
+    this.isImmutable = false,
+    this.requiresRuntimeCheck = false,
+  });
+}
+
 /// Implements the `vm:deeply-immutable` semantics.
 class DeeplyImmutableValidator {
   static const vmDeeplyImmutable = "vm:deeply-immutable";
+  late final InstanceConstant vmDeeplyImmutableConstant =
+      InstanceConstant(coreTypes.pragmaClass.reference, [], {
+        coreTypes.pragmaName.fieldReference: StringConstant(vmDeeplyImmutable),
+        coreTypes.pragmaOptions.fieldReference: NullConstant(),
+      });
+  static const vmShared = "vm:shared";
 
   final CoreTypes coreTypes;
   final DiagnosticReporter diagnosticReporter;
@@ -67,10 +83,30 @@ class DeeplyImmutableValidator {
     for (final cls in library.classes) {
       visitClass(cls);
     }
+    for (final field in library.fields) {
+      if (_isVmSharedField(field)) {
+        addDeeplyImmutableAnnotationIfNeeded(field);
+      }
+    }
   }
 
   void visitClass(Class node) {
     _validateDeeplyImmutable(node);
+  }
+
+  // pragma("vm:deeply-immutable") on a field indicates that the field static
+  // type guarantees that it always have deeply-immutable value, therefore
+  // at a runtime there is no need to check the value being assigned to the
+  // field.
+  // This pragma is added only for "vm:shared" static fields and to all fields
+  // of "vm:deeply-immutable" class because those are the only ones that are
+  // sensitive to having deeply-immutable values in them.
+  _CheckResult addDeeplyImmutableAnnotationIfNeeded(Field field) {
+    final checkResult = _isDeeplyImmutableDartType(field.type);
+    if (checkResult.isImmutable && !checkResult.requiresRuntimeCheck) {
+      field.addAnnotation(ConstantExpression(vmDeeplyImmutableConstant));
+    }
+    return checkResult;
   }
 
   bool _isOrExtendsNativeFieldWrapper1Class(Class? node) {
@@ -97,6 +133,11 @@ class DeeplyImmutableValidator {
             node.name.length,
             node.location!.file,
           );
+        }
+      }
+      for (final field in node.fields) {
+        if (field.isStatic && _isVmSharedField(field)) {
+          addDeeplyImmutableAnnotationIfNeeded(field);
         }
       }
       return;
@@ -141,11 +182,12 @@ class DeeplyImmutableValidator {
 
     // All instance fields should be non-late final and deeply immutable.
     for (final field in node.fields) {
+      final checkResult = addDeeplyImmutableAnnotationIfNeeded(field);
       if (field.isStatic) {
         // Static fields are not part of instances.
         continue;
       }
-      if (!_isDeeplyImmutableDartType(field.type)) {
+      if (!checkResult.isImmutable) {
         diagnosticReporter.report(
           codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable,
           field.fileOffset,
@@ -164,13 +206,16 @@ class DeeplyImmutableValidator {
     }
   }
 
-  bool _isDeeplyImmutableDartType(DartType dartType) {
+  _CheckResult _isDeeplyImmutableDartType(DartType dartType) {
     if (dartType is NullType) {
-      return true;
+      return _CheckResult(isImmutable: true, requiresRuntimeCheck: false);
     }
     if (dartType is InterfaceType) {
       final classNode = dartType.classNode;
-      return _isDeeplyImmutableClass(classNode);
+      return _CheckResult(
+        isImmutable: _isDeeplyImmutableClass(classNode),
+        requiresRuntimeCheck: false,
+      );
     }
     if (dartType is TypeParameterType) {
       return _isDeeplyImmutableDartType(dartType.bound);
@@ -178,9 +223,9 @@ class DeeplyImmutableValidator {
     if (dartType is FunctionType) {
       // Relies on dynamic check of whether closure actually captures only
       // deeply-immutable values.
-      return true;
+      return _CheckResult(isImmutable: true, requiresRuntimeCheck: true);
     }
-    return false;
+    return _CheckResult(isImmutable: false, requiresRuntimeCheck: false);
   }
 
   bool _isDeeplyImmutableClass(Class node) {
@@ -191,6 +236,21 @@ class DeeplyImmutableValidator {
             constant.classNode == pragmaClass &&
             constant.fieldValues[pragmaName.fieldReference] ==
                 StringConstant(vmDeeplyImmutable)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool _isVmSharedField(Field node) {
+    for (final annotation in node.annotations) {
+      if (annotation is ConstantExpression) {
+        final constant = annotation.constant;
+        if (constant is InstanceConstant &&
+            constant.classNode == pragmaClass &&
+            constant.fieldValues[pragmaName.fieldReference] ==
+                StringConstant(vmShared)) {
           return true;
         }
       }
