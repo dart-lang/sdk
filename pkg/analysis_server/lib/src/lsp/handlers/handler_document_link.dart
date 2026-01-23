@@ -77,7 +77,7 @@ class DocumentLinkHandler
       return _convert(link, lineInfo);
     }
 
-    var visitor = AnalysisOptionLinkComputer();
+    var visitor = AnalysisOptionLinkComputer(server.pubApi.pubHostedUrl);
     return success(
       visitor.findLinks(analysisOptionsContent).map(convert).toList(),
     );
