@@ -501,10 +501,10 @@ class S {
   static int get g => 0;
 }
 class C extends S {}
-f(var p) {
+f(p) {
   f(C.g);
 }''',
-      [error(diag.undefinedGetter, 75, 1)],
+      [error(diag.undefinedGetter, 71, 1)],
     );
   }
 
@@ -530,10 +530,10 @@ f(C c) {
     await assertErrorsInCode(
       '''
 class C {}
-f(var p) {
+f(p) {
   f(C.m);
 }''',
-      [error(diag.undefinedGetter, 28, 1)],
+      [error(diag.undefinedGetter, 24, 1)],
     );
   }
 

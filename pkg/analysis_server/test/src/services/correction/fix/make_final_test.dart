@@ -684,12 +684,14 @@ void fn(final String? test) {
 
   Future<void> test_simple_second() async {
     await resolveTestCode('''
+// @dart = 3.10
 void fn(final String test, String other) {
   print(test);
   print(other);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 void fn(final String test, final String other) {
   print(test);
   print(other);
@@ -699,11 +701,13 @@ void fn(final String test, final String other) {
 
   Future<void> test_simple_var() async {
     await resolveTestCode('''
+// @dart = 3.10
 void fn(var test) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 void fn(final test) {
   print(test);
 }

@@ -383,7 +383,7 @@ mixin M {}
 
 [!
 class const B(final int y) {}
-class C<T>.named(
+class C<T extends Object>.named(
   var int x, [
   final int y = 0,
 ]) extends A with M implements B {
@@ -408,6 +408,8 @@ class C<T>.named(
         SemanticTokenModifiers.declaration,
       ]),
       _Token('T', SemanticTokenTypes.typeParameter),
+      _Token('extends', SemanticTokenTypes.keyword),
+      _Token('Object', SemanticTokenTypes.class_),
       _Token('var', SemanticTokenTypes.keyword),
       _Token('int', SemanticTokenTypes.class_),
       _Token('x', SemanticTokenTypes.parameter, [

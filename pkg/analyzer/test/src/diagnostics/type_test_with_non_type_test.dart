@@ -19,11 +19,11 @@ class TypeTestWithNonTypeTest extends PubPackageResolutionTest {
     await assertErrorsInCode(
       '''
 var A = 0;
-f(var p) {
+f(p) {
   if (p is A) {
   }
 }''',
-      [error(diag.typeTestWithNonType, 33, 1)],
+      [error(diag.typeTestWithNonType, 29, 1)],
     );
   }
 }

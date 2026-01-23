@@ -18,11 +18,11 @@ class TypeTestWithUndefinedNameTest extends PubPackageResolutionTest {
   test_undefined() async {
     await assertErrorsInCode(
       '''
-f(var p) {
+f(p) {
   if (p is A) {
   }
 }''',
-      [error(diag.typeTestWithUndefinedName, 22, 1)],
+      [error(diag.typeTestWithUndefinedName, 18, 1)],
     );
   }
 }

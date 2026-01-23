@@ -534,6 +534,7 @@ class Bar extends Foo {
 
   Future<void> test_super_defaultValue_final() async {
     await resolveTestCode('''
+// @dart = 3.10
 class Foo {
   Foo({this.value = 10});
   final int? value;
@@ -544,6 +545,7 @@ class Bar extends Foo {
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 class Foo {
   Foo({this.value = 10});
   final int? value;

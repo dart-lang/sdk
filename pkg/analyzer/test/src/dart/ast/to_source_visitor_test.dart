@@ -1470,6 +1470,7 @@ class A {
   void test_visitFieldFormalParameter_keyword() {
     var code = 'var this.a';
     var findNode = _parseStringToFindNode('''
+// @dart = 3.10
 class A {
   A($code);
 }
@@ -1480,6 +1481,7 @@ class A {
   void test_visitFieldFormalParameter_keywordAndType() {
     var code = 'final A this.a';
     var findNode = _parseStringToFindNode('''
+// @dart = 3.10
 class A {
   A($code);
 }
@@ -2797,7 +2799,7 @@ void f() {
   }
 
   void test_visitNamedFormalParameter() {
-    var code = 'var a = 0';
+    var code = 'a = 0';
     var findNode = _parseStringToFindNode('''
 void f({$code}) {}
 ''');
@@ -3040,7 +3042,7 @@ void f() {
   }
 
   void test_visitPositionalFormalParameter() {
-    var code = 'var a = 0';
+    var code = 'a = 0';
     var findNode = _parseStringToFindNode('''
 void f([$code]) {}
 ''');
@@ -3388,6 +3390,7 @@ void f($code) {}
   void test_visitSimpleFormalParameter_keyword() {
     var code = 'var a';
     var findNode = _parseStringToFindNode('''
+// @dart = 3.10
 void f($code) {}
 ''');
     _assertSource(code, findNode.simpleFormalParameter(code));
@@ -3396,6 +3399,7 @@ void f($code) {}
   void test_visitSimpleFormalParameter_keyword_type() {
     var code = 'final int a';
     var findNode = _parseStringToFindNode('''
+// @dart = 3.10
 void f($code) {}
 ''');
     _assertSource(code, findNode.simpleFormalParameter(code));
@@ -3523,6 +3527,7 @@ class A {
   void test_visitSuperFormalParameter_keyword() {
     var code = 'final super.foo';
     var findNode = _parseStringToFindNode('''
+// @dart = 3.10
 class A {
   A($code);
 }
@@ -3533,6 +3538,7 @@ class A {
   void test_visitSuperFormalParameter_keywordAndType() {
     var code = 'final int super.a';
     var findNode = _parseStringToFindNode('''
+// @dart = 3.10
 class A {
   A($code);
 }

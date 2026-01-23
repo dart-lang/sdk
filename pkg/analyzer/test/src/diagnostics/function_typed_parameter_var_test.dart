@@ -17,11 +17,12 @@ main() {
 class FunctionTypedParameterVarTest extends ParserDiagnosticsTest {
   test_superFormalParameter_var_functionTyped() async {
     var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
 class A {
   A(var super.a<T>());
 }
 ''');
-    parseResult.assertErrors([error(diag.functionTypedParameterVar, 14, 3)]);
+    parseResult.assertErrors([error(diag.functionTypedParameterVar, 30, 3)]);
 
     var node = parseResult.findNode.superFormalParameter('super.a');
     assertParsedNodeText(node, r'''

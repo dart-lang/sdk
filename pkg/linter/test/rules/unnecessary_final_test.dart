@@ -199,9 +199,10 @@ f() {
   test_parameter_function_finalTyped() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 void f(final int x) {}
 ''',
-      [lint(7, 5)],
+      [lint(23, 5)],
     );
   }
 
@@ -215,11 +216,12 @@ void f(int x) {
   test_parameter_functionExpression_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 void f() {
   (final c) => c.length;
 }
 ''',
-      [lint(14, 5)],
+      [lint(30, 5)],
     );
   }
 

@@ -258,10 +258,10 @@ class ImportsVerifier {
           var isUsed = tracking.importToUsedElements.containsKey(importElement);
           if (!isUsed) {
             _unusedImports.add(importDirective);
-            diagnosticReporter.atNode(
-              importDirective.uri,
-              diag.unusedImport,
-              arguments: [uri.relativeUriString],
+            diagnosticReporter.report(
+              diag.unusedImport
+                  .withArguments(uriStr: uri.relativeUriString)
+                  .at(importDirective.uri),
             );
           }
         }
@@ -314,10 +314,10 @@ class ImportsVerifier {
               }
 
               if (!isUsed) {
-                reporter.atNode(
-                  identifier,
-                  diag.unusedShownName,
-                  arguments: [identifier.name],
+                reporter.report(
+                  diag.unusedShownName
+                      .withArguments(name: identifier.name)
+                      .at(identifier),
                 );
               }
             }

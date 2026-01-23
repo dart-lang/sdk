@@ -102,11 +102,13 @@ class A {
 
   Future<void> test_final_constructor_parameter() async {
     await resolveTestCode('''
+// @dart = 3.10
 class A {
   A(final ^i);
 }
 ''');
     await assertHasAssist('''
+// @dart = 3.10
 class A {
   final i;
 
@@ -415,11 +417,13 @@ void foo(int k) => null;
 
   Future<void> test_var_constructor_parameter() async {
     await resolveTestCode('''
+// @dart = 3.10
 class A {
   A(var ^i);
 }
 ''');
     await assertHasAssist('''
+// @dart = 3.10
 class A {
   var i;
 

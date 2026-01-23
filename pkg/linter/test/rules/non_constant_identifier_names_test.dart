@@ -791,11 +791,11 @@ class C {
     );
   }
 
-  test_parameter_var() async {
+  test_parameter_requiredPositional() async {
     await assertDiagnostics(
       r'''
  class C {
-  m(var Foo) {}
+  m(int Foo) {}
 }
 ''',
       [lint(19, 3)],

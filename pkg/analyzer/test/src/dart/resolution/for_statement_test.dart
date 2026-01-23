@@ -496,12 +496,12 @@ ForStatement
     await assertErrorsInCode(
       r'''
 abstract class A implements Iterable<int> {
-  void f(var v) {
+  void f(v) {
     for (v in super) {}
   }
 }
 ''',
-      [error(diag.missingAssignableSelector, 76, 5)],
+      [error(diag.missingAssignableSelector, 72, 5)],
     );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''

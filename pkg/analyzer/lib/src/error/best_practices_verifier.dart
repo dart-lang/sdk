@@ -824,10 +824,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if ((type is InterfaceType && type.element == _nullType.element ||
               (type is DynamicType && node.name.lexeme == 'dynamic')) &&
           type.alias == null) {
-        _diagnosticReporter.atToken(
-          question,
-          diag.unnecessaryQuestionMark,
-          arguments: [node.qualifiedName],
+        _diagnosticReporter.report(
+          diag.unnecessaryQuestionMark
+              .withArguments(typeName: node.qualifiedName)
+              .at(question),
         );
       }
     }
@@ -1151,10 +1151,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             );
           } else {
             // This is a regular violation of the sealed class contract.
-            _diagnosticReporter.atNode(
-              node,
-              diag.subtypeOfSealedClass,
-              arguments: [superclass.name.toString()],
+            _diagnosticReporter.report(
+              diag.subtypeOfSealedClass
+                  .withArguments(name: superclass.name.toString())
+                  .at(node),
             );
           }
         }

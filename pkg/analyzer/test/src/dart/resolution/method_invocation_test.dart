@@ -1975,7 +1975,7 @@ FunctionExpressionInvocation
 
   test_error_invocationOfNonFunction_parameter_dynamic() async {
     await assertNoErrorsInCode(r'''
-main(var foo) {
+main(foo) {
   foo();
 }
 ''');

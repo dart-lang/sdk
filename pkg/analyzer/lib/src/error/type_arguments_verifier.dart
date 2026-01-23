@@ -299,7 +299,9 @@ class TypeArgumentsVerifier {
         // Do not report a "Strict raw type" warning in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
-        _diagnosticReporter.atNode(node, diag.strictRawType, arguments: [type]);
+        _diagnosticReporter.report(
+          diag.strictRawType.withArguments(type: type).at(node),
+        );
       }
     }
   }

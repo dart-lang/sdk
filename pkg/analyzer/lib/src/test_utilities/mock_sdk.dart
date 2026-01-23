@@ -446,7 +446,7 @@ class Error {
 }
 
 abstract interface class Exception {
-  factory Exception([var message]) => throw 0;
+  factory Exception([message]) => throw 0;
 }
 
 class FormatException implements Exception {}

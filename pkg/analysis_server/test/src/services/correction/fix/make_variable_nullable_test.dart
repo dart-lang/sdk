@@ -221,9 +221,11 @@ void f({String? s}) {}
 
   Future<void> test_simpleFormalParameter_final() async {
     await resolveTestCode('''
+// @dart = 3.10
 void f({final String s}) {}
 ''');
     await assertHasFix('''
+// @dart = 3.10
 void f({final String? s}) {}
 ''');
   }
