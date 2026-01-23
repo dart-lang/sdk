@@ -707,8 +707,10 @@ abstract class FlowAnalysis<
   /// Call this method after visiting pattern and guard parts of an if-case
   /// statement.
   ///
-  /// [guard] should be the guard expression (if present); otherwise `null`.
-  void ifCaseStatement_thenBegin(Expression? guard);
+  /// [guardInfo] should be the expression info for the guard expression. If
+  /// there is no guard expression, it should be the value returned by a call to
+  /// [booleanLiteral], passing a value of `true`.
+  void ifCaseStatement_thenBegin(ExpressionInfo? guardInfo);
 
   /// Call this method after visiting the RHS of an if-null expression ("??")
   /// or if-null assignment ("??=").
@@ -1171,14 +1173,16 @@ abstract class FlowAnalysis<
   ///
   /// See [switchStatement_expressionEnd] for details.`
   ///
-  /// [guard] should be the expression following the `when` keyword, if present.
+  /// [guardInfo] should be the expression info for the guard expression. If
+  /// there is no guard expression, it should be the value returned by a call to
+  /// [booleanLiteral], passing a value of `true`.
   ///
   /// If the clause is a `case` clause, [variables] should contain an entry for
   /// all variables defined by the clause's pattern; the key should be the
   /// variable name and the value should be the variable itself. If the clause
   /// is a `default` clause, [variables] should be an empty map.
   void switchStatement_endAlternative(
-    Expression? guard,
+    ExpressionInfo? guardInfo,
     Map<String, Variable> variables,
   );
 
@@ -1911,10 +1915,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void ifCaseStatement_thenBegin(Expression? guard) {
+  void ifCaseStatement_thenBegin(ExpressionInfo? guardInfo) {
     _wrap(
-      'ifCaseStatement_thenBegin($guard)',
-      () => _wrapped.ifCaseStatement_thenBegin(guard),
+      'ifCaseStatement_thenBegin($guardInfo)',
+      () => _wrapped.ifCaseStatement_thenBegin(guardInfo),
     );
   }
 
@@ -2484,12 +2488,12 @@ class FlowAnalysisDebug<
 
   @override
   void switchStatement_endAlternative(
-    Expression? guard,
+    ExpressionInfo? guardInfo,
     Map<String, Variable> variables,
   ) {
     _wrap(
-      'switchStatement_endAlternative($guard, $variables)',
-      () => _wrapped.switchStatement_endAlternative(guard, variables),
+      'switchStatement_endAlternative($guardInfo, $variables)',
+      () => _wrapped.switchStatement_endAlternative(guardInfo, variables),
     );
   }
 
@@ -5715,10 +5719,10 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void ifCaseStatement_thenBegin(Expression? guard) {
+  void ifCaseStatement_thenBegin(ExpressionInfo? guardInfo) {
     // If S0 is the statement `if (E0 case P when E1) S1 else S2`, then:
     // - before(S1) = true(E1).
-    FlowModel branchModel = _popPattern(guard);
+    FlowModel branchModel = _popPattern(guardInfo);
     _popScrutinee();
     _stack.add(new _IfContext(branchModel));
   }
@@ -6526,10 +6530,10 @@ class _FlowAnalysisImpl<
 
   @override
   void switchStatement_endAlternative(
-    Expression? guard,
+    ExpressionInfo? guardInfo,
     Map<String, Variable> variables,
   ) {
-    FlowModel unmatched = _popPattern(guard);
+    FlowModel unmatched = _popPattern(guardInfo);
     _SwitchAlternativesContext<Variable> context =
         _stack.last as _SwitchAlternativesContext<Variable>;
     // Future alternatives will be analyzed under the assumption that this
@@ -7657,16 +7661,13 @@ class _FlowAnalysisImpl<
     }
   }
 
-  FlowModel _popPattern(Expression? guard) {
+  FlowModel _popPattern(ExpressionInfo? guardInfo) {
     _TopPatternContext context = _stack.removeLast() as _TopPatternContext;
     FlowModel unmatched = _unmatched!;
     _unmatched = context._previousUnmatched;
-    if (guard != null) {
-      ExpressionInfo guardInfo =
-          _getExpressionInfo(guard) ?? _makeTrivialExpressionInfo(boolType);
-      _current = guardInfo.ifTrue;
-      unmatched = _join(unmatched, guardInfo.ifFalse);
-    }
+    guardInfo ??= _makeTrivialExpressionInfo(boolType);
+    _current = guardInfo.ifTrue;
+    unmatched = _join(unmatched, guardInfo.ifFalse);
     _current = _current.unsplit();
     return unmatched.unsplit();
   }
