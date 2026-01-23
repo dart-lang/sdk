@@ -717,7 +717,7 @@ class B {}
 mixin M {}
 
 [!
-class const D<T>.named(
+class const D<T extends Object>.named(
   var int x, [
   final int y = 0,
 ]) extends A with M implements B {
@@ -732,7 +732,9 @@ class const D<T>.named(
 6:7 |const| KEYWORD
 6:13 |D| CLASS
 6:15 |T| TYPE_PARAMETER
-6:18 |named| CONSTRUCTOR
+6:17 |extends| KEYWORD
+6:25 |Object| CLASS
+6:33 |named| CONSTRUCTOR
 7:3 |var| KEYWORD
 7:7 |int| CLASS
 7:11 |x| PARAMETER_DECLARATION
@@ -2485,6 +2487,7 @@ typedef int MyFunction<T extends num>(T a, String b);
 1:9 |int| CLASS
 1:13 |MyFunction| FUNCTION_TYPE_ALIAS
 1:24 |T| TYPE_PARAMETER
+1:26 |extends| KEYWORD
 1:34 |num| CLASS
 1:39 |T| TYPE_PARAMETER
 1:41 |a| PARAMETER_DECLARATION

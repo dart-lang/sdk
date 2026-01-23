@@ -1867,6 +1867,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         node.declaredFragment?.element,
       ),
     );
+    computer._addRegion_token(node.extendsKeyword, HighlightRegionType.KEYWORD);
     super.visitTypeParameter(node);
   }
 
