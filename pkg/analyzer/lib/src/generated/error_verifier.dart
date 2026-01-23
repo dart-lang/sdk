@@ -1652,11 +1652,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superParameter = element.superConstructorParameter;
 
     if (superParameter == null) {
-      diagnosticReporter.atToken(
-        node.name,
-        node.isNamed
-            ? diag.superFormalParameterWithoutAssociatedNamed
-            : diag.superFormalParameterWithoutAssociatedPositional,
+      diagnosticReporter.report(
+        (node.isNamed
+                ? diag.superFormalParameterWithoutAssociatedNamed
+                : diag.superFormalParameterWithoutAssociatedPositional)
+            .at(node.name),
       );
       return;
     }

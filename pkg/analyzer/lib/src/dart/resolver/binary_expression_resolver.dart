@@ -153,10 +153,8 @@ class BinaryExpressionResolver {
           ? diag.unnecessaryNullComparisonAlwaysNullFalse
           : diag.unnecessaryNullComparisonAlwaysNullTrue;
       var offset = start.offset;
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: end.end - offset,
-        diagnosticCode: diagnosticCode,
+      _diagnosticReporter.report(
+        diagnosticCode.atOffset(offset: offset, length: end.end - offset),
       );
     }
 
