@@ -4918,6 +4918,82 @@ class B2 {}
 ''');
   }
 
+  test_produceErrors_duplicatePart_sameUri() async {
+    withFineDependencies = true;
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    // First time: resolve files.
+    {
+      var driver = driverFor(a);
+      var collector = DriverEventCollector(driver);
+      driver.addFile2(a);
+      driver.addFile2(b);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+    errors
+      20 +8 DUPLICATE_PART
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/a.dart
+[status] idle
+''');
+      await disposeAnalysisContextCollection();
+    }
+
+    // Second time: read cached errors.
+    {
+      var driver = driverFor(a);
+      var collector = DriverEventCollector(driver);
+      driver.addFile2(a);
+      driver.addFile2(b);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ErrorsResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+    errors
+      20 +8 DUPLICATE_PART
+[operation] getErrorsFromBytes
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
+[status] idle
+''');
+    }
+  }
+
   test_removeFile_addFile() async {
     var a = newFile('$testPackageLibPath/a.dart', '');
 

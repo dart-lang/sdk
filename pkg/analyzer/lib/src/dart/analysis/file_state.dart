@@ -1838,7 +1838,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   /// The files extracted from [fileKinds].
   List<FileState> get files {
-    return fileKinds.map((kind) => kind.file).toList();
+    return fileKinds.map((kind) => kind.file).toSet().toList();
   }
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;
