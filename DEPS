@@ -131,7 +131,7 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "bdae98cead73a436920f890626aa81cf3f2f8904", # rolled manually
+  "dart_style_rev": "f624489a5013ec58de469d4fd8793c283f62b5d8", # rolled manually
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
