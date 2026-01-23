@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
+
 
 import 'dart:ffi';
 
@@ -12,8 +11,10 @@ import 'package:ffi/ffi.dart';
 final class Foo extends Struct {
   @Int32()
   external int // Force `?` to newline.
-      ? //# 1: compile-time error
+      ?
       x;
+  // [cfe] Field 'x' cannot be nullable.
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_FIELD_TYPE_IN_STRUCT
 }
 
 void main() {

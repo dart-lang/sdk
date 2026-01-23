@@ -4,9 +4,6 @@
 //
 // SharedObjects=ffi_test_functions
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
 import 'dart:ffi';
 import 'dart:io';
 

@@ -2,19 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
+
 
 import "dart:ffi";
 
 final class MyStruct extends Struct {
   external Pointer<Int8> notEmpty;
 
-  @Array.multi([]) //# 01: compile-time error
-  external Array<Int16> a0; //# 01: compile-time error
+  @Array.multi([])
+  external Array<Int16> a0;
+  // [cfe] Array dimensions must be positive integers.
+  // [analyzer] COMPILE_TIME_ERROR.SIZE_ANNOTATION_DIMENSIONS
 
-  @Array.multi([1]) //# 02: compile-time error
-  external Array<Array<Int16>> a1; //# 02: compile-time error
+  @Array.multi([1])
+  external Array<Array<Int16>> a1;
+  // [cfe] Dimension count mismatch.
+  // [analyzer] COMPILE_TIME_ERROR.SIZE_ANNOTATION_DIMENSIONS
 }
 
 void main() {

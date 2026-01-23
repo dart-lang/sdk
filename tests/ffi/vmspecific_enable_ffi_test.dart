@@ -6,16 +6,16 @@
 //
 // VMOptions=--enable-ffi=false
 
-// Formatting can break multitests, so don't format them.
-// dart format off
 
-import 'dart:ffi'; //# 01: compile-time error
 
-import 'package:ffi/ffi.dart'; //# 01: compile-time error
+import 'dart:ffi'; // [cfe] Dart library 'dart:ffi' is not available on this platform.
+
+import 'package:ffi/ffi.dart'; // [cfe] TBD
 
 void main() {
-  Pointer<Int8> p = //# 01: compile-time error
-      calloc(); //# 01: compile-time error
-  print(p.address); //# 01: compile-time error
-  calloc.free(p); //# 01: compile-time error
+  Pointer<Int8> p = // [cfe] Undefined name 'Pointer'.
+  // [cfe] Undefined name 'Int8'.
+      calloc(); // [cfe] Undefined name 'calloc'.
+  print(p.address);
+  calloc.free(p); // [cfe] Undefined name 'calloc'.
 }

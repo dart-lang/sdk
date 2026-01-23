@@ -4,8 +4,7 @@
 //
 // Dart test program for testing dart:ffi function pointers with callbacks.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
+
 
 import 'dart:ffi';
 
@@ -13,11 +12,25 @@ final testLibrary = DynamicLibrary.process();
 
 // Correct type of exceptionalReturn argument to Pointer.fromFunction.
 double testExceptionalReturn() {
-  Pointer.fromFunction<Double Function()>(returnVoid, null); //# 59: compile-time error
-  Pointer.fromFunction<Void Function()>(returnVoid, 0); //# 60: compile-time error
-  Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc"); //# 61: compile-time error
-  Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0); //# 62: compile-time error
-  Pointer.fromFunction<Double Function()>(testExceptionalReturn); //# 63: compile-time error
+  Pointer.fromFunction<Double Function()>(returnVoid, null);
+  // [cfe] The exceptional return value must be a 'double'.
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
+
+  Pointer.fromFunction<Void Function()>(returnVoid, 0);
+  // [cfe] The exceptional return value must be 'void'.
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
+
+  Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc");
+  // [cfe] The exceptional return value must be a 'double'.
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
+
+  Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0);
+  // [cfe] The exceptional return value must be a 'double'.
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
+
+  Pointer.fromFunction<Double Function()>(testExceptionalReturn);
+  // [cfe] The exceptional return value must be a 'double'.
+  // [analyzer] COMPILE_TIME_ERROR.MISSING_EXCEPTION_VALUE
 
   return 0.0; // not used
 }

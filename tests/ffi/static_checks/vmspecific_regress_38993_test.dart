@@ -4,13 +4,14 @@
 //
 // Tests a compile time error that should not crash the analyzer or CFE.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
+
 
 import "dart:ffi";
 
 final class C extends Struct {
-  dynamic x; //# 1: compile-time error
+  dynamic x;
+  // [cfe] Field 'x' must have a native type.
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_FIELD_TYPE_IN_STRUCT
 
   external Pointer notEmpty;
 }

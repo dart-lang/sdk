@@ -4,8 +4,7 @@
 //
 // SharedObjects=ffi_test_functions
 
-// Formatting can break multitests, so don't format them.
-// dart format off
+
 
 import 'dart:ffi';
 
@@ -14,8 +13,10 @@ final class A extends Struct {
   external Array<Int8> a;
 
   // This should not crash the FFI transform.
-  @Array.multi([16]) //# 1: compile-time error
-  external Array<Unknown> b; //# 1: compile-time error
+  @Array.multi([16])
+  external Array<Unknown> b;
+  // [cfe] The type 'Unknown' isn't defined.
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 }
 
 main() {}

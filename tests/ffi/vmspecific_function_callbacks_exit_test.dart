@@ -12,9 +12,6 @@ import 'dart:io';
 import 'dart:ffi';
 import 'dart:isolate';
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
 import "package:expect/expect.dart";
 
 import 'callback_tests_utils.dart';
