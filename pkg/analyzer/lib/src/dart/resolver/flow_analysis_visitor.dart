@@ -253,7 +253,13 @@ class FlowAnalysisHelper {
   }
 
   void for_bodyBegin(AstNode node, ExpressionImpl? condition) {
-    flow?.for_bodyBegin(node is StatementImpl ? node : null, condition);
+    flow?.for_bodyBegin(
+      node is StatementImpl ? node : null,
+      switch (condition) {
+        null => flow?.booleanLiteral(true),
+        var condition => flow?.getExpressionInfo(condition),
+      },
+    );
   }
 
   void for_conditionBegin(AstNodeImpl node) {

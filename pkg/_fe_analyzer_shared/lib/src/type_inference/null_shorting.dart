@@ -42,7 +42,11 @@ mixin NullShortingMixin<
     SharedTypeView inferredType = operations.makeNullable(innerResult.type);
     do {
       // End non-nullable promotion of the null-aware variable.
-      flow.nullAwareAccess_end(wholeExpression: wholeExpression);
+      flow.nullAwareAccess_end();
+      // If any expression info or expression reference was stored for the
+      // null-aware expression, it was only valid in the case where the target
+      // expression was not null. So it needs to be cleared now.
+      flow.storeExpressionInfo(wholeExpression, null);
       innerResult = handleNullShortingStep(
         innerResult,
         _guards.removeLast(),
@@ -103,10 +107,13 @@ mixin NullShortingMixin<
   }) {
     // Ensure the initializer of [_nullAwareVariable] is promoted to
     // non-nullable.
-    flow.nullAwareAccess_rightBegin(
+    flow.storeExpressionInfo(
       target,
-      targetType,
-      guardVariable: guardVariable,
+      flow.nullAwareAccess_rightBegin(
+        target,
+        targetType,
+        guardVariable: guardVariable,
+      ),
     );
     _guards.add(guard);
   }
