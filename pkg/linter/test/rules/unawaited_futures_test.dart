@@ -288,6 +288,16 @@ abstract class C {
 ''');
   }
 
+  test_instanceProperty_unawaited_awaitNotRequired_originPrimaryConstructor() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+void f(C c) async {
+  c.p;
+}
+abstract class C(@awaitNotRequired final Future<int> p);
+''');
+  }
+
   test_instanceProperty_unawaited_awaitNotRequiredInherited() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';

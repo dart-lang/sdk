@@ -119,6 +119,13 @@ class C {
 ''');
   }
 
+  test_valid_field_futureReturnType_originPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+class C(@awaitNotRequired final Future<int> x);
+''');
+  }
+
   test_valid_function_futureOrReturnType() async {
     await assertNoErrorsInCode('''
 import 'dart:async';
