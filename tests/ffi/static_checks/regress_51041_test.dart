@@ -13,6 +13,7 @@ final class Foo extends Struct {
   external int // Force `?` to newline.
       ?
       x;
+  //  ^
   // [cfe] Field 'x' cannot be nullable.
   // [analyzer] COMPILE_TIME_ERROR.INVALID_FIELD_TYPE_IN_STRUCT
 }

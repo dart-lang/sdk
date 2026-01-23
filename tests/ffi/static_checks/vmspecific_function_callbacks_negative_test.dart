@@ -10,25 +10,32 @@ import 'dart:ffi';
 
 final testLibrary = DynamicLibrary.process();
 
+void returnVoid() {}
+
 // Correct type of exceptionalReturn argument to Pointer.fromFunction.
 double testExceptionalReturn() {
   Pointer.fromFunction<Double Function()>(returnVoid, null);
+  //                                                  ^^^^
   // [cfe] The exceptional return value must be a 'double'.
   // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
 
   Pointer.fromFunction<Void Function()>(returnVoid, 0);
+  //                                                ^
   // [cfe] The exceptional return value must be 'void'.
   // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
 
   Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc");
+  //                                                             ^^^^^
   // [cfe] The exceptional return value must be a 'double'.
   // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
 
   Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0);
+  //                                                             ^
   // [cfe] The exceptional return value must be a 'double'.
   // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
 
   Pointer.fromFunction<Double Function()>(testExceptionalReturn);
+  //      ^^^^^^^^^^^^
   // [cfe] The exceptional return value must be a 'double'.
   // [analyzer] COMPILE_TIME_ERROR.MISSING_EXCEPTION_VALUE
 
