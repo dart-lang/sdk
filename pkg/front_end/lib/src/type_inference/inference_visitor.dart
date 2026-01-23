@@ -1099,7 +1099,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     node.condition = condition..parent = node;
-    flowAnalysis.assert_afterCondition(node.condition);
+    flowAnalysis.assert_afterCondition(
+      flowAnalysis.getExpressionInfo(node.condition),
+    );
     if (node.message != null) {
       ExpressionInferenceResult codeResult = inferExpression(
         node.message!,
@@ -1402,7 +1404,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     node.condition = condition..parent = node;
-    flowAnalysis.conditional_thenBegin(node.condition, node);
+    flowAnalysis.conditional_thenBegin(
+      flowAnalysis.getExpressionInfo(node.condition),
+      node,
+    );
     bool isThenReachable = flowAnalysis.isReachable;
 
     // A conditional expression `E` of the form `b ? e1 : e2` with context
@@ -1420,7 +1425,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // - Let `T2` be the type of `e2` inferred with context type `K`
     flowAnalysis.conditional_elseBegin(
-      node.then,
+      flowAnalysis.getExpressionInfo(node.then),
       new SharedTypeView(thenResult.inferredType),
     );
     bool isOtherwiseReachable = flowAnalysis.isReachable;
@@ -1465,7 +1470,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node,
       flowAnalysis.conditional_end(
         new SharedTypeView(inferredType),
-        node.otherwise,
+        flowAnalysis.getExpressionInfo(node.otherwise),
         new SharedTypeView(otherwiseResult.inferredType),
       ),
     );
@@ -2527,7 +2532,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     node.condition = condition..parent = node;
-    flowAnalysis.doStatement_end(condition);
+    flowAnalysis.doStatement_end(flowAnalysis.getExpressionInfo(condition));
     return const StatementInferenceResult();
   }
 
@@ -3899,7 +3904,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     node.condition = condition..parent = node;
-    flowAnalysis.ifStatement_thenBegin(condition, node);
+    flowAnalysis.ifStatement_thenBegin(
+      flowAnalysis.getExpressionInfo(condition),
+      node,
+    );
     StatementInferenceResult thenResult = inferStatement(node.then);
     if (thenResult.hasChanged) {
       node.then = thenResult.statement..parent = node;
@@ -4267,7 +4275,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     element.condition = condition..parent = element;
-    flowAnalysis.ifStatement_thenBegin(condition, element);
+    flowAnalysis.ifStatement_thenBegin(
+      flowAnalysis.getExpressionInfo(condition),
+      element,
+    );
     ExpressionInferenceResult thenResult = inferElement(
       element.then,
       inferredTypeArgument,
@@ -4985,7 +4996,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression left = ensureAssignableResult(boolType, leftResult).expression;
     node.left = left..parent = node;
     flowAnalysis.logicalBinaryOp_rightBegin(
-      node.left,
+      flowAnalysis.getExpressionInfo(node.left),
       node,
       isAnd: node.operatorEnum == LogicalExpressionOperator.AND,
     );
@@ -4999,7 +5010,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.logicalBinaryOp_end(
-        node.right,
+        flowAnalysis.getExpressionInfo(node.right),
         isAnd: node.operatorEnum == LogicalExpressionOperator.AND,
       ),
     );
@@ -7337,7 +7348,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     entry.condition = condition..parent = entry;
-    flowAnalysis.ifStatement_thenBegin(condition, entry);
+    flowAnalysis.ifStatement_thenBegin(
+      flowAnalysis.getExpressionInfo(condition),
+      entry,
+    );
     // Note that this recursive invocation of inferMapEntry will add two types
     // to actualTypes; they are the actual types of the current invocation if
     // the 'else' branch is empty.
@@ -13721,7 +13735,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       conditionResult,
     ).expression;
     node.condition = condition..parent = node;
-    flowAnalysis.whileStatement_bodyBegin(node, node.condition);
+    flowAnalysis.whileStatement_bodyBegin(
+      node,
+      flowAnalysis.getExpressionInfo(node.condition),
+    );
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
       // Coverage-ignore-block(suite): Not run.

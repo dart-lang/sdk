@@ -252,10 +252,11 @@ abstract class FlowAnalysis<
   /// Call this method after visiting the condition part of an assert statement
   /// (or assert initializer).
   ///
-  /// [condition] should be the assert statement's condition.
+  /// [conditionInfo] should be the expression info for the assert statement's
+  /// condition.
   ///
   /// See [assert_begin] for more information.
-  void assert_afterCondition(Expression condition);
+  void assert_afterCondition(ExpressionInfo? conditionInfo);
 
   /// Call this method before visiting the condition part of an assert statement
   /// (or assert initializer).
@@ -358,34 +359,39 @@ abstract class FlowAnalysis<
   /// Call this method upon reaching the ":" part of a conditional expression
   /// ("?:").
   ///
-  /// [thenExpression] should be the expression preceding the ":". [thenType]
-  /// should be the static type of the expression preceding the ":".
+  /// [thenExpressionInfo] should be the expression info for the expression
+  /// preceding the ":". [thenType] should be the static type of the expression
+  /// preceding the ":".
   void conditional_elseBegin(
-    Expression thenExpression,
+    ExpressionInfo? thenExpressionInfo,
     SharedTypeView thenType,
   );
 
   /// Call this method when finishing the visit of a conditional expression
   /// ("?:").
   ///
-  /// [elseExpression] should be the expression following the ":".
-  /// [elseType] should be the static type of the expression following the ":",
-  /// and [conditionalExpressionType] should be the static type of the whole
-  /// conditional expression.
+  /// [elseExpressionInfo] should be the expression info for the expression
+  /// following the ":". [elseType] should be the static type of the expression
+  /// following the ":", and [conditionalExpressionType] should be the static
+  /// type of the whole conditional expression.
   ///
   /// Returns the expression info for the whole conditional expression.
   ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
-    Expression elseExpression,
+    ExpressionInfo? elseExpressionInfo,
     SharedTypeView elseType,
   );
 
   /// Call this method upon reaching the "?" part of a conditional expression
   /// ("?:").
   ///
-  /// [condition] should be the expression preceding the "?".
-  /// [conditionalExpression] should be the entire conditional expression.
-  void conditional_thenBegin(Expression condition, Node conditionalExpression);
+  /// [conditionInfo] should be the expression info for the expression preceding
+  /// the "?". [conditionalExpression] should be the entire conditional
+  /// expression.
+  void conditional_thenBegin(
+    ExpressionInfo? conditionInfo,
+    Node conditionalExpression,
+  );
 
   /// Call this method after processing a constant pattern.
   ///
@@ -467,8 +473,9 @@ abstract class FlowAnalysis<
   void doStatement_conditionBegin();
 
   /// Call this method after visiting the condition of a "do-while" statement.
-  /// [condition] should be the condition of the loop.
-  void doStatement_end(Expression condition);
+  /// [conditionInfo] should be the expression info for the condition of the
+  /// loop.
+  void doStatement_end(ExpressionInfo? conditionInfo);
 
   /// Call this method just after visiting either side of a binary `==` or `!=`
   /// expression, or an argument to `identical`.
@@ -746,9 +753,10 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the condition part of an if statement.
   ///
-  /// [condition] should be the if statement's condition. [ifNode] should be
-  /// the entire `if` statement (or the collection literal entry).
-  void ifStatement_thenBegin(Expression condition, Node ifNode);
+  /// [conditionInfo] should be the expression info for the if statement's
+  /// condition. [ifNode] should be the entire `if` statement (or the collection
+  /// literal entry).
+  void ifStatement_thenBegin(ExpressionInfo? conditionInfo, Node ifNode);
 
   /// Call this method after visiting the initializer of a variable declaration,
   /// or a variable pattern that is being matched (and hence being initialized
@@ -807,23 +815,23 @@ abstract class FlowAnalysis<
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
   ///
-  /// [rightOperand] should be the RHS. [isAnd] should indicate whether the
-  /// logical operator is "&&" or "||".
+  /// [rightOperandInfo] should be the expression info for the RHS. [isAnd]
+  /// should indicate whether the logical operator is "&&" or "||".
   ///
   /// Returns the expression info for the whole logical binary expression.
   ExpressionInfo logicalBinaryOp_end(
-    Expression rightOperand, {
+    ExpressionInfo? rightOperandInfo, {
     required bool isAnd,
   });
 
   /// Call this method after visiting the LHS of a logical binary operation
   /// ("||" or "&&").
   ///
-  /// [leftOperand] should be the LHS. [isAnd] should indicate whether the
-  /// logical operator is "&&" or "||". [wholeExpression] should be the whole
-  /// logical binary expression.
+  /// [leftOperandInfo] should be the expression info for the LHS. [isAnd]
+  /// should indicate whether the logical operator is "&&" or "||".
+  /// [wholeExpression] should be the whole logical binary expression.
   void logicalBinaryOp_rightBegin(
-    Expression leftOperand,
+    ExpressionInfo? leftOperandInfo,
     Node wholeExpression, {
     required bool isAnd,
   });
@@ -1346,9 +1354,13 @@ abstract class FlowAnalysis<
 
   /// Call this method after visiting the condition part of a "while" statement.
   ///
-  /// [whileStatement] should be the full while statement. [condition] should be
-  /// the condition part of the while statement.
-  void whileStatement_bodyBegin(Statement whileStatement, Expression condition);
+  /// [whileStatement] should be the full while statement. [conditionInfo]
+  /// should be the expression info for the condition part of the while
+  /// statement.
+  void whileStatement_bodyBegin(
+    Statement whileStatement,
+    ExpressionInfo? conditionInfo,
+  );
 
   /// Call this method before visiting the condition part of a "while"
   /// statement.
@@ -1503,10 +1515,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void assert_afterCondition(Expression condition) {
+  void assert_afterCondition(ExpressionInfo? conditionInfo) {
     _wrap(
-      'assert_afterCondition($condition)',
-      () => _wrapped.assert_afterCondition(condition),
+      'assert_afterCondition($conditionInfo)',
+      () => _wrapped.assert_afterCondition(conditionInfo),
     );
   }
 
@@ -1589,27 +1601,27 @@ class FlowAnalysisDebug<
 
   @override
   void conditional_elseBegin(
-    Expression thenExpression,
+    ExpressionInfo? thenExpressionInfo,
     SharedTypeView thenType,
   ) {
     _wrap(
-      'conditional_elseBegin($thenExpression, $thenType)',
-      () => _wrapped.conditional_elseBegin(thenExpression, thenType),
+      'conditional_elseBegin($thenExpressionInfo, $thenType)',
+      () => _wrapped.conditional_elseBegin(thenExpressionInfo, thenType),
     );
   }
 
   @override
   ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
-    Expression elseExpression,
+    ExpressionInfo? elseExpressionInfo,
     SharedTypeView elseType,
   ) {
     return _wrap(
       'conditional_end($conditionalExpressionType, '
-      '$elseExpression, $elseType)',
+      '$elseExpressionInfo, $elseType)',
       () => _wrapped.conditional_end(
         conditionalExpressionType,
-        elseExpression,
+        elseExpressionInfo,
         elseType,
       ),
       isQuery: true,
@@ -1618,10 +1630,14 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void conditional_thenBegin(Expression condition, Node conditionalExpression) {
+  void conditional_thenBegin(
+    ExpressionInfo? conditionInfo,
+    Node conditionalExpression,
+  ) {
     _wrap(
-      'conditional_thenBegin($condition, $conditionalExpression)',
-      () => _wrapped.conditional_thenBegin(condition, conditionalExpression),
+      'conditional_thenBegin($conditionInfo, $conditionalExpression)',
+      () =>
+          _wrapped.conditional_thenBegin(conditionInfo, conditionalExpression),
     );
   }
 
@@ -1713,10 +1729,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void doStatement_end(Expression condition) {
+  void doStatement_end(ExpressionInfo? conditionInfo) {
     return _wrap(
-      'doStatement_end($condition)',
-      () => _wrapped.doStatement_end(condition),
+      'doStatement_end($conditionInfo)',
+      () => _wrapped.doStatement_end(conditionInfo),
     );
   }
 
@@ -1944,10 +1960,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void ifStatement_thenBegin(Expression condition, Node ifNode) {
+  void ifStatement_thenBegin(ExpressionInfo? conditionInfo, Node ifNode) {
     _wrap(
-      'ifStatement_thenBegin($condition, $ifNode)',
-      () => _wrapped.ifStatement_thenBegin(condition, ifNode),
+      'ifStatement_thenBegin($conditionInfo, $ifNode)',
+      () => _wrapped.ifStatement_thenBegin(conditionInfo, ifNode),
     );
   }
 
@@ -2050,12 +2066,12 @@ class FlowAnalysisDebug<
 
   @override
   ExpressionInfo logicalBinaryOp_end(
-    Expression rightOperand, {
+    ExpressionInfo? rightOperandInfo, {
     required bool isAnd,
   }) {
     return _wrap(
-      'logicalBinaryOp_end($rightOperand, isAnd: $isAnd)',
-      () => _wrapped.logicalBinaryOp_end(rightOperand, isAnd: isAnd),
+      'logicalBinaryOp_end($rightOperandInfo, isAnd: $isAnd)',
+      () => _wrapped.logicalBinaryOp_end(rightOperandInfo, isAnd: isAnd),
       isQuery: true,
       isPure: false,
     );
@@ -2063,15 +2079,15 @@ class FlowAnalysisDebug<
 
   @override
   void logicalBinaryOp_rightBegin(
-    Expression leftOperand,
+    ExpressionInfo? leftOperandInfo,
     Node wholeExpression, {
     required bool isAnd,
   }) {
     _wrap(
-      'logicalBinaryOp_rightBegin($leftOperand, $wholeExpression, '
+      'logicalBinaryOp_rightBegin($leftOperandInfo, $wholeExpression, '
       'isAnd: $isAnd)',
       () => _wrapped.logicalBinaryOp_rightBegin(
-        leftOperand,
+        leftOperandInfo,
         wholeExpression,
         isAnd: isAnd,
       ),
@@ -2613,11 +2629,11 @@ class FlowAnalysisDebug<
   @override
   void whileStatement_bodyBegin(
     Statement whileStatement,
-    Expression condition,
+    ExpressionInfo? conditionInfo,
   ) {
     return _wrap(
-      'whileStatement_bodyBegin($whileStatement, $condition)',
-      () => _wrapped.whileStatement_bodyBegin(whileStatement, condition),
+      'whileStatement_bodyBegin($whileStatement, $conditionInfo)',
+      () => _wrapped.whileStatement_bodyBegin(whileStatement, conditionInfo),
     );
   }
 
@@ -5185,10 +5201,9 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void assert_afterCondition(Expression condition) {
+  void assert_afterCondition(ExpressionInfo? conditionInfo) {
     _AssertContext context = _stack.last as _AssertContext;
-    ExpressionInfo conditionInfo =
-        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
+    conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     context._conditionTrue = conditionInfo.ifTrue;
     _current = conditionInfo.ifFalse;
   }
@@ -5317,13 +5332,12 @@ class _FlowAnalysisImpl<
 
   @override
   void conditional_elseBegin(
-    Expression thenExpression,
+    ExpressionInfo? thenExpressionInfo,
     SharedTypeView thenType,
   ) {
     _ConditionalContext context = _stack.last as _ConditionalContext;
     context._thenInfo =
-        _getExpressionInfo(thenExpression) ??
-        _makeTrivialExpressionInfo(thenType);
+        thenExpressionInfo ?? _makeTrivialExpressionInfo(thenType);
     context._thenModel = _current;
     _current = context._branchModel;
   }
@@ -5331,28 +5345,28 @@ class _FlowAnalysisImpl<
   @override
   ExpressionInfo conditional_end(
     SharedTypeView conditionalExpressionType,
-    Expression elseExpression,
+    ExpressionInfo? elseExpressionInfo,
     SharedTypeView elseType,
   ) {
     _ConditionalContext context = _stack.removeLast() as _ConditionalContext;
     ExpressionInfo thenInfo = context._thenInfo!;
     FlowModel thenModel = context._thenModel!;
-    ExpressionInfo elseInfo =
-        _getExpressionInfo(elseExpression) ??
-        _makeTrivialExpressionInfo(elseType);
+    elseExpressionInfo ??= _makeTrivialExpressionInfo(elseType);
     FlowModel elseModel = _current;
     _current = _join(thenModel, elseModel).unsplit();
     return new ExpressionInfo(
       type: conditionalExpressionType,
-      ifTrue: _join(thenInfo.ifTrue, elseInfo.ifTrue).unsplit(),
-      ifFalse: _join(thenInfo.ifFalse, elseInfo.ifFalse).unsplit(),
+      ifTrue: _join(thenInfo.ifTrue, elseExpressionInfo.ifTrue).unsplit(),
+      ifFalse: _join(thenInfo.ifFalse, elseExpressionInfo.ifFalse).unsplit(),
     );
   }
 
   @override
-  void conditional_thenBegin(Expression condition, Node conditionalExpression) {
-    ExpressionInfo conditionInfo =
-        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
+  void conditional_thenBegin(
+    ExpressionInfo? conditionInfo,
+    Node conditionalExpression,
+  ) {
+    conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     _stack.add(new _ConditionalContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
   }
@@ -5462,11 +5476,10 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void doStatement_end(Expression condition) {
+  void doStatement_end(ExpressionInfo? conditionInfo) {
     _BranchTargetContext context = _stack.removeLast() as _BranchTargetContext;
     _current = _join(
-      (_getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType))
-          .ifFalse,
+      (conditionInfo ?? _makeTrivialExpressionInfo(boolType)).ifFalse,
       context._breakModel,
     ).unsplit();
   }
@@ -5777,9 +5790,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void ifStatement_thenBegin(Expression condition, Node ifNode) {
-    ExpressionInfo conditionInfo =
-        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
+  void ifStatement_thenBegin(ExpressionInfo? conditionInfo, Node ifNode) {
+    conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     _stack.add(new _IfContext(conditionInfo.ifFalse));
     _current = conditionInfo.ifTrue;
   }
@@ -5929,22 +5941,20 @@ class _FlowAnalysisImpl<
 
   @override
   ExpressionInfo logicalBinaryOp_end(
-    Expression rightOperand, {
+    ExpressionInfo? rightOperandInfo, {
     required bool isAnd,
   }) {
     _BranchContext context = _stack.removeLast() as _BranchContext;
-    ExpressionInfo rhsInfo =
-        _getExpressionInfo(rightOperand) ??
-        _makeTrivialExpressionInfo(boolType);
+    rightOperandInfo ??= _makeTrivialExpressionInfo(boolType);
 
     FlowModel trueResult;
     FlowModel falseResult;
     if (isAnd) {
-      trueResult = rhsInfo.ifTrue;
-      falseResult = _join(context._branchModel, rhsInfo.ifFalse);
+      trueResult = rightOperandInfo.ifTrue;
+      falseResult = _join(context._branchModel, rightOperandInfo.ifFalse);
     } else {
-      trueResult = _join(context._branchModel, rhsInfo.ifTrue);
-      falseResult = rhsInfo.ifFalse;
+      trueResult = _join(context._branchModel, rightOperandInfo.ifTrue);
+      falseResult = rightOperandInfo.ifFalse;
     }
     _current = _join(trueResult, falseResult).unsplit();
     return new ExpressionInfo(
@@ -5956,12 +5966,12 @@ class _FlowAnalysisImpl<
 
   @override
   void logicalBinaryOp_rightBegin(
-    Expression leftOperand,
+    ExpressionInfo? leftOperandInfo,
     Node wholeExpression, {
     required bool isAnd,
   }) {
-    ExpressionInfo conditionInfo =
-        _getExpressionInfo(leftOperand) ?? _makeTrivialExpressionInfo(boolType);
+    leftOperandInfo ??= _makeTrivialExpressionInfo(boolType);
+    ExpressionInfo conditionInfo = leftOperandInfo;
     _stack.add(
       new _BranchContext(isAnd ? conditionInfo.ifFalse : conditionInfo.ifTrue),
     );
@@ -6765,10 +6775,9 @@ class _FlowAnalysisImpl<
   @override
   void whileStatement_bodyBegin(
     Statement whileStatement,
-    Expression condition,
+    ExpressionInfo? conditionInfo,
   ) {
-    ExpressionInfo conditionInfo =
-        _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
+    conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
       conditionInfo.ifFalse,

@@ -803,7 +803,7 @@ mixin TypeAnalyzer<
     analyzeExpression(condition, operations.typeToSchema(operations.boolType));
     handle_ifElement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow.ifStatement_thenBegin(condition, node);
+    flow.ifStatement_thenBegin(flow.getExpressionInfo(condition), node);
     _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
   }
 
@@ -828,7 +828,7 @@ mixin TypeAnalyzer<
     analyzeExpression(condition, operations.typeToSchema(operations.boolType));
     handle_ifStatement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow.ifStatement_thenBegin(condition, node);
+    flow.ifStatement_thenBegin(flow.getExpressionInfo(condition), node);
     _analyzeIfCommon(node, ifTrue, ifFalse);
   }
 

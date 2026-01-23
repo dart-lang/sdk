@@ -6461,7 +6461,7 @@ class _MiniAstTypeAnalyzer
   ) {
     flow.assert_begin();
     analyzeExpression(condition, operations.unknownType);
-    flow.assert_afterCondition(condition);
+    flow.assert_afterCondition(flow.getExpressionInfo(condition));
     if (message != null) {
       analyzeExpression(message, operations.unknownType);
     } else {
@@ -6512,7 +6512,11 @@ class _MiniAstTypeAnalyzer
     if (isEquals) {
       leftInfo = flow.equalityOperand_end(lhs);
     } else if (isLogical) {
-      flow.logicalBinaryOp_rightBegin(lhs, node, isAnd: isAnd);
+      flow.logicalBinaryOp_rightBegin(
+        flow.getExpressionInfo(lhs),
+        node,
+        isAnd: isAnd,
+      );
     }
     var rightType = analyzeExpression(rhs, operations.unknownType).type;
     if (isEquals) {
@@ -6529,7 +6533,7 @@ class _MiniAstTypeAnalyzer
     } else if (isLogical) {
       flow.storeExpressionInfo(
         node,
-        flow.logicalBinaryOp_end(rhs, isAnd: isAnd),
+        flow.logicalBinaryOp_end(flow.getExpressionInfo(rhs), isAnd: isAnd),
       );
     }
     return new ExpressionTypeAnalysisResult(type: operations.boolType);
@@ -6558,14 +6562,18 @@ class _MiniAstTypeAnalyzer
   ) {
     flow.conditional_conditionBegin();
     analyzeExpression(condition, operations.unknownType);
-    flow.conditional_thenBegin(condition, node);
+    flow.conditional_thenBegin(flow.getExpressionInfo(condition), node);
     var ifTrueType = analyzeExpression(ifTrue, operations.unknownType).type;
-    flow.conditional_elseBegin(ifTrue, ifTrueType);
+    flow.conditional_elseBegin(flow.getExpressionInfo(ifTrue), ifTrueType);
     var ifFalseType = analyzeExpression(ifFalse, operations.unknownType).type;
     var lubType = operations.lub(ifTrueType, ifFalseType);
     flow.storeExpressionInfo(
       node,
-      flow.conditional_end(lubType, ifFalse, ifFalseType),
+      flow.conditional_end(
+        lubType,
+        flow.getExpressionInfo(ifFalse),
+        ifFalseType,
+      ),
     );
     return new ExpressionTypeAnalysisResult(type: lubType);
   }
@@ -6579,7 +6587,7 @@ class _MiniAstTypeAnalyzer
     _visitLoopBody(node, body);
     flow.doStatement_conditionBegin();
     analyzeExpression(condition, operations.unknownType);
-    flow.doStatement_end(condition);
+    flow.doStatement_end(flow.getExpressionInfo(condition));
   }
 
   ExpressionTypeAnalysisResult analyzeDotShorthandExpression(
@@ -6889,7 +6897,7 @@ class _MiniAstTypeAnalyzer
   void analyzeWhileLoop(Statement node, Expression condition, Statement body) {
     flow.whileStatement_conditionBegin(node);
     analyzeExpression(condition, operations.unknownType);
-    flow.whileStatement_bodyBegin(node, condition);
+    flow.whileStatement_bodyBegin(node, flow.getExpressionInfo(condition));
     _visitLoopBody(node, body);
     flow.whileStatement_end();
   }

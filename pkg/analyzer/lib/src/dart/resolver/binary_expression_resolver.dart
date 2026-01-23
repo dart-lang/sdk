@@ -261,7 +261,11 @@ class BinaryExpressionResolver {
     left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
-    flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
+    flow?.logicalBinaryOp_rightBegin(
+      flow.getExpressionInfo(left),
+      node,
+      isAnd: true,
+    );
     _resolver.checkUnreachableNode(right);
 
     _resolver.analyzeExpression(
@@ -276,7 +280,7 @@ class BinaryExpressionResolver {
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
     flow?.storeExpressionInfo(
       node,
-      flow.logicalBinaryOp_end(right, isAnd: true),
+      flow.logicalBinaryOp_end(flow.getExpressionInfo(right), isAnd: true),
     );
 
     _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
@@ -298,7 +302,11 @@ class BinaryExpressionResolver {
     left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
-    flow?.logicalBinaryOp_rightBegin(left, node, isAnd: false);
+    flow?.logicalBinaryOp_rightBegin(
+      flow.getExpressionInfo(left),
+      node,
+      isAnd: false,
+    );
     _resolver.checkUnreachableNode(right);
 
     _resolver.analyzeExpression(
@@ -313,7 +321,7 @@ class BinaryExpressionResolver {
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
     flow?.storeExpressionInfo(
       node,
-      flow.logicalBinaryOp_end(right, isAnd: false),
+      flow.logicalBinaryOp_end(flow.getExpressionInfo(right), isAnd: false),
     );
 
     _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);

@@ -1900,7 +1900,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       locatableDiagnostic: diag.nonBoolExpression,
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
     );
-    flowAnalysis.flow?.assert_afterCondition(node.condition);
+    flowAnalysis.flow?.assert_afterCondition(
+      flowAnalysis.flow?.getExpressionInfo(node.condition),
+    );
     if (node.message case var message?) {
       analyzeExpression(message, operations.unknownType);
       popRewrite();
@@ -1923,7 +1925,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       locatableDiagnostic: diag.nonBoolExpression,
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(node.condition),
     );
-    flowAnalysis.flow?.assert_afterCondition(node.condition);
+    flowAnalysis.flow?.assert_afterCondition(
+      flowAnalysis.flow?.getExpressionInfo(node.condition),
+    );
     if (node.message case var message?) {
       analyzeExpression(message, operations.unknownType);
       popRewrite();
@@ -2187,7 +2191,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (flow != null) {
-      flow.conditional_thenBegin(condition, node);
+      flow.conditional_thenBegin(flow.getExpressionInfo(condition), node);
       checkUnreachableNode(node.thenExpression);
     }
     analyzeExpression(node.thenExpression, SharedTypeSchemaView(contextType));
@@ -2198,7 +2202,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (flow != null) {
       flow.conditional_elseBegin(
-        node.thenExpression,
+        flow.getExpressionInfo(node.thenExpression),
         SharedTypeView(node.thenExpression.typeOrThrow),
       );
       checkUnreachableNode(elseExpression);
@@ -2214,7 +2218,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node,
         flow.conditional_end(
           SharedTypeView(node.typeOrThrow),
-          elseExpression,
+          flow.getExpressionInfo(elseExpression),
           SharedTypeView(elseExpression.typeOrThrow),
         ),
       );
@@ -2376,7 +2380,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       whyNotPromoted: whyNotPromoted,
     );
 
-    flowAnalysis.flow?.doStatement_end(condition);
+    flowAnalysis.flow?.doStatement_end(
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -4222,7 +4228,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       whyNotPromoted: whyNotPromoted,
     );
 
-    flowAnalysis.flow?.whileStatement_bodyBegin(node, condition);
+    flowAnalysis.flow?.whileStatement_bodyBegin(
+      node,
+      flowAnalysis.flow?.getExpressionInfo(condition),
+    );
     node.body.accept(this);
     flowAnalysis.flow?.whileStatement_end();
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
