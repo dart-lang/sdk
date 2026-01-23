@@ -1677,7 +1677,10 @@ class For extends Statement {
     } else {
       h.typeAnalyzer.handleNoCondition(this);
     }
-    h.flow.for_bodyBegin(forCollection ? null : this, condition);
+    h.flow.for_bodyBegin(forCollection ? null : this, switch (condition) {
+      null => h.flow.booleanLiteral(true),
+      var condition => h.flow.getExpressionInfo(condition),
+    });
     h.typeAnalyzer._visitLoopBody(this, body);
     h.flow.for_updaterBegin();
     if (updater != null) {

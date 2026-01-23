@@ -3650,7 +3650,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.condition = condition..parent = node;
     }
 
-    flowAnalysis.for_bodyBegin(node, node.condition);
+    flowAnalysis.for_bodyBegin(node, switch (node.condition) {
+      null => flowAnalysis.booleanLiteral(true),
+      var condition => flowAnalysis.getExpressionInfo(condition),
+    });
     StatementInferenceResult bodyResult = inferStatement(node.body);
     if (bodyResult.hasChanged) {
       // Coverage-ignore-block(suite): Not run.
@@ -4539,7 +4542,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       element.condition = assignableCondition..parent = element;
       inferredConditionTypes[element.condition!] = conditionResult.inferredType;
     }
-    flowAnalysis.for_bodyBegin(null, element.condition);
+    flowAnalysis.for_bodyBegin(null, switch (element.condition) {
+      null => flowAnalysis.booleanLiteral(true),
+      var condition => flowAnalysis.getExpressionInfo(condition),
+    });
     ExpressionInferenceResult bodyResult = inferElement(
       element.body,
       inferredTypeArgument,
@@ -7681,7 +7687,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       entry.condition = condition..parent = entry;
       inferredConditionTypes[entry.condition!] = conditionResult.inferredType;
     }
-    flowAnalysis.for_bodyBegin(null, entry.condition);
+    flowAnalysis.for_bodyBegin(null, switch (entry.condition) {
+      null => flowAnalysis.booleanLiteral(true),
+      var condition => flowAnalysis.getExpressionInfo(condition),
+    });
     // Actual types are added by the recursive call.
     MapLiteralEntry body = inferMapEntry(
       entry.body,

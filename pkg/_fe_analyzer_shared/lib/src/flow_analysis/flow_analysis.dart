@@ -533,12 +533,10 @@ abstract class FlowAnalysis<
   /// [handleContinue]. If a "for" collection element is being entered, [node]
   /// should be `null`.
   ///
-  /// [condition] is an opaque representation of the loop condition; it is
-  /// matched against expressions passed to previous calls to determine whether
-  /// the loop condition should cause any promotions to occur. If [condition] is
-  /// null, the condition is understood to be empty (equivalent to a condition
-  /// of `true`).
-  void for_bodyBegin(Statement? node, Expression? condition);
+  /// [conditionInfo] is the expression info for the loop condition. If the loop
+  /// condition is empty, the caller should pass in the result of calling
+  /// [booleanLiteral] and passing in a value of `true`.
+  void for_bodyBegin(Statement? node, ExpressionInfo? conditionInfo);
 
   /// Call this method just before visiting the condition of a conventional
   /// "for" statement or collection element.
@@ -1791,10 +1789,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void for_bodyBegin(Statement? node, Expression? condition) {
+  void for_bodyBegin(Statement? node, ExpressionInfo? conditionInfo) {
     _wrap(
-      'for_bodyBegin($node, $condition)',
-      () => _wrapped.for_bodyBegin(node, condition),
+      'for_bodyBegin($node, $conditionInfo)',
+      () => _wrapped.for_bodyBegin(node, conditionInfo),
     );
   }
 
@@ -5565,14 +5563,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void for_bodyBegin(Statement? node, Expression? condition) {
-    ExpressionInfo conditionInfo = condition == null
-        ? new ExpressionInfo(
-            type: boolType,
-            ifTrue: _current,
-            ifFalse: _current.setUnreachable(),
-          )
-        : _getExpressionInfo(condition) ?? _makeTrivialExpressionInfo(boolType);
+  void for_bodyBegin(Statement? node, ExpressionInfo? conditionInfo) {
+    conditionInfo ??= _makeTrivialExpressionInfo(boolType);
     _WhileContext context = new _WhileContext(
       _current.reachable.parent!,
       conditionInfo.ifFalse,
