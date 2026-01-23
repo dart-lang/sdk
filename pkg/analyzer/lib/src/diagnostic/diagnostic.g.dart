@@ -10313,21 +10313,6 @@ const DiagnosticWithoutArguments missingStatement =
       expectedTypes: [],
     );
 
-/// Parameters:
-/// Object p0: the terminator that is missing
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
->
-missingTerminatorForParameterGroup = DiagnosticWithArguments(
-  name: 'missing_terminator_for_parameter_group',
-  problemMessage: "There is no '{0}' to close the parameter group.",
-  correctionMessage: "Try inserting a '{0}' at the end of the group.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'missing_terminator_for_parameter_group',
-  withArguments: _withArgumentsMissingTerminatorForParameterGroup,
-  expectedTypes: [ExpectedType.object],
-);
-
 /// No parameters.
 const DiagnosticWithoutArguments missingTypedefParameters =
     DiagnosticWithoutArgumentsImpl(
@@ -10951,24 +10936,6 @@ const DiagnosticWithoutArguments multipleSuperInitializers =
       uniqueName: 'multiple_super_initializers',
       expectedTypes: [],
     );
-
-/// Parameters:
-/// Object p0: the number of variables being declared
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
->
-multipleVariablesInForEach = DiagnosticWithArguments(
-  name: 'multiple_variables_in_for_each',
-  problemMessage:
-      "A single loop variable must be declared in a for-each loop before the "
-      "'in', but {0} were found.",
-  correctionMessage:
-      "Try moving all but one of the declarations inside the loop body.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'multiple_variables_in_for_each',
-  withArguments: _withArgumentsMultipleVariablesInForEach,
-  expectedTypes: [ExpectedType.object],
-);
 
 /// No parameters.
 const DiagnosticWithoutArguments multipleVarianceModifiers =
@@ -12340,20 +12307,6 @@ nonTypeInCatchClause = DiagnosticWithArguments(
   uniqueName: 'non_type_in_catch_clause',
   withArguments: _withArgumentsNonTypeInCatchClause,
   expectedTypes: [ExpectedType.string],
-);
-
-/// Parameters:
-/// Object p0: the operator that the user is trying to define
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
->
-nonUserDefinableOperator = DiagnosticWithArguments(
-  name: 'non_user_definable_operator',
-  problemMessage: "The operator '{0}' isn't user definable.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'non_user_definable_operator',
-  withArguments: _withArgumentsNonUserDefinableOperator,
-  expectedTypes: [ExpectedType.object],
 );
 
 /// No parameters.
@@ -15423,20 +15376,6 @@ typeTestWithUndefinedName = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
-/// Parameters:
-/// Object p0: the path of the file that cannot be read
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
->
-unableGetContent = DiagnosticWithArguments(
-  name: 'unable_get_content',
-  problemMessage: "Unable to get content of '{0}'.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'unable_get_content',
-  withArguments: _withArgumentsUnableGetContent,
-  expectedTypes: [ExpectedType.object],
-);
-
 /// No parameters.
 const DiagnosticWithoutArguments
 uncheckedInvocationOfNullableValue = DiagnosticWithoutArgumentsImpl(
@@ -16257,21 +16196,6 @@ unexpectedSeparatorInNumber = DiagnosticWithoutArgumentsImpl(
   type: DiagnosticType.SYNTACTIC_ERROR,
   uniqueName: 'unexpected_separator_in_number',
   expectedTypes: [],
-);
-
-/// Parameters:
-/// Object p0: the starting character that was missing
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
->
-unexpectedTerminatorForParameterGroup = DiagnosticWithArguments(
-  name: 'unexpected_terminator_for_parameter_group',
-  problemMessage: "There is no '{0}' to open a parameter group.",
-  correctionMessage: "Try inserting the '{0}' at the appropriate location.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'unexpected_terminator_for_parameter_group',
-  withArguments: _withArgumentsUnexpectedTerminatorForParameterGroup,
-  expectedTypes: [ExpectedType.object],
 );
 
 /// Parameters:
@@ -17671,22 +17595,6 @@ wrongSeparatorForPositionalParameter = DiagnosticWithoutArgumentsImpl(
   type: DiagnosticType.SYNTACTIC_ERROR,
   uniqueName: 'wrong_separator_for_positional_parameter',
   expectedTypes: [],
-);
-
-/// Parameters:
-/// Object p0: the terminator that was expected
-/// Object p1: the terminator that was found
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0, required Object p1})
->
-wrongTerminatorForParameterGroup = DiagnosticWithArguments(
-  name: 'wrong_terminator_for_parameter_group',
-  problemMessage: "Expected '{0}' to close parameter group.",
-  correctionMessage: "Try replacing '{0}' with '{1}'.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'wrong_terminator_for_parameter_group',
-  withArguments: _withArgumentsWrongTerminatorForParameterGroup,
-  expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
 
 /// Let `C` be a generic class that declares a formal type parameter `X`, and
@@ -19904,12 +19812,6 @@ LocatableDiagnostic _withArgumentsMissingRequiredParamWithDetails({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsMissingTerminatorForParameterGroup({
-  required Object p0,
-}) {
-  return LocatableDiagnosticImpl(diag.missingTerminatorForParameterGroup, [p0]);
-}
-
 LocatableDiagnostic _withArgumentsMissingVariablePattern({
   required String name,
 }) {
@@ -20043,12 +19945,6 @@ LocatableDiagnostic _withArgumentsMultiplePlugins({
   required String firstPluginName,
 }) {
   return LocatableDiagnosticImpl(diag.multiplePlugins, [firstPluginName]);
-}
-
-LocatableDiagnostic _withArgumentsMultipleVariablesInForEach({
-  required Object p0,
-}) {
-  return LocatableDiagnosticImpl(diag.multipleVariablesInForEach, [p0]);
 }
 
 LocatableDiagnostic _withArgumentsMustBeANativeFunctionType({
@@ -20327,12 +20223,6 @@ LocatableDiagnostic _withArgumentsNonTypeAsTypeArgument({
 
 LocatableDiagnostic _withArgumentsNonTypeInCatchClause({required String name}) {
   return LocatableDiagnosticImpl(diag.nonTypeInCatchClause, [name]);
-}
-
-LocatableDiagnostic _withArgumentsNonUserDefinableOperator({
-  required Object p0,
-}) {
-  return LocatableDiagnosticImpl(diag.nonUserDefinableOperator, [p0]);
 }
 
 LocatableDiagnostic
@@ -21014,10 +20904,6 @@ LocatableDiagnostic _withArgumentsTypeTestWithUndefinedName({
   return LocatableDiagnosticImpl(diag.typeTestWithUndefinedName, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUnableGetContent({required Object p0}) {
-  return LocatableDiagnosticImpl(diag.unableGetContent, [p0]);
-}
-
 LocatableDiagnostic _withArgumentsUncheckedMethodInvocationOfNullableValue({
   required String name,
 }) {
@@ -21276,14 +21162,6 @@ LocatableDiagnostic _withArgumentsUndefinedSuperSetter({
 
 LocatableDiagnostic _withArgumentsUndone({required String message}) {
   return LocatableDiagnosticImpl(diag.undone, [message]);
-}
-
-LocatableDiagnostic _withArgumentsUnexpectedTerminatorForParameterGroup({
-  required Object p0,
-}) {
-  return LocatableDiagnosticImpl(diag.unexpectedTerminatorForParameterGroup, [
-    p0,
-  ]);
 }
 
 LocatableDiagnostic _withArgumentsUnexpectedToken({required String text}) {
@@ -21613,16 +21491,6 @@ LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsFunction({
     type,
     typeParameterCount,
     typeArgumentCount,
-  ]);
-}
-
-LocatableDiagnostic _withArgumentsWrongTerminatorForParameterGroup({
-  required Object p0,
-  required Object p1,
-}) {
-  return LocatableDiagnosticImpl(diag.wrongTerminatorForParameterGroup, [
-    p0,
-    p1,
   ]);
 }
 

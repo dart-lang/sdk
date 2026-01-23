@@ -3065,10 +3065,6 @@ missing_star_after_sync:
     Remove the `sync` keyword. Add a `*`.
 missing_statement:
   status: noFix
-missing_terminator_for_parameter_group:
-  status: needsFix
-  notes: |-
-    Add the missing terminator.
 missing_typedef_parameters:
   status: hasFix
 missing_variable_in_for_each:
@@ -3116,8 +3112,6 @@ multiple_representation_fields:
   notes: |-
     Remove extra fields.
     Maybe wrap into a record.
-multiple_variables_in_for_each:
-  status: noFix
 multiple_variance_modifiers:
   status: noFix
 multiple_with_clauses:
@@ -3157,8 +3151,6 @@ non_part_of_directive_in_part:
   notes: |-
     Remove the directive. Move the directive to the library.
 non_string_literal_as_uri:
-  status: noFix
-non_user_definable_operator:
   status: noFix
 normal_before_optional_parameters:
   status: needsFix
@@ -3268,10 +3260,6 @@ typedef_in_class:
   status: needsFix
   notes: |-
     Move the typedef to the top level.
-unexpected_terminator_for_parameter_group:
-  status: needsFix
-  notes: |-
-    Remove the terminator.
 unexpected_token:
   status: noFix
 unexpected_tokens:
@@ -3308,10 +3296,6 @@ wrong_number_of_parameters_for_setter:
   status: needsFix
 wrong_separator_for_positional_parameter:
   status: hasFix
-wrong_terminator_for_parameter_group:
-  status: needsFix
-  notes: |-
-    Replace the terminator with the correct terminator.
 asset_does_not_exist:
   status: noFix
   since: ~2.15
@@ -3389,8 +3373,6 @@ missing_digit:
 missing_hex_digit:
   status: noFix
 missing_quote:
-  status: noFix
-unable_get_content:
   status: noFix
 unexpected_dollar_in_string:
   status: noFix
