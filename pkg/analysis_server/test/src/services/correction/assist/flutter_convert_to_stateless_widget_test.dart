@@ -157,6 +157,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class ^MyWidget extends StatefulWidget {
   static String staticField1 = '';
   final String instanceField1;
@@ -203,6 +204,7 @@ class _MyWidgetState extends State<MyWidget> {
     await assertHasAssist(r'''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   static String staticField1 = '';
   final String instanceField1;

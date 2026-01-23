@@ -425,6 +425,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   var t = const Text('');
 }
@@ -432,6 +433,7 @@ class MyWidget extends StatelessWidget {
     await assertHasFix('''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   var t = const Text('');
 
@@ -444,6 +446,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   var c = Container();
 }
@@ -451,6 +454,7 @@ class MyWidget extends StatelessWidget {
     await assertHasFix('''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   var c = Container();
 
@@ -871,6 +875,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   var t = const Text('');
 }
@@ -878,6 +883,7 @@ class MyWidget extends StatelessWidget {
     await assertHasFix('''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   var t = const Text('');
 
@@ -890,6 +896,7 @@ class MyWidget extends StatelessWidget {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   var c = Container();
 }
@@ -897,6 +904,7 @@ class MyWidget extends StatelessWidget {
     await assertHasFix('''
 import 'package:flutter/material.dart';
 
+// ignore: must_be_immutable
 class MyWidget extends StatelessWidget {
   var c = Container();
 
