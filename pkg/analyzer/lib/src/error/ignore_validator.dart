@@ -164,11 +164,10 @@ class IgnoreValidator {
     for (var unignorableName in unignorable) {
       if (unignorableName is IgnoredDiagnosticName) {
         var name = unignorableName.name;
-        _diagnosticReporter.atOffset(
-          diagnosticCode: diag.unignorableIgnore,
-          offset: unignorableName.offset,
-          length: name.length,
-          arguments: [name],
+        _diagnosticReporter.report(
+          diag.unignorableIgnore
+              .withArguments(diagnosticName: name)
+              .atOffset(offset: unignorableName.offset, length: name.length),
         );
         list.remove(unignorableName);
       }

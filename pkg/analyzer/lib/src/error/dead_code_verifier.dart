@@ -174,10 +174,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       f();
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
-        _diagnosticReporter.atNode(
-          label,
-          diag.unusedLabel,
-          arguments: [label.label.name],
+        _diagnosticReporter.report(
+          diag.unusedLabel.withArguments(name: label.label.name).at(label),
         );
       }
       _labelTracker = labelTracker.outerTracker;

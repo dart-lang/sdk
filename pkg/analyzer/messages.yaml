@@ -29392,9 +29392,9 @@ WarningCode:
   sdkVersionSince:
     type: staticWarning
     parameters:
-      String p0: the version specified in the `@Since()` annotation
-      String p1: the SDK version constraints
-    problemMessage: "This API is available since SDK #p0, but constraints '#p1' don't guarantee it."
+      String availableVersion: the version specified in the `@Since()` annotation
+      String versionConstraints: the SDK version constraints
+    problemMessage: "This API is available since SDK #availableVersion, but constraints '#versionConstraints' don't guarantee it."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: false
   sdkVersionUiAsCode:
@@ -29518,9 +29518,9 @@ WarningCode:
   strictRawType:
     type: staticWarning
     parameters:
-      Type p0: the name of the generic type
-    problemMessage: "The generic type '#p0' should have explicit type arguments but doesn't."
-    correctionMessage: "Use explicit type arguments for '#p0'."
+      Type type: the name of the generic type
+    problemMessage: "The generic type '#type' should have explicit type arguments but doesn't."
+    correctionMessage: "Use explicit type arguments for '#type'."
     hasPublishedDocs: false
     comment: |-
       When "strict-raw-types" is enabled, "raw types" must have type arguments.
@@ -29530,9 +29530,9 @@ WarningCode:
   subtypeOfSealedClass:
     type: staticWarning
     parameters:
-      String p0: the name of the sealed class
-    problemMessage: "The class '#p0' shouldn't be extended, mixed in, or implemented because it's sealed."
-    correctionMessage: "Try composing instead of inheriting, or refer to the documentation of '#p0' for more information."
+      String name: the name of the sealed class
+    problemMessage: "The class '#name' shouldn't be extended, mixed in, or implemented because it's sealed."
+    correctionMessage: "Try composing instead of inheriting, or refer to the documentation of '#name' for more information."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -29759,9 +29759,9 @@ WarningCode:
   undefinedReferencedParameter:
     type: staticWarning
     parameters:
-      String p0: the name of the undefined parameter
-      String p1: the name of the targeted member
-    problemMessage: "The parameter '#p0' isn't defined by '#p1'."
+      String undefinedParameterName: the name of the undefined parameter
+      String targetedMemberName: the name of the targeted member
+    problemMessage: "The parameter '#undefinedParameterName' isn't defined by '#targetedMemberName'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -29831,8 +29831,8 @@ WarningCode:
   unignorableIgnore:
     type: staticWarning
     parameters:
-      Object p0: the name of the non-diagnostic being ignored
-    problemMessage: "The diagnostic '#p0' can't be ignored."
+      String diagnosticName: the name of the non-diagnostic being ignored
+    problemMessage: "The diagnostic '#diagnosticName' can't be ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
     hasPublishedDocs: false
   unnecessaryCast:
@@ -30140,8 +30140,8 @@ WarningCode:
   unnecessaryQuestionMark:
     type: staticWarning
     parameters:
-      String p0: the name of the type
-    problemMessage: "The '?' is unnecessary because '#p0' is nullable without it."
+      String typeName: the name of the type
+    problemMessage: "The '?' is unnecessary because '#typeName' is nullable without it."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -30622,8 +30622,8 @@ WarningCode:
   unusedImport:
     type: staticWarning
     parameters:
-      String p0: the content of the unused import's URI
-    problemMessage: "Unused import: '#p0'."
+      String uriStr: the content of the unused import's URI
+    problemMessage: "Unused import: '#uriStr'."
     correctionMessage: Try removing the import directive.
     hasPublishedDocs: true
     documentation: |-
@@ -30653,8 +30653,8 @@ WarningCode:
   unusedLabel:
     type: staticWarning
     parameters:
-      String p0: the label that isn't used
-    problemMessage: "The label '#p0' isn't used."
+      String name: the label that isn't used
+    problemMessage: "The label '#name' isn't used."
     correctionMessage: "Try removing the label, or using it in either a 'break' or 'continue' statement."
     hasPublishedDocs: true
     documentation: |-
@@ -30804,8 +30804,8 @@ WarningCode:
   unusedResult:
     type: staticWarning
     parameters:
-      String p0: the name of the annotated method, property or function
-    problemMessage: "The value of '#p0' should be used."
+      String name: the name of the annotated method, property or function
+    problemMessage: "The value of '#name' should be used."
     correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
     hasPublishedDocs: true
     documentation: |-
@@ -30878,10 +30878,10 @@ WarningCode:
   unusedResultWithMessage:
     type: staticWarning
     parameters:
-      Object p0: the name of the annotated method, property or function
-      Object p1: message details
+      String name: the name of the annotated method, property or function
+      String message: message details
     sharedName: unusedResult
-    problemMessage: "'#p0' should be used. #p1."
+    problemMessage: "'#name' should be used. #message."
     correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
     hasPublishedDocs: true
     comment: |-
@@ -30891,8 +30891,8 @@ WarningCode:
   unusedShownName:
     type: staticWarning
     parameters:
-      String p0: the name that is shown but not used
-    problemMessage: "The name #p0 is shown, but isn't used."
+      String name: the name that is shown but not used
+    problemMessage: "The name #name is shown, but isn't used."
     correctionMessage: Try removing the name from the list of shown members.
     hasPublishedDocs: true
     documentation: |-

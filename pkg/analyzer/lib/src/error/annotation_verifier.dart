@@ -523,10 +523,14 @@ class AnnotationVerifier {
         var parameterName = undefinedParameter is SimpleStringLiteral
             ? undefinedParameter.value
             : undefinedParameter.correspondingParameter?.name;
-        _diagnosticReporter.atNode(
-          undefinedParameter,
-          diag.undefinedReferencedParameter,
-          arguments: [parameterName ?? undefinedParameter.toString(), name],
+        _diagnosticReporter.report(
+          diag.undefinedReferencedParameter
+              .withArguments(
+                undefinedParameterName:
+                    parameterName ?? undefinedParameter.toString(),
+                targetedMemberName: name,
+              )
+              .at(undefinedParameter),
         );
       }
     }
