@@ -26,6 +26,19 @@ import '../../../utilities/extensions/ast.dart';
 
 typedef _Constructors = Map<ConstructorElement, _Constructor>;
 
+/// This correction producer converts a class to an enum, if possible, by making
+/// the following changes:
+///
+/// * changes the `class` keyword to `enum`,
+/// * removes the `const` keyword from the primary constructor, if there is one,
+/// * converts static fields into enum constant values,
+/// * removes an `int index` field if there is one,
+/// * removes any field formal parameters for the index field from all
+///   constructors,
+/// * removes all arguments for said index field formal parameters,
+/// * removes the singular constructor (primary, or in-body), if there is only
+///   one, and it no longer accepts any arguments (after removing a possible
+///   index parameter), and it has no doc comment nor annotations.
 class ConvertClassToEnum extends ResolvedCorrectionProducer {
   ConvertClassToEnum({required super.context});
 
@@ -160,6 +173,9 @@ class _EnumDescription {
   /// The indexes of members that need to be deleted.
   final List<int> membersToDelete = [];
 
+  /// The primary constructor, if it needs to be deleted.
+  PrimaryConstructorDeclaration? primaryConstructorToDelete;
+
   /// The indexes of primary constructor parameters that need to be deleted.
   final List<int> parametersToDelete = [];
 
@@ -287,6 +303,14 @@ class _EnumDescription {
     // Update the constructors.
     _transformConstructors(builder);
 
+    if (primaryConstructorToDelete case var primaryConstructor?) {
+      if (primaryConstructor.constructorName case var constuctorName?) {
+        builder.addDeletion(range.startEnd(constuctorName, primaryConstructor));
+      } else {
+        builder.addDeletion(range.node(primaryConstructor.formalParameters));
+      }
+    }
+
     // Special case replacing all of the members.
     if (membersToDelete.length == members.length) {
       builder.addSimpleReplacement(
@@ -390,7 +414,7 @@ class _EnumDescription {
           parameters.length - (parameterData == null ? 0 : 1);
       if (updatedParameterCount != 0) return null;
 
-      // TODO(srawlins): Mark `primaryConstructor` as "to be deleted."
+      primaryConstructorToDelete = primaryConstructor;
       return primaryConstructor;
     }
   }
