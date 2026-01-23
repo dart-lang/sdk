@@ -248,11 +248,11 @@ void f() {
   test_for() async {
     await assertErrorsInCode(
       '''
-f(var l) {
+f(l) {
   for (e in l) {
   }
 }''',
-      [error(diag.undefinedIdentifier, 18, 1)],
+      [error(diag.undefinedIdentifier, 14, 1)],
     );
   }
 

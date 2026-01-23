@@ -317,7 +317,7 @@ class A {
   test_listAssignment() async {
     await assertDiagnostics(
       r'''
-f(var b) {
+f(int b) {
   [b] = [1];
 }
 ''',
@@ -342,7 +342,7 @@ void f(int p) {
   test_mapAssignment() async {
     await assertDiagnostics(
       r'''
-f(var a) {
+f(int a) {
   {'a': a} = {'a': 1};
 }
 ''',
@@ -424,7 +424,7 @@ class A {
   A(this.a);
 }
 
-f(var b) {
+f(int b) {
   A(a: b) = A(1);
 }
 ''',
@@ -457,7 +457,7 @@ void f({int p = 5}) {
   test_recordAssignment() async {
     await assertDiagnostics(
       r'''
-void f(var a) {
+void f(int a) {
   var b = 0;
   (a, b) = (1, 2);
 }

@@ -200,9 +200,10 @@ foo({p}) {}
   test_namedParameter_inferredType_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 foo({var p = null}) {}
 ''',
-      [lint(5, 12)],
+      [lint(21, 12)],
     );
   }
 
@@ -230,9 +231,10 @@ foo([p]) {}
   test_optionalParameter_inferredType_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 foo([var p = null]) {}
 ''',
-      [lint(5, 12)],
+      [lint(21, 12)],
     );
   }
 

@@ -50,39 +50,39 @@ class C {
 ''');
   }
 
+  test_functionTypedFormalParameter_withoutType() async {
+    await assertErrorsInCode(
+      r'''
+void fn(String cb(x)) => print(cb(7));
+''',
+      [error(diag.inferenceFailureOnUntypedParameter, 18, 1)],
+    );
+  }
+
   test_functionTypedFormalParameter_withType() async {
     await assertNoErrorsInCode(r'''
 void fn(String cb(int x)) => print(cb(7));
 ''');
   }
 
-  test_functionTypedFormalParameter_withVar() async {
+  test_namedParameter_withoutType() async {
     await assertErrorsInCode(
       r'''
-void fn(String cb(var x)) => print(cb(7));
+void fn({a}) => print(a);
 ''',
-      [error(diag.inferenceFailureOnUntypedParameter, 18, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 9, 1)],
     );
+  }
+
+  test_namedParameter_withoutType_unreferenced() async {
+    await assertNoErrorsInCode(r'''
+void fn({a}) {}
+''');
   }
 
   test_namedParameter_withType() async {
     await assertNoErrorsInCode(r'''
 void fn({int a = 0}) => print(a);
-''');
-  }
-
-  test_namedParameter_withVar() async {
-    await assertErrorsInCode(
-      r'''
-void fn({var a}) => print(a);
-''',
-      [error(diag.inferenceFailureOnUntypedParameter, 9, 5)],
-    );
-  }
-
-  test_namedParameter_withVar_unreferenced() async {
-    await assertNoErrorsInCode(r'''
-void fn({var a}) {}
 ''');
   }
 
@@ -99,12 +99,12 @@ void fn(a) => print(a);
     await assertErrorsInCode(
       r'''
 class C {
-  C(var a) {
+  C(a) {
     a;
   }
 }
 ''',
-      [error(diag.inferenceFailureOnUntypedParameter, 14, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 14, 1)],
     );
   }
 
@@ -119,11 +119,11 @@ class C {
 ''');
   }
 
-  test_parameter_inConstructor_fieldFormal_withVar() async {
+  test_parameter_inConstructor_fieldFormal_withoutType() async {
     await assertNoErrorsInCode(r'''
 class C {
   int a;
-  C(var this.a) {
+  C(this.a) {
     a;
   }
 }
@@ -134,17 +134,17 @@ class C {
     await assertErrorsInCode(
       r'''
 class C {
-  C(var a) : assert(a != null);
+  C(a) : assert(a != null);
 }
 ''',
-      [error(diag.inferenceFailureOnUntypedParameter, 14, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 14, 1)],
     );
   }
 
   test_parameter_inConstructor_unreferenced() async {
     await assertNoErrorsInCode(r'''
 class C {
-  C(var a);
+  C(a);
 }
 ''');
   }
@@ -161,12 +161,12 @@ class C {
     await assertErrorsInCode(
       r'''
 void fn() {
-  var f = (var a) => a;
+  var f = (a) => a;
 }
 ''',
       [
         error(diag.unusedLocalVariable, 18, 1),
-        error(diag.inferenceFailureOnUntypedParameter, 23, 5),
+        error(diag.inferenceFailureOnUntypedParameter, 23, 1),
       ],
     );
   }
@@ -205,10 +205,10 @@ void fn<T>(T a) => print(a);
     await assertErrorsInCode(
       r'''
 class C {
-  void fn(var a) => print(a);
+  void fn(a) => print(a);
 }
 ''',
-      [error(diag.inferenceFailureOnUntypedParameter, 20, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 20, 1)],
     );
   }
 
@@ -216,10 +216,10 @@ class C {
     await assertErrorsInCode(
       r'''
 abstract class C {
-  void fn(var a);
+  void fn(a);
 }
 ''',
-      [error(diag.inferenceFailureOnUntypedParameter, 29, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 29, 1)],
     );
   }
 
@@ -252,7 +252,7 @@ class C {
 
 class D extends C {
   @override
-  void fn([var a = 7]) => print(a);
+  void fn([a = 7]) => print(a);
 }
 ''');
   }
@@ -270,6 +270,19 @@ class D extends C {
 ''');
   }
 
+  test_parameter_inOverridingMethod_withoutType() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  void fn(int a) => print(a);
+}
+
+class D extends C {
+  @override
+  void fn(a) => print(a);
+}
+''');
+  }
+
   test_parameter_inOverridingMethod_withType() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -279,19 +292,6 @@ class C {
 class D extends C {
   @override
   void fn(num a) => print(a);
-}
-''');
-  }
-
-  test_parameter_inOverridingMethod_withVar() async {
-    await assertNoErrorsInCode(r'''
-class C {
-  void fn(int a) => print(a);
-}
-
-class D extends C {
-  @override
-  void fn(var a) => print(a);
 }
 ''');
   }
@@ -320,6 +320,24 @@ void fn(a) => print(a);
     );
   }
 
+  test_parameter_withoutType() async {
+    await assertErrorsInCode(
+      r'''
+void fn(a) => print(a);
+''',
+      [error(diag.inferenceFailureOnUntypedParameter, 8, 1)],
+    );
+  }
+
+  test_parameter_withoutTypeAndDefault() async {
+    await assertErrorsInCode(
+      r'''
+void fn([a = 7]) => print(a);
+''',
+      [error(diag.inferenceFailureOnUntypedParameter, 9, 1)],
+    );
+  }
+
   test_parameter_withType() async {
     await assertNoErrorsInCode(r'''
 void fn(int a) => print(a);
@@ -330,24 +348,6 @@ void fn(int a) => print(a);
     await assertNoErrorsInCode(r'''
 void fn([int a = 7]) => print(a);
 ''');
-  }
-
-  test_parameter_withVar() async {
-    await assertErrorsInCode(
-      r'''
-void fn(var a) => print(a);
-''',
-      [error(diag.inferenceFailureOnUntypedParameter, 8, 5)],
-    );
-  }
-
-  test_parameter_withVarAndDefault() async {
-    await assertErrorsInCode(
-      r'''
-void fn([var a = 7]) => print(a);
-''',
-      [error(diag.inferenceFailureOnUntypedParameter, 9, 5)],
-    );
   }
 
   test_superParameter() async {

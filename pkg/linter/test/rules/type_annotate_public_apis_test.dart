@@ -524,11 +524,12 @@ class A {
   test_staticMethod_onClass_parameterHasVar() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class A {
   static void m(var p) {}
 }
 ''',
-      [lint(26, 5)],
+      [lint(42, 5)],
     );
   }
 

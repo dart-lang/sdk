@@ -1305,7 +1305,7 @@ class A {
 
   test_resolveAgainstNull() async {
     await assertNoErrorsInCode(r'''
-f(var p) {
+f(p) {
   return null == p;
 }''');
   }

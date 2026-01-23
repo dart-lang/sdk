@@ -1338,7 +1338,7 @@ void f() {
 class A {
   /*[0*/test/*0]*/() {}
 }
-void f(var a) {
+void f(a) {
   a./*[1*/test/*1]*/();
   new A().test();
   a./*[2*/test/*2]*/();
@@ -1354,7 +1354,7 @@ void f(var a) {
 class A {
   newName() {}
 }
-void f(var a) {
+void f(a) {
   a.newName();
   new A().newName();
   a.newName();
@@ -1383,7 +1383,7 @@ class A {
   t^est() {}
 }
 
-void f(var a) {
+void f(a) {
   a.test();
 }
 ''');
@@ -1400,7 +1400,7 @@ class A {
   newName() {}
 }
 
-void f(var a) {
+void f(a) {
   a.newName();
 }
 ''');
@@ -1420,7 +1420,7 @@ void f(p) {
 class A {
   _te^st() {}
 }
-void f(var a) {
+void f(a) {
   a._test();
   new A()._test();
 }
@@ -1435,7 +1435,7 @@ void f(var a) {
 class A {
   newName() {}
 }
-void f(var a) {
+void f(a) {
   a.newName();
   new A().newName();
 }

@@ -29927,6 +29927,7 @@ WarningCode:
       parameter has the keyword `final`:
 
       ```dart
+      // @dart = 3.10
       class A {
         int value;
 
@@ -29938,6 +29939,7 @@ WarningCode:
       `B` has the keyword `final`:
 
       ```dart
+      // @dart = 3.10
       class A {
         A(int value);
       }

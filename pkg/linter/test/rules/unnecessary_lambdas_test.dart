@@ -365,15 +365,16 @@ class C {
   test_targetIsFinalParameter() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 void f(List<String> list) {
   list.where((final e) => ((a) => e.contains(a))(e));
 }
 ''',
-      [lint(55, 20)],
+      [lint(71, 20)],
     );
   }
 
-  test_targetIsVarParameter() async {
+  test_targetIsUntypedParameter() async {
     await assertNoDiagnostics(r'''
 void main(List<String> list) {
   list.where((e) => ((a) => e.contains(a))(e));

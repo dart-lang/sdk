@@ -57,18 +57,19 @@ void f() {
   test_closureParameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 f() {
   ({final p1, required final p2}) {};
 }
 ''',
-      [lint(10, 5), lint(29, 5)],
+      [lint(26, 5), lint(45, 5)],
     );
   }
 
   test_closureParameter_named_ok() async {
     await assertNoDiagnostics(r'''
 f() {
-  ({int? p1, final int? p2, required int p3, required final int p4}) {};
+  ({int? p1, required int p2}) {};
 }
 ''');
   }
@@ -87,20 +88,21 @@ f() {
   test_closureParameter_named_passed_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 m(void Function({int? p1, required int p2}) f) {}
 f() {
   m(({final p1, required final p2}) {});
 }
 ''',
-      [lint(62, 5), lint(81, 5)],
+      [lint(78, 5), lint(97, 5)],
     );
   }
 
   test_closureParameter_named_passed_ok() async {
     await assertNoDiagnostics(r'''
-m(void Function({int? p1, int? p2, required int p3, required int p4}) f) {}
+m(void Function({int? p1, required int p2}) f) {}
 f() {
-  m(({int? p1, final int? p2, required int p3, required final int p4}) {});
+  m(({int? p1, required int p2}) {});
 }
 ''');
   }
@@ -120,41 +122,44 @@ f() {
   test_closureParameter_named_passed_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 m(void Function({int? p1, required int p2}) f) {}
 f() {
   m(({var p1, required var p2}) {});
 }
 ''',
-      [lint(62, 3), lint(79, 3)],
+      [lint(78, 3), lint(95, 3)],
     );
   }
 
   test_closureParameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 f() {
   ({var p1, required var p2}) {};
 }
 ''',
-      [lint(10, 3), lint(27, 3)],
+      [lint(26, 3), lint(43, 3)],
     );
   }
 
   test_closureParameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 f() {
   (final p1, [final p2]) {};
 }
 ''',
-      [lint(9, 5), lint(20, 5)],
+      [lint(25, 5), lint(36, 5)],
     );
   }
 
   test_closureParameter_positional_ok() async {
     await assertNoDiagnostics(r'''
 f() {
-  (int p1, final int p2, [int? p3, final int? p4]) {};
+  (int p1, int p2, [int? p3]) {};
 }
 ''');
   }
@@ -173,20 +178,21 @@ f() {
   test_closureParameter_positional_passed_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 m(void Function(int, [int?]) f) {}
 f() {
   m((final p1, [final p2]) {});
 }
 ''',
-      [lint(46, 5), lint(57, 5)],
+      [lint(62, 5), lint(73, 5)],
     );
   }
 
   test_closureParameter_positional_passed_ok() async {
     await assertNoDiagnostics(r'''
-m(void Function(int, int, [int?, int?]) f) {}
+m(void Function(int, int, [int?]) f) {}
 f() {
-  m((int p1, final int p2, [int? p3, final int? p4]) {});
+  m((int p1, int p2, [int? p3]) {});
 }
 ''');
   }
@@ -206,34 +212,37 @@ f() {
   test_closureParameter_positional_passed_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 m(void Function(int, [int?]) f) {}
 f() {
   m((var p1, [var p2]) {});
 }
 ''',
-      [lint(46, 3), lint(55, 3)],
+      [lint(62, 3), lint(71, 3)],
     );
   }
 
   test_closureParameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 f() {
   (var p1, [var p2]) {};
 }
 ''',
-      [lint(9, 3), lint(18, 3)],
+      [lint(25, 3), lint(34, 3)],
     );
   }
 
   test_constructorParameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   C({final p1, required final p2});
 }
 ''',
-      [lint(15, 5), lint(34, 5)],
+      [lint(31, 5), lint(50, 5)],
     );
   }
 
@@ -250,7 +259,7 @@ class C {
   test_constructorParameter_named_ok() async {
     await assertNoDiagnostics(r'''
 class C {
-  C({int? p1, final int? p2, required int p3, required final int p4});
+  C({int? p1, required int p2});
 }
 ''');
   }
@@ -280,22 +289,24 @@ class C extends S {
   test_constructorParameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   C({var p1, required var p2});
 }
 ''',
-      [lint(15, 3), lint(32, 3)],
+      [lint(31, 3), lint(48, 3)],
     );
   }
 
   test_constructorParameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   C(final p1, [final p2]);
 }
 ''',
-      [lint(14, 5), lint(25, 5)],
+      [lint(30, 5), lint(41, 5)],
     );
   }
 
@@ -312,7 +323,7 @@ class C {
   test_constructorParameter_positional_ok() async {
     await assertNoDiagnostics(r'''
 class C {
-  C(int p1, final int p2, [int? p3, final int? p4]);
+  C(int p1, int p2, [int? p3]);
 }
 ''');
   }
@@ -342,11 +353,12 @@ class C extends S {
   test_constructorParameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   C(var p1, [var p2]);
 }
 ''',
-      [lint(14, 3), lint(23, 3)],
+      [lint(30, 3), lint(39, 3)],
     );
   }
 
@@ -481,9 +493,10 @@ void f(int x) {}
   test_function_parameterType_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 void f(final x) {}
 ''',
-      [lint(7, 5)],
+      [lint(23, 5)],
     );
   }
 
@@ -499,9 +512,10 @@ void f(p) {}
   test_function_parameterType_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 void f(var p) {}
 ''',
-      [lint(7, 3)],
+      [lint(23, 3)],
     );
   }
 
@@ -524,7 +538,7 @@ void f(List<String> p) {
 ''');
   }
 
-  test_functionExpression_parameterType_var() async {
+  test_functionExpression_parameterType_untyped() async {
     await assertDiagnostics(
       r'''
 void f(List<String> p) {
@@ -639,18 +653,19 @@ class C {
   test_instanceMethodParameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   m({final p1, required final p2}) {}
 }
 ''',
-      [lint(15, 5), lint(34, 5)],
+      [lint(31, 5), lint(50, 5)],
     );
   }
 
   test_instanceMethodParameter_named_ok() async {
     await assertNoDiagnostics(r'''
 class C {
-  m({int? p1, final int? p2, required int p3, required final int p4}) {}
+  m({int? p1, required int p2}) {}
 }
 ''');
   }
@@ -669,29 +684,31 @@ class C {
   test_instanceMethodParameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   m({var p1, required var p2}) {}
 }
 ''',
-      [lint(15, 3), lint(32, 3)],
+      [lint(31, 3), lint(48, 3)],
     );
   }
 
   test_instanceMethodParameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   m(final p1, [final p2]) {}
 }
 ''',
-      [lint(14, 5), lint(25, 5)],
+      [lint(30, 5), lint(41, 5)],
     );
   }
 
   test_instanceMethodParameter_positional_ok() async {
     await assertNoDiagnostics(r'''
 class C {
-  m(int p1, final int p2, [int? p3, final int? p4]) {}
+  m(int p1, int p2, [int? p3]) {}
 }
 ''');
   }
@@ -710,11 +727,12 @@ class C {
   test_instanceMethodParameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   m(var p1, [var p2]) {}
 }
 ''',
-      [lint(14, 3), lint(23, 3)],
+      [lint(30, 3), lint(39, 3)],
     );
   }
 
@@ -853,20 +871,21 @@ f() {
   test_localFunctionParameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 f() {
   m({final p1, required final p2}) {}
   m(p1: 0, p2: 0);
 }
 ''',
-      [lint(11, 5), lint(30, 5)],
+      [lint(27, 5), lint(46, 5)],
     );
   }
 
   test_localFunctionParameter_named_ok() async {
     await assertNoDiagnostics(r'''
 f() {
-  m({int? p1, final int? p2, required int p3, required final int p4}) {}
-  m(p1: 0, p2: 0, p3: 0, p4: 0);
+  m({int? p1, required int p2}) {}
+  m(p1: 0, p2: 0);
 }
 ''');
   }
@@ -886,32 +905,34 @@ f() {
   test_localFunctionParameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 f() {
   m({var p1, required var p2}) {}
   m(p1: 0, p2: 0);
 }
 ''',
-      [lint(11, 3), lint(28, 3)],
+      [lint(27, 3), lint(44, 3)],
     );
   }
 
   test_localFunctionParameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 f() {
   m(final p1, [final p2]) {}
   m(0, 0);
 }
 ''',
-      [lint(10, 5), lint(21, 5)],
+      [lint(26, 5), lint(37, 5)],
     );
   }
 
   test_localFunctionParameter_positional_ok() async {
     await assertNoDiagnostics(r'''
 f() {
-  m(int p1, final int p2, [int? p3, final int? p4]) {}
-  m(0, 0, 0 ,0);
+  m(int p1, int p2, [int? p3]) {}
+  m(0, 0, 0);
 }
 ''');
   }
@@ -931,12 +952,13 @@ f() {
   test_localFunctionParameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 f() {
   m(var p1, [var p2]) {}
   m(0, 0);
 }
 ''',
-      [lint(10, 3), lint(19, 3)],
+      [lint(26, 3), lint(35, 3)],
     );
   }
 
@@ -1209,18 +1231,19 @@ class C {
   test_staticMethodParameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   static m({final p1, required final p2}) {}
 }
 ''',
-      [lint(22, 5), lint(41, 5)],
+      [lint(38, 5), lint(57, 5)],
     );
   }
 
   test_staticMethodParameter_named_ok() async {
     await assertNoDiagnostics(r'''
 class C {
-  static m({int? p1, final int? p2, required int p3, required final int p4}) {}
+  static m({int? p1, required int p2}) {}
 }
 ''');
   }
@@ -1239,29 +1262,31 @@ class C {
   test_staticMethodParameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   static m({var p1, required var p2}) {}
 }
 ''',
-      [lint(22, 3), lint(39, 3)],
+      [lint(38, 3), lint(55, 3)],
     );
   }
 
   test_staticMethodParameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   static m(final p1, [final p2]) {}
 }
 ''',
-      [lint(21, 5), lint(32, 5)],
+      [lint(37, 5), lint(48, 5)],
     );
   }
 
   test_staticMethodParameter_positional_ok() async {
     await assertNoDiagnostics(r'''
 class C {
-  static m(int p1, final int p2, [int? p3, final int? p4]) {}
+  static m(int p1, int p2, [int? p3]) {}
 }
 ''');
   }
@@ -1280,11 +1305,12 @@ class C {
   test_staticMethodParameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   static m(var p1, [var p2]) {}
 }
 ''',
-      [lint(21, 3), lint(30, 3)],
+      [lint(37, 3), lint(46, 3)],
     );
   }
 
@@ -1326,15 +1352,16 @@ var f = 0;
   test_topLevelParameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 m({final p1, required final p2}) {}
 ''',
-      [lint(3, 5), lint(22, 5)],
+      [lint(19, 5), lint(38, 5)],
     );
   }
 
   test_topLevelParameter_named_ok() async {
     await assertNoDiagnostics(r'''
-m({int? p1, final int? p2, required int p3, required final int p4}) {}
+m({int? p1, required int p2}) {}
 ''');
   }
 
@@ -1350,24 +1377,26 @@ m({p1, required p2}) {}
   test_topLevelParameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 m({var p1, required var p2}) {}
 ''',
-      [lint(3, 3), lint(20, 3)],
+      [lint(19, 3), lint(36, 3)],
     );
   }
 
   test_topLevelParameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 m(final p1, [final p2]) {}
 ''',
-      [lint(2, 5), lint(13, 5)],
+      [lint(18, 5), lint(29, 5)],
     );
   }
 
   test_topLevelParameter_positional_ok() async {
     await assertNoDiagnostics(r'''
-m(int p1, final int p2, [int? p3, final int? p4]) {}
+m(int p1, int p2, [int? p3]) {}
 ''');
   }
 
@@ -1383,9 +1412,10 @@ m(p1, [p2]) {}
   test_topLevelParameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 m(var p1, [var p2]) {}
 ''',
-      [lint(2, 3), lint(11, 3)],
+      [lint(18, 3), lint(27, 3)],
     );
   }
 

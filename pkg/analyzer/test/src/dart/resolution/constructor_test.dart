@@ -52,10 +52,10 @@ ConstructorName
 class A {
   var v;
   var _;
-  A(var _) : v = _;
+  A(_) : v = _;
 }
 ''',
-      [error(diag.implicitThisReferenceInInitializer, 45, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 41, 1)],
     );
 
     var node = findNode.constructorFieldInitializer('v = _');

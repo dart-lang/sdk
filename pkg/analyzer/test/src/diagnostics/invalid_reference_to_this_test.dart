@@ -98,13 +98,13 @@ class A {
     await assertErrorsInCode(
       r'''
 class A {
-  A(var x) {}
+  A(x) {}
 }
 class B extends A {
   B() : super(this);
 }
 ''',
-      [error(diag.invalidReferenceToThis, 60, 4)],
+      [error(diag.invalidReferenceToThis, 56, 4)],
     );
   }
 

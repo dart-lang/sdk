@@ -45,10 +45,10 @@ class A {}''');
       '''
 library root;
 import 'lib1.dart' deferred as a;
-f(var v) {
+f(v) {
   v as a.A;
 }''',
-      [error(diag.typeAnnotationDeferredClass, 66, 3)],
+      [error(diag.typeAnnotationDeferredClass, 62, 3)],
     );
   }
 
@@ -60,12 +60,12 @@ class A {}''');
       '''
 library root;
 import 'lib1.dart' deferred as a;
-f(var v) {
+f(v) {
   try {
   } on a.A {
   }
 }''',
-      [error(diag.typeAnnotationDeferredClass, 74, 3)],
+      [error(diag.typeAnnotationDeferredClass, 70, 3)],
     );
   }
 
@@ -120,12 +120,12 @@ class A {}''');
       '''
 library root;
 import 'lib1.dart' deferred as a;
-f(var v) {
+f(v) {
   bool b = v is a.A;
 }''',
       [
-        error(diag.unusedLocalVariable, 66, 1),
-        error(diag.typeAnnotationDeferredClass, 75, 3),
+        error(diag.unusedLocalVariable, 62, 1),
+        error(diag.typeAnnotationDeferredClass, 71, 3),
       ],
     );
   }
