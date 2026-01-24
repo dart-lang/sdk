@@ -37,6 +37,19 @@ class B extends A {}
     );
   }
 
+  test_field_declaredInPrimaryConstructor() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+
+class A(@mustBeOverridden var int f);
+
+class B(super.f) extends A {}
+''',
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 79, 1)],
+    );
+  }
+
   test_field_method() async {
     await assertErrorsInCode(
       '''
@@ -75,6 +88,19 @@ class A {
 class B extends A {
   int f = 0;
 }
+''');
+  }
+
+  test_field_overriddenWithField_inPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  int f = 0;
+}
+
+class B(var int f) extends A;
 ''');
   }
 
@@ -156,6 +182,19 @@ class A {
 class B extends A {
   int f = 0;
 }
+''');
+  }
+
+  test_getter_overriddenWithField_inPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  int get f => 0;
+}
+
+class B(var int f) extends A;
 ''');
   }
 
