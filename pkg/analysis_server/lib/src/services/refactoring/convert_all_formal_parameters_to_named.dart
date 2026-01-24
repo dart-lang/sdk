@@ -87,6 +87,7 @@ class ConvertAllFormalParametersToNamed extends RefactoringProducer {
     if (availability is! Available) {
       return false;
     }
-    return availability.hasPositionalParameters;
+
+    return availability.hasPositionalParametersToConvertToNamed;
   }
 }
