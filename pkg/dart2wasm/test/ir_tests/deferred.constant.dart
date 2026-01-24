@@ -4,7 +4,7 @@
 
 // functionFilter=mod.*Use
 // functionFilter=H[0-1]
-// tableFilter=static[0-9]+
+// tableFilter=cross-module-funcs
 // globalFilter=H[0-1]
 // typeFilter=H[0-1]
 // compilerOption=--enable-deferred-loading

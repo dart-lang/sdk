@@ -206,11 +206,11 @@ class YieldStatementResolver {
     );
     _resolver.popRewrite();
 
-    _diagnosticReporter.atNode(
-      node,
-      node.star != null
-          ? diag.yieldEachInNonGenerator
-          : diag.yieldInNonGenerator,
+    _diagnosticReporter.report(
+      (node.star != null
+              ? diag.yieldEachInNonGenerator
+              : diag.yieldInNonGenerator)
+          .at(node),
     );
 
     _checkForUseOfVoidResult(node.expression);

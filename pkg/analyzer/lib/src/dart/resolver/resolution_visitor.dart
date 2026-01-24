@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
@@ -1758,7 +1758,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    DiagnosticCode? diagnosticCode;
+    LocatableDiagnostic? diagnosticCode;
     switch (clause) {
       case null:
         if (declaration is ClassTypeAlias) {
@@ -1787,10 +1787,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var firstToken = namedType.importPrefix?.name ?? namedType.name;
     var offset = firstToken.offset;
     var length = namedType.name.end - offset;
-    _diagnosticReporter.atOffset(
-      offset: offset,
-      length: length,
-      diagnosticCode: diagnosticCode,
+    _diagnosticReporter.report(
+      diagnosticCode.atOffset(offset: offset, length: length),
     );
   }
 

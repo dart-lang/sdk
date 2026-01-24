@@ -23017,6 +23017,7 @@ ParserErrorCode:
     type: syntacticError
     parameters:
       Object p0: the terminator that is missing
+    removedIn: "2.12"
     problemMessage: "There is no '#p0' to close the parameter group."
     correctionMessage: "Try inserting a '#p0' at the end of the group."
     hasPublishedDocs: false
@@ -23066,6 +23067,7 @@ ParserErrorCode:
     type: syntacticError
     parameters:
       Object p0: the number of variables being declared
+    removedIn: "2.12"
     problemMessage: "A single loop variable must be declared in a for-each loop before the 'in', but #p0 were found."
     correctionMessage: Try moving all but one of the declarations inside the loop body.
     hasPublishedDocs: false
@@ -23127,6 +23129,7 @@ ParserErrorCode:
     type: syntacticError
     parameters:
       Object p0: the operator that the user is trying to define
+    removedIn: "2.12"
     problemMessage: "The operator '#p0' isn't user definable."
     hasPublishedDocs: false
   normalBeforeOptionalParameters:
@@ -23261,6 +23264,7 @@ ParserErrorCode:
     type: syntacticError
     parameters:
       Object p0: the starting character that was missing
+    removedIn: "2.12"
     problemMessage: "There is no '#p0' to open a parameter group."
     correctionMessage: "Try inserting the '#p0' at the appropriate location."
     hasPublishedDocs: false
@@ -23341,6 +23345,7 @@ ParserErrorCode:
     parameters:
       Object p0: the terminator that was expected
       Object p1: the terminator that was found
+    removedIn: "2.12"
     problemMessage: "Expected '#p0' to close parameter group."
     correctionMessage: "Try replacing '#p0' with '#p1'."
     hasPublishedDocs: false
@@ -24295,6 +24300,7 @@ ScannerErrorCode:
     type: syntacticError
     parameters:
       Object p0: the path of the file that cannot be read
+    removedIn: "2.6"
     problemMessage: Unable to get content of '#p0'.
     hasPublishedDocs: false
   unexpectedDollarInString:

@@ -5,11 +5,9 @@
   (type $JSStringImpl <...>)
   (type $Object <...>)
   (type $WasmListBase <...>)
+  (type $_Future <...>)
   (type $_InterfaceType <...>)
   (type $_Type <...>)
-  (type $type0 <...>)
-  (type $type2 <...>)
-  (type $type4 <...>)
   (func $"_throwIndexError <noInline>" (import "module0" "func13") (param i64 i64 (ref null $JSStringImpl)) (result (ref none)))
   (func $"foo0Code <noInline>" (import "module0" "func12") (param (ref null $#Top)) (result (ref null $#Top)))
   (func $"fooGlobal0 implicit getter" (import "module0" "func11") (result (ref $#Top)))
@@ -22,10 +20,8 @@
   (global $"C394 5" (import "module0" "global5") (ref $BoxedInt))
   (global $"C396 FooConst0" (import "module0" "global7") (ref $Object))
   (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
+  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 17 funcref)
   (table $module0.dispatch0 (import "module0" "dispatch0") 824 funcref)
-  (table $module0.static1-0 (import "module0" "static1-0") 4 (ref null $type2))
-  (table $module0.static2-0 (import "module0" "static2-0") 4 (ref null $type0))
-  (table $module0.static3-0 (import "module0" "static3-0") 4 (ref null $type4))
   (global $"C515 FooConst5" (ref $Object)
     (i32.const 126)
     (i32.const 0)
@@ -41,6 +37,8 @@
     (ref.null none))
   (global $fooGlobal5 (mut (ref null $#Top))
     (ref.null none))
+  (elem $module0.cross-module-funcs-0
+    (set 8 (ref.func $foo5)))
   (elem $module0.dispatch0 <...>)
   (func $"foo5Code <noInline>" (param $var0 (ref $#Top))
     (local $var1 (ref $WasmListBase))
@@ -60,39 +58,39 @@
     call $"fooGlobal0 implicit getter"
     call $"foo0Code <noInline>"
     drop
-    i32.const 0
-    call_indirect $module0.static2-0 (result (ref $#Top))
-    i32.const 0
-    call_indirect $module0.static1-0 (param (ref null $#Top)) (result (ref null $#Top))
-    drop
+    i32.const 9
+    call_indirect $module0.cross-module-funcs-0 (result (ref $#Top))
     i32.const 1
-    call_indirect $module0.static2-0 (result (ref $#Top))
-    i32.const 1
-    call_indirect $module0.static1-0 (param (ref null $#Top)) (result (ref null $#Top))
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
-    i32.const 2
-    call_indirect $module0.static2-0 (result (ref $#Top))
-    i32.const 2
-    call_indirect $module0.static1-0 (param (ref null $#Top)) (result (ref null $#Top))
+    i32.const 10
+    call_indirect $module0.cross-module-funcs-0 (result (ref $#Top))
+    i32.const 3
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
-    i32.const 3
-    call_indirect $module0.static2-0 (result (ref $#Top))
-    i32.const 3
-    call_indirect $module0.static1-0 (param (ref null $#Top)) (result (ref null $#Top))
+    i32.const 11
+    call_indirect $module0.cross-module-funcs-0 (result (ref $#Top))
+    i32.const 5
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
+    drop
+    i32.const 12
+    call_indirect $module0.cross-module-funcs-0 (result (ref $#Top))
+    i32.const 7
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
     block $label0 (result (ref $WasmListBase))
       global.get $allFooConstants
       br_on_non_null $label0
       global.get $"C518 _InterfaceType"
       global.get $"C396 FooConst0"
-      i32.const 0
-      call_indirect $module0.static3-0 (result (ref $Object))
-      i32.const 1
-      call_indirect $module0.static3-0 (result (ref $Object))
-      i32.const 2
-      call_indirect $module0.static3-0 (result (ref $Object))
-      i32.const 3
-      call_indirect $module0.static3-0 (result (ref $Object))
+      i32.const 13
+      call_indirect $module0.cross-module-funcs-0 (result (ref $Object))
+      i32.const 14
+      call_indirect $module0.cross-module-funcs-0 (result (ref $Object))
+      i32.const 15
+      call_indirect $module0.cross-module-funcs-0 (result (ref $Object))
+      i32.const 16
+      call_indirect $module0.cross-module-funcs-0 (result (ref $Object))
       global.get $"C515 FooConst5"
       array.new_fixed $Array<Object?> 6
       call $GrowableList._withData
@@ -139,4 +137,5 @@
     drop
     ref.null none
   )
+  (func $foo5 (result (ref $_Future)) <...>)
 )

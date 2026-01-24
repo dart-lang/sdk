@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -15,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -507,7 +507,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
 
       // Report if this type is used as a class in hierarchy.
-      DiagnosticCode? diagnosticCode;
+      LocatableDiagnostic? diagnosticCode;
       if (parent is ExtendsClause) {
         diagnosticCode = diag.extendsTypeAliasExpandsToTypeParameter;
       } else if (parent is ImplementsClause) {
@@ -519,10 +519,11 @@ class NamedTypeResolver with ScopeHelpers {
       }
       if (diagnosticCode != null) {
         var errorRange = _ErrorHelper._getErrorRange(node);
-        diagnosticReporter.atOffset(
-          offset: errorRange.offset,
-          length: errorRange.length,
-          diagnosticCode: diagnosticCode,
+        diagnosticReporter.report(
+          diagnosticCode.atOffset(
+            offset: errorRange.offset,
+            length: errorRange.length,
+          ),
         );
         hasErrorReported = true;
         return InvalidTypeImpl.instance;

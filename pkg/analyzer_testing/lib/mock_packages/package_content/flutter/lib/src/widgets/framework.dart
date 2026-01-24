@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
 export 'package:flutter/foundation.dart' show required;
 export 'package:flutter/foundation.dart' show Key, LocalKey, ValueKey;
@@ -54,6 +55,7 @@ abstract class StatelessWidget extends Widget {
   Widget build(BuildContext context) => null;
 }
 
+@immutable
 class Widget extends DiagnosticableTree {
   final Key? key;
 

@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -978,11 +977,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var rightType = rightNode.typeOrThrow;
 
     void report() {
-      _diagnosticReporter.atNode(
-        node,
-        node.notOperator == null
-            ? diag.unnecessaryTypeCheckTrue
-            : diag.unnecessaryTypeCheckFalse,
+      _diagnosticReporter.report(
+        (node.notOperator == null
+                ? diag.unnecessaryTypeCheckTrue
+                : diag.unnecessaryTypeCheckFalse)
+            .at(node),
       );
     }
 
@@ -1007,11 +1006,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (leftNode is NullLiteral) {
         report();
       } else {
-        _diagnosticReporter.atNode(
-          node,
-          node.notOperator == null
-              ? diag.typeCheckIsNull
-              : diag.typeCheckIsNotNull,
+        _diagnosticReporter.report(
+          (node.notOperator == null
+                  ? diag.typeCheckIsNull
+                  : diag.typeCheckIsNotNull)
+              .at(node),
         );
       }
       return true;
@@ -1065,7 +1064,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           var diagnosticCode = node.isSet
               ? diag.equalElementsInSet
               : diag.equalKeysInMap;
-          _diagnosticReporter.atNode(expression, diagnosticCode);
+          _diagnosticReporter.report(diagnosticCode.at(expression));
         }
       }
     }
@@ -1193,11 +1192,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForInvariantNullComparison(BinaryExpression node) {
-    DiagnosticCode diagnosticCode;
+    LocatableDiagnostic locatableDiagnostic;
     if (node.operator.type == TokenType.BANG_EQ) {
-      diagnosticCode = diag.unnecessaryNullComparisonNeverNullTrue;
+      locatableDiagnostic = diag.unnecessaryNullComparisonNeverNullTrue;
     } else if (node.operator.type == TokenType.EQ_EQ) {
-      diagnosticCode = diag.unnecessaryNullComparisonNeverNullFalse;
+      locatableDiagnostic = diag.unnecessaryNullComparisonNeverNullFalse;
     } else {
       return;
     }
@@ -1206,10 +1205,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var rightType = node.rightOperand.typeOrThrow;
       if (_typeSystem.isStrictlyNonNullable(rightType)) {
         var offset = node.leftOperand.offset;
-        _diagnosticReporter.atOffset(
-          offset: offset,
-          length: node.operator.end - offset,
-          diagnosticCode: diagnosticCode,
+        _diagnosticReporter.report(
+          locatableDiagnostic.atOffset(
+            offset: offset,
+            length: node.operator.end - offset,
+          ),
         );
       }
     }
@@ -1218,10 +1218,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var leftType = node.leftOperand.typeOrThrow;
       if (_typeSystem.isStrictlyNonNullable(leftType)) {
         var offset = node.operator.offset;
-        _diagnosticReporter.atOffset(
-          offset: offset,
-          length: node.rightOperand.end - offset,
-          diagnosticCode: diagnosticCode,
+        _diagnosticReporter.report(
+          locatableDiagnostic.atOffset(
+            offset: offset,
+            length: node.rightOperand.end - offset,
+          ),
         );
       }
     }

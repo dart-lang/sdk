@@ -2,60 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'translator.dart';
 
-class StaticDispatchTables {
-  final Translator translator;
-
-  final Map<w.FunctionType, StaticDispatchTableForSignature> _tables =
-      LinkedHashMap(
-          hashCode: (t) =>
-              Object.hash(Object.hashAll(t.inputs), Object.hashAll(t.outputs)),
-          equals: (t1, t2) => t1.isStructurallyEqualTo(t2));
-
-  StaticDispatchTables(this.translator);
-
-  StaticDispatchTableForSignature getTableForType(w.FunctionType type) {
-    return _tables[type] ??=
-        StaticDispatchTableForSignature(translator, type, _tables.length);
-  }
-
-  void outputTables() {
-    for (final table in _tables.values) {
-      table.output();
-    }
-  }
-}
-
-/// Builds a static dispatch table for a specific function type signature.
-///
-/// All calls to this table will have the same signature and so `call_indirect`
-/// instructions that reference this table can omit the type check.
-class StaticDispatchTableForSignature {
-  final w.FunctionType _functionType;
+/// Builds a table of functions that can be used across modules.
+class CrossModuleFunctionTable {
+  static const w.HeapType _tableHeapType = w.HeapType.func;
 
   final Translator translator;
 
   /// Contents of wasm table.
   final Map<w.BaseFunction, int> _table = {};
 
-  late final w.TableBuilder _definedWasmTable;
+  late final w.TableBuilder _definedWasmTable = translator.mainModule.tables
+      .define(w.RefType(_tableHeapType, nullable: true), _table.length);
   final WasmTableImporter _importedWasmTables;
 
-  StaticDispatchTableForSignature(
-      this.translator, this._functionType, int nameCounter)
+  CrossModuleFunctionTable(this.translator)
       : _importedWasmTables =
-            WasmTableImporter(translator, 'static$nameCounter-') {
-    _definedWasmTable = translator.mainModule.tables
-        .define(w.RefType(_functionType, nullable: true), _table.length);
-  }
+            WasmTableImporter(translator, 'cross-module-funcs-');
 
-  /// Gets the wasm table used to reference this static dispatch table in
-  /// [module].
+  /// Gets the wasm table used to reference this table in [module].
   ///
   /// This can either be the table definition itself or an import of it. Imports
   /// the table into [module] if it is not imported yet.
@@ -65,7 +33,7 @@ class StaticDispatchTableForSignature {
 
   /// Returns the index for [function] in the table allocating one if necessary.
   int indexForFunction(w.BaseFunction function) {
-    assert(function.type.isStructurallyEqualTo(function.type));
+    assert(function.type.isStructuralSubtypeOf(_tableHeapType));
     return _table[function] ??= _table.length;
   }
 

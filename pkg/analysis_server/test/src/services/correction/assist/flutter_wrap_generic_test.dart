@@ -203,7 +203,7 @@ class FakeFlutter {\r
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar = Text('');
+  final Widget bar = Text('');
 }
 
 Widget f(Foo foo) {
@@ -214,7 +214,7 @@ Widget f(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar = Text('');
+  final Widget bar = Text('');
 }
 
 Widget f(Foo foo) {
@@ -228,7 +228,7 @@ Widget f(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar = Text('');
+  final Widget bar = Text('');
 }
 
 Widget f(Foo foo) {
@@ -239,7 +239,7 @@ Widget f(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar = Text('');
+  final Widget bar = Text('');
 }
 
 Widget f(Foo foo) {

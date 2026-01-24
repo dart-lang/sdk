@@ -2,11 +2,10 @@
   (type $#Top <...>)
   (type $JSStringImpl <...>)
   (type $Object <...>)
-  (type $type0 <...>)
   (global $".Foo0.doitDispatch(" (import "" "Foo0.doitDispatch(") (ref extern))
   (global $".Foo1.doitDispatch(" (import "" "Foo1.doitDispatch(") (ref extern))
   (global $".FooBase(" (import "" "FooBase(") (ref extern))
-  (table $static0-0 (export "static0-0") 1 (ref null $type0))
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 1 funcref)
   (global $"C388 \"FooBase(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
@@ -41,7 +40,7 @@
     global.set $foo1Obj
     call $checkLibraryIsLoadedFromLoadId
     i32.const 0
-    call_indirect $static0-0 (result (ref null $#Top))
+    call_indirect $cross-module-funcs-0 (result (ref null $#Top))
     drop
   )
   (func $runtimeTrue implicit getter (result i32) <...>)

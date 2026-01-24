@@ -272,16 +272,30 @@ enum _E {
 ''');
   }
 
-  @FailingTest(reason: 'To implement next.')
   Future<void>
   test_index_namedIndex_only_privateClass_primaryConstructor() async {
-    // TODO(srawlins): Test with primary constructor with non-declaring index
-    // parameter.
-    // TODO(srawlins): Test with private primary constructor on a public class.
     await resolveTestCode('''
 class const _^E(final int index) {
   static const _E c0 = _E(0);
   static const _E c1 = _E(1);
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c0,
+  c1
+}
+''');
+  }
+
+  Future<void>
+  test_index_namedIndex_only_privateClass_primaryConstructor_nonDeclaring() async {
+    await resolveTestCode('''
+class const _^E(this.index) {
+  static const _E c0 = _E(0);
+  static const _E c1 = _E(1);
+
+  final int index;
 }
 ''');
     await assertHasAssist('''
@@ -309,6 +323,22 @@ enum E {
   c1._();
 
   const E._();
+}
+''');
+  }
+
+  Future<void>
+  test_index_namedIndex_only_publicClass_primaryConstructor() async {
+    await resolveTestCode('''
+class const ^E._(final int index) {
+  static const E c0 = E._(0);
+  static const E c1 = E._(1);
+}
+''');
+    await assertHasAssist('''
+enum E._() {
+  c0._(),
+  c1._()
 }
 ''');
   }
@@ -645,6 +675,59 @@ enum _E {
 
   /// Doc comment.
   const _E();
+}
+''');
+  }
+
+  Future<void> test_minimal_privateClass_primaryConstructor() async {
+    await resolveTestCode('''
+class const _^E() {
+  static const _E c = _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c
+}
+''');
+  }
+
+  Future<void>
+  test_minimal_privateClass_primaryConstructorHasAnnotation() async {
+    await resolveTestCode('''
+class const _^E() {
+  static const _E c = _E();
+
+  @deprecated
+  this;
+}
+''');
+    await assertHasAssist('''
+enum _E() {
+  c;
+
+  @deprecated
+  this;
+}
+''');
+  }
+
+  Future<void>
+  test_minimal_privateClass_primaryConstructorHasDocComment() async {
+    await resolveTestCode('''
+class const _^E() {
+  static const _E c = _E();
+
+  /// Doc comment.
+  this;
+}
+''');
+    await assertHasAssist('''
+enum _E() {
+  c;
+
+  /// Doc comment.
+  this;
 }
 ''');
   }

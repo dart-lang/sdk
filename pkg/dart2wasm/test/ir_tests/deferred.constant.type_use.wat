@@ -3,8 +3,7 @@
   (type $DeferredLoadIdNotLoadedError <...>)
   (type $_DefaultSet&_HashFieldBase&SetMixin <...>)
   (type $_InterfaceType <...>)
-  (type $type0 <...>)
-  (table $static0-0 (export "static0-0") 1 (ref null $type0))
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 1 funcref)
   (global $"C422 _InterfaceType" (ref $_InterfaceType) <...>)
   (func $_loaded implicit getter (result (ref $_DefaultSet&_HashFieldBase&SetMixin)) <...>)
   (func $"useFoo <noInline>"
@@ -22,7 +21,7 @@
       unreachable
     end
     i32.const 0
-    call_indirect $static0-0 (result (ref null $#Top))
+    call_indirect $cross-module-funcs-0 (result (ref null $#Top))
     drop
   )
   (func $"useFooAsType <noInline>"

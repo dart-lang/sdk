@@ -29,6 +29,7 @@ import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1030,24 +1031,24 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                   nonExhaustiveness.witnesses.every(
                     (witness) => witness.asWitness.contains('._'),
                   ))) {
-            diagnostic = _diagnosticReporter.atToken(
-              switchKeyword,
-              isSwitchExpression
-                  ? diag.nonExhaustiveSwitchExpressionPrivate
-                  : diag.nonExhaustiveSwitchStatementPrivate,
-              arguments: [scrutineeType],
+            diagnostic = _diagnosticReporter.report(
+              (isSwitchExpression
+                      ? diag.nonExhaustiveSwitchExpressionPrivate
+                      : diag.nonExhaustiveSwitchStatementPrivate)
+                  .withArguments(type: scrutineeType)
+                  .at(switchKeyword),
             );
           } else {
-            diagnostic = _diagnosticReporter.atToken(
-              switchKeyword,
-              isSwitchExpression
-                  ? diag.nonExhaustiveSwitchExpression
-                  : diag.nonExhaustiveSwitchStatement,
-              arguments: [
-                scrutineeType,
-                errorBuffer.toString(),
-                correctionTextBuffer.toString(),
-              ],
+            diagnostic = _diagnosticReporter.report(
+              (isSwitchExpression
+                      ? diag.nonExhaustiveSwitchExpression
+                      : diag.nonExhaustiveSwitchStatement)
+                  .withArguments(
+                    type: scrutineeType,
+                    unmatchedPattern: errorBuffer.toString(),
+                    suggestedPattern: correctionTextBuffer.toString(),
+                  )
+                  .at(switchKeyword),
             );
           }
           if (correctionData.isNotEmpty) {
@@ -1277,7 +1278,7 @@ class _ConstLiteralVerifier {
     if (notPotentiallyConstants.isEmpty) return true;
 
     for (var notConst in notPotentiallyConstants) {
-      DiagnosticCode diagnosticCode;
+      LocatableDiagnostic diagnosticCode;
       if (listElementType != null) {
         diagnosticCode = diag.nonConstantListElement;
       } else if (mapConfig != null) {
@@ -1301,7 +1302,7 @@ class _ConstLiteralVerifier {
       } else {
         throw UnimplementedError();
       }
-      verifier._diagnosticReporter.atNode(notConst, diagnosticCode);
+      verifier._diagnosticReporter.report(diagnosticCode.at(notConst));
     }
 
     return false;

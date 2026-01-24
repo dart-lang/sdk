@@ -32,7 +32,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class W extends Widget {
-  bool ^property = true;
+  final bool ^property = true;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -44,7 +44,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class W extends Widget {
-  bool property = true;
+  final bool property = true;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);

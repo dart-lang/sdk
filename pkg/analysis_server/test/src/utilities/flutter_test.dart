@@ -120,7 +120,7 @@ Text createEmptyText() => Text('');
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  final Widget bar;
 
   Foo(this.bar);
 }
@@ -139,7 +139,7 @@ void f(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  final Widget bar;
 
   Foo(this.bar);
 }

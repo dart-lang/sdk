@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // functionFilter=useFoo
-// tableFilter=static[0-9]+
+// tableFilter=cross-module-funcs
 // globalFilter=Foo
 // typeFilter=Foo
 // compilerOption=--enable-deferred-loading

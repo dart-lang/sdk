@@ -193,7 +193,7 @@ class Translator with KernelNodes {
   final LibraryIndex index;
   late final ClosureLayouter closureLayouter;
   late final ClassInfoCollector classInfoCollector;
-  late final StaticDispatchTables staticTablesPerType;
+  late final CrossModuleFunctionTable crossModuleFunctionTable;
   late final DispatchTable dispatchTable;
   DispatchTable? dynamicMainModuleDispatchTable;
   late final Globals globals;
@@ -520,7 +520,7 @@ class Translator with KernelNodes {
     subtypes = hierarchy.computeSubtypesInformation();
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
-    staticTablesPerType = StaticDispatchTables(this);
+    crossModuleFunctionTable = CrossModuleFunctionTable(this);
     dispatchTable = DispatchTable(isDynamicSubmoduleTable: isDynamicSubmodule)
       ..translator = this;
     if (isDynamicSubmodule) {
@@ -615,7 +615,7 @@ class Translator with KernelNodes {
 
     constructorClosures.clear();
     dispatchTable.output();
-    staticTablesPerType.outputTables();
+    crossModuleFunctionTable.output();
 
     for (ConstantInfo info in constants.constantInfo.values) {
       info.printInitializer((function) {
@@ -804,11 +804,9 @@ class Translator with KernelNodes {
           _importedFunctions.get(function, b.moduleBuilder);
       b.call(importedFunction);
     } else {
-      final staticTable = staticTablesPerType.getTableForType(function.type);
-      b.i32_const(staticTable.indexForFunction(function));
-      b.table_get(staticTable.getWasmTable(b.moduleBuilder));
-      b.ref_as_non_null();
-      b.call_ref(function.type);
+      b.i32_const(crossModuleFunctionTable.indexForFunction(function));
+      b.call_indirect(function.type,
+          crossModuleFunctionTable.getWasmTable(b.moduleBuilder));
     }
     return b.emitUnreachableIfNoResult(function.type.outputs);
   }
