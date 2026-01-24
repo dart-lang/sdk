@@ -73,17 +73,6 @@ class AnalysisOptionLinkComputer {
     return links;
   }
 
-  /// Computes a link for the plugin named [plugin].
-  Uri? _computePluginLink(YamlNode plugin) {
-    if (plugin is! YamlScalar) return null;
-    var name = plugin.value;
-    if (name is! String || name.isEmpty) return null;
-
-    var separator = pubHostedUrl.endsWith('/') ? '' : '/';
-
-    return Uri.parse('$pubHostedUrl${separator}packages/$name');
-  }
-
   /// Computes a link for the rule named [rule].
   Uri? _computeLink(YamlNode rule) {
     if (rule is! YamlScalar) return null;
@@ -98,6 +87,17 @@ class AnalysisOptionLinkComputer {
     }
 
     return Uri.tryParse(_lintsUrl + name);
+  }
+
+  /// Computes a link for the plugin named [plugin].
+  Uri? _computePluginLink(YamlNode plugin) {
+    if (plugin is! YamlScalar) return null;
+    var name = plugin.value;
+    if (name is! String || name.isEmpty) return null;
+
+    var separator = pubHostedUrl.endsWith('/') ? '' : '/';
+
+    return Uri.parse('$pubHostedUrl${separator}packages/$name');
   }
 }
 
