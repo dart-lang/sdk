@@ -456,6 +456,21 @@ void main() {
     );
   }
 
+  test_field_result_unassigned_originPrimaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+class A(@useResult var int foo);
+
+void f(A a) {
+  a.foo;
+}
+''',
+      [error(diag.unusedResult, 86, 3)],
+    );
+  }
+
   test_field_result_used_conditional_if_parens() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
