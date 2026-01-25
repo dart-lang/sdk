@@ -4239,7 +4239,6 @@ LinterLintCode:
       isn't added in the `debugFillProperties` method:
 
       ```dart
-      import 'package:flutter/foundation.dart';
       import 'package:flutter/material.dart';
 
       class C extends Widget {
@@ -4264,7 +4263,6 @@ LinterLintCode:
       `debugDescribeChildren` method:
 
       ```dart
-      import 'package:flutter/foundation.dart';
       import 'package:flutter/material.dart';
 
       class C extends Widget {

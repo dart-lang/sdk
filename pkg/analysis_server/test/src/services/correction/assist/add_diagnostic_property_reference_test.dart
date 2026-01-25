@@ -28,7 +28,6 @@ class AddDiagnosticPropertyReferenceTest extends AssistProcessorTest {
   /// Full coverage in fix/add_diagnostic_property_reference_test.dart
   Future<void> test_boolField_debugFillProperties() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class W extends Widget {
@@ -40,7 +39,6 @@ class W extends Widget {
 }
 ''');
     await assertHasAssist('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class W extends Widget {

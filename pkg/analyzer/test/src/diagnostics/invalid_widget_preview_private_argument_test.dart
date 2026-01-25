@@ -140,7 +140,6 @@ Widget privateNameStringInterp() => Text('Foo');
 
     await assertErrorsInCode(
       '''
-import 'dart:ui';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter/widgets.dart';
 
@@ -156,7 +155,7 @@ Widget privateDoubles() => Text('Foo');
       [
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          200,
+          182,
           18,
           correctionContains: correctionMessageBuilder(
             kPrivateSize,
@@ -165,7 +164,7 @@ Widget privateDoubles() => Text('Foo');
         ),
         error(
           diag.invalidWidgetPreviewPrivateArgument,
-          222,
+          204,
           33,
           correctionContains: correctionMessageBuilder(
             kPrivateTextScaleFactor,

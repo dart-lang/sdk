@@ -11,6 +11,7 @@ export 'dart:ui'
         FontStyle,
         FontWeight,
         Radius,
+        Size,
         TextAlign,
         TextBaseline,
         TextDirection;
