@@ -11,8 +11,6 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../embedder_tests.dart';
-
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EmbedderSdkTest);
@@ -22,7 +20,19 @@ main() {
 }
 
 @reflectiveTest
-class EmbedderSdkTest extends EmbedderRelatedTest {
+class EmbedderSdkTest with ResourceProviderMixin {
+  final String foxLibPath = '/home/.pub-cache/fox/lib';
+
+  void setUp() {
+    newFolder(foxLibPath);
+    newFile('/home/.pub-cache/fox/lib/_embedder.yaml', r'''
+embedded_libs:
+  "dart:deep": "deep/directory/file.dart"
+  "dart:core" : "core/core.dart"
+  "dart:fox": "slippy.dart"
+''');
+  }
+
   void test_allowedExperimentsJson() {
     var foxLib = getFolder(foxLibPath);
     var embedderYaml = locateEmbedderYamlFor(foxLib);
@@ -49,7 +59,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       languageVersion: Version.parse('2.10.0'),
     );
 
-    expect(sdk.urlMappings, hasLength(5));
+    expect(sdk.urlMappings, hasLength(3));
   }
 
   void test_fromFileUri() {
