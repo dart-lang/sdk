@@ -706,6 +706,8 @@ class Assembler : public AssemblerBase {
   void shldq(Register dst, Register src, const Immediate& imm);
 
   void btq(Register base, int bit);
+  void btrq(const Address& base, int bit);
+  void btsq(const Address& base, int bit);
 
   void enter(const Immediate& imm);
 

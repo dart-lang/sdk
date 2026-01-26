@@ -172,6 +172,24 @@ void f(A a) {
     );
   }
 
+  test_constructor_primary_result_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+class A() {
+  @useResult
+  this;
+}
+
+void f() {
+  A();
+}
+''',
+      [error(diag.unusedResult, 83, 3)],
+    );
+  }
+
   test_constructor_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

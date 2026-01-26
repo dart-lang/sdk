@@ -27,7 +27,10 @@ import 'package:cfg/passes/pass.dart';
 import 'package:cfg/passes/simplification.dart';
 import 'package:cfg/passes/value_numbering.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:native_compiler/back_end/arm64/constraints.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
+import 'package:native_compiler/back_end/regalloc_checker.dart';
+import 'package:native_compiler/back_end/register_allocator.dart';
 import 'package:native_compiler/passes/lowering.dart';
 import 'package:native_compiler/passes/reorder_blocks.dart';
 import 'package:test/test.dart';
@@ -149,6 +152,7 @@ class CompileAndDumpIr extends RecursiveVisitor {
       enableAsserts: true,
     ).buildFlowGraph();
     final backEndState = BackEndState();
+    final constraints = Arm64Constraints();
     final pipeline = Pipeline([
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),
@@ -156,6 +160,8 @@ class CompileAndDumpIr extends RecursiveVisitor {
       ControlFlowOptimizations(),
       Lowering(functionRegistry),
       ReorderBlocks(backEndState),
+      LinearScanRegisterAllocator(backEndState, constraints),
+      RegisterAllocationChecker(backEndState, constraints),
     ]);
     pipeline.run(graph);
     buffer.writeln('--- $function');
@@ -165,6 +171,7 @@ class CompileAndDumpIr extends RecursiveVisitor {
         printDominators: true,
         printLoops: true,
         blockOrder: backEndState.codeGenBlockOrder,
+        annotator: RegisterAllocationPrinter(backEndState, constraints).print,
       ).toString(),
     );
   }

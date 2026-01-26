@@ -1063,6 +1063,28 @@ void Assembler::btq(Register base, int bit) {
   EmitUint8(bit);
 }
 
+void Assembler::btrq(const Address& base, int bit) {
+  ASSERT(bit >= 0 && bit < 64);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(base);
+  EmitOperandREX(4, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xBA);
+  EmitOperand(6, operand);
+  EmitUint8(bit);
+}
+
+void Assembler::btsq(const Address& base, int bit) {
+  ASSERT(bit >= 0 && bit < 64);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(base);
+  EmitOperandREX(4, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xBA);
+  EmitOperand(5, operand);
+  EmitUint8(bit);
+}
+
 void Assembler::enter(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC8);

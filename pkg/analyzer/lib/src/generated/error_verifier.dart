@@ -3427,7 +3427,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
     if (_enclosingExtension != null) {
-      if (node.hasObjectMemberName) {
+      if (_typeProvider.isObjectMember(node.name.lexeme)) {
         diagnosticReporter.report(
           diag.extensionDeclaresMemberOfObject.at(node.name),
         );
@@ -3435,7 +3435,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (_enclosingClass is ExtensionTypeElement) {
-      if (node.hasObjectMemberName) {
+      if (_typeProvider.isObjectMember(node.name.lexeme)) {
         diagnosticReporter.report(
           diag.extensionTypeDeclaresMemberOfObject.at(node.name),
         );
@@ -3599,6 +3599,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (nameToken.lexeme == node.primaryConstructor.typeName.lexeme) {
       diagnosticReporter.report(diag.memberWithClassName.at(nameToken));
+    }
+
+    if (_typeProvider.isObjectMember(nameToken.lexeme)) {
+      diagnosticReporter.report(
+        diag.extensionTypeDeclaresMemberOfObject.at(nameToken),
+      );
     }
 
     if (_featureSet!.isEnabled(Feature.primary_constructors)) {

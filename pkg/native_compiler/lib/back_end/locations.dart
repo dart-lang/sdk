@@ -120,6 +120,8 @@ extension type const OperandId._(int _raw) {
 
 /// Locations of instruction inputs, result and
 /// temporaries needed to generate code for the instruction.
+///
+/// TODO: encode locations as int/Uint32List.
 class Locations {
   Location? result;
   List<Location?> inputs;

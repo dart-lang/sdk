@@ -625,7 +625,8 @@ class C {}
   }
 
   void test_constructor_classWithPrimaryConstructor() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -635,7 +636,9 @@ class A {
 
 @A()
 class C(final int i);
-''');
+''',
+      [error(diag.invalidAnnotationTarget, 100, 1)],
+    );
   }
 
   void test_constructor_constructor() async {
@@ -654,7 +657,8 @@ class C {
   }
 
   void test_constructor_enumWithPrimaryConstructor() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -666,11 +670,14 @@ class A {
 enum C(int i) {
   a(1), b(2), c(3);
 }
-''');
+''',
+      [error(diag.invalidAnnotationTarget, 100, 1)],
+    );
   }
 
   void test_constructor_extensionType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -680,7 +687,9 @@ class A {
 
 @A()
 extension type C(int i);
-''');
+''',
+      [error(diag.invalidAnnotationTarget, 100, 1)],
+    );
   }
 
   void test_constructor_method() async {
@@ -699,6 +708,23 @@ class C {
 ''',
       [error(diag.invalidAnnotationTarget, 112, 1)],
     );
+  }
+
+  void test_constructor_primaryConstructorBody() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+
+class C(final int i) {
+  @A()
+  this;
+}
+''');
   }
 
   void test_directive_class() async {

@@ -394,7 +394,7 @@ class AstToIr extends ast.RecursiveVisitor {
     ], typeParameters: _typeParametersForType(node.typeArgument));
     _translateNodes(node.expressions);
     if (_handleUnreachableExpression(inputCount)) return;
-    builder.addAllocateListLiteral(inputCount);
+    builder.addAllocateListLiteral(_staticType(node), inputCount);
   }
 
   @override
@@ -411,7 +411,7 @@ class AstToIr extends ast.RecursiveVisitor {
       _translateNode(entry.value);
     }
     if (_handleUnreachableExpression(inputCount)) return;
-    builder.addAllocateMapLiteral(inputCount);
+    builder.addAllocateMapLiteral(_staticType(node), inputCount);
   }
 
   @override
@@ -1395,13 +1395,13 @@ class AstToIr extends ast.RecursiveVisitor {
 
     final args = node.arguments;
     final target = functionRegistry.getFunction(node.target);
-    TypeArguments? typeArguments;
+    Definition? typeArguments;
     if (args.types.isNotEmpty) {
-      typeArguments = builder.addTypeArguments(
+      builder.addTypeArguments(
         args.types,
         typeParameters: _typeParametersForTypes(args.types),
       );
-      builder.pop();
+      typeArguments = builder.pop();
     }
     final instance = builder.addAllocateObject(
       _typeTranslator.translate(node.constructedType),

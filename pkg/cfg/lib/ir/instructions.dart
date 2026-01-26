@@ -4,9 +4,7 @@
 
 import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/global_context.dart';
-import 'package:kernel/ast.dart'
-    as ast
-    show DartType, InterfaceType, Name, Nullability;
+import 'package:kernel/ast.dart' as ast show DartType, InterfaceType, Name;
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/functions.dart';
@@ -769,9 +767,9 @@ abstract base class CallInstruction extends Definition
     required super.inputCount,
   });
 
-  bool get hasTypeArguments => inputCount > 0 && inputDefAt(0) is TypeArguments;
-  TypeArguments? get typeArguments =>
-      hasTypeArguments ? inputDefAt(0) as TypeArguments : null;
+  bool get hasTypeArguments =>
+      inputCount > 0 && inputDefAt(0).type is TypeArgumentsType;
+  Definition? get typeArguments => hasTypeArguments ? inputDefAt(0) : null;
 }
 
 /// Direct call of the target function.
@@ -1179,8 +1177,8 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitTypeTest(this);
 }
 
-/// Represents a list of type arguments passed to a call or an instance
-/// allocation.
+/// Represents a list of type arguments which use type parameters and
+/// passed to a call or an instance allocation.
 ///
 /// Only used as the first input of call instructions, [AllocateObject],
 /// [AllocateListLiteral] and [AllocateMapLiteral].
@@ -1190,14 +1188,12 @@ final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
     super.graph,
     super.sourcePosition,
     this.types,
-    Definition? typeParameters,
-  ) : super(inputCount: typeParameters != null ? 1 : 0) {
-    if (typeParameters != null) {
-      setInputAt(0, typeParameters);
-    }
+    Definition typeParameters,
+  ) : super(inputCount: 1) {
+    setInputAt(0, typeParameters);
   }
 
-  Definition? get typeParameters => (inputCount > 0) ? inputDefAt(0) : null;
+  Definition get typeParameters => inputDefAt(0);
 
   @override
   CType get type => const TypeArgumentsType();
@@ -1238,7 +1234,8 @@ final class TypeLiteral extends Definition with NoThrow, Pure, Idempotent {
 
 /// Allocate an instance of given type.
 ///
-/// If type is a generic class, then [AllocateObject] can take [TypeArguments] as an input.
+/// If type is a generic class, then [AllocateObject] takes type arguments
+/// as an input.
 final class AllocateObject extends Definition with CanThrow, Pure {
   @override
   final CType type;
@@ -1247,7 +1244,7 @@ final class AllocateObject extends Definition with CanThrow, Pure {
     super.graph,
     super.sourcePosition,
     this.type,
-    TypeArguments? typeArguments,
+    Definition? typeArguments,
   ) : super(inputCount: typeArguments != null ? 1 : 0) {
     if (typeArguments != null) {
       assert(
@@ -1260,8 +1257,8 @@ final class AllocateObject extends Definition with CanThrow, Pure {
     }
   }
 
-  TypeArguments? get typeArguments =>
-      (inputCount > 0) ? inputDefAt(0) as TypeArguments : null;
+  bool get hasTypeArguments => inputCount > 0;
+  Definition? get typeArguments => hasTypeArguments ? inputDefAt(0) : null;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateObject(this);
@@ -1291,21 +1288,16 @@ final class AllocateClosure extends Definition with CanThrow, Pure {
 /// Allocate a new List literal with given type arguments and elements.
 final class AllocateListLiteral extends Definition with CanThrow, Pure {
   @override
-  late final CType type = StaticType(
-    ast.InterfaceType(
-      GlobalContext.instance.coreTypes.listClass,
-      ast.Nullability.nonNullable,
-      typeArguments.types,
-    ),
-  );
+  final CType type;
 
   AllocateListLiteral(
     super.graph,
-    super.sourcePosition, {
+    super.sourcePosition,
+    this.type, {
     required super.inputCount,
   }) : assert(inputCount > 0);
 
-  TypeArguments get typeArguments => inputDefAt(0) as TypeArguments;
+  Definition get typeArguments => inputDefAt(0);
   Definition elementAt(int index) => inputDefAt(index + 1);
   int get length => inputCount - 1;
 
@@ -1316,21 +1308,16 @@ final class AllocateListLiteral extends Definition with CanThrow, Pure {
 /// Allocate a new Map literal with given type arguments and key-value pairs.
 final class AllocateMapLiteral extends Definition with CanThrow, Pure {
   @override
-  late final CType type = StaticType(
-    ast.InterfaceType(
-      GlobalContext.instance.coreTypes.mapClass,
-      ast.Nullability.nonNullable,
-      typeArguments.types,
-    ),
-  );
+  final CType type;
 
   AllocateMapLiteral(
     super.graph,
-    super.sourcePosition, {
+    super.sourcePosition,
+    this.type, {
     required super.inputCount,
   }) : assert(inputCount > 0 && inputCount.isOdd);
 
-  TypeArguments get typeArguments => inputDefAt(0) as TypeArguments;
+  Definition get typeArguments => inputDefAt(0);
   Definition keyAt(int index) => inputDefAt((index << 1) + 1);
   Definition valueAt(int index) => inputDefAt((index << 1) + 2);
   int get length => (inputCount - 1) >> 1;
@@ -1648,14 +1635,33 @@ final class SetListElement extends Instruction
 /// Base class for move operations, part of [ParallelMove].
 abstract base class MoveOp {}
 
+/// Purpose of the [ParallelMove] operation, used to distinguish multiple
+/// independent moves.
+///
+/// This enum also specifies the order of successive [ParallelMove] instructions,
+/// e.g. for every two successive [ParallelMove] instructions it is guaranteed
+/// that `instr.stage.index < instr.next.stage.index`.
+enum ParallelMoveStage {
+  // Move fixed output of the instruction to its desired location.
+  output,
+  // Split/spill live ranges.
+  split,
+  // Moves at control flow edges (including phi moves).
+  control,
+  // Move instruction inputs to their fixed locations.
+  input,
+}
+
 /// In native back-ends, register allocator inserts [ParallelMove]
 /// instructions to copy values atomically between registers
 /// and memory locations.
 final class ParallelMove extends Instruction
     with NoThrow, HasSideEffects, BackendInstruction {
+  final ParallelMoveStage stage;
   final List<MoveOp> moves = [];
 
-  ParallelMove(FlowGraph graph) : super(graph, noPosition, inputCount: 0);
+  ParallelMove(FlowGraph graph, this.stage)
+    : super(graph, noPosition, inputCount: 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitParallelMove(this);

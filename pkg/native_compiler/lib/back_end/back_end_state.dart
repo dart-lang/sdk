@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/instructions.dart';
+import 'package:native_compiler/back_end/code_generator.dart';
+import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
 /// Hold back-end state shared between code generation
@@ -12,4 +14,10 @@ class BackEndState {
 
   /// Block order for the code generation.
   late final List<Block> codeGenBlockOrder;
+
+  /// Locations of inputs/outputs/temps, result of register allocation.
+  late final Map<OperandId, Location> operandLocations;
+
+  /// Consumer of the generated [Code].
+  late final CodeConsumer consumeGeneratedCode;
 }

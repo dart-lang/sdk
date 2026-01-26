@@ -158,6 +158,7 @@ B0 = EntryBlock()
 
 --- unreachableListLiteral
 B0 = EntryBlock()
+  Constant(<int>)
   Constant(1)
   Constant(2)
   Constant(3)
@@ -169,11 +170,11 @@ B0 = EntryBlock()
   Constant(9)
   v11 = Constant("Bye")
   Constant(null)
-  TypeArguments(<int>)
   Throw(v11)
 
 --- unreachableMapLiteral
 B0 = EntryBlock()
+  Constant(<int, String>)
   Constant(10)
   Constant("aa")
   Constant(20)
@@ -181,7 +182,6 @@ B0 = EntryBlock()
   Constant(30)
   v7 = Constant("Bye")
   Constant(null)
-  TypeArguments(<int, String>)
   Throw(v7)
 
 --- unreachableLogicExpr
@@ -213,10 +213,10 @@ B0 = EntryBlock()
 
 --- field-init unreachableFieldInitializer
 B0 = EntryBlock()
+  Constant(<num>)
   Constant(10)
   Constant(1)
   v4 = Constant("Bye")
   Constant(null)
-  TypeArguments(<num>)
   Throw(v4)
 
