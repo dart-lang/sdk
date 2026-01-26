@@ -129,6 +129,7 @@ enum TestType {
   MinOSVersion,
   NoLinkerSignature,
   ReplaceInstallName,
+  Encryptable,
 }
 
 @pragma('vm:platform-const')
@@ -156,6 +157,7 @@ Future<void> checkCases(List<TestCase> testCases) async {
     checkRunPaths(c);
     checkBuildVersion(c);
     checkCodeSignature(c);
+    checkEncryptionInfo(c);
   }
   // Unsigned snapshots are not runnable.
   final runnableCases = testCases
@@ -326,6 +328,21 @@ void checkCodeSignature(TestCase testCase) {
     Expect.isEmpty(codeSignatureCommands);
   } else {
     Expect.equals(1, codeSignatureCommands.length);
+  }
+}
+
+void checkEncryptionInfo(TestCase testCase) {
+  final encryptionInfoCommands = testCase.snapshot.commands
+      .whereType<macho.EncryptionInfoCommand>();
+  if (testCase.type == TestType.Encryptable) {
+    Expect.equals(1, encryptionInfoCommands.length);
+    final cmd = encryptionInfoCommands.singleOrNull;
+    if (cmd != null) {
+      // gen_snapshot doesn't encrypt any segments.
+      Expect.equals(0, cmd.cryptId);
+    }
+  } else {
+    Expect.isEmpty(encryptionInfoCommands);
   }
 }
 
