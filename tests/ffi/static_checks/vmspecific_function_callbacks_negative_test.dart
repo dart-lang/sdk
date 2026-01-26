@@ -4,8 +4,6 @@
 //
 // Dart test program for testing dart:ffi function pointers with callbacks.
 
-
-
 import 'dart:ffi';
 
 final testLibrary = DynamicLibrary.process();
@@ -17,7 +15,7 @@ double testExceptionalReturn() {
   Pointer.fromFunction<Double Function()>(returnVoid, null);
   //                                                  ^^^^
   // [cfe] The exceptional return value must be a 'double'.
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
 
   Pointer.fromFunction<Void Function()>(returnVoid, 0);
   //                                                ^
@@ -27,12 +25,12 @@ double testExceptionalReturn() {
   Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc");
   //                                                             ^^^^^
   // [cfe] The exceptional return value must be a 'double'.
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
 
   Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0);
   //                                                             ^
   // [cfe] The exceptional return value must be a 'double'.
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_EXCEPTION_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
 
   Pointer.fromFunction<Double Function()>(testExceptionalReturn);
   //      ^^^^^^^^^^^^

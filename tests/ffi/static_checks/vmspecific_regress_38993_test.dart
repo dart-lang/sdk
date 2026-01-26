@@ -4,12 +4,11 @@
 //
 // Tests a compile time error that should not crash the analyzer or CFE.
 
-
-
 import "dart:ffi";
 
 final class C extends Struct {
   dynamic x;
+  //      ^
   // [cfe] Field 'x' must have a native type.
   // [analyzer] COMPILE_TIME_ERROR.INVALID_FIELD_TYPE_IN_STRUCT
 

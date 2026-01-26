@@ -6,16 +6,25 @@
 //
 // VMOptions=--enable-ffi=false
 
+import 'dart:ffi';
+//     ^
+// [cfe] Dart library 'dart:ffi' is not available on this platform.
 
-
-import 'dart:ffi'; // [cfe] Dart library 'dart:ffi' is not available on this platform.
-
-import 'package:ffi/ffi.dart'; // [cfe] TBD
+import 'package:ffi/ffi.dart';
+//     ^
+// [cfe] TBD
 
 void main() {
-  Pointer<Int8> p = // [cfe] Undefined name 'Pointer'.
-  // [cfe] Undefined name 'Int8'.
-      calloc(); // [cfe] Undefined name 'calloc'.
+  Pointer<Int8> p =
+      // ^
+      // [cfe] Undefined name 'Pointer'.
+      //      ^
+      // [cfe] Undefined name 'Int8'.
+      calloc();
+  // ^
+  // [cfe] Undefined name 'calloc'.
   print(p.address);
-  calloc.free(p); // [cfe] Undefined name 'calloc'.
+  calloc.free(p);
+  // ^
+  // [cfe] Undefined name 'calloc'.
 }

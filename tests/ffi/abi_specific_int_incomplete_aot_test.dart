@@ -22,5 +22,7 @@ final class Incomplete extends AbiSpecificInteger {
 void main() {
   // Any use that causes the class to be used, causes a compile-time error
   // during loading of the class.
-  nullptr.cast<Incomplete>(); // [cfe] Class 'Incomplete' does not have an AbiSpecificIntegerMapping for the current platform.
+  nullptr.cast<Incomplete>();
+  //      ^
+  // [cfe] Class 'Incomplete' does not have an AbiSpecificIntegerMapping for the current platform.
 }

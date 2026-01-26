@@ -4,8 +4,6 @@
 //
 // SharedObjects=ffi_test_functions
 
-
-
 import 'dart:ffi';
 
 final class A extends Struct {
@@ -15,6 +13,7 @@ final class A extends Struct {
   // This should not crash the FFI transform.
   @Array.multi([16])
   external Array<Unknown> b;
+  //             ^^^^^^^
   // [cfe] The type 'Unknown' isn't defined.
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 }
