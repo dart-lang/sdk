@@ -49,7 +49,9 @@ class StackFrame;
 namespace module_snapshot {
 class CodeDeserializationCluster;
 class Deserializer;
+class InterfaceTypeDeserializationCluster;
 class ObjectPoolDeserializationCluster;
+class TypeArgumentsDeserializationCluster;
 }  // namespace module_snapshot
 
 #define DEFINE_CONTAINS_COMPRESSED(type)                                       \
@@ -2906,6 +2908,7 @@ class UntaggedTypeArguments : public UntaggedInstance {
 
   friend class Object;
   friend class Interpreter;
+  friend class module_snapshot::TypeArgumentsDeserializationCluster;
 };
 
 class UntaggedTypeParameters : public UntaggedObject {
@@ -2964,6 +2967,7 @@ class UntaggedAbstractType : public UntaggedInstance {
   friend class Interpreter;
   friend class ObjectStore;
   friend class StubCode;
+  friend class module_snapshot::InterfaceTypeDeserializationCluster;
 };
 
 class UntaggedType : public UntaggedAbstractType {
@@ -2992,6 +2996,7 @@ class UntaggedType : public UntaggedAbstractType {
   friend class CidRewriteVisitor;
   friend class Interpreter;
   friend class UntaggedTypeArguments;
+  friend class module_snapshot::InterfaceTypeDeserializationCluster;
 };
 
 class UntaggedFunctionType : public UntaggedAbstractType {
