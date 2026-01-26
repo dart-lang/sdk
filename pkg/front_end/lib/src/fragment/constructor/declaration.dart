@@ -729,8 +729,8 @@ mixin _ConstructorEncodingMixin
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  void registerFunctionBody(Statement? value) {
-    _encoding.registerFunctionBody(value);
+  void registerFunctionBody(Statement? body, Scope? scope) {
+    _encoding.registerFunctionBody(body: body, scope: scope);
   }
 
   @override
@@ -822,7 +822,7 @@ mixin _RegularConstructorDeclarationMixin
 
   @override
   void onInferredType(DartType type) {
-    function.returnType = type;
+    _encoding.registerInferredReturnType(type);
   }
 
   void _registerInferable(Inferable inferable) {
@@ -1279,7 +1279,7 @@ class PrimaryConstructorDeclaration
 
   @override
   void onInferredType(DartType type) {
-    function.returnType = type;
+    _encoding.registerInferredReturnType(type);
   }
 
   void _registerInferable(Inferable inferable) {
@@ -1414,9 +1414,7 @@ abstract class ConstructorFragmentDeclaration {
     SourceConstructorBuilder constructorBuilder,
   );
 
-  FunctionNode get function;
-
-  void registerFunctionBody(Statement? value);
+  void registerFunctionBody(Statement? body, Scope? scope);
 
   void registerNoBodyConstructor();
 

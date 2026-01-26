@@ -29,6 +29,7 @@ import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/type_parameter_factory.dart';
 import '../../type_inference/external_ast_helper.dart';
+import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -109,9 +110,6 @@ class RegularSetterDeclaration
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
-  AsyncMarker get asyncModifier => _fragment.asyncModifier;
-
-  @override
   // Coverage-ignore(suite): Not run.
   Uri get fileUri => _fragment.fileUri;
 
@@ -119,7 +117,7 @@ class RegularSetterDeclaration
   List<FormalParameterBuilder>? get formals => _encoding.formals;
 
   @override
-  FunctionNode get function => _encoding.function;
+  bool get isNoSuchMethodForwarder => _encoding.isNoSuchMethodForwarder;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -133,6 +131,7 @@ class RegularSetterDeclaration
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name => _fragment.name;
 
   @override
@@ -307,6 +306,9 @@ class RegularSetterDeclaration
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
     required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
   }) {
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals == null ||
@@ -339,19 +341,38 @@ class RegularSetterDeclaration
         body,
       ], fileOffset: fileOffset);
     }
-    if (body != null) {
-      function.body = body..parent = function;
-    }
+    assert(
+      asyncMarker == _fragment.asyncModifier,
+      "Unexpected change in async modifier on $this from "
+      "${_fragment.asyncModifier} to $asyncMarker.",
+    );
+    _encoding.registerFunctionBody(
+      body: body,
+      // TODO(cstefantsova): Update scope to handle the insertion of parameters
+      // as locals above.
+      scope: scope,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
+    );
+  }
+
+  @override
+  DartType get returnTypeContext {
+    final bool isReturnTypeUndeclared =
+        returnType is OmittedTypeBuilder &&
+        // Coverage-ignore(suite): Not run.
+        _encoding.function.returnType is DynamicType;
+    return isReturnTypeUndeclared
+        ? const UnknownType()
+        : _encoding.function.returnType;
   }
 }
 
 /// Interface for using a [SetterFragment] to create a [BodyBuilderContext].
 abstract class SetterFragmentDeclaration {
-  AsyncMarker get asyncModifier;
-
   List<FormalParameterBuilder>? get formals;
 
-  FunctionNode get function;
+  bool get isNoSuchMethodForwarder;
 
   bool get isAbstract;
 
@@ -379,5 +400,10 @@ abstract class SetterFragmentDeclaration {
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
     required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
   });
+
+  DartType get returnTypeContext;
 }

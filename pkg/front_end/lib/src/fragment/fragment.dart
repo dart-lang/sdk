@@ -38,6 +38,7 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';

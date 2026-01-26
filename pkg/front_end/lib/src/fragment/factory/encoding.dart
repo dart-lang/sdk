@@ -76,12 +76,6 @@ class FactoryEncoding implements InferredTypeListener {
     _procedure.function.returnType = type;
   }
 
-  void set asyncModifier(AsyncMarker newModifier) {
-    _asyncModifier = newModifier;
-    _procedure.function.asyncMarker = _asyncModifier;
-    _procedure.function.dartAsyncMarker = _asyncModifier;
-  }
-
   List<DartType>? get redirectionTypeArguments {
     assert(_redirectionTarget != null);
     return _redirectionTypeArguments;
@@ -134,8 +128,7 @@ class FactoryEncoding implements InferredTypeListener {
     if (_redirectionTarget == null &&
         !_fragment.modifiers.isAbstract &&
         !_fragment.modifiers.isExternal) {
-      _procedure.function.body = new EmptyStatement()
-        ..parent = _procedure.function;
+      _procedure.function.registerFunctionBody(new EmptyStatement());
     }
     buildTypeParametersAndFormals(
       libraryBuilder,
@@ -293,12 +286,13 @@ class FactoryEncoding implements InferredTypeListener {
         );
       }
 
-      _procedure.function.body = createRedirectingFactoryBody(
-        target,
-        typeArguments,
-        _procedure.function,
+      _procedure.function.registerFunctionBody(
+        createRedirectingFactoryBody(
+          target,
+          typeArguments,
+          _procedure.function,
+        ),
       );
-      _procedure.function.body!.parent = _procedure.function;
       _procedure.function.redirectingFactoryTarget =
           new RedirectingFactoryTarget(target, typeArguments);
     }
@@ -502,11 +496,9 @@ class FactoryEncoding implements InferredTypeListener {
       );
     }
 
-    _procedure.function.body = createRedirectingFactoryBody(
-      target,
-      typeArguments,
-      _procedure.function,
-    )..parent = _procedure.function;
+    _procedure.function.registerFunctionBody(
+      createRedirectingFactoryBody(target, typeArguments, _procedure.function),
+    );
     _procedure.function.redirectingFactoryTarget = new RedirectingFactoryTarget(
       target,
       typeArguments,
@@ -533,12 +525,19 @@ class FactoryEncoding implements InferredTypeListener {
   void _setRedirectingFactoryError({required String message}) {
     assert(_redirectionTarget != null);
 
-    registerFunctionBody(createRedirectingFactoryErrorBody(message));
+    registerFunctionBody(
+      body: createRedirectingFactoryErrorBody(message),
+      // TODO(cstefantsova): Pass a scope here.
+      scope: null,
+      asyncMarker: AsyncMarker.Sync,
+      emittedValueType: null,
+    );
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
     if (_tearOff != null) {
-      _tearOff.function.body = createRedirectingFactoryErrorBody(message)
-        ..parent = _tearOff.function;
+      _tearOff.function.registerFunctionBody(
+        createRedirectingFactoryErrorBody(message),
+      );
     }
   }
 
@@ -814,10 +813,28 @@ class FactoryEncoding implements InferredTypeListener {
     return false;
   }
 
-  void registerFunctionBody(Statement? value) {
-    if (value != null) {
-      _procedure.function.body = value..parent = _procedure.function;
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    assert(
+      asyncMarker == AsyncMarker.Sync,
+      "Unexpected async marker $asyncMarker for factory.",
+    );
+    assert(
+      emittedValueType == null,
+      "Unexpected emitted value type for factory.",
+    );
+    if (body != null) {
+      _procedure.function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
     }
+    _procedure.function.scope = scope;
   }
 
   void becomeNative(SourceLoader loader) {

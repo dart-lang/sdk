@@ -1234,62 +1234,6 @@ class BodyBuilderImpl extends StackListenerImpl
     _initializers.addAll(initializers);
   }
 
-  void checkAsyncReturnType(
-    AsyncMarker asyncModifier,
-    DartType returnType,
-    int charOffset,
-    int length,
-  ) {
-    // For async, async*, and sync* functions with declared return types, we
-    // need to determine whether those types are valid.
-    // We use the same trick in each case below. For example to decide whether
-    // Future<T> <: [returnType] for every T, we rely on Future<Bot> and
-    // transitivity of the subtyping relation because Future<Bot> <: Future<T>
-    // for every T.
-
-    // We use [problem == null] to signal success.
-    Message? problem;
-    switch (asyncModifier) {
-      case AsyncMarker.Async:
-        DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
-        if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
-          problem = cfe.codeIllegalAsyncReturnType;
-        }
-        break;
-
-      case AsyncMarker.AsyncStar:
-        DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
-        if (returnType is VoidType) {
-          problem = cfe.codeIllegalAsyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType)) {
-          problem = cfe.codeIllegalAsyncGeneratorReturnType;
-        }
-        break;
-
-      case AsyncMarker.SyncStar:
-        DartType iterableBottomType = libraryBuilder.loader.iterableOfBottom;
-        if (returnType is VoidType) {
-          problem = cfe.codeIllegalSyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(
-          iterableBottomType,
-          returnType,
-        )) {
-          problem = cfe.codeIllegalSyncGeneratorReturnType;
-        }
-        break;
-
-      case AsyncMarker.Sync:
-        break; // skip
-    }
-
-    if (problem != null) {
-      // TODO(hillerstrom): once types get annotated with location
-      // information, we can improve the quality of the error message by
-      // using the offset of [returnType] (and the length of its name).
-      addProblem(problem, charOffset, length);
-    }
-  }
-
   List<Initializer> parseInitializers(Token token) {
     Parser parser = new Parser(
       this,
@@ -7832,11 +7776,13 @@ class BodyBuilderImpl extends StackListenerImpl
         hasImplicitReturnType,
       );
       if (!hasImplicitReturnType) {
-        checkAsyncReturnType(
-          asyncModifier,
-          function.returnType,
-          variable.fileOffset,
-          variable.name!.length,
+        problemReporting.checkAsyncReturnType(
+          libraryBuilder: libraryBuilder,
+          typeEnvironment: typeEnvironment,
+          asyncMarker: asyncModifier,
+          returnType: function.returnType,
+          returnTypeBuilder: returnType,
+          fileUri: uri,
         );
       }
 
@@ -11228,14 +11174,14 @@ class BodyBuilderImpl extends StackListenerImpl
     checkEmpty(token.next!.charOffset);
     token = parser.parseInitializersOpt(token);
     token = parser.parseAsyncModifierOpt(token);
-    AsyncMarker asyncModifier = pop() as AsyncMarker? ?? AsyncMarker.Sync;
-    if (kind == MemberKind.Factory && asyncModifier != AsyncMarker.Sync) {
+    AsyncMarker asyncMarker = pop() as AsyncMarker? ?? AsyncMarker.Sync;
+    if (kind == MemberKind.Factory && asyncMarker != AsyncMarker.Sync) {
       // Factories has to be sync. The parser issued an error.
       // Recover to sync.
-      asyncModifier = AsyncMarker.Sync;
+      asyncMarker = AsyncMarker.Sync;
     }
     bool isExpression = false;
-    bool allowAbstract = asyncModifier == AsyncMarker.Sync;
+    bool allowAbstract = asyncMarker == AsyncMarker.Sync;
 
     benchmarker
     // Coverage-ignore(suite): Not run.
@@ -11249,7 +11195,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ?.endSubdivide();
     checkEmpty(token.charOffset);
     return new BuildFunctionBodyResult(
-      asyncModifier: asyncModifier,
+      asyncMarker: asyncMarker,
       body: body,
       initializers: _initializers,
       annotations: _takePendingAnnotations(),

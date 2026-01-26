@@ -86,7 +86,7 @@ abstract class ConstructorEncoding {
     ConstructorFragmentDeclaration constructorDeclaration,
   );
 
-  void registerFunctionBody(Statement? value);
+  void registerFunctionBody({required Statement? body, Scope? scope});
 
   void registerNoBodyConstructor();
 
@@ -106,6 +106,8 @@ abstract class ConstructorEncoding {
   );
 
   bool get isRedirecting;
+
+  void registerInferredReturnType(DartType type);
 }
 
 class RegularConstructorEncoding implements ConstructorEncoding {
@@ -126,17 +128,23 @@ class RegularConstructorEncoding implements ConstructorEncoding {
        _isEnumConstructor = isEnumConstructor;
 
   @override
-  void registerFunctionBody(Statement? value) {
-    if (value != null) {
-      function.body = value..parent = function;
+  void registerFunctionBody({required Statement? body, Scope? scope}) {
+    if (body != null) {
+      function.registerFunctionBody(body);
     }
+    function.scope = scope;
   }
 
   @override
   void registerNoBodyConstructor() {
     if (!_isExternal) {
-      registerFunctionBody(new EmptyStatement());
+      registerFunctionBody(body: new EmptyStatement());
     }
+  }
+
+  @override
+  void registerInferredReturnType(DartType type) {
+    function.returnType = type;
   }
 
   @override
@@ -488,17 +496,23 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  void registerFunctionBody(Statement? value) {
-    if (value != null) {
-      function.body = value..parent = function;
+  void registerFunctionBody({required Statement? body, Scope? scope}) {
+    if (body != null) {
+      function.registerFunctionBody(body);
     }
+    function.scope = scope;
   }
 
   @override
   void registerNoBodyConstructor() {
     if (!_hasBuiltBody && !_isExternal) {
-      registerFunctionBody(new EmptyStatement());
+      registerFunctionBody(body: new EmptyStatement());
     }
+  }
+
+  @override
+  void registerInferredReturnType(DartType type) {
+    function.returnType = type;
   }
 
   @override
@@ -724,7 +738,8 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         statements.add(function.body!);
       }
       statements.add(new ReturnStatement(new VariableGet(thisVariable)));
-      registerFunctionBody(new Block(statements));
+      // TODO(cstefantsova): Provide a scope here.
+      registerFunctionBody(body: new Block(statements));
     }
     _hasBuiltBody = true;
   }

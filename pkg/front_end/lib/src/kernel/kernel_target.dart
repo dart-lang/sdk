@@ -1504,8 +1504,7 @@ class KernelTarget {
           /// >If a generative constructor c is not a redirecting constructor
           /// >and no body is provided, then c implicitly has an empty body {}.
           /// We use an empty statement instead.
-          constructor.function.body = new EmptyStatement()
-            ..parent = constructor.function;
+          constructor.function.registerFunctionBody(new EmptyStatement());
         }
       }
     }

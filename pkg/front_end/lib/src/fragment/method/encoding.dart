@@ -18,6 +18,7 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
 import '../../source/fragment_factory.dart';
@@ -36,6 +37,9 @@ sealed class MethodEncoding implements InferredTypeListener {
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
   List<FormalParameterBuilder>? get formals;
   FunctionNode get function;
+
+  bool get isNoSuchMethodForwarder;
+
   Procedure get invokeTarget;
 
   Procedure? get readTarget;
@@ -87,6 +91,13 @@ sealed class MethodEncoding implements InferredTypeListener {
   );
 
   VariableDeclaration? getTearOffParameter(int index);
+
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  });
 }
 
 sealed class MethodEncodingStrategy {
@@ -132,6 +143,9 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   FunctionNode get function => _procedure!.function;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   Procedure get invokeTarget {
@@ -371,6 +385,23 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   void onInferredType(DartType type) {
     function.returnType = type;
   }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
+  }
 }
 
 class _ExtensionInstanceMethodEncoding extends MethodEncoding
@@ -407,6 +438,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   Procedure? _procedure;
 
   Procedure? _extensionTearOff;
+
   @override
   late final List<TypeParameter>? thisTypeParameters =
       _clonedDeclarationTypeParameters != null
@@ -443,6 +475,9 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
   @override
   FunctionNode get function => _procedure!.function;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   Procedure get invokeTarget => _procedure!;
@@ -752,6 +787,23 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   void onInferredType(DartType type) {
     function.returnType = type;
+  }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
   }
 
   /// Creates a top level function that creates a tear off of an extension

@@ -152,11 +152,6 @@ abstract class BodyBuilderContext {
     return null;
   }
 
-  /// Returns the [FunctionNode] for the function body currently being built.
-  FunctionNode get function {
-    throw new UnsupportedError('${runtimeType}.function');
-  }
-
   /// Returns `true` if the member whose body is being built is a non-factory
   /// constructor declaration.
   bool get isConstructor => false;
@@ -301,7 +296,7 @@ abstract class BodyBuilderContext {
 
   /// Returns the return type of the constructor, factory, method, getter or
   /// setter currently being built.
-  TypeBuilder get returnType {
+  TypeBuilder get returnTypeBuilder {
     throw new UnsupportedError('${runtimeType}.returnType');
   }
 
@@ -311,6 +306,10 @@ abstract class BodyBuilderContext {
   List<FormalParameterBuilder>? get formals {
     throw new UnsupportedError('${runtimeType}.formals');
   }
+
+  /// Returns `true` if the member whose body is currently being built is a
+  /// noSuchMethod forwarder.
+  bool get isNoSuchMethodForwarder => false;
 
   /// Computes the scope containing the initializing formals or super
   /// parameters of the constructor currently being built, using [parent] as
@@ -363,18 +362,13 @@ abstract class BodyBuilderContext {
     return null;
   }
 
-  /// Sets the [asyncModifier] of the function currently being built.
-  // TODO(johnniwinther): Do we need this? Isn't this already available from the
-  // outline?
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    throw new UnsupportedError("${runtimeType}.setAsyncModifier");
-  }
-
   /// Registers [body] as the result of the body building.
-  void registerFunctionBody(
-    Statement? body,
-    ScopeProviderInfo? scopeProviderInfo,
-  ) {
+  void registerFunctionBody({
+    required Statement? body,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
     throw new UnsupportedError("${runtimeType}.registerFunctionBody");
   }
 
@@ -815,7 +809,4 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
   void registerSuperCall() {
     _procedure.transformerFlags |= TransformerFlag.superCalls;
   }
-
-  @override
-  FunctionNode get function => _procedure.function;
 }

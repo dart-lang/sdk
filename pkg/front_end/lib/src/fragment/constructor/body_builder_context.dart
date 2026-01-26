@@ -46,18 +46,13 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  TypeBuilder get returnType => _declaration.returnType;
+  TypeBuilder get returnTypeBuilder => _declaration.returnType;
 
   @override
   List<FormalParameterBuilder>? get formals => _declaration.formals;
 
   @override
   int get memberNameLength => _builder.name.length;
-
-  @override
-  FunctionNode get function {
-    return _declaration.function;
-  }
 
   @override
   bool get isFactory => false;
@@ -141,14 +136,19 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void registerFunctionBody(
-    Statement? body,
-    ScopeProviderInfo? scopeProviderInfo,
-  ) {
-    _declaration.registerFunctionBody(body);
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scopeProviderInfo?.scope;
+  void registerFunctionBody({
+    required Statement? body,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    // Constructors can only be sync.
+    _declaration.registerFunctionBody(
+      body,
+      scopeProviderInfo
+          // Coverage-ignore(suite): Not run.
+          ?.scope,
+    );
   }
 
   @override

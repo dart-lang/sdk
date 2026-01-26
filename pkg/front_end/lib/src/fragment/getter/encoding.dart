@@ -18,6 +18,7 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
@@ -124,6 +125,8 @@ sealed class GetterEncoding implements InferredTypeListener {
   List<FormalParameterBuilder>? get formals;
   FunctionNode get function;
 
+  bool get isNoSuchMethodForwarder;
+
   Procedure get readTarget;
 
   List<TypeParameter>? get thisTypeParameters;
@@ -173,6 +176,13 @@ sealed class GetterEncoding implements InferredTypeListener {
     SourceLibraryBuilder libraryBuilder,
     ClassHierarchyBase hierarchy,
   );
+
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  });
 }
 
 class RegularGetterEncoding extends GetterEncoding
@@ -194,6 +204,9 @@ class RegularGetterEncoding extends GetterEncoding
 
 mixin _DirectGetterEncodingMixin implements GetterEncoding {
   Procedure? _procedure;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -446,10 +459,30 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   void onInferredType(DartType type) {
     function.returnType = type;
   }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
+  }
 }
 
 mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   Procedure? _procedure;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -773,5 +806,22 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   @override
   void onInferredType(DartType type) {
     function.returnType = type;
+  }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
   }
 }

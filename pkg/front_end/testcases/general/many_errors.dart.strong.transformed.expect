@@ -55,7 +55,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   constructor named1() → self::A
     : invalid-initializer "pkg/front_end/testcases/general/many_errors.dart:8:26: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
   const A.named1() sync* {}
-                         ^" /* emittedValueType= dynamic */ {}
+                         ^" {}
   const constructor named2() → self::A
     : invalid-initializer "pkg/front_end/testcases/general/many_errors.dart:10:24: Error: 'x' is a final instance variable that was initialized at the declaration.
   const A.named2() : x = new Object();

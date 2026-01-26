@@ -523,13 +523,13 @@ class BuildPrimaryConstructorResult {
 }
 
 class BuildFunctionBodyResult {
-  final AsyncMarker asyncModifier;
+  final AsyncMarker asyncMarker;
   final Statement? body;
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
   BuildFunctionBodyResult({
-    required this.asyncModifier,
+    required this.asyncMarker,
     required this.body,
     required this.initializers,
     required this.annotations,

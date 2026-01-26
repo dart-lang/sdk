@@ -27,6 +27,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -118,7 +119,7 @@ class RegularGetterDeclaration
   List<FormalParameterBuilder>? get formals => _encoding.formals;
 
   @override
-  FunctionNode get function => _encoding.function;
+  bool get isNoSuchMethodForwarder => _encoding.isNoSuchMethodForwarder;
 
   @override
   GetterQuality get getterQuality => _fragment.modifiers.isAbstract
@@ -135,6 +136,7 @@ class RegularGetterDeclaration
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
+  // Coverage-ignore(suite): Not run.
   String get name => _fragment.name;
 
   @override
@@ -300,6 +302,36 @@ class RegularGetterDeclaration
   List<ClassMember> get localMembers => [
     new GetterClassMember(_fragment.builder),
   ];
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    assert(
+      asyncMarker == asyncModifier,
+      "Unexpected change in async modifier on $this from "
+      "${asyncModifier} to $asyncMarker.",
+    );
+    _encoding.registerFunctionBody(
+      body: body,
+      scope: scope,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
+    );
+  }
+
+  @override
+  DartType get returnTypeContext {
+    final bool isReturnTypeUndeclared =
+        returnType is OmittedTypeBuilder &&
+        _encoding.function.returnType is DynamicType;
+    return isReturnTypeUndeclared
+        ? const UnknownType()
+        : _encoding.function.returnType;
+  }
 }
 
 /// Interface for using a [GetterFragment] to create a [BodyBuilderContext].
@@ -308,7 +340,7 @@ abstract class GetterFragmentDeclaration {
 
   List<FormalParameterBuilder>? get formals;
 
-  FunctionNode get function;
+  bool get isNoSuchMethodForwarder;
 
   bool get isExternal;
 
@@ -329,4 +361,13 @@ abstract class GetterFragmentDeclaration {
   );
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
+
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  });
+
+  DartType get returnTypeContext;
 }

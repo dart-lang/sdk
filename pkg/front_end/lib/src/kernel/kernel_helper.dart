@@ -386,3 +386,24 @@ void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {
   origin.function = augmentation.function;
   origin.function.parent = origin;
 }
+
+extension FunctionNodeExtension on FunctionNode {
+  void registerFunctionBody(
+    Statement body, {
+    AsyncMarker asyncMarker = AsyncMarker.Sync,
+    DartType? emittedValueType = null,
+  }) {
+    assert(
+      !(asyncMarker == AsyncMarker.Sync && emittedValueType != null),
+      "Unexpected emitted value type for sync function.",
+    );
+    assert(
+      !(asyncMarker != AsyncMarker.Sync && emittedValueType == null),
+      "Missing emitted value type for non-sync function.",
+    );
+    this.body = body..parent = this;
+    this.asyncMarker = asyncMarker;
+    this.dartAsyncMarker = asyncMarker;
+    this.emittedValueType = emittedValueType;
+  }
+}

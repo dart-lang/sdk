@@ -13,7 +13,6 @@ import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../type_inference/context_allocation_strategy.dart';
-import '../../type_inference/type_schema.dart';
 import 'declaration.dart';
 
 class SetterBodyBuilderContext extends BodyBuilderContext {
@@ -36,28 +35,20 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   List<FormalParameterBuilder>? get formals => _declaration.formals;
 
   @override
-  FunctionNode get function => _declaration.function;
-
-  @override
   bool get isExternalFunction => _declaration.isExternal;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get memberNameLength => _declaration.name.length;
 
   @override
   int get memberNameOffset => _declaration.nameOffset;
 
   @override
-  TypeBuilder get returnType => _declaration.returnType;
+  TypeBuilder get returnTypeBuilder => _declaration.returnType;
 
   @override
-  DartType get returnTypeContext {
-    final bool isReturnTypeUndeclared =
-        _declaration.returnType is OmittedTypeBuilder &&
-        // Coverage-ignore(suite): Not run.
-        function.returnType is DynamicType;
-    return isReturnTypeUndeclared ? const UnknownType() : function.returnType;
-  }
+  DartType get returnTypeContext => _declaration.returnTypeContext;
 
   @override
   LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
@@ -70,33 +61,31 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
-  void registerFunctionBody(
-    Statement? body,
-    ScopeProviderInfo? scopeProviderInfo,
-  ) {
+  void registerFunctionBody({
+    required Statement? body,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
     _declaration.registerFunctionBody(
       compilerContext: _builder.libraryBuilder.loader.target.context,
       problemReporting: _builder.libraryBuilder,
       body: body,
+      scope: scopeProviderInfo
+          // Coverage-ignore(suite): Not run.
+          ?.scope,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
     );
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scopeProviderInfo?.scope;
   }
+
+  @override
+  bool get isNoSuchMethodForwarder => _declaration.isNoSuchMethodForwarder;
 
   @override
   void registerSuperCall() {
     // TODO(johnniwinther): This should be set on the member built from this
     // fragment and copied to the origin if necessary.
     _builder.writeTarget!.transformerFlags |= TransformerFlag.superCalls;
-  }
-
-  @override
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    assert(
-      asyncModifier == _declaration.asyncModifier,
-      "Unexpected change in async modifier on $_declaration from "
-      "${_declaration.asyncModifier} to $asyncModifier.",
-    );
   }
 }

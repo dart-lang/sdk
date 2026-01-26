@@ -357,13 +357,23 @@ class FactoryDeclarationImpl
   }
 
   @override
-  void setAsyncModifier(AsyncMarker newModifier) {
-    _encoding.asyncModifier = newModifier;
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    _encoding.registerFunctionBody(
+      body: body,
+      scope: scope,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
+    );
   }
 
   @override
-  void registerFunctionBody(Statement? value) {
-    _encoding.registerFunctionBody(value);
+  DartType get returnTypeContext {
+    return _encoding.function.returnType;
   }
 }
 
@@ -372,8 +382,6 @@ abstract class FactoryFragmentDeclaration {
   int get fileOffset;
 
   List<FormalParameterBuilder>? get formals;
-
-  FunctionNode get function;
 
   bool get isExternal;
 
@@ -397,7 +405,12 @@ abstract class FactoryFragmentDeclaration {
   /// it has been computed for the original parameter.
   VariableDeclaration? getTearOffParameter(int index);
 
-  void setAsyncModifier(AsyncMarker newModifier);
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  });
 
-  void registerFunctionBody(Statement? value);
+  DartType get returnTypeContext;
 }

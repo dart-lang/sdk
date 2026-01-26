@@ -17,6 +17,7 @@ import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/internal_ast.dart';
+import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
@@ -140,6 +141,8 @@ sealed class SetterEncoding {
   List<FormalParameterBuilder>? get formals;
   FunctionNode get function;
 
+  bool get isNoSuchMethodForwarder;
+
   List<TypeParameter>? get thisTypeParameters;
 
   VariableDeclaration? get thisVariable;
@@ -188,10 +191,20 @@ sealed class SetterEncoding {
     SourceLibraryBuilder libraryBuilder,
     ClassHierarchyBase hierarchy,
   );
+
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  });
 }
 
 mixin _DirectSetterEncodingMixin implements SetterEncoding {
   Procedure? _procedure;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -459,10 +472,30 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       }
     }
   }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
+  }
 }
 
 mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   Procedure? _procedure;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -807,5 +840,22 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         );
       }
     }
+  }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
   }
 }

@@ -118,7 +118,6 @@ class DillFieldBuilder extends DillMemberBuilder
   FieldQuality get fieldQuality => FieldQuality.Concrete;
 
   @override
-  // Coverage-ignore(suite): Not run.
   GetterQuality get getterQuality => GetterQuality.Implicit;
 
   @override
