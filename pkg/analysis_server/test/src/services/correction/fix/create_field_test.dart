@@ -752,6 +752,36 @@ class C {
 ''');
   }
 
+  Future<void> test_initializingFormal_private_named() async {
+    await resolveTestCode('''
+class C {
+  C({String? this._text});
+}
+''');
+    await assertHasFix('''
+class C {
+  String? _text;
+
+  C({String? this._text});
+}
+''');
+  }
+
+  Future<void> test_initializingFormal_private_positional() async {
+    await resolveTestCode('''
+class C {
+  C(String this._text);
+}
+''');
+    await assertHasFix('''
+class C {
+  String _text;
+
+  C(String this._text);
+}
+''');
+  }
+
   Future<void> test_initializingFormal_typeVariable() async {
     await resolveTestCode('''
 class C<T> {
