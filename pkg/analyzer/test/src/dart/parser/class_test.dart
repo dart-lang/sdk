@@ -719,7 +719,10 @@ class A {
   A(final int a(String x));
 }
 ''');
-    parseResult.assertErrors([error(diag.functionTypedParameterVar, 14, 5)]);
+    parseResult.assertErrors([
+      error(diag.extraneousModifier, 14, 5),
+      error(diag.functionTypedParameterVar, 14, 5),
+    ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -809,7 +812,7 @@ class A {
   A(final int a);
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''

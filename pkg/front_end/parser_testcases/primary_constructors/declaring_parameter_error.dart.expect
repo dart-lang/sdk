@@ -1,8 +1,16 @@
 Problems reported:
 
+parser/primary_constructors/declaring_parameter_error:1:3: Can't have modifier 'var' here.
+m(var a b) {}
+  ^^^
+
 parser/primary_constructors/declaring_parameter_error:1:3: Variables can't be declared using both 'var' and a type name.
 m(var a b) {}
   ^^^
+
+parser/primary_constructors/declaring_parameter_error:4:5: Can't have modifier 'var' here.
+  C(var a b) {}
+    ^^^
 
 parser/primary_constructors/declaring_parameter_error:4:5: Variables can't be declared using both 'var' and a type name.
   C(var a b) {}
@@ -72,6 +80,10 @@ parser/primary_constructors/declaring_parameter_error:27:8: Can't have modifier 
 enum E(const void f<T>()) {}
        ^^^^^
 
+parser/primary_constructors/declaring_parameter_error:30:6: Can't have modifier 'var' here.
+  ET(var a b) {}
+     ^^^
+
 parser/primary_constructors/declaring_parameter_error:30:6: Variables can't be declared using both 'var' and a type name.
   ET(var a b) {}
      ^^^
@@ -120,6 +132,7 @@ beginCompilationUnit(m)
         beginMetadataStar(var)
         endMetadataStar(0)
         beginFormalParameter(var, MemberKind.TopLevelMethod, null, null, var)
+          handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'var' here., Try removing 'var'., {lexeme: var}], var, var)
           handleRecoverableError(TypeAfterVar, var, var)
           handleIdentifier(a, typeReference)
           handleNoTypeArguments(b)
@@ -157,6 +170,7 @@ beginCompilationUnit(m)
               beginMetadataStar(var)
               endMetadataStar(0)
               beginFormalParameter(var, MemberKind.NonStaticMethod, null, null, var)
+                handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'var' here., Try removing 'var'., {lexeme: var}], var, var)
                 handleRecoverableError(TypeAfterVar, var, var)
                 handleIdentifier(a, typeReference)
                 handleNoTypeArguments(b)
@@ -815,6 +829,7 @@ beginCompilationUnit(m)
               beginMetadataStar(var)
               endMetadataStar(0)
               beginFormalParameter(var, MemberKind.ExtensionTypeNonStaticMethod, null, null, var)
+                handleRecoverableError(Message[Template(ExtraneousModifier), Can't have modifier 'var' here., Try removing 'var'., {lexeme: var}], var, var)
                 handleRecoverableError(TypeAfterVar, var, var)
                 handleIdentifier(a, typeReference)
                 handleNoTypeArguments(b)
