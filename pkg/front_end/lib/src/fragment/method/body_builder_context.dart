@@ -12,7 +12,6 @@ import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
 import '../../type_inference/context_allocation_strategy.dart';
-import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
 import 'declaration.dart';
 
@@ -36,27 +35,20 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   List<FormalParameterBuilder>? get formals => _declaration.formals;
 
   @override
-  FunctionNode get function => _declaration.function;
-
-  @override
   bool get isExternalFunction => _fragment.modifiers.isExternal;
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get memberNameLength => _fragment.name.length;
 
   @override
   int get memberNameOffset => _fragment.nameOffset;
 
   @override
-  TypeBuilder get returnType => _fragment.returnType;
+  TypeBuilder get returnTypeBuilder => _fragment.returnType;
 
   @override
-  DartType get returnTypeContext {
-    final bool isReturnTypeUndeclared =
-        _fragment.returnType is OmittedTypeBuilder &&
-        function.returnType is DynamicType;
-    return isReturnTypeUndeclared ? const UnknownType() : function.returnType;
-  }
+  DartType get returnTypeContext => _declaration.returnTypeContext;
 
   @override
   LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
@@ -70,15 +62,28 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
       _declaration.getTearOffParameter(index);
 
   @override
-  void registerFunctionBody(
-    Statement? body,
-    ScopeProviderInfo? scopeProviderInfo,
-  ) {
-    if (body != null) {
-      function.body = body..parent = function;
-    }
-    function.scope = scopeProviderInfo?.scope;
+  void registerFunctionBody({
+    required Statement? body,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    assert(
+      asyncMarker == _fragment.asyncModifier,
+      "Unexpected change in async modifier on $_fragment from "
+      "${_fragment.asyncModifier} to $asyncMarker.",
+    );
+
+    _declaration.registerFunctionBody(
+      body: body,
+      scope: scopeProviderInfo?.scope,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
+    );
   }
+
+  @override
+  bool get isNoSuchMethodForwarder => _declaration.isNoSuchMethodForwarder;
 
   @override
   void registerSuperCall() {
@@ -86,14 +91,5 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
     // fragment and copied to the origin if necessary.
     _fragment.builder.invokeTarget.transformerFlags |=
         TransformerFlag.superCalls;
-  }
-
-  @override
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    assert(
-      asyncModifier == _fragment.asyncModifier,
-      "Unexpected change in async modifier on $_fragment from "
-      "${_fragment.asyncModifier} to $asyncModifier.",
-    );
   }
 }

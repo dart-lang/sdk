@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-import 'package:front_end/src/base/lookup_result.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
@@ -11,12 +10,14 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/extension_scope.dart';
 import '../../base/local_scope.dart';
+import '../../base/lookup_result.dart';
 import '../../base/messages.dart';
 import '../../base/name_space.dart';
 import '../../base/scope.dart';
 import '../../builder/constructor_builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
+import '../../builder/function_signature.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/omitted_type_builder.dart';
@@ -50,7 +51,7 @@ abstract class ConstructorDeclaration {
 
   List<MetadataBuilder>? get metadata;
 
-  FunctionNode get function;
+  FunctionSignature get signature;
 
   bool get hasParameters;
 
@@ -276,10 +277,10 @@ mixin _ConstructorDeclarationMixin
     }
 
     Member superTarget;
-    FunctionNode? superConstructorFunction;
+    FunctionSignature? superConstructorSignature;
     if (superTargetBuilder != null) {
       superTarget = superTargetBuilder.invokeTarget;
-      superConstructorFunction = superTargetBuilder.function;
+      superConstructorSignature = superTargetBuilder.signature;
     } else {
       assert(
         libraryBuilder.loader.assertProblemReportedElsewhere(
@@ -293,22 +294,10 @@ mixin _ConstructorDeclarationMixin
     }
     SourceClassBuilder classBuilder = declarationBuilder as SourceClassBuilder;
 
-    List<DartType?> positionalSuperFormalType = [];
-    List<bool> positionalSuperFormalHasInitializer = [];
-    Map<String, DartType?> namedSuperFormalType = {};
-    Map<String, bool> namedSuperFormalHasInitializer = {};
-
-    for (VariableDeclaration formal
-        in superConstructorFunction.positionalParameters) {
-      positionalSuperFormalType.add(formal.type);
-      positionalSuperFormalHasInitializer.add(formal.hasDeclaredInitializer);
-    }
-    for (VariableDeclaration formal
-        in superConstructorFunction.namedParameters) {
-      namedSuperFormalType[formal.name!] = formal.type;
-      namedSuperFormalHasInitializer[formal.name!] =
-          formal.hasDeclaredInitializer;
-    }
+    List<ParameterInfo> positionalSuperInfo =
+        superConstructorSignature.positionalParameters;
+    Map<String, ParameterInfo> namedSuperInfo =
+        superConstructorSignature.namedParameters;
 
     int superInitializingFormalIndex = -1;
     List<int?>? positionalSuperParameters;
@@ -334,20 +323,15 @@ mixin _ConstructorDeclarationMixin
 
         DartType? correspondingSuperFormalType;
         if (formal.isPositional) {
-          assert(
-            positionalSuperFormalHasInitializer.length ==
-                positionalSuperFormalType.length,
-          );
-          if (superInitializingFormalIndex <
-              positionalSuperFormalHasInitializer.length) {
+          if (superInitializingFormalIndex < positionalSuperInfo.length) {
+            ParameterInfo parameterInfo =
+                positionalSuperInfo[superInitializingFormalIndex];
             if (formal.isOptional) {
               formal.hasDeclaredInitializer =
                   hasImmediatelyDeclaredInitializer ||
-                  positionalSuperFormalHasInitializer[ // force line break
-                  superInitializingFormalIndex];
+                  parameterInfo.hasDeclaredInitializer;
             }
-            correspondingSuperFormalType =
-                positionalSuperFormalType[superInitializingFormalIndex];
+            correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer &&
                 !formal.isRequiredPositional) {
               (positionalSuperParameters ??= <int?>[]).add(formalIndex);
@@ -366,13 +350,14 @@ mixin _ConstructorDeclarationMixin
             );
           }
         } else {
-          if (namedSuperFormalHasInitializer[formal.name] != null) {
+          ParameterInfo? parameterInfo = namedSuperInfo[formal.name];
+          if (parameterInfo != null) {
             if (formal.isOptional) {
               formal.hasDeclaredInitializer =
                   hasImmediatelyDeclaredInitializer ||
-                  namedSuperFormalHasInitializer[formal.name]!;
+                  parameterInfo.hasDeclaredInitializer;
             }
-            correspondingSuperFormalType = namedSuperFormalType[formal.name];
+            correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer && !formal.isRequiredNamed) {
               (namedSuperParameters ??= <String>[]).add(formal.name);
             }
@@ -694,7 +679,7 @@ mixin _ConstructorEncodingMixin
       formals?.any((formal) => formal.isSuperInitializingFormal) ?? false;
 
   @override
-  FunctionNode get function => _encoding.function;
+  FunctionSignature get signature => _encoding.signature;
 
   @override
   List<Initializer> get initializers => _encoding.initializers;
@@ -729,8 +714,8 @@ mixin _ConstructorEncodingMixin
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  void registerFunctionBody(Statement? value) {
-    _encoding.registerFunctionBody(value);
+  void registerFunctionBody(Statement? body, Scope? scope) {
+    _encoding.registerFunctionBody(body: body, scope: scope);
   }
 
   @override
@@ -822,7 +807,7 @@ mixin _RegularConstructorDeclarationMixin
 
   @override
   void onInferredType(DartType type) {
-    function.returnType = type;
+    _encoding.registerInferredReturnType(type);
   }
 
   void _registerInferable(Inferable inferable) {
@@ -1279,7 +1264,7 @@ class PrimaryConstructorDeclaration
 
   @override
   void onInferredType(DartType type) {
-    function.returnType = type;
+    _encoding.registerInferredReturnType(type);
   }
 
   void _registerInferable(Inferable inferable) {
@@ -1414,9 +1399,7 @@ abstract class ConstructorFragmentDeclaration {
     SourceConstructorBuilder constructorBuilder,
   );
 
-  FunctionNode get function;
-
-  void registerFunctionBody(Statement? value);
+  void registerFunctionBody(Statement? body, Scope? scope);
 
   void registerNoBodyConstructor();
 
@@ -1458,7 +1441,8 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   Uri get fileUri => _constructor.fileUri;
 
   @override
-  FunctionNode get function => _constructor.function;
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_constructor.function);
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -33,7 +33,7 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  TypeBuilder get returnType => _declaration.returnType;
+  TypeBuilder get returnTypeBuilder => _declaration.returnType;
 
   @override
   List<FormalParameterBuilder>? get formals => _declaration.formals;
@@ -46,12 +46,8 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int get memberNameLength => _builder.name.length;
-
-  @override
-  FunctionNode get function {
-    return _declaration.function;
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -78,28 +74,27 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void registerFunctionBody(
-    Statement? body,
-    ScopeProviderInfo? scopeProviderInfo,
-  ) {
-    _declaration.registerFunctionBody(body);
-    function.scope =
-        // Coverage-ignore(suite): Not run.
-        scopeProviderInfo?.scope;
-  }
-
-  @override
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    _declaration.setAsyncModifier(asyncModifier);
+  void registerFunctionBody({
+    required Statement? body,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    _declaration.registerFunctionBody(
+      body: body,
+      scope: scopeProviderInfo
+          // Coverage-ignore(suite): Not run.
+          ?.scope,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
+    );
   }
 
   @override
   bool get isRedirectingFactory => _declaration.redirectionTarget != null;
 
   @override
-  DartType get returnTypeContext {
-    return _declaration.function.returnType;
-  }
+  DartType get returnTypeContext => _declaration.returnTypeContext;
 
   @override
   String get redirectingFactoryTargetName {

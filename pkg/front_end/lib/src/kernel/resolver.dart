@@ -385,7 +385,7 @@ class Resolver {
         problemReporting: problemReporting,
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
-        asyncModifier: result.asyncModifier,
+        asyncMarker: result.asyncMarker,
         body: result.body,
         fileUri: fileUri,
         bodyBuilderContext: bodyBuilderContext,
@@ -644,7 +644,7 @@ class Resolver {
           problemReporting: problemReporting,
           libraryBuilder: libraryBuilder,
           libraryFeatures: libraryFeatures,
-          asyncModifier: AsyncMarker.Sync,
+          asyncMarker: AsyncMarker.Sync,
           body: null,
           fileUri: fileUri,
           bodyBuilderContext: bodyBuilderContext,
@@ -723,7 +723,7 @@ class Resolver {
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
         bodyBuilderContext: bodyBuilderContext,
-        asyncModifier: result.asyncMarker,
+        asyncMarker: result.asyncMarker,
         body: result.body,
         fileUri: fileUri,
         constantContext: constantContext,
@@ -923,7 +923,6 @@ class Resolver {
           body: fakeReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
           parameters: formalParameters,
-          function: bodyBuilderContext.function,
         );
     assert(
       fakeReturn == inferredFunctionBody.body,
@@ -1224,7 +1223,7 @@ class Resolver {
       libraryFeatures: libraryFeatures,
       superParameterArguments: superParameterArguments,
       initializers: initializers,
-      asyncModifier: asyncModifier,
+      asyncMarker: asyncModifier,
       asyncModifierFileOffset: body?.fileOffset,
     );
 
@@ -1256,7 +1255,7 @@ class Resolver {
     required ProblemReporting problemReporting,
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
-    required AsyncMarker asyncModifier,
+    required AsyncMarker asyncMarker,
     required Statement? body,
     required Uri fileUri,
     required BodyBuilderContext bodyBuilderContext,
@@ -1277,7 +1276,6 @@ class Resolver {
         );
     assignedVariables.finish();
 
-    FunctionNode function = bodyBuilderContext.function;
     _declareFormals(
       typeInferrer: context.typeInferrer,
       bodyBuilderContext: bodyBuilderContext,
@@ -1344,15 +1342,25 @@ class Resolver {
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
         bodyBuilderContext: bodyBuilderContext,
-        asyncModifier: asyncModifier,
+        asyncModifier: asyncMarker,
         body: body,
         superParameterArguments: superParameterArguments,
         fileUri: fileUri,
         constantContext: constantContext,
         initializers: initializers,
       );
-    } else if (body != null) {
-      bodyBuilderContext.setAsyncModifier(asyncModifier);
+    }
+
+    DartType returnType = bodyBuilderContext.returnTypeContext;
+    if (bodyBuilderContext.returnTypeBuilder is! OmittedTypeBuilder) {
+      problemReporting.checkAsyncReturnType(
+        libraryBuilder: libraryBuilder,
+        typeEnvironment: context.typeInferrer.typeSchemaEnvironment,
+        asyncMarker: asyncMarker,
+        returnType: returnType,
+        returnTypeBuilder: bodyBuilderContext.returnTypeBuilder,
+        fileUri: fileUri,
+      );
     }
 
     InferredFunctionBody? inferredFunctionBody;
@@ -1360,41 +1368,24 @@ class Resolver {
       inferredFunctionBody = context.typeInferrer.inferFunctionBody(
         fileUri: fileUri,
         fileOffset: bodyBuilderContext.memberNameOffset,
-        returnType: bodyBuilderContext.returnTypeContext,
-        asyncMarker: asyncModifier,
+        returnType: returnType,
+        asyncMarker: asyncMarker,
         body: body,
         parameters: <VariableDeclaration>[
           for (FormalParameterBuilder formal
               in bodyBuilderContext.formals ?? [])
             formal.variable!,
         ],
-        function: bodyBuilderContext.function,
       );
       body = inferredFunctionBody.body;
-      function.emittedValueType = inferredFunctionBody.emittedValueType;
-      assert(
-        function.asyncMarker == AsyncMarker.Sync ||
-            function.emittedValueType != null,
-      );
-    }
-
-    if (bodyBuilderContext.returnType is! OmittedTypeBuilder) {
-      problemReporting.checkAsyncReturnType(
-        libraryBuilder: libraryBuilder,
-        typeEnvironment: context.typeInferrer.typeSchemaEnvironment,
-        asyncModifier: asyncModifier,
-        returnType: function.returnType,
-        fileUri: fileUri,
-        fileOffset: bodyBuilderContext.memberNameOffset,
-        length: bodyBuilderContext.memberNameLength,
-      );
+    } else {
+      // Normalize abstract members markers to sync.
+      asyncMarker = AsyncMarker.Sync;
     }
 
     // No-such-method forwarders get their bodies injected during outline
     // building, so we should skip them here.
-    bool isNoSuchMethodForwarder =
-        (function.parent is Procedure &&
-        (function.parent as Procedure).isNoSuchMethodForwarder);
+    bool isNoSuchMethodForwarder = bodyBuilderContext.isNoSuchMethodForwarder;
     if (body != null) {
       if (bodyBuilderContext.isExternalFunction || isNoSuchMethodForwarder) {
         body = new Block(<Statement>[
@@ -1411,9 +1402,20 @@ class Resolver {
         ])..fileOffset = body.fileOffset;
       }
     }
+    DartType? emittedValueType = inferredFunctionBody?.emittedValueType;
+    assert(
+      !(asyncMarker == AsyncMarker.Sync && emittedValueType != null),
+      "Unexpected emitted value type for sync function.",
+    );
+    assert(
+      !(asyncMarker != AsyncMarker.Sync && emittedValueType == null),
+      "Missing emitted value type for non-sync function.",
+    );
     bodyBuilderContext.registerFunctionBody(
-      body,
-      inferredFunctionBody?.scopeProviderInfo,
+      body: body,
+      scopeProviderInfo: inferredFunctionBody?.scopeProviderInfo,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
     );
   }
 }

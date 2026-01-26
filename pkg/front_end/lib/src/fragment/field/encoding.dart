@@ -510,21 +510,21 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..fileOffset = _fragment.nameOffset
         ..parent = _lateIsSetField;
     }
-    _lateGetter!.function.body = _createGetterBody(
-      coreTypes,
-      _fragment.name,
-      initializer,
-    )..parent = _lateGetter!.function;
+    _lateGetter!.function.registerFunctionBody(
+      _createGetterBody(coreTypes, _fragment.name, initializer),
+    );
     // The initializer is copied from [_field] to [_lateGetter] so we copy the
     // transformer flags to reflect whether the getter contains super calls.
     _lateGetter!.transformerFlags = _field!.transformerFlags;
 
     if (_lateSetter != null) {
-      _lateSetter!.function.body = _createSetterBody(
-        coreTypes,
-        _fragment.name,
-        _lateSetter!.function.positionalParameters.first,
-      )..parent = _lateSetter!.function;
+      _lateSetter!.function.registerFunctionBody(
+        _createSetterBody(
+          coreTypes,
+          _fragment.name,
+          _lateSetter!.function.positionalParameters.first,
+        ),
+      );
     }
   }
 

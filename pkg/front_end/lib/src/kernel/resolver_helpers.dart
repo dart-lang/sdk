@@ -226,7 +226,7 @@ class _InitializerBuilder {
     required LibraryFeatures libraryFeatures,
     required _SuperParameterArguments? superParameterArguments,
     required List<Initializer> initializers,
-    required AsyncMarker asyncModifier,
+    required AsyncMarker asyncMarker,
     required int? asyncModifierFileOffset,
   }) {
     if (initializers.isNotEmpty) {
@@ -257,14 +257,14 @@ class _InitializerBuilder {
                 _inferInitializer(initializer);
               case InternalRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
-                if (_bodyBuilderContext.isEnumClass &&
-                    libraryFeatures.enhancedEnums.isEnabled) {
-                  FunctionNode function = _bodyBuilderContext.function;
+                if (_bodyBuilderContext.isEnumClass) {
+                  List<FormalParameterBuilder> formals =
+                      _bodyBuilderContext.formals!;
                   ActualArguments arguments = initializer.arguments;
                   List<Expression> enumSyntheticArguments = [
-                    new VariableGet(function.positionalParameters[0])
+                    new VariableGet(formals[0].variable!)
                       ..parent = initializer.arguments,
-                    new VariableGet(function.positionalParameters[1])
+                    new VariableGet(formals[1].variable!)
                       ..parent = initializer.arguments,
                   ];
                   arguments.prependArguments([
@@ -342,7 +342,7 @@ class _InitializerBuilder {
       }
     }
 
-    if (asyncModifier != AsyncMarker.Sync) {
+    if (asyncMarker != AsyncMarker.Sync) {
       _inferInitializer(
         createInvalidInitializer(
           _problemReporting.buildProblem(
@@ -559,18 +559,14 @@ class _InitializerBuilder {
       positionalCount += superParameterArguments.positionalCount;
     }
     if (_bodyBuilderContext.isEnumClass) {
-      FunctionNode function = _bodyBuilderContext.function;
+      List<FormalParameterBuilder> formals = _bodyBuilderContext.formals!;
       assert(
-        function.positionalParameters.length >= 2 &&
-            function.positionalParameters[0].name == "#index" &&
-            function.positionalParameters[1].name == "#name",
+        formals.length >= 2 &&
+            formals[0].name == "#index" &&
+            formals[1].name == "#name",
       );
-      Expression indexExpression = new VariableGet(
-        function.positionalParameters[0],
-      );
-      Expression nameExpression = new VariableGet(
-        function.positionalParameters[1],
-      );
+      Expression indexExpression = new VariableGet(formals[0].variable!);
+      Expression nameExpression = new VariableGet(formals[1].variable!);
       (argumentsOriginalOrder ??= []).insertAll(0, [
         new PositionalArgument(indexExpression),
         new PositionalArgument(nameExpression),

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/builder/function_signature.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 
@@ -336,11 +337,11 @@ class DillExtensionTypeInstanceMethodBuilder
 class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
     with DillConstructorBuilderMixin
     implements ConstructorBuilder {
-  final Procedure constructor;
+  final Procedure _constructor;
   final Procedure? _constructorTearOff;
 
   DillExtensionTypeConstructorBuilder(
-    this.constructor,
+    this._constructor,
     this._constructorTearOff,
     super.descriptor,
     super.libraryBuilder,
@@ -349,35 +350,36 @@ class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isConst => constructor.isConst;
+  bool get isConst => _constructor.isConst;
 
   @override
-  FunctionNode get function => constructor.function;
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_constructor.function);
 
   @override
   // Coverage-ignore(suite): Not run.
-  Procedure get member => constructor;
+  Procedure get member => _constructor;
 
   @override
   Member get readTarget =>
       _constructorTearOff ?? // Coverage-ignore(suite): Not run.
-      constructor;
+      _constructor;
 
   @override
   // Coverage-ignore(suite): Not run.
   Reference get readTargetReference =>
-      (_constructorTearOff ?? constructor).reference;
+      (_constructorTearOff ?? _constructor).reference;
 
   @override
-  Procedure get invokeTarget => constructor;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Reference get invokeTargetReference => constructor.reference;
+  Procedure get invokeTarget => _constructor;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences => [constructor.reference];
+  Reference get invokeTargetReference => _constructor.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedMemberReferences => [_constructor.reference];
 }
 
 class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder
@@ -420,7 +422,8 @@ class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
   @override
-  FunctionNode get function => _procedure.function;
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_procedure.function);
 
   @override
   // Coverage-ignore(suite): Not run.

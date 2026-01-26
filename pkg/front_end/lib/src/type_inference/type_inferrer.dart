@@ -58,7 +58,6 @@ abstract class TypeInferrer {
     required AsyncMarker asyncMarker,
     required Statement body,
     required List<VariableDeclaration> parameters,
-    required FunctionNode function,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   });
 
@@ -230,7 +229,6 @@ class TypeInferrerImpl implements TypeInferrer {
     required AsyncMarker asyncMarker,
     required Statement body,
     required List<VariableDeclaration> parameters,
-    required FunctionNode function,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
@@ -454,7 +452,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required AsyncMarker asyncMarker,
     required Statement body,
     required List<VariableDeclaration> parameters,
-    required FunctionNode function,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
@@ -466,7 +463,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       body: body,
       expressionEvaluationHelper: expressionEvaluationHelper,
       parameters: parameters,
-      function: function,
     );
     benchmarker.endSubdivide();
     return result;

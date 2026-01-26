@@ -16,6 +16,7 @@ import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/function_signature.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
@@ -144,7 +145,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  FunctionNode get function => _lastDeclaration.function;
+  FunctionSignature get signature => _lastDeclaration.signature;
 
   @override
   MemberBuilder get getable => this;

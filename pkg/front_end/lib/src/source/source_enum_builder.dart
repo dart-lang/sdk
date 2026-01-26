@@ -546,14 +546,16 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     if (toStringSuperTarget != null) {
       // Coverage-ignore-block(suite): Not run.
       _procedure.transformerFlags |= TransformerFlag.superCalls;
-      _procedure.function.body = new ReturnStatement(
-        new SuperMethodInvocation(
-          new ThisExpression(),
-          toStringName,
-          new Arguments([]),
-          toStringSuperTarget,
+      _procedure.function.registerFunctionBody(
+        new ReturnStatement(
+          new SuperMethodInvocation(
+            new ThisExpression(),
+            toStringName,
+            new Arguments([]),
+            toStringSuperTarget,
+          ),
         ),
-      )..parent = _procedure.function;
+      );
     } else {
       ClassBuilder enumClass =
           _underscoreEnumTypeBuilder.declaration as ClassBuilder;
@@ -563,18 +565,20 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
       assert(nameFieldBuilder != null);
       Field nameField = nameFieldBuilder!.readTarget as Field;
 
-      _procedure.function.body = new ReturnStatement(
-        new StringConcatenation([
-          new StringLiteral("${_enumBuilder.cls.demangledName}."),
-          new InstanceGet.byReference(
-            InstanceAccessKind.Instance,
-            new ThisExpression(),
-            nameField.name,
-            interfaceTargetReference: nameField.getterReference,
-            resultType: nameField.getterType,
-          ),
-        ]),
-      )..parent = _procedure.function;
+      _procedure.function.registerFunctionBody(
+        new ReturnStatement(
+          new StringConcatenation([
+            new StringLiteral("${_enumBuilder.cls.demangledName}."),
+            new InstanceGet.byReference(
+              InstanceAccessKind.Instance,
+              new ThisExpression(),
+              nameField.name,
+              interfaceTargetReference: nameField.getterReference,
+              resultType: nameField.getterType,
+            ),
+          ]),
+        ),
+      );
     }
   }
 

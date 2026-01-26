@@ -10,6 +10,7 @@ import '../../api_prototype/lowering_predicates.dart';
 import '../../base/modifiers.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
+import '../../builder/function_signature.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
@@ -34,7 +35,7 @@ import 'body_builder_context.dart';
 import 'declaration.dart';
 
 abstract class ConstructorEncoding {
-  FunctionNode get function;
+  FunctionSignature get signature;
 
   List<Initializer> get initializers;
 
@@ -86,7 +87,7 @@ abstract class ConstructorEncoding {
     ConstructorFragmentDeclaration constructorDeclaration,
   );
 
-  void registerFunctionBody(Statement? value);
+  void registerFunctionBody({required Statement? body, Scope? scope});
 
   void registerNoBodyConstructor();
 
@@ -106,6 +107,8 @@ abstract class ConstructorEncoding {
   );
 
   bool get isRedirecting;
+
+  void registerInferredReturnType(DartType type);
 }
 
 class RegularConstructorEncoding implements ConstructorEncoding {
@@ -126,21 +129,28 @@ class RegularConstructorEncoding implements ConstructorEncoding {
        _isEnumConstructor = isEnumConstructor;
 
   @override
-  void registerFunctionBody(Statement? value) {
-    if (value != null) {
-      function.body = value..parent = function;
+  void registerFunctionBody({required Statement? body, Scope? scope}) {
+    if (body != null) {
+      _constructor.function.registerFunctionBody(body);
     }
+    _constructor.function.scope = scope;
   }
 
   @override
   void registerNoBodyConstructor() {
     if (!_isExternal) {
-      registerFunctionBody(new EmptyStatement());
+      registerFunctionBody(body: new EmptyStatement());
     }
   }
 
   @override
-  FunctionNode get function => _constructor.function;
+  void registerInferredReturnType(DartType type) {
+    _constructor.function.returnType = type;
+  }
+
+  @override
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_constructor.function);
 
   // Coverage-ignore(suite): Not run.
   Member get constructor => _constructor;
@@ -275,10 +285,10 @@ class RegularConstructorEncoding implements ConstructorEncoding {
 
       // According to the specification §9.3 the return type of a constructor
       // function is its enclosing class.
-      function.asyncMarker = AsyncMarker.Sync;
+      _constructor.function.asyncMarker = AsyncMarker.Sync;
       buildTypeParametersAndFormals(
         libraryBuilder,
-        function,
+        _constructor.function,
         typeParameters,
         formals,
         classTypeParameters: null,
@@ -483,26 +493,33 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   List<Initializer> get initializers => _initializers;
 
   @override
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_constructor.function);
+
+  @override
   void registerInitializers(List<Initializer> initializers) {
     this.initializers.addAll(initializers);
   }
 
   @override
-  void registerFunctionBody(Statement? value) {
-    if (value != null) {
-      function.body = value..parent = function;
+  void registerFunctionBody({required Statement? body, Scope? scope}) {
+    if (body != null) {
+      _constructor.function.registerFunctionBody(body);
     }
+    _constructor.function.scope = scope;
   }
 
   @override
   void registerNoBodyConstructor() {
     if (!_hasBuiltBody && !_isExternal) {
-      registerFunctionBody(new EmptyStatement());
+      registerFunctionBody(body: new EmptyStatement());
     }
   }
 
   @override
-  FunctionNode get function => _constructor.function;
+  void registerInferredReturnType(DartType type) {
+    _constructor.function.returnType = type;
+  }
 
   bool _hasBeenBuilt = false;
 
@@ -555,10 +572,10 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
       // According to the specification §9.3 the return type of a constructor
       // function is its enclosing class.
-      function.asyncMarker = AsyncMarker.Sync;
+      _constructor.function.asyncMarker = AsyncMarker.Sync;
       buildTypeParametersAndFormals(
         libraryBuilder,
-        function,
+        _constructor.function,
         typeParameters,
         formals,
         classTypeParameters: null,
@@ -569,7 +586,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         int count = declarationBuilder.typeParameters!.length;
         _thisTypeParameters = new List<TypeParameter>.generate(
           count,
-          (int index) => function.typeParameters[index],
+          (int index) => _constructor.function.typeParameters[index],
           growable: false,
         );
       }
@@ -593,8 +610,8 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
             ..isLowered = true;
 
       List<DartType> typeParameterTypes = <DartType>[];
-      for (int i = 0; i < function.typeParameters.length; i++) {
-        TypeParameter typeParameter = function.typeParameters[i];
+      for (int i = 0; i < _constructor.function.typeParameters.length; i++) {
+        TypeParameter typeParameter = _constructor.function.typeParameters[i];
         typeParameterTypes.add(
           new TypeParameterType.withDefaultNullability(typeParameter),
         );
@@ -720,11 +737,13 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       for (Initializer initializer in _initializers) {
         initializer.accept(visitor);
       }
-      if (function.body != null && function.body is! EmptyStatement) {
-        statements.add(function.body!);
+      if (_constructor.function.body != null &&
+          _constructor.function.body is! EmptyStatement) {
+        statements.add(_constructor.function.body!);
       }
       statements.add(new ReturnStatement(new VariableGet(thisVariable)));
-      registerFunctionBody(new Block(statements));
+      // TODO(cstefantsova): Provide a scope here.
+      registerFunctionBody(body: new Block(statements));
     }
     _hasBuiltBody = true;
   }
@@ -942,7 +961,7 @@ class ExtensionTypeConstructorEncoding
         new List<DartType>.generate(
           declarationBuilder.typeParameters!.length,
           (int index) => new TypeParameterType.withDefaultNullability(
-            function.typeParameters[index],
+            _constructor.function.typeParameters[index],
           ),
         ),
       );
@@ -1048,7 +1067,7 @@ class ExtensionConstructorEncoding
         new List<DartType>.generate(
           declarationBuilder.typeParameters!.length,
           (int index) => new TypeParameterType.withDefaultNullability(
-            function.typeParameters[index],
+            _constructor.function.typeParameters[index],
           ),
         ),
       );

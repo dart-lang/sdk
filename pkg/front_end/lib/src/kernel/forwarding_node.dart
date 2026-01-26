@@ -14,6 +14,7 @@ import '../builder/declaration_builders.dart';
 import '../source/source_library_builder.dart';
 import 'combined_member_signature.dart';
 import 'hierarchy/class_member.dart';
+import 'kernel_helper.dart';
 import 'kernel_target.dart';
 
 class ForwardingNode {
@@ -461,9 +462,9 @@ class ForwardingNode {
       default:
         unhandled('$kind', '_createForwardingImplIfNeeded', -1, null);
     }
-    function.body = new ReturnStatement(superCall)
-      ..fileOffset = procedure.fileOffset
-      ..parent = function;
+    function.registerFunctionBody(
+      new ReturnStatement(superCall)..fileOffset = procedure.fileOffset,
+    );
     procedure.transformerFlags |= TransformerFlag.superCalls;
     procedure.stubKind = isForwardingStub
         ? ProcedureStubKind.ConcreteForwardingStub
@@ -585,11 +586,9 @@ class ForwardingNode {
     if (hasUpdate) {
       procedure.signatureType = signatureType;
     }
-    procedure.function.body = new ReturnStatement(result)
-      ..fileOffset = procedure.fileOffset
-      ..parent = procedure.function;
-    procedure.function.asyncMarker = AsyncMarker.Sync;
-    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
+    procedure.function.registerFunctionBody(
+      new ReturnStatement(result)..fileOffset = procedure.fileOffset,
+    );
 
     procedure.isAbstract = false;
     procedure.stubKind = ProcedureStubKind.NoSuchMethodForwarder;

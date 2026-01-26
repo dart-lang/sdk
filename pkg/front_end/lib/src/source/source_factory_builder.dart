@@ -15,6 +15,7 @@ import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/factory_builder.dart';
+import '../builder/function_signature.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../fragment/factory/declaration.dart';
@@ -128,7 +129,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   Procedure get _procedure => _lastDeclaration.procedure;
 
   @override
-  FunctionNode get function => _lastDeclaration.function;
+  FunctionSignature get signature => _lastDeclaration.signature;
 
   @override
   Member get readTarget => readTargetReference.asMember;
@@ -211,26 +212,31 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   /// Checks the redirecting factories of this factory builder and its
   /// augmentations.
-  void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    if (_hasBeenCheckedAsRedirectingFactory) return;
-    _hasBeenCheckedAsRedirectingFactory = true;
+  ///
+  /// If this is an erroneous redirecting factory, return the corresponding
+  /// error message. Returns `null` otherwise.
+  String? checkRedirectingFactories(TypeEnvironment typeEnvironment) {
+    if (!_hasBeenCheckedAsRedirectingFactory) {
+      _hasBeenCheckedAsRedirectingFactory = true;
 
-    if (_introductory.redirectionTarget != null) {
-      _introductory.checkRedirectingFactory(
-        libraryBuilder: libraryBuilder,
-        factoryBuilder: this,
-        typeEnvironment: typeEnvironment,
-      );
-    }
-    for (FactoryDeclaration augmentation in _augmentations) {
-      if (augmentation.redirectionTarget != null) {
-        augmentation.checkRedirectingFactory(
+      if (_introductory.redirectionTarget != null) {
+        _introductory.checkRedirectingFactory(
           libraryBuilder: libraryBuilder,
           factoryBuilder: this,
           typeEnvironment: typeEnvironment,
         );
       }
+      for (FactoryDeclaration augmentation in _augmentations) {
+        if (augmentation.redirectionTarget != null) {
+          augmentation.checkRedirectingFactory(
+            libraryBuilder: libraryBuilder,
+            factoryBuilder: this,
+            typeEnvironment: typeEnvironment,
+          );
+        }
+      }
     }
+    return _lastDeclaration.redirectingFactoryTargetErrorMessage;
   }
 
   @override

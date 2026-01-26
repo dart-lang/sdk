@@ -26,6 +26,7 @@ import '../base/messages.dart';
 import '../base/uri_offset.dart';
 import '../builder/compilation_unit.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/type_builder.dart';
 import '../kernel/internal_ast.dart';
 import 'source_library_builder.dart';
 
@@ -274,11 +275,10 @@ extension CheckHelper on ProblemReporting {
   void checkAsyncReturnType({
     required SourceLibraryBuilder libraryBuilder,
     required TypeEnvironment typeEnvironment,
-    required AsyncMarker asyncModifier,
+    required AsyncMarker asyncMarker,
     required DartType returnType,
+    required TypeBuilder returnTypeBuilder,
     required Uri fileUri,
-    required int fileOffset,
-    required int length,
   }) {
     // For async, async*, and sync* functions with declared return types, we
     // need to determine whether those types are valid.
@@ -289,7 +289,7 @@ extension CheckHelper on ProblemReporting {
 
     // We use [problem == null] to signal success.
     Message? problem;
-    switch (asyncModifier) {
+    switch (asyncMarker) {
       case AsyncMarker.Async:
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
         if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
@@ -323,10 +323,14 @@ extension CheckHelper on ProblemReporting {
     }
 
     if (problem != null) {
-      // TODO(hillerstrom): once types get annotated with location
-      // information, we can improve the quality of the error message by
-      // using the offset of [returnType] (and the length of its name).
-      addProblem(problem, fileOffset, length, fileUri);
+      TypeName? typeName = returnTypeBuilder.typeName;
+      addProblem(
+        problem,
+        typeName?.fullNameOffset ?? // Coverage-ignore(suite): Not run.
+            returnTypeBuilder.charOffset!,
+        typeName?.fullNameLength ?? noLength,
+        fileUri,
+      );
     }
   }
 

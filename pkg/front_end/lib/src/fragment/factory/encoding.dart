@@ -15,12 +15,12 @@ import '../../builder/constructor_builder.dart';
 import '../../builder/constructor_reference_builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/function_builder.dart';
+import '../../builder/function_signature.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/nullability_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../dill/dill_extension_type_member_builder.dart';
 import '../../dill/dill_member_builder.dart';
 import '../../fragment/fragment.dart';
 import '../../kernel/body_builder_context.dart';
@@ -76,12 +76,6 @@ class FactoryEncoding implements InferredTypeListener {
     _procedure.function.returnType = type;
   }
 
-  void set asyncModifier(AsyncMarker newModifier) {
-    _asyncModifier = newModifier;
-    _procedure.function.asyncMarker = _asyncModifier;
-    _procedure.function.dartAsyncMarker = _asyncModifier;
-  }
-
   List<DartType>? get redirectionTypeArguments {
     assert(_redirectionTarget != null);
     return _redirectionTypeArguments;
@@ -134,8 +128,7 @@ class FactoryEncoding implements InferredTypeListener {
     if (_redirectionTarget == null &&
         !_fragment.modifiers.isAbstract &&
         !_fragment.modifiers.isExternal) {
-      _procedure.function.body = new EmptyStatement()
-        ..parent = _procedure.function;
+      _procedure.function.registerFunctionBody(new EmptyStatement());
     }
     buildTypeParametersAndFormals(
       libraryBuilder,
@@ -293,12 +286,13 @@ class FactoryEncoding implements InferredTypeListener {
         );
       }
 
-      _procedure.function.body = createRedirectingFactoryBody(
-        target,
-        typeArguments,
-        _procedure.function,
+      _procedure.function.registerFunctionBody(
+        createRedirectingFactoryBody(
+          target,
+          typeArguments,
+          _procedure.function,
+        ),
       );
-      _procedure.function.body!.parent = _procedure.function;
       _procedure.function.redirectingFactoryTarget =
           new RedirectingFactoryTarget(target, typeArguments);
     }
@@ -502,11 +496,9 @@ class FactoryEncoding implements InferredTypeListener {
       );
     }
 
-    _procedure.function.body = createRedirectingFactoryBody(
-      target,
-      typeArguments,
-      _procedure.function,
-    )..parent = _procedure.function;
+    _procedure.function.registerFunctionBody(
+      createRedirectingFactoryBody(target, typeArguments, _procedure.function),
+    );
     _procedure.function.redirectingFactoryTarget = new RedirectingFactoryTarget(
       target,
       typeArguments,
@@ -533,12 +525,19 @@ class FactoryEncoding implements InferredTypeListener {
   void _setRedirectingFactoryError({required String message}) {
     assert(_redirectionTarget != null);
 
-    registerFunctionBody(createRedirectingFactoryErrorBody(message));
+    registerFunctionBody(
+      body: createRedirectingFactoryErrorBody(message),
+      // TODO(cstefantsova): Pass a scope here.
+      scope: null,
+      asyncMarker: AsyncMarker.Sync,
+      emittedValueType: null,
+    );
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
     if (_tearOff != null) {
-      _tearOff.function.body = createRedirectingFactoryErrorBody(message)
-        ..parent = _tearOff.function;
+      _tearOff.function.registerFunctionBody(
+        createRedirectingFactoryErrorBody(message),
+      );
     }
   }
 
@@ -600,13 +599,12 @@ class FactoryEncoding implements InferredTypeListener {
         !redirectionTargetResult.isInvalidLookup) {
       redirectionTargetBuilder = redirectionTargetResult.getable;
     }
+
     if (redirectionTargetBuilder is SourceFactoryBuilder &&
         redirectionTargetBuilder.redirectionTarget != null) {
-      redirectionTargetBuilder.checkRedirectingFactories(typeEnvironment);
-      String? errorMessage = redirectionTargetBuilder
-          .function
-          .redirectingFactoryTarget
-          ?.errorMessage;
+      String? errorMessage = redirectionTargetBuilder.checkRedirectingFactories(
+        typeEnvironment,
+      );
       if (errorMessage != null) {
         _setRedirectingFactoryError(message: errorMessage);
       }
@@ -650,6 +648,13 @@ class FactoryEncoding implements InferredTypeListener {
     }
   }
 
+  /// If this is an erroneous redirecting factory, return the corresponding
+  /// error message. Returns `null` otherwise.
+  ///
+  /// This is computed as part of [checkRedirectingFactory].
+  String? get redirectingFactoryTargetErrorMessage =>
+      _procedure.function.redirectingFactoryTarget?.errorMessage;
+
   // Computes the function type of a given redirection target. Returns [null] if
   // the type of the target could not be computed.
   FunctionType? _computeRedirecteeType({
@@ -659,7 +664,7 @@ class FactoryEncoding implements InferredTypeListener {
     assert(_redirectionTarget != null);
     ConstructorReferenceBuilder redirectionTarget = _redirectionTarget!;
     MemberLookupResult? result = redirectionTarget.target;
-    FunctionNode targetNode;
+    FunctionSignature targetSignature;
     if (result != null && result.isInvalidLookup) {
       // Multiple definitions with the same name: An error has already been
       // issued.
@@ -670,11 +675,7 @@ class FactoryEncoding implements InferredTypeListener {
       MemberBuilder? targetBuilder = result?.getable;
       if (targetBuilder == null) return null;
       if (targetBuilder is FunctionBuilder) {
-        targetNode = targetBuilder.function;
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (targetBuilder is DillExtensionTypeFactoryBuilder) {
-        targetNode = targetBuilder.member.function!;
+        targetSignature = targetBuilder.signature;
       } else {
         unhandled(
           "${targetBuilder.runtimeType}",
@@ -687,9 +688,7 @@ class FactoryEncoding implements InferredTypeListener {
 
     List<DartType>? typeArguments =
         _procedure.function.redirectingFactoryTarget!.typeArguments;
-    FunctionType targetFunctionType = targetNode.computeFunctionType(
-      Nullability.nonNullable,
-    );
+    FunctionType targetFunctionType = targetSignature.functionType;
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
       _addProblemForRedirectingFactory(
@@ -814,10 +813,28 @@ class FactoryEncoding implements InferredTypeListener {
     return false;
   }
 
-  void registerFunctionBody(Statement? value) {
-    if (value != null) {
-      _procedure.function.body = value..parent = _procedure.function;
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    assert(
+      asyncMarker == AsyncMarker.Sync,
+      "Unexpected async marker $asyncMarker for factory.",
+    );
+    assert(
+      emittedValueType == null,
+      "Unexpected emitted value type for factory.",
+    );
+    if (body != null) {
+      _procedure.function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
     }
+    _procedure.function.scope = scope;
   }
 
   void becomeNative(SourceLoader loader) {
@@ -827,7 +844,8 @@ class FactoryEncoding implements InferredTypeListener {
   // Coverage-ignore(suite): Not run.
   bool get isNative => _fragment.nativeMethodName != null;
 
-  FunctionNode get function => _procedure.function;
+  FunctionSignature get signature =>
+      new FunctionNodeSignature(_procedure.function);
 
   VariableDeclaration? getTearOffParameter(int index) {
     if (_tearOff != null) {
@@ -842,6 +860,8 @@ class FactoryEncoding implements InferredTypeListener {
     }
     return null;
   }
+
+  DartType get returnTypeContext => _procedure.function.returnType;
 }
 
 abstract class FactoryEncodingStrategy {
