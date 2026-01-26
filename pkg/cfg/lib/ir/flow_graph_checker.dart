@@ -57,7 +57,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
         constantsAllowed = false;
         parametersAllowed = true;
       }
-      if (parametersAllowed && instr is! Parameter) {
+      if (parametersAllowed && instr is! Parameter && instr is! ParallelMove) {
         parametersAllowed = false;
       }
       if (phisAllowed && instr is! Phi) {

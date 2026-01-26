@@ -1635,14 +1635,33 @@ final class SetListElement extends Instruction
 /// Base class for move operations, part of [ParallelMove].
 abstract base class MoveOp {}
 
+/// Purpose of the [ParallelMove] operation, used to distinguish multiple
+/// independent moves.
+///
+/// This enum also specifies the order of successive [ParallelMove] instructions,
+/// e.g. for every two successive [ParallelMove] instructions it is guaranteed
+/// that `instr.stage.index < instr.next.stage.index`.
+enum ParallelMoveStage {
+  // Move fixed output of the instruction to its desired location.
+  output,
+  // Split/spill live ranges.
+  split,
+  // Moves at control flow edges (including phi moves).
+  control,
+  // Move instruction inputs to their fixed locations.
+  input,
+}
+
 /// In native back-ends, register allocator inserts [ParallelMove]
 /// instructions to copy values atomically between registers
 /// and memory locations.
 final class ParallelMove extends Instruction
     with NoThrow, HasSideEffects, BackendInstruction {
+  final ParallelMoveStage stage;
   final List<MoveOp> moves = [];
 
-  ParallelMove(FlowGraph graph) : super(graph, noPosition, inputCount: 0);
+  ParallelMove(FlowGraph graph, this.stage)
+    : super(graph, noPosition, inputCount: 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitParallelMove(this);

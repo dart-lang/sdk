@@ -164,7 +164,7 @@ final class IrToText extends VoidInstructionVisitor {
     }
   }
 
-  String reference(Instruction instr) => switch (instr) {
+  static String reference(Instruction instr) => switch (instr) {
     Definition() => 'v${instr.id}',
     Block() => 'B${instr.id}',
     _ => 'instr${instr.id}',
@@ -186,6 +186,7 @@ final class IrToText extends VoidInstructionVisitor {
     BinaryDoubleOp() => 'BinaryDoubleOp ${instr.op.token}',
     UnaryDoubleOp() => 'UnaryDoubleOp ${instr.op.token}',
     UnaryBoolOp() => 'UnaryBoolOp ${instr.op.token}',
+    ParallelMove() => 'ParallelMove ${instr.stage.name}',
     _ => instr.runtimeType.toString(),
   };
 }

@@ -5,23 +5,27 @@ B0 = EntryBlock() dominates:(B5, B7, B4)
   v20 = Constant(3)
   v22 = Constant(null)
   v24 = Constant(4)
-  v1 = Parameter(c1)
-  v2 = Parameter(c2)
-  Branch(v1, true: B4, false: B5)
+  v1 = Parameter(c1)   # RA: R0 <- ()
+  v2 = Parameter(c2)   # RA: R1 <- ()
+  ParallelMove split(R1 -> stack[0])
+  Branch(v1, true: B4, false: B5)   # RA: (R0)
 B4 = TargetBlock() idom:B0
-  DirectCall print(v9)
+  DirectCall print(v9)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   Goto(B7)
 B5 = TargetBlock() idom:B0
   Goto(B7)
 B7 = JoinBlock(B5, B4) idom:B0 dominates:(B16, B15)
-  DirectCall print(v12)
-  Branch(v2, true: B15, false: B16)
+  DirectCall print(v12)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove split(stack[0] -> R1)
+  Branch(v2, true: B15, false: B16)   # RA: (R1)
 B15 = TargetBlock() idom:B7
-  DirectCall print(v20)
-  Return(v22)
+  DirectCall print(v20)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v22)   # RA: (R0)
 B16 = TargetBlock() idom:B7
-  DirectCall print(v24)
-  Return(v22)
+  DirectCall print(v24)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v22)   # RA: (R0)
 
 --- test2
 B0 = EntryBlock() dominates:(B3)
@@ -31,20 +35,23 @@ B0 = EntryBlock() dominates:(B3)
   v19 = Constant("done")
   v21 = Constant(null)
   v24 = Constant(1)
+  ParallelMove control(IntConstant(0) -> R0)
   Goto(B3)
 B3 = JoinBlock(B0, B15) idom:B0 dominates:(B9, B8) loop-header (depth:1 body:(B3, B8, B15) back-edges:(B15))
-  v29 = Phi(v1, v25)
-  CompareAndBranch int <(v29, v6, true: B8, false: B9)
+  v29 = Phi(v1, v25)   # RA: R0 <- (-, R0)
+  CompareAndBranch int <(v29, v6, true: B8, false: B9)   # RA: (R0, -)
 B8 = TargetBlock() idom:B3 dominates:(B15, B14) in-loop:B3
-  CompareAndBranch int >(v29, v12, true: B14, false: B15)
+  CompareAndBranch int >(v29, v12, true: B14, false: B15)   # RA: (R0, -)
 B15 = TargetBlock() idom:B8 in-loop:B3
-  v25 = BinaryIntOp +(v29, v24)
+  v25 = BinaryIntOp +(v29, v24)   # RA: R0 <- (R0, -)
   Goto(B3)
 B14 = TargetBlock() idom:B8
-  DirectCall print(v19)
-  Return(v21)
+  DirectCall print(v19)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v21)   # RA: (R0)
 B9 = TargetBlock() idom:B3
-  Return(v21)
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v21)   # RA: (R0)
 
 --- test3
 B0 = EntryBlock() dominates:(B3)
@@ -53,47 +60,56 @@ B0 = EntryBlock() dominates:(B3)
   v28 = Constant("done")
   v33 = Constant(1)
   v42 = Constant(null)
+  ParallelMove control(IntConstant(0) -> R0)
   Goto(B3)
 B3 = JoinBlock(B0, B30) idom:B0 dominates:(B9, B8) loop-header (depth:1 body:(B3, B8, B12, B17, B30, B16, B24, B23) back-edges:(B30))
-  v44 = Phi(v1, v39)
-  CompareAndBranch int <(v44, v6, true: B8, false: B9)
+  v44 = Phi(v1, v39)   # RA: R0 <- (-, R0)
+  ParallelMove split(R0 -> stack[0])
+  CompareAndBranch int <(v44, v6, true: B8, false: B9)   # RA: (R0, -)
 B8 = TargetBlock() idom:B3 dominates:(B12) in-loop:B3
+  ParallelMove control(IntConstant(0) -> R1)
   Goto(B12)
 B12 = JoinBlock(B8, B24) idom:B8 dominates:(B17, B30, B16) loop-header (depth:2 body:(B12, B16, B24) back-edges:(B24))
-  v45 = Phi(v1, v34)
-  CompareAndBranch int <(v45, v6, true: B16, false: B17)
+  v45 = Phi(v1, v34)   # RA: R1 <- (-, R1)
+  CompareAndBranch int <(v45, v6, true: B16, false: B17)   # RA: (R1, -)
 B16 = TargetBlock() idom:B12 dominates:(B24, B23) in-loop:B12
-  v21 = BinaryIntOp +(v44, v45)
-  CompareAndBranch int >(v21, v6, true: B23, false: B24)
+  v21 = BinaryIntOp +(v44, v45)   # RA: R2 <- (R0, R1)
+  CompareAndBranch int >(v21, v6, true: B23, false: B24)   # RA: (R2, -)
 B24 = TargetBlock() idom:B16 in-loop:B12
-  v34 = BinaryIntOp +(v45, v33)
+  v34 = BinaryIntOp +(v45, v33)   # RA: R1 <- (R1, -)
   Goto(B12)
 B23 = TargetBlock() idom:B16 in-loop:B3
-  DirectCall print(v28)
+  DirectCall print(v28)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   Goto(B30)
 B17 = TargetBlock() idom:B12 in-loop:B3
   Goto(B30)
 B30 = JoinBlock(B17, B23) idom:B12 in-loop:B3
-  v39 = BinaryIntOp +(v44, v33)
+  ParallelMove split(stack[0] -> R0)
+  v39 = BinaryIntOp +(v44, v33)   # RA: R0 <- (R0, -)
+  ParallelMove split(R0 -> stack[0])
   Goto(B3)
 B9 = TargetBlock() idom:B3
-  Return(v42)
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v42)   # RA: (R0)
 
 --- test4
 B0 = EntryBlock() dominates:(B4, B3)
   v8 = Constant("Error")
   v10 = Constant(null)
   v11 = Constant("ok")
-  v1 = Parameter(c1)
-  Branch(v1, true: B3, false: B4)
+  v1 = Parameter(c1)   # RA: R0 <- ()
+  Branch(v1, true: B3, false: B4)   # RA: (R0)
 B4 = TargetBlock() idom:B0
-  DirectCall print(v11)
-  Return(v10)
+  DirectCall print(v11)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v10)   # RA: (R0)
 B3 = TargetBlock() idom:B0
-  Throw(v8)
+  ParallelMove input(StringConstant("Error") -> vloc:R0)
+  Throw(v8)   # RA: (R0)
 
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)
-  Return(v1)
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v1)   # RA: (R0)
 
