@@ -170,6 +170,11 @@ abstract class BodyBuilder {
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
   });
+
+  /// If the current member is an instance member of a non-extension
+  /// declaration, and the closure context lowering experiment is enabled, this
+  /// field contains the variable representing `this`.
+  ThisVariable? get internalThisVariable;
 }
 
 class BodyBuilderImpl extends StackListenerImpl
@@ -330,6 +335,9 @@ class BodyBuilderImpl extends StackListenerImpl
   /// for `this`.
   final VariableDeclaration? thisVariable;
 
+  @override
+  ThisVariable? internalThisVariable;
+
   final List<TypeParameter>? thisTypeParameters;
 
   final LocalStack<LocalScope> _localScopes;
@@ -395,6 +403,19 @@ class BodyBuilderImpl extends StackListenerImpl
               ExpressionVariable variable) {
         assignedVariables.declare(variable);
       }
+    }
+    if (isClosureContextLoweringEnabled &&
+        context.isDeclarationInstanceContext) {
+      ThisVariable variable = new ThisVariable(type: context.thisType!);
+      assignedVariables.declare(variable);
+      internalThisVariable = variable;
+    }
+  }
+
+  @override
+  void readInternalThisVariable() {
+    if (internalThisVariable != null) {
+      assignedVariables.read(internalThisVariable!);
     }
   }
 

@@ -1,0 +1,216 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field self::A a;
+  field self::A? aNull;
+  field core::int n;
+  field core::Object? field;
+  synthetic constructor •() → self::A
+    ;
+  method method() → dynamic
+    ;
+  method call() → core::Object?
+    ;
+  operator [](positional-parameter index) → core::Object?
+    ;
+  operator []=(positional-parameter index, positional-parameter value) → void
+    ;
+  operator +(positional-parameter other) → self::A
+    ;
+  operator unary-() → self::A
+    ;
+  method notCapturedMethodCall() → dynamic
+    ;
+  method notCapturedExpression() → dynamic
+    ;
+  method notCapturedPropertyGet() → dynamic
+    ;
+  method notCapturedPropertySet() → dynamic
+    ;
+  method notCapturedCall() → dynamic
+    ;
+  method notCapturedIndexGet() → dynamic
+    ;
+  method notCapturedIndexSet() → dynamic
+    ;
+  method notCapturedUnary() → dynamic
+    ;
+  method notCapturedBinary() → dynamic
+    ;
+  method notCapturedPropertyCall() → dynamic
+    ;
+  method notCapturedPropertyPrefix() → dynamic
+    ;
+  method notCapturedPropertyPostfix() → dynamic
+    ;
+  method notCapturedPropertyIndexGet() → dynamic
+    ;
+  method notCapturedPropertyIndexSet() → dynamic
+    ;
+  method notCapturedPropertyIfNullAssignment() → dynamic
+    ;
+  method notCapturedPropertyCompoundAssignment() → dynamic
+    ;
+  method capturedMethodCall() → dynamic
+    ;
+  method capturedExpression() → dynamic
+    ;
+  method capturedPropertyGet() → dynamic
+    ;
+  method capturedPropertySet() → dynamic
+    ;
+  method capturedCall() → dynamic
+    ;
+  method capturedIndexGet() → dynamic
+    ;
+  method capturedIndexSet() → dynamic
+    ;
+  method capturedUnary() → dynamic
+    ;
+  method capturedBinary() → dynamic
+    ;
+  method capturedPropertyCall() → dynamic
+    ;
+  method capturedPropertyPrefix() → dynamic
+    ;
+  method capturedPropertyPostfix() → dynamic
+    ;
+  method capturedPropertyIndexGet() → dynamic
+    ;
+  method capturedPropertyIndexSet() → dynamic
+    ;
+  method capturedPropertyIfNullAssignment() → dynamic
+    ;
+  method capturedPropertyCompoundAssignment() → dynamic
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+  @core::override
+  method notCapturedMethodCall() → dynamic
+    ;
+  @core::override
+  method notCapturedPropertyGet() → dynamic
+    ;
+  @core::override
+  method notCapturedPropertySet() → dynamic
+    ;
+  @core::override
+  method notCapturedCall() → dynamic
+    ;
+  @core::override
+  method notCapturedIndexGet() → dynamic
+    ;
+  @core::override
+  method notCapturedIndexSet() → dynamic
+    ;
+  @core::override
+  method notCapturedUnary() → dynamic
+    ;
+  @core::override
+  method notCapturedBinary() → dynamic
+    ;
+  @core::override
+  method notCapturedPropertyCall() → dynamic
+    ;
+  @core::override
+  method notCapturedPropertyPrefix() → dynamic
+    ;
+  @core::override
+  method notCapturedPropertyPostfix() → dynamic
+    ;
+  @core::override
+  method notCapturedPropertyIndexGet() → dynamic
+    ;
+  @core::override
+  method notCapturedPropertyIndexSet() → dynamic
+    ;
+  @core::override
+  method notCapturedPropertyIfNullAssignment() → dynamic
+    ;
+  @core::override
+  method notCapturedPropertyCompoundAssignment() → dynamic
+    ;
+  @core::override
+  method capturedMethodCall() → dynamic
+    ;
+  @core::override
+  method capturedPropertyGet() → dynamic
+    ;
+  @core::override
+  method capturedPropertySet() → dynamic
+    ;
+  @core::override
+  method capturedCall() → dynamic
+    ;
+  @core::override
+  method capturedIndexGet() → dynamic
+    ;
+  @core::override
+  method capturedIndexSet() → dynamic
+    ;
+  @core::override
+  method capturedUnary() → dynamic
+    ;
+  @core::override
+  method capturedBinary() → dynamic
+    ;
+  @core::override
+  method capturedPropertyCall() → dynamic
+    ;
+  @core::override
+  method capturedPropertyPrefix() → dynamic
+    ;
+  @core::override
+  method capturedPropertyPostfix() → dynamic
+    ;
+  @core::override
+  method capturedPropertyIndexGet() → dynamic
+    ;
+  @core::override
+  method capturedPropertyIndexSet() → dynamic
+    ;
+  @core::override
+  method capturedPropertyIfNullAssignment() → dynamic
+    ;
+  @core::override
+  method capturedPropertyCompoundAssignment() → dynamic
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:147:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:152:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:157:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:162:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:167:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:172:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:177:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:182:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:187:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:192:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:197:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:202:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:207:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:212:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:217:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:222:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:227:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:232:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:237:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:242:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:247:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:252:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:257:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:262:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:267:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:272:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:277:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:282:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:287:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///this_variable.dart:292:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 30, effectively constant: 30

@@ -910,6 +910,7 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   Expression _createRead() {
+    _helper.readInternalThisVariable();
     return _forest.createPropertyGet(
       fileOffset,
       _thisExpression,
@@ -928,6 +929,7 @@ class ThisPropertyAccessGenerator extends Generator {
     Expression value, {
     required bool forEffect,
   }) {
+    _helper.readInternalThisVariable();
     return _helper.forest.createPropertySet(
       fileOffset,
       _thisExpression,
@@ -976,6 +978,7 @@ class ThisPropertyAccessGenerator extends Generator {
     required bool forEffect,
     required bool isPost,
   }) {
+    _helper.readInternalThisVariable();
     return new PropertyIncDec(
       _thisExpression,
       name,
@@ -1024,6 +1027,7 @@ class ThisPropertyAccessGenerator extends Generator {
     required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
+    _helper.readInternalThisVariable();
     return _helper.buildMethodInvocation(
       _thisExpression,
       name,
@@ -1264,6 +1268,7 @@ class SuperPropertyAccessGenerator extends Generator {
         kind: UnresolvedKind.Getter,
       );
     } else {
+      _helper.readInternalThisVariable();
       return new SuperPropertyGet(new ThisExpression(), name, getter)
         ..fileOffset = fileOffset;
     }
@@ -1284,6 +1289,7 @@ class SuperPropertyAccessGenerator extends Generator {
         kind: UnresolvedKind.Setter,
       );
     } else {
+      _helper.readInternalThisVariable();
       return new SuperPropertySet(new ThisExpression(), name, value, setter)
         ..fileOffset = offset;
     }
@@ -1330,6 +1336,7 @@ class SuperPropertyAccessGenerator extends Generator {
         kind: UnresolvedKind.Setter,
       );
     }
+    _helper.readInternalThisVariable();
     return new SuperIncDec(
       getter: getter,
       setter: setter,
@@ -1480,6 +1487,7 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
+    _helper.readInternalThisVariable();
     return _forest.createIndexGet(
       fileOffset,
       receiver,
@@ -1567,6 +1575,7 @@ class IndexedAccessGenerator extends Generator {
     required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
+    _helper.readInternalThisVariable();
     return _helper.forest.createExpressionInvocation(
       arguments.fileOffset,
       buildSimpleRead(),
@@ -1654,6 +1663,7 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
+    _helper.readInternalThisVariable();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return _forest.createIndexGet(
       fileOffset,
@@ -1665,6 +1675,7 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    _helper.readInternalThisVariable();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return _forest.createIndexSet(
       fileOffset,
@@ -1683,6 +1694,7 @@ class ThisIndexedAccessGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
+    _helper.readInternalThisVariable();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return new IfNullIndexSet(
       receiver: receiver,
@@ -1705,6 +1717,7 @@ class ThisIndexedAccessGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
+    _helper.readInternalThisVariable();
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return new CompoundIndexSet(
       receiver: receiver,
@@ -1812,6 +1825,7 @@ class SuperIndexedAccessGenerator extends Generator {
         length: noLength,
       );
     } else {
+      _helper.readInternalThisVariable();
       return _helper.forest.createSuperMethodInvocation(
         fileOffset,
         indexGetName,
@@ -1840,6 +1854,7 @@ class SuperIndexedAccessGenerator extends Generator {
       );
     } else {
       if (voidContext) {
+        _helper.readInternalThisVariable();
         return _helper.forest.createSuperMethodInvocation(
           fileOffset,
           indexSetName,
@@ -1856,6 +1871,7 @@ class SuperIndexedAccessGenerator extends Generator {
           ),
         );
       } else {
+        _helper.readInternalThisVariable();
         return new SuperIndexSet(setter, index, value)..fileOffset = fileOffset;
       }
     }
@@ -1868,6 +1884,7 @@ class SuperIndexedAccessGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
+    _helper.readInternalThisVariable();
     return new IfNullSuperIndexSet(
       getter: getter,
       setter: setter,
@@ -1896,6 +1913,7 @@ class SuperIndexedAccessGenerator extends Generator {
         buildBinaryOperation(token, binaryOperator, value),
       );
     } else {
+      _helper.readInternalThisVariable();
       return new CompoundSuperIndexSet(
         getter: getter,
         setter: setter,
@@ -1935,6 +1953,7 @@ class SuperIndexedAccessGenerator extends Generator {
     required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
+    _helper.readInternalThisVariable();
     return _helper.forest.createExpressionInvocation(
       offset,
       buildSimpleRead(),
@@ -6369,6 +6388,7 @@ class ThisAccessGenerator extends Generator {
       if (inFieldInitializer && !inLateFieldInitializer) {
         return buildFieldInitializerError(null);
       } else {
+        _helper.readInternalThisVariable();
         return _forest.createThisExpression(fileOffset);
       }
     } else {
@@ -6429,6 +6449,7 @@ class ThisAccessGenerator extends Generator {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
       if (isSuper) {
+        _helper.readInternalThisVariable();
         return _helper.buildSuperInvocation(
           name,
           selector.typeArguments,
@@ -6436,6 +6457,7 @@ class ThisAccessGenerator extends Generator {
           offsetForToken(selector.token),
         );
       } else {
+        _helper.readInternalThisVariable();
         return _helper.buildMethodInvocation(
           _forest.createThisExpression(fileOffset),
           name,
@@ -6481,6 +6503,7 @@ class ThisAccessGenerator extends Generator {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else if (isSuper) {
+      _helper.readInternalThisVariable();
       return _helper.buildSuperInvocation(
         Name.callName,
         typeArguments,
@@ -6489,6 +6512,7 @@ class ThisAccessGenerator extends Generator {
         isImplicitCall: true,
       );
     } else {
+      _helper.readInternalThisVariable();
       return _helper.forest.createExpressionInvocation(
         offset,
         _forest.createThisExpression(fileOffset),
@@ -6506,6 +6530,7 @@ class ThisAccessGenerator extends Generator {
   }) {
     if (isSuper) {
       int offset = offsetForToken(token);
+      _helper.readInternalThisVariable();
       Expression result = _helper.buildSuperInvocation(
         equalsName,
         null,
@@ -6534,6 +6559,7 @@ class ThisAccessGenerator extends Generator {
   ) {
     if (isSuper) {
       int offset = offsetForToken(token);
+      _helper.readInternalThisVariable();
       return _helper.buildSuperInvocation(
         binaryName,
         null,
@@ -6546,7 +6572,6 @@ class ThisAccessGenerator extends Generator {
         offset,
       );
     }
-    // Coverage-ignore(suite): Not run.
     return super.buildBinaryOperation(token, binaryName, right);
   }
 
@@ -6554,6 +6579,7 @@ class ThisAccessGenerator extends Generator {
   Expression_Generator buildUnaryOperation(Token token, Name unaryName) {
     if (isSuper) {
       int offset = offsetForToken(token);
+      _helper.readInternalThisVariable();
       return _helper.buildSuperInvocation(
         unaryName,
         null,
@@ -6561,7 +6587,6 @@ class ThisAccessGenerator extends Generator {
         offset,
       );
     }
-    // Coverage-ignore(suite): Not run.
     return super.buildUnaryOperation(token, unaryName);
   }
 
@@ -6613,6 +6638,7 @@ class ThisAccessGenerator extends Generator {
           ),
         );
       } else {
+        _helper.readInternalThisVariable();
         return _helper.buildSuperInitializer(
           false,
           constructor,
@@ -6621,6 +6647,7 @@ class ThisAccessGenerator extends Generator {
         );
       }
     } else {
+      _helper.readInternalThisVariable();
       return _helper.buildRedirectingInitializer(
         name,
         arguments,

@@ -20,3 +20,4 @@ rasta/native_is_illegal: Pass # Issue 29763
 # Temporarily unimplemented binary serialization, see https://github.com/dart-lang/sdk/issues/61765
 closure_context_lowering/local_variables: ExpectationFileMismatchSerialized
 closure_context_lowering/parameters: ExpectationFileMismatchSerialized
+closure_context_lowering/this_variable: ExpectationFileMismatchSerialized

@@ -4680,7 +4680,7 @@ bool isPureExpression(Expression node) {
   if (node is ThisExpression) {
     return true;
   } else if (node is VariableGet) {
-    return node.variable.isFinal && !node.variable.isLate;
+    return node.expressionVariable.isFinal && !node.expressionVariable.isLate;
   }
   return false;
 }
