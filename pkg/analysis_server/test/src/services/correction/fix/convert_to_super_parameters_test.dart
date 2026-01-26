@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -555,5 +556,26 @@ class Bar extends Foo {
   Bar({super.value = null});
 }
 ''');
+  }
+
+  Future<void> test_super_privateNamedParameter() async {
+    await resolveTestCode('''
+class A {
+  int? _x;
+  A({this._x});
+}
+class B extends A {
+  ^B({int? x}) : super(x: x);
+}
+''');
+    await assertHasFix('''
+class A {
+  int? _x;
+  A({this._x});
+}
+class B extends A {
+  B({super.x});
+}
+''', filter: (d) => d.diagnosticCode != diag.unusedField);
   }
 }

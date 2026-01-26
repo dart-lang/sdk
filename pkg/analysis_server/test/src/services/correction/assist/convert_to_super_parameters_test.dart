@@ -827,6 +827,27 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_super_privateNamedParameter() async {
+    await resolveTestCode('''
+class A {
+  int? _x;
+  A({this._x});
+}
+class B extends A {
+  ^B({int? x}) : super(x: x);
+}
+''');
+    await assertHasAssist('''
+class A {
+  int? _x;
+  A({this._x});
+}
+class B extends A {
+  B({super.x});
+}
+''');
+  }
+
   Future<void> test_trailingComma() async {
     await resolveTestCode('''
 class A {
