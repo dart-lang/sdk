@@ -87,8 +87,14 @@ class BusyLoopProcess {
     io.Directory tempDir, {
     bool startIsolate = false,
     bool aot = false,
+    bool startInBackground = false,
   }) async {
-    final busyLoopArgs = ['--tag', tag, if (startIsolate) '--start-isolate'];
+    final busyLoopArgs = [
+      '--tag',
+      tag,
+      if (startIsolate) '--start-isolate',
+      if (startInBackground) '--start-in-background',
+    ];
 
     final stdout = <String>[];
     final String executable;
@@ -698,6 +704,42 @@ void main() {
 
       await recorder2.stop();
     });
+
+    test('start(inBackground: true) does not miss startup events', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      // Run the recorder in a separate process with --record-only-new-processes
+      final recorder = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      // Start a new process that should be recorded.
+      final newProcess = await BusyLoopProcess.start(
+        'new-process-tag',
+        tempDir,
+      );
+      await Future.delayed(const Duration(seconds: 1));
+      await recorder.stop();
+
+      final timelineFiles = outputDir.listSync().whereType<io.File>();
+
+      final timelines = timelineFiles.map((e) => p.basename(e.path)).toList();
+      expect(
+        timelines,
+        unorderedEquals(['${newProcess.pid}.timeline']),
+        reason: 'Expected only new process to be recorded',
+      );
+
+      final trace = Trace()
+        ..mergeFromBuffer(timelineFiles.first.readAsBytesSync());
+      expect(trace.packet, isNotEmpty);
+      final seenEvents = extractSeenEvents(trace);
+      expect(seenEvents, containsAll(['ImportantStartupEvent']));
+
+      await newProcess.process.askToExit();
+    });
   });
 }
 
@@ -727,7 +769,8 @@ Set<String> extractSeenEvents(Trace trace) {
 
     if (packet.hasTrackEvent()) {
       final trackEvent = packet.trackEvent;
-      if (trackEvent.type == TrackEvent_Type.TYPE_SLICE_BEGIN) {
+      if (trackEvent.type == TrackEvent_Type.TYPE_SLICE_BEGIN ||
+          trackEvent.type == TrackEvent_Type.TYPE_INSTANT) {
         final name = state.eventNames[packet.trackEvent.nameIid.toInt()]!;
         seenEvents.add(name);
       }
