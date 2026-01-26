@@ -409,12 +409,14 @@ class AnnotationVerifier {
   /// `@literal` annotation.
   void _checkLiteral(Annotation node) {
     var parent = node.parent;
-    if (parent is! ConstructorDeclaration) {
-      // Reported elsewhere.
-      return;
-    }
-    if (parent.constKeyword == null) {
-      _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+    if (parent is ConstructorDeclaration) {
+      if (parent.constKeyword == null) {
+        _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+      }
+    } else if (parent is PrimaryConstructorBody) {
+      if (parent.declaration?.constKeyword == null) {
+        _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+      }
     }
   }
 
@@ -729,17 +731,6 @@ class AnnotationVerifier {
       }
     }
 
-    if (kinds.contains(TargetKind.constructor)) {
-      if (target is ConstructorDeclaration) return true;
-
-      if (target
-          case ClassDeclaration(namePart: PrimaryConstructorDeclaration()) ||
-              EnumDeclaration(namePart: PrimaryConstructorDeclaration()) ||
-              ExtensionTypeDeclaration()) {
-        return true;
-      }
-    }
-
     if (target is FormalParameter) {
       var element = target.declaredFragment?.element;
       if (element is FieldFormalParameterElement && element.isDeclaring) {
@@ -769,6 +760,7 @@ class AnnotationVerifier {
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
       ClassTypeAlias() =>
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
+      ConstructorDeclaration() => kinds.contains(TargetKind.constructor),
       EnumConstantDeclaration() => kinds.contains(TargetKind.enumValue),
       EnumDeclaration() =>
         kinds.contains(TargetKind.enumType) || kinds.contains(TargetKind.type),
@@ -785,6 +777,7 @@ class AnnotationVerifier {
       MixinDeclaration() =>
         kinds.contains(TargetKind.mixinType) || kinds.contains(TargetKind.type),
       PartOfDirective() => kinds.contains(TargetKind.partOfDirective),
+      PrimaryConstructorBody() => kinds.contains(TargetKind.constructor),
       FormalParameter() =>
         kinds.contains(TargetKind.parameter) ||
             (target.isOptional && kinds.contains(TargetKind.optionalParameter)),
