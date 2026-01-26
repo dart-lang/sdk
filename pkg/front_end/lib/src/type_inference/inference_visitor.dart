@@ -12597,7 +12597,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ensureMemberType(node.target);
     List<TypeParameter> constructorTypeParameters =
-        _constructorBuilder!.function.typeParameters;
+        _constructorBuilder!.signature.typeParameters;
     // The redirecting initializer syntax doesn't include type arguments passed
     // to the target constructor so we synthesize them for calling
     // [inferInvocation].

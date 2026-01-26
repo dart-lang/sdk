@@ -11,6 +11,7 @@ import '../../base/name_space.dart';
 import '../../builder/constructor_reference_builder.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
+import '../../builder/function_signature.dart';
 import '../../builder/metadata_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../fragment/fragment.dart';
@@ -36,7 +37,7 @@ import 'encoding.dart';
 abstract class FactoryDeclaration {
   Uri get fileUri;
 
-  FunctionNode get function;
+  FunctionSignature get signature;
 
   Iterable<MetadataBuilder>? get metadata;
 
@@ -76,6 +77,12 @@ abstract class FactoryDeclaration {
     required SourceFactoryBuilder factoryBuilder,
     required TypeEnvironment typeEnvironment,
   });
+
+  /// If this is an erroneous redirecting factory, return the corresponding
+  /// error message. Returns `null` otherwise.
+  ///
+  /// This is computed as part of [checkRedirectingFactory].
+  String? get redirectingFactoryTargetErrorMessage;
 
   void checkTypes(
     ProblemReporting problemReporting,
@@ -166,7 +173,7 @@ class FactoryDeclarationImpl
   List<FormalParameterBuilder>? get formals => _fragment.formals;
 
   @override
-  FunctionNode get function => _encoding.function;
+  FunctionSignature get signature => _encoding.signature;
 
   @override
   bool get isExternal => _fragment.modifiers.isExternal;
@@ -281,6 +288,10 @@ class FactoryDeclarationImpl
   }
 
   @override
+  String? get redirectingFactoryTargetErrorMessage =>
+      _encoding.redirectingFactoryTargetErrorMessage;
+
+  @override
   void checkTypes(
     ProblemReporting problemReporting,
     NameSpace nameSpace,
@@ -373,7 +384,7 @@ class FactoryDeclarationImpl
 
   @override
   DartType get returnTypeContext {
-    return _encoding.function.returnType;
+    return _encoding.returnTypeContext;
   }
 }
 
