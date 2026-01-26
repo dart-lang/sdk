@@ -125,6 +125,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     this.expressionEvaluationHelper,
   );
 
+  ThisVariable get internalThisVariable;
+
+  // TODO(cstefantsova): Replace this flag by implementing the default
+  // strategy.
+  bool get isClosureContextLoweringEnabled => _inferrer
+      .libraryBuilder
+      .loader
+      .target
+      .backendTarget
+      .flags
+      .isClosureContextLoweringEnabled;
+
   AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables =>
       _inferrer.assignedVariables;
 
@@ -4093,6 +4105,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       inferredType,
       result.applyResult(
         createSuperMethodInvocation(
+          isClosureContextLoweringEnabled
+              ? (new VariableGet(internalThisVariable)..fileOffset = fileOffset)
+              : (new ThisExpression()..fileOffset = fileOffset),
           name,
           procedure,
           createArgumentsFromInternalNode(
@@ -4133,8 +4148,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // TODO(johnniwinther): Create an [AbstractSuperPropertyGet] if
         //  [isAbstract] is `true`, once [AbstractSuperPropertyGet] is
         //  supported by backends.
-        new SuperPropertyGet(new ThisExpression(), name, member)
-          ..fileOffset = nameOffset;
+        new SuperPropertyGet(
+          isClosureContextLoweringEnabled
+              ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
+              : (new ThisExpression()..fileOffset = nameOffset),
+          name,
+          member,
+        )..fileOffset = nameOffset;
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, node);
     }
@@ -4198,8 +4218,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       node.value = rhs..parent = node;
     } else {
       assert(node == null, "Unexpected node for super property set $node.");
-      node = new SuperPropertySet(new ThisExpression(), name, rhs, member)
-        ..fileOffset = nameOffset;
+      node = new SuperPropertySet(
+        isClosureContextLoweringEnabled
+            ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
+            : (new ThisExpression()..fileOffset = nameOffset),
+        name,
+        rhs,
+        member,
+      )..fileOffset = nameOffset;
     }
     return new ExpressionInferenceResult(rhsResult.inferredType, node!);
   }
@@ -5548,8 +5574,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// [parameters] are those of the function being inferred.
   ScopeProviderInfo beginFunctionBodyInference(
-    List<VariableDeclaration> parameters,
-  );
+    List<VariableDeclaration> parameters, {
+    required ThisVariable? internalThisVariable,
+  });
 
   /// Performs finishing computations after inferring the body of a function.
   void endFunctionBodyInference(ScopeProviderInfo scopeProviderInfo);

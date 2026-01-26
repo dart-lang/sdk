@@ -22,3 +22,4 @@ inference/mixin_inference_unification_2: TypeCheckError
 # Temporarily unimplemented binary serialization, see https://github.com/dart-lang/sdk/issues/61765
 closure_context_lowering/local_variables: Crash
 closure_context_lowering/parameters: Crash
+closure_context_lowering/this_variable: Crash

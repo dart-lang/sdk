@@ -392,6 +392,7 @@ class Resolver {
         thisVariable: functionBodyBuildingContext.thisVariable,
         initializers: result.initializers,
         constantContext: constantContext,
+        internalThisVariable: bodyBuilder.internalThisVariable,
       );
       context.performBacklog(result.annotations);
     }
@@ -651,6 +652,7 @@ class Resolver {
           thisVariable: functionBodyBuildingContext.thisVariable,
           initializers: result.initializers,
           constantContext: constantContext,
+          internalThisVariable: bodyBuilder.internalThisVariable,
         );
 
         context.performBacklog(result.annotations);
@@ -729,6 +731,7 @@ class Resolver {
         constantContext: constantContext,
         initializers: result.initializers,
         thisVariable: functionBodyBuildingContext.thisVariable,
+        internalThisVariable: bodyBuilder.internalThisVariable,
       );
       context.performBacklog(result.annotations);
     }
@@ -923,6 +926,7 @@ class Resolver {
           body: fakeReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
           parameters: formalParameters,
+          internalThisVariable: bodyBuilder.internalThisVariable,
         );
     assert(
       fakeReturn == inferredFunctionBody.body,
@@ -1262,6 +1266,7 @@ class Resolver {
     required VariableDeclaration? thisVariable,
     required List<Initializer> initializers,
     required ConstantContext constantContext,
+    required ThisVariable? internalThisVariable,
   }) {
     const Forest forest = const Forest();
     AssignedVariables assignedVariables = context.assignedVariables;
@@ -1376,6 +1381,7 @@ class Resolver {
               in bodyBuilderContext.formals ?? [])
             formal.variable!,
         ],
+        internalThisVariable: internalThisVariable,
       );
       body = inferredFunctionBody.body;
     } else {

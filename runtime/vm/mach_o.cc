@@ -40,6 +40,18 @@ DEFINE_FLAG(bool,
             "Whether to use a smaller alignment size for segments and the "
             "text/const sections in Mach-O outputs.")
 
+#if defined(DART_TARGET_OS_MACOS_IOS)
+static constexpr bool kDefaultEncryptable = true;
+#else
+static constexpr bool kDefaultEncryptable = false;
+#endif
+
+DEFINE_FLAG(bool,
+            macho_encryptable,
+            kDefaultEncryptable,
+            "Whether to include an LC_ENCRYPTION_INFO load command "
+            "in the snapshot");
+
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 DEFINE_FLAG(charp,
             macho_min_os_version,
@@ -102,7 +114,8 @@ static constexpr intptr_t kLinearInitValue = -1;
   V(MachODynamicSymbolTable)                                                   \
   V(MachOUuid)                                                                 \
   V(MachOIdDylib)                                                              \
-  V(MachOCodeSignature)
+  V(MachOCodeSignature)                                                        \
+  V(MachOEncryptionInfo)
 
 #define DECLARE_CONTENTS_TYPE_CLASS(Type) class Type;
 FOR_EACH_CHECKABLE_MACHO_CONTENTS_TYPE(DECLARE_CONTENTS_TYPE_CLASS)
@@ -126,6 +139,7 @@ class MachOWriteStream : public SharedObjectWriter::WriteStream {
   explicit MachOWriteStream(const MachOWriter& macho)
       : SharedObjectWriter::WriteStream(macho.type()), macho_(macho) {}
 
+  const MachOHeader& Header() const;
   const MachOSegment& TextSegment() const;
 
   // Write methods that write values of a certain size out to disk.
@@ -536,6 +550,16 @@ class MachOContents : public ZoneAllocated {
 
   FOR_EACH_CONTENTS_LINEAR_FIELD(DEFINE_LINEAR_FIELD_METHODS);
 
+ protected:
+  static bool HasEncryptionInfo(SharedObjectWriter::Type type) {
+    // Return the same result for debug info as for snapshots so that
+    // padding calculations for it mimic those for snapshots and so
+    // keeps offsets/addresses the same.
+    return FLAG_macho_encryptable &&
+           (type == SharedObjectWriter::Type::Snapshot ||
+            type == SharedObjectWriter::Type::DebugInfo);
+  }
+
  private:
   FOR_EACH_CONTENTS_LINEAR_FIELD(DEFINE_LINEAR_FIELD);
 
@@ -829,6 +853,8 @@ class MachOSegment : public MachOCommand {
   using SegmentCommandType = mach_o::segment_command_64;
 #endif
 
+  using SnapshotType = SharedObjectWriter::Type;
+
  public:
 #if defined(TARGET_ARCH_IS_32_BIT)
   static constexpr uint32_t kCommandCode = mach_o::LC_SEGMENT;
@@ -837,6 +863,7 @@ class MachOSegment : public MachOCommand {
 #endif
 
   MachOSegment(Zone* zone,
+               SnapshotType type,
                const char* name,
                intptr_t initial_vm_protection = mach_o::VM_PROT_READ,
                intptr_t max_vm_protection = mach_o::VM_PROT_READ)
@@ -844,6 +871,7 @@ class MachOSegment : public MachOCommand {
       // know what it contains, so set it to 0 in ComputeOffsets()
       // if there are no contents.
       : MachOCommand(kCommandCode),
+        type_(type),
         name_(name),
         initial_vm_protection_(initial_vm_protection),
         max_vm_protection_(max_vm_protection),
@@ -917,7 +945,7 @@ class MachOSegment : public MachOCommand {
     if (PadFileSizeToAlignment()) {
       file_size = Utils::RoundUp(file_size, Alignment());
     }
-    return file_size;
+    return AddRequiredPadding(file_size);
   }
 
   intptr_t UnpaddedMemorySize() const {
@@ -931,7 +959,8 @@ class MachOSegment : public MachOCommand {
   }
 
   intptr_t MemorySize() const override {
-    return Utils::RoundUp(UnpaddedMemorySize(), Alignment());
+    intptr_t memory_size = Utils::RoundUp(UnpaddedMemorySize(), Alignment());
+    return AddRequiredPadding(memory_size);
   }
 
   // The initial segment of the Mach-O file always includes the header
@@ -1027,6 +1056,14 @@ class MachOSegment : public MachOCommand {
   }
 
  private:
+  intptr_t AddRequiredPadding(intptr_t unpadded_size) const {
+    // Pad the text segment to page size if it is encryptable.
+    return HasEncryptionInfo(type_) && HasName(mach_o::SEG_TEXT)
+               ? Utils::RoundUp(unpadded_size, MachOWriter::kPageSize)
+               : unpadded_size;
+  }
+
+  const SnapshotType type_;
   const char* const name_;
   bool has_contents_ = false;
   intptr_t next_contents_index_ = 0;
@@ -1598,6 +1635,48 @@ class MachODynamicSymbolTable : public MachOCommand {
   DISALLOW_COPY_AND_ASSIGN(MachODynamicSymbolTable);
 };
 
+class MachOEncryptionInfo : public MachOCommand {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  using CommandType = mach_o::encryption_info_command;
+#else
+  using CommandType = mach_o::encryption_info_command_64;
+#endif
+
+ public:
+#if defined(TARGET_ARCH_IS_32_BIT)
+  static constexpr uint32_t kCommandCode = mach_o::LC_ENCRYPTION_INFO;
+#else
+  static constexpr uint32_t kCommandCode = mach_o::LC_ENCRYPTION_INFO_64;
+#endif
+
+  MachOEncryptionInfo()
+      : MachOCommand(kCommandCode,
+                     /*needs_offset=*/false,
+                     /*in_segment=*/false) {}
+
+  uint32_t cmdsize() const override { return sizeof(CommandType); }
+
+  void WriteLoadCommand(MachOWriteStream* stream) const override {
+    MachOCommand::WriteLoadCommand(stream);
+    auto [cryptoff, cryptsize] = GetCryptOffsetAndSize(stream);
+    stream->WriteOffsetCount(cryptoff, cryptsize);
+    stream->Write32(0);  // No encryption cypher used.
+#if !defined(TARGET_ARCH_IS_32_BIT)
+    stream->Write32(0);  // padding.
+#endif
+  }
+
+  void Accept(Visitor* visitor) override {
+    visitor->VisitMachOEncryptionInfo(this);
+  }
+
+ private:
+  std::pair<uint32_t, uint32_t> GetCryptOffsetAndSize(
+      MachOWriteStream* stream) const;
+
+  DISALLOW_COPY_AND_ASSIGN(MachOEncryptionInfo);
+};
+
 class MachOLinkEditData : public MachOCommand {
  public:
   uint32_t cmdsize() const override {
@@ -1806,10 +1885,6 @@ class MachOHeader : public MachOContents {
   bool IsAllocated() const override { return type_ != SnapshotType::Object; }
   intptr_t Alignment() const override { return compiler::target::kWordSize; }
 
-  // The header uses the default MemorySize() implementation, because
-  // VisitChildren() doesn't visit the load commands and so the header is
-  // not considered to contain nested content.
-  //
   // This should be used if the size of the header without the load commands
   // is desired.
   intptr_t SizeWithoutLoadCommands() const {
@@ -1823,6 +1898,11 @@ class MachOHeader : public MachOContents {
     return SelfFileSize();
   }
 
+  intptr_t MemorySize() const override {
+    if (!IsAllocated()) return 0;
+    return AddRequiredPadding(SelfMemorySize());
+  }
+
   intptr_t SelfFileSize() const override {
     intptr_t size = SizeWithoutLoadCommands();
     for (auto* const command : commands_) {
@@ -1831,7 +1911,9 @@ class MachOHeader : public MachOContents {
     return size;
   }
 
-  intptr_t FileSize() const override { return SelfFileSize(); }
+  intptr_t FileSize() const override {
+    return AddRequiredPadding(SelfFileSize());
+  }
 
   uint32_t filetype() const {
     switch (type_) {
@@ -1985,8 +2067,8 @@ class MachOHeader : public MachOContents {
           type_ == SnapshotType::Object
               ? mach_o::VM_PROT_ALL
               : mach_o::VM_PROT_READ | mach_o::VM_PROT_EXECUTE;
-      text_segment_ =
-          new (zone()) MachOSegment(zone(), name, vm_protection, vm_protection);
+      text_segment_ = new (zone())
+          MachOSegment(zone(), type_, name, vm_protection, vm_protection);
       commands_.Add(text_segment_);
     }
     return text_segment_;
@@ -2025,6 +2107,15 @@ class MachOHeader : public MachOContents {
   }
 
  private:
+  intptr_t AddRequiredPadding(intptr_t unpadded_size) const {
+    // If the text segment contents can be encrypted, pad the header
+    // to page size so that its pages are entirely excluded
+    // from the file contents covered by LC_ENCRYPTION_INFO.
+    return HasEncryptionInfo(type_)
+               ? Utils::RoundUp(unpadded_size, MachOWriter::kPageSize)
+               : unpadded_size;
+  }
+
   void GenerateUuid();
   void CreateBSS();
   void GenerateUnwindingInformation();
@@ -2116,6 +2207,22 @@ bool MachOWriteStream::HasValueForLabel(intptr_t label, intptr_t* value) const {
   if (symbol == nullptr) return false;
   *value = symbol->value();
   return true;
+}
+
+std::pair<uint32_t, uint32_t> MachOEncryptionInfo::GetCryptOffsetAndSize(
+    MachOWriteStream* stream) const {
+  const auto& header = stream->Header();
+  const auto& text_segment = header.text_segment();
+  const uint32_t offset = header.FileSize();
+  const uint32_t size = text_segment.FileSize() - offset;
+  // Both the offset and size should be a multiple of the page size.
+  ASSERT((offset % MachOWriter::kPageSize) == 0);
+  ASSERT((size % MachOWriter::kPageSize) == 0);
+  return {offset, size};
+}
+
+const MachOHeader& MachOWriteStream::Header() const {
+  return macho_.header();
 }
 
 const MachOSegment& MachOWriteStream::TextSegment() const {
@@ -2424,8 +2531,8 @@ void MachOHeader::CreateBSS() {
     // shouldn't already exist.
     ASSERT(FindSegment(mach_o::SEG_DATA) == nullptr);
     auto const vm_protection = mach_o::VM_PROT_READ | mach_o::VM_PROT_WRITE;
-    data_segment = new (zone())
-        MachOSegment(zone(), mach_o::SEG_DATA, vm_protection, vm_protection);
+    data_segment = new (zone()) MachOSegment(zone(), type_, mach_o::SEG_DATA,
+                                             vm_protection, vm_protection);
     commands_.Add(data_segment);
   }
 
@@ -2737,10 +2844,14 @@ void MachOHeader::GenerateMiscellaneousCommands() {
     // Not idempotent;
     ASSERT(!HasCommand(MachOIdDylib::kCommandCode));
     commands_.Add(new (zone_) MachOIdDylib(identifier_));
+    if (FLAG_macho_encryptable) {
+      ASSERT(!HasCommand(MachOEncryptionInfo::kCommandCode));
+      commands_.Add(new (zone_) MachOEncryptionInfo());
+    }
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
     ASSERT(!HasCommand(MachOLoadDylib::kCommandCode));
-    ASSERT(!HasCommand(MachORunPath::kCommandCode));
     commands_.Add(MachOLoadDylib::CreateLoadSystemDylib(zone_));
+    ASSERT(!HasCommand(MachORunPath::kCommandCode));
     if (FLAG_macho_rpath != nullptr) {
       const char* current = FLAG_macho_rpath;
       for (const char* next = current;; next += 1) {
@@ -2831,8 +2942,9 @@ void MachOHeader::FinalizeDwarfSections() {
     auto const init_vm_protection =
         mach_o::VM_PROT_READ | mach_o::VM_PROT_WRITE;
     auto const max_vm_protection = init_vm_protection | mach_o::VM_PROT_EXECUTE;
-    dwarf_segment = new (zone()) MachOSegment(
-        zone(), mach_o::SEG_DWARF, init_vm_protection, max_vm_protection);
+    dwarf_segment =
+        new (zone()) MachOSegment(zone(), type_, mach_o::SEG_DWARF,
+                                  init_vm_protection, max_vm_protection);
     commands_.Add(dwarf_segment);
   }
 
@@ -2939,7 +3051,8 @@ void MachOHeader::FinalizeCommands() {
   ASSERT(!linkedit_commands.is_empty());
   MachOSegment* linkedit_segment = nullptr;
   if (type_ != SnapshotType::Object) {
-    linkedit_segment = new (zone_) MachOSegment(zone_, mach_o::SEG_LINKEDIT);
+    linkedit_segment =
+        new (zone_) MachOSegment(zone_, type_, mach_o::SEG_LINKEDIT);
     num_commands += 1;
     for (auto* const c : linkedit_commands) {
       linkedit_segment->AddContents(c);

@@ -17,6 +17,7 @@ class PerfWitnessRecorderConfig {
   final String? outputDir;
   final String? tag;
   final bool recordNewProcesses;
+  final bool recordOnlyNewProcesses;
   final bool enableAsyncSpans;
   final bool enableProfiler;
   final List<String> streams;
@@ -27,6 +28,7 @@ class PerfWitnessRecorderConfig {
     this.outputDir,
     this.tag,
     this.recordNewProcesses = false,
+    this.recordOnlyNewProcesses = false,
     this.enableAsyncSpans = false,
     this.enableProfiler = true,
     this.streams = const [],
@@ -42,6 +44,7 @@ class PerfWitnessRecorderConfig {
       outputDir: args['output-dir'] as String?,
       tag: args['tag'] as String?,
       recordNewProcesses: args['record-new-processes'] as bool,
+      recordOnlyNewProcesses: args['record-only-new-processes'] as bool,
       enableAsyncSpans: args['enable-async-spans'] as bool,
       enableProfiler: args['enable-profiler'] as bool,
       streams: streams,
@@ -61,6 +64,11 @@ class PerfWitnessRecorderConfig {
       ..addFlag(
         'record-new-processes',
         help: 'Record processes that start after the recorder.',
+        negatable: false,
+      )
+      ..addFlag(
+        'record-only-new-processes',
+        help: 'Record only processes that start after the recorder.',
         negatable: false,
       )
       ..addFlag(
@@ -90,97 +98,212 @@ class PerfWitnessRecorderConfig {
 }
 
 Future<void> record(PerfWitnessRecorderConfig config) async {
-  final io.Directory outputDir;
-  if (config.outputDir case final String outputDirPath) {
-    outputDir = io.Directory(outputDirPath);
-  } else {
-    outputDir = io.Directory.systemTemp.createTempSync('recording');
-  }
+  await _Recorder._(config).record();
+}
 
-  final sockets = getAllControlSockets();
-  final connections = (await Future.wait([
-    for (var s in sockets) Connection._tryConnectTo(s.socketPath),
-  ])).nonNulls.toList(growable: false);
+class _Recorder {
+  final PerfWitnessRecorderConfig config;
+  late final io.Directory outputDir;
 
-  print('Found ${connections.length} processes:');
-  for (final c in connections) {
-    print('  ${c.info}');
-  }
+  final List<Connection> _activeConnections = [];
 
-  final matchedConnections = _closeNotMatching(connections, config.tag);
-  if (config.tag != null) {
-    print('Tag ${config.tag} matched ${matchedConnections.length} processes.');
-  }
+  JsonRpcServer? _newProcessServer;
 
-  print('... data will be written to $outputDir');
+  bool _recording = false;
 
-  final sw = Stopwatch()..start();
-  await Future.wait([
-    for (var conn in matchedConnections)
-      conn.startRecording(outputDir.path, config: config),
-  ]);
+  _Recorder._(this.config);
 
-  bool recording = true;
-
-  JsonRpcServer? newProcessServer;
-  if (config.recordNewProcesses) {
-    if (recorderSocketPath case final path?) {
-      if (io.FileSystemEntity.typeSync(path) ==
-          io.FileSystemEntityType.unixDomainSock) {
-        print(
-          'Warning: Control socket $path already exists '
-          '(another recorder might be running).',
-        );
+  Future<void> record() async {
+    try {
+      if (config.outputDir case final String outputDirPath) {
+        outputDir = io.Directory(outputDirPath);
       } else {
-        newProcessServer = JsonRpcServer(await UnixDomainSocket.bind(path), {
-          'process.announce': (requestor, params) async {
-            if (!recording) {
-              return null;
-            }
-
-            final info = ProcessInfo.fromJson(params as Map<String, Object?>);
-            print('New process announced: $info');
-            if (config.tag == null || info.tag == config.tag) {
-              try {
-                final conn = Connection._(info, requestor);
-                matchedConnections.add(conn);
-                await conn.startRecording(outputDir.path, config: config);
-              } catch (e) {
-                print('Failed to start recording: $e');
-              }
-            }
-            return null;
-          },
-        });
-        print('Listening for new processes on $path');
+        outputDir = io.Directory.systemTemp.createTempSync('recording');
       }
-    } else {
+
+      if (!outputDir.existsSync()) {
+        print('Created output directory $outputDir');
+        outputDir.createSync(recursive: true);
+      }
+
+      final sockets = getAllControlSockets();
+      final connections = (await Future.wait([
+        for (var s in sockets) Connection._tryConnectTo(s.socketPath),
+      ])).nonNulls.toList(growable: false);
+
+      print('Found ${connections.length} processes:');
+      for (final c in connections) {
+        print('  ${c.info}');
+      }
+
+      _activeConnections.addAll(_closeNotMatching(connections));
+      if (config.tag != null) {
+        print(
+          'Tag ${config.tag} matched ${_activeConnections.length} processes.',
+        );
+      }
+
+      print('... data will be written to $outputDir');
+
+      _recording = true;
+      if (!config.recordOnlyNewProcesses) {
+        await Future.wait([
+          for (var conn in _activeConnections)
+            conn.startRecording(outputDir.path, config: config),
+        ]);
+      } else {
+        assert(_activeConnections.isEmpty);
+      }
+
+      if (config.recordNewProcesses || config.recordOnlyNewProcesses) {
+        _newProcessServer = await _recordNewProcesses();
+      }
+
+      if (_activeConnections.isNotEmpty || _newProcessServer != null) {
+        await waitForUserToQuit(
+          waitForQKeyPress: config.useKeyPressInsteadOfCtrlC,
+        );
+        _recording = false;
+        await Future.wait([
+          for (var conn in _activeConnections)
+            conn.stopRecording().catchError((e) {
+              print('Failed to stop recording of process ${conn.info.pid}: $e');
+            }),
+        ]);
+      }
+    } finally {
+      for (final conn in _activeConnections) {
+        try {
+          conn.disconnect();
+        } catch (_) {
+          // Ignore exception.
+        }
+      }
+      try {
+        await _newProcessServer?.close();
+      } catch (_) {
+        // Ignore exception.
+      }
+    }
+  }
+
+  Future<JsonRpcServer?> _recordNewProcesses() async {
+    final controlPath = recorderSocketPath;
+    if (controlPath == null) {
       print(
         'Warning: Unable to listen for new processes '
         '(path to the control socket is null).',
       );
+      return null;
+    }
+
+    if (!await _checkIfControlSocketIsFree(controlPath)) {
+      return null;
+    }
+
+    final newProcessServer = JsonRpcServer(
+      await UnixDomainSocket.bind(controlPath),
+      {
+        'recorder.info': (requestor, params) async {
+          return {'pid': io.pid};
+        },
+        'process.announce': (requestor, params) async {
+          if (!_recording) {
+            return null;
+          }
+
+          final info = ProcessInfo.fromJson(params as Map<String, Object?>);
+          print('New process announced: $info');
+          if (config.tag == null || info.tag == config.tag) {
+            try {
+              final conn = Connection._(info, requestor);
+              _activeConnections.add(conn);
+              await conn.startRecording(outputDir.path, config: config);
+            } catch (e) {
+              print('Failed to start recording: $e');
+            }
+          }
+          return null;
+        },
+      },
+    );
+    print('Listening for new processes...');
+    return newProcessServer;
+  }
+
+  static Future<bool> _checkIfControlSocketIsFree(String controlPath) async {
+    final type = io.FileSystemEntity.typeSync(controlPath);
+    if (type == .notFound) {
+      return true;
+    }
+
+    // If there is already a socket bound at [controlPath] then try
+    // connecting to it to check if recorder is still active.
+    if (type == .unixDomainSock) {
+      try {
+        final otherServer = jsonRpcPeerFromSocket(
+          await UnixDomainSocket.connect(controlPath),
+        );
+        Object? info;
+        try {
+          info = await otherServer
+              .sendRequest('recorder.info')
+              .timeout(Duration(milliseconds: 500));
+        } finally {
+          await otherServer.close();
+        }
+        if (info case {'pid': final int pid}) {
+          print(
+            'Error: cannot listen for new processes because another'
+            ' recorder process (pid $pid) is already running and listening.',
+          );
+          return false;
+        }
+      } catch (_) {
+        // Ignore.
+      }
+    }
+
+    // Not a unix domain socket or it did not respond to our connection
+    // with a meaningful answer so it's probably not used by another recorder.
+    // We can try to delete the socket to free it.
+    try {
+      io.File(controlPath).deleteSync();
+      print('Deleted stale control socket ($controlPath)');
+      return true;
+    } catch (e) {
+      print('Error: Failed to delete control socket $controlPath: $e');
+      return false;
     }
   }
 
-  if (matchedConnections.isNotEmpty || config.recordNewProcesses) {
-    await waitForUserToQuit(waitForQKeyPress: config.useKeyPressInsteadOfCtrlC);
-    recording = false;
-    await Future.wait([
-      for (var conn in matchedConnections)
-        conn.stopRecording().catchError((e) {
-          print('Failed to stop recording of process ${conn.info.pid}: $e');
-        }),
-    ]);
-    print('Recorded for ${sw.elapsed}');
-  }
+  List<Connection> _closeNotMatching(List<Connection> v) {
+    if (config.recordOnlyNewProcesses) {
+      for (var c in v) {
+        print('asking ${c.info} to disconnect');
+        c.disconnect();
+      }
+      return [];
+    }
 
-  for (final conn in matchedConnections) {
-    conn.disconnect();
+    if (config.tag == null) {
+      return v.toList(growable: true);
+    }
+
+    final open = <Connection>[];
+    for (final c in v) {
+      if (c.info.tag == config.tag) {
+        open.add(c);
+        continue;
+      }
+      c.disconnect();
+    }
+    return open;
   }
-  await newProcessServer?.close();
 }
 
 class Connection {
+  final Stopwatch _recordingTime = Stopwatch();
   final ProcessInfo info;
   final JsonRpcPeer _endpoint;
 
@@ -190,6 +313,7 @@ class Connection {
     String outputDir, {
     required PerfWitnessRecorderConfig config,
   }) async {
+    _recordingTime.start();
     await _endpoint.sendRequest('timeline.streamTo', {
       'recorder': 'perfetto',
       'path': p.join(outputDir, '${info.pid}.timeline'),
@@ -200,13 +324,16 @@ class Connection {
   }
 
   Future<void> stopRecording() async {
+    _recordingTime.stop();
+    print('Recorded process ${info.pid} for ${_recordingTime.elapsed}');
     await _endpoint.sendRequest('timeline.stopStreaming');
   }
 
   void disconnect() async {
     try {
       await _endpoint.close();
-    } catch (_) {
+    } catch (e) {
+      print('failed to disconnect: $e');
       // Ignore exceptions
     }
   }
@@ -231,20 +358,4 @@ class Connection {
       return null;
     }
   }
-}
-
-List<Connection> _closeNotMatching(List<Connection> v, String? tag) {
-  if (tag == null) {
-    return v.toList(growable: true);
-  }
-
-  final open = <Connection>[];
-  for (final c in v) {
-    if (c.info.tag == tag) {
-      open.add(c);
-      continue;
-    }
-    c.disconnect();
-  }
-  return open;
 }

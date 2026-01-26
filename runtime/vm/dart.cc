@@ -682,10 +682,10 @@ char* Dart::Cleanup() {
 
 #if defined(DART_INCLUDE_PROFILER)
   if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Stopping profiling\n",
                  UptimeMillis());
   }
-  Profiler::Cleanup();
+  Profiler::SetConfig({.enabled = false});
 #endif  // defined(DART_INCLUDE_PROFILER)
 
   NativeSymbolResolver::Cleanup();
@@ -753,6 +753,15 @@ char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done deleting thread pool\n",
                  UptimeMillis());
   }
+
+#if defined(DART_INCLUDE_PROFILER)
+  // Destroy profiler state.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Destroying profiler state\n",
+                 UptimeMillis());
+  }
+  Profiler::Cleanup();
+#endif  // defined(DART_INCLUDE_PROFILER)
 
   Api::Cleanup();
   delete predefined_handles_;

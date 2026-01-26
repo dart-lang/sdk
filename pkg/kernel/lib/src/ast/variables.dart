@@ -858,7 +858,7 @@ class NamedParameter extends FunctionParameter {
 /// The variable storage for `this`.
 class ThisVariable extends ExpressionVariable {
   @override
-  String get cosmeticName => "this";
+  String get cosmeticName => "this-variable";
 
   @override
   void set cosmeticName(String? value) {}
@@ -888,9 +888,23 @@ class ThisVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isFinal {
+  bool get isConst => false;
+
+  @override
+  void set isConst(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
+
+  @override
+  bool get isLate => false;
+
+  @override
+  void set isLate(bool value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  bool get isFinal => false;
 
   @override
   void set isFinal(bool value) {
@@ -988,26 +1002,6 @@ class ThisVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isConst {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set isConst(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  bool get isLate {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
-  void set isLate(bool value) {
-    throw new UnsupportedError("${this.runtimeType}");
-  }
-
-  @override
   bool get isHoisted {
     throw new UnsupportedError("${this.runtimeType}");
   }
@@ -1073,37 +1067,37 @@ class ThisVariable extends ExpressionVariable {
   bool get hasIsLate => true;
 
   @override
-  bool get hasIsInitializingFormal => true;
+  bool get hasIsInitializingFormal => false;
 
   @override
-  bool get hasIsSynthesized => true;
+  bool get hasIsSynthesized => false;
 
   @override
-  bool get hasIsHoisted => true;
+  bool get hasIsHoisted => false;
 
   @override
-  bool get hasHasDeclaredInitializer => true;
+  bool get hasHasDeclaredInitializer => false;
 
   @override
-  bool get hasIsCovariantByClass => true;
+  bool get hasIsCovariantByClass => false;
 
   @override
-  bool get hasIsRequired => true;
+  bool get hasIsRequired => false;
 
   @override
-  bool get hasIsCovariantByDeclaration => true;
+  bool get hasIsCovariantByDeclaration => false;
 
   @override
-  bool get hasIsLowered => true;
+  bool get hasIsLowered => false;
 
   @override
-  bool get hasIsWildcard => true;
+  bool get hasIsWildcard => false;
 
   @override
-  bool get hasIsSuperInitializingFormal => true;
+  bool get hasIsSuperInitializingFormal => false;
 
   @override
-  bool get hasIsErroneouslyInitialized => true;
+  bool get hasIsErroneouslyInitialized => false;
 }
 
 /// A variable introduced during desugaring. Such variables don't correspond to

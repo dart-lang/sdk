@@ -58,6 +58,7 @@ abstract class TypeInferrer {
     required AsyncMarker asyncMarker,
     required Statement body,
     required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   });
 
@@ -229,6 +230,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required AsyncMarker asyncMarker,
     required Statement body,
     required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
@@ -243,7 +245,10 @@ class TypeInferrerImpl implements TypeInferrer {
     );
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = visitor.beginFunctionBodyInference(parameters);
+      scopeProviderInfo = visitor.beginFunctionBodyInference(
+        parameters,
+        internalThisVariable: internalThisVariable,
+      );
     }
     StatementInferenceResult result = visitor.inferStatement(
       body,
@@ -452,6 +457,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required AsyncMarker asyncMarker,
     required Statement body,
     required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
@@ -463,6 +469,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       body: body,
       expressionEvaluationHelper: expressionEvaluationHelper,
       parameters: parameters,
+      internalThisVariable: internalThisVariable,
     );
     benchmarker.endSubdivide();
     return result;

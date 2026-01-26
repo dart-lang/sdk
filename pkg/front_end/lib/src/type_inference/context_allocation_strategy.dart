@@ -5,6 +5,19 @@
 import 'package:kernel/ast.dart';
 import '../util/local_stack.dart';
 
+extension type ScopeProviderInfoStack(List<ScopeProviderInfo> _list)
+    implements LocalStack<ScopeProviderInfo> {
+  ScopeProviderInfo? topmostOfKind(ScopeProviderInfoKind kind) {
+    for (int index = _list.length - 1; index >= 0; index--) {
+      ScopeProviderInfo info = _list[index];
+      if (info.kind == kind) {
+        return info;
+      }
+    }
+    return null;
+  }
+}
+
 enum ScopeProviderInfoKind {
   Block,
   BlockExpression,
@@ -12,6 +25,7 @@ enum ScopeProviderInfoKind {
   ForInStatement,
   ForStatement,
   FunctionNode,
+  FunctionNodeWithThis,
 }
 
 class ScopeProviderInfo {
@@ -23,8 +37,8 @@ class ScopeProviderInfo {
 }
 
 abstract class ContextAllocationStrategy {
-  final LocalStack<ScopeProviderInfo> _scopeProviderInfoStack =
-      new LocalStack<ScopeProviderInfo>(<ScopeProviderInfo>[]);
+  final ScopeProviderInfoStack _scopeProviderInfoStack =
+      new ScopeProviderInfoStack(<ScopeProviderInfo>[]);
 
   bool _enableDebugLogging = true;
   StringBuffer? _debugLog;
@@ -85,12 +99,21 @@ abstract class ContextAllocationStrategy {
     return _currentScopeProviderInfo!.scope ??= new Scope(contexts: []);
   }
 
+  Scope _ensureScopeWithThis() {
+    ScopeProviderInfo? scopeProviderInfo = _scopeProviderInfoStack
+        .topmostOfKind(ScopeProviderInfoKind.FunctionNodeWithThis);
+    assert(scopeProviderInfo != null);
+    return scopeProviderInfo!.scope ??= // Coverage-ignore(suite): Not run.
+    new Scope(
+      contexts: [],
+    );
+  }
+
   VariableContext _ensureVariableContextInCurrentScope({
     required CaptureKind captureKind,
   }) {
     Scope scope = _ensureCurrentScope();
     for (VariableContext context in scope.contexts) {
-      // Coverage-ignore-block(suite): Not run.
       if (context.captureKind == captureKind) {
         return context;
       }
@@ -112,6 +135,18 @@ abstract class ContextAllocationStrategy {
     FunctionNode node,
     List<Variable> variables,
   );
+
+  ThisVariable get thisVariable {
+    ThisVariable? result;
+    for (VariableContext context in _ensureScopeWithThis().contexts) {
+      if (context.variables.whereType<ThisVariable>().firstOrNull
+          case var variable?) {
+        result = variable;
+        break;
+      }
+    }
+    return result!;
+  }
 }
 
 class TrivialContextAllocationStrategy extends ContextAllocationStrategy {

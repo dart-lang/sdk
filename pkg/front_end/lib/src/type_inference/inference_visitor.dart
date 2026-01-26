@@ -192,8 +192,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ContextAllocationStrategy _contextAllocationStrategy;
 
-  final bool isClosureContextLoweringEnabled;
-
   InferenceVisitorImpl(
     super.inferrer,
     super.fileUri,
@@ -201,16 +199,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     this.operations,
     this.typeAnalyzerOptions,
     super.expressionEvaluationHelper,
-  ) : // TODO(cstefantsova): Replace this flag by implementing the default
-      // strategy.
-      isClosureContextLoweringEnabled = inferrer
-          .libraryBuilder
-          .loader
-          .target
-          .backendTarget
-          .flags
-          .isClosureContextLoweringEnabled,
-      _contextAllocationStrategy = new TrivialContextAllocationStrategy();
+  ) : _contextAllocationStrategy = new TrivialContextAllocationStrategy();
+
+  @override
+  ThisVariable get internalThisVariable =>
+      _contextAllocationStrategy.thisVariable;
 
   @override
   int get stackHeight => _rewriteStack.length;
@@ -3737,10 +3730,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   ScopeProviderInfo beginFunctionBodyInference(
-    List<VariableDeclaration> parameters,
-  ) {
+    List<VariableDeclaration> parameters, {
+    required ThisVariable? internalThisVariable,
+  }) {
     ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
-        .enterScopeProvider(kind: ScopeProviderInfoKind.FunctionNode);
+        .enterScopeProvider(
+          kind: internalThisVariable == null
+              ? ScopeProviderInfoKind.FunctionNode
+              : ScopeProviderInfoKind.FunctionNodeWithThis,
+        );
+    if (internalThisVariable != null) {
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        internalThisVariable,
+        captureKind: _captureKindForVariable(internalThisVariable),
+      );
+    }
     _handleDeclarationsOfParameters(parameters);
     return scopeProviderInfo;
   }
@@ -13107,6 +13111,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     AbstractSuperPropertyGet node,
     DartType typeContext,
   ) {
+    if (isClosureContextLoweringEnabled) {
+      node.receiver = new VariableGet(internalThisVariable)
+        ..fileOffset = node.fileOffset;
+    }
     return inferSuperPropertyGet(
       name: node.name,
       typeContext: typeContext,
@@ -13121,6 +13129,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SuperPropertyGet node,
     DartType typeContext,
   ) {
+    if (isClosureContextLoweringEnabled) {
+      node.receiver = new VariableGet(internalThisVariable)
+        ..fileOffset = node.fileOffset;
+    }
     return inferSuperPropertyGet(
       name: node.name,
       typeContext: typeContext,
@@ -13144,6 +13156,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeContext,
       isVoidAllowed: true,
     );
+    if (isClosureContextLoweringEnabled) {
+      node.receiver = new VariableGet(internalThisVariable)
+        ..fileOffset = node.fileOffset;
+    }
     return inferSuperPropertySet(
       name: node.name,
       member: node.interfaceTarget,
@@ -13168,6 +13184,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeContext,
       isVoidAllowed: true,
     );
+    if (isClosureContextLoweringEnabled) {
+      node.receiver = new VariableGet(internalThisVariable)
+        ..fileOffset = node.fileOffset;
+    }
     return inferSuperPropertySet(
       name: node.name,
       member: node.interfaceTarget,
@@ -13482,7 +13502,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node,
       flowAnalysis.thisOrSuper(new SharedTypeView(thisType!), isSuper: false),
     );
-    return new ExpressionInferenceResult(thisType!, node);
+    if (isClosureContextLoweringEnabled) {
+      return new ExpressionInferenceResult(
+        thisType!,
+        new VariableGet(_contextAllocationStrategy.thisVariable)
+          ..fileOffset = node.fileOffset,
+      );
+    } else {
+      return new ExpressionInferenceResult(thisType!, node);
+    }
   }
 
   @override

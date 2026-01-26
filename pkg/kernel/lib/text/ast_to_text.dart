@@ -1165,6 +1165,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     endLine(';');
   }
 
+  @override
+  void visitThisVariable(ThisVariable node) {
+    writeIndentation();
+    writeExpressionVariable(node);
+    endLine(';');
+  }
+
   void writeExpressionVariable(ExpressionVariable node) {
     if (showOffsets) writeWord("[${node.fileOffset}]");
     if (showMetadata) writeMetadata(node);
@@ -1752,6 +1759,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeWord('super');
+    if (node.receiver is! ThisExpression) {
+      writeSymbol('{');
+      writeNode(node.receiver);
+      writeSymbol('}');
+    }
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
     writeNode(node.arguments);
@@ -2271,6 +2283,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
     writeWord('super');
+    if (node.receiver is! ThisExpression) {
+      writeSymbol('{');
+      writeNode(node.receiver);
+      writeSymbol('}');
+    }
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
   }
@@ -2278,6 +2295,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitSuperPropertySet(SuperPropertySet node) {
     writeWord('super');
+    if (node.receiver is! ThisExpression) {
+      writeSymbol('{');
+      writeNode(node.receiver);
+      writeSymbol('}');
+    }
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
     writeSpaced('=');
