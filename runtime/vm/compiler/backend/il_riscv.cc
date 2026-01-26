@@ -2038,9 +2038,11 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       PairLocation* result_pair = locs()->out(0).AsPairLocation();
       const Register result_lo = result_pair->At(0).reg();
       const Register result_hi = result_pair->At(1).reg();
-      __ lw(result_lo, element_address);
-      __ lw(result_hi, compiler::Address(element_address.base(),
-                                         element_address.offset() + 4));
+      __ Load(result_lo, element_address, compiler::kFourBytes);
+      __ Load(result_hi,
+              compiler::Address(element_address.base(),
+                                element_address.offset() + 4),
+              compiler::kFourBytes);
     } else {
       const Register result = locs()->out(0).reg();
       __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
@@ -2053,10 +2055,10 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const FRegister result = locs()->out(0).fpu_reg();
     if (rep == kUnboxedFloat) {
       // Load single precision float.
-      __ flw(result, element_address);
+      __ LoadS(result, element_address);
     } else if (rep == kUnboxedDouble) {
       // Load double precision float.
-      __ fld(result, element_address);
+      __ LoadD(result, element_address);
     } else {
       ASSERT(rep == kUnboxedInt32x4 || rep == kUnboxedFloat32x4 ||
              rep == kUnboxedFloat64x2);
@@ -2067,7 +2069,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid) ||
            (class_id() == kTypeArgumentsCid) || (class_id() == kRecordCid));
     const Register result = locs()->out(0).reg();
-    __ lx(result, element_address);
+    __ Load(result, element_address);
   }
 }
 
@@ -2329,10 +2331,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         value = 0;
       }
       if (value == 0) {
-        __ sb(ZR, element_address);
+        __ Store(ZR, element_address, compiler::kByte);
       } else {
         __ LoadImmediate(TMP, static_cast<int8_t>(value));
-        __ sb(TMP, element_address);
+        __ Store(TMP, element_address, compiler::kByte);
       }
     } else {
       const Register value = locs()->in(2).reg();
@@ -2340,7 +2342,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ li(TMP, 255);
         __ min(TMP, TMP, value);
         __ max(TMP, TMP, ZR);
-        __ sb(TMP, element_address);
+        __ Store(TMP, element_address, compiler::kByte);
       } else {
         compiler::Label store_zero, store_ff, done;
         __ blt(value, ZR, &store_zero, compiler::Assembler::kNearJump);
@@ -2348,14 +2350,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ li(TMP, 0xFF);
         __ bgt(value, TMP, &store_ff, compiler::Assembler::kNearJump);
 
-        __ sb(value, element_address);
+        __ Store(value, element_address, compiler::kByte);
         __ j(&done, compiler::Assembler::kNearJump);
 
         __ Bind(&store_zero);
         __ mv(TMP, ZR);
 
         __ Bind(&store_ff);
-        __ sb(TMP, element_address);
+        __ Store(TMP, element_address, compiler::kByte);
 
         __ Bind(&done);
       }
@@ -2364,26 +2366,28 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (rep == kUnboxedUint8 || rep == kUnboxedInt8) {
       if (locs()->in(2).IsConstant()) {
         ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-        __ sb(ZR, element_address);
+        __ Store(ZR, element_address, compiler::kByte);
       } else {
         const Register value = locs()->in(2).reg();
-        __ sb(value, element_address);
+        __ Store(value, element_address, compiler::kByte);
       }
     } else if (rep == kUnboxedInt64) {
 #if XLEN >= 64
       if (locs()->in(2).IsConstant()) {
         ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-        __ sd(ZR, element_address);
+        __ Store(ZR, element_address, compiler::kEightBytes);
       } else {
-        __ sd(locs()->in(2).reg(), element_address);
+        __ Store(locs()->in(2).reg(), element_address, compiler::kEightBytes);
       }
 #else
       PairLocation* value_pair = locs()->in(2).AsPairLocation();
       Register value_lo = value_pair->At(0).reg();
       Register value_hi = value_pair->At(1).reg();
-      __ sw(value_lo, element_address);
-      __ sw(value_hi, compiler::Address(element_address.base(),
-                                        element_address.offset() + 4));
+      __ Store(value_lo, element_address, compiler::kFourBytes);
+      __ Store(value_hi,
+               compiler::Address(element_address.base(),
+                                 element_address.offset() + 4),
+               compiler::kFourBytes);
 #endif
     } else {
       if (locs()->in(2).IsConstant()) {
@@ -2398,20 +2402,20 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (rep == kUnboxedFloat) {
       if (locs()->in(2).IsConstant()) {
         ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-        __ sw(ZR, element_address);
+        __ Store(ZR, element_address, compiler::kFourBytes);
       } else {
-        __ fsw(locs()->in(2).fpu_reg(), element_address);
+        __ StoreS(locs()->in(2).fpu_reg(), element_address);
       }
     } else if (rep == kUnboxedDouble) {
 #if XLEN >= 64
       if (locs()->in(2).IsConstant()) {
         ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-        __ sd(ZR, element_address);
+        __ Store(ZR, element_address, compiler::kEightBytes);
       } else {
-        __ fsd(locs()->in(2).fpu_reg(), element_address);
+        __ StoreD(locs()->in(2).fpu_reg(), element_address);
       }
 #else
-      __ fsd(locs()->in(2).fpu_reg(), element_address);
+      __ StoreD(locs()->in(2).fpu_reg(), element_address);
 #endif
     } else {
       ASSERT(rep == kUnboxedInt32x4 || rep == kUnboxedFloat32x4 ||
