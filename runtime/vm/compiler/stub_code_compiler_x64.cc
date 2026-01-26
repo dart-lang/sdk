@@ -2149,35 +2149,26 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
   {
     // Atomically clear kNotMarkedBit.
-    Label retry, is_new, done;
-    __ pushq(RAX);      // Spill.
-    __ pushq(RCX);      // Spill.
-    __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
-    __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
+    Label is_new, done;
+    __ pushq(RCX);  // Spill.
 
-    __ Bind(&retry);
-    __ movq(RCX, RAX);
-    __ testq(RCX, Immediate(1 << target::UntaggedObject::kNotMarkedBit));
-    __ j(ZERO, &done);  // Marked by another thread.
+    __ lock();
+    __ btrq(FieldAddress(RAX, target::Object::tags_offset()),
+            target::UntaggedObject::kNotMarkedBit);
+    __ j(NOT_CARRY, &done);  // Marked by another thread.
 
-    __ andq(RCX, Immediate(~(1 << target::UntaggedObject::kNotMarkedBit)));
-    // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
-    // On failure, RAX is updated with the current value.
-    __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
-    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
-
-    __ testq(TMP,
+    __ testq(RAX,
              Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
     __ j(NOT_ZERO, &is_new);
 
     auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
-      __ movq(RAX, Address(THR, offset));
-      __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
-      __ movq(Address(RAX, RCX, TIMES_8,
+      __ movq(TMP, Address(THR, offset));
+      __ movl(RCX, Address(TMP, target::MarkingStackBlock::top_offset()));
+      __ movq(Address(TMP, RCX, TIMES_8,
                       target::MarkingStackBlock::pointers_offset()),
-              TMP);
+              RAX);
       __ incq(RCX);
-      __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
+      __ movl(Address(TMP, target::MarkingStackBlock::top_offset()), RCX);
       __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
       __ j(NOT_EQUAL, &done);
 
@@ -2200,7 +2191,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
     __ Bind(&done);
     __ popq(RCX);  // Unspill.
-    __ popq(RAX);  // Unspill.
   }
 
   Label add_to_remembered_set, remember_card;
@@ -2229,37 +2219,28 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   }
   {
     // Atomically clear kOldAndNotRemembered.
-    Label retry, done;
-    __ pushq(RAX);  // Spill.
+    Label done;
     __ pushq(RCX);  // Spill.
-    __ movq(RAX, FieldAddress(RDX, target::Object::tags_offset()));
 
-    __ Bind(&retry);
-    __ movq(RCX, RAX);
-    __ testq(RCX,
-             Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-    __ j(ZERO, &done);  // Remembered by another thread.
-    __ andq(RCX,
-            Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
-    // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
-    // On failure, RAX is updated with the current value.
-    __ LockCmpxchgq(FieldAddress(RDX, target::Object::tags_offset()), RCX);
-    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+    __ lock();
+    __ btrq(FieldAddress(RDX, target::Object::tags_offset()),
+            target::UntaggedObject::kOldAndNotRememberedBit);
+    __ j(NOT_CARRY, &done);  // Remembered by another thread.
 
     // Load the StoreBuffer block out of the thread. Then load top_ out of the
     // StoreBufferBlock and add the address to the pointers_.
     // RDX: Address being stored
-    __ movq(RAX, Address(THR, target::Thread::store_buffer_block_offset()));
-    __ movl(RCX, Address(RAX, target::StoreBufferBlock::top_offset()));
+    __ movq(TMP, Address(THR, target::Thread::store_buffer_block_offset()));
+    __ movl(RCX, Address(TMP, target::StoreBufferBlock::top_offset()));
     __ movq(
-        Address(RAX, RCX, TIMES_8, target::StoreBufferBlock::pointers_offset()),
+        Address(TMP, RCX, TIMES_8, target::StoreBufferBlock::pointers_offset()),
         RDX);
 
     // Increment top_ and check for overflow.
     // RCX: top_
-    // RAX: StoreBufferBlock
+    // TMP: StoreBufferBlock
     __ incq(RCX);
-    __ movl(Address(RAX, target::StoreBufferBlock::top_offset()), RCX);
+    __ movl(Address(TMP, target::StoreBufferBlock::top_offset()), RCX);
     __ cmpl(RCX, Immediate(target::StoreBufferBlock::kSize));
     __ j(NOT_EQUAL, &done);
 
@@ -2273,7 +2254,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
     __ Bind(&done);
     __ popq(RCX);  // Unspill.
-    __ popq(RAX);  // Unspill.
     __ ret();
   }
 
