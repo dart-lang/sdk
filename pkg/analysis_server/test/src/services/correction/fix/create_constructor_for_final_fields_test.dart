@@ -61,7 +61,7 @@ import 'package:flutter/widgets.dart';
 class Test extends StatelessWidget {
   final int _a;
 
-  const Test({super.key, required int a}) : _a = a;
+  const Test({super.key, required this._a});
 }
 ''',
       filter: (error) {
@@ -308,7 +308,7 @@ class Test {
   final int _b;
   final int c;
 
-  Test({required int a, required int b, required this.c}) : _a = a, _b = b;
+  Test({required this._a, required this._b, required this.c});
 }
 ''',
       filter: (error) {
@@ -329,6 +329,34 @@ class Test {
     await assertNoFix(
       filter: (error) {
         return error.message.contains("'a'");
+      },
+    );
+  }
+
+  Future<void>
+  test_class_noSuperClass_hasPrivate_unsupportedPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.10
+class Test {
+  final int _a;
+  final int _b;
+  final int c;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.10
+class Test {
+  final int _a;
+  final int _b;
+  final int c;
+
+  Test({required int a, required int b, required this.c}) : _a = a, _b = b;
+}
+''',
+      filter: (error) {
+        return error.diagnosticCode == diag.finalNotInitialized &&
+            error.message.contains("'_a'");
       },
     );
   }

@@ -20,7 +20,7 @@ import '../../../utilities/extensions/ast.dart';
 
 /// The boolean value indicates whether the field is required.
 /// The string value is the field/parameter name.
-typedef _FieldRecord = (bool, String);
+typedef _FieldRecord = ({bool required, String parameter});
 
 class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   final _Style _style;
@@ -294,42 +294,24 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
             }
             buffer.write('super.');
             buffer.write(formalParameter.name!);
-            parameters.add((required, buffer.toString()));
+            parameters.add((required: required, parameter: buffer.toString()));
           }
-        }
-        for (var field in fields) {
-          buffer.clear();
-          if (field.namedFormalParameterName == field.fieldName) {
-            buffer.write('required this.');
-            buffer.write(field.fieldName);
-          } else {
-            buffer.write('required ');
-            buffer.write(utils.getNodeText(field.typeAnnotation));
-            buffer.write(' ');
-            buffer.write(field.namedFormalParameterName);
-            fieldsForInitializers.add(field);
-          }
-          parameters.add((true, buffer.toString()));
         }
 
-        if (requiredNamedParametersFirst) {
-          parameters.sort((a, b) {
-            if (a.$1 == b.$1) {
-              return 0;
-            } else if (a.$1) {
-              return -1;
-            } else {
-              return 1;
-            }
-          });
-        }
+        _writeParameters(
+          fields,
+          parameters,
+          fieldsForInitializers,
+          alwaysRequired: true,
+          requiredNamedParametersFirst: requiredNamedParametersFirst,
+        );
 
         var hasWritten = false;
         for (var parameter in parameters) {
           if (hasWritten) {
             builder.write(', ');
           }
-          builder.write(parameter.$2);
+          builder.write(parameter.parameter);
           hasWritten = true;
         }
 
@@ -417,36 +399,13 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     var childrenLast = fields.stablePartition((field) => !field.isChild);
 
     var parameters = <_FieldRecord>[];
-    var buffer = StringBuffer();
-    for (var field in childrenLast) {
-      var required = false;
-      buffer.clear();
-      if (field.hasNonNullableType) {
-        required = true;
-        buffer.write('required ');
-      }
-      if (field.namedFormalParameterName == field.fieldName) {
-        buffer.write('this.');
-        buffer.write(field.fieldName);
-      } else {
-        buffer.write(utils.getNodeText(field.typeAnnotation));
-        buffer.write(' ');
-        buffer.write(field.namedFormalParameterName);
-        fieldsForInitializers.add(field);
-      }
-      parameters.add((required, buffer.toString()));
-    }
-    if (requiredNamedParametersFirst) {
-      parameters.sort((a, b) {
-        if (a.$1 == b.$1) {
-          return 0;
-        } else if (a.$1) {
-          return -1;
-        } else {
-          return 1;
-        }
-      });
-    }
+    _writeParameters(
+      childrenLast,
+      parameters,
+      fieldsForInitializers,
+      requiredNamedParametersFirst: requiredNamedParametersFirst,
+    );
+
     // If this is false, then key is added first.
     var isFirst = requiredNamedParametersFirst;
     for (var parameter in parameters) {
@@ -455,7 +414,48 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       } else {
         builder.write(', ');
       }
-      builder.write(parameter.$2);
+      builder.write(parameter.parameter);
+    }
+  }
+
+  void _writeParameters(
+    List<_Field> fields,
+    List<_FieldRecord> parameters,
+    List<_Field> fieldsForInitializers, {
+    bool? alwaysRequired,
+    required bool requiredNamedParametersFirst,
+  }) {
+    for (var field in fields) {
+      var isRequired = alwaysRequired ?? field.hasNonNullableType;
+
+      var buffer = StringBuffer();
+      if (isRequired) buffer.write('required ');
+
+      // If the field is private and we're in a library that doesn't support
+      // private named parameters, then we have to make a public parameter and
+      // initialize the field explicitly.
+      if (field.namedFormalParameterName == field.fieldName ||
+          isEnabled(Feature.private_named_parameters)) {
+        buffer.write('this.');
+        buffer.write(field.fieldName);
+      } else {
+        buffer.write(utils.getNodeText(field.typeAnnotation));
+        buffer.write(' ');
+        buffer.write(field.namedFormalParameterName);
+        fieldsForInitializers.add(field);
+      }
+      parameters.add((required: isRequired, parameter: buffer.toString()));
+    }
+
+    if (requiredNamedParametersFirst) {
+      parameters.sort(
+        (a, b) => switch ((a.required, b.required)) {
+          (false, false) => 0,
+          (false, true) => 1,
+          (true, false) => 0,
+          (true, true) => -1,
+        },
+      );
     }
   }
 }
