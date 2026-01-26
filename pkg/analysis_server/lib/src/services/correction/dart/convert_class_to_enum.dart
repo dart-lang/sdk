@@ -384,6 +384,7 @@ class _EnumDescription {
 
       if (constructor.documentationComment != null) return null;
       if (constructor.metadata.isNotEmpty) return null;
+      if (constructor.initializers.isNotEmpty) return null;
 
       var parameters = constructor.parameters.parameters;
       // If there's only one constructor, then there can only be one entry in the
@@ -402,8 +403,11 @@ class _EnumDescription {
       var name = primaryConstructor.constructorName?.name.lexeme;
       if (name != null && name != 'new') return null;
 
-      if (primaryConstructor.body?.documentationComment != null) return null;
-      if (primaryConstructor.body?.metadata.isNotEmpty ?? false) return null;
+      if (primaryConstructor.body case var body?) {
+        if (body.documentationComment != null) return null;
+        if (body.metadata.isNotEmpty) return null;
+        if (body.initializers.isNotEmpty) return null;
+      }
 
       var parameters = primaryConstructor.formalParameters.parameters;
       // If there's only one constructor, then there can only be one entry in the
