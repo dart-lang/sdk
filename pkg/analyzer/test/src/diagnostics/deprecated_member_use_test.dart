@@ -1318,15 +1318,35 @@ void f(A a) {
   }
 
   test_methodInvocation_inDeprecatedConstructor() async {
+    newFile('$testPackageLibPath/lib2.dart', r'''
+@deprecated
+void foo() {}
+''');
+
     await assertNoErrorsInCode(r'''
+import 'lib2.dart';
 class A {
   @deprecated
   A() {
     foo();
   }
+}
+''');
+  }
 
+  test_methodInvocation_inDeprecatedPrimaryConstructor() async {
+    newFile('$testPackageLibPath/lib2.dart', r'''
+@deprecated
+void foo() {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'lib2.dart';
+class A() {
   @deprecated
-  void foo() {}
+  this {
+    foo();
+  }
 }
 ''');
   }
@@ -1634,6 +1654,22 @@ class A {
 @deprecated
 void f(A a) {
   a.foo(0);
+}
+''',
+    );
+  }
+
+  test_parameter_positionalOptional_inDeprecatedPrimaryConstructor() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+void foo([@deprecated int x = 0]) {}
+''',
+      code: r'''
+class A() {
+  @deprecated
+  this {
+    foo(0);
+  }
 }
 ''',
     );
