@@ -8,12 +8,12 @@ B0 = EntryBlock()
 
 --- A.bar
 B0 = EntryBlock()
+  v4 = Constant(<int>)
   v6 = Constant(1)
   v10 = Constant(2)
   v12 = Constant(null)
   v1 = Parameter(this)
   v3 = TypeParameters(v1)
-  v4 = TypeArguments(<int>)
   InterfaceCall A.foo(v4, v1, v6)
   v8 = TypeArguments(v3, <Map<String, A.T%>>)
   InterfaceCall A.foo(v8, v1, v10)

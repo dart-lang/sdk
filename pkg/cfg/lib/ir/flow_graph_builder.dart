@@ -457,14 +457,19 @@ class FlowGraphBuilder {
     return instr;
   }
 
-  /// Append [TypeArguments] to the graph.
+  /// Append either [TypeArguments] or [Constant] representing type arguments
+  /// to the graph.
   ///
   /// Optional [typeParameters] input should be passed if type arguments
   /// depend on type parameters (not fully instantiated).
-  TypeArguments addTypeArguments(
+  void addTypeArguments(
     List<ast.DartType> types, {
     Definition? typeParameters,
   }) {
+    if (typeParameters == null) {
+      addConstant(ConstantValue(TypeArgumentsConstant(types)));
+      return;
+    }
     final instr = TypeArguments(
       graph,
       currentSourcePosition,
@@ -473,7 +478,6 @@ class FlowGraphBuilder {
     );
     push(instr);
     appendInstruction(instr);
-    return instr;
   }
 
   /// Append [TypeLiteral] to the graph.
@@ -496,7 +500,7 @@ class FlowGraphBuilder {
   ///
   /// Optional [typeArguments] input should be passed if allocating
   /// an instance of a generic class.
-  AllocateObject addAllocateObject(CType type, {TypeArguments? typeArguments}) {
+  AllocateObject addAllocateObject(CType type, {Definition? typeArguments}) {
     final instr = AllocateObject(
       graph,
       currentSourcePosition,
@@ -529,10 +533,11 @@ class FlowGraphBuilder {
 
   /// Append [AllocateListLiteral] to the graph.
   /// Takes type arguments and elements from the stack as inputs.
-  AllocateListLiteral addAllocateListLiteral(int inputCount) {
+  AllocateListLiteral addAllocateListLiteral(CType type, int inputCount) {
     final instr = AllocateListLiteral(
       graph,
       currentSourcePosition,
+      type,
       inputCount: inputCount,
     );
     popInputs(instr, 0, inputCount);
@@ -543,10 +548,11 @@ class FlowGraphBuilder {
 
   /// Append [AllocateMapLiteral] to the graph.
   /// Takes type arguments and key/value pairs from the stack as inputs.
-  AllocateMapLiteral addAllocateMapLiteral(int inputCount) {
+  AllocateMapLiteral addAllocateMapLiteral(CType type, int inputCount) {
     final instr = AllocateMapLiteral(
       graph,
       currentSourcePosition,
+      type,
       inputCount: inputCount,
     );
     popInputs(instr, 0, inputCount);

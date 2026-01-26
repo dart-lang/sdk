@@ -338,7 +338,7 @@ final class TypeParametersType extends ExtendedType {
   String toString() => '<type-parameters>';
 }
 
-/// Type of [TypeArguments] instruction.
+/// Type of [TypeArguments] instruction and [Constant] type arguments.
 final class TypeArgumentsType extends ExtendedType {
   const TypeArgumentsType();
 
