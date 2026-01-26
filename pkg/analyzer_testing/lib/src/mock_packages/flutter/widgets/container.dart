@@ -7,8 +7,9 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final widgetsContainerLibrary = MockLibraryUnit(
   'lib/src/widgets/container.dart',
   r'''
-import 'package:flutter/painting.dart';
-import 'package:ui/ui.dart';
+import 'dart:ui';
+
+import 'package:flutter/rendering.dart';
 
 import 'framework.dart';
 

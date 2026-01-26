@@ -5,6 +5,8 @@
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 
 final widgetsLibrary = MockLibraryUnit('lib/widgets.dart', r'''
+export 'package:vector_math/vector_math.dart';
+
 export 'foundation.dart' show UniqueKey;
 export 'src/widgets/async.dart';
 export 'src/widgets/basic.dart';
@@ -12,6 +14,7 @@ export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
 export 'src/widgets/gesture_detector.dart';
 export 'src/widgets/icon.dart';
+export 'src/widgets/inherited_theme.dart';
 export 'src/widgets/navigator.dart';
 export 'src/widgets/placeholder.dart';
 export 'src/widgets/text.dart';

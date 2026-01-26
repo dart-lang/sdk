@@ -30,27 +30,33 @@ abstract class SingleChildRenderObjectWidget extends RenderObjectWidget {
   const SingleChildRenderObjectWidget({super.key, this.child});
 }
 
+abstract class MultiChildRenderObjectWidget extends RenderObjectWidget {
+  final List<Widget> children;
+
+  const MultiChildRenderObjectWidget({super.key, this.children = const <Widget>[]});
+}
+
 @optionalTypeArgs
 abstract class State<T extends StatefulWidget> with Diagnosticable {
-  BuildContext get context;
+  T get widget => throw UnimplementedError();
 
-  bool get mounted;
+  BuildContext get context => throw UnimplementedError();
 
-  T get widget;
+  bool get mounted => true;
 
   @protected
   Widget build(BuildContext context);
 
   @protected
   @mustCallSuper
-  void dispose();
+  void dispose() {}
 
   @protected
   @mustCallSuper
-  void initState();
+  void initState() {}
 
   @protected
-  void setState(VoidCallback fn);
+  void setState(VoidCallback fn) {}
 }
 
 abstract class StatefulWidget extends Widget {
@@ -65,7 +71,7 @@ abstract class StatelessWidget extends Widget {
   const StatelessWidget({super.key});
 
   @protected
-  Widget build(BuildContext context);
+  external Widget build(BuildContext context);
 }
 
 @immutable
@@ -77,5 +83,14 @@ abstract class Widget extends DiagnosticableTree {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties);
 }
+
+class ParentData {}
+
+abstract class ProxyWidget extends Widget {}
+
+abstract class InheritedWidget extends ProxyWidget {}
+
+abstract class ParentDataWidget<T extends ParentData> extends ProxyWidget {}
+
 ''',
 );
