@@ -129,6 +129,7 @@ group("runtime_precompiled") {
   }
   if (dart_dynamic_modules) {
     deps += [ "utils/dart2bytecode:dart2bytecode_snapshot" ]
+    deps += [ "utils/modular_aot_compiler:modular_aot_compiler_snapshot" ]
     deps += [ "utils/dynamic_module_runner:dynamic_module_runner_snapshot" ]
   }
 }
