@@ -143,9 +143,10 @@ class BusyLoopProcess {
 }
 
 class RecorderProcess {
+  final List<String> stdout;
   final io.Process process;
 
-  RecorderProcess._(this.process);
+  RecorderProcess._(this.process, this.stdout);
 
   static final pressKeyPattern = RegExp(r'Press (Ctrl-C|Q) to exit');
 
@@ -154,10 +155,12 @@ class RecorderProcess {
     io.Directory outputDir, {
     String? tag,
     bool recordNewProcesses = false,
+    bool recordOnlyNewProcesses = false,
     bool enableAsyncSpans = false,
     bool enableProfiler = true,
     List<String> streams = const ['dart', 'gc'],
   }) async {
+    final stdout = <String>[];
     return RecorderProcess._(
       await runProcess(
         io.Platform.executable,
@@ -169,6 +172,7 @@ class RecorderProcess {
           if (tag != null) ...['--tag', tag],
           if (io.Platform.isWindows) '--wait-for-keypress',
           if (recordNewProcesses) '--record-new-processes',
+          if (recordOnlyNewProcesses) '--record-only-new-processes',
           if (enableAsyncSpans) '--enable-async-spans',
           if (!enableProfiler) '--no-enable-profiler',
           if (streams != const ['dart', 'gc']) ...[
@@ -179,7 +183,9 @@ class RecorderProcess {
         tag: 'recorder',
         environment: {'DART_DATA_HOME': tempDir.path},
         waitFor: pressKeyPattern,
+        stdout: stdout,
       ),
+      stdout,
     );
   }
 
@@ -608,6 +614,89 @@ void main() {
           .map((e) => p.basename(e.path))
           .toList();
       expect(timelines, unorderedEquals(['${newProcess.pid}.timeline']));
+    });
+
+    test('record only new processes', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      // Run the recorder in a separate process with --record-only-new-processes
+      final recorder = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      // Start a new process that should be recorded.
+      final newProcess = await BusyLoopProcess.start(
+        'new-process-tag',
+        tempDir,
+      );
+
+      await Future.delayed(const Duration(seconds: 2));
+      await recorder.stop();
+
+      final timelines = outputDir
+          .listSync()
+          .map((e) => p.basename(e.path))
+          .toList();
+      expect(
+        timelines,
+        unorderedEquals(['${newProcess.pid}.timeline']),
+        reason: 'Expected only new process to be recorded',
+      );
+
+      await newProcess.process.askToExit();
+    });
+
+    test('detect already running recorder', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      final recorder1 = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      final recorder2 = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+      await recorder1.stop();
+
+      await expectLater(recorder1.process.exitCode, completes);
+      expect(
+        recorder2.stdout.join('\n'),
+        contains(
+          'another recorder process (pid ${recorder1.process.pid})'
+          ' is already running',
+        ),
+      );
+    });
+
+    test('delete stale control socket', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      // Start a recorder to create the socket.
+      final recorder1 = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      // Kill it forcibly so it leaves the socket.
+      recorder1.process.kill(io.ProcessSignal.sigkill);
+      await recorder1.process.exitCode;
+
+      // Start another recorder. It should detect stale socket, delete it,
+      // and start successfully.
+      final recorder2 = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      await recorder2.stop();
     });
   });
 }

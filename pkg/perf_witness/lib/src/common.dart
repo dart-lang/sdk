@@ -98,7 +98,8 @@ Future<void> waitForUserToQuit({bool waitForQKeyPress = false}) async {
       }
     });
   } else {
+    final signalFired = io.ProcessSignal.sigint.watch().first;
     print('Press Ctrl-C to exit');
-    await io.ProcessSignal.sigint.watch().first;
+    await signalFired;
   }
 }
