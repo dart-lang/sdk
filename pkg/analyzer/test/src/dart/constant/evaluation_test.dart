@@ -5574,6 +5574,54 @@ A
 ''');
   }
 
+  test_assertInitializer_class_privateNamedParameters_false() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  final int _x;
+  const A({required this._x}) : assert(_x > 0);
+}
+const a = A(x: 0);
+''',
+      [
+        error(diag.unusedField, 22, 2),
+        error(
+          diag.constEvalThrowsException,
+          86,
+          7,
+          contextMessages: [message(testFile, 58, 14)],
+        ),
+      ],
+    );
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+<null>
+''');
+  }
+
+  test_assertInitializer_class_privateNamedParameters_true() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  final int _x;
+  const A({required this._x}) : assert(_x > 0);
+}
+const a = A(x: 1);
+''',
+      [error(diag.unusedField, 22, 2)],
+    );
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+A
+  _x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    namedArguments
+      x: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_assertInitializer_enum_false() async {
     await assertErrorsInCode(
       '''
@@ -7721,12 +7769,12 @@ const a = const B(1, 2);
     assertDartObjectText(result, '''
 B
   (super): A
-    _: int 2
+    _: int 1
     y: int 2
     constructorInvocation
       constructor: <testLibrary>::@class::A::@constructor::new
       positionalArguments
-        0: int 2
+        0: int 1
         1: int 2
   constructorInvocation
     constructor: <testLibrary>::@class::B::@constructor::new
