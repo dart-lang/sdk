@@ -51,6 +51,7 @@ import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -6735,37 +6736,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Return [FieldElement]s that are declared in the [ClassDeclaration] with
-  /// the given [constructor], but are not initialized.
+  /// Return [FieldElement]s that are declared as siblings of [constructor],
+  /// but are not initialized.
   static List<FieldElement> computeNotInitializedFields(
     ConstructorDeclaration constructor,
   ) {
     var fields = <FieldElement>{};
-    var unitMemberDeclaration =
-        constructor.parent?.parent as CompilationUnitMember;
-    late NodeList<ClassMember> membersList;
-    switch (unitMemberDeclaration) {
-      case TypeAlias() || FunctionDeclaration():
-        assert(
-          false,
-          'How can a constructor be declared in type alias or function?',
-        );
-        return [];
-      case ExtensionTypeDeclaration():
-        // Extension types do not have fields to be initialized.
-        return [];
-      case ClassDeclaration(:var members) ||
-          MixinDeclaration(:var members) ||
-          EnumDeclaration(:var members):
-        membersList = members;
-      default:
-        assert(
-          false,
-          'Unexpected parent of constructor: '
-          '${unitMemberDeclaration.runtimeType}',
-        );
-        return [];
-    }
+
+    var membersList = constructor.parent.classMembers;
     for (ClassMember fieldDeclaration in membersList) {
       if (fieldDeclaration is FieldDeclaration) {
         for (VariableDeclaration field in fieldDeclaration.fields.variables) {
