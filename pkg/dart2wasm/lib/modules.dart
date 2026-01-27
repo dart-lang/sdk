@@ -97,7 +97,7 @@ class ModuleOutputData {
         constantToModuleMetadata = null,
         assert(modules[0].isMain);
 
-  ModuleOutputData.monolitic(ModuleMetadata module)
+  ModuleOutputData.monolithic(ModuleMetadata module)
       : modules = [module],
         libraryToModuleMetadata = null,
         referenceToModuleMetadata = null,
@@ -114,13 +114,14 @@ class ModuleOutputData {
   ModuleMetadata moduleForReference(Reference reference) {
     // Turn artificial [Reference]s used in dart2wasm to the normal Kernel AST
     // [Reference]s.
-    if (reference.isTypeCheckerReference ||
-        reference.isCheckedEntryReference ||
-        reference.isUncheckedEntryReference ||
-        reference.isBodyReference ||
-        reference.isInitializerReference ||
-        reference.isConstructorBodyReference ||
-        reference.isTearOffReference) {
+    if (reference.node is Member &&
+        (reference.isTypeCheckerReference ||
+            reference.isCheckedEntryReference ||
+            reference.isUncheckedEntryReference ||
+            reference.isBodyReference ||
+            reference.isInitializerReference ||
+            reference.isConstructorBodyReference ||
+            reference.isTearOffReference)) {
       reference = reference.asMember.reference;
     }
 
@@ -156,7 +157,7 @@ class DefaultModuleStrategy extends ModuleStrategy {
     // module.
     final builder = ModuleMetadataBuilder(options);
     final mainModule = builder.buildModuleMetadata(emitAsMain: true);
-    return ModuleOutputData.monolitic(mainModule);
+    return ModuleOutputData.monolithic(mainModule);
   }
 
   @override

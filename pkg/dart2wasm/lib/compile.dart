@@ -23,6 +23,7 @@ import 'package:pool/pool.dart' as pool;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformLibraries;
+import 'package:vm/transformations/record_use/record_use.dart' as record_use;
 import 'package:vm/transformations/to_string_transformer.dart'
     as to_string_transformer;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
@@ -691,6 +692,27 @@ Future<CompilationResult> _runCodegenPhase(
 
   await ioManager.writeJsRuntime(jsRuntime);
   await ioManager.writeSupportJs(supportJs);
+
+  if (options.recordedUsesFile != null) {
+    String loadingUnitForNode(TreeNode node) {
+      while (node is! NamedNode) {
+        node = node.parent!;
+      }
+      assert(node is Member || node is Class);
+      final moduleOutput = moduleOutputData.moduleForReference(node.reference);
+      if (moduleOutput == moduleOutputData.defaultModule &&
+          moduleOutputData.modules.length > 1) {
+        // This is an unassigned reference such as a constant class only
+        // used for annotations. Assign it to the main module as a placeholder.
+        return moduleOutputData.mainModule.moduleImportName;
+      }
+      return moduleOutput.moduleImportName;
+    }
+
+    record_use.transformComponent(
+        component, options.recordedUsesFile!, options.mainUri,
+        loadingUnitLookup: loadingUnitForNode);
+  }
 
   return CodegenResult(options.outputFile, moduleIds);
 }

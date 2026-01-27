@@ -151,6 +151,7 @@ final List<Option> options = [
   Flag("strip-wasm", (o, value) => o.stripWasm = value, negatable: true),
   IntMultiOption("wasm-opt-module-ids",
       (o, value) => o.moduleIdsToOptimize = value.toSet()),
+  UriOption("recorded-uses", (o, value) => o.recordedUsesFile = value),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(
