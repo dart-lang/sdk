@@ -1,5 +1,7 @@
 ## 3.10.8
 
+**Released on:** 2026-01-27
+
 This is a patch release that:
 
 - Removes code completion of private declarations in other libraries for dot
