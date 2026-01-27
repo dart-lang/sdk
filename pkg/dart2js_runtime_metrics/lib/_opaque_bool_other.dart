@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// See [_opaque_bool_dart2js.dart].
-bool get opaqueTrue => true;
+// TODO(http://dartbug.com/62113): Remove this runtime decision once we can make
+// this a compile-time constant but still retain protobuf messages & fields.
+final _true = int.parse('1') == 1;
 
 /// See [_opaque_bool_dart2js.dart].
-bool get opaqueFalse => false;
+bool get opaqueTrue => _true;
+
+/// See [_opaque_bool_dart2js.dart].
+bool get opaqueFalse => !_true;
