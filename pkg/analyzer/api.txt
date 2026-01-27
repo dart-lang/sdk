@@ -4007,6 +4007,7 @@ package:analyzer/dart/element/element.dart:
     forSetter (getter: Name)
     hashCode (getter: int)
     isPublic (getter: bool)
+    isSetter (getter: bool)
     libraryUri (getter: Uri?)
     name (getter: String)
     == (method: bool Function(Object))

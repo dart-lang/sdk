@@ -2354,6 +2354,70 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     Uri libraryUri = _currentLibrary.uri;
+
+    if (enclosingClass is ExtensionTypeElementImpl) {
+      var conflicts = _inheritanceManager
+          .getInterface(enclosingClass)
+          .conflicts;
+      for (var conflict in conflicts) {
+        switch (conflict) {
+          case ExtensionTypeConflictingStaticAndInstanceConflict():
+            var declared = conflict.declared;
+            if (declared.firstFragment.libraryFragment != _currentUnit) {
+              continue;
+            }
+            diagnosticReporter.report(
+              diag.conflictingStaticAndInstance
+                  .withArguments(
+                    className: enclosingClass.displayName,
+                    memberName: declared.displayName,
+                    conflictingClassName:
+                        conflict.inherited.enclosingElement!.displayName,
+                  )
+                  .atSourceRange(declared.diagnosticRange(_currentUnit.source)),
+            );
+          case ExtensionTypeConflictingInheritedMethodAndSetterConflict():
+            if (fragment.isAugmentation) {
+              continue;
+            }
+            var method = conflict.method;
+            var setter = conflict.setter;
+            diagnosticReporter.report(
+              diag.conflictingInheritedMethodAndSetter
+                  .withArguments(
+                    enclosingElementKind: enclosingClass.kind.displayName,
+                    enclosingElementName: enclosingClass.displayName,
+                    memberName: conflict.name.name,
+                  )
+                  .withContextMessages([
+                    method.diagnosticMessage(
+                      message: formatList(
+                        "The method is inherited from the {0} '{1}'.",
+                        [
+                          method.enclosingElement!.kind.displayName,
+                          method.enclosingElement!.name,
+                        ],
+                      ),
+                    ),
+                    setter.diagnosticMessage(
+                      message: formatList(
+                        "The setter is inherited from the {0} '{1}'.",
+                        [
+                          setter.enclosingElement.kind.displayName,
+                          setter.enclosingElement.name,
+                        ],
+                      ),
+                    ),
+                  ])
+                  .atSourceRange(
+                    enclosingClass.diagnosticRange(_currentUnit.source),
+                  ),
+            );
+        }
+      }
+      return;
+    }
+
     var conflictingDeclaredNames = <String>{};
 
     // method declared in the enclosing class vs. inherited getter/setter
@@ -2398,11 +2462,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           reportStaticConflict(setter);
           continue;
         }
-      }
-
-      // Extension type methods preclude accessors.
-      if (enclosingClass is ExtensionTypeElementImpl) {
-        continue;
       }
 
       void reportFieldConflict(InternalPropertyAccessorElement inherited) {
@@ -2458,10 +2517,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         conflictingDeclaredNames.add(name);
       } else if (inherited is InternalMethodElement) {
-        // Extension type accessors preclude inherited accessors/methods.
-        if (enclosingClass is ExtensionTypeElementImpl) {
-          continue;
-        }
         diagnosticReporter.report(
           diag.conflictingFieldAndMethod
               .withArguments(
@@ -2488,7 +2543,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         var setterName = methodName.forSetter;
         var setter = inherited[setterName];
-        if (setter is InternalPropertyAccessorElement) {
+        if (setter is InternalSetterElement) {
           diagnosticReporter.report(
             diag.conflictingInheritedMethodAndSetter
                 .withArguments(
@@ -2497,9 +2552,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                   memberName: methodName.name,
                 )
                 .withContextMessages([
-                  DiagnosticMessageImpl(
-                    filePath:
-                        method.firstFragment.libraryFragment.source.fullName,
+                  method.diagnosticMessage(
                     message: formatList(
                       "The method is inherited from the {0} '{1}'.",
                       [
@@ -2507,13 +2560,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                         method.enclosingElement!.name,
                       ],
                     ),
-                    offset: method.firstFragment.nameOffset!,
-                    length: method.firstFragment.name!.length,
-                    url: null,
                   ),
-                  DiagnosticMessageImpl(
-                    filePath:
-                        setter.firstFragment.libraryFragment.source.fullName,
+                  setter.diagnosticMessage(
                     message: formatList(
                       "The setter is inherited from the {0} '{1}'.",
                       [
@@ -2521,9 +2569,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                         setter.enclosingElement.name,
                       ],
                     ),
-                    offset: setter.firstFragment.nameOffset!,
-                    length: setter.firstFragment.name!.length,
-                    url: null,
                   ),
                 ])
                 .atSourceRange(
