@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class BindToFieldTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.bindAllToFields;
+  AssistKind get kind => DartAssistKind.bindToField;
 
   Future<void> test_class_constructor_same_named_field() async {
     await resolveTestCode('''
@@ -481,6 +481,36 @@ class A {
   int k = 0;
 
   int i;
+}
+''');
+  }
+
+  Future<void> test_with_two_parameters() async {
+    await resolveTestCode('''
+class Foo {
+  Foo({required int foo, required int^ foobar});
+}
+''');
+    await assertHasAssist('''
+class Foo {
+  int foobar;
+
+  Foo({required int foo, required this.foobar});
+}
+''');
+  }
+
+  Future<void> test_with_two_parameters_2() async {
+    await resolveTestCode('''
+class Foo {
+  Foo({required int ^foo, required int foobar});
+}
+''');
+    await assertHasAssist('''
+class Foo {
+  int foo;
+
+  Foo({required this.foo, required int foobar});
 }
 ''');
   }

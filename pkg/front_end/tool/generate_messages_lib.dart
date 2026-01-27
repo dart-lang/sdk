@@ -9,37 +9,25 @@ import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/located_error.dart';
 import 'package:analyzer_utilities/messages.dart';
 
-Uri computeSharedGeneratedFile(Uri repoDir) {
-  return repoDir.resolve(
-    "pkg/_fe_analyzer_shared/lib/src/messages/codes_generated.dart",
-  );
-}
+class MessageAccumulator {
+  static const doNotEditComment =
+      '// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.';
 
-Uri computeCfeGeneratedFile(Uri repoDir) {
-  return repoDir.resolve(
-    "pkg/front_end/lib/src/codes/cfe_codes_generated.dart",
-  );
-}
+  /// The buffer in which generated code will be accumulated.
+  final StringBuffer _buffer = new StringBuffer();
 
-class Messages {
-  final String sharedMessages;
-  final String cfeMessages;
+  /// The URI which the generated file which will be part of.
+  final String partOf;
 
-  Messages(this.sharedMessages, this.cfeMessages);
-}
-
-Messages generateMessagesFilesRaw(Uri repoDir) {
-  StringBuffer sharedMessages = new StringBuffer();
-  StringBuffer cfeMessages = new StringBuffer();
-
-  const String preamble1 = """
+  MessageAccumulator({required this.partOf}) {
+    const String preamble1 = """
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 """;
 
-  const String preamble2 = """
+    const String preamble2 = """
 
 // NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
 //
@@ -49,63 +37,126 @@ Messages generateMessagesFilesRaw(Uri repoDir) {
 // ignore_for_file: lines_longer_than_80_chars
 """;
 
-  sharedMessages.writeln(preamble1);
-  sharedMessages.writeln(preamble2);
-  sharedMessages.writeln("""
-part of 'codes.dart';
+    _buffer.writeln(preamble1);
+    _buffer.writeln(preamble2);
+    _buffer.writeln("""
+part of '$partOf';
 """);
+  }
 
-  cfeMessages.writeln(preamble1);
-  cfeMessages.writeln("""
+  Messages finish({required String packageName, required String oldPath}) {
+    return Messages(
+      packageName: packageName,
+      oldPath: oldPath,
+      oldContents: _buffer.toString(),
+    );
+  }
 
-""");
-  cfeMessages.writeln(preamble2);
-  cfeMessages.writeln("""
-part of 'cfe_codes.dart';
-""");
+  void writeConstant({
+    required String type,
+    required String name,
+    required String initializer,
+  }) {
+    _buffer.writeln(doNotEditComment);
+    _buffer.writeln('const $type $name = $initializer;');
+    _buffer.writeln();
+  }
+
+  void writeEnum({
+    required String documentation,
+    required String name,
+    required List<String> values,
+  }) {
+    _buffer.writeln();
+    _buffer.writeln('/// $documentation');
+    _buffer.writeln('enum $name {');
+    for (var value in values) {
+      _buffer.writeln('  $value,');
+    }
+    _buffer.writeln('}');
+  }
+
+  void writeWithArgumentsFunction(String function) {
+    _buffer.writeln(doNotEditComment);
+    _buffer.writeln(function);
+  }
+}
+
+/// Information about the message code to generate for a given package.
+class Messages {
+  /// The name of the package to which files are being generated.
+  final String packageName;
+
+  /// The path to the old generated file, relative to the root of the package.
+  final String oldPath;
+
+  /// The string to write to the old `codes_generated.dart` or
+  /// `cfe_codes_generated.dart` file.
+  final String oldContents;
+
+  Messages({
+    required this.packageName,
+    required this.oldPath,
+    required this.oldContents,
+  });
+
+  /// Computes the absolute file URI to the old generated file.
+  ///
+  /// [repoDir] is the absolute file URI of the SDK repo.
+  Uri oldUri(Uri repoDir) => repoDir.resolve('pkg/$packageName/$oldPath');
+}
+
+List<Messages> generateMessagesFilesRaw(Uri repoDir) {
+  MessageAccumulator sharedMessages = new MessageAccumulator(
+    partOf: 'codes.dart',
+  );
+  MessageAccumulator cfeMessages = new MessageAccumulator(
+    partOf: 'cfe_codes.dart',
+  );
 
   var pseudoSharedCodeValues = <String>{};
   for (var message in diagnosticTables.sortedFrontEndDiagnostics) {
     var forFeAnalyzerShared =
         message is SharedMessage ||
         message is FrontEndMessage && message.pseudoSharedCode != null;
-    String template = LocatedError.wrap(
+    LocatedError.wrap(
       span: message.keySpan,
       () => _TemplateCompiler(
         message: message,
         pseudoSharedCodeValues: forFeAnalyzerShared
             ? pseudoSharedCodeValues
             : null,
-      ).compile(),
+      ).compile(forFeAnalyzerShared ? sharedMessages : cfeMessages),
     );
-    if (forFeAnalyzerShared) {
-      sharedMessages.writeln(template);
-    } else {
-      cfeMessages.writeln(template);
-    }
   }
-  sharedMessages.writeln();
-  sharedMessages.writeln(
-    '/// Enum containing analyzer error codes referenced by '
-    '[Code.pseudoSharedCode].',
+  sharedMessages.writeEnum(
+    documentation:
+        'Enum containing analyzer error codes referenced by '
+        '[Code.pseudoSharedCode].',
+    name: 'PseudoSharedCode',
+    values: pseudoSharedCodeValues.toList()..sort(),
   );
-  sharedMessages.writeln('enum PseudoSharedCode {');
-  for (var code in pseudoSharedCodeValues.toList()..sort()) {
-    sharedMessages.writeln('  $code,');
-  }
-  sharedMessages.writeln('}');
-  sharedMessages.writeln();
-  sharedMessages.writeln(
-    '/// Enum containing analyzer error codes referenced by '
-    '[Code.sharedCode].',
+  sharedMessages.writeEnum(
+    documentation:
+        'Enum containing analyzer error codes referenced by '
+        '[Code.sharedCode].',
+    name: 'SharedCode',
+    values: [
+      for (var code in diagnosticTables.sortedSharedDiagnostics)
+        code.analyzerCode.camelCaseName,
+    ],
   );
-  sharedMessages.writeln('enum SharedCode {');
-  for (var code in diagnosticTables.sortedSharedDiagnostics) {
-    sharedMessages.writeln('  ${code.analyzerCode.camelCaseName},');
-  }
-  sharedMessages.writeln('}');
 
-  return new Messages("$sharedMessages", "$cfeMessages");
+  return [
+    sharedMessages.finish(
+      packageName: '_fe_analyzer_shared',
+      oldPath: "lib/src/messages/codes_generated.dart",
+    ),
+    cfeMessages.finish(
+      packageName: 'front_end',
+      oldPath: "lib/src/codes/cfe_codes_generated.dart",
+    ),
+  ];
 }
 
 /// Returns a fresh identifier that is not yet present in [usedNames], and adds
@@ -161,7 +212,8 @@ class _TemplateCompiler {
            ? message.pseudoSharedCode
            : null;
 
-  String compile() {
+  void compile(MessageAccumulator messageAccumulator) {
+    var constantName = 'code$name';
     var codeArguments = <String>[
       if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
         'pseudoSharedCode: ${_encodePseudoSharedCode(pseudoSharedCode!)}',
@@ -176,59 +228,68 @@ class _TemplateCompiler {
       interpolatedProblemMessage += " + labeler.originMessages";
     }
 
+    String constantType;
+    String constantInitializer;
+    List<String> withArgumentsFunctions = [];
     if (parameters.isEmpty) {
       codeArguments.add('problemMessage: $interpolatedProblemMessage');
       if (correctionMessage != null) {
         codeArguments.add('correctionMessage: $interpolatedCorrectionMessage');
       }
 
-      return """
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode code$name =
-    const MessageCode(\"$name\", ${codeArguments.join(', ')},);
-""";
-    }
+      constantType = 'MessageCode';
+      constantInitializer =
+          'const MessageCode("$name", ${codeArguments.join(', ')},)';
+    } else {
+      List<String> templateArguments = <String>[];
+      templateArguments.add('\"$name\"');
+      templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
+      templateArguments.add("withArguments: _withArguments$name");
+      templateArguments.addAll(codeArguments);
 
-    List<String> templateArguments = <String>[];
-    templateArguments.add('\"$name\"');
-    templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
-    templateArguments.add("withArguments: _withArguments$name");
-    templateArguments.addAll(codeArguments);
+      List<String> messageArguments = <String>[
+        "problemMessage: $interpolatedProblemMessage",
+        if (interpolatedCorrectionMessage case var m?) "correctionMessage: $m",
+        "arguments: { ${arguments.join(', ')}, }",
+      ];
+      List<String> positionalParameters = parameters.entries
+          .map((entry) => '${entry.value.type.cfeName!} ${entry.key}')
+          .toList();
+      List<String> namedParameters = parameters.entries
+          .map((entry) => 'required ${entry.value.type.cfeName!} ${entry.key}')
+          .toList();
+      List<String> oldToNewArguments = parameters.keys
+          .map((name) => '$name: $name')
+          .toList();
 
-    List<String> messageArguments = <String>[
-      "problemMessage: $interpolatedProblemMessage",
-      if (interpolatedCorrectionMessage case var m?) "correctionMessage: $m",
-      "arguments: { ${arguments.join(', ')}, }",
-    ];
-    List<String> positionalParameters = parameters.entries
-        .map((entry) => '${entry.value.type.cfeName!} ${entry.key}')
-        .toList();
-    List<String> namedParameters = parameters.entries
-        .map((entry) => 'required ${entry.value.type.cfeName!} ${entry.key}')
-        .toList();
-    List<String> oldToNewArguments = parameters.keys
-        .map((name) => '$name: $name')
-        .toList();
-
-    return """
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
+      constantType =
+          """
+Template<
   Message Function(${positionalParameters.join(', ')}),
   Message Function({${namedParameters.join(', ')}})
-> code$name = const Template(${templateArguments.join(', ')},);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+>""";
+      constantInitializer = 'const Template(${templateArguments.join(', ')},)';
+      withArgumentsFunctions.add("""
 Message _withArguments$name({${namedParameters.join(', ')}}) {
   ${withArgumentsStatements.join('\n  ')}
   return new Message(
-     code$name,
+     $constantName,
      ${messageArguments.join(', ')},);
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+""");
+      withArgumentsFunctions.add("""
 Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
     _withArguments$name(${oldToNewArguments.join(', ')});
-""";
+""");
+    }
+    messageAccumulator.writeConstant(
+      type: constantType,
+      name: constantName,
+      initializer: constantInitializer,
+    );
+    for (var withArgumentsFunction in withArgumentsFunctions) {
+      messageAccumulator.writeWithArgumentsFunction(withArgumentsFunction);
+    }
   }
 
   String computeInterpolator(TemplateParameterPart placeholder) {
