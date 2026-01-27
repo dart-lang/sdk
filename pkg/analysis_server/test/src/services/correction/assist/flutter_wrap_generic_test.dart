@@ -285,7 +285,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return ClipRect.^rect();
+    return ClipRect.^new();
   }
 }
 ''');
@@ -293,7 +293,7 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
-    return widget(child: ClipRect.rect());
+    return widget(child: ClipRect.new());
   }
 }
 ''');
