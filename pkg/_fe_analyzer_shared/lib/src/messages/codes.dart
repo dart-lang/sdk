@@ -20,9 +20,6 @@ import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
 
-// TODO(paulberry): make this export unnecessary.
-export 'diagnostic.dart' show PseudoSharedCode, SharedCode;
-
 part 'codes_generated.dart';
 
 const int noLength = 1;

@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;

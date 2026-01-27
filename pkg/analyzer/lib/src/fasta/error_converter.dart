@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show Code, Message, PseudoSharedCode;
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Code, Message;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_code_values.dart';
