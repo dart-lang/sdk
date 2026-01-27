@@ -12,3470 +12,1013 @@
 part of 'codes.dart';
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractClassMember = const MessageCode(
-  "AbstractClassMember",
-  sharedCode: SharedCode.abstractClassMember,
-  problemMessage: """Members of classes can't be declared to be 'abstract'.""",
-  correctionMessage:
-      """Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.""",
-);
+const MessageCode codeAbstractClassMember = abstractClassMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractExtensionField = const MessageCode(
-  "AbstractExtensionField",
-  pseudoSharedCode: PseudoSharedCode.abstractExtensionField,
-  problemMessage: """Extension fields can't be declared 'abstract'.""",
-  correctionMessage: """Try removing the 'abstract' keyword.""",
-);
+const MessageCode codeAbstractExtensionField = abstractExtensionField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractExternalField = const MessageCode(
-  "AbstractExternalField",
-  sharedCode: SharedCode.abstractExternalField,
-  problemMessage:
-      """Fields can't be declared both 'abstract' and 'external'.""",
-  correctionMessage: """Try removing the 'abstract' or 'external' keyword.""",
-);
+const MessageCode codeAbstractExternalField = abstractExternalField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractFinalBaseClass = const MessageCode(
-  "AbstractFinalBaseClass",
-  sharedCode: SharedCode.abstractFinalBaseClass,
-  problemMessage:
-      """An 'abstract' class can't be declared as both 'final' and 'base'.""",
-  correctionMessage: """Try removing either the 'final' or 'base' keyword.""",
-);
+const MessageCode codeAbstractFinalBaseClass = abstractFinalBaseClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractFinalInterfaceClass = const MessageCode(
-  "AbstractFinalInterfaceClass",
-  sharedCode: SharedCode.abstractFinalInterfaceClass,
-  problemMessage:
-      """An 'abstract' class can't be declared as both 'final' and 'interface'.""",
-  correctionMessage:
-      """Try removing either the 'final' or 'interface' keyword.""",
-);
+const MessageCode codeAbstractFinalInterfaceClass = abstractFinalInterfaceClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractLateField = const MessageCode(
-  "AbstractLateField",
-  sharedCode: SharedCode.abstractLateField,
-  problemMessage: """Abstract fields cannot be late.""",
-  correctionMessage: """Try removing the 'abstract' or 'late' keyword.""",
-);
+const MessageCode codeAbstractLateField = abstractLateField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractNotSync = const MessageCode(
-  "AbstractNotSync",
-  pseudoSharedCode: PseudoSharedCode.nonSyncAbstractMethod,
-  problemMessage:
-      """Abstract methods can't use 'async', 'async*', or 'sync*'.""",
-);
+const MessageCode codeAbstractNotSync = abstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractSealedClass = const MessageCode(
-  "AbstractSealedClass",
-  sharedCode: SharedCode.abstractSealedClass,
-  problemMessage:
-      """A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.""",
-  correctionMessage: """Try removing the 'abstract' keyword.""",
-);
+const MessageCode codeAbstractSealedClass = abstractSealedClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractStaticField = const MessageCode(
-  "AbstractStaticField",
-  sharedCode: SharedCode.abstractStaticField,
-  problemMessage: """Static fields can't be declared 'abstract'.""",
-  correctionMessage: """Try removing the 'abstract' or 'static' keyword.""",
-);
+const MessageCode codeAbstractStaticField = abstractStaticField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAnnotationOnTypeArgument = const MessageCode(
-  "AnnotationOnTypeArgument",
-  sharedCode: SharedCode.annotationOnTypeArgument,
-  problemMessage:
-      """Type arguments can't have annotations because they aren't declarations.""",
-);
+const MessageCode codeAnnotationOnTypeArgument = annotationOnTypeArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int character),
   Message Function({required int character})
 >
-codeAsciiControlCharacter = const Template(
-  "AsciiControlCharacter",
-  withArgumentsOld: _withArgumentsOldAsciiControlCharacter,
-  withArguments: _withArgumentsAsciiControlCharacter,
-  pseudoSharedCode: PseudoSharedCode.illegalCharacter,
-);
+codeAsciiControlCharacter = asciiControlCharacter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAsciiControlCharacter({required int character}) {
-  var character_0 = conversions.codePointToUnicode(character);
-  return new Message(
-    codeAsciiControlCharacter,
-    problemMessage:
-        """The control character ${character_0} can only be used in strings and comments.""",
-    arguments: {'character': character},
-  );
-}
+const MessageCode codeAssertAsExpression = assertAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAsciiControlCharacter(int character) =>
-    _withArgumentsAsciiControlCharacter(character: character);
+const MessageCode codeAwaitAsIdentifier = awaitAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAssertAsExpression = const MessageCode(
-  "AssertAsExpression",
-  pseudoSharedCode: PseudoSharedCode.assertAsExpression,
-  problemMessage: """`assert` can't be used as an expression.""",
-);
+const MessageCode codeAwaitForNotAsync = awaitForNotAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitAsIdentifier = const MessageCode(
-  "AwaitAsIdentifier",
-  pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
-  problemMessage:
-      """'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
-);
+const MessageCode codeAwaitNotAsync = awaitNotAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitForNotAsync = const MessageCode(
-  "AwaitForNotAsync",
-  pseudoSharedCode: PseudoSharedCode.asyncForInWrongContext,
-  problemMessage:
-      """The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.""",
-  correctionMessage:
-      """Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitNotAsync = const MessageCode(
-  "AwaitNotAsync",
-  pseudoSharedCode: PseudoSharedCode.awaitInWrongContext,
-  problemMessage:
-      """'await' can only be used in 'async' or 'async*' methods.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeBaseEnum = const MessageCode(
-  "BaseEnum",
-  sharedCode: SharedCode.baseEnum,
-  problemMessage: """Enums can't be declared to be 'base'.""",
-  correctionMessage: """Try removing the keyword 'base'.""",
-);
+const MessageCode codeBaseEnum = baseEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeBinaryOperatorWrittenOut = const Template(
-  "BinaryOperatorWrittenOut",
-  withArgumentsOld: _withArgumentsOldBinaryOperatorWrittenOut,
-  withArguments: _withArgumentsBinaryOperatorWrittenOut,
-  sharedCode: SharedCode.binaryOperatorWrittenOut,
-);
+codeBinaryOperatorWrittenOut = binaryOperatorWrittenOut;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBinaryOperatorWrittenOut({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeBinaryOperatorWrittenOut,
-    problemMessage:
-        """Binary operator '${string_0}' is written as '${string2_0}' instead of the written out word.""",
-    correctionMessage: """Try replacing '${string_0}' with '${string2_0}'.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBinaryOperatorWrittenOut(
-  String string,
-  String string2,
-) => _withArgumentsBinaryOperatorWrittenOut(string: string, string2: string2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeBreakOutsideOfLoop = const MessageCode(
-  "BreakOutsideOfLoop",
-  sharedCode: SharedCode.breakOutsideOfLoop,
-  problemMessage:
-      """A break statement can't be used outside of a loop or switch statement.""",
-  correctionMessage: """Try removing the break statement.""",
-);
+const MessageCode codeBreakOutsideOfLoop = breakOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeBuiltInIdentifierAsType = const Template(
-  "BuiltInIdentifierAsType",
-  withArgumentsOld: _withArgumentsOldBuiltInIdentifierAsType,
-  withArguments: _withArgumentsBuiltInIdentifierAsType,
-  pseudoSharedCode: PseudoSharedCode.builtInIdentifierAsType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBuiltInIdentifierAsType({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeBuiltInIdentifierAsType,
-    problemMessage:
-        """The built-in identifier '${lexeme_0}' can't be used as a type.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBuiltInIdentifierAsType(Token lexeme) =>
-    _withArgumentsBuiltInIdentifierAsType(lexeme: lexeme);
+codeBuiltInIdentifierAsType = builtInIdentifierAsType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeBuiltInIdentifierInDeclaration = const Template(
-  "BuiltInIdentifierInDeclaration",
-  withArgumentsOld: _withArgumentsOldBuiltInIdentifierInDeclaration,
-  withArguments: _withArgumentsBuiltInIdentifierInDeclaration,
-  pseudoSharedCode: PseudoSharedCode.builtInIdentifierInDeclaration,
-);
+codeBuiltInIdentifierInDeclaration = builtInIdentifierInDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBuiltInIdentifierInDeclaration({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeBuiltInIdentifierInDeclaration,
-    problemMessage: """Can't use '${lexeme_0}' as a name here.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
+const MessageCode codeCatchSyntax = catchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBuiltInIdentifierInDeclaration(Token lexeme) =>
-    _withArgumentsBuiltInIdentifierInDeclaration(lexeme: lexeme);
+const MessageCode codeCatchSyntaxExtraParameters = catchSyntaxExtraParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCatchSyntax = const MessageCode(
-  "CatchSyntax",
-  sharedCode: SharedCode.catchSyntax,
-  problemMessage:
-      """'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
-  correctionMessage:
-      """No types are needed, the first is given by 'on', the second is always 'StackTrace'.""",
-);
+const MessageCode codeClassInClass = classInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCatchSyntaxExtraParameters = const MessageCode(
-  "CatchSyntaxExtraParameters",
-  sharedCode: SharedCode.catchSyntaxExtraParameters,
-  problemMessage:
-      """'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
-  correctionMessage:
-      """No types are needed, the first is given by 'on', the second is always 'StackTrace'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeClassInClass = const MessageCode(
-  "ClassInClass",
-  sharedCode: SharedCode.classInClass,
-  problemMessage: """Classes can't be declared inside other classes.""",
-  correctionMessage: """Try moving the class to the top-level.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeColonInPlaceOfIn = const MessageCode(
-  "ColonInPlaceOfIn",
-  sharedCode: SharedCode.colonInPlaceOfIn,
-  problemMessage: """For-in loops use 'in' rather than a colon.""",
-  correctionMessage: """Try replacing the colon with the keyword 'in'.""",
-);
+const MessageCode codeColonInPlaceOfIn = colonInPlaceOfIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeConflictingModifiers = const Template(
-  "ConflictingModifiers",
-  withArgumentsOld: _withArgumentsOldConflictingModifiers,
-  withArguments: _withArgumentsConflictingModifiers,
-  sharedCode: SharedCode.conflictingModifiers,
-);
+codeConflictingModifiers = conflictingModifiers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictingModifiers({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeConflictingModifiers,
-    problemMessage:
-        """Members can't be declared to be both '${string_0}' and '${string2_0}'.""",
-    correctionMessage: """Try removing one of the keywords.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
+const MessageCode codeConstAndFinal = constAndFinal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictingModifiers(String string, String string2) =>
-    _withArgumentsConflictingModifiers(string: string, string2: string2);
+const MessageCode codeConstClass = constClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstAndFinal = const MessageCode(
-  "ConstAndFinal",
-  sharedCode: SharedCode.constAndFinal,
-  problemMessage:
-      """Members can't be declared to be both 'const' and 'final'.""",
-  correctionMessage: """Try removing either the 'const' or 'final' keyword.""",
-);
+const MessageCode codeConstConstructorWithBody = constConstructorWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstClass = const MessageCode(
-  "ConstClass",
-  sharedCode: SharedCode.constClass,
-  problemMessage: """Classes can't be declared to be 'const'.""",
-  correctionMessage:
-      """Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorWithBody = const MessageCode(
-  "ConstConstructorWithBody",
-  pseudoSharedCode: PseudoSharedCode.constConstructorWithBody,
-  problemMessage: """A const constructor can't have a body.""",
-  correctionMessage: """Try removing either the 'const' keyword or the body.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstFactory = const MessageCode(
-  "ConstFactory",
-  sharedCode: SharedCode.constFactory,
-  problemMessage:
-      """Only redirecting factory constructors can be declared to be 'const'.""",
-  correctionMessage:
-      """Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.""",
-);
+const MessageCode codeConstFactory = constFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConstFieldWithoutInitializer = const Template(
-  "ConstFieldWithoutInitializer",
-  withArgumentsOld: _withArgumentsOldConstFieldWithoutInitializer,
-  withArguments: _withArgumentsConstFieldWithoutInitializer,
-  pseudoSharedCode: PseudoSharedCode.constNotInitialized,
-);
+codeConstFieldWithoutInitializer = constFieldWithoutInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstFieldWithoutInitializer({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConstFieldWithoutInitializer,
-    problemMessage: """The const variable '${name_0}' must be initialized.""",
-    correctionMessage:
-        """Try adding an initializer ('= expression') to the declaration.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeConstMethod = constMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstFieldWithoutInitializer(String name) =>
-    _withArgumentsConstFieldWithoutInitializer(name: name);
+const MessageCode codeConstWithoutPrimaryConstructor =
+    constWithoutPrimaryConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstMethod = const MessageCode(
-  "ConstMethod",
-  sharedCode: SharedCode.constMethod,
-  problemMessage:
-      """Getters, setters and methods can't be declared to be 'const'.""",
-  correctionMessage: """Try removing the 'const' keyword.""",
-);
+const MessageCode codeConstructorWithReturnType = constructorWithReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstWithoutPrimaryConstructor = const MessageCode(
-  "ConstWithoutPrimaryConstructor",
-  sharedCode: SharedCode.constWithoutPrimaryConstructor,
-  problemMessage:
-      """'const' can only be used together with a primary constructor declaration.""",
-  correctionMessage:
-      """Try removing the 'const' keyword or adding a primary constructor declaration.""",
-);
+const MessageCode codeConstructorWithTypeArguments =
+    constructorWithTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorWithReturnType = const MessageCode(
-  "ConstructorWithReturnType",
-  sharedCode: SharedCode.constructorWithReturnType,
-  problemMessage: """Constructors can't have a return type.""",
-  correctionMessage: """Try removing the return type.""",
-);
+const MessageCode codeConstructorWithTypeParameters =
+    constructorWithTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorWithTypeArguments = const MessageCode(
-  "ConstructorWithTypeArguments",
-  sharedCode: SharedCode.constructorWithTypeArguments,
-  problemMessage:
-      """A constructor invocation can't have type arguments after the constructor name.""",
-  correctionMessage:
-      """Try removing the type arguments or placing them after the class name.""",
-);
+const MessageCode codeConstructorWithWrongName = constructorWithWrongName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorWithTypeParameters = const MessageCode(
-  "ConstructorWithTypeParameters",
-  sharedCode: SharedCode.typeParameterOnConstructor,
-  problemMessage: """Constructors can't have type parameters.""",
-  correctionMessage: """Try removing the type parameters.""",
-);
+const MessageCode codeContinueOutsideOfLoop = continueOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorWithWrongName = const MessageCode(
-  "ConstructorWithWrongName",
-  sharedCode: SharedCode.invalidConstructorName,
-  problemMessage:
-      """The name of a constructor must match the name of the enclosing class.""",
-);
+const MessageCode codeContinueWithoutLabelInCase = continueWithoutLabelInCase;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeContinueOutsideOfLoop = const MessageCode(
-  "ContinueOutsideOfLoop",
-  sharedCode: SharedCode.continueOutsideOfLoop,
-  problemMessage:
-      """A continue statement can't be used outside of a loop or switch statement.""",
-  correctionMessage: """Try removing the continue statement.""",
-);
+const MessageCode codeCovariantAndStatic = covariantAndStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeContinueWithoutLabelInCase = const MessageCode(
-  "ContinueWithoutLabelInCase",
-  sharedCode: SharedCode.continueWithoutLabelInCase,
-  problemMessage:
-      """A continue statement in a switch statement must have a label as a target.""",
-  correctionMessage:
-      """Try adding a label associated with one of the case clauses to the continue statement.""",
-);
+const MessageCode codeCovariantMember = covariantMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCovariantAndStatic = const MessageCode(
-  "CovariantAndStatic",
-  sharedCode: SharedCode.covariantAndStatic,
-  problemMessage:
-      """Members can't be declared to be both 'covariant' and 'static'.""",
-  correctionMessage:
-      """Try removing either the 'covariant' or 'static' keyword.""",
-);
+const MessageCode codeDefaultInSwitchExpression = defaultInSwitchExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCovariantMember = const MessageCode(
-  "CovariantMember",
-  sharedCode: SharedCode.covariantMember,
-  problemMessage:
-      """Getters, setters and methods can't be declared to be 'covariant'.""",
-  correctionMessage: """Try removing the 'covariant' keyword.""",
-);
+const MessageCode codeDeferredAfterPrefix = deferredAfterPrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDefaultInSwitchExpression = const MessageCode(
-  "DefaultInSwitchExpression",
-  sharedCode: SharedCode.defaultInSwitchExpression,
-  problemMessage: """A switch expression may not use the `default` keyword.""",
-  correctionMessage: """Try replacing `default` with `_`.""",
-);
+const MessageCode codeDirectiveAfterDeclaration = directiveAfterDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDeferredAfterPrefix = const MessageCode(
-  "DeferredAfterPrefix",
-  sharedCode: SharedCode.deferredAfterPrefix,
-  problemMessage:
-      """The deferred keyword should come immediately before the prefix ('as' clause).""",
-  correctionMessage: """Try moving the deferred keyword before the prefix.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDirectiveAfterDeclaration = const MessageCode(
-  "DirectiveAfterDeclaration",
-  sharedCode: SharedCode.directiveAfterDeclaration,
-  problemMessage: """Directives must appear before any declarations.""",
-  correctionMessage: """Try moving the directive before any declarations.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicateDeferred = const MessageCode(
-  "DuplicateDeferred",
-  sharedCode: SharedCode.duplicateDeferred,
-  problemMessage:
-      """An import directive can only have one 'deferred' keyword.""",
-  correctionMessage: """Try removing all but one 'deferred' keyword.""",
-);
+const MessageCode codeDuplicateDeferred = duplicateDeferred;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicateLabelInSwitchStatement = const Template(
-  "DuplicateLabelInSwitchStatement",
-  withArgumentsOld: _withArgumentsOldDuplicateLabelInSwitchStatement,
-  withArguments: _withArgumentsDuplicateLabelInSwitchStatement,
-  sharedCode: SharedCode.duplicateLabelInSwitchStatement,
-);
+codeDuplicateLabelInSwitchStatement = duplicateLabelInSwitchStatement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicateLabelInSwitchStatement({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicateLabelInSwitchStatement,
-    problemMessage:
-        """The label '${name_0}' was already used in this switch statement.""",
-    correctionMessage: """Try choosing a different name for this label.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicateLabelInSwitchStatement(String name) =>
-    _withArgumentsDuplicateLabelInSwitchStatement(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicatePrefix = const MessageCode(
-  "DuplicatePrefix",
-  sharedCode: SharedCode.duplicatePrefix,
-  problemMessage:
-      """An import directive can only have one prefix ('as' clause).""",
-  correctionMessage: """Try removing all but one prefix.""",
-);
+const MessageCode codeDuplicatePrefix = duplicatePrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeDuplicatedModifier = const Template(
-  "DuplicatedModifier",
-  withArgumentsOld: _withArgumentsOldDuplicatedModifier,
-  withArguments: _withArgumentsDuplicatedModifier,
-  sharedCode: SharedCode.duplicatedModifier,
-);
+codeDuplicatedModifier = duplicatedModifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedModifier({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeDuplicatedModifier,
-    problemMessage: """The modifier '${lexeme_0}' was already specified.""",
-    correctionMessage:
-        """Try removing all but one occurrence of the modifier.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
+const MessageCode codeEmptyNamedParameterList = emptyNamedParameterList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedModifier(Token lexeme) =>
-    _withArgumentsDuplicatedModifier(lexeme: lexeme);
+const MessageCode codeEmptyOptionalParameterList = emptyOptionalParameterList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEmptyNamedParameterList = const MessageCode(
-  "EmptyNamedParameterList",
-  pseudoSharedCode: PseudoSharedCode.missingIdentifier,
-  problemMessage: """Named parameter lists cannot be empty.""",
-  correctionMessage: """Try adding a named parameter to the list.""",
-);
+const MessageCode codeEmptyRecordTypeNamedFieldsList =
+    emptyRecordTypeNamedFieldsList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEmptyOptionalParameterList = const MessageCode(
-  "EmptyOptionalParameterList",
-  pseudoSharedCode: PseudoSharedCode.missingIdentifier,
-  problemMessage: """Optional parameter lists cannot be empty.""",
-  correctionMessage: """Try adding an optional parameter to the list.""",
-);
+const MessageCode codeEncoding = encoding;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEmptyRecordTypeNamedFieldsList = const MessageCode(
-  "EmptyRecordTypeNamedFieldsList",
-  sharedCode: SharedCode.emptyRecordTypeNamedFieldsList,
-  problemMessage:
-      """The list of named fields in a record type can't be empty.""",
-  correctionMessage: """Try adding a named field to the list.""",
-);
+const MessageCode codeEnumInClass = enumInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEncoding = const MessageCode(
-  "Encoding",
-  pseudoSharedCode: PseudoSharedCode.encoding,
-  problemMessage: """Unable to decode bytes as UTF-8.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumInClass = const MessageCode(
-  "EnumInClass",
-  sharedCode: SharedCode.enumInClass,
-  problemMessage: """Enums can't be declared inside classes.""",
-  correctionMessage: """Try moving the enum to the top-level.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEqualityCannotBeEqualityOperand = const MessageCode(
-  "EqualityCannotBeEqualityOperand",
-  sharedCode: SharedCode.equalityCannotBeEqualityOperand,
-  problemMessage:
-      """A comparison expression can't be an operand of another comparison expression.""",
-  correctionMessage:
-      """Try putting parentheses around one of the comparisons.""",
-);
+const MessageCode codeEqualityCannotBeEqualityOperand =
+    equalityCannotBeEqualityOperand;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeExpectedAfterButGot = const Template(
-  "ExpectedAfterButGot",
-  withArgumentsOld: _withArgumentsOldExpectedAfterButGot,
-  withArguments: _withArgumentsExpectedAfterButGot,
-  pseudoSharedCode: PseudoSharedCode.expectedToken,
-);
+codeExpectedAfterButGot = expectedAfterButGot;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedAfterButGot({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeExpectedAfterButGot,
-    problemMessage: """Expected '${string_0}' after this.""",
-    arguments: {'string': string},
-  );
-}
+const MessageCode codeExpectedAnInitializer = expectedAnInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedAfterButGot(String string) =>
-    _withArgumentsExpectedAfterButGot(string: string);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedAnInitializer = const MessageCode(
-  "ExpectedAnInitializer",
-  sharedCode: SharedCode.missingInitializer,
-  problemMessage: """Expected an initializer.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedBody = const MessageCode(
-  "ExpectedBody",
-  pseudoSharedCode: PseudoSharedCode.missingFunctionBody,
-  problemMessage: """Expected a function body or '=>'.""",
-  correctionMessage: """Try adding {}.""",
-);
+const MessageCode codeExpectedBody = expectedBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeExpectedButGot = const Template(
-  "ExpectedButGot",
-  withArgumentsOld: _withArgumentsOldExpectedButGot,
-  withArguments: _withArgumentsExpectedButGot,
-  pseudoSharedCode: PseudoSharedCode.expectedToken,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedButGot({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeExpectedButGot,
-    problemMessage: """Expected '${string_0}' before this.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedButGot(String string) =>
-    _withArgumentsExpectedButGot(string: string);
+codeExpectedButGot = expectedButGot;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeExpectedButGot2 = const Template(
-  "ExpectedButGot2",
-  withArgumentsOld: _withArgumentsOldExpectedButGot2,
-  withArguments: _withArgumentsExpectedButGot2,
-  pseudoSharedCode: PseudoSharedCode.expectedToken,
-);
+codeExpectedButGot2 = expectedButGot2;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedButGot2({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeExpectedButGot2,
-    problemMessage: """Expected '${string_0}' or '${string2_0}' before this.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
+const MessageCode codeExpectedCatchClauseBody = expectedCatchClauseBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedButGot2(String string, String string2) =>
-    _withArgumentsExpectedButGot2(string: string, string2: string2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedCatchClauseBody = const MessageCode(
-  "ExpectedCatchClauseBody",
-  sharedCode: SharedCode.expectedCatchClauseBody,
-  problemMessage: """A catch clause must have a body, even if it is empty.""",
-  correctionMessage: """Try adding an empty body.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedClassBody = const MessageCode(
-  "ExpectedClassBody",
-  sharedCode: SharedCode.expectedClassBody,
-  problemMessage:
-      """A class declaration must have a body, even if it is empty.""",
-  correctionMessage: """Try adding an empty body.""",
-);
+const MessageCode codeExpectedClassBody = expectedClassBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExpectedClassMember = const Template(
-  "ExpectedClassMember",
-  withArgumentsOld: _withArgumentsOldExpectedClassMember,
-  withArguments: _withArgumentsExpectedClassMember,
-  pseudoSharedCode: PseudoSharedCode.expectedClassMember,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedClassMember({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExpectedClassMember,
-    problemMessage: """Expected a class member, but got '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedClassMember(Token lexeme) =>
-    _withArgumentsExpectedClassMember(lexeme: lexeme);
+codeExpectedClassMember = expectedClassMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExpectedDeclaration = const Template(
-  "ExpectedDeclaration",
-  withArgumentsOld: _withArgumentsOldExpectedDeclaration,
-  withArguments: _withArgumentsExpectedDeclaration,
-  pseudoSharedCode: PseudoSharedCode.expectedExecutable,
-);
+codeExpectedDeclaration = expectedDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedDeclaration({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExpectedDeclaration,
-    problemMessage: """Expected a declaration, but got '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedDeclaration(Token lexeme) =>
-    _withArgumentsExpectedDeclaration(lexeme: lexeme);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedElseOrComma = const MessageCode(
-  "ExpectedElseOrComma",
-  sharedCode: SharedCode.expectedElseOrComma,
-  problemMessage: """Expected 'else' or comma.""",
-);
+const MessageCode codeExpectedElseOrComma = expectedElseOrComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExpectedEnumBody = const Template(
-  "ExpectedEnumBody",
-  withArgumentsOld: _withArgumentsOldExpectedEnumBody,
-  withArguments: _withArgumentsExpectedEnumBody,
-  pseudoSharedCode: PseudoSharedCode.missingEnumBody,
-);
+codeExpectedEnumBody = expectedEnumBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedEnumBody({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExpectedEnumBody,
-    problemMessage: """Expected a enum body, but got '${lexeme_0}'.""",
-    correctionMessage:
-        """An enum definition must have a body with at least one constant name.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
+const MessageCode codeExpectedExtensionBody = expectedExtensionBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedEnumBody(Token lexeme) =>
-    _withArgumentsExpectedEnumBody(lexeme: lexeme);
+const MessageCode codeExpectedExtensionTypeBody = expectedExtensionTypeBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedExtensionBody = const MessageCode(
-  "ExpectedExtensionBody",
-  sharedCode: SharedCode.expectedExtensionBody,
-  problemMessage:
-      """An extension declaration must have a body, even if it is empty.""",
-  correctionMessage: """Try adding an empty body.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedExtensionTypeBody = const MessageCode(
-  "ExpectedExtensionTypeBody",
-  sharedCode: SharedCode.expectedExtensionTypeBody,
-  problemMessage:
-      """An extension type declaration must have a body, even if it is empty.""",
-  correctionMessage: """Try adding an empty body.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedFinallyClauseBody = const MessageCode(
-  "ExpectedFinallyClauseBody",
-  sharedCode: SharedCode.expectedFinallyClauseBody,
-  problemMessage: """A finally clause must have a body, even if it is empty.""",
-  correctionMessage: """Try adding an empty body.""",
-);
+const MessageCode codeExpectedFinallyClauseBody = expectedFinallyClauseBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExpectedFunctionBody = const Template(
-  "ExpectedFunctionBody",
-  withArgumentsOld: _withArgumentsOldExpectedFunctionBody,
-  withArguments: _withArgumentsExpectedFunctionBody,
-  pseudoSharedCode: PseudoSharedCode.missingFunctionBody,
-);
+codeExpectedFunctionBody = expectedFunctionBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedFunctionBody({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExpectedFunctionBody,
-    problemMessage: """Expected a function body, but got '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedFunctionBody(Token lexeme) =>
-    _withArgumentsExpectedFunctionBody(lexeme: lexeme);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedHexDigit = const MessageCode(
-  "ExpectedHexDigit",
-  pseudoSharedCode: PseudoSharedCode.missingHexDigit,
-  problemMessage: """A hex digit (0-9 or A-F) must follow '0x'.""",
-);
+const MessageCode codeExpectedHexDigit = expectedHexDigit;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExpectedIdentifier = const Template(
-  "ExpectedIdentifier",
-  withArgumentsOld: _withArgumentsOldExpectedIdentifier,
-  withArguments: _withArgumentsExpectedIdentifier,
-  pseudoSharedCode: PseudoSharedCode.missingIdentifier,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedIdentifier({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExpectedIdentifier,
-    problemMessage: """Expected an identifier, but got '${lexeme_0}'.""",
-    correctionMessage: """Try inserting an identifier before '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedIdentifier(Token lexeme) =>
-    _withArgumentsExpectedIdentifier(lexeme: lexeme);
+codeExpectedIdentifier = expectedIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExpectedIdentifierButGotKeyword = const Template(
-  "ExpectedIdentifierButGotKeyword",
-  withArgumentsOld: _withArgumentsOldExpectedIdentifierButGotKeyword,
-  withArguments: _withArgumentsExpectedIdentifierButGotKeyword,
-  sharedCode: SharedCode.expectedIdentifierButGotKeyword,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedIdentifierButGotKeyword({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExpectedIdentifierButGotKeyword,
-    problemMessage:
-        """'${lexeme_0}' can't be used as an identifier because it's a keyword.""",
-    correctionMessage:
-        """Try renaming this to be an identifier that isn't a keyword.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedIdentifierButGotKeyword(Token lexeme) =>
-    _withArgumentsExpectedIdentifierButGotKeyword(lexeme: lexeme);
+codeExpectedIdentifierButGotKeyword = expectedIdentifierButGotKeyword;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeExpectedInstead = const Template(
-  "ExpectedInstead",
-  withArgumentsOld: _withArgumentsOldExpectedInstead,
-  withArguments: _withArgumentsExpectedInstead,
-  sharedCode: SharedCode.expectedInstead,
-);
+codeExpectedInstead = expectedInstead;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedInstead({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeExpectedInstead,
-    problemMessage: """Expected '${string_0}' instead of this.""",
-    arguments: {'string': string},
-  );
-}
+const MessageCode codeExpectedMixinBody = expectedMixinBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedInstead(String string) =>
-    _withArgumentsExpectedInstead(string: string);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedMixinBody = const MessageCode(
-  "ExpectedMixinBody",
-  sharedCode: SharedCode.expectedMixinBody,
-  problemMessage:
-      """A mixin declaration must have a body, even if it is empty.""",
-  correctionMessage: """Try adding an empty body.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedStatement = const MessageCode(
-  "ExpectedStatement",
-  sharedCode: SharedCode.missingStatement,
-  problemMessage: """Expected a statement.""",
-);
+const MessageCode codeExpectedStatement = expectedStatement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExpectedString = const Template(
-  "ExpectedString",
-  withArgumentsOld: _withArgumentsOldExpectedString,
-  withArguments: _withArgumentsExpectedString,
-  pseudoSharedCode: PseudoSharedCode.expectedStringLiteral,
-);
+codeExpectedString = expectedString;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedString({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExpectedString,
-    problemMessage: """Expected a String, but got '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
+const MessageCode codeExpectedSwitchExpressionBody =
+    expectedSwitchExpressionBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedString(Token lexeme) =>
-    _withArgumentsExpectedString(lexeme: lexeme);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedSwitchExpressionBody = const MessageCode(
-  "ExpectedSwitchExpressionBody",
-  sharedCode: SharedCode.expectedSwitchExpressionBody,
-  problemMessage:
-      """A switch expression must have a body, even if it is empty.""",
-  correctionMessage: """Try adding an empty body.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedSwitchStatementBody = const MessageCode(
-  "ExpectedSwitchStatementBody",
-  sharedCode: SharedCode.expectedSwitchStatementBody,
-  problemMessage:
-      """A switch statement must have a body, even if it is empty.""",
-  correctionMessage: """Try adding an empty body.""",
-);
+const MessageCode codeExpectedSwitchStatementBody = expectedSwitchStatementBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeExpectedToken = const Template(
-  "ExpectedToken",
-  withArgumentsOld: _withArgumentsOldExpectedToken,
-  withArguments: _withArgumentsExpectedToken,
-  pseudoSharedCode: PseudoSharedCode.expectedToken,
-);
+codeExpectedToken = expectedToken;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedToken({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeExpectedToken,
-    problemMessage: """Expected to find '${string_0}'.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedToken(String string) =>
-    _withArgumentsExpectedToken(string: string);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedTryStatementBody = const MessageCode(
-  "ExpectedTryStatementBody",
-  sharedCode: SharedCode.expectedTryStatementBody,
-  problemMessage: """A try statement must have a body, even if it is empty.""",
-  correctionMessage: """Try adding an empty body.""",
-);
+const MessageCode codeExpectedTryStatementBody = expectedTryStatementBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExpectedType = const Template(
-  "ExpectedType",
-  withArgumentsOld: _withArgumentsOldExpectedType,
-  withArguments: _withArgumentsExpectedType,
-  pseudoSharedCode: PseudoSharedCode.expectedTypeName,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedType({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExpectedType,
-    problemMessage: """Expected a type, but got '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedType(Token lexeme) =>
-    _withArgumentsExpectedType(lexeme: lexeme);
+codeExpectedType = expectedType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeExperimentNotEnabled = const Template(
-  "ExperimentNotEnabled",
-  withArgumentsOld: _withArgumentsOldExperimentNotEnabled,
-  withArguments: _withArgumentsExperimentNotEnabled,
-  sharedCode: SharedCode.experimentNotEnabled,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentNotEnabled({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeExperimentNotEnabled,
-    problemMessage:
-        """This requires the '${string_0}' language feature to be enabled.""",
-    correctionMessage:
-        """Try updating your pubspec.yaml to set the minimum SDK constraint to ${string2_0} or higher, and running 'pub get'.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentNotEnabled(String string, String string2) =>
-    _withArgumentsExperimentNotEnabled(string: string, string2: string2);
+codeExperimentNotEnabled = experimentNotEnabled;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeExperimentNotEnabledOffByDefault = const Template(
-  "ExperimentNotEnabledOffByDefault",
-  withArgumentsOld: _withArgumentsOldExperimentNotEnabledOffByDefault,
-  withArguments: _withArgumentsExperimentNotEnabledOffByDefault,
-  sharedCode: SharedCode.experimentNotEnabledOffByDefault,
-);
+codeExperimentNotEnabledOffByDefault = experimentNotEnabledOffByDefault;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentNotEnabledOffByDefault({
-  required String string,
-}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeExperimentNotEnabledOffByDefault,
-    problemMessage:
-        """This requires the experimental '${string_0}' language feature to be enabled.""",
-    correctionMessage:
-        """Try passing the '--enable-experiment=${string_0}' command line option.""",
-    arguments: {'string': string},
-  );
-}
+const MessageCode codeExportAfterPart = exportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentNotEnabledOffByDefault(String string) =>
-    _withArgumentsExperimentNotEnabledOffByDefault(string: string);
+const MessageCode codeExtensionAugmentationHasOnClause =
+    extensionAugmentationHasOnClause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExportAfterPart = const MessageCode(
-  "ExportAfterPart",
-  sharedCode: SharedCode.exportDirectiveAfterPartDirective,
-  problemMessage: """Export directives must precede part directives.""",
-  correctionMessage:
-      """Try moving the export directives before the part directives.""",
-);
+const MessageCode codeExtensionDeclaresAbstractMember =
+    extensionDeclaresAbstractMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionAugmentationHasOnClause = const MessageCode(
-  "ExtensionAugmentationHasOnClause",
-  sharedCode: SharedCode.extensionAugmentationHasOnClause,
-  problemMessage: """Extension augmentations can't have 'on' clauses.""",
-  correctionMessage: """Try removing the 'on' clause.""",
-);
+const MessageCode codeExtensionDeclaresConstructor =
+    extensionDeclaresConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionDeclaresAbstractMember = const MessageCode(
-  "ExtensionDeclaresAbstractMember",
-  sharedCode: SharedCode.extensionDeclaresAbstractMember,
-  problemMessage: """Extensions can't declare abstract members.""",
-  correctionMessage: """Try providing an implementation for the member.""",
-);
+const MessageCode codeExtensionDeclaresInstanceField =
+    extensionDeclaresInstanceField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionDeclaresConstructor = const MessageCode(
-  "ExtensionDeclaresConstructor",
-  sharedCode: SharedCode.extensionDeclaresConstructor,
-  problemMessage: """Extensions can't declare constructors.""",
-  correctionMessage: """Try removing the constructor declaration.""",
-);
+const MessageCode codeExtensionTypeDeclaresAbstractMember =
+    extensionTypeDeclaresAbstractMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionDeclaresInstanceField = const MessageCode(
-  "ExtensionDeclaresInstanceField",
-  pseudoSharedCode: PseudoSharedCode.extensionDeclaresInstanceField,
-  problemMessage: """Extensions can't declare instance fields""",
-  correctionMessage:
-      """Try removing the field declaration or making it a static field""",
-);
+const MessageCode codeExtensionTypeDeclaresInstanceField =
+    extensionTypeDeclaresInstanceField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeDeclaresAbstractMember = const MessageCode(
-  "ExtensionTypeDeclaresAbstractMember",
-  pseudoSharedCode: PseudoSharedCode.extensionTypeWithAbstractMember,
-  problemMessage: """Extension types can't declare abstract members.""",
-  correctionMessage: """Try providing an implementation for the member.""",
-);
+const MessageCode codeExtensionTypeExtends = extensionTypeExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeDeclaresInstanceField = const MessageCode(
-  "ExtensionTypeDeclaresInstanceField",
-  pseudoSharedCode: PseudoSharedCode.extensionTypeDeclaresInstanceField,
-  problemMessage: """Extension types can't declare instance fields""",
-  correctionMessage:
-      """Try removing the field declaration or making it a static field""",
-);
+const MessageCode codeExtensionTypeWith = extensionTypeWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeExtends = const MessageCode(
-  "ExtensionTypeExtends",
-  sharedCode: SharedCode.extensionTypeExtends,
-  problemMessage:
-      """An extension type declaration can't have an 'extends' clause.""",
-  correctionMessage:
-      """Try removing the 'extends' clause or replacing the 'extends' with 'implements'.""",
-);
+const MessageCode codeExternalClass = externalClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeWith = const MessageCode(
-  "ExtensionTypeWith",
-  sharedCode: SharedCode.extensionTypeWith,
-  problemMessage:
-      """An extension type declaration can't have a 'with' clause.""",
-  correctionMessage:
-      """Try removing the 'with' clause or replacing the 'with' with 'implements'.""",
-);
+const MessageCode codeExternalConstructorWithFieldInitializers =
+    externalConstructorWithFieldInitializers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalClass = const MessageCode(
-  "ExternalClass",
-  sharedCode: SharedCode.externalClass,
-  problemMessage: """Classes can't be declared to be 'external'.""",
-  correctionMessage: """Try removing the keyword 'external'.""",
-);
+const MessageCode codeExternalConstructorWithInitializer =
+    externalConstructorWithInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeExternalConstructorWithFieldInitializers = const MessageCode(
-  "ExternalConstructorWithFieldInitializers",
-  sharedCode: SharedCode.externalConstructorWithFieldInitializers,
-  problemMessage: """An external constructor can't initialize fields.""",
-  correctionMessage:
-      """Try removing the field initializers, or removing the keyword 'external'.""",
-);
+const MessageCode codeExternalEnum = externalEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalConstructorWithInitializer = const MessageCode(
-  "ExternalConstructorWithInitializer",
-  sharedCode: SharedCode.externalConstructorWithInitializer,
-  problemMessage: """An external constructor can't have any initializers.""",
-);
+const MessageCode codeExternalFactoryRedirection = externalFactoryRedirection;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalEnum = const MessageCode(
-  "ExternalEnum",
-  sharedCode: SharedCode.externalEnum,
-  problemMessage: """Enums can't be declared to be 'external'.""",
-  correctionMessage: """Try removing the keyword 'external'.""",
-);
+const MessageCode codeExternalFactoryWithBody = externalFactoryWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalFactoryRedirection = const MessageCode(
-  "ExternalFactoryRedirection",
-  sharedCode: SharedCode.externalFactoryRedirection,
-  problemMessage: """A redirecting factory can't be external.""",
-  correctionMessage: """Try removing the 'external' modifier.""",
-);
+const MessageCode codeExternalLateField = externalLateField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalFactoryWithBody = const MessageCode(
-  "ExternalFactoryWithBody",
-  sharedCode: SharedCode.externalFactoryWithBody,
-  problemMessage: """External factories can't have a body.""",
-  correctionMessage:
-      """Try removing the body of the factory, or removing the keyword 'external'.""",
-);
+const MessageCode codeExternalMethodWithBody = externalMethodWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalLateField = const MessageCode(
-  "ExternalLateField",
-  sharedCode: SharedCode.externalLateField,
-  problemMessage: """External fields cannot be late.""",
-  correctionMessage: """Try removing the 'external' or 'late' keyword.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalMethodWithBody = const MessageCode(
-  "ExternalMethodWithBody",
-  sharedCode: SharedCode.externalMethodWithBody,
-  problemMessage: """An external or native method can't have a body.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalTypedef = const MessageCode(
-  "ExternalTypedef",
-  sharedCode: SharedCode.externalTypedef,
-  problemMessage: """Typedefs can't be declared to be 'external'.""",
-  correctionMessage: """Try removing the keyword 'external'.""",
-);
+const MessageCode codeExternalTypedef = externalTypedef;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExtraneousModifier = const Template(
-  "ExtraneousModifier",
-  withArgumentsOld: _withArgumentsOldExtraneousModifier,
-  withArguments: _withArgumentsExtraneousModifier,
-  sharedCode: SharedCode.extraneousModifier,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtraneousModifier({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExtraneousModifier,
-    problemMessage: """Can't have modifier '${lexeme_0}' here.""",
-    correctionMessage: """Try removing '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtraneousModifier(Token lexeme) =>
-    _withArgumentsExtraneousModifier(lexeme: lexeme);
+codeExtraneousModifier = extraneousModifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExtraneousModifierInExtension = const Template(
-  "ExtraneousModifierInExtension",
-  withArgumentsOld: _withArgumentsOldExtraneousModifierInExtension,
-  withArguments: _withArgumentsExtraneousModifierInExtension,
-  sharedCode: SharedCode.invalidUseOfCovariantInExtension,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtraneousModifierInExtension({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExtraneousModifierInExtension,
-    problemMessage: """Can't have modifier '${lexeme_0}' in an extension.""",
-    correctionMessage: """Try removing '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtraneousModifierInExtension(Token lexeme) =>
-    _withArgumentsExtraneousModifierInExtension(lexeme: lexeme);
+codeExtraneousModifierInExtension = extraneousModifierInExtension;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExtraneousModifierInExtensionType = const Template(
-  "ExtraneousModifierInExtensionType",
-  withArgumentsOld: _withArgumentsOldExtraneousModifierInExtensionType,
-  withArguments: _withArgumentsExtraneousModifierInExtensionType,
-  sharedCode: SharedCode.extraneousModifierInExtensionType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtraneousModifierInExtensionType({
-  required Token lexeme,
-}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExtraneousModifierInExtensionType,
-    problemMessage:
-        """Can't have modifier '${lexeme_0}' in an extension type.""",
-    correctionMessage: """Try removing '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtraneousModifierInExtensionType(Token lexeme) =>
-    _withArgumentsExtraneousModifierInExtensionType(lexeme: lexeme);
+codeExtraneousModifierInExtensionType = extraneousModifierInExtensionType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeExtraneousModifierInPrimaryConstructor = const Template(
-  "ExtraneousModifierInPrimaryConstructor",
-  withArgumentsOld: _withArgumentsOldExtraneousModifierInPrimaryConstructor,
-  withArguments: _withArgumentsExtraneousModifierInPrimaryConstructor,
-  sharedCode: SharedCode.extraneousModifierInPrimaryConstructor,
-);
+codeExtraneousModifierInPrimaryConstructor =
+    extraneousModifierInPrimaryConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtraneousModifierInPrimaryConstructor({
-  required Token lexeme,
-}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeExtraneousModifierInPrimaryConstructor,
-    problemMessage:
-        """Can't have modifier '${lexeme_0}' in a primary constructor.""",
-    correctionMessage: """Try removing '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
+const MessageCode codeFactoryConstructorNewName = factoryConstructorNewName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtraneousModifierInPrimaryConstructor(Token lexeme) =>
-    _withArgumentsExtraneousModifierInPrimaryConstructor(lexeme: lexeme);
+const MessageCode codeFactoryNotSync = factoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFactoryConstructorNewName = const MessageCode(
-  "FactoryConstructorNewName",
-  sharedCode: SharedCode.factoryConstructorNewName,
-  problemMessage: """Factory constructors can't be named 'new'.""",
-  correctionMessage:
-      """Try removing the 'new' keyword or changing it to a different name.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFactoryNotSync = const MessageCode(
-  "FactoryNotSync",
-  pseudoSharedCode: PseudoSharedCode.nonSyncFactory,
-  problemMessage: """Factory bodies can't use 'async', 'async*', or 'sync*'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFactoryTopLevelDeclaration = const MessageCode(
-  "FactoryTopLevelDeclaration",
-  sharedCode: SharedCode.factoryTopLevelDeclaration,
-  problemMessage:
-      """Top-level declarations can't be declared to be 'factory'.""",
-  correctionMessage: """Try removing the keyword 'factory'.""",
-);
+const MessageCode codeFactoryTopLevelDeclaration = factoryTopLevelDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFastaCLIArgumentRequired = const Template(
-  "FastaCLIArgumentRequired",
-  withArgumentsOld: _withArgumentsOldFastaCLIArgumentRequired,
-  withArguments: _withArgumentsFastaCLIArgumentRequired,
-  pseudoSharedCode: PseudoSharedCode.fastaCliArgumentRequired,
-);
+codeFastaCLIArgumentRequired = fastaCLIArgumentRequired;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFastaCLIArgumentRequired({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFastaCLIArgumentRequired,
-    problemMessage: """Expected value after '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeFieldInitializedOutsideDeclaringClass =
+    fieldInitializedOutsideDeclaringClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFastaCLIArgumentRequired(String name) =>
-    _withArgumentsFastaCLIArgumentRequired(name: name);
+const MessageCode codeFieldInitializerOutsideConstructor =
+    fieldInitializerOutsideConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFieldInitializedOutsideDeclaringClass = const MessageCode(
-  "FieldInitializedOutsideDeclaringClass",
-  sharedCode: SharedCode.fieldInitializedOutsideDeclaringClass,
-  problemMessage: """A field can only be initialized in its declaring class""",
-  correctionMessage:
-      """Try passing a value into the superclass constructor, or moving the initialization into the constructor body.""",
-);
+const MessageCode codeFinalAndCovariant = finalAndCovariant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFieldInitializerOutsideConstructor = const MessageCode(
-  "FieldInitializerOutsideConstructor",
-  sharedCode: SharedCode.fieldInitializerOutsideConstructor,
-  problemMessage:
-      """Field formal parameters can only be used in a constructor.""",
-  correctionMessage: """Try removing 'this.'.""",
-);
+const MessageCode codeFinalAndCovariantLateWithInitializer =
+    finalAndCovariantLateWithInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalAndCovariant = const MessageCode(
-  "FinalAndCovariant",
-  sharedCode: SharedCode.finalAndCovariant,
-  problemMessage:
-      """Members can't be declared to be both 'final' and 'covariant'.""",
-  correctionMessage:
-      """Try removing either the 'final' or 'covariant' keyword.""",
-);
+const MessageCode codeFinalAndVar = finalAndVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalAndCovariantLateWithInitializer = const MessageCode(
-  "FinalAndCovariantLateWithInitializer",
-  sharedCode: SharedCode.finalAndCovariantLateWithInitializer,
-  problemMessage:
-      """Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'.""",
-  correctionMessage:
-      """Try removing either the 'final' or 'covariant' keyword, or removing the initializer.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalAndVar = const MessageCode(
-  "FinalAndVar",
-  sharedCode: SharedCode.finalAndVar,
-  problemMessage: """Members can't be declared to be both 'final' and 'var'.""",
-  correctionMessage: """Try removing the keyword 'var'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalEnum = const MessageCode(
-  "FinalEnum",
-  sharedCode: SharedCode.finalEnum,
-  problemMessage: """Enums can't be declared to be 'final'.""",
-  correctionMessage: """Try removing the keyword 'final'.""",
-);
+const MessageCode codeFinalEnum = finalEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFinalFieldWithoutInitializer = const Template(
-  "FinalFieldWithoutInitializer",
-  withArgumentsOld: _withArgumentsOldFinalFieldWithoutInitializer,
-  withArguments: _withArgumentsFinalFieldWithoutInitializer,
-  pseudoSharedCode: PseudoSharedCode.finalNotInitialized,
-);
+codeFinalFieldWithoutInitializer = finalFieldWithoutInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalFieldWithoutInitializer({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFinalFieldWithoutInitializer,
-    problemMessage: """The final variable '${name_0}' must be initialized.""",
-    correctionMessage:
-        """Try adding an initializer ('= expression') to the declaration.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeFinalMixin = finalMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalFieldWithoutInitializer(String name) =>
-    _withArgumentsFinalFieldWithoutInitializer(name: name);
+const MessageCode codeFinalMixinClass = finalMixinClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalMixin = const MessageCode(
-  "FinalMixin",
-  sharedCode: SharedCode.finalMixin,
-  problemMessage: """A mixin can't be declared 'final'.""",
-  correctionMessage: """Try removing the 'final' keyword.""",
-);
+const MessageCode codeFunctionTypeDefaultValue = functionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalMixinClass = const MessageCode(
-  "FinalMixinClass",
-  sharedCode: SharedCode.finalMixinClass,
-  problemMessage: """A mixin class can't be declared 'final'.""",
-  correctionMessage: """Try removing the 'final' keyword.""",
-);
+const MessageCode codeFunctionTypedParameterVar = functionTypedParameterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFunctionTypeDefaultValue = const MessageCode(
-  "FunctionTypeDefaultValue",
-  pseudoSharedCode: PseudoSharedCode.defaultValueInFunctionType,
-  problemMessage: """Can't have a default value in a function type.""",
-);
+const MessageCode codeGeneratorReturnsValue = generatorReturnsValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFunctionTypedParameterVar = const MessageCode(
-  "FunctionTypedParameterVar",
-  sharedCode: SharedCode.functionTypedParameterVar,
-  problemMessage:
-      """Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.""",
-  correctionMessage: """Try replacing the keyword with a return type.""",
-);
+const MessageCode codeGetterConstructor = getterConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeGeneratorReturnsValue = const MessageCode(
-  "GeneratorReturnsValue",
-  pseudoSharedCode: PseudoSharedCode.returnInGenerator,
-  problemMessage: """'sync*' and 'async*' can't return a value.""",
-);
+const MessageCode codeGetterWithFormals = getterWithFormals;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeGetterConstructor = const MessageCode(
-  "GetterConstructor",
-  sharedCode: SharedCode.getterConstructor,
-  problemMessage: """Constructors can't be a getter.""",
-  correctionMessage: """Try removing 'get'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeGetterWithFormals = const MessageCode(
-  "GetterWithFormals",
-  pseudoSharedCode: PseudoSharedCode.getterWithParameters,
-  problemMessage: """A getter can't have formal parameters.""",
-  correctionMessage: """Try removing '(...)'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalAssignmentToNonAssignable = const MessageCode(
-  "IllegalAssignmentToNonAssignable",
-  sharedCode: SharedCode.illegalAssignmentToNonAssignable,
-  problemMessage: """Illegal assignment to non-assignable expression.""",
-);
+const MessageCode codeIllegalAssignmentToNonAssignable =
+    illegalAssignmentToNonAssignable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeIllegalPatternAssignmentVariableName = const Template(
-  "IllegalPatternAssignmentVariableName",
-  withArgumentsOld: _withArgumentsOldIllegalPatternAssignmentVariableName,
-  withArguments: _withArgumentsIllegalPatternAssignmentVariableName,
-  sharedCode: SharedCode.illegalPatternAssignmentVariableName,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalPatternAssignmentVariableName({
-  required Token lexeme,
-}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeIllegalPatternAssignmentVariableName,
-    problemMessage:
-        """A variable assigned by a pattern assignment can't be named '${lexeme_0}'.""",
-    correctionMessage: """Choose a different name.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalPatternAssignmentVariableName(Token lexeme) =>
-    _withArgumentsIllegalPatternAssignmentVariableName(lexeme: lexeme);
+codeIllegalPatternAssignmentVariableName = illegalPatternAssignmentVariableName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeIllegalPatternIdentifierName = const Template(
-  "IllegalPatternIdentifierName",
-  withArgumentsOld: _withArgumentsOldIllegalPatternIdentifierName,
-  withArguments: _withArgumentsIllegalPatternIdentifierName,
-  sharedCode: SharedCode.illegalPatternIdentifierName,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalPatternIdentifierName({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeIllegalPatternIdentifierName,
-    problemMessage:
-        """A pattern can't refer to an identifier named '${lexeme_0}'.""",
-    correctionMessage: """Match the identifier using '==""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalPatternIdentifierName(Token lexeme) =>
-    _withArgumentsIllegalPatternIdentifierName(lexeme: lexeme);
+codeIllegalPatternIdentifierName = illegalPatternIdentifierName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeIllegalPatternVariableName = const Template(
-  "IllegalPatternVariableName",
-  withArgumentsOld: _withArgumentsOldIllegalPatternVariableName,
-  withArguments: _withArgumentsIllegalPatternVariableName,
-  sharedCode: SharedCode.illegalPatternVariableName,
-);
+codeIllegalPatternVariableName = illegalPatternVariableName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalPatternVariableName({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeIllegalPatternVariableName,
-    problemMessage:
-        """The variable declared by a variable pattern can't be named '${lexeme_0}'.""",
-    correctionMessage: """Choose a different name.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
+const MessageCode codeImplementsBeforeExtends = implementsBeforeExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalPatternVariableName(Token lexeme) =>
-    _withArgumentsIllegalPatternVariableName(lexeme: lexeme);
+const MessageCode codeImplementsBeforeOn = implementsBeforeOn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsBeforeExtends = const MessageCode(
-  "ImplementsBeforeExtends",
-  sharedCode: SharedCode.implementsBeforeExtends,
-  problemMessage:
-      """The extends clause must be before the implements clause.""",
-  correctionMessage:
-      """Try moving the extends clause before the implements clause.""",
-);
+const MessageCode codeImplementsBeforeWith = implementsBeforeWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsBeforeOn = const MessageCode(
-  "ImplementsBeforeOn",
-  sharedCode: SharedCode.implementsBeforeOn,
-  problemMessage: """The on clause must be before the implements clause.""",
-  correctionMessage:
-      """Try moving the on clause before the implements clause.""",
-);
+const MessageCode codeImportAfterPart = importAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsBeforeWith = const MessageCode(
-  "ImplementsBeforeWith",
-  sharedCode: SharedCode.implementsBeforeWith,
-  problemMessage: """The with clause must be before the implements clause.""",
-  correctionMessage:
-      """Try moving the with clause before the implements clause.""",
-);
+const MessageCode codeInitializedVariableInForEach =
+    initializedVariableInForEach;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImportAfterPart = const MessageCode(
-  "ImportAfterPart",
-  sharedCode: SharedCode.importDirectiveAfterPartDirective,
-  problemMessage: """Import directives must precede part directives.""",
-  correctionMessage:
-      """Try moving the import directives before the part directives.""",
-);
+const MessageCode codeInterfaceEnum = interfaceEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInitializedVariableInForEach = const MessageCode(
-  "InitializedVariableInForEach",
-  sharedCode: SharedCode.initializedVariableInForEach,
-  problemMessage:
-      """The loop variable in a for-each loop can't be initialized.""",
-  correctionMessage:
-      """Try removing the initializer, or using a different kind of loop.""",
-);
+const MessageCode codeInterfaceMixin = interfaceMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInterfaceEnum = const MessageCode(
-  "InterfaceEnum",
-  sharedCode: SharedCode.interfaceEnum,
-  problemMessage: """Enums can't be declared to be 'interface'.""",
-  correctionMessage: """Try removing the keyword 'interface'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInterfaceMixin = const MessageCode(
-  "InterfaceMixin",
-  sharedCode: SharedCode.interfaceMixin,
-  problemMessage: """A mixin can't be declared 'interface'.""",
-  correctionMessage: """Try removing the 'interface' keyword.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInterfaceMixinClass = const MessageCode(
-  "InterfaceMixinClass",
-  sharedCode: SharedCode.interfaceMixinClass,
-  problemMessage: """A mixin class can't be declared 'interface'.""",
-  correctionMessage: """Try removing the 'interface' keyword.""",
-);
+const MessageCode codeInterfaceMixinClass = interfaceMixinClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeInternalProblemStackNotEmpty = const Template(
-  "InternalProblemStackNotEmpty",
-  withArgumentsOld: _withArgumentsOldInternalProblemStackNotEmpty,
-  withArguments: _withArgumentsInternalProblemStackNotEmpty,
-  pseudoSharedCode: PseudoSharedCode.internalProblemStackNotEmpty,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemStackNotEmpty({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeInternalProblemStackNotEmpty,
-    problemMessage: """${name_0}.stack isn't empty:
-  ${string_0}""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemStackNotEmpty(
-  String name,
-  String string,
-) => _withArgumentsInternalProblemStackNotEmpty(name: name, string: string);
+codeInternalProblemStackNotEmpty = internalProblemStackNotEmpty;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeInternalProblemUnhandled = const Template(
-  "InternalProblemUnhandled",
-  withArgumentsOld: _withArgumentsOldInternalProblemUnhandled,
-  withArguments: _withArgumentsInternalProblemUnhandled,
-  pseudoSharedCode: PseudoSharedCode.internalProblemUnhandled,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnhandled({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeInternalProblemUnhandled,
-    problemMessage: """Unhandled ${string_0} in ${string2_0}.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnhandled(
-  String string,
-  String string2,
-) => _withArgumentsInternalProblemUnhandled(string: string, string2: string2);
+codeInternalProblemUnhandled = internalProblemUnhandled;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInternalProblemUnsupported = const Template(
-  "InternalProblemUnsupported",
-  withArgumentsOld: _withArgumentsOldInternalProblemUnsupported,
-  withArguments: _withArgumentsInternalProblemUnsupported,
-  pseudoSharedCode: PseudoSharedCode.internalProblemUnsupported,
-  severity: CfeSeverity.internalProblem,
-);
+codeInternalProblemUnsupported = internalProblemUnsupported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnsupported({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInternalProblemUnsupported,
-    problemMessage: """Unsupported operation: '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeInterpolationInUri = interpolationInUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnsupported(String name) =>
-    _withArgumentsInternalProblemUnsupported(name: name);
+const MessageCode codeInvalidAwaitFor = invalidAwaitFor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInterpolationInUri = const MessageCode(
-  "InterpolationInUri",
-  pseudoSharedCode: PseudoSharedCode.invalidLiteralInConfiguration,
-  problemMessage: """Can't use string interpolation in a URI.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidAwaitFor = const MessageCode(
-  "InvalidAwaitFor",
-  sharedCode: SharedCode.invalidAwaitInFor,
-  problemMessage:
-      """The keyword 'await' isn't allowed for a normal 'for' statement.""",
-  correctionMessage:
-      """Try removing the keyword, or use a for-each statement.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidCodePoint = const MessageCode(
-  "InvalidCodePoint",
-  pseudoSharedCode: PseudoSharedCode.invalidCodePoint,
-  problemMessage:
-      """The escape sequence starting with '\\u' isn't a valid code point.""",
-);
+const MessageCode codeInvalidCodePoint = invalidCodePoint;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInvalidConstantPatternBinary = const Template(
-  "InvalidConstantPatternBinary",
-  withArgumentsOld: _withArgumentsOldInvalidConstantPatternBinary,
-  withArguments: _withArgumentsInvalidConstantPatternBinary,
-  sharedCode: SharedCode.invalidConstantPatternBinary,
-);
+codeInvalidConstantPatternBinary = invalidConstantPatternBinary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidConstantPatternBinary({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInvalidConstantPatternBinary,
-    problemMessage:
-        """The binary operator ${name_0} is not supported as a constant pattern.""",
-    correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeInvalidConstantPatternConstPrefix =
+    invalidConstantPatternConstPrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidConstantPatternBinary(String name) =>
-    _withArgumentsInvalidConstantPatternBinary(name: name);
+const MessageCode codeInvalidConstantPatternDuplicateConst =
+    invalidConstantPatternDuplicateConst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidConstantPatternConstPrefix = const MessageCode(
-  "InvalidConstantPatternConstPrefix",
-  sharedCode: SharedCode.invalidConstantConstPrefix,
-  problemMessage:
-      """The expression can't be prefixed by 'const' to form a constant pattern.""",
-  correctionMessage:
-      """Try wrapping the expression in 'const ( ... )' instead.""",
-);
+const MessageCode codeInvalidConstantPatternEmptyRecordLiteral =
+    invalidConstantPatternEmptyRecordLiteral;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidConstantPatternDuplicateConst = const MessageCode(
-  "InvalidConstantPatternDuplicateConst",
-  sharedCode: SharedCode.invalidConstantPatternDuplicateConst,
-  problemMessage: """Duplicate 'const' keyword in constant expression.""",
-  correctionMessage: """Try removing one of the 'const' keywords.""",
-);
+const MessageCode codeInvalidConstantPatternGeneric =
+    invalidConstantPatternGeneric;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeInvalidConstantPatternEmptyRecordLiteral = const MessageCode(
-  "InvalidConstantPatternEmptyRecordLiteral",
-  sharedCode: SharedCode.invalidConstantPatternEmptyRecordLiteral,
-  problemMessage:
-      """The empty record literal is not supported as a constant pattern.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidConstantPatternGeneric = const MessageCode(
-  "InvalidConstantPatternGeneric",
-  sharedCode: SharedCode.invalidConstantPatternGeneric,
-  problemMessage: """This expression is not supported as a constant pattern.""",
-  correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidConstantPatternNegation = const MessageCode(
-  "InvalidConstantPatternNegation",
-  sharedCode: SharedCode.invalidConstantPatternNegation,
-  problemMessage:
-      """Only negation of a numeric literal is supported as a constant pattern.""",
-  correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
-);
+const MessageCode codeInvalidConstantPatternNegation =
+    invalidConstantPatternNegation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInvalidConstantPatternUnary = const Template(
-  "InvalidConstantPatternUnary",
-  withArgumentsOld: _withArgumentsOldInvalidConstantPatternUnary,
-  withArguments: _withArgumentsInvalidConstantPatternUnary,
-  sharedCode: SharedCode.invalidConstantPatternUnary,
-);
+codeInvalidConstantPatternUnary = invalidConstantPatternUnary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidConstantPatternUnary({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInvalidConstantPatternUnary,
-    problemMessage:
-        """The unary operator ${name_0} is not supported as a constant pattern.""",
-    correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeInvalidCovariantModifierInPrimaryConstructor =
+    invalidCovariantModifierInPrimaryConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidConstantPatternUnary(String name) =>
-    _withArgumentsInvalidConstantPatternUnary(name: name);
+const MessageCode codeInvalidEscapeStarted = invalidEscapeStarted;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeInvalidCovariantModifierInPrimaryConstructor = const MessageCode(
-  "InvalidCovariantModifierInPrimaryConstructor",
-  sharedCode: SharedCode.invalidCovariantModifierInPrimaryConstructor,
-  problemMessage:
-      """The 'covariant' modifier can only be used on non-final declaring parameters.""",
-  correctionMessage: """Try removing 'covariant'.""",
-);
+const MessageCode codeInvalidHexEscape = invalidHexEscape;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidEscapeStarted = const MessageCode(
-  "InvalidEscapeStarted",
-  sharedCode: SharedCode.invalidUnicodeEscapeStarted,
-  problemMessage: """The string '\\' can't stand alone.""",
-  correctionMessage:
-      """Try adding another backslash (\\) to escape the '\\'.""",
-);
+const MessageCode codeInvalidInitializer = invalidInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidHexEscape = const MessageCode(
-  "InvalidHexEscape",
-  sharedCode: SharedCode.invalidHexEscape,
-  problemMessage:
-      """An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits.""",
-);
+const MessageCode codeInvalidInlineFunctionType = invalidInlineFunctionType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidInitializer = const MessageCode(
-  "InvalidInitializer",
-  sharedCode: SharedCode.invalidInitializer,
-  problemMessage: """Not a valid initializer.""",
-  correctionMessage:
-      """To initialize a field, use the syntax 'name = value'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidInlineFunctionType = const MessageCode(
-  "InvalidInlineFunctionType",
-  pseudoSharedCode: PseudoSharedCode.invalidInlineFunctionType,
-  problemMessage:
-      """Inline function types cannot be used for parameters in a generic function type.""",
-  correctionMessage:
-      """Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidInsideUnaryPattern = const MessageCode(
-  "InvalidInsideUnaryPattern",
-  sharedCode: SharedCode.invalidInsideUnaryPattern,
-  problemMessage:
-      """This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.""",
-  correctionMessage:
-      """Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.""",
-);
+const MessageCode codeInvalidInsideUnaryPattern = invalidInsideUnaryPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeInvalidOperator = const Template(
-  "InvalidOperator",
-  withArgumentsOld: _withArgumentsOldInvalidOperator,
-  withArguments: _withArgumentsInvalidOperator,
-  sharedCode: SharedCode.invalidOperator,
-);
+codeInvalidOperator = invalidOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidOperator({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeInvalidOperator,
-    problemMessage:
-        """The string '${lexeme_0}' isn't a user-definable operator.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
+const MessageCode codeInvalidSuperInInitializer = invalidSuperInInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidOperator(Token lexeme) =>
-    _withArgumentsInvalidOperator(lexeme: lexeme);
+const MessageCode codeInvalidSyncModifier = invalidSyncModifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidSuperInInitializer = const MessageCode(
-  "InvalidSuperInInitializer",
-  sharedCode: SharedCode.invalidSuperInInitializer,
-  problemMessage:
-      """Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')""",
-);
+const MessageCode codeInvalidThisInInitializer = invalidThisInInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidSyncModifier = const MessageCode(
-  "InvalidSyncModifier",
-  pseudoSharedCode: PseudoSharedCode.missingStarAfterSync,
-  problemMessage: """Invalid modifier 'sync'.""",
-  correctionMessage: """Try replacing 'sync' with 'sync*'.""",
-);
+const MessageCode codeInvalidUnicodeEscapeUBracket =
+    invalidUnicodeEscapeUBracket;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidThisInInitializer = const MessageCode(
-  "InvalidThisInInitializer",
-  sharedCode: SharedCode.invalidThisInInitializer,
-  problemMessage:
-      """Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())""",
-);
+const MessageCode codeInvalidUnicodeEscapeUNoBracket =
+    invalidUnicodeEscapeUNoBracket;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidUnicodeEscapeUBracket = const MessageCode(
-  "InvalidUnicodeEscapeUBracket",
-  sharedCode: SharedCode.invalidUnicodeEscapeUBracket,
-  problemMessage:
-      """An escape sequence starting with '\\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.""",
-);
+const MessageCode codeInvalidUnicodeEscapeUStarted =
+    invalidUnicodeEscapeUStarted;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidUnicodeEscapeUNoBracket = const MessageCode(
-  "InvalidUnicodeEscapeUNoBracket",
-  sharedCode: SharedCode.invalidUnicodeEscapeUNoBracket,
-  problemMessage:
-      """An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits.""",
-);
+const MessageCode codeInvalidVoid = invalidVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidUnicodeEscapeUStarted = const MessageCode(
-  "InvalidUnicodeEscapeUStarted",
-  sharedCode: SharedCode.invalidUnicodeEscapeUStarted,
-  problemMessage:
-      """An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.""",
-);
+const MessageCode codeLatePatternVariableDeclaration =
+    latePatternVariableDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidVoid = const MessageCode(
-  "InvalidVoid",
-  pseudoSharedCode: PseudoSharedCode.expectedTypeName,
-  problemMessage: """Type 'void' can't be used here.""",
-  correctionMessage:
-      """Try removing 'void' keyword or replace it with 'var', 'final', or a type.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLatePatternVariableDeclaration = const MessageCode(
-  "LatePatternVariableDeclaration",
-  sharedCode: SharedCode.latePatternVariableDeclaration,
-  problemMessage:
-      """A pattern variable declaration may not use the `late` keyword.""",
-  correctionMessage: """Try removing the keyword `late`.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLibraryDirectiveNotFirst = const MessageCode(
-  "LibraryDirectiveNotFirst",
-  sharedCode: SharedCode.libraryDirectiveNotFirst,
-  problemMessage:
-      """The library directive must appear before all other directives.""",
-  correctionMessage:
-      """Try moving the library directive before any other directives.""",
-);
+const MessageCode codeLibraryDirectiveNotFirst = libraryDirectiveNotFirst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, Token lexeme),
   Message Function({required String string, required Token lexeme})
 >
-codeLiteralWithClass = const Template(
-  "LiteralWithClass",
-  withArgumentsOld: _withArgumentsOldLiteralWithClass,
-  withArguments: _withArgumentsLiteralWithClass,
-  sharedCode: SharedCode.literalWithClass,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLiteralWithClass({
-  required String string,
-  required Token lexeme,
-}) {
-  var string_0 = conversions.validateString(string);
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeLiteralWithClass,
-    problemMessage:
-        """A ${string_0} literal can't be prefixed by '${lexeme_0}'.""",
-    correctionMessage: """Try removing '${lexeme_0}'""",
-    arguments: {'string': string, 'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLiteralWithClass(String string, Token lexeme) =>
-    _withArgumentsLiteralWithClass(string: string, lexeme: lexeme);
+codeLiteralWithClass = literalWithClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, Token lexeme),
   Message Function({required String string, required Token lexeme})
 >
-codeLiteralWithClassAndNew = const Template(
-  "LiteralWithClassAndNew",
-  withArgumentsOld: _withArgumentsOldLiteralWithClassAndNew,
-  withArguments: _withArgumentsLiteralWithClassAndNew,
-  sharedCode: SharedCode.literalWithClassAndNew,
-);
+codeLiteralWithClassAndNew = literalWithClassAndNew;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLiteralWithClassAndNew({
-  required String string,
-  required Token lexeme,
-}) {
-  var string_0 = conversions.validateString(string);
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeLiteralWithClassAndNew,
-    problemMessage:
-        """A ${string_0} literal can't be prefixed by 'new ${lexeme_0}'.""",
-    correctionMessage: """Try removing 'new' and '${lexeme_0}'""",
-    arguments: {'string': string, 'lexeme': lexeme},
-  );
-}
+const MessageCode codeLiteralWithNew = literalWithNew;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLiteralWithClassAndNew(String string, Token lexeme) =>
-    _withArgumentsLiteralWithClassAndNew(string: string, lexeme: lexeme);
+const MessageCode codeMemberWithSameNameAsClass = memberWithSameNameAsClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLiteralWithNew = const MessageCode(
-  "LiteralWithNew",
-  sharedCode: SharedCode.literalWithNew,
-  problemMessage: """A literal can't be prefixed by 'new'.""",
-  correctionMessage: """Try removing 'new'""",
-);
+const MessageCode codeMetadataSpaceBeforeParenthesis =
+    metadataSpaceBeforeParenthesis;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMemberWithSameNameAsClass = const MessageCode(
-  "MemberWithSameNameAsClass",
-  sharedCode: SharedCode.memberWithClassName,
-  problemMessage:
-      """A class member can't have the same name as the enclosing class.""",
-  correctionMessage: """Try renaming the member.""",
-);
+const MessageCode codeMetadataTypeArguments = metadataTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMetadataSpaceBeforeParenthesis = const MessageCode(
-  "MetadataSpaceBeforeParenthesis",
-  sharedCode: SharedCode.annotationSpaceBeforeParenthesis,
-  problemMessage:
-      """Annotations can't have spaces or comments before the parenthesis.""",
-  correctionMessage:
-      """Remove any spaces or comments before the parenthesis.""",
-);
+const MessageCode codeMetadataTypeArgumentsUninstantiated =
+    metadataTypeArgumentsUninstantiated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMetadataTypeArguments = const MessageCode(
-  "MetadataTypeArguments",
-  sharedCode: SharedCode.annotationWithTypeArguments,
-  problemMessage: """An annotation can't use type arguments.""",
-);
+const MessageCode codeMissingAssignableSelector = missingAssignableSelector;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMetadataTypeArgumentsUninstantiated = const MessageCode(
-  "MetadataTypeArgumentsUninstantiated",
-  sharedCode: SharedCode.annotationWithTypeArgumentsUninstantiated,
-  problemMessage:
-      """An annotation with type arguments must be followed by an argument list.""",
-);
+const MessageCode codeMissingAssignmentInInitializer =
+    missingAssignmentInInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingAssignableSelector = const MessageCode(
-  "MissingAssignableSelector",
-  sharedCode: SharedCode.missingAssignableSelector,
-  problemMessage: """Missing selector such as '.identifier' or '[0]'.""",
-  correctionMessage: """Try adding a selector.""",
-);
+const MessageCode codeMissingConstFinalVarOrType = missingConstFinalVarOrType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingAssignmentInInitializer = const MessageCode(
-  "MissingAssignmentInInitializer",
-  sharedCode: SharedCode.missingAssignmentInInitializer,
-  problemMessage: """Expected an assignment after the field name.""",
-  correctionMessage:
-      """To initialize a field, use the syntax 'name = value'.""",
-);
+const MessageCode codeMissingExponent = missingExponent;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingConstFinalVarOrType = const MessageCode(
-  "MissingConstFinalVarOrType",
-  sharedCode: SharedCode.missingConstFinalVarOrType,
-  problemMessage:
-      """Variables must be declared using the keywords 'const', 'final', 'var' or a type name.""",
-  correctionMessage:
-      """Try adding the name of the type of the variable or the keyword 'var'.""",
-);
+const MessageCode codeMissingExpressionInThrow = missingExpressionInThrow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingExponent = const MessageCode(
-  "MissingExponent",
-  pseudoSharedCode: PseudoSharedCode.missingDigit,
-  problemMessage:
-      """Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).""",
-  correctionMessage:
-      """Make sure there is an exponent, and remove any whitespace before it.""",
-);
+const MessageCode codeMissingFunctionParameters = missingFunctionParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingExpressionInThrow = const MessageCode(
-  "MissingExpressionInThrow",
-  sharedCode: SharedCode.missingExpressionInThrow,
-  problemMessage: """Missing expression after 'throw'.""",
-  correctionMessage:
-      """Add an expression after 'throw' or use 'rethrow' to throw a caught exception""",
-);
+const MessageCode codeMissingMethodParameters = missingMethodParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingFunctionParameters = const MessageCode(
-  "MissingFunctionParameters",
-  pseudoSharedCode: PseudoSharedCode.missingFunctionParameters,
-  problemMessage:
-      """A function declaration needs an explicit list of parameters.""",
-  correctionMessage:
-      """Try adding a parameter list to the function declaration.""",
-);
+const MessageCode codeMissingOperatorKeyword = missingOperatorKeyword;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingMethodParameters = const MessageCode(
-  "MissingMethodParameters",
-  pseudoSharedCode: PseudoSharedCode.missingMethodParameters,
-  problemMessage:
-      """A method declaration needs an explicit list of parameters.""",
-  correctionMessage:
-      """Try adding a parameter list to the method declaration.""",
-);
+const MessageCode codeMissingPrefixInDeferredImport =
+    missingPrefixInDeferredImport;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingOperatorKeyword = const MessageCode(
-  "MissingOperatorKeyword",
-  sharedCode: SharedCode.missingKeywordOperator,
-  problemMessage:
-      """Operator declarations must be preceded by the keyword 'operator'.""",
-  correctionMessage: """Try adding the keyword 'operator'.""",
-);
+const MessageCode codeMissingPrimaryConstructor = missingPrimaryConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingPrefixInDeferredImport = const MessageCode(
-  "MissingPrefixInDeferredImport",
-  sharedCode: SharedCode.missingPrefixInDeferredImport,
-  problemMessage: """Deferred imports should have a prefix.""",
-  correctionMessage:
-      """Try adding a prefix to the import by adding an 'as' clause.""",
-);
+const MessageCode codeMissingPrimaryConstructorParameters =
+    missingPrimaryConstructorParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingPrimaryConstructor = const MessageCode(
-  "MissingPrimaryConstructor",
-  sharedCode: SharedCode.missingPrimaryConstructor,
-  problemMessage:
-      """An extension type declaration must have a primary constructor declaration.""",
-  correctionMessage:
-      """Try adding a primary constructor to the extension type declaration.""",
-);
+const MessageCode codeMissingTypedefParameters = missingTypedefParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingPrimaryConstructorParameters = const MessageCode(
-  "MissingPrimaryConstructorParameters",
-  sharedCode: SharedCode.missingPrimaryConstructorParameters,
-  problemMessage:
-      """A primary constructor declaration must have formal parameters.""",
-  correctionMessage:
-      """Try adding formal parameters after the primary constructor name.""",
-);
+const MessageCode codeMixinDeclaresConstructor = mixinDeclaresConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingTypedefParameters = const MessageCode(
-  "MissingTypedefParameters",
-  pseudoSharedCode: PseudoSharedCode.missingTypedefParameters,
-  problemMessage: """A typedef needs an explicit list of parameters.""",
-  correctionMessage: """Try adding a parameter list to the typedef.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMixinDeclaresConstructor = const MessageCode(
-  "MixinDeclaresConstructor",
-  sharedCode: SharedCode.mixinDeclaresConstructor,
-  problemMessage: """Mixins can't declare constructors.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMixinWithClause = const MessageCode(
-  "MixinWithClause",
-  sharedCode: SharedCode.mixinWithClause,
-  problemMessage: """A mixin can't have a with clause.""",
-);
+const MessageCode codeMixinWithClause = mixinWithClause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeModifierOutOfOrder = const Template(
-  "ModifierOutOfOrder",
-  withArgumentsOld: _withArgumentsOldModifierOutOfOrder,
-  withArguments: _withArgumentsModifierOutOfOrder,
-  sharedCode: SharedCode.modifierOutOfOrder,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsModifierOutOfOrder({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeModifierOutOfOrder,
-    problemMessage:
-        """The modifier '${string_0}' should be before the modifier '${string2_0}'.""",
-    correctionMessage: """Try re-ordering the modifiers.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldModifierOutOfOrder(String string, String string2) =>
-    _withArgumentsModifierOutOfOrder(string: string, string2: string2);
+codeModifierOutOfOrder = modifierOutOfOrder;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeMultipleClauses = const Template(
-  "MultipleClauses",
-  withArgumentsOld: _withArgumentsOldMultipleClauses,
-  withArguments: _withArgumentsMultipleClauses,
-  sharedCode: SharedCode.multipleClauses,
-);
+codeMultipleClauses = multipleClauses;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMultipleClauses({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeMultipleClauses,
-    problemMessage:
-        """Each '${string_0}' definition can have at most one '${string2_0}' clause.""",
-    correctionMessage:
-        """Try combining all of the '${string2_0}' clauses into a single clause.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
+const MessageCode codeMultipleExtends = multipleExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMultipleClauses(String string, String string2) =>
-    _withArgumentsMultipleClauses(string: string, string2: string2);
+const MessageCode codeMultipleImplements = multipleImplements;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleExtends = const MessageCode(
-  "MultipleExtends",
-  sharedCode: SharedCode.multipleExtendsClauses,
-  problemMessage:
-      """Each class definition can have at most one extends clause.""",
-  correctionMessage:
-      """Try choosing one superclass and define your class to implement (or mix in) the others.""",
-);
+const MessageCode codeMultipleLibraryDirectives = multipleLibraryDirectives;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleImplements = const MessageCode(
-  "MultipleImplements",
-  pseudoSharedCode: PseudoSharedCode.multipleImplementsClauses,
-  problemMessage:
-      """Each class definition can have at most one implements clause.""",
-  correctionMessage:
-      """Try combining all of the implements clauses into a single clause.""",
-);
+const MessageCode codeMultipleOnClauses = multipleOnClauses;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleLibraryDirectives = const MessageCode(
-  "MultipleLibraryDirectives",
-  sharedCode: SharedCode.multipleLibraryDirectives,
-  problemMessage: """Only one library directive may be declared in a file.""",
-  correctionMessage: """Try removing all but one of the library directives.""",
-);
+const MessageCode codeMultipleVarianceModifiers = multipleVarianceModifiers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleOnClauses = const MessageCode(
-  "MultipleOnClauses",
-  sharedCode: SharedCode.multipleOnClauses,
-  problemMessage: """Each mixin definition can have at most one on clause.""",
-  correctionMessage:
-      """Try combining all of the on clauses into a single clause.""",
-);
+const MessageCode codeMultipleWith = multipleWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleVarianceModifiers = const MessageCode(
-  "MultipleVarianceModifiers",
-  sharedCode: SharedCode.multipleVarianceModifiers,
-  problemMessage:
-      """Each type parameter can have at most one variance modifier.""",
-  correctionMessage:
-      """Use at most one of the 'in', 'out', or 'inout' modifiers.""",
-);
+const MessageCode codeNamedFunctionExpression = namedFunctionExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleWith = const MessageCode(
-  "MultipleWith",
-  sharedCode: SharedCode.multipleWithClauses,
-  problemMessage: """Each class definition can have at most one with clause.""",
-  correctionMessage:
-      """Try combining all of the with clauses into a single clause.""",
-);
+const MessageCode codeNativeClauseShouldBeAnnotation =
+    nativeClauseShouldBeAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNamedFunctionExpression = const MessageCode(
-  "NamedFunctionExpression",
-  pseudoSharedCode: PseudoSharedCode.namedFunctionExpression,
-  problemMessage: """A function expression can't have a name.""",
-);
+const MessageCode codeNewConstructorNewName = newConstructorNewName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNativeClauseShouldBeAnnotation = const MessageCode(
-  "NativeClauseShouldBeAnnotation",
-  sharedCode: SharedCode.nativeClauseShouldBeAnnotation,
-  problemMessage: """Native clause in this form is deprecated.""",
-  correctionMessage:
-      """Try removing this native clause and adding @native() or @native('native-name') before the declaration.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNewConstructorNewName = const MessageCode(
-  "NewConstructorNewName",
-  sharedCode: SharedCode.newConstructorNewName,
-  problemMessage:
-      """Constructors declared with the 'new' keyword can't be named 'new'.""",
-  correctionMessage:
-      """Try removing the second 'new' or changing it to a different name.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNewConstructorQualifiedName = const MessageCode(
-  "NewConstructorQualifiedName",
-  sharedCode: SharedCode.newConstructorQualifiedName,
-  problemMessage:
-      """Constructors declared with the 'new' keyword can't have qualified names.""",
-  correctionMessage:
-      """Try removing the class name prefix from the qualified name or removing the 'new' keyword.""",
-);
+const MessageCode codeNewConstructorQualifiedName = newConstructorQualifiedName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String character, int unicode),
   Message Function({required String character, required int unicode})
 >
-codeNonAsciiIdentifier = const Template(
-  "NonAsciiIdentifier",
-  withArgumentsOld: _withArgumentsOldNonAsciiIdentifier,
-  withArguments: _withArgumentsNonAsciiIdentifier,
-  pseudoSharedCode: PseudoSharedCode.illegalCharacter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonAsciiIdentifier({
-  required String character,
-  required int unicode,
-}) {
-  var character_0 = conversions.validateCharacter(character);
-  var unicode_0 = conversions.codePointToUnicode(unicode);
-  return new Message(
-    codeNonAsciiIdentifier,
-    problemMessage:
-        """The non-ASCII character '${character_0}' (${unicode_0}) can't be used in identifiers, only in strings and comments.""",
-    correctionMessage:
-        """Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).""",
-    arguments: {'character': character, 'unicode': unicode},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonAsciiIdentifier(String character, int unicode) =>
-    _withArgumentsNonAsciiIdentifier(character: character, unicode: unicode);
+codeNonAsciiIdentifier = nonAsciiIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int unicode),
   Message Function({required int unicode})
 >
-codeNonAsciiWhitespace = const Template(
-  "NonAsciiWhitespace",
-  withArgumentsOld: _withArgumentsOldNonAsciiWhitespace,
-  withArguments: _withArgumentsNonAsciiWhitespace,
-  pseudoSharedCode: PseudoSharedCode.illegalCharacter,
-);
+codeNonAsciiWhitespace = nonAsciiWhitespace;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonAsciiWhitespace({required int unicode}) {
-  var unicode_0 = conversions.codePointToUnicode(unicode);
-  return new Message(
-    codeNonAsciiWhitespace,
-    problemMessage:
-        """The non-ASCII space character ${unicode_0} can only be used in strings and comments.""",
-    arguments: {'unicode': unicode},
-  );
-}
+const MessageCode codeNonPartOfDirectiveInPart = nonPartOfDirectiveInPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonAsciiWhitespace(int unicode) =>
-    _withArgumentsNonAsciiWhitespace(unicode: unicode);
+const MessageCode codeNullAwareCascadeOutOfOrder = nullAwareCascadeOutOfOrder;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonPartOfDirectiveInPart = const MessageCode(
-  "NonPartOfDirectiveInPart",
-  pseudoSharedCode: PseudoSharedCode.nonPartOfDirectiveInPart,
-  problemMessage:
-      """The part-of directive must be the only directive in a part.""",
-  correctionMessage:
-      """Try removing the other directives, or moving them to the library for which this is a part.""",
-);
+const MessageCode codeOnlyTry = onlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNullAwareCascadeOutOfOrder = const MessageCode(
-  "NullAwareCascadeOutOfOrder",
-  sharedCode: SharedCode.nullAwareCascadeOutOfOrder,
-  problemMessage:
-      """The '?..' cascade operator must be first in the cascade sequence.""",
-  correctionMessage:
-      """Try moving the '?..' operator to be the first cascade operator in the sequence.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeOnlyTry = const MessageCode(
-  "OnlyTry",
-  sharedCode: SharedCode.missingCatchOrFinally,
-  problemMessage:
-      """A try block must be followed by an 'on', 'catch', or 'finally' clause.""",
-  correctionMessage:
-      """Try adding either a catch or finally clause, or remove the try statement.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeOperatorWithTypeParameters = const MessageCode(
-  "OperatorWithTypeParameters",
-  sharedCode: SharedCode.typeParameterOnOperator,
-  problemMessage:
-      """Types parameters aren't allowed when defining an operator.""",
-  correctionMessage: """Try removing the type parameters.""",
-);
+const MessageCode codeOperatorWithTypeParameters = operatorWithTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeOutOfOrderClauses = const Template(
-  "OutOfOrderClauses",
-  withArgumentsOld: _withArgumentsOldOutOfOrderClauses,
-  withArguments: _withArgumentsOutOfOrderClauses,
-  sharedCode: SharedCode.outOfOrderClauses,
-);
+codeOutOfOrderClauses = outOfOrderClauses;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOutOfOrderClauses({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeOutOfOrderClauses,
-    problemMessage:
-        """The '${string_0}' clause must come before the '${string2_0}' clause.""",
-    correctionMessage:
-        """Try moving the '${string_0}' clause before the '${string2_0}' clause.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOutOfOrderClauses(String string, String string2) =>
-    _withArgumentsOutOfOrderClauses(string: string, string2: string2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOfTwice = const MessageCode(
-  "PartOfTwice",
-  sharedCode: SharedCode.multiplePartOfDirectives,
-  problemMessage: """Only one part-of directive may be declared in a file.""",
-  correctionMessage: """Try removing all but one of the part-of directives.""",
-);
+const MessageCode codePartOfTwice = partOfTwice;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codePatternAssignmentDeclaresVariable = const Template(
-  "PatternAssignmentDeclaresVariable",
-  withArgumentsOld: _withArgumentsOldPatternAssignmentDeclaresVariable,
-  withArguments: _withArgumentsPatternAssignmentDeclaresVariable,
-  sharedCode: SharedCode.patternAssignmentDeclaresVariable,
-);
+codePatternAssignmentDeclaresVariable = patternAssignmentDeclaresVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPatternAssignmentDeclaresVariable({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codePatternAssignmentDeclaresVariable,
-    problemMessage:
-        """Variable '${name_0}' can't be declared in a pattern assignment.""",
-    correctionMessage:
-        """Try using a preexisting variable or changing the assignment to a pattern variable declaration.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codePatternVariableDeclarationOutsideFunctionOrMethod =
+    patternVariableDeclarationOutsideFunctionOrMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPatternAssignmentDeclaresVariable(String name) =>
-    _withArgumentsPatternAssignmentDeclaresVariable(name: name);
+const MessageCode codePositionalAfterNamedArgument =
+    positionalAfterNamedArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codePatternVariableDeclarationOutsideFunctionOrMethod = const MessageCode(
-  "PatternVariableDeclarationOutsideFunctionOrMethod",
-  sharedCode: SharedCode.patternVariableDeclarationOutsideFunctionOrMethod,
-  problemMessage:
-      """A pattern variable declaration may not appear outside a function or method.""",
-  correctionMessage:
-      """Try declaring ordinary variables and assigning from within a function or method.""",
-);
+const MessageCode codePositionalParameterWithEquals =
+    positionalParameterWithEquals;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePositionalAfterNamedArgument = const MessageCode(
-  "PositionalAfterNamedArgument",
-  pseudoSharedCode: PseudoSharedCode.positionalAfterNamedArgument,
-  problemMessage: """Place positional arguments before named arguments.""",
-  correctionMessage:
-      """Try moving the positional argument before the named arguments, or add a name to the argument.""",
-);
+const MessageCode codePrefixAfterCombinator = prefixAfterCombinator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePositionalParameterWithEquals = const MessageCode(
-  "PositionalParameterWithEquals",
-  pseudoSharedCode: PseudoSharedCode.wrongSeparatorForPositionalParameter,
-  problemMessage:
-      """Positional optional parameters can't use ':' to specify a default value.""",
-  correctionMessage: """Try replacing ':' with '='.""",
-);
+const MessageCode codePrivateNamedNonFieldParameter =
+    privateNamedNonFieldParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePrefixAfterCombinator = const MessageCode(
-  "PrefixAfterCombinator",
-  sharedCode: SharedCode.prefixAfterCombinator,
-  problemMessage:
-      """The prefix ('as' clause) should come before any show/hide combinators.""",
-  correctionMessage: """Try moving the prefix before the combinators.""",
-);
+const MessageCode codePrivateNamedParameter = privateNamedParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePrivateNamedNonFieldParameter = const MessageCode(
-  "PrivateNamedNonFieldParameter",
-  pseudoSharedCode: PseudoSharedCode.privateNamedNonFieldParameter,
-  problemMessage:
-      """A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePrivateNamedParameter = const MessageCode(
-  "PrivateNamedParameter",
-  pseudoSharedCode: PseudoSharedCode.privateOptionalParameter,
-  problemMessage: """A named parameter can't start with an underscore ('_').""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeRecordLiteralOnePositionalFieldNoTrailingComma = const MessageCode(
-  "RecordLiteralOnePositionalFieldNoTrailingComma",
-  sharedCode: SharedCode.recordLiteralOnePositionalNoTrailingComma,
-  problemMessage:
-      """A record literal with exactly one positional field requires a trailing comma.""",
-  correctionMessage: """Try adding a trailing comma.""",
-);
+const MessageCode codeRecordLiteralOnePositionalFieldNoTrailingComma =
+    recordLiteralOnePositionalFieldNoTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRecordLiteralZeroFieldsWithTrailingComma =
-    const MessageCode(
-      "RecordLiteralZeroFieldsWithTrailingComma",
-      sharedCode: SharedCode.emptyRecordLiteralWithComma,
-      problemMessage:
-          """A record literal without fields can't have a trailing comma.""",
-      correctionMessage: """Try removing the trailing comma.""",
-    );
+    recordLiteralZeroFieldsWithTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeRecordTypeOnePositionalFieldNoTrailingComma = const MessageCode(
-  "RecordTypeOnePositionalFieldNoTrailingComma",
-  sharedCode: SharedCode.recordTypeOnePositionalNoTrailingComma,
-  problemMessage:
-      """A record type with exactly one positional field requires a trailing comma.""",
-  correctionMessage: """Try adding a trailing comma.""",
-);
+const MessageCode codeRecordTypeOnePositionalFieldNoTrailingComma =
+    recordTypeOnePositionalFieldNoTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRecordTypeZeroFieldsButTrailingComma = const MessageCode(
-  "RecordTypeZeroFieldsButTrailingComma",
-  sharedCode: SharedCode.emptyRecordTypeWithComma,
-  problemMessage:
-      """A record type without fields can't have a trailing comma.""",
-  correctionMessage: """Try removing the trailing comma.""",
-);
+const MessageCode codeRecordTypeZeroFieldsButTrailingComma =
+    recordTypeZeroFieldsButTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRedirectingConstructorWithBody = const MessageCode(
-  "RedirectingConstructorWithBody",
-  sharedCode: SharedCode.redirectingConstructorWithBody,
-  problemMessage: """Redirecting constructors can't have a body.""",
-  correctionMessage:
-      """Try removing the body, or not making this a redirecting constructor.""",
-);
+const MessageCode codeRedirectingConstructorWithBody =
+    redirectingConstructorWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRedirectionInNonFactory = const MessageCode(
-  "RedirectionInNonFactory",
-  sharedCode: SharedCode.redirectionInNonFactoryConstructor,
-  problemMessage: """Only factory constructor can specify '=' redirection.""",
-  correctionMessage:
-      """Try making this a factory constructor, or remove the redirection.""",
-);
+const MessageCode codeRedirectionInNonFactory = redirectionInNonFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRequiredParameterWithDefault = const MessageCode(
-  "RequiredParameterWithDefault",
-  pseudoSharedCode: PseudoSharedCode.namedParameterOutsideGroup,
-  problemMessage: """Non-optional parameters can't have a default value.""",
-  correctionMessage:
-      """Try removing the default value or making the parameter optional.""",
-);
+const MessageCode codeRequiredParameterWithDefault =
+    requiredParameterWithDefault;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSealedEnum = const MessageCode(
-  "SealedEnum",
-  sharedCode: SharedCode.sealedEnum,
-  problemMessage: """Enums can't be declared to be 'sealed'.""",
-  correctionMessage: """Try removing the keyword 'sealed'.""",
-);
+const MessageCode codeSealedEnum = sealedEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSealedMixin = const MessageCode(
-  "SealedMixin",
-  sharedCode: SharedCode.sealedMixin,
-  problemMessage: """A mixin can't be declared 'sealed'.""",
-  correctionMessage: """Try removing the 'sealed' keyword.""",
-);
+const MessageCode codeSealedMixin = sealedMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSealedMixinClass = const MessageCode(
-  "SealedMixinClass",
-  sharedCode: SharedCode.sealedMixinClass,
-  problemMessage: """A mixin class can't be declared 'sealed'.""",
-  correctionMessage: """Try removing the 'sealed' keyword.""",
-);
+const MessageCode codeSealedMixinClass = sealedMixinClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetOrMapLiteralTooManyTypeArguments = const MessageCode(
-  "SetOrMapLiteralTooManyTypeArguments",
-  pseudoSharedCode: PseudoSharedCode.setOrMapLiteralTooManyTypeArguments,
-  problemMessage:
-      """A set or map literal requires exactly one or two type arguments, respectively.""",
-);
+const MessageCode codeSetOrMapLiteralTooManyTypeArguments =
+    setOrMapLiteralTooManyTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetterConstructor = const MessageCode(
-  "SetterConstructor",
-  sharedCode: SharedCode.setterConstructor,
-  problemMessage: """Constructors can't be a setter.""",
-  correctionMessage: """Try removing 'set'.""",
-);
+const MessageCode codeSetterConstructor = setterConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetterNotSync = const MessageCode(
-  "SetterNotSync",
-  pseudoSharedCode: PseudoSharedCode.invalidModifierOnSetter,
-  problemMessage: """Setters can't use 'async', 'async*', or 'sync*'.""",
-);
+const MessageCode codeSetterNotSync = setterNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStackOverflow = const MessageCode(
-  "StackOverflow",
-  sharedCode: SharedCode.stackOverflow,
-  problemMessage: """The file has too many nested expressions or statements.""",
-  correctionMessage: """Try simplifying the code.""",
-);
+const MessageCode codeStackOverflow = stackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStaticConstructor = const MessageCode(
-  "StaticConstructor",
-  sharedCode: SharedCode.staticConstructor,
-  problemMessage: """Constructors can't be static.""",
-  correctionMessage: """Try removing the keyword 'static'.""",
-);
+const MessageCode codeStaticConstructor = staticConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStaticOperator = const MessageCode(
-  "StaticOperator",
-  sharedCode: SharedCode.staticOperator,
-  problemMessage: """Operators can't be static.""",
-  correctionMessage: """Try removing the keyword 'static'.""",
-);
+const MessageCode codeStaticOperator = staticOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperNullAware = const MessageCode(
-  "SuperNullAware",
-  sharedCode: SharedCode.invalidOperatorQuestionmarkPeriodForSuper,
-  problemMessage:
-      """The operator '?.' cannot be used with 'super' because 'super' cannot be null.""",
-  correctionMessage: """Try replacing '?.' with '.'""",
-);
+const MessageCode codeSuperNullAware = superNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSwitchHasCaseAfterDefault = const MessageCode(
-  "SwitchHasCaseAfterDefault",
-  sharedCode: SharedCode.switchHasCaseAfterDefaultCase,
-  problemMessage:
-      """The default case should be the last case in a switch statement.""",
-  correctionMessage:
-      """Try moving the default case after the other case clauses.""",
-);
+const MessageCode codeSwitchHasCaseAfterDefault = switchHasCaseAfterDefault;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSwitchHasMultipleDefaults = const MessageCode(
-  "SwitchHasMultipleDefaults",
-  sharedCode: SharedCode.switchHasMultipleDefaultCases,
-  problemMessage: """The 'default' case can only be declared once.""",
-  correctionMessage: """Try removing all but one default case.""",
-);
+const MessageCode codeSwitchHasMultipleDefaults = switchHasMultipleDefaults;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTopLevelOperator = const MessageCode(
-  "TopLevelOperator",
-  sharedCode: SharedCode.topLevelOperator,
-  problemMessage: """Operators must be declared within a class.""",
-  correctionMessage:
-      """Try removing the operator, moving it to a class, or converting it to be a function.""",
-);
+const MessageCode codeTopLevelOperator = topLevelOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeAfterVar = const MessageCode(
-  "TypeAfterVar",
-  sharedCode: SharedCode.varAndType,
-  problemMessage:
-      """Variables can't be declared using both 'var' and a type name.""",
-  correctionMessage: """Try removing 'var.'""",
-);
+const MessageCode codeTypeAfterVar = typeAfterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeTypeArgumentsOnTypeVariable = const Template(
-  "TypeArgumentsOnTypeVariable",
-  withArgumentsOld: _withArgumentsOldTypeArgumentsOnTypeVariable,
-  withArguments: _withArgumentsTypeArgumentsOnTypeVariable,
-  sharedCode: SharedCode.typeArgumentsOnTypeVariable,
-);
+codeTypeArgumentsOnTypeVariable = typeArgumentsOnTypeVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeArgumentsOnTypeVariable({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeTypeArgumentsOnTypeVariable,
-    problemMessage:
-        """Can't use type arguments with type variable '${name_0}'.""",
-    correctionMessage: """Try removing the type arguments.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeTypeBeforeFactory = typeBeforeFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeArgumentsOnTypeVariable(String name) =>
-    _withArgumentsTypeArgumentsOnTypeVariable(name: name);
+const MessageCode codeTypedefInClass = typedefInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeBeforeFactory = const MessageCode(
-  "TypeBeforeFactory",
-  sharedCode: SharedCode.typeBeforeFactory,
-  problemMessage: """Factory constructors cannot have a return type.""",
-  correctionMessage: """Try removing the type appearing before 'factory'.""",
-);
+const MessageCode codeUnexpectedDollarInString = unexpectedDollarInString;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefInClass = const MessageCode(
-  "TypedefInClass",
-  sharedCode: SharedCode.typedefInClass,
-  problemMessage: """Typedefs can't be declared inside classes.""",
-  correctionMessage: """Try moving the typedef to the top-level.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnexpectedDollarInString = const MessageCode(
-  "UnexpectedDollarInString",
-  pseudoSharedCode: PseudoSharedCode.unexpectedDollarInString,
-  problemMessage:
-      """A '\$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).""",
-  correctionMessage: """Try adding a backslash (\\) to escape the '\$'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnexpectedSeparatorInNumber = const MessageCode(
-  "UnexpectedSeparatorInNumber",
-  pseudoSharedCode: PseudoSharedCode.unexpectedSeparatorInNumber,
-  problemMessage:
-      """Digit separators ('_') in a number literal can only be placed between two digits.""",
-  correctionMessage: """Try removing the '_'.""",
-);
+const MessageCode codeUnexpectedSeparatorInNumber = unexpectedSeparatorInNumber;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeUnexpectedToken = const Template(
-  "UnexpectedToken",
-  withArgumentsOld: _withArgumentsOldUnexpectedToken,
-  withArguments: _withArgumentsUnexpectedToken,
-  pseudoSharedCode: PseudoSharedCode.unexpectedToken,
-);
+codeUnexpectedToken = unexpectedToken;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnexpectedToken({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeUnexpectedToken,
-    problemMessage: """Unexpected token '${lexeme_0}'.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnexpectedToken(Token lexeme) =>
-    _withArgumentsUnexpectedToken(lexeme: lexeme);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnexpectedTokens = const MessageCode(
-  "UnexpectedTokens",
-  sharedCode: SharedCode.unexpectedTokens,
-  problemMessage: """Unexpected tokens.""",
-);
+const MessageCode codeUnexpectedTokens = unexpectedTokens;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, Token lexeme),
   Message Function({required String string, required Token lexeme})
 >
-codeUnmatchedToken = const Template(
-  "UnmatchedToken",
-  withArgumentsOld: _withArgumentsOldUnmatchedToken,
-  withArguments: _withArgumentsUnmatchedToken,
-  pseudoSharedCode: PseudoSharedCode.expectedToken,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedToken({
-  required String string,
-  required Token lexeme,
-}) {
-  var string_0 = conversions.validateString(string);
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeUnmatchedToken,
-    problemMessage: """Can't find '${string_0}' to match '${lexeme_0}'.""",
-    arguments: {'string': string, 'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedToken(String string, Token lexeme) =>
-    _withArgumentsUnmatchedToken(string: string, lexeme: lexeme);
+codeUnmatchedToken = unmatchedToken;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeUnspecified = const Template(
-  "Unspecified",
-  withArgumentsOld: _withArgumentsOldUnspecified,
-  withArguments: _withArgumentsUnspecified,
-  pseudoSharedCode: PseudoSharedCode.unspecified,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnspecified({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeUnspecified,
-    problemMessage: """${string_0}""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnspecified(String string) =>
-    _withArgumentsUnspecified(string: string);
+codeUnspecified = unspecified;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeUnsupportedOperator = const Template(
-  "UnsupportedOperator",
-  withArgumentsOld: _withArgumentsOldUnsupportedOperator,
-  withArguments: _withArgumentsUnsupportedOperator,
-  pseudoSharedCode: PseudoSharedCode.unsupportedOperator,
-);
+codeUnsupportedOperator = unsupportedOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnsupportedOperator({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeUnsupportedOperator,
-    problemMessage: """The '${lexeme_0}' operator is not supported.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
+const MessageCode codeUnsupportedPrefixPlus = unsupportedPrefixPlus;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnsupportedOperator(Token lexeme) =>
-    _withArgumentsUnsupportedOperator(lexeme: lexeme);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsupportedPrefixPlus = const MessageCode(
-  "UnsupportedPrefixPlus",
-  pseudoSharedCode: PseudoSharedCode.missingIdentifier,
-  problemMessage: """'+' is not a prefix operator.""",
-  correctionMessage: """Try removing '+'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnterminatedComment = const MessageCode(
-  "UnterminatedComment",
-  pseudoSharedCode: PseudoSharedCode.unterminatedMultiLineComment,
-  problemMessage: """Comment starting with '/*' must end with '*/'.""",
-);
+const MessageCode codeUnterminatedComment = unterminatedComment;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeUnterminatedString = const Template(
-  "UnterminatedString",
-  withArgumentsOld: _withArgumentsOldUnterminatedString,
-  withArguments: _withArgumentsUnterminatedString,
-  pseudoSharedCode: PseudoSharedCode.unterminatedStringLiteral,
-);
+codeUnterminatedString = unterminatedString;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnterminatedString({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeUnterminatedString,
-    problemMessage:
-        """String starting with ${string_0} must end with ${string2_0}.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
+const MessageCode codeVarAsTypeName = varAsTypeName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnterminatedString(String string, String string2) =>
-    _withArgumentsUnterminatedString(string: string, string2: string2);
+const MessageCode codeVarReturnType = varReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVarAsTypeName = const MessageCode(
-  "VarAsTypeName",
-  sharedCode: SharedCode.varAsTypeName,
-  problemMessage: """The keyword 'var' can't be used as a type name.""",
-);
+const MessageCode codeVariablePatternKeywordInDeclarationContext =
+    variablePatternKeywordInDeclarationContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVarReturnType = const MessageCode(
-  "VarReturnType",
-  sharedCode: SharedCode.varReturnType,
-  problemMessage: """The return type can't be 'var'.""",
-  correctionMessage:
-      """Try removing the keyword 'var', or replacing it with the name of the return type.""",
-);
+const MessageCode codeVoidWithTypeArguments = voidWithTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeVariablePatternKeywordInDeclarationContext = const MessageCode(
-  "VariablePatternKeywordInDeclarationContext",
-  sharedCode: SharedCode.variablePatternKeywordInDeclarationContext,
-  problemMessage:
-      """Variable patterns in declaration context can't specify 'var' or 'final' keyword.""",
-  correctionMessage: """Try removing the keyword.""",
-);
+const MessageCode codeWithBeforeExtends = withBeforeExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVoidWithTypeArguments = const MessageCode(
-  "VoidWithTypeArguments",
-  sharedCode: SharedCode.voidWithTypeArguments,
-  problemMessage: """Type 'void' can't have type arguments.""",
-  correctionMessage: """Try removing the type arguments.""",
-);
+const MessageCode codeYieldAsIdentifier = yieldAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWithBeforeExtends = const MessageCode(
-  "WithBeforeExtends",
-  sharedCode: SharedCode.withBeforeExtends,
-  problemMessage: """The extends clause must be before the with clause.""",
-  correctionMessage:
-      """Try moving the extends clause before the with clause.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeYieldAsIdentifier = const MessageCode(
-  "YieldAsIdentifier",
-  pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
-  problemMessage:
-      """'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeYieldNotGenerator = const MessageCode(
-  "YieldNotGenerator",
-  pseudoSharedCode: PseudoSharedCode.yieldInNonGenerator,
-  problemMessage:
-      """'yield' can only be used in 'sync*' or 'async*' methods.""",
-);
-
-/// Enum containing analyzer error codes referenced by [Code.pseudoSharedCode].
-enum PseudoSharedCode {
-  abstractExtensionField,
-  assertAsExpression,
-  asyncForInWrongContext,
-  asyncKeywordUsedAsIdentifier,
-  awaitInWrongContext,
-  builtInIdentifierAsType,
-  builtInIdentifierInDeclaration,
-  constConstructorWithBody,
-  constNotInitialized,
-  defaultValueInFunctionType,
-  encoding,
-  expectedClassMember,
-  expectedExecutable,
-  expectedStringLiteral,
-  expectedToken,
-  expectedTypeName,
-  extensionDeclaresInstanceField,
-  extensionTypeDeclaresInstanceField,
-  extensionTypeWithAbstractMember,
-  fastaCliArgumentRequired,
-  finalNotInitialized,
-  getterWithParameters,
-  illegalCharacter,
-  internalProblemStackNotEmpty,
-  internalProblemUnhandled,
-  internalProblemUnsupported,
-  invalidCodePoint,
-  invalidInlineFunctionType,
-  invalidLiteralInConfiguration,
-  invalidModifierOnSetter,
-  missingDigit,
-  missingEnumBody,
-  missingFunctionBody,
-  missingFunctionParameters,
-  missingHexDigit,
-  missingIdentifier,
-  missingMethodParameters,
-  missingStarAfterSync,
-  missingTypedefParameters,
-  multipleImplementsClauses,
-  namedFunctionExpression,
-  namedParameterOutsideGroup,
-  nonPartOfDirectiveInPart,
-  nonSyncAbstractMethod,
-  nonSyncFactory,
-  positionalAfterNamedArgument,
-  privateNamedNonFieldParameter,
-  privateOptionalParameter,
-  returnInGenerator,
-  setOrMapLiteralTooManyTypeArguments,
-  unexpectedDollarInString,
-  unexpectedSeparatorInNumber,
-  unexpectedToken,
-  unspecified,
-  unsupportedOperator,
-  unterminatedMultiLineComment,
-  unterminatedStringLiteral,
-  wrongSeparatorForPositionalParameter,
-  yieldInNonGenerator,
-}
-
-/// Enum containing analyzer error codes referenced by [Code.sharedCode].
-enum SharedCode {
-  abstractClassMember,
-  abstractExternalField,
-  abstractFinalBaseClass,
-  abstractFinalInterfaceClass,
-  abstractLateField,
-  abstractSealedClass,
-  abstractStaticField,
-  annotationOnTypeArgument,
-  annotationSpaceBeforeParenthesis,
-  annotationWithTypeArguments,
-  annotationWithTypeArgumentsUninstantiated,
-  baseEnum,
-  binaryOperatorWrittenOut,
-  breakOutsideOfLoop,
-  catchSyntax,
-  catchSyntaxExtraParameters,
-  classInClass,
-  colonInPlaceOfIn,
-  conflictingModifiers,
-  constAndFinal,
-  constClass,
-  constFactory,
-  constMethod,
-  constWithoutPrimaryConstructor,
-  constructorWithReturnType,
-  constructorWithTypeArguments,
-  continueOutsideOfLoop,
-  continueWithoutLabelInCase,
-  covariantAndStatic,
-  covariantMember,
-  defaultInSwitchExpression,
-  deferredAfterPrefix,
-  directiveAfterDeclaration,
-  duplicateDeferred,
-  duplicateLabelInSwitchStatement,
-  duplicatePrefix,
-  duplicatedModifier,
-  emptyRecordLiteralWithComma,
-  emptyRecordTypeNamedFieldsList,
-  emptyRecordTypeWithComma,
-  enumInClass,
-  equalityCannotBeEqualityOperand,
-  expectedCatchClauseBody,
-  expectedClassBody,
-  expectedElseOrComma,
-  expectedExtensionBody,
-  expectedExtensionTypeBody,
-  expectedFinallyClauseBody,
-  expectedIdentifierButGotKeyword,
-  expectedInstead,
-  expectedMixinBody,
-  expectedSwitchExpressionBody,
-  expectedSwitchStatementBody,
-  expectedTryStatementBody,
-  experimentNotEnabled,
-  experimentNotEnabledOffByDefault,
-  exportDirectiveAfterPartDirective,
-  extensionAugmentationHasOnClause,
-  extensionDeclaresAbstractMember,
-  extensionDeclaresConstructor,
-  extensionTypeExtends,
-  extensionTypeWith,
-  externalClass,
-  externalConstructorWithFieldInitializers,
-  externalConstructorWithInitializer,
-  externalEnum,
-  externalFactoryRedirection,
-  externalFactoryWithBody,
-  externalLateField,
-  externalMethodWithBody,
-  externalTypedef,
-  extraneousModifier,
-  extraneousModifierInExtensionType,
-  extraneousModifierInPrimaryConstructor,
-  factoryConstructorNewName,
-  factoryTopLevelDeclaration,
-  fieldInitializedOutsideDeclaringClass,
-  fieldInitializerOutsideConstructor,
-  finalAndCovariant,
-  finalAndCovariantLateWithInitializer,
-  finalAndVar,
-  finalEnum,
-  finalMixin,
-  finalMixinClass,
-  functionTypedParameterVar,
-  getterConstructor,
-  illegalAssignmentToNonAssignable,
-  illegalPatternAssignmentVariableName,
-  illegalPatternIdentifierName,
-  illegalPatternVariableName,
-  implementsBeforeExtends,
-  implementsBeforeOn,
-  implementsBeforeWith,
-  importDirectiveAfterPartDirective,
-  initializedVariableInForEach,
-  interfaceEnum,
-  interfaceMixin,
-  interfaceMixinClass,
-  invalidAwaitInFor,
-  invalidConstantConstPrefix,
-  invalidConstantPatternBinary,
-  invalidConstantPatternDuplicateConst,
-  invalidConstantPatternEmptyRecordLiteral,
-  invalidConstantPatternGeneric,
-  invalidConstantPatternNegation,
-  invalidConstantPatternUnary,
-  invalidConstructorName,
-  invalidCovariantModifierInPrimaryConstructor,
-  invalidHexEscape,
-  invalidInitializer,
-  invalidInsideUnaryPattern,
-  invalidOperator,
-  invalidOperatorQuestionmarkPeriodForSuper,
-  invalidSuperInInitializer,
-  invalidThisInInitializer,
-  invalidUnicodeEscapeStarted,
-  invalidUnicodeEscapeUBracket,
-  invalidUnicodeEscapeUNoBracket,
-  invalidUnicodeEscapeUStarted,
-  invalidUseOfCovariantInExtension,
-  latePatternVariableDeclaration,
-  libraryDirectiveNotFirst,
-  literalWithClass,
-  literalWithClassAndNew,
-  literalWithNew,
-  memberWithClassName,
-  missingAssignableSelector,
-  missingAssignmentInInitializer,
-  missingCatchOrFinally,
-  missingConstFinalVarOrType,
-  missingExpressionInThrow,
-  missingInitializer,
-  missingKeywordOperator,
-  missingPrefixInDeferredImport,
-  missingPrimaryConstructor,
-  missingPrimaryConstructorParameters,
-  missingStatement,
-  mixinDeclaresConstructor,
-  mixinWithClause,
-  modifierOutOfOrder,
-  multipleClauses,
-  multipleExtendsClauses,
-  multipleLibraryDirectives,
-  multipleOnClauses,
-  multiplePartOfDirectives,
-  multipleVarianceModifiers,
-  multipleWithClauses,
-  nativeClauseShouldBeAnnotation,
-  newConstructorNewName,
-  newConstructorQualifiedName,
-  nullAwareCascadeOutOfOrder,
-  outOfOrderClauses,
-  patternAssignmentDeclaresVariable,
-  patternVariableDeclarationOutsideFunctionOrMethod,
-  prefixAfterCombinator,
-  recordLiteralOnePositionalNoTrailingComma,
-  recordTypeOnePositionalNoTrailingComma,
-  redirectingConstructorWithBody,
-  redirectionInNonFactoryConstructor,
-  sealedEnum,
-  sealedMixin,
-  sealedMixinClass,
-  setterConstructor,
-  stackOverflow,
-  staticConstructor,
-  staticOperator,
-  switchHasCaseAfterDefaultCase,
-  switchHasMultipleDefaultCases,
-  topLevelOperator,
-  typeArgumentsOnTypeVariable,
-  typeBeforeFactory,
-  typeParameterOnConstructor,
-  typeParameterOnOperator,
-  typedefInClass,
-  unexpectedTokens,
-  varAndType,
-  varAsTypeName,
-  varReturnType,
-  variablePatternKeywordInDeclarationContext,
-  voidWithTypeArguments,
-  withBeforeExtends,
-}
+const MessageCode codeYieldNotGenerator = yieldNotGenerator;

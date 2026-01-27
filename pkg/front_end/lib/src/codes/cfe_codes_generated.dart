@@ -12,193 +12,53 @@
 part of 'cfe_codes.dart';
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractClassConstructorTearOff = const MessageCode(
-  "AbstractClassConstructorTearOff",
-  problemMessage: """Constructors on abstract classes can't be torn off.""",
-);
+const MessageCode codeAbstractClassConstructorTearOff =
+    abstractClassConstructorTearOff;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeAbstractClassInstantiation = const Template(
-  "AbstractClassInstantiation",
-  withArgumentsOld: _withArgumentsOldAbstractClassInstantiation,
-  withArguments: _withArgumentsAbstractClassInstantiation,
-);
+codeAbstractClassInstantiation = abstractClassInstantiation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAbstractClassInstantiation({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeAbstractClassInstantiation,
-    problemMessage:
-        """The class '${name_0}' is abstract and can't be instantiated.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeAbstractFieldConstructorInitializer =
+    abstractFieldConstructorInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAbstractClassInstantiation(String name) =>
-    _withArgumentsAbstractClassInstantiation(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractFieldConstructorInitializer = const MessageCode(
-  "AbstractFieldConstructorInitializer",
-  problemMessage: """Abstract fields cannot have initializers.""",
-  correctionMessage:
-      """Try removing the field initializer or the 'abstract' keyword from the field declaration.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractFieldInitializer = const MessageCode(
-  "AbstractFieldInitializer",
-  problemMessage: """Abstract fields cannot have initializers.""",
-  correctionMessage:
-      """Try removing the initializer or the 'abstract' keyword.""",
-);
+const MessageCode codeAbstractFieldInitializer = abstractFieldInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeAbstractRedirectedClassInstantiation = const Template(
-  "AbstractRedirectedClassInstantiation",
-  withArgumentsOld: _withArgumentsOldAbstractRedirectedClassInstantiation,
-  withArguments: _withArgumentsAbstractRedirectedClassInstantiation,
-);
+codeAbstractRedirectedClassInstantiation = abstractRedirectedClassInstantiation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAbstractRedirectedClassInstantiation({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeAbstractRedirectedClassInstantiation,
-    problemMessage:
-        """Factory redirects to class '${name_0}', which is abstract and can't be instantiated.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAbstractRedirectedClassInstantiation(String name) =>
-    _withArgumentsAbstractRedirectedClassInstantiation(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAmbiguousExtensionCause = const MessageCode(
-  "AmbiguousExtensionCause",
-  severity: CfeSeverity.context,
-  problemMessage: """This is one of the extension members.""",
-);
+const MessageCode codeAmbiguousExtensionCause = ambiguousExtensionCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeAmbiguousExtensionMethod = const Template(
-  "AmbiguousExtensionMethod",
-  withArgumentsOld: _withArgumentsOldAmbiguousExtensionMethod,
-  withArguments: _withArgumentsAmbiguousExtensionMethod,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAmbiguousExtensionMethod({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeAmbiguousExtensionMethod,
-    problemMessage:
-        """The method '${name_0}' is defined in multiple extensions for '${type_0}' and neither is more specific.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAmbiguousExtensionMethod(String name, DartType type) =>
-    _withArgumentsAmbiguousExtensionMethod(name: name, type: type);
+codeAmbiguousExtensionMethod = ambiguousExtensionMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeAmbiguousExtensionOperator = const Template(
-  "AmbiguousExtensionOperator",
-  withArgumentsOld: _withArgumentsOldAmbiguousExtensionOperator,
-  withArguments: _withArgumentsAmbiguousExtensionOperator,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAmbiguousExtensionOperator({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeAmbiguousExtensionOperator,
-    problemMessage:
-        """The operator '${name_0}' is defined in multiple extensions for '${type_0}' and neither is more specific.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAmbiguousExtensionOperator(
-  String name,
-  DartType type,
-) => _withArgumentsAmbiguousExtensionOperator(name: name, type: type);
+codeAmbiguousExtensionOperator = ambiguousExtensionOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeAmbiguousExtensionProperty = const Template(
-  "AmbiguousExtensionProperty",
-  withArgumentsOld: _withArgumentsOldAmbiguousExtensionProperty,
-  withArguments: _withArgumentsAmbiguousExtensionProperty,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAmbiguousExtensionProperty({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeAmbiguousExtensionProperty,
-    problemMessage:
-        """The property '${name_0}' is defined in multiple extensions for '${type_0}' and neither is more specific.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAmbiguousExtensionProperty(
-  String name,
-  DartType type,
-) => _withArgumentsAmbiguousExtensionProperty(name: name, type: type);
+codeAmbiguousExtensionProperty = ambiguousExtensionProperty;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -209,1344 +69,393 @@ const Template<
     required DartType type2,
   })
 >
-codeAmbiguousSupertypes = const Template(
-  "AmbiguousSupertypes",
-  withArgumentsOld: _withArgumentsOldAmbiguousSupertypes,
-  withArguments: _withArgumentsAmbiguousSupertypes,
-);
+codeAmbiguousSupertypes = ambiguousSupertypes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAmbiguousSupertypes({
-  required String name,
-  required DartType type,
-  required DartType type2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeAmbiguousSupertypes,
-    problemMessage:
-        """'${name_0}' can't implement both '${type_0}' and '${type2_0}'""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type, 'type2': type2},
-  );
-}
+const MessageCode codeAnnotationOnFunctionTypeTypeParameter =
+    annotationOnFunctionTypeTypeParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAmbiguousSupertypes(
-  String name,
-  DartType type,
-  DartType type2,
-) => _withArgumentsAmbiguousSupertypes(name: name, type: type, type2: type2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAnnotationOnFunctionTypeTypeParameter = const MessageCode(
-  "AnnotationOnFunctionTypeTypeParameter",
-  problemMessage:
-      """A type variable on a function type can't have annotations.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAnonymousBreakTargetOutsideFunction = const MessageCode(
-  "AnonymousBreakTargetOutsideFunction",
-  problemMessage: """Can't break to a target in a different function.""",
-);
+const MessageCode codeAnonymousBreakTargetOutsideFunction =
+    anonymousBreakTargetOutsideFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAnonymousContinueTargetOutsideFunction =
-    const MessageCode(
-      "AnonymousContinueTargetOutsideFunction",
-      problemMessage: """Can't continue at a target in a different function.""",
-    );
+    anonymousContinueTargetOutsideFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeArgumentTypeNotAssignable = const Template(
-  "ArgumentTypeNotAssignable",
-  withArgumentsOld: _withArgumentsOldArgumentTypeNotAssignable,
-  withArguments: _withArgumentsArgumentTypeNotAssignable,
-);
+codeArgumentTypeNotAssignable = argumentTypeNotAssignable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsArgumentTypeNotAssignable({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeArgumentTypeNotAssignable,
-    problemMessage:
-        """The argument type '${type_0}' can't be assigned to the parameter type '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
+const MessageCode codeAwaitInLateLocalInitializer = awaitInLateLocalInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldArgumentTypeNotAssignable(
-  DartType type,
-  DartType type2,
-) => _withArgumentsArgumentTypeNotAssignable(type: type, type2: type2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitInLateLocalInitializer = const MessageCode(
-  "AwaitInLateLocalInitializer",
-  problemMessage:
-      """`await` expressions are not supported in late local initializers.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitOfExtensionTypeNotFuture = const MessageCode(
-  "AwaitOfExtensionTypeNotFuture",
-  problemMessage:
-      """The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.""",
-);
+const MessageCode codeAwaitOfExtensionTypeNotFuture =
+    awaitOfExtensionTypeNotFuture;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeBaseClassImplementedOutsideOfLibrary = const Template(
-  "BaseClassImplementedOutsideOfLibrary",
-  withArgumentsOld: _withArgumentsOldBaseClassImplementedOutsideOfLibrary,
-  withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBaseClassImplementedOutsideOfLibrary({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeBaseClassImplementedOutsideOfLibrary,
-    problemMessage:
-        """The class '${name_0}' can't be implemented outside of its library because it's a base class.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBaseClassImplementedOutsideOfLibrary(String name) =>
-    _withArgumentsBaseClassImplementedOutsideOfLibrary(name: name);
+codeBaseClassImplementedOutsideOfLibrary = baseClassImplementedOutsideOfLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeBaseMixinImplementedOutsideOfLibrary = const Template(
-  "BaseMixinImplementedOutsideOfLibrary",
-  withArgumentsOld: _withArgumentsOldBaseMixinImplementedOutsideOfLibrary,
-  withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBaseMixinImplementedOutsideOfLibrary({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeBaseMixinImplementedOutsideOfLibrary,
-    problemMessage:
-        """The mixin '${name_0}' can't be implemented outside of its library because it's a base mixin.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBaseMixinImplementedOutsideOfLibrary(String name) =>
-    _withArgumentsBaseMixinImplementedOutsideOfLibrary(name: name);
+codeBaseMixinImplementedOutsideOfLibrary = baseMixinImplementedOutsideOfLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeBaseOrFinalClassImplementedOutsideOfLibraryCause = const Template(
-  "BaseOrFinalClassImplementedOutsideOfLibraryCause",
-  withArgumentsOld:
-      _withArgumentsOldBaseOrFinalClassImplementedOutsideOfLibraryCause,
-  withArguments: _withArgumentsBaseOrFinalClassImplementedOutsideOfLibraryCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBaseOrFinalClassImplementedOutsideOfLibraryCause({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeBaseOrFinalClassImplementedOutsideOfLibraryCause,
-    problemMessage:
-        """The type '${name_0}' is a subtype of '${name2_0}', and '${name2_0}' is defined here.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBaseOrFinalClassImplementedOutsideOfLibraryCause(
-  String name,
-  String name2,
-) => _withArgumentsBaseOrFinalClassImplementedOutsideOfLibraryCause(
-  name: name,
-  name2: name2,
-);
+codeBaseOrFinalClassImplementedOutsideOfLibraryCause =
+    baseOrFinalClassImplementedOutsideOfLibraryCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeBoundIssueViaCycleNonSimplicity = const Template(
-  "BoundIssueViaCycleNonSimplicity",
-  withArgumentsOld: _withArgumentsOldBoundIssueViaCycleNonSimplicity,
-  withArguments: _withArgumentsBoundIssueViaCycleNonSimplicity,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBoundIssueViaCycleNonSimplicity({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeBoundIssueViaCycleNonSimplicity,
-    problemMessage:
-        """Generic type '${name_0}' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '${name2_0}'.""",
-    correctionMessage:
-        """Try providing type arguments to '${name2_0}' here or to some other raw types in the bounds along the reference chain.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBoundIssueViaCycleNonSimplicity(
-  String name,
-  String name2,
-) => _withArgumentsBoundIssueViaCycleNonSimplicity(name: name, name2: name2);
+codeBoundIssueViaCycleNonSimplicity = boundIssueViaCycleNonSimplicity;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeBoundIssueViaLoopNonSimplicity = const Template(
-  "BoundIssueViaLoopNonSimplicity",
-  withArgumentsOld: _withArgumentsOldBoundIssueViaLoopNonSimplicity,
-  withArguments: _withArgumentsBoundIssueViaLoopNonSimplicity,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBoundIssueViaLoopNonSimplicity({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeBoundIssueViaLoopNonSimplicity,
-    problemMessage:
-        """Generic type '${name_0}' can't be used without type arguments in the bounds of its own type variables.""",
-    correctionMessage: """Try providing type arguments to '${name_0}' here.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBoundIssueViaLoopNonSimplicity(String name) =>
-    _withArgumentsBoundIssueViaLoopNonSimplicity(name: name);
+codeBoundIssueViaLoopNonSimplicity = boundIssueViaLoopNonSimplicity;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeBoundIssueViaRawTypeWithNonSimpleBounds = const Template(
-  "BoundIssueViaRawTypeWithNonSimpleBounds",
-  withArgumentsOld: _withArgumentsOldBoundIssueViaRawTypeWithNonSimpleBounds,
-  withArguments: _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeBoundIssueViaRawTypeWithNonSimpleBounds,
-    problemMessage:
-        """Generic type '${name_0}' can't be used without type arguments in a type variable bound.""",
-    correctionMessage: """Try providing type arguments to '${name_0}' here.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBoundIssueViaRawTypeWithNonSimpleBounds(String name) =>
-    _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds(name: name);
+codeBoundIssueViaRawTypeWithNonSimpleBounds =
+    boundIssueViaRawTypeWithNonSimpleBounds;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeBreakTargetOutsideFunction = const Template(
-  "BreakTargetOutsideFunction",
-  withArgumentsOld: _withArgumentsOldBreakTargetOutsideFunction,
-  withArguments: _withArgumentsBreakTargetOutsideFunction,
-);
+codeBreakTargetOutsideFunction = breakTargetOutsideFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBreakTargetOutsideFunction({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeBreakTargetOutsideFunction,
-    problemMessage: """Can't break to '${name_0}' in a different function.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBreakTargetOutsideFunction(String name) =>
-    _withArgumentsBreakTargetOutsideFunction(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCandidateFound = const MessageCode(
-  "CandidateFound",
-  severity: CfeSeverity.context,
-  problemMessage: """Found this candidate, but the arguments don't match.""",
-);
+const MessageCode codeCandidateFound = candidateFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCandidateFoundIsDefaultConstructor = const Template(
-  "CandidateFoundIsDefaultConstructor",
-  withArgumentsOld: _withArgumentsOldCandidateFoundIsDefaultConstructor,
-  withArguments: _withArgumentsCandidateFoundIsDefaultConstructor,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCandidateFoundIsDefaultConstructor({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCandidateFoundIsDefaultConstructor,
-    problemMessage:
-        """The class '${name_0}' has a constructor that takes no arguments.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCandidateFoundIsDefaultConstructor(String name) =>
-    _withArgumentsCandidateFoundIsDefaultConstructor(name: name);
+codeCandidateFoundIsDefaultConstructor = candidateFoundIsDefaultConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCannotAssignToConstVariable = const Template(
-  "CannotAssignToConstVariable",
-  withArgumentsOld: _withArgumentsOldCannotAssignToConstVariable,
-  withArguments: _withArgumentsCannotAssignToConstVariable,
-);
+codeCannotAssignToConstVariable = cannotAssignToConstVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCannotAssignToConstVariable({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCannotAssignToConstVariable,
-    problemMessage: """Can't assign to the const variable '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCannotAssignToConstVariable(String name) =>
-    _withArgumentsCannotAssignToConstVariable(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCannotAssignToExtensionThis = const MessageCode(
-  "CannotAssignToExtensionThis",
-  problemMessage: """Can't assign to 'this'.""",
-);
+const MessageCode codeCannotAssignToExtensionThis = cannotAssignToExtensionThis;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCannotAssignToFinalVariable = const Template(
-  "CannotAssignToFinalVariable",
-  withArgumentsOld: _withArgumentsOldCannotAssignToFinalVariable,
-  withArguments: _withArgumentsCannotAssignToFinalVariable,
-);
+codeCannotAssignToFinalVariable = cannotAssignToFinalVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCannotAssignToFinalVariable({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCannotAssignToFinalVariable,
-    problemMessage: """Can't assign to the final variable '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeCannotAssignToParenthesizedExpression =
+    cannotAssignToParenthesizedExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCannotAssignToFinalVariable(String name) =>
-    _withArgumentsCannotAssignToFinalVariable(name: name);
+const MessageCode codeCannotAssignToSuper = cannotAssignToSuper;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCannotAssignToParenthesizedExpression = const MessageCode(
-  "CannotAssignToParenthesizedExpression",
-  problemMessage: """Can't assign to a parenthesized expression.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCannotAssignToSuper = const MessageCode(
-  "CannotAssignToSuper",
-  problemMessage: """Can't assign to super.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCannotAssignToTypeLiteral = const MessageCode(
-  "CannotAssignToTypeLiteral",
-  problemMessage: """Can't assign to a type literal.""",
-);
+const MessageCode codeCannotAssignToTypeLiteral = cannotAssignToTypeLiteral;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeCannotReadSdkSpecification = const Template(
-  "CannotReadSdkSpecification",
-  withArgumentsOld: _withArgumentsOldCannotReadSdkSpecification,
-  withArguments: _withArgumentsCannotReadSdkSpecification,
-);
+codeCannotReadSdkSpecification = cannotReadSdkSpecification;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCannotReadSdkSpecification({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeCannotReadSdkSpecification,
-    problemMessage: """Unable to read the 'libraries.json' specification file:
-  ${string_0}.""",
-    arguments: {'string': string},
-  );
-}
+const MessageCode codeCantDisambiguateAmbiguousInformation =
+    cantDisambiguateAmbiguousInformation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCannotReadSdkSpecification(String string) =>
-    _withArgumentsCannotReadSdkSpecification(string: string);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantDisambiguateAmbiguousInformation = const MessageCode(
-  "CantDisambiguateAmbiguousInformation",
-  problemMessage:
-      """Both Iterable and Map spread elements encountered in ambiguous literal.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantDisambiguateNotEnoughInformation = const MessageCode(
-  "CantDisambiguateNotEnoughInformation",
-  problemMessage:
-      """Not enough type information to disambiguate between literal set and literal map.""",
-  correctionMessage:
-      """Try providing type arguments for the literal explicitly to disambiguate it.""",
-);
+const MessageCode codeCantDisambiguateNotEnoughInformation =
+    cantDisambiguateNotEnoughInformation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCantHaveNamedParameters = const Template(
-  "CantHaveNamedParameters",
-  withArgumentsOld: _withArgumentsOldCantHaveNamedParameters,
-  withArguments: _withArgumentsCantHaveNamedParameters,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantHaveNamedParameters({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCantHaveNamedParameters,
-    problemMessage: """'${name_0}' can't be declared with named parameters.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantHaveNamedParameters(String name) =>
-    _withArgumentsCantHaveNamedParameters(name: name);
+codeCantHaveNamedParameters = cantHaveNamedParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCantHaveOptionalParameters = const Template(
-  "CantHaveOptionalParameters",
-  withArgumentsOld: _withArgumentsOldCantHaveOptionalParameters,
-  withArguments: _withArgumentsCantHaveOptionalParameters,
-);
+codeCantHaveOptionalParameters = cantHaveOptionalParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantHaveOptionalParameters({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCantHaveOptionalParameters,
-    problemMessage:
-        """'${name_0}' can't be declared with optional parameters.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeCantInferPackagesFromManyInputs =
+    cantInferPackagesFromManyInputs;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantHaveOptionalParameters(String name) =>
-    _withArgumentsCantHaveOptionalParameters(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantInferPackagesFromManyInputs = const MessageCode(
-  "CantInferPackagesFromManyInputs",
-  problemMessage:
-      """Can't infer a packages file when compiling multiple inputs.""",
-  correctionMessage:
-      """Try specifying the file explicitly with the --packages option.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantInferPackagesFromPackageUri = const MessageCode(
-  "CantInferPackagesFromPackageUri",
-  problemMessage:
-      """Can't infer a packages file from an input 'package:*' URI.""",
-  correctionMessage:
-      """Try specifying the file explicitly with the --packages option.""",
-);
+const MessageCode codeCantInferPackagesFromPackageUri =
+    cantInferPackagesFromPackageUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCantInferReturnTypeDueToNoCombinedSignature = const Template(
-  "CantInferReturnTypeDueToNoCombinedSignature",
-  withArgumentsOld:
-      _withArgumentsOldCantInferReturnTypeDueToNoCombinedSignature,
-  withArguments: _withArgumentsCantInferReturnTypeDueToNoCombinedSignature,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantInferReturnTypeDueToNoCombinedSignature({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCantInferReturnTypeDueToNoCombinedSignature,
-    problemMessage:
-        """Can't infer a return type for '${name_0}' as the overridden members don't have a combined signature.""",
-    correctionMessage: """Try adding an explicit type.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantInferReturnTypeDueToNoCombinedSignature(
-  String name,
-) => _withArgumentsCantInferReturnTypeDueToNoCombinedSignature(name: name);
+codeCantInferReturnTypeDueToNoCombinedSignature =
+    cantInferReturnTypeDueToNoCombinedSignature;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeCantInferTypeDueToCircularity = const Template(
-  "CantInferTypeDueToCircularity",
-  withArgumentsOld: _withArgumentsOldCantInferTypeDueToCircularity,
-  withArguments: _withArgumentsCantInferTypeDueToCircularity,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantInferTypeDueToCircularity({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeCantInferTypeDueToCircularity,
-    problemMessage:
-        """Can't infer the type of '${string_0}': circularity found during type inference.""",
-    correctionMessage: """Specify the type explicitly.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantInferTypeDueToCircularity(String string) =>
-    _withArgumentsCantInferTypeDueToCircularity(string: string);
+codeCantInferTypeDueToCircularity = cantInferTypeDueToCircularity;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCantInferTypeDueToNoCombinedSignature = const Template(
-  "CantInferTypeDueToNoCombinedSignature",
-  withArgumentsOld: _withArgumentsOldCantInferTypeDueToNoCombinedSignature,
-  withArguments: _withArgumentsCantInferTypeDueToNoCombinedSignature,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantInferTypeDueToNoCombinedSignature({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCantInferTypeDueToNoCombinedSignature,
-    problemMessage:
-        """Can't infer a type for '${name_0}' as the overridden members don't have a combined signature.""",
-    correctionMessage: """Try adding an explicit type.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantInferTypeDueToNoCombinedSignature(String name) =>
-    _withArgumentsCantInferTypeDueToNoCombinedSignature(name: name);
+codeCantInferTypeDueToNoCombinedSignature =
+    cantInferTypeDueToNoCombinedSignature;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCantInferTypesDueToNoCombinedSignature = const Template(
-  "CantInferTypesDueToNoCombinedSignature",
-  withArgumentsOld: _withArgumentsOldCantInferTypesDueToNoCombinedSignature,
-  withArguments: _withArgumentsCantInferTypesDueToNoCombinedSignature,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantInferTypesDueToNoCombinedSignature({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCantInferTypesDueToNoCombinedSignature,
-    problemMessage:
-        """Can't infer types for '${name_0}' as the overridden members don't have a combined signature.""",
-    correctionMessage: """Try adding explicit types.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantInferTypesDueToNoCombinedSignature(String name) =>
-    _withArgumentsCantInferTypesDueToNoCombinedSignature(name: name);
+codeCantInferTypesDueToNoCombinedSignature =
+    cantInferTypesDueToNoCombinedSignature;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Uri uri, String string),
   Message Function({required Uri uri, required String string})
 >
-codeCantReadFile = const Template(
-  "CantReadFile",
-  withArgumentsOld: _withArgumentsOldCantReadFile,
-  withArguments: _withArgumentsCantReadFile,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantReadFile({required Uri uri, required String string}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeCantReadFile,
-    problemMessage: """Error when reading '${uri_0}': ${string_0}""",
-    arguments: {'uri': uri, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantReadFile(Uri uri, String string) =>
-    _withArgumentsCantReadFile(uri: uri, string: string);
+codeCantReadFile = cantReadFile;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCantUseClassAsMixin = const Template(
-  "CantUseClassAsMixin",
-  withArgumentsOld: _withArgumentsOldCantUseClassAsMixin,
-  withArguments: _withArgumentsCantUseClassAsMixin,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantUseClassAsMixin({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCantUseClassAsMixin,
-    problemMessage:
-        """The class '${name_0}' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantUseClassAsMixin(String name) =>
-    _withArgumentsCantUseClassAsMixin(name: name);
+codeCantUseClassAsMixin = cantUseClassAsMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeCantUseControlFlowOrSpreadAsConstant = const Template(
-  "CantUseControlFlowOrSpreadAsConstant",
-  withArgumentsOld: _withArgumentsOldCantUseControlFlowOrSpreadAsConstant,
-  withArguments: _withArgumentsCantUseControlFlowOrSpreadAsConstant,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantUseControlFlowOrSpreadAsConstant({
-  required Token lexeme,
-}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeCantUseControlFlowOrSpreadAsConstant,
-    problemMessage:
-        """'${lexeme_0}' is not supported in constant expressions.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantUseControlFlowOrSpreadAsConstant(Token lexeme) =>
-    _withArgumentsCantUseControlFlowOrSpreadAsConstant(lexeme: lexeme);
+codeCantUseControlFlowOrSpreadAsConstant = cantUseControlFlowOrSpreadAsConstant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeCantUseDeferredPrefixAsConstant = const Template(
-  "CantUseDeferredPrefixAsConstant",
-  withArgumentsOld: _withArgumentsOldCantUseDeferredPrefixAsConstant,
-  withArguments: _withArgumentsCantUseDeferredPrefixAsConstant,
-);
+codeCantUseDeferredPrefixAsConstant = cantUseDeferredPrefixAsConstant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantUseDeferredPrefixAsConstant({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeCantUseDeferredPrefixAsConstant,
-    problemMessage:
-        """'${lexeme_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
-    correctionMessage:
-        """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
+const MessageCode codeCantUsePrefixAsExpression = cantUsePrefixAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantUseDeferredPrefixAsConstant(Token lexeme) =>
-    _withArgumentsCantUseDeferredPrefixAsConstant(lexeme: lexeme);
+const MessageCode codeCantUsePrefixWithNullAware = cantUsePrefixWithNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantUsePrefixAsExpression = const MessageCode(
-  "CantUsePrefixAsExpression",
-  problemMessage: """A prefix can't be used as an expression.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantUsePrefixWithNullAware = const MessageCode(
-  "CantUsePrefixWithNullAware",
-  problemMessage: """A prefix can't be used with null-aware operators.""",
-  correctionMessage: """Try replacing '?.' with '.'""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeClassImplementsDeferredClass = const MessageCode(
-  "ClassImplementsDeferredClass",
-  problemMessage: """Classes and mixins can't implement deferred classes.""",
-  correctionMessage:
-      """Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.""",
-);
+const MessageCode codeClassImplementsDeferredClass =
+    classImplementsDeferredClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeClassShouldBeListedAsCallableInDynamicInterface = const Template(
-  "ClassShouldBeListedAsCallableInDynamicInterface",
-  withArgumentsOld:
-      _withArgumentsOldClassShouldBeListedAsCallableInDynamicInterface,
-  withArguments: _withArgumentsClassShouldBeListedAsCallableInDynamicInterface,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsClassShouldBeListedAsCallableInDynamicInterface({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeClassShouldBeListedAsCallableInDynamicInterface,
-    problemMessage: """Cannot use class '${name_0}' in a dynamic module.""",
-    correctionMessage:
-        """Try removing the reference to class '${name_0}' or update the dynamic interface to list class '${name_0}' as callable.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldClassShouldBeListedAsCallableInDynamicInterface(
-  String name,
-) => _withArgumentsClassShouldBeListedAsCallableInDynamicInterface(name: name);
+codeClassShouldBeListedAsCallableInDynamicInterface =
+    classShouldBeListedAsCallableInDynamicInterface;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeClassShouldBeListedAsExtendableInDynamicInterface = const Template(
-  "ClassShouldBeListedAsExtendableInDynamicInterface",
-  withArgumentsOld:
-      _withArgumentsOldClassShouldBeListedAsExtendableInDynamicInterface,
-  withArguments:
-      _withArgumentsClassShouldBeListedAsExtendableInDynamicInterface,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsClassShouldBeListedAsExtendableInDynamicInterface({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeClassShouldBeListedAsExtendableInDynamicInterface,
-    problemMessage:
-        """Cannot extend, implement or mix-in class '${name_0}' in a dynamic module.""",
-    correctionMessage:
-        """Try removing the reference to class '${name_0}' or update the dynamic interface to list class '${name_0}' as extendable.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldClassShouldBeListedAsExtendableInDynamicInterface(
-  String name,
-) =>
-    _withArgumentsClassShouldBeListedAsExtendableInDynamicInterface(name: name);
+codeClassShouldBeListedAsExtendableInDynamicInterface =
+    classShouldBeListedAsExtendableInDynamicInterface;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeCombinedMemberSignatureFailed = const Template(
-  "CombinedMemberSignatureFailed",
-  withArgumentsOld: _withArgumentsOldCombinedMemberSignatureFailed,
-  withArguments: _withArgumentsCombinedMemberSignatureFailed,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCombinedMemberSignatureFailed({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeCombinedMemberSignatureFailed,
-    problemMessage:
-        """Class '${name_0}' inherits multiple members named '${name2_0}' with incompatible signatures.""",
-    correctionMessage:
-        """Try adding a declaration of '${name2_0}' to '${name_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCombinedMemberSignatureFailed(
-  String name,
-  String name2,
-) => _withArgumentsCombinedMemberSignatureFailed(name: name, name2: name2);
+codeCombinedMemberSignatureFailed = combinedMemberSignatureFailed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConflictsWithImplicitSetter = const Template(
-  "ConflictsWithImplicitSetter",
-  withArgumentsOld: _withArgumentsOldConflictsWithImplicitSetter,
-  withArguments: _withArgumentsConflictsWithImplicitSetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithImplicitSetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConflictsWithImplicitSetter,
-    problemMessage:
-        """Conflicts with the implicit setter of the field '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithImplicitSetter(String name) =>
-    _withArgumentsConflictsWithImplicitSetter(name: name);
+codeConflictsWithImplicitSetter = conflictsWithImplicitSetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConflictsWithImplicitSetterCause = const Template(
-  "ConflictsWithImplicitSetterCause",
-  withArgumentsOld: _withArgumentsOldConflictsWithImplicitSetterCause,
-  withArguments: _withArgumentsConflictsWithImplicitSetterCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithImplicitSetterCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConflictsWithImplicitSetterCause,
-    problemMessage: """Field '${name_0}' with the implicit setter.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithImplicitSetterCause(String name) =>
-    _withArgumentsConflictsWithImplicitSetterCause(name: name);
+codeConflictsWithImplicitSetterCause = conflictsWithImplicitSetterCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConflictsWithTypeParameter = const Template(
-  "ConflictsWithTypeParameter",
-  withArgumentsOld: _withArgumentsOldConflictsWithTypeParameter,
-  withArguments: _withArgumentsConflictsWithTypeParameter,
-);
+codeConflictsWithTypeParameter = conflictsWithTypeParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithTypeParameter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConflictsWithTypeParameter,
-    problemMessage: """Conflicts with type variable '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeConflictsWithTypeParameterCause =
+    conflictsWithTypeParameterCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithTypeParameter(String name) =>
-    _withArgumentsConflictsWithTypeParameter(name: name);
+const MessageCode codeConstConstructorLateFinalFieldCause =
+    constConstructorLateFinalFieldCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConflictsWithTypeParameterCause = const MessageCode(
-  "ConflictsWithTypeParameterCause",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the type variable.""",
-);
+const MessageCode codeConstConstructorLateFinalFieldError =
+    constConstructorLateFinalFieldError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorLateFinalFieldCause = const MessageCode(
-  "ConstConstructorLateFinalFieldCause",
-  severity: CfeSeverity.context,
-  problemMessage: """This constructor is const.""",
-);
+const MessageCode codeConstConstructorNonFinalField =
+    constConstructorNonFinalField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorLateFinalFieldError = const MessageCode(
-  "ConstConstructorLateFinalFieldError",
-  problemMessage:
-      """Can't have a late final field in a class with a const constructor.""",
-);
+const MessageCode codeConstConstructorNonFinalFieldCause =
+    constConstructorNonFinalFieldCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorNonFinalField = const MessageCode(
-  "ConstConstructorNonFinalField",
-  problemMessage:
-      """Constructor is marked 'const' so all fields must be final.""",
-);
+const MessageCode codeConstConstructorRedirectionToNonConst =
+    constConstructorRedirectionToNonConst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorNonFinalFieldCause = const MessageCode(
-  "ConstConstructorNonFinalFieldCause",
-  severity: CfeSeverity.context,
-  problemMessage: """Field isn't final, but constructor is 'const'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorRedirectionToNonConst = const MessageCode(
-  "ConstConstructorRedirectionToNonConst",
-  problemMessage:
-      """A constant constructor can't call a non-constant constructor.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorWithNonConstSuper = const MessageCode(
-  "ConstConstructorWithNonConstSuper",
-  problemMessage:
-      """A constant constructor can't call a non-constant super constructor.""",
-);
+const MessageCode codeConstConstructorWithNonConstSuper =
+    constConstructorWithNonConstSuper;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalCaseImplementsEqual = const Template(
-  "ConstEvalCaseImplementsEqual",
-  withArgumentsOld: _withArgumentsOldConstEvalCaseImplementsEqual,
-  withArguments: _withArgumentsConstEvalCaseImplementsEqual,
-);
+codeConstEvalCaseImplementsEqual = constEvalCaseImplementsEqual;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalCaseImplementsEqual({
-  required Constant constant,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalCaseImplementsEqual,
-    problemMessage:
-        """Case expression '${constant_0}' does not have a primitive operator '=='.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
+const MessageCode codeConstEvalCircularity = constEvalCircularity;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalCaseImplementsEqual(Constant constant) =>
-    _withArgumentsConstEvalCaseImplementsEqual(constant: constant);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalCircularity = const MessageCode(
-  "ConstEvalCircularity",
-  problemMessage: """Constant expression depends on itself.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalContext = const MessageCode(
-  "ConstEvalContext",
-  severity: CfeSeverity.context,
-  problemMessage: """While analyzing:""",
-);
+const MessageCode codeConstEvalContext = constEvalContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String nameOKEmpty),
   Message Function({required String nameOKEmpty})
 >
-codeConstEvalDeferredLibrary = const Template(
-  "ConstEvalDeferredLibrary",
-  withArgumentsOld: _withArgumentsOldConstEvalDeferredLibrary,
-  withArguments: _withArgumentsConstEvalDeferredLibrary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDeferredLibrary({required String nameOKEmpty}) {
-  var nameOKEmpty_0 = conversions.nameOrUnnamed(nameOKEmpty);
-  return new Message(
-    codeConstEvalDeferredLibrary,
-    problemMessage:
-        """'${nameOKEmpty_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
-    correctionMessage:
-        """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalDeferredLibrary(String nameOKEmpty) =>
-    _withArgumentsConstEvalDeferredLibrary(nameOKEmpty: nameOKEmpty);
+codeConstEvalDeferredLibrary = constEvalDeferredLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalDuplicateElement = const Template(
-  "ConstEvalDuplicateElement",
-  withArgumentsOld: _withArgumentsOldConstEvalDuplicateElement,
-  withArguments: _withArgumentsConstEvalDuplicateElement,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDuplicateElement({required Constant constant}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalDuplicateElement,
-    problemMessage:
-        """The element '${constant_0}' conflicts with another existing element in the set.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalDuplicateElement(Constant constant) =>
-    _withArgumentsConstEvalDuplicateElement(constant: constant);
+codeConstEvalDuplicateElement = constEvalDuplicateElement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalDuplicateKey = const Template(
-  "ConstEvalDuplicateKey",
-  withArgumentsOld: _withArgumentsOldConstEvalDuplicateKey,
-  withArguments: _withArgumentsConstEvalDuplicateKey,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDuplicateKey({required Constant constant}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalDuplicateKey,
-    problemMessage:
-        """The key '${constant_0}' conflicts with another existing key in the map.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalDuplicateKey(Constant constant) =>
-    _withArgumentsConstEvalDuplicateKey(constant: constant);
+codeConstEvalDuplicateKey = constEvalDuplicateKey;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalElementImplementsEqual = const Template(
-  "ConstEvalElementImplementsEqual",
-  withArgumentsOld: _withArgumentsOldConstEvalElementImplementsEqual,
-  withArguments: _withArgumentsConstEvalElementImplementsEqual,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalElementImplementsEqual({
-  required Constant constant,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalElementImplementsEqual,
-    problemMessage:
-        """The element '${constant_0}' does not have a primitive operator '=='.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalElementImplementsEqual(Constant constant) =>
-    _withArgumentsConstEvalElementImplementsEqual(constant: constant);
+codeConstEvalElementImplementsEqual = constEvalElementImplementsEqual;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalElementNotPrimitiveEquality = const Template(
-  "ConstEvalElementNotPrimitiveEquality",
-  withArgumentsOld: _withArgumentsOldConstEvalElementNotPrimitiveEquality,
-  withArguments: _withArgumentsConstEvalElementNotPrimitiveEquality,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalElementNotPrimitiveEquality({
-  required Constant constant,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalElementNotPrimitiveEquality,
-    problemMessage:
-        """The element '${constant_0}' does not have a primitive equality.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalElementNotPrimitiveEquality(
-  Constant constant,
-) => _withArgumentsConstEvalElementNotPrimitiveEquality(constant: constant);
+codeConstEvalElementNotPrimitiveEquality = constEvalElementNotPrimitiveEquality;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant, DartType type),
   Message Function({required Constant constant, required DartType type})
 >
-codeConstEvalEqualsOperandNotPrimitiveEquality = const Template(
-  "ConstEvalEqualsOperandNotPrimitiveEquality",
-  withArgumentsOld: _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality,
-  withArguments: _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality({
-  required Constant constant,
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeConstEvalEqualsOperandNotPrimitiveEquality,
-    problemMessage:
-        """Binary operator '==' requires receiver constant '${constant_0}' of a type with primitive equality or type 'double', but was of type '${type_0}'.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality(
-  Constant constant,
-  DartType type,
-) => _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality(
-  constant: constant,
-  type: type,
-);
+codeConstEvalEqualsOperandNotPrimitiveEquality =
+    constEvalEqualsOperandNotPrimitiveEquality;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeConstEvalError = const Template(
-  "ConstEvalError",
-  withArgumentsOld: _withArgumentsOldConstEvalError,
-  withArguments: _withArgumentsConstEvalError,
-);
+codeConstEvalError = constEvalError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalError({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeConstEvalError,
-    problemMessage: """Error evaluating constant expression: ${string_0}""",
-    arguments: {'string': string},
-  );
-}
+const MessageCode codeConstEvalExtension = constEvalExtension;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalError(String string) =>
-    _withArgumentsConstEvalError(string: string);
+const MessageCode codeConstEvalExternalConstructor =
+    constEvalExternalConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalExtension = const MessageCode(
-  "ConstEvalExtension",
-  problemMessage:
-      """Extension operations can't be used in constant expressions.""",
-);
+const MessageCode codeConstEvalExternalFactory = constEvalExternalFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalExternalConstructor = const MessageCode(
-  "ConstEvalExternalConstructor",
-  problemMessage:
-      """External constructors can't be evaluated in constant expressions.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalExternalFactory = const MessageCode(
-  "ConstEvalExternalFactory",
-  problemMessage:
-      """External factory constructors can't be evaluated in constant expressions.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalFailedAssertion = const MessageCode(
-  "ConstEvalFailedAssertion",
-  problemMessage: """This assertion failed.""",
-);
+const MessageCode codeConstEvalFailedAssertion = constEvalFailedAssertion;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String stringOKEmpty),
   Message Function({required String stringOKEmpty})
 >
-codeConstEvalFailedAssertionWithMessage = const Template(
-  "ConstEvalFailedAssertionWithMessage",
-  withArgumentsOld: _withArgumentsOldConstEvalFailedAssertionWithMessage,
-  withArguments: _withArgumentsConstEvalFailedAssertionWithMessage,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalFailedAssertionWithMessage({
-  required String stringOKEmpty,
-}) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
-  return new Message(
-    codeConstEvalFailedAssertionWithMessage,
-    problemMessage:
-        """This assertion failed with message: ${stringOKEmpty_0}""",
-    arguments: {'stringOKEmpty': stringOKEmpty},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalFailedAssertionWithMessage(
-  String stringOKEmpty,
-) => _withArgumentsConstEvalFailedAssertionWithMessage(
-  stringOKEmpty: stringOKEmpty,
-);
+codeConstEvalFailedAssertionWithMessage = constEvalFailedAssertionWithMessage;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalFailedAssertionWithNonStringMessage =
-    const MessageCode(
-      "ConstEvalFailedAssertionWithNonStringMessage",
-      problemMessage: """This assertion failed with a non-String message.""",
-    );
+    constEvalFailedAssertionWithNonStringMessage;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String nameOKEmpty),
   Message Function({required String nameOKEmpty})
 >
-codeConstEvalGetterNotFound = const Template(
-  "ConstEvalGetterNotFound",
-  withArgumentsOld: _withArgumentsOldConstEvalGetterNotFound,
-  withArguments: _withArgumentsConstEvalGetterNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalGetterNotFound({required String nameOKEmpty}) {
-  var nameOKEmpty_0 = conversions.nameOrUnnamed(nameOKEmpty);
-  return new Message(
-    codeConstEvalGetterNotFound,
-    problemMessage: """Variable get not found: '${nameOKEmpty_0}'""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalGetterNotFound(String nameOKEmpty) =>
-    _withArgumentsConstEvalGetterNotFound(nameOKEmpty: nameOKEmpty);
+codeConstEvalGetterNotFound = constEvalGetterNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1563,325 +472,64 @@ const Template<
     required DartType type2,
   })
 >
-codeConstEvalInvalidBinaryOperandType = const Template(
-  "ConstEvalInvalidBinaryOperandType",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidBinaryOperandType,
-  withArguments: _withArgumentsConstEvalInvalidBinaryOperandType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidBinaryOperandType({
-  required String stringOKEmpty,
-  required Constant constant,
-  required DartType type,
-  required DartType type2,
-}) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeConstEvalInvalidBinaryOperandType,
-    problemMessage:
-        """Binary operator '${stringOKEmpty_0}' on '${constant_0}' requires operand of type '${type_0}', but was of type '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {
-      'stringOKEmpty': stringOKEmpty,
-      'constant': constant,
-      'type': type,
-      'type2': type2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidBinaryOperandType(
-  String stringOKEmpty,
-  Constant constant,
-  DartType type,
-  DartType type2,
-) => _withArgumentsConstEvalInvalidBinaryOperandType(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
-  type: type,
-  type2: type2,
-);
+codeConstEvalInvalidBinaryOperandType = constEvalInvalidBinaryOperandType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant, DartType type),
   Message Function({required Constant constant, required DartType type})
 >
-codeConstEvalInvalidEqualsOperandType = const Template(
-  "ConstEvalInvalidEqualsOperandType",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidEqualsOperandType,
-  withArguments: _withArgumentsConstEvalInvalidEqualsOperandType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidEqualsOperandType({
-  required Constant constant,
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeConstEvalInvalidEqualsOperandType,
-    problemMessage:
-        """Binary operator '==' requires receiver constant '${constant_0}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '${type_0}'.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidEqualsOperandType(
-  Constant constant,
-  DartType type,
-) => _withArgumentsConstEvalInvalidEqualsOperandType(
-  constant: constant,
-  type: type,
-);
+codeConstEvalInvalidEqualsOperandType = constEvalInvalidEqualsOperandType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String stringOKEmpty, Constant constant),
   Message Function({required String stringOKEmpty, required Constant constant})
 >
-codeConstEvalInvalidMethodInvocation = const Template(
-  "ConstEvalInvalidMethodInvocation",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidMethodInvocation,
-  withArguments: _withArgumentsConstEvalInvalidMethodInvocation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidMethodInvocation({
-  required String stringOKEmpty,
-  required Constant constant,
-}) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalInvalidMethodInvocation,
-    problemMessage:
-        """The method '${stringOKEmpty_0}' can't be invoked on '${constant_0}' in a constant expression.""" +
-        labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidMethodInvocation(
-  String stringOKEmpty,
-  Constant constant,
-) => _withArgumentsConstEvalInvalidMethodInvocation(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
-);
+codeConstEvalInvalidMethodInvocation = constEvalInvalidMethodInvocation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String stringOKEmpty, Constant constant),
   Message Function({required String stringOKEmpty, required Constant constant})
 >
-codeConstEvalInvalidPropertyGet = const Template(
-  "ConstEvalInvalidPropertyGet",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidPropertyGet,
-  withArguments: _withArgumentsConstEvalInvalidPropertyGet,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidPropertyGet({
-  required String stringOKEmpty,
-  required Constant constant,
-}) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalInvalidPropertyGet,
-    problemMessage:
-        """The property '${stringOKEmpty_0}' can't be accessed on '${constant_0}' in a constant expression.""" +
-        labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidPropertyGet(
-  String stringOKEmpty,
-  Constant constant,
-) => _withArgumentsConstEvalInvalidPropertyGet(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
-);
+codeConstEvalInvalidPropertyGet = constEvalInvalidPropertyGet;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String stringOKEmpty, Constant constant),
   Message Function({required String stringOKEmpty, required Constant constant})
 >
-codeConstEvalInvalidRecordIndexGet = const Template(
-  "ConstEvalInvalidRecordIndexGet",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordIndexGet,
-  withArguments: _withArgumentsConstEvalInvalidRecordIndexGet,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidRecordIndexGet({
-  required String stringOKEmpty,
-  required Constant constant,
-}) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalInvalidRecordIndexGet,
-    problemMessage:
-        """The property '${stringOKEmpty_0}' can't be accessed on '${constant_0}' in a constant expression.""" +
-        labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidRecordIndexGet(
-  String stringOKEmpty,
-  Constant constant,
-) => _withArgumentsConstEvalInvalidRecordIndexGet(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
-);
+codeConstEvalInvalidRecordIndexGet = constEvalInvalidRecordIndexGet;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String stringOKEmpty, Constant constant),
   Message Function({required String stringOKEmpty, required Constant constant})
 >
-codeConstEvalInvalidRecordNameGet = const Template(
-  "ConstEvalInvalidRecordNameGet",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordNameGet,
-  withArguments: _withArgumentsConstEvalInvalidRecordNameGet,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidRecordNameGet({
-  required String stringOKEmpty,
-  required Constant constant,
-}) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalInvalidRecordNameGet,
-    problemMessage:
-        """The property '${stringOKEmpty_0}' can't be accessed on '${constant_0}' in a constant expression.""" +
-        labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidRecordNameGet(
-  String stringOKEmpty,
-  Constant constant,
-) => _withArgumentsConstEvalInvalidRecordNameGet(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
-);
+codeConstEvalInvalidRecordNameGet = constEvalInvalidRecordNameGet;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String nameOKEmpty),
   Message Function({required String nameOKEmpty})
 >
-codeConstEvalInvalidStaticInvocation = const Template(
-  "ConstEvalInvalidStaticInvocation",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidStaticInvocation,
-  withArguments: _withArgumentsConstEvalInvalidStaticInvocation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidStaticInvocation({
-  required String nameOKEmpty,
-}) {
-  var nameOKEmpty_0 = conversions.nameOrUnnamed(nameOKEmpty);
-  return new Message(
-    codeConstEvalInvalidStaticInvocation,
-    problemMessage:
-        """The invocation of '${nameOKEmpty_0}' is not allowed in a constant expression.""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidStaticInvocation(String nameOKEmpty) =>
-    _withArgumentsConstEvalInvalidStaticInvocation(nameOKEmpty: nameOKEmpty);
+codeConstEvalInvalidStaticInvocation = constEvalInvalidStaticInvocation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalInvalidStringInterpolationOperand = const Template(
-  "ConstEvalInvalidStringInterpolationOperand",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidStringInterpolationOperand,
-  withArguments: _withArgumentsConstEvalInvalidStringInterpolationOperand,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidStringInterpolationOperand({
-  required Constant constant,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalInvalidStringInterpolationOperand,
-    problemMessage:
-        """The constant value '${constant_0}' can't be used as part of a string interpolation in a constant expression.
-Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidStringInterpolationOperand(
-  Constant constant,
-) => _withArgumentsConstEvalInvalidStringInterpolationOperand(
-  constant: constant,
-);
+codeConstEvalInvalidStringInterpolationOperand =
+    constEvalInvalidStringInterpolationOperand;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalInvalidSymbolName = const Template(
-  "ConstEvalInvalidSymbolName",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidSymbolName,
-  withArguments: _withArgumentsConstEvalInvalidSymbolName,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidSymbolName({required Constant constant}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalInvalidSymbolName,
-    problemMessage:
-        """The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '${constant_0}'.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidSymbolName(Constant constant) =>
-    _withArgumentsConstEvalInvalidSymbolName(constant: constant);
+codeConstEvalInvalidSymbolName = constEvalInvalidSymbolName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1892,101 +540,21 @@ const Template<
     required DartType type2,
   })
 >
-codeConstEvalInvalidType = const Template(
-  "ConstEvalInvalidType",
-  withArgumentsOld: _withArgumentsOldConstEvalInvalidType,
-  withArguments: _withArgumentsConstEvalInvalidType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidType({
-  required Constant constant,
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeConstEvalInvalidType,
-    problemMessage:
-        """Expected constant '${constant_0}' to be of type '${type_0}', but was of type '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant, 'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidType(
-  Constant constant,
-  DartType type,
-  DartType type2,
-) => _withArgumentsConstEvalInvalidType(
-  constant: constant,
-  type: type,
-  type2: type2,
-);
+codeConstEvalInvalidType = constEvalInvalidType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalKeyImplementsEqual = const Template(
-  "ConstEvalKeyImplementsEqual",
-  withArgumentsOld: _withArgumentsOldConstEvalKeyImplementsEqual,
-  withArguments: _withArgumentsConstEvalKeyImplementsEqual,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalKeyImplementsEqual({
-  required Constant constant,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalKeyImplementsEqual,
-    problemMessage:
-        """The key '${constant_0}' does not have a primitive operator '=='.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalKeyImplementsEqual(Constant constant) =>
-    _withArgumentsConstEvalKeyImplementsEqual(constant: constant);
+codeConstEvalKeyImplementsEqual = constEvalKeyImplementsEqual;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalKeyNotPrimitiveEquality = const Template(
-  "ConstEvalKeyNotPrimitiveEquality",
-  withArgumentsOld: _withArgumentsOldConstEvalKeyNotPrimitiveEquality,
-  withArguments: _withArgumentsConstEvalKeyNotPrimitiveEquality,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalKeyNotPrimitiveEquality({
-  required Constant constant,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalKeyNotPrimitiveEquality,
-    problemMessage:
-        """The key '${constant_0}' does not have a primitive equality.""" +
-        labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalKeyNotPrimitiveEquality(Constant constant) =>
-    _withArgumentsConstEvalKeyNotPrimitiveEquality(constant: constant);
+codeConstEvalKeyNotPrimitiveEquality = constEvalKeyNotPrimitiveEquality;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1997,882 +565,247 @@ const Template<
     required String string3,
   })
 >
-codeConstEvalNegativeShift = const Template(
-  "ConstEvalNegativeShift",
-  withArgumentsOld: _withArgumentsOldConstEvalNegativeShift,
-  withArguments: _withArgumentsConstEvalNegativeShift,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalNegativeShift({
-  required String string,
-  required String string2,
-  required String string3,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  var string3_0 = conversions.validateString(string3);
-  return new Message(
-    codeConstEvalNegativeShift,
-    problemMessage:
-        """Binary operator '${string_0}' on '${string2_0}' requires non-negative operand, but was '${string3_0}'.""",
-    arguments: {'string': string, 'string2': string2, 'string3': string3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalNegativeShift(
-  String string,
-  String string2,
-  String string3,
-) => _withArgumentsConstEvalNegativeShift(
-  string: string,
-  string2: string2,
-  string3: string3,
-);
+codeConstEvalNegativeShift = constEvalNegativeShift;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String nameOKEmpty),
   Message Function({required String nameOKEmpty})
 >
-codeConstEvalNonConstantVariableGet = const Template(
-  "ConstEvalNonConstantVariableGet",
-  withArgumentsOld: _withArgumentsOldConstEvalNonConstantVariableGet,
-  withArguments: _withArgumentsConstEvalNonConstantVariableGet,
-);
+codeConstEvalNonConstantVariableGet = constEvalNonConstantVariableGet;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalNonConstantVariableGet({
-  required String nameOKEmpty,
-}) {
-  var nameOKEmpty_0 = conversions.nameOrUnnamed(nameOKEmpty);
-  return new Message(
-    codeConstEvalNonConstantVariableGet,
-    problemMessage:
-        """The variable '${nameOKEmpty_0}' is not a constant, only constant expressions are allowed.""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
-  );
-}
+const MessageCode codeConstEvalNonNull = constEvalNonNull;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalNonConstantVariableGet(String nameOKEmpty) =>
-    _withArgumentsConstEvalNonConstantVariableGet(nameOKEmpty: nameOKEmpty);
+const MessageCode codeConstEvalNotListOrSetInSpread =
+    constEvalNotListOrSetInSpread;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalNonNull = const MessageCode(
-  "ConstEvalNonNull",
-  problemMessage: """Constant expression must be non-null.""",
-);
+const MessageCode codeConstEvalNotMapInSpread = constEvalNotMapInSpread;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalNotListOrSetInSpread = const MessageCode(
-  "ConstEvalNotListOrSetInSpread",
-  problemMessage:
-      """Only lists and sets can be used in spreads in constant lists and sets.""",
-);
+const MessageCode codeConstEvalNullValue = constEvalNullValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalNotMapInSpread = const MessageCode(
-  "ConstEvalNotMapInSpread",
-  problemMessage: """Only maps can be used in spreads in constant maps.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalNullValue = const MessageCode(
-  "ConstEvalNullValue",
-  problemMessage: """Null value during constant evaluation.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalStartingPoint = const MessageCode(
-  "ConstEvalStartingPoint",
-  problemMessage: """Constant evaluation error:""",
-);
+const MessageCode codeConstEvalStartingPoint = constEvalStartingPoint;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeConstEvalTruncateError = const Template(
-  "ConstEvalTruncateError",
-  withArgumentsOld: _withArgumentsOldConstEvalTruncateError,
-  withArguments: _withArgumentsConstEvalTruncateError,
-);
+codeConstEvalTruncateError = constEvalTruncateError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalTruncateError({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeConstEvalTruncateError,
-    problemMessage:
-        """Binary operator '${string_0} ~/ ${string2_0}' results is Infinity or NaN.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalTruncateError(
-  String string,
-  String string2,
-) => _withArgumentsConstEvalTruncateError(string: string, string2: string2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalUnevaluated = const MessageCode(
-  "ConstEvalUnevaluated",
-  problemMessage: """Couldn't evaluate constant expression.""",
-);
+const MessageCode codeConstEvalUnevaluated = constEvalUnevaluated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String stringOKEmpty),
   Message Function({required String stringOKEmpty})
 >
-codeConstEvalUnhandledCoreException = const Template(
-  "ConstEvalUnhandledCoreException",
-  withArgumentsOld: _withArgumentsOldConstEvalUnhandledCoreException,
-  withArguments: _withArgumentsConstEvalUnhandledCoreException,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalUnhandledCoreException({
-  required String stringOKEmpty,
-}) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
-  return new Message(
-    codeConstEvalUnhandledCoreException,
-    problemMessage: """Unhandled core exception: ${stringOKEmpty_0}""",
-    arguments: {'stringOKEmpty': stringOKEmpty},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalUnhandledCoreException(
-  String stringOKEmpty,
-) =>
-    _withArgumentsConstEvalUnhandledCoreException(stringOKEmpty: stringOKEmpty);
+codeConstEvalUnhandledCoreException = constEvalUnhandledCoreException;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Constant constant),
   Message Function({required Constant constant})
 >
-codeConstEvalUnhandledException = const Template(
-  "ConstEvalUnhandledException",
-  withArgumentsOld: _withArgumentsOldConstEvalUnhandledException,
-  withArguments: _withArgumentsConstEvalUnhandledException,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalUnhandledException({
-  required Constant constant,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  return new Message(
-    codeConstEvalUnhandledException,
-    problemMessage:
-        """Unhandled exception: ${constant_0}""" + labeler.originMessages,
-    arguments: {'constant': constant},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalUnhandledException(Constant constant) =>
-    _withArgumentsConstEvalUnhandledException(constant: constant);
+codeConstEvalUnhandledException = constEvalUnhandledException;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeConstEvalZeroDivisor = const Template(
-  "ConstEvalZeroDivisor",
-  withArgumentsOld: _withArgumentsOldConstEvalZeroDivisor,
-  withArguments: _withArgumentsConstEvalZeroDivisor,
-);
+codeConstEvalZeroDivisor = constEvalZeroDivisor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalZeroDivisor({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeConstEvalZeroDivisor,
-    problemMessage:
-        """Binary operator '${string_0}' on '${string2_0}' requires non-zero divisor, but divisor was '0'.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
+const MessageCode codeConstFactoryRedirectionToNonConst =
+    constFactoryRedirectionToNonConst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalZeroDivisor(String string, String string2) =>
-    _withArgumentsConstEvalZeroDivisor(string: string, string2: string2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstFactoryRedirectionToNonConst = const MessageCode(
-  "ConstFactoryRedirectionToNonConst",
-  problemMessage:
-      """Constant factory constructor can't delegate to a non-constant constructor.""",
-  correctionMessage:
-      """Try redirecting to a different constructor or marking the target constructor 'const'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstInstanceField = const MessageCode(
-  "ConstInstanceField",
-  problemMessage: """Only static fields can be declared as const.""",
-  correctionMessage:
-      """Try using 'final' instead of 'const', or adding the keyword 'static'.""",
-);
+const MessageCode codeConstInstanceField = constInstanceField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConstructorConflictsWithMember = const Template(
-  "ConstructorConflictsWithMember",
-  withArgumentsOld: _withArgumentsOldConstructorConflictsWithMember,
-  withArguments: _withArgumentsConstructorConflictsWithMember,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstructorConflictsWithMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConstructorConflictsWithMember,
-    problemMessage: """The constructor conflicts with member '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorConflictsWithMember(String name) =>
-    _withArgumentsConstructorConflictsWithMember(name: name);
+codeConstructorConflictsWithMember = constructorConflictsWithMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConstructorConflictsWithMemberCause = const Template(
-  "ConstructorConflictsWithMemberCause",
-  withArgumentsOld: _withArgumentsOldConstructorConflictsWithMemberCause,
-  withArguments: _withArgumentsConstructorConflictsWithMemberCause,
-  severity: CfeSeverity.context,
-);
+codeConstructorConflictsWithMemberCause = constructorConflictsWithMemberCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstructorConflictsWithMemberCause({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConstructorConflictsWithMemberCause,
-    problemMessage: """Conflicting member '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorConflictsWithMemberCause(String name) =>
-    _withArgumentsConstructorConflictsWithMemberCause(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorCyclic = const MessageCode(
-  "ConstructorCyclic",
-  problemMessage: """Redirecting constructors can't be cyclic.""",
-  correctionMessage:
-      """Try to have all constructors eventually redirect to a non-redirecting constructor.""",
-);
+const MessageCode codeConstructorCyclic = constructorCyclic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConstructorInitializeSameInstanceVariableSeveralTimes = const Template(
-  "ConstructorInitializeSameInstanceVariableSeveralTimes",
-  withArgumentsOld:
-      _withArgumentsOldConstructorInitializeSameInstanceVariableSeveralTimes,
-  withArguments:
-      _withArgumentsConstructorInitializeSameInstanceVariableSeveralTimes,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstructorInitializeSameInstanceVariableSeveralTimes({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConstructorInitializeSameInstanceVariableSeveralTimes,
-    problemMessage:
-        """'${name_0}' was already initialized by this constructor.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorInitializeSameInstanceVariableSeveralTimes(
-  String name,
-) => _withArgumentsConstructorInitializeSameInstanceVariableSeveralTimes(
-  name: name,
-);
+codeConstructorInitializeSameInstanceVariableSeveralTimes =
+    constructorInitializeSameInstanceVariableSeveralTimes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConstructorNotFound = const Template(
-  "ConstructorNotFound",
-  withArgumentsOld: _withArgumentsOldConstructorNotFound,
-  withArguments: _withArgumentsConstructorNotFound,
-);
+codeConstructorNotFound = constructorNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstructorNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConstructorNotFound,
-    problemMessage: """Couldn't find constructor '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorNotFound(String name) =>
-    _withArgumentsConstructorNotFound(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorNotSync = const MessageCode(
-  "ConstructorNotSync",
-  problemMessage:
-      """Constructor bodies can't use 'async', 'async*', or 'sync*'.""",
-);
+const MessageCode codeConstructorNotSync = constructorNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConstructorShouldBeListedAsCallableInDynamicInterface = const Template(
-  "ConstructorShouldBeListedAsCallableInDynamicInterface",
-  withArgumentsOld:
-      _withArgumentsOldConstructorShouldBeListedAsCallableInDynamicInterface,
-  withArguments:
-      _withArgumentsConstructorShouldBeListedAsCallableInDynamicInterface,
-);
+codeConstructorShouldBeListedAsCallableInDynamicInterface =
+    constructorShouldBeListedAsCallableInDynamicInterface;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstructorShouldBeListedAsCallableInDynamicInterface({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConstructorShouldBeListedAsCallableInDynamicInterface,
-    problemMessage:
-        """Cannot invoke constructor '${name_0}' from a dynamic module.""",
-    correctionMessage:
-        """Try removing the call or update the dynamic interface to list constructor '${name_0}' as callable.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorShouldBeListedAsCallableInDynamicInterface(
-  String name,
-) => _withArgumentsConstructorShouldBeListedAsCallableInDynamicInterface(
-  name: name,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorTearOffWithTypeArguments = const MessageCode(
-  "ConstructorTearOffWithTypeArguments",
-  problemMessage:
-      """A constructor tear-off can't have type arguments after the constructor name.""",
-  correctionMessage:
-      """Try removing the type arguments or placing them after the class name.""",
-);
+const MessageCode codeConstructorTearOffWithTypeArguments =
+    constructorTearOffWithTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeConstructorWithWrongNameContext = const Template(
-  "ConstructorWithWrongNameContext",
-  withArgumentsOld: _withArgumentsOldConstructorWithWrongNameContext,
-  withArguments: _withArgumentsConstructorWithWrongNameContext,
-  severity: CfeSeverity.context,
-);
+codeConstructorWithWrongNameContext = constructorWithWrongNameContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstructorWithWrongNameContext({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeConstructorWithWrongNameContext,
-    problemMessage: """The name of the enclosing class is '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorWithWrongNameContext(String name) =>
-    _withArgumentsConstructorWithWrongNameContext(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeContinueLabelInvalid = const MessageCode(
-  "ContinueLabelInvalid",
-  problemMessage:
-      """A 'continue' label must be on a loop or a switch member.""",
-);
+const MessageCode codeContinueLabelInvalid = continueLabelInvalid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeContinueTargetOutsideFunction = const Template(
-  "ContinueTargetOutsideFunction",
-  withArgumentsOld: _withArgumentsOldContinueTargetOutsideFunction,
-  withArguments: _withArgumentsContinueTargetOutsideFunction,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsContinueTargetOutsideFunction({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeContinueTargetOutsideFunction,
-    problemMessage:
-        """Can't continue at '${name_0}' in a different function.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldContinueTargetOutsideFunction(String name) =>
-    _withArgumentsContinueTargetOutsideFunction(name: name);
+codeContinueTargetOutsideFunction = continueTargetOutsideFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeCouldNotParseUri = const Template(
-  "CouldNotParseUri",
-  withArgumentsOld: _withArgumentsOldCouldNotParseUri,
-  withArguments: _withArgumentsCouldNotParseUri,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCouldNotParseUri({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeCouldNotParseUri,
-    problemMessage: """Couldn't parse URI '${string_0}':
-  ${string2_0}.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCouldNotParseUri(String string, String string2) =>
-    _withArgumentsCouldNotParseUri(string: string, string2: string2);
+codeCouldNotParseUri = couldNotParseUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeCycleInTypeParameters = const Template(
-  "CycleInTypeParameters",
-  withArgumentsOld: _withArgumentsOldCycleInTypeParameters,
-  withArguments: _withArgumentsCycleInTypeParameters,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCycleInTypeParameters({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeCycleInTypeParameters,
-    problemMessage:
-        """Type '${name_0}' is a bound of itself via '${string_0}'.""",
-    correctionMessage:
-        """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCycleInTypeParameters(String name, String string) =>
-    _withArgumentsCycleInTypeParameters(name: name, string: string);
+codeCycleInTypeParameters = cycleInTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCyclicClassHierarchy = const Template(
-  "CyclicClassHierarchy",
-  withArgumentsOld: _withArgumentsOldCyclicClassHierarchy,
-  withArguments: _withArgumentsCyclicClassHierarchy,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCyclicClassHierarchy({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCyclicClassHierarchy,
-    problemMessage: """'${name_0}' is a supertype of itself.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicClassHierarchy(String name) =>
-    _withArgumentsCyclicClassHierarchy(name: name);
+codeCyclicClassHierarchy = cyclicClassHierarchy;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCyclicRedirectingFactoryConstructors = const Template(
-  "CyclicRedirectingFactoryConstructors",
-  withArgumentsOld: _withArgumentsOldCyclicRedirectingFactoryConstructors,
-  withArguments: _withArgumentsCyclicRedirectingFactoryConstructors,
-);
+codeCyclicRedirectingFactoryConstructors = cyclicRedirectingFactoryConstructors;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCyclicRedirectingFactoryConstructors({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCyclicRedirectingFactoryConstructors,
-    problemMessage: """Cyclic definition of factory '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicRedirectingFactoryConstructors(String name) =>
-    _withArgumentsCyclicRedirectingFactoryConstructors(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCyclicRepresentationDependency = const MessageCode(
-  "CyclicRepresentationDependency",
-  problemMessage:
-      """An extension type can't depend on itself through its representation type.""",
-);
+const MessageCode codeCyclicRepresentationDependency =
+    cyclicRepresentationDependency;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeCyclicTypedef = const Template(
-  "CyclicTypedef",
-  withArgumentsOld: _withArgumentsOldCyclicTypedef,
-  withArguments: _withArgumentsCyclicTypedef,
-);
+codeCyclicTypedef = cyclicTypedef;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCyclicTypedef({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeCyclicTypedef,
-    problemMessage: """The typedef '${name_0}' has a reference to itself.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicTypedef(String name) =>
-    _withArgumentsCyclicTypedef(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDartFfiLibraryInDart2Wasm = const MessageCode(
-  "DartFfiLibraryInDart2Wasm",
-  problemMessage: """'dart:ffi' can't be imported when compiling to Wasm.""",
-);
+const MessageCode codeDartFfiLibraryInDart2Wasm = dartFfiLibraryInDart2Wasm;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeDebugTrace = const Template(
-  "DebugTrace",
-  withArgumentsOld: _withArgumentsOldDebugTrace,
-  withArguments: _withArgumentsDebugTrace,
-  severity: CfeSeverity.ignored,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDebugTrace({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeDebugTrace,
-    problemMessage: """Fatal '${name_0}' at:
-${string_0}""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDebugTrace(String name, String string) =>
-    _withArgumentsDebugTrace(name: name, string: string);
+codeDebugTrace = debugTrace;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDeclarationConflictsWithSetter = const Template(
-  "DeclarationConflictsWithSetter",
-  withArgumentsOld: _withArgumentsOldDeclarationConflictsWithSetter,
-  withArguments: _withArgumentsDeclarationConflictsWithSetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeclarationConflictsWithSetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDeclarationConflictsWithSetter,
-    problemMessage: """The declaration conflicts with setter '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeclarationConflictsWithSetter(String name) =>
-    _withArgumentsDeclarationConflictsWithSetter(name: name);
+codeDeclarationConflictsWithSetter = declarationConflictsWithSetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDeclarationConflictsWithSetterCause = const Template(
-  "DeclarationConflictsWithSetterCause",
-  withArgumentsOld: _withArgumentsOldDeclarationConflictsWithSetterCause,
-  withArguments: _withArgumentsDeclarationConflictsWithSetterCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeclarationConflictsWithSetterCause({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDeclarationConflictsWithSetterCause,
-    problemMessage: """Conflicting setter '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeclarationConflictsWithSetterCause(String name) =>
-    _withArgumentsDeclarationConflictsWithSetterCause(name: name);
+codeDeclarationConflictsWithSetterCause = declarationConflictsWithSetterCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDeclaredMemberConflictsWithInheritedMember =
-    const MessageCode(
-      "DeclaredMemberConflictsWithInheritedMember",
-      problemMessage:
-          """Can't declare a member that conflicts with an inherited one.""",
-    );
+    declaredMemberConflictsWithInheritedMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDeclaredMemberConflictsWithInheritedMemberCause =
-    const MessageCode(
-      "DeclaredMemberConflictsWithInheritedMemberCause",
-      severity: CfeSeverity.context,
-      problemMessage: """This is the inherited member.""",
-    );
+    declaredMemberConflictsWithInheritedMemberCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDeclaredMemberConflictsWithInheritedMembersCause =
-    const MessageCode(
-      "DeclaredMemberConflictsWithInheritedMembersCause",
-      severity: CfeSeverity.context,
-      problemMessage: """This is one of the inherited members.""",
-    );
+    declaredMemberConflictsWithInheritedMembersCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDeclaredMemberConflictsWithOverriddenMembersCause =
-    const MessageCode(
-      "DeclaredMemberConflictsWithOverriddenMembersCause",
-      severity: CfeSeverity.context,
-      problemMessage: """This is one of the overridden members.""",
-    );
+    declaredMemberConflictsWithOverriddenMembersCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDefaultValueInRedirectingFactoryConstructor = const Template(
-  "DefaultValueInRedirectingFactoryConstructor",
-  withArgumentsOld:
-      _withArgumentsOldDefaultValueInRedirectingFactoryConstructor,
-  withArguments: _withArgumentsDefaultValueInRedirectingFactoryConstructor,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDefaultValueInRedirectingFactoryConstructor({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDefaultValueInRedirectingFactoryConstructor,
-    problemMessage:
-        """Can't have a default value here because any default values of '${name_0}' would be used instead.""",
-    correctionMessage: """Try removing the default value.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDefaultValueInRedirectingFactoryConstructor(
-  String name,
-) => _withArgumentsDefaultValueInRedirectingFactoryConstructor(name: name);
+codeDefaultValueInRedirectingFactoryConstructor =
+    defaultValueInRedirectingFactoryConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDeferredExtensionImport = const Template(
-  "DeferredExtensionImport",
-  withArgumentsOld: _withArgumentsOldDeferredExtensionImport,
-  withArguments: _withArgumentsDeferredExtensionImport,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeferredExtensionImport({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDeferredExtensionImport,
-    problemMessage:
-        """Extension '${name_0}' cannot be imported through a deferred import.""",
-    correctionMessage: """Try adding the `hide ${name_0}` to the import.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredExtensionImport(String name) =>
-    _withArgumentsDeferredExtensionImport(name: name);
+codeDeferredExtensionImport = deferredExtensionImport;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDeferredPrefixDuplicated = const Template(
-  "DeferredPrefixDuplicated",
-  withArgumentsOld: _withArgumentsOldDeferredPrefixDuplicated,
-  withArguments: _withArgumentsDeferredPrefixDuplicated,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeferredPrefixDuplicated({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDeferredPrefixDuplicated,
-    problemMessage:
-        """Can't use the name '${name_0}' for a deferred library, as the name is used elsewhere.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredPrefixDuplicated(String name) =>
-    _withArgumentsDeferredPrefixDuplicated(name: name);
+codeDeferredPrefixDuplicated = deferredPrefixDuplicated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDeferredPrefixDuplicatedCause = const Template(
-  "DeferredPrefixDuplicatedCause",
-  withArgumentsOld: _withArgumentsOldDeferredPrefixDuplicatedCause,
-  withArguments: _withArgumentsDeferredPrefixDuplicatedCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeferredPrefixDuplicatedCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDeferredPrefixDuplicatedCause,
-    problemMessage: """'${name_0}' is used here.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredPrefixDuplicatedCause(String name) =>
-    _withArgumentsDeferredPrefixDuplicatedCause(name: name);
+codeDeferredPrefixDuplicatedCause = deferredPrefixDuplicatedCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, String name),
   Message Function({required DartType type, required String name})
 >
-codeDeferredTypeAnnotation = const Template(
-  "DeferredTypeAnnotation",
-  withArgumentsOld: _withArgumentsOldDeferredTypeAnnotation,
-  withArguments: _withArgumentsDeferredTypeAnnotation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeferredTypeAnnotation({
-  required DartType type,
-  required String name,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDeferredTypeAnnotation,
-    problemMessage:
-        """The type '${type_0}' is deferred loaded via prefix '${name_0}' and can't be used as a type annotation.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try removing 'deferred' from the import of '${name_0}' or use a supertype of '${type_0}' that isn't deferred.""",
-    arguments: {'type': type, 'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredTypeAnnotation(DartType type, String name) =>
-    _withArgumentsDeferredTypeAnnotation(type: type, name: name);
+codeDeferredTypeAnnotation = deferredTypeAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2885,1994 +818,563 @@ const Template<
     required num num3,
   })
 >
-codeDillOutlineSummary = const Template(
-  "DillOutlineSummary",
-  withArgumentsOld: _withArgumentsOldDillOutlineSummary,
-  withArguments: _withArgumentsDillOutlineSummary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDillOutlineSummary({
-  required int count,
-  required int count2,
-  required num num1,
-  required num num2,
-  required num num3,
-}) {
-  var num1_0 = conversions.formatNumber(
-    num1,
-    fractionDigits: 3,
-    padWidth: 0,
-    padWithZeros: false,
-  );
-  var num2_0 = conversions.formatNumber(
-    num2,
-    fractionDigits: 3,
-    padWidth: 12,
-    padWithZeros: false,
-  );
-  var num3_0 = conversions.formatNumber(
-    num3,
-    fractionDigits: 3,
-    padWidth: 12,
-    padWithZeros: false,
-  );
-  return new Message(
-    codeDillOutlineSummary,
-    problemMessage:
-        """Indexed ${count} libraries (${count2} bytes) in ${num1_0}ms, that is,
-${num2_0} bytes/ms, and
-${num3_0} ms/libraries.""",
-    arguments: {
-      'count': count,
-      'count2': count2,
-      'num1': num1,
-      'num2': num2,
-      'num3': num3,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDillOutlineSummary(
-  int count,
-  int count2,
-  num num1,
-  num num2,
-  num num3,
-) => _withArgumentsDillOutlineSummary(
-  count: count,
-  count2: count2,
-  num1: num1,
-  num2: num2,
-  num3: num3,
-);
+codeDillOutlineSummary = dillOutlineSummary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDirectCycleInTypeParameters = const Template(
-  "DirectCycleInTypeParameters",
-  withArgumentsOld: _withArgumentsOldDirectCycleInTypeParameters,
-  withArguments: _withArgumentsDirectCycleInTypeParameters,
-);
+codeDirectCycleInTypeParameters = directCycleInTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDirectCycleInTypeParameters({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDirectCycleInTypeParameters,
-    problemMessage: """Type '${name_0}' can't use itself as a bound.""",
-    correctionMessage:
-        """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDirectCycleInTypeParameters(String name) =>
-    _withArgumentsDirectCycleInTypeParameters(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeDotShorthandsConstructorInvocationWithTypeArguments = const MessageCode(
-  "DotShorthandsConstructorInvocationWithTypeArguments",
-  problemMessage:
-      """A dot shorthand constructor invocation can't have type arguments.""",
-  correctionMessage:
-      """Try adding the class name and type arguments explicitly before the constructor name.""",
-);
+const MessageCode codeDotShorthandsConstructorInvocationWithTypeArguments =
+    dotShorthandsConstructorInvocationWithTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDotShorthandsInvalidContext = const Template(
-  "DotShorthandsInvalidContext",
-  withArgumentsOld: _withArgumentsOldDotShorthandsInvalidContext,
-  withArguments: _withArgumentsDotShorthandsInvalidContext,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDotShorthandsInvalidContext({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDotShorthandsInvalidContext,
-    problemMessage:
-        """No type was provided to find the dot shorthand '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDotShorthandsInvalidContext(String name) =>
-    _withArgumentsDotShorthandsInvalidContext(name: name);
+codeDotShorthandsInvalidContext = dotShorthandsInvalidContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeDotShorthandsUndefinedGetter = const Template(
-  "DotShorthandsUndefinedGetter",
-  withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedGetter,
-  withArguments: _withArgumentsDotShorthandsUndefinedGetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDotShorthandsUndefinedGetter({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeDotShorthandsUndefinedGetter,
-    problemMessage:
-        """The static getter or field '${name_0}' isn't defined for the type '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '${name_0}'.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDotShorthandsUndefinedGetter(
-  String name,
-  DartType type,
-) => _withArgumentsDotShorthandsUndefinedGetter(name: name, type: type);
+codeDotShorthandsUndefinedGetter = dotShorthandsUndefinedGetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeDotShorthandsUndefinedInvocation = const Template(
-  "DotShorthandsUndefinedInvocation",
-  withArgumentsOld: _withArgumentsOldDotShorthandsUndefinedInvocation,
-  withArguments: _withArgumentsDotShorthandsUndefinedInvocation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDotShorthandsUndefinedInvocation({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeDotShorthandsUndefinedInvocation,
-    problemMessage:
-        """The static method or constructor '${name_0}' isn't defined for the type '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '${name_0}'.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDotShorthandsUndefinedInvocation(
-  String name,
-  DartType type,
-) => _withArgumentsDotShorthandsUndefinedInvocation(name: name, type: type);
+codeDotShorthandsUndefinedInvocation = dotShorthandsUndefinedInvocation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatePatternAssignmentVariable = const Template(
-  "DuplicatePatternAssignmentVariable",
-  withArgumentsOld: _withArgumentsOldDuplicatePatternAssignmentVariable,
-  withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatePatternAssignmentVariable({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatePatternAssignmentVariable,
-    problemMessage:
-        """The variable '${name_0}' is already assigned in this pattern.""",
-    correctionMessage: """Try renaming the variable.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatePatternAssignmentVariable(String name) =>
-    _withArgumentsDuplicatePatternAssignmentVariable(name: name);
+codeDuplicatePatternAssignmentVariable = duplicatePatternAssignmentVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDuplicatePatternAssignmentVariableContext =
-    const MessageCode(
-      "DuplicatePatternAssignmentVariableContext",
-      severity: CfeSeverity.context,
-      problemMessage: """The first assigned variable pattern.""",
-    );
+    duplicatePatternAssignmentVariableContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicateRecordPatternField = const Template(
-  "DuplicateRecordPatternField",
-  withArgumentsOld: _withArgumentsOldDuplicateRecordPatternField,
-  withArguments: _withArgumentsDuplicateRecordPatternField,
-);
+codeDuplicateRecordPatternField = duplicateRecordPatternField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicateRecordPatternField({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicateRecordPatternField,
-    problemMessage:
-        """The field '${name_0}' is already matched in this pattern.""",
-    correctionMessage: """Try removing the duplicate field.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeDuplicateRecordPatternFieldContext =
+    duplicateRecordPatternFieldContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicateRecordPatternField(String name) =>
-    _withArgumentsDuplicateRecordPatternField(name: name);
+const MessageCode codeDuplicateRestElementInPattern =
+    duplicateRestElementInPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicateRecordPatternFieldContext = const MessageCode(
-  "DuplicateRecordPatternFieldContext",
-  severity: CfeSeverity.context,
-  problemMessage: """The first field.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicateRestElementInPattern = const MessageCode(
-  "DuplicateRestElementInPattern",
-  problemMessage:
-      """At most one rest element is allowed in a list or map pattern.""",
-  correctionMessage: """Try removing the duplicate rest element.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicateRestElementInPatternContext = const MessageCode(
-  "DuplicateRestElementInPatternContext",
-  severity: CfeSeverity.context,
-  problemMessage: """The first rest element.""",
-);
+const MessageCode codeDuplicateRestElementInPatternContext =
+    duplicateRestElementInPatternContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedDeclaration = const Template(
-  "DuplicatedDeclaration",
-  withArgumentsOld: _withArgumentsOldDuplicatedDeclaration,
-  withArguments: _withArgumentsDuplicatedDeclaration,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedDeclaration({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedDeclaration,
-    problemMessage: """'${name_0}' is already declared in this scope.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclaration(String name) =>
-    _withArgumentsDuplicatedDeclaration(name: name);
+codeDuplicatedDeclaration = duplicatedDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedDeclarationCause = const Template(
-  "DuplicatedDeclarationCause",
-  withArgumentsOld: _withArgumentsOldDuplicatedDeclarationCause,
-  withArguments: _withArgumentsDuplicatedDeclarationCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedDeclarationCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedDeclarationCause,
-    problemMessage: """Previous declaration of '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclarationCause(String name) =>
-    _withArgumentsDuplicatedDeclarationCause(name: name);
+codeDuplicatedDeclarationCause = duplicatedDeclarationCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedDeclarationSyntheticCause = const Template(
-  "DuplicatedDeclarationSyntheticCause",
-  withArgumentsOld: _withArgumentsOldDuplicatedDeclarationSyntheticCause,
-  withArguments: _withArgumentsDuplicatedDeclarationSyntheticCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedDeclarationSyntheticCause({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedDeclarationSyntheticCause,
-    problemMessage:
-        """Previous declaration of '${name_0}' is implied by this definition.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclarationSyntheticCause(String name) =>
-    _withArgumentsDuplicatedDeclarationSyntheticCause(name: name);
+codeDuplicatedDeclarationSyntheticCause = duplicatedDeclarationSyntheticCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedDeclarationUse = const Template(
-  "DuplicatedDeclarationUse",
-  withArgumentsOld: _withArgumentsOldDuplicatedDeclarationUse,
-  withArguments: _withArgumentsDuplicatedDeclarationUse,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedDeclarationUse({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedDeclarationUse,
-    problemMessage:
-        """Can't use '${name_0}' because it is declared more than once.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclarationUse(String name) =>
-    _withArgumentsDuplicatedDeclarationUse(name: name);
+codeDuplicatedDeclarationUse = duplicatedDeclarationUse;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, Uri uri, Uri uri2),
   Message Function({required String name, required Uri uri, required Uri uri2})
 >
-codeDuplicatedExport = const Template(
-  "DuplicatedExport",
-  withArgumentsOld: _withArgumentsOldDuplicatedExport,
-  withArguments: _withArgumentsDuplicatedExport,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedExport({
-  required String name,
-  required Uri uri,
-  required Uri uri2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var uri_0 = conversions.relativizeUri(uri);
-  var uri2_0 = conversions.relativizeUri(uri2);
-  return new Message(
-    codeDuplicatedExport,
-    problemMessage:
-        """'${name_0}' is exported from both '${uri_0}' and '${uri2_0}'.""",
-    arguments: {'name': name, 'uri': uri, 'uri2': uri2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedExport(String name, Uri uri, Uri uri2) =>
-    _withArgumentsDuplicatedExport(name: name, uri: uri, uri2: uri2);
+codeDuplicatedExport = duplicatedExport;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, Uri uri, Uri uri2),
   Message Function({required String name, required Uri uri, required Uri uri2})
 >
-codeDuplicatedImport = const Template(
-  "DuplicatedImport",
-  withArgumentsOld: _withArgumentsOldDuplicatedImport,
-  withArguments: _withArgumentsDuplicatedImport,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedImport({
-  required String name,
-  required Uri uri,
-  required Uri uri2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var uri_0 = conversions.relativizeUri(uri);
-  var uri2_0 = conversions.relativizeUri(uri2);
-  return new Message(
-    codeDuplicatedImport,
-    problemMessage:
-        """'${name_0}' is imported from both '${uri_0}' and '${uri2_0}'.""",
-    arguments: {'name': name, 'uri': uri, 'uri2': uri2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedImport(String name, Uri uri, Uri uri2) =>
-    _withArgumentsDuplicatedImport(name: name, uri: uri, uri2: uri2);
+codeDuplicatedImport = duplicatedImport;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedNamedArgument = const Template(
-  "DuplicatedNamedArgument",
-  withArgumentsOld: _withArgumentsOldDuplicatedNamedArgument,
-  withArguments: _withArgumentsDuplicatedNamedArgument,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedNamedArgument({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedNamedArgument,
-    problemMessage: """Duplicated named argument '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedNamedArgument(String name) =>
-    _withArgumentsDuplicatedNamedArgument(name: name);
+codeDuplicatedNamedArgument = duplicatedNamedArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedParameterName = const Template(
-  "DuplicatedParameterName",
-  withArgumentsOld: _withArgumentsOldDuplicatedParameterName,
-  withArguments: _withArgumentsDuplicatedParameterName,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedParameterName({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedParameterName,
-    problemMessage: """Duplicated parameter name '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedParameterName(String name) =>
-    _withArgumentsDuplicatedParameterName(name: name);
+codeDuplicatedParameterName = duplicatedParameterName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedParameterNameCause = const Template(
-  "DuplicatedParameterNameCause",
-  withArgumentsOld: _withArgumentsOldDuplicatedParameterNameCause,
-  withArguments: _withArgumentsDuplicatedParameterNameCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedParameterNameCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedParameterNameCause,
-    problemMessage: """Other parameter named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedParameterNameCause(String name) =>
-    _withArgumentsDuplicatedParameterNameCause(name: name);
+codeDuplicatedParameterNameCause = duplicatedParameterNameCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedRecordLiteralFieldName = const Template(
-  "DuplicatedRecordLiteralFieldName",
-  withArgumentsOld: _withArgumentsOldDuplicatedRecordLiteralFieldName,
-  withArguments: _withArgumentsDuplicatedRecordLiteralFieldName,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedRecordLiteralFieldName({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedRecordLiteralFieldName,
-    problemMessage: """Duplicated record literal field name '${name_0}'.""",
-    correctionMessage:
-        """Try renaming or removing one of the named record literal fields.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordLiteralFieldName(String name) =>
-    _withArgumentsDuplicatedRecordLiteralFieldName(name: name);
+codeDuplicatedRecordLiteralFieldName = duplicatedRecordLiteralFieldName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedRecordLiteralFieldNameContext = const Template(
-  "DuplicatedRecordLiteralFieldNameContext",
-  withArgumentsOld: _withArgumentsOldDuplicatedRecordLiteralFieldNameContext,
-  withArguments: _withArgumentsDuplicatedRecordLiteralFieldNameContext,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedRecordLiteralFieldNameContext({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedRecordLiteralFieldNameContext,
-    problemMessage:
-        """This is the existing record literal field named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordLiteralFieldNameContext(String name) =>
-    _withArgumentsDuplicatedRecordLiteralFieldNameContext(name: name);
+codeDuplicatedRecordLiteralFieldNameContext =
+    duplicatedRecordLiteralFieldNameContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedRecordTypeFieldName = const Template(
-  "DuplicatedRecordTypeFieldName",
-  withArgumentsOld: _withArgumentsOldDuplicatedRecordTypeFieldName,
-  withArguments: _withArgumentsDuplicatedRecordTypeFieldName,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedRecordTypeFieldName({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedRecordTypeFieldName,
-    problemMessage: """Duplicated record type field name '${name_0}'.""",
-    correctionMessage:
-        """Try renaming or removing one of the named record type fields.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordTypeFieldName(String name) =>
-    _withArgumentsDuplicatedRecordTypeFieldName(name: name);
+codeDuplicatedRecordTypeFieldName = duplicatedRecordTypeFieldName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeDuplicatedRecordTypeFieldNameContext = const Template(
-  "DuplicatedRecordTypeFieldNameContext",
-  withArgumentsOld: _withArgumentsOldDuplicatedRecordTypeFieldNameContext,
-  withArguments: _withArgumentsDuplicatedRecordTypeFieldNameContext,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedRecordTypeFieldNameContext({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeDuplicatedRecordTypeFieldNameContext,
-    problemMessage:
-        """This is the existing record type field named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordTypeFieldNameContext(String name) =>
-    _withArgumentsDuplicatedRecordTypeFieldNameContext(name: name);
+codeDuplicatedRecordTypeFieldNameContext = duplicatedRecordTypeFieldNameContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDynamicCallsAreNotAllowedInDynamicModule =
-    const MessageCode(
-      "DynamicCallsAreNotAllowedInDynamicModule",
-      problemMessage: """Dynamic calls are not allowed in a dynamic module.""",
-    );
+    dynamicCallsAreNotAllowedInDynamicModule;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEmptyMapPattern = const MessageCode(
-  "EmptyMapPattern",
-  problemMessage: """A map pattern must have at least one entry.""",
-  correctionMessage: """Try replacing it with an object pattern 'Map()'.""",
-);
+const MessageCode codeEmptyMapPattern = emptyMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumAbstractMember = const MessageCode(
-  "EnumAbstractMember",
-  problemMessage: """Enums can't declare abstract members.""",
-);
+const MessageCode codeEnumAbstractMember = enumAbstractMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumConstructorSuperInitializer = const MessageCode(
-  "EnumConstructorSuperInitializer",
-  problemMessage: """Enum constructors can't contain super-initializers.""",
-);
+const MessageCode codeEnumConstructorSuperInitializer =
+    enumConstructorSuperInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumConstructorTearoff = const MessageCode(
-  "EnumConstructorTearoff",
-  problemMessage: """Enum constructors can't be torn off.""",
-);
+const MessageCode codeEnumConstructorTearoff = enumConstructorTearoff;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeEnumContainsRestrictedInstanceDeclaration = const Template(
-  "EnumContainsRestrictedInstanceDeclaration",
-  withArgumentsOld: _withArgumentsOldEnumContainsRestrictedInstanceDeclaration,
-  withArguments: _withArgumentsEnumContainsRestrictedInstanceDeclaration,
-);
+codeEnumContainsRestrictedInstanceDeclaration =
+    enumContainsRestrictedInstanceDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsEnumContainsRestrictedInstanceDeclaration({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeEnumContainsRestrictedInstanceDeclaration,
-    problemMessage:
-        """An enum can't declare a non-abstract member named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeEnumContainsValuesDeclaration =
+    enumContainsValuesDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumContainsRestrictedInstanceDeclaration(
-  String name,
-) => _withArgumentsEnumContainsRestrictedInstanceDeclaration(name: name);
+const MessageCode codeEnumDeclarationEmpty = enumDeclarationEmpty;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumContainsValuesDeclaration = const MessageCode(
-  "EnumContainsValuesDeclaration",
-  problemMessage: """An enum can't declare a member named 'values'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumDeclarationEmpty = const MessageCode(
-  "EnumDeclarationEmpty",
-  problemMessage: """An enum declaration can't be empty.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumFactoryRedirectsToConstructor = const MessageCode(
-  "EnumFactoryRedirectsToConstructor",
-  problemMessage:
-      """Enum factory constructors can't redirect to generative constructors.""",
-);
+const MessageCode codeEnumFactoryRedirectsToConstructor =
+    enumFactoryRedirectsToConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeEnumImplementerContainsRestrictedInstanceDeclaration = const Template(
-  "EnumImplementerContainsRestrictedInstanceDeclaration",
-  withArgumentsOld:
-      _withArgumentsOldEnumImplementerContainsRestrictedInstanceDeclaration,
-  withArguments:
-      _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeEnumImplementerContainsRestrictedInstanceDeclaration,
-    problemMessage:
-        """'${name_0}' has 'Enum' as a superinterface and can't contain non-static members with name '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumImplementerContainsRestrictedInstanceDeclaration(
-  String name,
-  String name2,
-) => _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration(
-  name: name,
-  name2: name2,
-);
+codeEnumImplementerContainsRestrictedInstanceDeclaration =
+    enumImplementerContainsRestrictedInstanceDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeEnumImplementerContainsValuesDeclaration = const Template(
-  "EnumImplementerContainsValuesDeclaration",
-  withArgumentsOld: _withArgumentsOldEnumImplementerContainsValuesDeclaration,
-  withArguments: _withArgumentsEnumImplementerContainsValuesDeclaration,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsEnumImplementerContainsValuesDeclaration({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeEnumImplementerContainsValuesDeclaration,
-    problemMessage:
-        """'${name_0}' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumImplementerContainsValuesDeclaration(
-  String name,
-) => _withArgumentsEnumImplementerContainsValuesDeclaration(name: name);
+codeEnumImplementerContainsValuesDeclaration =
+    enumImplementerContainsValuesDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeEnumInheritsRestricted = const Template(
-  "EnumInheritsRestricted",
-  withArgumentsOld: _withArgumentsOldEnumInheritsRestricted,
-  withArguments: _withArgumentsEnumInheritsRestricted,
-);
+codeEnumInheritsRestricted = enumInheritsRestricted;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsEnumInheritsRestricted({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeEnumInheritsRestricted,
-    problemMessage: """An enum can't inherit a member named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeEnumInheritsRestrictedMember =
+    enumInheritsRestrictedMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumInheritsRestricted(String name) =>
-    _withArgumentsEnumInheritsRestricted(name: name);
+const MessageCode codeEnumInstantiation = enumInstantiation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumInheritsRestrictedMember = const MessageCode(
-  "EnumInheritsRestrictedMember",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the inherited member""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumInstantiation = const MessageCode(
-  "EnumInstantiation",
-  problemMessage: """Enums can't be instantiated.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumNonConstConstructor = const MessageCode(
-  "EnumNonConstConstructor",
-  problemMessage: """Generative enum constructors must be marked as 'const'.""",
-);
+const MessageCode codeEnumNonConstConstructor = enumNonConstConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeEnumSupertypeOfNonAbstractClass = const Template(
-  "EnumSupertypeOfNonAbstractClass",
-  withArgumentsOld: _withArgumentsOldEnumSupertypeOfNonAbstractClass,
-  withArguments: _withArgumentsEnumSupertypeOfNonAbstractClass,
-);
+codeEnumSupertypeOfNonAbstractClass = enumSupertypeOfNonAbstractClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsEnumSupertypeOfNonAbstractClass({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeEnumSupertypeOfNonAbstractClass,
-    problemMessage:
-        """Non-abstract class '${name_0}' has 'Enum' as a superinterface.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeEnumWithNameValues = enumWithNameValues;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumSupertypeOfNonAbstractClass(String name) =>
-    _withArgumentsEnumSupertypeOfNonAbstractClass(name: name);
+const MessageCode codeEqualKeysInMapPattern = equalKeysInMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumWithNameValues = const MessageCode(
-  "EnumWithNameValues",
-  problemMessage:
-      """The name 'values' is not a valid name for an enum. Try using a different name.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEqualKeysInMapPattern = const MessageCode(
-  "EqualKeysInMapPattern",
-  problemMessage: """Two keys in a map pattern can't be equal.""",
-  correctionMessage: """Change or remove the duplicate key.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEqualKeysInMapPatternContext = const MessageCode(
-  "EqualKeysInMapPatternContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the previous use of the same key.""",
-);
+const MessageCode codeEqualKeysInMapPatternContext =
+    equalKeysInMapPatternContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Uri uri, String string),
   Message Function({required Uri uri, required String string})
 >
-codeExceptionReadingFile = const Template(
-  "ExceptionReadingFile",
-  withArgumentsOld: _withArgumentsOldExceptionReadingFile,
-  withArguments: _withArgumentsExceptionReadingFile,
-);
+codeExceptionReadingFile = exceptionReadingFile;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExceptionReadingFile({
-  required Uri uri,
-  required String string,
-}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeExceptionReadingFile,
-    problemMessage: """Exception when reading '${uri_0}': ${string_0}""",
-    arguments: {'uri': uri, 'string': string},
-  );
-}
+const MessageCode codeExpectedBlockToSkip = expectedBlockToSkip;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExceptionReadingFile(Uri uri, String string) =>
-    _withArgumentsExceptionReadingFile(uri: uri, string: string);
+const MessageCode codeExpectedNamedArgument = expectedNamedArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedBlockToSkip = const MessageCode(
-  "ExpectedBlockToSkip",
-  problemMessage: """Expected a function body or '=>'.""",
-  correctionMessage: """Try adding {}.""",
-);
+const MessageCode codeExpectedOneExpression = expectedOneExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedNamedArgument = const MessageCode(
-  "ExpectedNamedArgument",
-  problemMessage: """Expected named argument.""",
-);
+const MessageCode codeExpectedRepresentationField = expectedRepresentationField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedOneExpression = const MessageCode(
-  "ExpectedOneExpression",
-  problemMessage: """Expected one expression, but found additional input.""",
-);
+const MessageCode codeExpectedRepresentationType = expectedRepresentationType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedRepresentationField = const MessageCode(
-  "ExpectedRepresentationField",
-  problemMessage: """Expected a representation field.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedRepresentationType = const MessageCode(
-  "ExpectedRepresentationType",
-  problemMessage: """Expected a representation type.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedUri = const MessageCode(
-  "ExpectedUri",
-  problemMessage: """Expected a URI.""",
-);
+const MessageCode codeExpectedUri = expectedUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeExperimentDisabled = const Template(
-  "ExperimentDisabled",
-  withArgumentsOld: _withArgumentsOldExperimentDisabled,
-  withArguments: _withArgumentsExperimentDisabled,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentDisabled({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeExperimentDisabled,
-    problemMessage:
-        """This requires the '${string_0}' language feature to be enabled.""",
-    correctionMessage:
-        """The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-${string_0}' command line option is passed.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentDisabled(String string) =>
-    _withArgumentsExperimentDisabled(string: string);
+codeExperimentDisabled = experimentDisabled;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeExperimentDisabledInvalidLanguageVersion = const Template(
-  "ExperimentDisabledInvalidLanguageVersion",
-  withArgumentsOld: _withArgumentsOldExperimentDisabledInvalidLanguageVersion,
-  withArguments: _withArgumentsExperimentDisabledInvalidLanguageVersion,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentDisabledInvalidLanguageVersion({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeExperimentDisabledInvalidLanguageVersion,
-    problemMessage:
-        """This requires the '${string_0}' language feature, which requires language version of ${string2_0} or higher.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentDisabledInvalidLanguageVersion(
-  String string,
-  String string2,
-) => _withArgumentsExperimentDisabledInvalidLanguageVersion(
-  string: string,
-  string2: string2,
-);
+codeExperimentDisabledInvalidLanguageVersion =
+    experimentDisabledInvalidLanguageVersion;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeExperimentExpiredDisabled = const Template(
-  "ExperimentExpiredDisabled",
-  withArgumentsOld: _withArgumentsOldExperimentExpiredDisabled,
-  withArguments: _withArgumentsExperimentExpiredDisabled,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentExpiredDisabled({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeExperimentExpiredDisabled,
-    problemMessage:
-        """The experiment '${name_0}' has expired and can't be disabled.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentExpiredDisabled(String name) =>
-    _withArgumentsExperimentExpiredDisabled(name: name);
+codeExperimentExpiredDisabled = experimentExpiredDisabled;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeExperimentExpiredEnabled = const Template(
-  "ExperimentExpiredEnabled",
-  withArgumentsOld: _withArgumentsOldExperimentExpiredEnabled,
-  withArguments: _withArgumentsExperimentExpiredEnabled,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentExpiredEnabled({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeExperimentExpiredEnabled,
-    problemMessage:
-        """The experiment '${name_0}' has expired and can't be enabled.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentExpiredEnabled(String name) =>
-    _withArgumentsExperimentExpiredEnabled(name: name);
+codeExperimentExpiredEnabled = experimentExpiredEnabled;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeExperimentOptOutComment = const Template(
-  "ExperimentOptOutComment",
-  withArgumentsOld: _withArgumentsOldExperimentOptOutComment,
-  withArguments: _withArgumentsExperimentOptOutComment,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentOptOutComment({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeExperimentOptOutComment,
-    problemMessage:
-        """This is the annotation that opts out this library from the '${string_0}' language feature.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentOptOutComment(String string) =>
-    _withArgumentsExperimentOptOutComment(string: string);
+codeExperimentOptOutComment = experimentOptOutComment;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeExperimentOptOutExplicit = const Template(
-  "ExperimentOptOutExplicit",
-  withArgumentsOld: _withArgumentsOldExperimentOptOutExplicit,
-  withArguments: _withArgumentsExperimentOptOutExplicit,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentOptOutExplicit({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeExperimentOptOutExplicit,
-    problemMessage:
-        """The '${string_0}' language feature is disabled for this library.""",
-    correctionMessage:
-        """Try removing the `@dart=` annotation or setting the language version to ${string2_0} or higher.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentOptOutExplicit(
-  String string,
-  String string2,
-) => _withArgumentsExperimentOptOutExplicit(string: string, string2: string2);
+codeExperimentOptOutExplicit = experimentOptOutExplicit;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeExperimentOptOutImplicit = const Template(
-  "ExperimentOptOutImplicit",
-  withArgumentsOld: _withArgumentsOldExperimentOptOutImplicit,
-  withArguments: _withArgumentsExperimentOptOutImplicit,
-);
+codeExperimentOptOutImplicit = experimentOptOutImplicit;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentOptOutImplicit({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeExperimentOptOutImplicit,
-    problemMessage:
-        """The '${string_0}' language feature is disabled for this library.""",
-    correctionMessage:
-        """Try removing the package language version or setting the language version to ${string2_0} or higher.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
+const MessageCode codeExplicitExtensionArgumentMismatch =
+    explicitExtensionArgumentMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentOptOutImplicit(
-  String string,
-  String string2,
-) => _withArgumentsExperimentOptOutImplicit(string: string, string2: string2);
+const MessageCode codeExplicitExtensionAsExpression =
+    explicitExtensionAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExplicitExtensionArgumentMismatch = const MessageCode(
-  "ExplicitExtensionArgumentMismatch",
-  problemMessage:
-      """Explicit extension application requires exactly 1 positional argument.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExplicitExtensionAsExpression = const MessageCode(
-  "ExplicitExtensionAsExpression",
-  problemMessage:
-      """Explicit extension application cannot be used as an expression.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExplicitExtensionAsLvalue = const MessageCode(
-  "ExplicitExtensionAsLvalue",
-  problemMessage:
-      """Explicit extension application cannot be a target for assignment.""",
-);
+const MessageCode codeExplicitExtensionAsLvalue = explicitExtensionAsLvalue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, int count),
   Message Function({required String name, required int count})
 >
-codeExplicitExtensionTypeArgumentMismatch = const Template(
-  "ExplicitExtensionTypeArgumentMismatch",
-  withArgumentsOld: _withArgumentsOldExplicitExtensionTypeArgumentMismatch,
-  withArguments: _withArgumentsExplicitExtensionTypeArgumentMismatch,
-);
+codeExplicitExtensionTypeArgumentMismatch =
+    explicitExtensionTypeArgumentMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExplicitExtensionTypeArgumentMismatch({
-  required String name,
-  required int count,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeExplicitExtensionTypeArgumentMismatch,
-    problemMessage:
-        """Explicit extension application of extension '${name_0}' takes '${count}' type argument(s).""",
-    arguments: {'name': name, 'count': count},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExplicitExtensionTypeArgumentMismatch(
-  String name,
-  int count,
-) => _withArgumentsExplicitExtensionTypeArgumentMismatch(
-  name: name,
-  count: count,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExportedMain = const MessageCode(
-  "ExportedMain",
-  severity: CfeSeverity.context,
-  problemMessage: """This is exported 'main' declaration.""",
-);
+const MessageCode codeExportedMain = exportedMain;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeExpressionEvaluationKnownVariableUnavailable = const Template(
-  "ExpressionEvaluationKnownVariableUnavailable",
-  withArgumentsOld:
-      _withArgumentsOldExpressionEvaluationKnownVariableUnavailable,
-  withArguments: _withArgumentsExpressionEvaluationKnownVariableUnavailable,
-);
+codeExpressionEvaluationKnownVariableUnavailable =
+    expressionEvaluationKnownVariableUnavailable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpressionEvaluationKnownVariableUnavailable({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeExpressionEvaluationKnownVariableUnavailable,
-    problemMessage:
-        """The variable '${name_0}' is unavailable in this expression evaluation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpressionEvaluationKnownVariableUnavailable(
-  String name,
-) => _withArgumentsExpressionEvaluationKnownVariableUnavailable(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpressionNotMetadata = const MessageCode(
-  "ExpressionNotMetadata",
-  problemMessage:
-      """This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.""",
-);
+const MessageCode codeExpressionNotMetadata = expressionNotMetadata;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeExtendingEnum = const Template(
-  "ExtendingEnum",
-  withArgumentsOld: _withArgumentsOldExtendingEnum,
-  withArguments: _withArgumentsExtendingEnum,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtendingEnum({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeExtendingEnum,
-    problemMessage:
-        """'${name_0}' is an enum and can't be extended or implemented.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtendingEnum(String name) =>
-    _withArgumentsExtendingEnum(name: name);
+codeExtendingEnum = extendingEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeExtendingRestricted = const Template(
-  "ExtendingRestricted",
-  withArgumentsOld: _withArgumentsOldExtendingRestricted,
-  withArguments: _withArgumentsExtendingRestricted,
-);
+codeExtendingRestricted = extendingRestricted;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtendingRestricted({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeExtendingRestricted,
-    problemMessage:
-        """'${name_0}' is restricted and can't be extended or implemented.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeExtendsDeferredClass = extendsDeferredClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtendingRestricted(String name) =>
-    _withArgumentsExtendingRestricted(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtendsDeferredClass = const MessageCode(
-  "ExtendsDeferredClass",
-  problemMessage: """Classes can't extend deferred classes.""",
-  correctionMessage:
-      """Try specifying a different superclass, or removing the extends clause.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtendsNever = const MessageCode(
-  "ExtendsNever",
-  problemMessage: """The type 'Never' can't be used in an 'extends' clause.""",
-);
+const MessageCode codeExtendsNever = extendsNever;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeExtensionMemberConflictsWithObjectMember = const Template(
-  "ExtensionMemberConflictsWithObjectMember",
-  withArgumentsOld: _withArgumentsOldExtensionMemberConflictsWithObjectMember,
-  withArguments: _withArgumentsExtensionMemberConflictsWithObjectMember,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtensionMemberConflictsWithObjectMember({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeExtensionMemberConflictsWithObjectMember,
-    problemMessage:
-        """This extension member conflicts with Object member '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtensionMemberConflictsWithObjectMember(
-  String name,
-) => _withArgumentsExtensionMemberConflictsWithObjectMember(name: name);
+codeExtensionMemberConflictsWithObjectMember =
+    extensionMemberConflictsWithObjectMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeExtensionTypeCombinedMemberSignatureFailed = const Template(
-  "ExtensionTypeCombinedMemberSignatureFailed",
-  withArgumentsOld: _withArgumentsOldExtensionTypeCombinedMemberSignatureFailed,
-  withArguments: _withArgumentsExtensionTypeCombinedMemberSignatureFailed,
-);
+codeExtensionTypeCombinedMemberSignatureFailed =
+    extensionTypeCombinedMemberSignatureFailed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtensionTypeCombinedMemberSignatureFailed({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeExtensionTypeCombinedMemberSignatureFailed,
-    problemMessage:
-        """Extension type '${name_0}' inherits multiple members named '${name2_0}' with incompatible signatures.""",
-    correctionMessage:
-        """Try adding a declaration of '${name2_0}' to '${name_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
+const MessageCode codeExtensionTypeConstructorWithSuperFormalParameter =
+    extensionTypeConstructorWithSuperFormalParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtensionTypeCombinedMemberSignatureFailed(
-  String name,
-  String name2,
-) => _withArgumentsExtensionTypeCombinedMemberSignatureFailed(
-  name: name,
-  name2: name2,
-);
+const MessageCode codeExtensionTypeDeclarationCause =
+    extensionTypeDeclarationCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeExtensionTypeImplementsDeferred =
+    extensionTypeImplementsDeferred;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeExtensionTypeMemberContext = extensionTypeMemberContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeExtensionTypeMemberOneOfContext =
+    extensionTypeMemberOneOfContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
-codeExtensionTypeConstructorWithSuperFormalParameter = const MessageCode(
-  "ExtensionTypeConstructorWithSuperFormalParameter",
-  problemMessage:
-      """Extension type constructors can't declare super formal parameters.""",
-);
+codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax =
+    extensionTypePrimaryConstructorFunctionFormalParameterSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeDeclarationCause = const MessageCode(
-  "ExtensionTypeDeclarationCause",
-  severity: CfeSeverity.context,
-  problemMessage: """The issue arises via this extension type declaration.""",
-);
+const MessageCode codeExtensionTypePrimaryConstructorWithInitializingFormal =
+    extensionTypePrimaryConstructorWithInitializingFormal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeImplementsDeferred = const MessageCode(
-  "ExtensionTypeImplementsDeferred",
-  problemMessage: """Extension types can't implement deferred types.""",
-  correctionMessage:
-      """Try specifying a different type, removing the type from the list, or changing the import to not be deferred.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeMemberContext = const MessageCode(
-  "ExtensionTypeMemberContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the inherited extension type member.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeMemberOneOfContext = const MessageCode(
-  "ExtensionTypeMemberOneOfContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This is one of the inherited extension type members.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax = const MessageCode(
-  "ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax",
-  problemMessage:
-      """Primary constructors in extension types can't use function formal parameter syntax.""",
-  correctionMessage:
-      """Try rewriting with an explicit function type, like `int Function() f`.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeExtensionTypePrimaryConstructorWithInitializingFormal = const MessageCode(
-  "ExtensionTypePrimaryConstructorWithInitializingFormal",
-  problemMessage:
-      """Primary constructors in extension types can't use initializing formals.""",
-  correctionMessage: """Try removing `this.` from the formal parameter.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeRepresentationTypeBottom = const MessageCode(
-  "ExtensionTypeRepresentationTypeBottom",
-  problemMessage: """The representation type can't be a bottom type.""",
-);
+const MessageCode codeExtensionTypeRepresentationTypeBottom =
+    extensionTypeRepresentationTypeBottom;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeExtensionTypeShouldBeListedAsCallableInDynamicInterface = const Template(
-  "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
-  withArgumentsOld:
-      _withArgumentsOldExtensionTypeShouldBeListedAsCallableInDynamicInterface,
-  withArguments:
-      _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface,
-);
+codeExtensionTypeShouldBeListedAsCallableInDynamicInterface =
+    extensionTypeShouldBeListedAsCallableInDynamicInterface;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeExtensionTypeShouldBeListedAsCallableInDynamicInterface,
-    problemMessage:
-        """Cannot use extension type '${name_0}' in a dynamic module.""",
-    correctionMessage:
-        """Try removing the reference to extension type '${name_0}' or update the dynamic interface to list extension type '${name_0}' as callable.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeExternalFieldConstructorInitializer =
+    externalFieldConstructorInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message
-_withArgumentsOldExtensionTypeShouldBeListedAsCallableInDynamicInterface(
-  String name,
-) => _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface(
-  name: name,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalFieldConstructorInitializer = const MessageCode(
-  "ExternalFieldConstructorInitializer",
-  problemMessage: """External fields cannot have initializers.""",
-  correctionMessage:
-      """Try removing the field initializer or the 'external' keyword from the field declaration.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalFieldInitializer = const MessageCode(
-  "ExternalFieldInitializer",
-  problemMessage: """External fields cannot have initializers.""",
-  correctionMessage:
-      """Try removing the initializer or the 'external' keyword.""",
-);
+const MessageCode codeExternalFieldInitializer = externalFieldInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFactoryConflictsWithMember = const Template(
-  "FactoryConflictsWithMember",
-  withArgumentsOld: _withArgumentsOldFactoryConflictsWithMember,
-  withArguments: _withArgumentsFactoryConflictsWithMember,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryConflictsWithMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFactoryConflictsWithMember,
-    problemMessage: """The factory conflicts with member '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFactoryConflictsWithMember(String name) =>
-    _withArgumentsFactoryConflictsWithMember(name: name);
+codeFactoryConflictsWithMember = factoryConflictsWithMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFactoryConflictsWithMemberCause = const Template(
-  "FactoryConflictsWithMemberCause",
-  withArgumentsOld: _withArgumentsOldFactoryConflictsWithMemberCause,
-  withArguments: _withArgumentsFactoryConflictsWithMemberCause,
-  severity: CfeSeverity.context,
-);
+codeFactoryConflictsWithMemberCause = factoryConflictsWithMemberCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryConflictsWithMemberCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFactoryConflictsWithMemberCause,
-    problemMessage: """Conflicting member '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeFastaUsageLong = fastaUsageLong;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFactoryConflictsWithMemberCause(String name) =>
-    _withArgumentsFactoryConflictsWithMemberCause(name: name);
+const MessageCode codeFastaUsageShort = fastaUsageShort;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFastaUsageLong = const MessageCode(
-  "FastaUsageLong",
-  problemMessage: """Supported options:
-
-  -o <file>, --output=<file>
-    Generate the output into <file>.
-
-  -h, /h, /?, --help
-    Display this message (add -v for information about all options).
-
-  -v, --verbose
-    Display verbose information.
-
-  -Dname
-  -Dname=value
-    Define an environment variable in the compile-time environment.
-
-  --no-defines
-    Ignore all -D options and leave environment constants unevaluated.
-
-  --
-    Stop option parsing, the rest of the command line is assumed to be
-    file names or arguments to the Dart program.
-
-  --packages=<file>
-    Use package resolution configuration <file>, which should contain a mapping
-    of package names to paths.
-
-  --platform=<file>
-    Read the SDK platform from <file>, which should be in Dill/Kernel IR format
-    and contain the Dart SDK.
-
-  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart_runner|dartdevc|flutter|flutter_runner|none|vm
-    Specify the target configuration.
-
-  --enable-asserts
-    Check asserts in initializers during constant evaluation.
-
-  --verify
-    Check that the generated output is free of various problems. This is mostly
-    useful for developers of this compiler or Kernel transformations.
-
-  --dump-ir
-    Print compiled libraries in Kernel source notation.
-
-  --omit-platform
-    Exclude the platform from the serialized dill file.
-
-  --exclude-source
-    Do not include source code in the dill file.
-
-  --compile-sdk=<sdk>
-    Compile the SDK from scratch instead of reading it from a .dill file
-    (see --platform).
-
-  --sdk=<sdk>
-    Location of the SDK sources for use when compiling additional platform
-    libraries.
-
-  --single-root-scheme=String
-  --single-root-base=<dir>
-    Specify a custom URI scheme and a location on disk where such URIs are
-    mapped to.
-
-    When specified, the compiler can be invoked with inputs using the custom
-    URI scheme. The compiler can ignore the exact location of files on disk
-    and as a result to produce output that is independent of the absolute
-    location of files on disk. This is mostly useful for integrating with
-    build systems.
-
-  --fatal=errors
-  --fatal=warnings
-    Makes messages of the given kinds fatal, that is, immediately stop the
-    compiler with a non-zero exit-code. In --verbose mode, also display an
-    internal stack trace from the compiler. Multiple kinds can be separated by
-    commas, for example, --fatal=errors,warnings.
-
-  --fatal-skip=<number>
-  --fatal-skip=trace
-    Skip this many messages that would otherwise be fatal before aborting the
-    compilation. Default is 0, which stops at the first message. Specify
-    'trace' to print a stack trace for every message without stopping.
-
-  --enable-experiment=<flag>
-    Enable or disable an experimental flag, used to guard features currently
-    in development. Prefix an experiment name with 'no-' to disable it.
-    Multiple experiments can be separated by commas.""",
-);
+const MessageCode codeFfiAbiSpecificIntegerInvalid =
+    ffiAbiSpecificIntegerInvalid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFastaUsageShort = const MessageCode(
-  "FastaUsageShort",
-  problemMessage: """Frequently used options:
-
-  -o <file> Generate the output into <file>.
-  -h        Display this message (add -v for information about all options).""",
-);
+const MessageCode codeFfiAbiSpecificIntegerMappingInvalid =
+    ffiAbiSpecificIntegerMappingInvalid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAbiSpecificIntegerInvalid = const MessageCode(
-  "FfiAbiSpecificIntegerInvalid",
-  problemMessage:
-      """Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.""",
-);
+const MessageCode codeFfiAddressOfMustBeNative = ffiAddressOfMustBeNative;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAbiSpecificIntegerMappingInvalid = const MessageCode(
-  "FfiAbiSpecificIntegerMappingInvalid",
-  problemMessage:
-      """Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""",
-);
+const MessageCode codeFfiAddressPosition = ffiAddressPosition;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAddressOfMustBeNative = const MessageCode(
-  "FfiAddressOfMustBeNative",
-  problemMessage:
-      """Argument to 'Native.addressOf' must be annotated with @Native.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAddressPosition = const MessageCode(
-  "FfiAddressPosition",
-  problemMessage:
-      """The '.address' expression can only be used as argument to a leaf native external call.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAddressReceiver = const MessageCode(
-  "FfiAddressReceiver",
-  problemMessage:
-      """The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field.""",
-  correctionMessage:
-      """Change the receiver of '.address' to one of the allowed kinds.""",
-);
+const MessageCode codeFfiAddressReceiver = ffiAddressReceiver;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String name),
   Message Function({required String string, required String name})
 >
-codeFfiCompoundImplementsFinalizable = const Template(
-  "FfiCompoundImplementsFinalizable",
-  withArgumentsOld: _withArgumentsOldFfiCompoundImplementsFinalizable,
-  withArguments: _withArgumentsFfiCompoundImplementsFinalizable,
-);
+codeFfiCompoundImplementsFinalizable = ffiCompoundImplementsFinalizable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiCompoundImplementsFinalizable({
-  required String string,
-  required String name,
-}) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiCompoundImplementsFinalizable,
-    problemMessage: """${string_0} '${name_0}' can't implement Finalizable.""",
-    correctionMessage:
-        """Try removing the implements clause from '${name_0}'.""",
-    arguments: {'string': string, 'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiCompoundImplementsFinalizable(
-  String string,
-  String name,
-) => _withArgumentsFfiCompoundImplementsFinalizable(string: string, name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiCreateOfStructOrUnion = const MessageCode(
-  "FfiCreateOfStructOrUnion",
-  problemMessage:
-      """Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""",
-);
+const MessageCode codeFfiCreateOfStructOrUnion = ffiCreateOfStructOrUnion;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeFfiDartTypeMismatch = const Template(
-  "FfiDartTypeMismatch",
-  withArgumentsOld: _withArgumentsOldFfiDartTypeMismatch,
-  withArguments: _withArgumentsFfiDartTypeMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiDartTypeMismatch({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeFfiDartTypeMismatch,
-    problemMessage:
-        """Expected '${type_0}' to be a subtype of '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiDartTypeMismatch(DartType type, DartType type2) =>
-    _withArgumentsFfiDartTypeMismatch(type: type, type2: type2);
+codeFfiDartTypeMismatch = ffiDartTypeMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiDeeplyImmutableClassesMustBeFinalOrSealed =
-    const MessageCode(
-      "FfiDeeplyImmutableClassesMustBeFinalOrSealed",
-      problemMessage: """Deeply immutable classes must be final or sealed.""",
-      correctionMessage: """Try marking this class as final or sealed.""",
-    );
+    ffiDeeplyImmutableClassesMustBeFinalOrSealed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiDeeplyImmutableFieldsModifiers = const MessageCode(
-  "FfiDeeplyImmutableFieldsModifiers",
-  problemMessage:
-      """Deeply immutable classes must only have final non-late instance fields.""",
-  correctionMessage:
-      """Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
-);
+const MessageCode codeFfiDeeplyImmutableFieldsModifiers =
+    ffiDeeplyImmutableFieldsModifiers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable = const MessageCode(
-  "FfiDeeplyImmutableFieldsMustBeDeeplyImmutable",
-  problemMessage:
-      """Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', function types and classes annotated with `@pragma('vm:deeply-immutable')`.""",
-  correctionMessage:
-      """Try changing the type of this field to a deeply immutable type or mark the type of this field as deeply immutable.""",
-);
+const MessageCode codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
+    ffiDeeplyImmutableFieldsMustBeDeeplyImmutable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable = const MessageCode(
-  "FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable",
-  problemMessage:
-      """Subtypes of deeply immutable classes must be deeply immutable.""",
-  correctionMessage:
-      """Try marking this class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
-);
+const MessageCode codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
+    ffiDeeplyImmutableSubtypesMustBeDeeplyImmutable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable = const MessageCode(
-  "FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable",
-  problemMessage:
-      """The super type of deeply immutable classes must be deeply immutable.""",
-  correctionMessage:
-      """Try marking the super class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
-);
+const MessageCode codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
+    ffiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiDefaultAssetDuplicate = const MessageCode(
-  "FfiDefaultAssetDuplicate",
-  problemMessage:
-      """There may be at most one @DefaultAsset annotation on a library.""",
-);
+const MessageCode codeFfiDefaultAssetDuplicate = ffiDefaultAssetDuplicate;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String name),
   Message Function({required String string, required String name})
 >
-codeFfiEmptyStruct = const Template(
-  "FfiEmptyStruct",
-  withArgumentsOld: _withArgumentsOldFfiEmptyStruct,
-  withArguments: _withArgumentsFfiEmptyStruct,
-);
+codeFfiEmptyStruct = ffiEmptyStruct;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiEmptyStruct({
-  required String string,
-  required String name,
-}) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiEmptyStruct,
-    problemMessage:
-        """${string_0} '${name_0}' is empty. Empty structs and unions are undefined behavior.""",
-    arguments: {'string': string, 'name': name},
-  );
-}
+const MessageCode codeFfiExceptionalReturnNull = ffiExceptionalReturnNull;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiEmptyStruct(String string, String name) =>
-    _withArgumentsFfiEmptyStruct(string: string, name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiExceptionalReturnNull = const MessageCode(
-  "FfiExceptionalReturnNull",
-  problemMessage: """Exceptional return value must not be null.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiExpectedConstant = const MessageCode(
-  "FfiExpectedConstant",
-  problemMessage: """Exceptional return value must be a constant.""",
-);
+const MessageCode codeFfiExpectedConstant = ffiExpectedConstant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiExpectedConstantArg = const Template(
-  "FfiExpectedConstantArg",
-  withArgumentsOld: _withArgumentsOldFfiExpectedConstantArg,
-  withArguments: _withArgumentsFfiExpectedConstantArg,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExpectedConstantArg({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiExpectedConstantArg,
-    problemMessage: """Argument '${name_0}' must be a constant.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiExpectedConstantArg(String name) =>
-    _withArgumentsFfiExpectedConstantArg(name: name);
+codeFfiExpectedConstantArg = ffiExpectedConstantArg;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeFfiExpectedExceptionalReturn = const Template(
-  "FfiExpectedExceptionalReturn",
-  withArgumentsOld: _withArgumentsOldFfiExpectedExceptionalReturn,
-  withArguments: _withArgumentsFfiExpectedExceptionalReturn,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExpectedExceptionalReturn({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeFfiExpectedExceptionalReturn,
-    problemMessage:
-        """Expected an exceptional return value for a native callback returning '${type_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiExpectedExceptionalReturn(DartType type) =>
-    _withArgumentsFfiExpectedExceptionalReturn(type: type);
+codeFfiExpectedExceptionalReturn = ffiExpectedExceptionalReturn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeFfiExpectedNoExceptionalReturn = const Template(
-  "FfiExpectedNoExceptionalReturn",
-  withArgumentsOld: _withArgumentsOldFfiExpectedNoExceptionalReturn,
-  withArguments: _withArgumentsFfiExpectedNoExceptionalReturn,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExpectedNoExceptionalReturn({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeFfiExpectedNoExceptionalReturn,
-    problemMessage:
-        """Exceptional return value cannot be provided for a native callback returning '${type_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiExpectedNoExceptionalReturn(DartType type) =>
-    _withArgumentsFfiExpectedNoExceptionalReturn(type: type);
+codeFfiExpectedNoExceptionalReturn = ffiExpectedNoExceptionalReturn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiExtendsOrImplementsSealedClass = const Template(
-  "FfiExtendsOrImplementsSealedClass",
-  withArgumentsOld: _withArgumentsOldFfiExtendsOrImplementsSealedClass,
-  withArguments: _withArgumentsFfiExtendsOrImplementsSealedClass,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExtendsOrImplementsSealedClass({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiExtendsOrImplementsSealedClass,
-    problemMessage: """Class '${name_0}' cannot be extended or implemented.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiExtendsOrImplementsSealedClass(String name) =>
-    _withArgumentsFfiExtendsOrImplementsSealedClass(name: name);
+codeFfiExtendsOrImplementsSealedClass = ffiExtendsOrImplementsSealedClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiFieldAnnotation = const Template(
-  "FfiFieldAnnotation",
-  withArgumentsOld: _withArgumentsOldFfiFieldAnnotation,
-  withArguments: _withArgumentsFfiFieldAnnotation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldAnnotation({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiFieldAnnotation,
-    problemMessage:
-        """Field '${name_0}' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldAnnotation(String name) =>
-    _withArgumentsFfiFieldAnnotation(name: name);
+codeFfiFieldAnnotation = ffiFieldAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4883,440 +1385,129 @@ const Template<
     required List<String> names,
   })
 >
-codeFfiFieldCyclic = const Template(
-  "FfiFieldCyclic",
-  withArgumentsOld: _withArgumentsOldFfiFieldCyclic,
-  withArguments: _withArgumentsFfiFieldCyclic,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldCyclic({
-  required String string,
-  required String name,
-  required List<String> names,
-}) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var names_0 = conversions.validateAndItemizeNames(names);
-  return new Message(
-    codeFfiFieldCyclic,
-    problemMessage: """${string_0} '${name_0}' contains itself. Cycle elements:
-${names_0}""",
-    arguments: {'string': string, 'name': name, 'names': names},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldCyclic(
-  String string,
-  String name,
-  List<String> names,
-) => _withArgumentsFfiFieldCyclic(string: string, name: name, names: names);
+codeFfiFieldCyclic = ffiFieldCyclic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiFieldInitializer = const Template(
-  "FfiFieldInitializer",
-  withArgumentsOld: _withArgumentsOldFfiFieldInitializer,
-  withArguments: _withArgumentsFfiFieldInitializer,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldInitializer({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiFieldInitializer,
-    problemMessage:
-        """Field '${name_0}' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
-    correctionMessage:
-        """Mark the field as external to avoid having to initialize it.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldInitializer(String name) =>
-    _withArgumentsFfiFieldInitializer(name: name);
+codeFfiFieldInitializer = ffiFieldInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiFieldNoAnnotation = const Template(
-  "FfiFieldNoAnnotation",
-  withArgumentsOld: _withArgumentsOldFfiFieldNoAnnotation,
-  withArguments: _withArgumentsFfiFieldNoAnnotation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldNoAnnotation({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiFieldNoAnnotation,
-    problemMessage:
-        """Field '${name_0}' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldNoAnnotation(String name) =>
-    _withArgumentsFfiFieldNoAnnotation(name: name);
+codeFfiFieldNoAnnotation = ffiFieldNoAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiFieldNull = const Template(
-  "FfiFieldNull",
-  withArgumentsOld: _withArgumentsOldFfiFieldNull,
-  withArguments: _withArgumentsFfiFieldNull,
-);
+codeFfiFieldNull = ffiFieldNull;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldNull({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiFieldNull,
-    problemMessage:
-        """Field '${name_0}' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeFfiLeafCallMustNotReturnHandle =
+    ffiLeafCallMustNotReturnHandle;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldNull(String name) =>
-    _withArgumentsFfiFieldNull(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiLeafCallMustNotReturnHandle = const MessageCode(
-  "FfiLeafCallMustNotReturnHandle",
-  problemMessage: """FFI leaf call must not have Handle return type.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiLeafCallMustNotTakeHandle = const MessageCode(
-  "FfiLeafCallMustNotTakeHandle",
-  problemMessage: """FFI leaf call must not have Handle argument types.""",
-);
+const MessageCode codeFfiLeafCallMustNotTakeHandle =
+    ffiLeafCallMustNotTakeHandle;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeFfiNativeCallableListenerReturnVoid = const Template(
-  "FfiNativeCallableListenerReturnVoid",
-  withArgumentsOld: _withArgumentsOldFfiNativeCallableListenerReturnVoid,
-  withArguments: _withArgumentsFfiNativeCallableListenerReturnVoid,
-);
+codeFfiNativeCallableListenerReturnVoid = ffiNativeCallableListenerReturnVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiNativeCallableListenerReturnVoid({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeFfiNativeCallableListenerReturnVoid,
-    problemMessage:
-        """The return type of the function passed to NativeCallable.listener must be void rather than '${type_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type},
-  );
-}
+const MessageCode codeFfiNativeDuplicateAnnotations =
+    ffiNativeDuplicateAnnotations;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiNativeCallableListenerReturnVoid(DartType type) =>
-    _withArgumentsFfiNativeCallableListenerReturnVoid(type: type);
+const MessageCode codeFfiNativeFieldMissingType = ffiNativeFieldMissingType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeDuplicateAnnotations = const MessageCode(
-  "FfiNativeDuplicateAnnotations",
-  problemMessage:
-      """Native functions and fields must not have more than @Native annotation.""",
-);
+const MessageCode codeFfiNativeFieldMustBeStatic = ffiNativeFieldMustBeStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeFieldMissingType = const MessageCode(
-  "FfiNativeFieldMissingType",
-  problemMessage:
-      """The native type of this field could not be inferred and must be specified in the annotation.""",
-);
+const MessageCode codeFfiNativeFieldType = ffiNativeFieldType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeFieldMustBeStatic = const MessageCode(
-  "FfiNativeFieldMustBeStatic",
-  problemMessage: """Native fields must be static.""",
-);
+const MessageCode codeFfiNativeFunctionMissingType =
+    ffiNativeFunctionMissingType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeFieldType = const MessageCode(
-  "FfiNativeFieldType",
-  problemMessage:
-      """Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.""",
-);
+const MessageCode codeFfiNativeMustBeExternal = ffiNativeMustBeExternal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeFunctionMissingType = const MessageCode(
-  "FfiNativeFunctionMissingType",
-  problemMessage:
-      """The native type of this function couldn't be inferred so it must be specified in the annotation.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeMustBeExternal = const MessageCode(
-  "FfiNativeMustBeExternal",
-  problemMessage: """Native functions and fields must be marked external.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer = const MessageCode(
-  "FfiNativeOnlyNativeFieldWrapperClassCanBePointer",
-  problemMessage:
-      """Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.""",
-);
+const MessageCode codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
+    ffiNativeOnlyNativeFieldWrapperClassCanBePointer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int count, int count2),
   Message Function({required int count, required int count2})
 >
-codeFfiNativeUnexpectedNumberOfParameters = const Template(
-  "FfiNativeUnexpectedNumberOfParameters",
-  withArgumentsOld: _withArgumentsOldFfiNativeUnexpectedNumberOfParameters,
-  withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiNativeUnexpectedNumberOfParameters({
-  required int count,
-  required int count2,
-}) {
-  return new Message(
-    codeFfiNativeUnexpectedNumberOfParameters,
-    problemMessage:
-        """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}.""",
-    arguments: {'count': count, 'count2': count2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiNativeUnexpectedNumberOfParameters(
-  int count,
-  int count2,
-) => _withArgumentsFfiNativeUnexpectedNumberOfParameters(
-  count: count,
-  count2: count2,
-);
+codeFfiNativeUnexpectedNumberOfParameters =
+    ffiNativeUnexpectedNumberOfParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int count, int count2),
   Message Function({required int count, required int count2})
 >
-codeFfiNativeUnexpectedNumberOfParametersWithReceiver = const Template(
-  "FfiNativeUnexpectedNumberOfParametersWithReceiver",
-  withArgumentsOld:
-      _withArgumentsOldFfiNativeUnexpectedNumberOfParametersWithReceiver,
-  withArguments:
-      _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver({
-  required int count,
-  required int count2,
-}) {
-  return new Message(
-    codeFfiNativeUnexpectedNumberOfParametersWithReceiver,
-    problemMessage:
-        """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}. Native instance method annotation must have receiver as first argument.""",
-    arguments: {'count': count, 'count2': count2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiNativeUnexpectedNumberOfParametersWithReceiver(
-  int count,
-  int count2,
-) => _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver(
-  count: count,
-  count2: count2,
-);
+codeFfiNativeUnexpectedNumberOfParametersWithReceiver =
+    ffiNativeUnexpectedNumberOfParametersWithReceiver;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiNotStatic = const Template(
-  "FfiNotStatic",
-  withArgumentsOld: _withArgumentsOldFfiNotStatic,
-  withArguments: _withArgumentsFfiNotStatic,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiNotStatic({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiNotStatic,
-    problemMessage:
-        """${name_0} expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiNotStatic(String name) =>
-    _withArgumentsFfiNotStatic(name: name);
+codeFfiNotStatic = ffiNotStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiPackedAnnotation = const Template(
-  "FfiPackedAnnotation",
-  withArgumentsOld: _withArgumentsOldFfiPackedAnnotation,
-  withArguments: _withArgumentsFfiPackedAnnotation,
-);
+codeFfiPackedAnnotation = ffiPackedAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiPackedAnnotation({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiPackedAnnotation,
-    problemMessage:
-        """Struct '${name_0}' must have at most one 'Packed' annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiPackedAnnotation(String name) =>
-    _withArgumentsFfiPackedAnnotation(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiPackedAnnotationAlignment = const MessageCode(
-  "FfiPackedAnnotationAlignment",
-  problemMessage: """Only packing to 1, 2, 4, 8, and 16 bytes is supported.""",
-);
+const MessageCode codeFfiPackedAnnotationAlignment =
+    ffiPackedAnnotationAlignment;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiSizeAnnotation = const Template(
-  "FfiSizeAnnotation",
-  withArgumentsOld: _withArgumentsOldFfiSizeAnnotation,
-  withArguments: _withArgumentsFfiSizeAnnotation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiSizeAnnotation({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiSizeAnnotation,
-    problemMessage:
-        """Field '${name_0}' must have exactly one 'Array' annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiSizeAnnotation(String name) =>
-    _withArgumentsFfiSizeAnnotation(name: name);
+codeFfiSizeAnnotation = ffiSizeAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFfiSizeAnnotationDimensions = const Template(
-  "FfiSizeAnnotationDimensions",
-  withArgumentsOld: _withArgumentsOldFfiSizeAnnotationDimensions,
-  withArguments: _withArgumentsFfiSizeAnnotationDimensions,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiSizeAnnotationDimensions({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiSizeAnnotationDimensions,
-    problemMessage:
-        """Field '${name_0}' must have an 'Array' annotation that matches the dimensions.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiSizeAnnotationDimensions(String name) =>
-    _withArgumentsFfiSizeAnnotationDimensions(name: name);
+codeFfiSizeAnnotationDimensions = ffiSizeAnnotationDimensions;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String name),
   Message Function({required String string, required String name})
 >
-codeFfiStructGeneric = const Template(
-  "FfiStructGeneric",
-  withArgumentsOld: _withArgumentsOldFfiStructGeneric,
-  withArguments: _withArgumentsFfiStructGeneric,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiStructGeneric({
-  required String string,
-  required String name,
-}) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFfiStructGeneric,
-    problemMessage: """${string_0} '${name_0}' should not be generic.""",
-    arguments: {'string': string, 'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiStructGeneric(String string, String name) =>
-    _withArgumentsFfiStructGeneric(string: string, name: name);
+codeFfiStructGeneric = ffiStructGeneric;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeFfiTypeInvalid = const Template(
-  "FfiTypeInvalid",
-  withArgumentsOld: _withArgumentsOldFfiTypeInvalid,
-  withArguments: _withArgumentsFfiTypeInvalid,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiTypeInvalid({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeFfiTypeInvalid,
-    problemMessage:
-        """Expected type '${type_0}' to be a valid and instantiated subtype of 'NativeType'.""" +
-        labeler.originMessages,
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiTypeInvalid(DartType type) =>
-    _withArgumentsFfiTypeInvalid(type: type);
+codeFfiTypeInvalid = ffiTypeInvalid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5327,178 +1518,42 @@ const Template<
     required DartType type3,
   })
 >
-codeFfiTypeMismatch = const Template(
-  "FfiTypeMismatch",
-  withArgumentsOld: _withArgumentsOldFfiTypeMismatch,
-  withArguments: _withArgumentsFfiTypeMismatch,
-);
+codeFfiTypeMismatch = ffiTypeMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiTypeMismatch({
-  required DartType type,
-  required DartType type2,
-  required DartType type3,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var type3_0 = labeler.labelType(type3);
-  return new Message(
-    codeFfiTypeMismatch,
-    problemMessage:
-        """Expected type '${type_0}' to be '${type2_0}', which is the Dart type corresponding to '${type3_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2, 'type3': type3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiTypeMismatch(
-  DartType type,
-  DartType type2,
-  DartType type3,
-) => _withArgumentsFfiTypeMismatch(type: type, type2: type2, type3: type3);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiVariableLengthArrayNotLast = const MessageCode(
-  "FfiVariableLengthArrayNotLast",
-  problemMessage:
-      """Variable length 'Array's must only occur as the last field of Structs.""",
-  correctionMessage:
-      """Try adjusting the arguments in the 'Array' annotation.""",
-);
+const MessageCode codeFfiVariableLengthArrayNotLast =
+    ffiVariableLengthArrayNotLast;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFieldAlreadyInitializedAtDeclaration = const Template(
-  "FieldAlreadyInitializedAtDeclaration",
-  withArgumentsOld: _withArgumentsOldFieldAlreadyInitializedAtDeclaration,
-  withArguments: _withArgumentsFieldAlreadyInitializedAtDeclaration,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldAlreadyInitializedAtDeclaration({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFieldAlreadyInitializedAtDeclaration,
-    problemMessage:
-        """'${name_0}' is a final instance variable that was initialized at the declaration.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldAlreadyInitializedAtDeclaration(String name) =>
-    _withArgumentsFieldAlreadyInitializedAtDeclaration(name: name);
+codeFieldAlreadyInitializedAtDeclaration = fieldAlreadyInitializedAtDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFieldAlreadyInitializedAtDeclarationCause = const Template(
-  "FieldAlreadyInitializedAtDeclarationCause",
-  withArgumentsOld: _withArgumentsOldFieldAlreadyInitializedAtDeclarationCause,
-  withArguments: _withArgumentsFieldAlreadyInitializedAtDeclarationCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldAlreadyInitializedAtDeclarationCause({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFieldAlreadyInitializedAtDeclarationCause,
-    problemMessage: """'${name_0}' was initialized here.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldAlreadyInitializedAtDeclarationCause(
-  String name,
-) => _withArgumentsFieldAlreadyInitializedAtDeclarationCause(name: name);
+codeFieldAlreadyInitializedAtDeclarationCause =
+    fieldAlreadyInitializedAtDeclarationCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeFieldNonNullableNotInitializedByConstructorError = const Template(
-  "FieldNonNullableNotInitializedByConstructorError",
-  withArgumentsOld:
-      _withArgumentsOldFieldNonNullableNotInitializedByConstructorError,
-  withArguments: _withArgumentsFieldNonNullableNotInitializedByConstructorError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNonNullableNotInitializedByConstructorError({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeFieldNonNullableNotInitializedByConstructorError,
-    problemMessage:
-        """This constructor should initialize field '${name_0}' because its type '${type_0}' doesn't allow null.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNonNullableNotInitializedByConstructorError(
-  String name,
-  DartType type,
-) => _withArgumentsFieldNonNullableNotInitializedByConstructorError(
-  name: name,
-  type: type,
-);
+codeFieldNonNullableNotInitializedByConstructorError =
+    fieldNonNullableNotInitializedByConstructorError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeFieldNonNullableWithoutInitializerError = const Template(
-  "FieldNonNullableWithoutInitializerError",
-  withArgumentsOld: _withArgumentsOldFieldNonNullableWithoutInitializerError,
-  withArguments: _withArgumentsFieldNonNullableWithoutInitializerError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNonNullableWithoutInitializerError({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeFieldNonNullableWithoutInitializerError,
-    problemMessage:
-        """Field '${name_0}' should be initialized because its type '${type_0}' doesn't allow null.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNonNullableWithoutInitializerError(
-  String name,
-  DartType type,
-) => _withArgumentsFieldNonNullableWithoutInitializerError(
-  name: name,
-  type: type,
-);
+codeFieldNonNullableWithoutInitializerError =
+    fieldNonNullableWithoutInitializerError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5509,40 +1564,8 @@ const Template<
     required String string,
   })
 >
-codeFieldNotPromotedBecauseConflictingField = const Template(
-  "FieldNotPromotedBecauseConflictingField",
-  withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseConflictingField,
-  withArguments: _withArgumentsFieldNotPromotedBecauseConflictingField,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromotedBecauseConflictingField({
-  required String name,
-  required String name2,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeFieldNotPromotedBecauseConflictingField,
-    problemMessage:
-        """'${name_0}' couldn't be promoted because there is a conflicting non-promotable field in class '${name2_0}'.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNotPromotedBecauseConflictingField(
-  String name,
-  String name2,
-  String string,
-) => _withArgumentsFieldNotPromotedBecauseConflictingField(
-  name: name,
-  name2: name2,
-  string: string,
-);
+codeFieldNotPromotedBecauseConflictingField =
+    fieldNotPromotedBecauseConflictingField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5553,40 +1576,8 @@ const Template<
     required String string,
   })
 >
-codeFieldNotPromotedBecauseConflictingGetter = const Template(
-  "FieldNotPromotedBecauseConflictingGetter",
-  withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseConflictingGetter,
-  withArguments: _withArgumentsFieldNotPromotedBecauseConflictingGetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromotedBecauseConflictingGetter({
-  required String name,
-  required String name2,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeFieldNotPromotedBecauseConflictingGetter,
-    problemMessage:
-        """'${name_0}' couldn't be promoted because there is a conflicting getter in class '${name2_0}'.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNotPromotedBecauseConflictingGetter(
-  String name,
-  String name2,
-  String string,
-) => _withArgumentsFieldNotPromotedBecauseConflictingGetter(
-  name: name,
-  name2: name2,
-  string: string,
-);
+codeFieldNotPromotedBecauseConflictingGetter =
+    fieldNotPromotedBecauseConflictingGetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5597,896 +1588,231 @@ const Template<
     required String string,
   })
 >
-codeFieldNotPromotedBecauseConflictingNsmForwarder = const Template(
-  "FieldNotPromotedBecauseConflictingNsmForwarder",
-  withArgumentsOld:
-      _withArgumentsOldFieldNotPromotedBecauseConflictingNsmForwarder,
-  withArguments: _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder({
-  required String name,
-  required String name2,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeFieldNotPromotedBecauseConflictingNsmForwarder,
-    problemMessage:
-        """'${name_0}' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '${name2_0}'.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNotPromotedBecauseConflictingNsmForwarder(
-  String name,
-  String name2,
-  String string,
-) => _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder(
-  name: name,
-  name2: name2,
-  string: string,
-);
+codeFieldNotPromotedBecauseConflictingNsmForwarder =
+    fieldNotPromotedBecauseConflictingNsmForwarder;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeFieldNotPromotedBecauseExternal = const Template(
-  "FieldNotPromotedBecauseExternal",
-  withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseExternal,
-  withArguments: _withArgumentsFieldNotPromotedBecauseExternal,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromotedBecauseExternal({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeFieldNotPromotedBecauseExternal,
-    problemMessage:
-        """'${name_0}' refers to an external field so it couldn't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNotPromotedBecauseExternal(
-  String name,
-  String string,
-) => _withArgumentsFieldNotPromotedBecauseExternal(name: name, string: string);
+codeFieldNotPromotedBecauseExternal = fieldNotPromotedBecauseExternal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeFieldNotPromotedBecauseNotEnabled = const Template(
-  "FieldNotPromotedBecauseNotEnabled",
-  withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseNotEnabled,
-  withArguments: _withArgumentsFieldNotPromotedBecauseNotEnabled,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromotedBecauseNotEnabled({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeFieldNotPromotedBecauseNotEnabled,
-    problemMessage:
-        """'${name_0}' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNotPromotedBecauseNotEnabled(
-  String name,
-  String string,
-) =>
-    _withArgumentsFieldNotPromotedBecauseNotEnabled(name: name, string: string);
+codeFieldNotPromotedBecauseNotEnabled = fieldNotPromotedBecauseNotEnabled;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeFieldNotPromotedBecauseNotField = const Template(
-  "FieldNotPromotedBecauseNotField",
-  withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseNotField,
-  withArguments: _withArgumentsFieldNotPromotedBecauseNotField,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromotedBecauseNotField({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeFieldNotPromotedBecauseNotField,
-    problemMessage:
-        """'${name_0}' refers to a getter so it couldn't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNotPromotedBecauseNotField(
-  String name,
-  String string,
-) => _withArgumentsFieldNotPromotedBecauseNotField(name: name, string: string);
+codeFieldNotPromotedBecauseNotField = fieldNotPromotedBecauseNotField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeFieldNotPromotedBecauseNotFinal = const Template(
-  "FieldNotPromotedBecauseNotFinal",
-  withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseNotFinal,
-  withArguments: _withArgumentsFieldNotPromotedBecauseNotFinal,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromotedBecauseNotFinal({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeFieldNotPromotedBecauseNotFinal,
-    problemMessage:
-        """'${name_0}' refers to a non-final field so it couldn't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNotPromotedBecauseNotFinal(
-  String name,
-  String string,
-) => _withArgumentsFieldNotPromotedBecauseNotFinal(name: name, string: string);
+codeFieldNotPromotedBecauseNotFinal = fieldNotPromotedBecauseNotFinal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeFieldNotPromotedBecauseNotPrivate = const Template(
-  "FieldNotPromotedBecauseNotPrivate",
-  withArgumentsOld: _withArgumentsOldFieldNotPromotedBecauseNotPrivate,
-  withArguments: _withArgumentsFieldNotPromotedBecauseNotPrivate,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromotedBecauseNotPrivate({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeFieldNotPromotedBecauseNotPrivate,
-    problemMessage:
-        """'${name_0}' refers to a public property so it couldn't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldNotPromotedBecauseNotPrivate(
-  String name,
-  String string,
-) =>
-    _withArgumentsFieldNotPromotedBecauseNotPrivate(name: name, string: string);
+codeFieldNotPromotedBecauseNotPrivate = fieldNotPromotedBecauseNotPrivate;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFinalClassExtendedOutsideOfLibrary = const Template(
-  "FinalClassExtendedOutsideOfLibrary",
-  withArgumentsOld: _withArgumentsOldFinalClassExtendedOutsideOfLibrary,
-  withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalClassExtendedOutsideOfLibrary({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFinalClassExtendedOutsideOfLibrary,
-    problemMessage:
-        """The class '${name_0}' can't be extended outside of its library because it's a final class.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalClassExtendedOutsideOfLibrary(String name) =>
-    _withArgumentsFinalClassExtendedOutsideOfLibrary(name: name);
+codeFinalClassExtendedOutsideOfLibrary = finalClassExtendedOutsideOfLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFinalClassImplementedOutsideOfLibrary = const Template(
-  "FinalClassImplementedOutsideOfLibrary",
-  withArgumentsOld: _withArgumentsOldFinalClassImplementedOutsideOfLibrary,
-  withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalClassImplementedOutsideOfLibrary({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFinalClassImplementedOutsideOfLibrary,
-    problemMessage:
-        """The class '${name_0}' can't be implemented outside of its library because it's a final class.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalClassImplementedOutsideOfLibrary(String name) =>
-    _withArgumentsFinalClassImplementedOutsideOfLibrary(name: name);
+codeFinalClassImplementedOutsideOfLibrary =
+    finalClassImplementedOutsideOfLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFinalClassUsedAsMixinConstraintOutsideOfLibrary = const Template(
-  "FinalClassUsedAsMixinConstraintOutsideOfLibrary",
-  withArgumentsOld:
-      _withArgumentsOldFinalClassUsedAsMixinConstraintOutsideOfLibrary,
-  withArguments: _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFinalClassUsedAsMixinConstraintOutsideOfLibrary,
-    problemMessage:
-        """The class '${name_0}' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalClassUsedAsMixinConstraintOutsideOfLibrary(
-  String name,
-) => _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary(name: name);
+codeFinalClassUsedAsMixinConstraintOutsideOfLibrary =
+    finalClassUsedAsMixinConstraintOutsideOfLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFinalFieldNotInitialized = const Template(
-  "FinalFieldNotInitialized",
-  withArgumentsOld: _withArgumentsOldFinalFieldNotInitialized,
-  withArguments: _withArgumentsFinalFieldNotInitialized,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalFieldNotInitialized({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFinalFieldNotInitialized,
-    problemMessage: """Final field '${name_0}' is not initialized.""",
-    correctionMessage:
-        """Try to initialize the field in the declaration or in every constructor.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalFieldNotInitialized(String name) =>
-    _withArgumentsFinalFieldNotInitialized(name: name);
+codeFinalFieldNotInitialized = finalFieldNotInitialized;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFinalFieldNotInitializedByConstructor = const Template(
-  "FinalFieldNotInitializedByConstructor",
-  withArgumentsOld: _withArgumentsOldFinalFieldNotInitializedByConstructor,
-  withArguments: _withArgumentsFinalFieldNotInitializedByConstructor,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalFieldNotInitializedByConstructor({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFinalFieldNotInitializedByConstructor,
-    problemMessage:
-        """Final field '${name_0}' is not initialized by this constructor.""",
-    correctionMessage:
-        """Try to initialize the field using an initializing formal or a field initializer.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalFieldNotInitializedByConstructor(String name) =>
-    _withArgumentsFinalFieldNotInitializedByConstructor(name: name);
+codeFinalFieldNotInitializedByConstructor =
+    finalFieldNotInitializedByConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFinalNotAssignedError = const Template(
-  "FinalNotAssignedError",
-  withArgumentsOld: _withArgumentsOldFinalNotAssignedError,
-  withArguments: _withArgumentsFinalNotAssignedError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalNotAssignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFinalNotAssignedError,
-    problemMessage:
-        """Final variable '${name_0}' must be assigned before it can be used.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalNotAssignedError(String name) =>
-    _withArgumentsFinalNotAssignedError(name: name);
+codeFinalNotAssignedError = finalNotAssignedError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeFinalPossiblyAssignedError = const Template(
-  "FinalPossiblyAssignedError",
-  withArgumentsOld: _withArgumentsOldFinalPossiblyAssignedError,
-  withArguments: _withArgumentsFinalPossiblyAssignedError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalPossiblyAssignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeFinalPossiblyAssignedError,
-    problemMessage:
-        """Final variable '${name_0}' might already be assigned at this point.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalPossiblyAssignedError(String name) =>
-    _withArgumentsFinalPossiblyAssignedError(name: name);
+codeFinalPossiblyAssignedError = finalPossiblyAssignedError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeForInLoopElementTypeNotAssignable = const Template(
-  "ForInLoopElementTypeNotAssignable",
-  withArgumentsOld: _withArgumentsOldForInLoopElementTypeNotAssignable,
-  withArguments: _withArgumentsForInLoopElementTypeNotAssignable,
-);
+codeForInLoopElementTypeNotAssignable = forInLoopElementTypeNotAssignable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsForInLoopElementTypeNotAssignable({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeForInLoopElementTypeNotAssignable,
-    problemMessage:
-        """A value of type '${type_0}' can't be assigned to a variable of type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage: """Try changing the type of the variable.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
+const MessageCode codeForInLoopExactlyOneVariable = forInLoopExactlyOneVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldForInLoopElementTypeNotAssignable(
-  DartType type,
-  DartType type2,
-) => _withArgumentsForInLoopElementTypeNotAssignable(type: type, type2: type2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeForInLoopExactlyOneVariable = const MessageCode(
-  "ForInLoopExactlyOneVariable",
-  problemMessage: """A for-in loop can't have more than one loop variable.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeForInLoopNotAssignable = const MessageCode(
-  "ForInLoopNotAssignable",
-  problemMessage:
-      """Can't assign to this, so it can't be used in a for-in loop.""",
-);
+const MessageCode codeForInLoopNotAssignable = forInLoopNotAssignable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeForInLoopTypeNotIterable = const Template(
-  "ForInLoopTypeNotIterable",
-  withArgumentsOld: _withArgumentsOldForInLoopTypeNotIterable,
-  withArguments: _withArgumentsForInLoopTypeNotIterable,
-);
+codeForInLoopTypeNotIterable = forInLoopTypeNotIterable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsForInLoopTypeNotIterable({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeForInLoopTypeNotIterable,
-    problemMessage:
-        """The type '${type_0}' used in the 'for' loop must implement '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldForInLoopTypeNotIterable(
-  DartType type,
-  DartType type2,
-) => _withArgumentsForInLoopTypeNotIterable(type: type, type2: type2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeForInLoopWithConstVariable = const MessageCode(
-  "ForInLoopWithConstVariable",
-  problemMessage: """A for-in loop-variable can't be 'const'.""",
-  correctionMessage: """Try removing the 'const' modifier.""",
-);
+const MessageCode codeForInLoopWithConstVariable = forInLoopWithConstVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeGenericFunctionTypeAsTypeArgumentThroughTypedef = const Template(
-  "GenericFunctionTypeAsTypeArgumentThroughTypedef",
-  withArgumentsOld:
-      _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef,
-  withArguments: _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef,
-);
+codeGenericFunctionTypeAsTypeArgumentThroughTypedef =
+    genericFunctionTypeAsTypeArgumentThroughTypedef;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeGenericFunctionTypeAsTypeArgumentThroughTypedef,
-    problemMessage:
-        """Generic function type '${type_0}' used as a type argument through typedef '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try providing a non-generic function type explicitly.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef(
-  DartType type,
-  DartType type2,
-) => _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef(
-  type: type,
-  type2: type2,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeGenericFunctionTypeInBound = const MessageCode(
-  "GenericFunctionTypeInBound",
-  problemMessage:
-      """Type variables can't have generic function types in their bounds.""",
-);
+const MessageCode codeGenericFunctionTypeInBound = genericFunctionTypeInBound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeGenericFunctionTypeInferredAsActualTypeArgument = const Template(
-  "GenericFunctionTypeInferredAsActualTypeArgument",
-  withArgumentsOld:
-      _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument,
-  withArguments: _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeGenericFunctionTypeInferredAsActualTypeArgument,
-    problemMessage:
-        """Generic function type '${type_0}' inferred as a type argument.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try providing a non-generic function type explicitly.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument(
-  DartType type,
-) => _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(type: type);
+codeGenericFunctionTypeInferredAsActualTypeArgument =
+    genericFunctionTypeInferredAsActualTypeArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeGenericFunctionTypeUsedAsActualTypeArgument =
-    const MessageCode(
-      "GenericFunctionTypeUsedAsActualTypeArgument",
-      problemMessage:
-          """A generic function type can't be used as a type argument.""",
-      correctionMessage: """Try using a non-generic function type.""",
-    );
+    genericFunctionTypeUsedAsActualTypeArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeGetterNotFound = const Template(
-  "GetterNotFound",
-  withArgumentsOld: _withArgumentsOldGetterNotFound,
-  withArguments: _withArgumentsGetterNotFound,
-);
+codeGetterNotFound = getterNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsGetterNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeGetterNotFound,
-    problemMessage: """Getter not found: '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeIllegalAsyncGeneratorReturnType =
+    illegalAsyncGeneratorReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldGetterNotFound(String name) =>
-    _withArgumentsGetterNotFound(name: name);
+const MessageCode codeIllegalAsyncGeneratorVoidReturnType =
+    illegalAsyncGeneratorVoidReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalAsyncGeneratorReturnType = const MessageCode(
-  "IllegalAsyncGeneratorReturnType",
-  problemMessage:
-      """Functions marked 'async*' must have a return type assignable to 'Stream'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalAsyncGeneratorVoidReturnType = const MessageCode(
-  "IllegalAsyncGeneratorVoidReturnType",
-  problemMessage:
-      """Functions marked 'async*' can't have return type 'void'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalAsyncReturnType = const MessageCode(
-  "IllegalAsyncReturnType",
-  problemMessage:
-      """Functions marked 'async' must have a return type assignable to 'Future'.""",
-);
+const MessageCode codeIllegalAsyncReturnType = illegalAsyncReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeIllegalMixin = const Template(
-  "IllegalMixin",
-  withArgumentsOld: _withArgumentsOldIllegalMixin,
-  withArguments: _withArgumentsIllegalMixin,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalMixin({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeIllegalMixin,
-    problemMessage: """The type '${name_0}' can't be mixed in.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixin(String name) =>
-    _withArgumentsIllegalMixin(name: name);
+codeIllegalMixin = illegalMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeIllegalMixinDueToConstructors = const Template(
-  "IllegalMixinDueToConstructors",
-  withArgumentsOld: _withArgumentsOldIllegalMixinDueToConstructors,
-  withArguments: _withArgumentsIllegalMixinDueToConstructors,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalMixinDueToConstructors({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeIllegalMixinDueToConstructors,
-    problemMessage:
-        """Can't use '${name_0}' as a mixin because it has constructors.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixinDueToConstructors(String name) =>
-    _withArgumentsIllegalMixinDueToConstructors(name: name);
+codeIllegalMixinDueToConstructors = illegalMixinDueToConstructors;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeIllegalMixinDueToConstructorsCause = const Template(
-  "IllegalMixinDueToConstructorsCause",
-  withArgumentsOld: _withArgumentsOldIllegalMixinDueToConstructorsCause,
-  withArguments: _withArgumentsIllegalMixinDueToConstructorsCause,
-  severity: CfeSeverity.context,
-);
+codeIllegalMixinDueToConstructorsCause = illegalMixinDueToConstructorsCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalMixinDueToConstructorsCause({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeIllegalMixinDueToConstructorsCause,
-    problemMessage:
-        """This constructor prevents using '${name_0}' as a mixin.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeIllegalSyncGeneratorReturnType =
+    illegalSyncGeneratorReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixinDueToConstructorsCause(String name) =>
-    _withArgumentsIllegalMixinDueToConstructorsCause(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalSyncGeneratorReturnType = const MessageCode(
-  "IllegalSyncGeneratorReturnType",
-  problemMessage:
-      """Functions marked 'sync*' must have a return type assignable to 'Iterable'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalSyncGeneratorVoidReturnType = const MessageCode(
-  "IllegalSyncGeneratorVoidReturnType",
-  problemMessage: """Functions marked 'sync*' can't have return type 'void'.""",
-);
+const MessageCode codeIllegalSyncGeneratorVoidReturnType =
+    illegalSyncGeneratorVoidReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeImplementMultipleExtensionTypeMembers = const Template(
-  "ImplementMultipleExtensionTypeMembers",
-  withArgumentsOld: _withArgumentsOldImplementMultipleExtensionTypeMembers,
-  withArguments: _withArgumentsImplementMultipleExtensionTypeMembers,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplementMultipleExtensionTypeMembers({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeImplementMultipleExtensionTypeMembers,
-    problemMessage:
-        """The extension type '${name_0}' can't inherit the member '${name2_0}' from more than one extension type.""",
-    correctionMessage:
-        """Try declaring a member '${name2_0}' in '${name_0}' to resolve the conflict.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplementMultipleExtensionTypeMembers(
-  String name,
-  String name2,
-) => _withArgumentsImplementMultipleExtensionTypeMembers(
-  name: name,
-  name2: name2,
-);
+codeImplementMultipleExtensionTypeMembers =
+    implementMultipleExtensionTypeMembers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeImplementNonExtensionTypeAndExtensionTypeMember = const Template(
-  "ImplementNonExtensionTypeAndExtensionTypeMember",
-  withArgumentsOld:
-      _withArgumentsOldImplementNonExtensionTypeAndExtensionTypeMember,
-  withArguments: _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember,
-);
+codeImplementNonExtensionTypeAndExtensionTypeMember =
+    implementNonExtensionTypeAndExtensionTypeMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeImplementNonExtensionTypeAndExtensionTypeMember,
-    problemMessage:
-        """The extension type '${name_0}' can't inherit the member '${name2_0}' as both an extension type member and a non-extension type member.""",
-    correctionMessage:
-        """Try declaring a member '${name2_0}' in '${name_0}' to resolve the conflict.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
+const MessageCode codeImplementsFutureOr = implementsFutureOr;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplementNonExtensionTypeAndExtensionTypeMember(
-  String name,
-  String name2,
-) => _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember(
-  name: name,
-  name2: name2,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsFutureOr = const MessageCode(
-  "ImplementsFutureOr",
-  problemMessage:
-      """The type 'FutureOr' can't be used in an 'implements' clause.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsNever = const MessageCode(
-  "ImplementsNever",
-  problemMessage:
-      """The type 'Never' can't be used in an 'implements' clause.""",
-);
+const MessageCode codeImplementsNever = implementsNever;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, int count),
   Message Function({required String name, required int count})
 >
-codeImplementsRepeated = const Template(
-  "ImplementsRepeated",
-  withArgumentsOld: _withArgumentsOldImplementsRepeated,
-  withArguments: _withArgumentsImplementsRepeated,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplementsRepeated({
-  required String name,
-  required int count,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeImplementsRepeated,
-    problemMessage: """'${name_0}' can only be implemented once.""",
-    correctionMessage: """Try removing ${count} of the occurrences.""",
-    arguments: {'name': name, 'count': count},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplementsRepeated(String name, int count) =>
-    _withArgumentsImplementsRepeated(name: name, count: count);
+codeImplementsRepeated = implementsRepeated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeImplementsSuperClass = const Template(
-  "ImplementsSuperClass",
-  withArgumentsOld: _withArgumentsOldImplementsSuperClass,
-  withArguments: _withArgumentsImplementsSuperClass,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplementsSuperClass({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeImplementsSuperClass,
-    problemMessage:
-        """'${name_0}' can't be used in both 'extends' and 'implements' clauses.""",
-    correctionMessage: """Try removing one of the occurrences.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplementsSuperClass(String name) =>
-    _withArgumentsImplementsSuperClass(name: name);
+codeImplementsSuperClass = implementsSuperClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeImplicitCallOfNonMethod = const Template(
-  "ImplicitCallOfNonMethod",
-  withArgumentsOld: _withArgumentsOldImplicitCallOfNonMethod,
-  withArguments: _withArgumentsImplicitCallOfNonMethod,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitCallOfNonMethod({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeImplicitCallOfNonMethod,
-    problemMessage:
-        """Cannot invoke an instance of '${type_0}' because it declares 'call' to be something other than a method.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing 'call' to a method or explicitly invoke 'call'.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplicitCallOfNonMethod(DartType type) =>
-    _withArgumentsImplicitCallOfNonMethod(type: type);
+codeImplicitCallOfNonMethod = implicitCallOfNonMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6497,104 +1823,26 @@ const Template<
     required String name3,
   })
 >
-codeImplicitMixinOverride = const Template(
-  "ImplicitMixinOverride",
-  withArgumentsOld: _withArgumentsOldImplicitMixinOverride,
-  withArguments: _withArgumentsImplicitMixinOverride,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitMixinOverride({
-  required String name,
-  required String name2,
-  required String name3,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
-  return new Message(
-    codeImplicitMixinOverride,
-    problemMessage:
-        """Applying the mixin '${name_0}' to '${name2_0}' introduces an erroneous override of '${name3_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplicitMixinOverride(
-  String name,
-  String name2,
-  String name3,
-) =>
-    _withArgumentsImplicitMixinOverride(name: name, name2: name2, name3: name3);
+codeImplicitMixinOverride = implicitMixinOverride;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeImplicitReturnNull = const Template(
-  "ImplicitReturnNull",
-  withArgumentsOld: _withArgumentsOldImplicitReturnNull,
-  withArguments: _withArgumentsImplicitReturnNull,
-);
+codeImplicitReturnNull = implicitReturnNull;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitReturnNull({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeImplicitReturnNull,
-    problemMessage:
-        """A non-null value must be returned since the return type '${type_0}' doesn't allow null.""" +
-        labeler.originMessages,
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplicitReturnNull(DartType type) =>
-    _withArgumentsImplicitReturnNull(type: type);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplicitSuperCallOfNonMethod = const MessageCode(
-  "ImplicitSuperCallOfNonMethod",
-  problemMessage:
-      """Cannot invoke `super` because it declares 'call' to be something other than a method.""",
-  correctionMessage:
-      """Try changing 'call' to a method or explicitly invoke 'call'.""",
-);
+const MessageCode codeImplicitSuperCallOfNonMethod =
+    implicitSuperCallOfNonMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeImplicitSuperInitializerMissingArguments = const Template(
-  "ImplicitSuperInitializerMissingArguments",
-  withArgumentsOld: _withArgumentsOldImplicitSuperInitializerMissingArguments,
-  withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitSuperInitializerMissingArguments({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeImplicitSuperInitializerMissingArguments,
-    problemMessage:
-        """The implicitly called unnamed constructor from '${name_0}' has required parameters.""",
-    correctionMessage:
-        """Try adding an explicit super initializer with the required arguments.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplicitSuperInitializerMissingArguments(
-  String name,
-) => _withArgumentsImplicitSuperInitializerMissingArguments(name: name);
+codeImplicitSuperInitializerMissingArguments =
+    implicitSuperInitializerMissingArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6605,112 +1853,21 @@ const Template<
     required String string2,
   })
 >
-codeImportChainContext = const Template(
-  "ImportChainContext",
-  withArgumentsOld: _withArgumentsOldImportChainContext,
-  withArguments: _withArgumentsImportChainContext,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImportChainContext({
-  required Uri uri,
-  required String string,
-  required String string2,
-}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeImportChainContext,
-    problemMessage:
-        """The unavailable library '${uri_0}' is imported through these packages:
-
-${string_0}
-Detailed import paths for (some of) the these imports:
-
-${string2_0}""",
-    arguments: {'uri': uri, 'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImportChainContext(
-  Uri uri,
-  String string,
-  String string2,
-) => _withArgumentsImportChainContext(
-  uri: uri,
-  string: string,
-  string2: string2,
-);
+codeImportChainContext = importChainContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Uri uri, String string),
   Message Function({required Uri uri, required String string})
 >
-codeImportChainContextSimple = const Template(
-  "ImportChainContextSimple",
-  withArgumentsOld: _withArgumentsOldImportChainContextSimple,
-  withArguments: _withArgumentsImportChainContextSimple,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImportChainContextSimple({
-  required Uri uri,
-  required String string,
-}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeImportChainContextSimple,
-    problemMessage:
-        """The unavailable library '${uri_0}' is imported through these paths:
-
-${string_0}""",
-    arguments: {'uri': uri, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImportChainContextSimple(Uri uri, String string) =>
-    _withArgumentsImportChainContextSimple(uri: uri, string: string);
+codeImportChainContextSimple = importChainContextSimple;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeIncompatibleRedirecteeFunctionType = const Template(
-  "IncompatibleRedirecteeFunctionType",
-  withArgumentsOld: _withArgumentsOldIncompatibleRedirecteeFunctionType,
-  withArguments: _withArgumentsIncompatibleRedirecteeFunctionType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncompatibleRedirecteeFunctionType({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeIncompatibleRedirecteeFunctionType,
-    problemMessage:
-        """The constructor function type '${type_0}' isn't a subtype of '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncompatibleRedirecteeFunctionType(
-  DartType type,
-  DartType type2,
-) => _withArgumentsIncompatibleRedirecteeFunctionType(type: type, type2: type2);
+codeIncompatibleRedirecteeFunctionType = incompatibleRedirecteeFunctionType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6722,47 +1879,7 @@ const Template<
     required String name2,
   })
 >
-codeIncorrectTypeArgument = const Template(
-  "IncorrectTypeArgument",
-  withArgumentsOld: _withArgumentsOldIncorrectTypeArgument,
-  withArguments: _withArgumentsIncorrectTypeArgument,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgument({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeIncorrectTypeArgument,
-    problemMessage:
-        """Type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${name2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing type arguments so that they conform to the bounds.""",
-    arguments: {'type': type, 'type2': type2, 'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncorrectTypeArgument(
-  DartType type,
-  DartType type2,
-  String name,
-  String name2,
-) => _withArgumentsIncorrectTypeArgument(
-  type: type,
-  type2: type2,
-  name: name,
-  name2: name2,
-);
+codeIncorrectTypeArgument = incorrectTypeArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6774,47 +1891,7 @@ const Template<
     required String name2,
   })
 >
-codeIncorrectTypeArgumentInferred = const Template(
-  "IncorrectTypeArgumentInferred",
-  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInferred,
-  withArguments: _withArgumentsIncorrectTypeArgumentInferred,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInferred({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeIncorrectTypeArgumentInferred,
-    problemMessage:
-        """Inferred type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${name2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try specifying type arguments explicitly so that they conform to the bounds.""",
-    arguments: {'type': type, 'type2': type2, 'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncorrectTypeArgumentInferred(
-  DartType type,
-  DartType type2,
-  String name,
-  String name2,
-) => _withArgumentsIncorrectTypeArgumentInferred(
-  type: type,
-  type2: type2,
-  name: name,
-  name2: name2,
-);
+codeIncorrectTypeArgumentInferred = incorrectTypeArgumentInferred;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6826,47 +1903,7 @@ const Template<
     required DartType type3,
   })
 >
-codeIncorrectTypeArgumentInstantiation = const Template(
-  "IncorrectTypeArgumentInstantiation",
-  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiation,
-  withArguments: _withArgumentsIncorrectTypeArgumentInstantiation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInstantiation({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required DartType type3,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type3_0 = labeler.labelType(type3);
-  return new Message(
-    codeIncorrectTypeArgumentInstantiation,
-    problemMessage:
-        """Type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${type3_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing type arguments so that they conform to the bounds.""",
-    arguments: {'type': type, 'type2': type2, 'name': name, 'type3': type3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncorrectTypeArgumentInstantiation(
-  DartType type,
-  DartType type2,
-  String name,
-  DartType type3,
-) => _withArgumentsIncorrectTypeArgumentInstantiation(
-  type: type,
-  type2: type2,
-  name: name,
-  type3: type3,
-);
+codeIncorrectTypeArgumentInstantiation = incorrectTypeArgumentInstantiation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6878,47 +1915,8 @@ const Template<
     required DartType type3,
   })
 >
-codeIncorrectTypeArgumentInstantiationInferred = const Template(
-  "IncorrectTypeArgumentInstantiationInferred",
-  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiationInferred,
-  withArguments: _withArgumentsIncorrectTypeArgumentInstantiationInferred,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInstantiationInferred({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required DartType type3,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type3_0 = labeler.labelType(type3);
-  return new Message(
-    codeIncorrectTypeArgumentInstantiationInferred,
-    problemMessage:
-        """Inferred type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${type3_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try specifying type arguments explicitly so that they conform to the bounds.""",
-    arguments: {'type': type, 'type2': type2, 'name': name, 'type3': type3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncorrectTypeArgumentInstantiationInferred(
-  DartType type,
-  DartType type2,
-  String name,
-  DartType type3,
-) => _withArgumentsIncorrectTypeArgumentInstantiationInferred(
-  type: type,
-  type2: type2,
-  name: name,
-  type3: type3,
-);
+codeIncorrectTypeArgumentInstantiationInferred =
+    incorrectTypeArgumentInstantiationInferred;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6937,57 +1935,7 @@ const Template<
     required String name2,
   })
 >
-codeIncorrectTypeArgumentQualified = const Template(
-  "IncorrectTypeArgumentQualified",
-  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualified,
-  withArguments: _withArgumentsIncorrectTypeArgumentQualified,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentQualified({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required DartType type3,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type3_0 = labeler.labelType(type3);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeIncorrectTypeArgumentQualified,
-    problemMessage:
-        """Type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${type3_0}.${name2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing type arguments so that they conform to the bounds.""",
-    arguments: {
-      'type': type,
-      'type2': type2,
-      'name': name,
-      'type3': type3,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncorrectTypeArgumentQualified(
-  DartType type,
-  DartType type2,
-  String name,
-  DartType type3,
-  String name2,
-) => _withArgumentsIncorrectTypeArgumentQualified(
-  type: type,
-  type2: type2,
-  name: name,
-  type3: type3,
-  name2: name2,
-);
+codeIncorrectTypeArgumentQualified = incorrectTypeArgumentQualified;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7006,122 +1954,27 @@ const Template<
     required String name2,
   })
 >
-codeIncorrectTypeArgumentQualifiedInferred = const Template(
-  "IncorrectTypeArgumentQualifiedInferred",
-  withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualifiedInferred,
-  withArguments: _withArgumentsIncorrectTypeArgumentQualifiedInferred,
-);
+codeIncorrectTypeArgumentQualifiedInferred =
+    incorrectTypeArgumentQualifiedInferred;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentQualifiedInferred({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required DartType type3,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type3_0 = labeler.labelType(type3);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeIncorrectTypeArgumentQualifiedInferred,
-    problemMessage:
-        """Inferred type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${type3_0}.${name2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try specifying type arguments explicitly so that they conform to the bounds.""",
-    arguments: {
-      'type': type,
-      'type2': type2,
-      'name': name,
-      'type3': type3,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncorrectTypeArgumentQualifiedInferred(
-  DartType type,
-  DartType type2,
-  String name,
-  DartType type3,
-  String name2,
-) => _withArgumentsIncorrectTypeArgumentQualifiedInferred(
-  type: type,
-  type2: type2,
-  name: name,
-  type3: type3,
-  name2: name2,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIncorrectTypeArgumentVariable = const MessageCode(
-  "IncorrectTypeArgumentVariable",
-  severity: CfeSeverity.context,
-  problemMessage:
-      """This is the type variable whose bound isn't conformed to.""",
-);
+const MessageCode codeIncorrectTypeArgumentVariable =
+    incorrectTypeArgumentVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeIncrementalCompilerIllegalParameter = const Template(
-  "IncrementalCompilerIllegalParameter",
-  withArgumentsOld: _withArgumentsOldIncrementalCompilerIllegalParameter,
-  withArguments: _withArgumentsIncrementalCompilerIllegalParameter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncrementalCompilerIllegalParameter({
-  required String string,
-}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeIncrementalCompilerIllegalParameter,
-    problemMessage:
-        """Illegal parameter name '${string_0}' found during expression compilation.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncrementalCompilerIllegalParameter(String string) =>
-    _withArgumentsIncrementalCompilerIllegalParameter(string: string);
+codeIncrementalCompilerIllegalParameter = incrementalCompilerIllegalParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeIncrementalCompilerIllegalTypeParameter = const Template(
-  "IncrementalCompilerIllegalTypeParameter",
-  withArgumentsOld: _withArgumentsOldIncrementalCompilerIllegalTypeParameter,
-  withArguments: _withArgumentsIncrementalCompilerIllegalTypeParameter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncrementalCompilerIllegalTypeParameter({
-  required String string,
-}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeIncrementalCompilerIllegalTypeParameter,
-    problemMessage:
-        """Illegal type parameter name '${string_0}' found during expression compilation.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncrementalCompilerIllegalTypeParameter(
-  String string,
-) => _withArgumentsIncrementalCompilerIllegalTypeParameter(string: string);
+codeIncrementalCompilerIllegalTypeParameter =
+    incrementalCompilerIllegalTypeParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7132,163 +1985,41 @@ const Template<
     required DartType type,
   })
 >
-codeIndexOutOfBoundInRecordIndexGet = const Template(
-  "IndexOutOfBoundInRecordIndexGet",
-  withArgumentsOld: _withArgumentsOldIndexOutOfBoundInRecordIndexGet,
-  withArguments: _withArgumentsIndexOutOfBoundInRecordIndexGet,
-);
+codeIndexOutOfBoundInRecordIndexGet = indexOutOfBoundInRecordIndexGet;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIndexOutOfBoundInRecordIndexGet({
-  required int count,
-  required int count2,
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeIndexOutOfBoundInRecordIndexGet,
-    problemMessage:
-        """Index ${count} is out of range 0..${count2} of positional fields of records ${type_0}.""" +
-        labeler.originMessages,
-    arguments: {'count': count, 'count2': count2, 'type': type},
-  );
-}
+const MessageCode codeInheritedMembersConflict = inheritedMembersConflict;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIndexOutOfBoundInRecordIndexGet(
-  int count,
-  int count2,
-  DartType type,
-) => _withArgumentsIndexOutOfBoundInRecordIndexGet(
-  count: count,
-  count2: count2,
-  type: type,
-);
+const MessageCode codeInheritedMembersConflictCause1 =
+    inheritedMembersConflictCause1;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInheritedMembersConflict = const MessageCode(
-  "InheritedMembersConflict",
-  problemMessage: """Can't inherit members that conflict with each other.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInheritedMembersConflictCause1 = const MessageCode(
-  "InheritedMembersConflictCause1",
-  severity: CfeSeverity.context,
-  problemMessage: """This is one inherited member.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInheritedMembersConflictCause2 = const MessageCode(
-  "InheritedMembersConflictCause2",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the other inherited member.""",
-);
+const MessageCode codeInheritedMembersConflictCause2 =
+    inheritedMembersConflictCause2;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeInheritedRestrictedMemberOfEnumImplementer = const Template(
-  "InheritedRestrictedMemberOfEnumImplementer",
-  withArgumentsOld: _withArgumentsOldInheritedRestrictedMemberOfEnumImplementer,
-  withArguments: _withArgumentsInheritedRestrictedMemberOfEnumImplementer,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInheritedRestrictedMemberOfEnumImplementer({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInheritedRestrictedMemberOfEnumImplementer,
-    problemMessage:
-        """A concrete instance member named '${name_0}' can't be inherited from '${name2_0}' in a class that implements 'Enum'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInheritedRestrictedMemberOfEnumImplementer(
-  String name,
-  String name2,
-) => _withArgumentsInheritedRestrictedMemberOfEnumImplementer(
-  name: name,
-  name2: name2,
-);
+codeInheritedRestrictedMemberOfEnumImplementer =
+    inheritedRestrictedMemberOfEnumImplementer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, Uri uri),
   Message Function({required String string, required Uri uri})
 >
-codeInitializeFromDillNotSelfContained = const Template(
-  "InitializeFromDillNotSelfContained",
-  withArgumentsOld: _withArgumentsOldInitializeFromDillNotSelfContained,
-  withArguments: _withArgumentsInitializeFromDillNotSelfContained,
-  severity: CfeSeverity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializeFromDillNotSelfContained({
-  required String string,
-  required Uri uri,
-}) {
-  var string_0 = conversions.validateString(string);
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeInitializeFromDillNotSelfContained,
-    problemMessage:
-        """Tried to initialize from a previous compilation (${string_0}), but the file was not self-contained. This might be a bug.
-
-The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
-If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${uri_0} in your error report, but be aware that this file includes your source code.
-Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
-    arguments: {'string': string, 'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInitializeFromDillNotSelfContained(
-  String string,
-  Uri uri,
-) => _withArgumentsInitializeFromDillNotSelfContained(string: string, uri: uri);
+codeInitializeFromDillNotSelfContained = initializeFromDillNotSelfContained;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeInitializeFromDillNotSelfContainedNoDump = const Template(
-  "InitializeFromDillNotSelfContainedNoDump",
-  withArgumentsOld: _withArgumentsOldInitializeFromDillNotSelfContainedNoDump,
-  withArguments: _withArgumentsInitializeFromDillNotSelfContainedNoDump,
-  severity: CfeSeverity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializeFromDillNotSelfContainedNoDump({
-  required String string,
-}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeInitializeFromDillNotSelfContainedNoDump,
-    problemMessage:
-        """Tried to initialize from a previous compilation (${string_0}), but the file was not self-contained. This might be a bug.
-
-The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInitializeFromDillNotSelfContainedNoDump(
-  String string,
-) => _withArgumentsInitializeFromDillNotSelfContainedNoDump(string: string);
+codeInitializeFromDillNotSelfContainedNoDump =
+    initializeFromDillNotSelfContainedNoDump;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7300,56 +2031,7 @@ const Template<
     required Uri uri,
   })
 >
-codeInitializeFromDillUnknownProblem = const Template(
-  "InitializeFromDillUnknownProblem",
-  withArgumentsOld: _withArgumentsOldInitializeFromDillUnknownProblem,
-  withArguments: _withArgumentsInitializeFromDillUnknownProblem,
-  severity: CfeSeverity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializeFromDillUnknownProblem({
-  required String string,
-  required String string2,
-  required String string3,
-  required Uri uri,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  var string3_0 = conversions.validateString(string3);
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeInitializeFromDillUnknownProblem,
-    problemMessage:
-        """Tried to initialize from a previous compilation (${string_0}), but couldn't.
-Error message was '${string2_0}'.
-Stacktrace included '${string3_0}'.
-This might be a bug.
-
-The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
-If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${uri_0} in your error report, but be aware that this file includes your source code.
-Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
-    arguments: {
-      'string': string,
-      'string2': string2,
-      'string3': string3,
-      'uri': uri,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInitializeFromDillUnknownProblem(
-  String string,
-  String string2,
-  String string3,
-  Uri uri,
-) => _withArgumentsInitializeFromDillUnknownProblem(
-  string: string,
-  string2: string2,
-  string3: string3,
-  uri: uri,
-);
+codeInitializeFromDillUnknownProblem = initializeFromDillUnknownProblem;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7360,70 +2042,15 @@ const Template<
     required String string3,
   })
 >
-codeInitializeFromDillUnknownProblemNoDump = const Template(
-  "InitializeFromDillUnknownProblemNoDump",
-  withArgumentsOld: _withArgumentsOldInitializeFromDillUnknownProblemNoDump,
-  withArguments: _withArgumentsInitializeFromDillUnknownProblemNoDump,
-  severity: CfeSeverity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializeFromDillUnknownProblemNoDump({
-  required String string,
-  required String string2,
-  required String string3,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  var string3_0 = conversions.validateString(string3);
-  return new Message(
-    codeInitializeFromDillUnknownProblemNoDump,
-    problemMessage:
-        """Tried to initialize from a previous compilation (${string_0}), but couldn't.
-Error message was '${string2_0}'.
-Stacktrace included '${string3_0}'.
-This might be a bug.
-
-The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
-    arguments: {'string': string, 'string2': string2, 'string3': string3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInitializeFromDillUnknownProblemNoDump(
-  String string,
-  String string2,
-  String string3,
-) => _withArgumentsInitializeFromDillUnknownProblemNoDump(
-  string: string,
-  string2: string2,
-  string3: string3,
-);
+codeInitializeFromDillUnknownProblemNoDump =
+    initializeFromDillUnknownProblemNoDump;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInitializerForStaticField = const Template(
-  "InitializerForStaticField",
-  withArgumentsOld: _withArgumentsOldInitializerForStaticField,
-  withArguments: _withArgumentsInitializerForStaticField,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializerForStaticField({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInitializerForStaticField,
-    problemMessage: """'${name_0}' isn't an instance field of this class.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInitializerForStaticField(String name) =>
-    _withArgumentsInitializerForStaticField(name: name);
+codeInitializerForStaticField = initializerForStaticField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7434,1123 +2061,275 @@ const Template<
     required DartType type2,
   })
 >
-codeInitializingFormalTypeMismatch = const Template(
-  "InitializingFormalTypeMismatch",
-  withArgumentsOld: _withArgumentsOldInitializingFormalTypeMismatch,
-  withArguments: _withArgumentsInitializingFormalTypeMismatch,
-);
+codeInitializingFormalTypeMismatch = initializingFormalTypeMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializingFormalTypeMismatch({
-  required String name,
-  required DartType type,
-  required DartType type2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInitializingFormalTypeMismatch,
-    problemMessage:
-        """The type of parameter '${name_0}', '${type_0}' is not a subtype of the corresponding field's type, '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing the type of parameter '${name_0}' to a subtype of '${type2_0}'.""",
-    arguments: {'name': name, 'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInitializingFormalTypeMismatch(
-  String name,
-  DartType type,
-  DartType type2,
-) => _withArgumentsInitializingFormalTypeMismatch(
-  name: name,
-  type: type,
-  type2: type2,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInitializingFormalTypeMismatchField = const MessageCode(
-  "InitializingFormalTypeMismatchField",
-  severity: CfeSeverity.context,
-  problemMessage: """The field that corresponds to the parameter.""",
-);
+const MessageCode codeInitializingFormalTypeMismatchField =
+    initializingFormalTypeMismatchField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codeInputFileNotFound = const Template(
-  "InputFileNotFound",
-  withArgumentsOld: _withArgumentsOldInputFileNotFound,
-  withArguments: _withArgumentsInputFileNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInputFileNotFound({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeInputFileNotFound,
-    problemMessage: """Input file not found: ${uri_0}.""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInputFileNotFound(Uri uri) =>
-    _withArgumentsInputFileNotFound(uri: uri);
+codeInputFileNotFound = inputFileNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInstanceAndSynthesizedStaticConflict = const Template(
-  "InstanceAndSynthesizedStaticConflict",
-  withArgumentsOld: _withArgumentsOldInstanceAndSynthesizedStaticConflict,
-  withArguments: _withArgumentsInstanceAndSynthesizedStaticConflict,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstanceAndSynthesizedStaticConflict({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInstanceAndSynthesizedStaticConflict,
-    problemMessage:
-        """This instance member conflicts with the synthesized static member called '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstanceAndSynthesizedStaticConflict(String name) =>
-    _withArgumentsInstanceAndSynthesizedStaticConflict(name: name);
+codeInstanceAndSynthesizedStaticConflict = instanceAndSynthesizedStaticConflict;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInstanceConflictsWithStatic = const Template(
-  "InstanceConflictsWithStatic",
-  withArgumentsOld: _withArgumentsOldInstanceConflictsWithStatic,
-  withArguments: _withArgumentsInstanceConflictsWithStatic,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstanceConflictsWithStatic({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInstanceConflictsWithStatic,
-    problemMessage:
-        """Instance property '${name_0}' conflicts with static property of the same name.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstanceConflictsWithStatic(String name) =>
-    _withArgumentsInstanceConflictsWithStatic(name: name);
+codeInstanceConflictsWithStatic = instanceConflictsWithStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInstanceConflictsWithStaticCause = const Template(
-  "InstanceConflictsWithStaticCause",
-  withArgumentsOld: _withArgumentsOldInstanceConflictsWithStaticCause,
-  withArguments: _withArgumentsInstanceConflictsWithStaticCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstanceConflictsWithStaticCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInstanceConflictsWithStaticCause,
-    problemMessage: """Conflicting static property '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstanceConflictsWithStaticCause(String name) =>
-    _withArgumentsInstanceConflictsWithStaticCause(name: name);
+codeInstanceConflictsWithStaticCause = instanceConflictsWithStaticCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeInstantiationNonGenericFunctionType = const Template(
-  "InstantiationNonGenericFunctionType",
-  withArgumentsOld: _withArgumentsOldInstantiationNonGenericFunctionType,
-  withArguments: _withArgumentsInstantiationNonGenericFunctionType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstantiationNonGenericFunctionType({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeInstantiationNonGenericFunctionType,
-    problemMessage:
-        """The static type of the explicit instantiation operand must be a generic function type but is '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing the operand or remove the type arguments.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstantiationNonGenericFunctionType(DartType type) =>
-    _withArgumentsInstantiationNonGenericFunctionType(type: type);
+codeInstantiationNonGenericFunctionType = instantiationNonGenericFunctionType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeInstantiationNullableGenericFunctionType = const Template(
-  "InstantiationNullableGenericFunctionType",
-  withArgumentsOld: _withArgumentsOldInstantiationNullableGenericFunctionType,
-  withArguments: _withArgumentsInstantiationNullableGenericFunctionType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstantiationNullableGenericFunctionType({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeInstantiationNullableGenericFunctionType,
-    problemMessage:
-        """The static type of the explicit instantiation operand must be a non-null generic function type but is '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing the operand or remove the type arguments.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstantiationNullableGenericFunctionType(
-  DartType type,
-) => _withArgumentsInstantiationNullableGenericFunctionType(type: type);
+codeInstantiationNullableGenericFunctionType =
+    instantiationNullableGenericFunctionType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int count, int count2),
   Message Function({required int count, required int count2})
 >
-codeInstantiationTooFewArguments = const Template(
-  "InstantiationTooFewArguments",
-  withArgumentsOld: _withArgumentsOldInstantiationTooFewArguments,
-  withArguments: _withArgumentsInstantiationTooFewArguments,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstantiationTooFewArguments({
-  required int count,
-  required int count2,
-}) {
-  return new Message(
-    codeInstantiationTooFewArguments,
-    problemMessage:
-        """Too few type arguments: ${count} required, ${count2} given.""",
-    correctionMessage: """Try adding the missing type arguments.""",
-    arguments: {'count': count, 'count2': count2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstantiationTooFewArguments(int count, int count2) =>
-    _withArgumentsInstantiationTooFewArguments(count: count, count2: count2);
+codeInstantiationTooFewArguments = instantiationTooFewArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int count, int count2),
   Message Function({required int count, required int count2})
 >
-codeInstantiationTooManyArguments = const Template(
-  "InstantiationTooManyArguments",
-  withArgumentsOld: _withArgumentsOldInstantiationTooManyArguments,
-  withArguments: _withArgumentsInstantiationTooManyArguments,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstantiationTooManyArguments({
-  required int count,
-  required int count2,
-}) {
-  return new Message(
-    codeInstantiationTooManyArguments,
-    problemMessage:
-        """Too many type arguments: ${count} allowed, but ${count2} found.""",
-    correctionMessage: """Try removing the extra type arguments.""",
-    arguments: {'count': count, 'count2': count2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstantiationTooManyArguments(int count, int count2) =>
-    _withArgumentsInstantiationTooManyArguments(count: count, count2: count2);
+codeInstantiationTooManyArguments = instantiationTooManyArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeIntegerLiteralIsOutOfRange = const Template(
-  "IntegerLiteralIsOutOfRange",
-  withArgumentsOld: _withArgumentsOldIntegerLiteralIsOutOfRange,
-  withArguments: _withArgumentsIntegerLiteralIsOutOfRange,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIntegerLiteralIsOutOfRange({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeIntegerLiteralIsOutOfRange,
-    problemMessage:
-        """The integer literal ${string_0} can't be represented in 64 bits.""",
-    correctionMessage:
-        """Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIntegerLiteralIsOutOfRange(String string) =>
-    _withArgumentsIntegerLiteralIsOutOfRange(string: string);
+codeIntegerLiteralIsOutOfRange = integerLiteralIsOutOfRange;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeInterfaceCheck = const Template(
-  "InterfaceCheck",
-  withArgumentsOld: _withArgumentsOldInterfaceCheck,
-  withArguments: _withArgumentsInterfaceCheck,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInterfaceCheck({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInterfaceCheck,
-    problemMessage:
-        """The implementation of '${name_0}' in the non-abstract class '${name2_0}' does not conform to its interface.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInterfaceCheck(String name, String name2) =>
-    _withArgumentsInterfaceCheck(name: name, name2: name2);
+codeInterfaceCheck = interfaceCheck;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInterfaceClassExtendedOutsideOfLibrary = const Template(
-  "InterfaceClassExtendedOutsideOfLibrary",
-  withArgumentsOld: _withArgumentsOldInterfaceClassExtendedOutsideOfLibrary,
-  withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary,
-);
+codeInterfaceClassExtendedOutsideOfLibrary =
+    interfaceClassExtendedOutsideOfLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInterfaceClassExtendedOutsideOfLibrary,
-    problemMessage:
-        """The class '${name_0}' can't be extended outside of its library because it's an interface class.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeInternalProblemAlreadyInitialized =
+    internalProblemAlreadyInitialized;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInterfaceClassExtendedOutsideOfLibrary(String name) =>
-    _withArgumentsInterfaceClassExtendedOutsideOfLibrary(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInternalProblemAlreadyInitialized = const MessageCode(
-  "InternalProblemAlreadyInitialized",
-  severity: CfeSeverity.internalProblem,
-  problemMessage:
-      """Attempt to set initializer on field without initializer.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInternalProblemBodyOnAbstractMethod = const MessageCode(
-  "InternalProblemBodyOnAbstractMethod",
-  severity: CfeSeverity.internalProblem,
-  problemMessage: """Attempting to set body on abstract method.""",
-);
+const MessageCode codeInternalProblemBodyOnAbstractMethod =
+    internalProblemBodyOnAbstractMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, Uri uri),
   Message Function({required String name, required Uri uri})
 >
-codeInternalProblemConstructorNotFound = const Template(
-  "InternalProblemConstructorNotFound",
-  withArgumentsOld: _withArgumentsOldInternalProblemConstructorNotFound,
-  withArguments: _withArgumentsInternalProblemConstructorNotFound,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemConstructorNotFound({
-  required String name,
-  required Uri uri,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeInternalProblemConstructorNotFound,
-    problemMessage: """No constructor named '${name_0}' in '${uri_0}'.""",
-    arguments: {'name': name, 'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemConstructorNotFound(
-  String name,
-  Uri uri,
-) => _withArgumentsInternalProblemConstructorNotFound(name: name, uri: uri);
+codeInternalProblemConstructorNotFound = internalProblemConstructorNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeInternalProblemContextSeverity = const Template(
-  "InternalProblemContextSeverity",
-  withArgumentsOld: _withArgumentsOldInternalProblemContextSeverity,
-  withArguments: _withArgumentsInternalProblemContextSeverity,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemContextSeverity({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeInternalProblemContextSeverity,
-    problemMessage: """Non-context message has context severity: ${string_0}""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemContextSeverity(String string) =>
-    _withArgumentsInternalProblemContextSeverity(string: string);
+codeInternalProblemContextSeverity = internalProblemContextSeverity;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeInternalProblemDebugAbort = const Template(
-  "InternalProblemDebugAbort",
-  withArgumentsOld: _withArgumentsOldInternalProblemDebugAbort,
-  withArguments: _withArgumentsInternalProblemDebugAbort,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemDebugAbort({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeInternalProblemDebugAbort,
-    problemMessage: """Compilation aborted due to fatal '${name_0}' at:
-${string_0}""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemDebugAbort(
-  String name,
-  String string,
-) => _withArgumentsInternalProblemDebugAbort(name: name, string: string);
+codeInternalProblemDebugAbort = internalProblemDebugAbort;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemExtendingUnmodifiableScope =
-    const MessageCode(
-      "InternalProblemExtendingUnmodifiableScope",
-      severity: CfeSeverity.internalProblem,
-      problemMessage: """Can't extend an unmodifiable scope.""",
-    );
+    internalProblemExtendingUnmodifiableScope;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemLabelUsageInVariablesDeclaration =
-    const MessageCode(
-      "InternalProblemLabelUsageInVariablesDeclaration",
-      severity: CfeSeverity.internalProblem,
-      problemMessage:
-          """Unexpected usage of label inside declaration of variables.""",
-    );
+    internalProblemLabelUsageInVariablesDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInternalProblemMissingContext = const MessageCode(
-  "InternalProblemMissingContext",
-  severity: CfeSeverity.internalProblem,
-  problemMessage: """Compiler cannot run without a compiler context.""",
-  correctionMessage:
-      """Are calls to the compiler wrapped in CompilerContext.runInContext?""",
-);
+const MessageCode codeInternalProblemMissingContext =
+    internalProblemMissingContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInternalProblemNotFound = const Template(
-  "InternalProblemNotFound",
-  withArgumentsOld: _withArgumentsOldInternalProblemNotFound,
-  withArguments: _withArgumentsInternalProblemNotFound,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInternalProblemNotFound,
-    problemMessage: """Couldn't find '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemNotFound(String name) =>
-    _withArgumentsInternalProblemNotFound(name: name);
+codeInternalProblemNotFound = internalProblemNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeInternalProblemNotFoundIn = const Template(
-  "InternalProblemNotFoundIn",
-  withArgumentsOld: _withArgumentsOldInternalProblemNotFoundIn,
-  withArguments: _withArgumentsInternalProblemNotFoundIn,
-  severity: CfeSeverity.internalProblem,
-);
+codeInternalProblemNotFoundIn = internalProblemNotFoundIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemNotFoundIn({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInternalProblemNotFoundIn,
-    problemMessage: """Couldn't find '${name_0}' in '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
+const MessageCode codeInternalProblemOmittedTypeNameInConstructorReference =
+    internalProblemOmittedTypeNameInConstructorReference;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemNotFoundIn(String name, String name2) =>
-    _withArgumentsInternalProblemNotFoundIn(name: name, name2: name2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeInternalProblemOmittedTypeNameInConstructorReference = const MessageCode(
-  "InternalProblemOmittedTypeNameInConstructorReference",
-  severity: CfeSeverity.internalProblem,
-  problemMessage:
-      """Unsupported omission of the type name in a constructor reference outside of an enum element declaration.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInternalProblemPreviousTokenNotFound = const MessageCode(
-  "InternalProblemPreviousTokenNotFound",
-  severity: CfeSeverity.internalProblem,
-  problemMessage: """Couldn't find previous token.""",
-);
+const MessageCode codeInternalProblemPreviousTokenNotFound =
+    internalProblemPreviousTokenNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInternalProblemPrivateConstructorAccess = const Template(
-  "InternalProblemPrivateConstructorAccess",
-  withArgumentsOld: _withArgumentsOldInternalProblemPrivateConstructorAccess,
-  withArguments: _withArgumentsInternalProblemPrivateConstructorAccess,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemPrivateConstructorAccess({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInternalProblemPrivateConstructorAccess,
-    problemMessage: """Can't access private constructor '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemPrivateConstructorAccess(String name) =>
-    _withArgumentsInternalProblemPrivateConstructorAccess(name: name);
+codeInternalProblemPrivateConstructorAccess =
+    internalProblemPrivateConstructorAccess;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
-    const MessageCode(
-      "InternalProblemProvidedBothCompileSdkAndSdkSummary",
-      severity: CfeSeverity.internalProblem,
-      problemMessage:
-          """The compileSdk and sdkSummary options are mutually exclusive""",
-    );
+    internalProblemProvidedBothCompileSdkAndSdkSummary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeInternalProblemUnexpected = const Template(
-  "InternalProblemUnexpected",
-  withArgumentsOld: _withArgumentsOldInternalProblemUnexpected,
-  withArguments: _withArgumentsInternalProblemUnexpected,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnexpected({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeInternalProblemUnexpected,
-    problemMessage: """Expected '${string_0}', but got '${string2_0}'.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnexpected(
-  String string,
-  String string2,
-) => _withArgumentsInternalProblemUnexpected(string: string, string2: string2);
+codeInternalProblemUnexpected = internalProblemUnexpected;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeInternalProblemUnimplemented = const Template(
-  "InternalProblemUnimplemented",
-  withArgumentsOld: _withArgumentsOldInternalProblemUnimplemented,
-  withArguments: _withArgumentsInternalProblemUnimplemented,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnimplemented({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeInternalProblemUnimplemented,
-    problemMessage: """Unimplemented ${string_0}.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnimplemented(String string) =>
-    _withArgumentsInternalProblemUnimplemented(string: string);
+codeInternalProblemUnimplemented = internalProblemUnimplemented;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, DartType type),
   Message Function({required String string, required DartType type})
 >
-codeInternalProblemUnsupportedNullability = const Template(
-  "InternalProblemUnsupportedNullability",
-  withArgumentsOld: _withArgumentsOldInternalProblemUnsupportedNullability,
-  withArguments: _withArgumentsInternalProblemUnsupportedNullability,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnsupportedNullability({
-  required String string,
-  required DartType type,
-}) {
-  var string_0 = conversions.validateString(string);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeInternalProblemUnsupportedNullability,
-    problemMessage:
-        """Unsupported nullability value '${string_0}' on type '${type_0}'.""" +
-        labeler.originMessages,
-    arguments: {'string': string, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnsupportedNullability(
-  String string,
-  DartType type,
-) => _withArgumentsInternalProblemUnsupportedNullability(
-  string: string,
-  type: type,
-);
+codeInternalProblemUnsupportedNullability =
+    internalProblemUnsupportedNullability;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codeInternalProblemUriMissingScheme = const Template(
-  "InternalProblemUriMissingScheme",
-  withArgumentsOld: _withArgumentsOldInternalProblemUriMissingScheme,
-  withArguments: _withArgumentsInternalProblemUriMissingScheme,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUriMissingScheme({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeInternalProblemUriMissingScheme,
-    problemMessage: """The URI '${uri_0}' has no scheme.""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUriMissingScheme(Uri uri) =>
-    _withArgumentsInternalProblemUriMissingScheme(uri: uri);
+codeInternalProblemUriMissingScheme = internalProblemUriMissingScheme;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeInternalProblemVerificationError = const Template(
-  "InternalProblemVerificationError",
-  withArgumentsOld: _withArgumentsOldInternalProblemVerificationError,
-  withArguments: _withArgumentsInternalProblemVerificationError,
-  severity: CfeSeverity.internalProblem,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemVerificationError({
-  required String string,
-}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeInternalProblemVerificationError,
-    problemMessage: """Verification of the generated program failed:
-${string_0}""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemVerificationError(String string) =>
-    _withArgumentsInternalProblemVerificationError(string: string);
+codeInternalProblemVerificationError = internalProblemVerificationError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidAssignmentError = const Template(
-  "InvalidAssignmentError",
-  withArgumentsOld: _withArgumentsOldInvalidAssignmentError,
-  withArguments: _withArgumentsInvalidAssignmentError,
-);
+codeInvalidAssignmentError = invalidAssignmentError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidAssignmentError({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidAssignmentError,
-    problemMessage:
-        """A value of type '${type_0}' can't be assigned to a variable of type '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidAssignmentError(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidAssignmentError(type: type, type2: type2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidAugmentSuper = const MessageCode(
-  "InvalidAugmentSuper",
-  problemMessage:
-      """'augment super' is only allowed in member augmentations.""",
-);
+const MessageCode codeInvalidAugmentSuper = invalidAugmentSuper;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInvalidBreakTarget = const Template(
-  "InvalidBreakTarget",
-  withArgumentsOld: _withArgumentsOldInvalidBreakTarget,
-  withArguments: _withArgumentsInvalidBreakTarget,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidBreakTarget({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInvalidBreakTarget,
-    problemMessage: """Can't break to '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidBreakTarget(String name) =>
-    _withArgumentsInvalidBreakTarget(name: name);
+codeInvalidBreakTarget = invalidBreakTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidCastFunctionExpr = const Template(
-  "InvalidCastFunctionExpr",
-  withArgumentsOld: _withArgumentsOldInvalidCastFunctionExpr,
-  withArguments: _withArgumentsInvalidCastFunctionExpr,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastFunctionExpr({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidCastFunctionExpr,
-    problemMessage:
-        """The function expression type '${type_0}' isn't of expected type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the function expression or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastFunctionExpr(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastFunctionExpr(type: type, type2: type2);
+codeInvalidCastFunctionExpr = invalidCastFunctionExpr;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidCastLiteralList = const Template(
-  "InvalidCastLiteralList",
-  withArgumentsOld: _withArgumentsOldInvalidCastLiteralList,
-  withArguments: _withArgumentsInvalidCastLiteralList,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLiteralList({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidCastLiteralList,
-    problemMessage:
-        """The list literal type '${type_0}' isn't of expected type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the list literal or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastLiteralList(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastLiteralList(type: type, type2: type2);
+codeInvalidCastLiteralList = invalidCastLiteralList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidCastLiteralMap = const Template(
-  "InvalidCastLiteralMap",
-  withArgumentsOld: _withArgumentsOldInvalidCastLiteralMap,
-  withArguments: _withArgumentsInvalidCastLiteralMap,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLiteralMap({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidCastLiteralMap,
-    problemMessage:
-        """The map literal type '${type_0}' isn't of expected type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the map literal or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastLiteralMap(DartType type, DartType type2) =>
-    _withArgumentsInvalidCastLiteralMap(type: type, type2: type2);
+codeInvalidCastLiteralMap = invalidCastLiteralMap;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidCastLiteralSet = const Template(
-  "InvalidCastLiteralSet",
-  withArgumentsOld: _withArgumentsOldInvalidCastLiteralSet,
-  withArguments: _withArgumentsInvalidCastLiteralSet,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLiteralSet({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidCastLiteralSet,
-    problemMessage:
-        """The set literal type '${type_0}' isn't of expected type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the set literal or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastLiteralSet(DartType type, DartType type2) =>
-    _withArgumentsInvalidCastLiteralSet(type: type, type2: type2);
+codeInvalidCastLiteralSet = invalidCastLiteralSet;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidCastLocalFunction = const Template(
-  "InvalidCastLocalFunction",
-  withArgumentsOld: _withArgumentsOldInvalidCastLocalFunction,
-  withArguments: _withArgumentsInvalidCastLocalFunction,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastLocalFunction({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidCastLocalFunction,
-    problemMessage:
-        """The local function has type '${type_0}' that isn't of expected type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the function or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastLocalFunction(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastLocalFunction(type: type, type2: type2);
+codeInvalidCastLocalFunction = invalidCastLocalFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidCastNewExpr = const Template(
-  "InvalidCastNewExpr",
-  withArgumentsOld: _withArgumentsOldInvalidCastNewExpr,
-  withArguments: _withArgumentsInvalidCastNewExpr,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastNewExpr({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidCastNewExpr,
-    problemMessage:
-        """The constructor returns type '${type_0}' that isn't of expected type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the object being constructed or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastNewExpr(DartType type, DartType type2) =>
-    _withArgumentsInvalidCastNewExpr(type: type, type2: type2);
+codeInvalidCastNewExpr = invalidCastNewExpr;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidCastStaticMethod = const Template(
-  "InvalidCastStaticMethod",
-  withArgumentsOld: _withArgumentsOldInvalidCastStaticMethod,
-  withArguments: _withArgumentsInvalidCastStaticMethod,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastStaticMethod({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidCastStaticMethod,
-    problemMessage:
-        """The static method has type '${type_0}' that isn't of expected type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the method or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastStaticMethod(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastStaticMethod(type: type, type2: type2);
+codeInvalidCastStaticMethod = invalidCastStaticMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidCastTopLevelFunction = const Template(
-  "InvalidCastTopLevelFunction",
-  withArgumentsOld: _withArgumentsOldInvalidCastTopLevelFunction,
-  withArguments: _withArgumentsInvalidCastTopLevelFunction,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidCastTopLevelFunction({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidCastTopLevelFunction,
-    problemMessage:
-        """The top level function has type '${type_0}' that isn't of expected type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change the type of the function or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastTopLevelFunction(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastTopLevelFunction(type: type, type2: type2);
+codeInvalidCastTopLevelFunction = invalidCastTopLevelFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInvalidContinueTarget = const Template(
-  "InvalidContinueTarget",
-  withArgumentsOld: _withArgumentsOldInvalidContinueTarget,
-  withArguments: _withArgumentsInvalidContinueTarget,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidContinueTarget({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInvalidContinueTarget,
-    problemMessage: """Can't continue at '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidContinueTarget(String name) =>
-    _withArgumentsInvalidContinueTarget(name: name);
+codeInvalidContinueTarget = invalidContinueTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8562,47 +2341,8 @@ const Template<
     required DartType type3,
   })
 >
-codeInvalidExtensionTypeSuperExtensionType = const Template(
-  "InvalidExtensionTypeSuperExtensionType",
-  withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperExtensionType,
-  withArguments: _withArgumentsInvalidExtensionTypeSuperExtensionType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidExtensionTypeSuperExtensionType({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required DartType type3,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var type3_0 = labeler.labelType(type3);
-  return new Message(
-    codeInvalidExtensionTypeSuperExtensionType,
-    problemMessage:
-        """The representation type '${type_0}' of extension type '${name_0}' must be either a subtype of the representation type '${type2_0}' of the implemented extension type '${type3_0}' or a subtype of '${type3_0}' itself.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing the representation type to a subtype of '${type2_0}'.""",
-    arguments: {'type': type, 'name': name, 'type2': type2, 'type3': type3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidExtensionTypeSuperExtensionType(
-  DartType type,
-  String name,
-  DartType type2,
-  DartType type3,
-) => _withArgumentsInvalidExtensionTypeSuperExtensionType(
-  type: type,
-  name: name,
-  type2: type2,
-  type3: type3,
-);
+codeInvalidExtensionTypeSuperExtensionType =
+    invalidExtensionTypeSuperExtensionType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8613,43 +2353,7 @@ const Template<
     required String name,
   })
 >
-codeInvalidExtensionTypeSuperInterface = const Template(
-  "InvalidExtensionTypeSuperInterface",
-  withArgumentsOld: _withArgumentsOldInvalidExtensionTypeSuperInterface,
-  withArguments: _withArgumentsInvalidExtensionTypeSuperInterface,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidExtensionTypeSuperInterface({
-  required DartType type,
-  required DartType type2,
-  required String name,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInvalidExtensionTypeSuperInterface,
-    problemMessage:
-        """The implemented interface '${type_0}' must be a supertype of the representation type '${type2_0}' of extension type '${name_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing the interface type to a supertype of '${type2_0}' or the representation type to a subtype of '${type_0}'.""",
-    arguments: {'type': type, 'type2': type2, 'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidExtensionTypeSuperInterface(
-  DartType type,
-  DartType type2,
-  String name,
-) => _withArgumentsInvalidExtensionTypeSuperInterface(
-  type: type,
-  type2: type2,
-  name: name,
-);
+codeInvalidExtensionTypeSuperInterface = invalidExtensionTypeSuperInterface;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8661,45 +2365,7 @@ const Template<
     required String name2,
   })
 >
-codeInvalidGetterSetterType = const Template(
-  "InvalidGetterSetterType",
-  withArgumentsOld: _withArgumentsOldInvalidGetterSetterType,
-  withArguments: _withArgumentsInvalidGetterSetterType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterType({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInvalidGetterSetterType,
-    problemMessage:
-        """The type '${type_0}' of the getter '${name_0}' is not a subtype of the type '${type2_0}' of the setter '${name2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterType(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
-) => _withArgumentsInvalidGetterSetterType(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
-);
+codeInvalidGetterSetterType = invalidGetterSetterType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8711,45 +2377,8 @@ const Template<
     required String name2,
   })
 >
-codeInvalidGetterSetterTypeBothInheritedField = const Template(
-  "InvalidGetterSetterTypeBothInheritedField",
-  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeBothInheritedField,
-  withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedField,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeBothInheritedField({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInvalidGetterSetterTypeBothInheritedField,
-    problemMessage:
-        """The type '${type_0}' of the inherited field '${name_0}' is not a subtype of the type '${type2_0}' of the inherited setter '${name2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedField(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
-) => _withArgumentsInvalidGetterSetterTypeBothInheritedField(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
-);
+codeInvalidGetterSetterTypeBothInheritedField =
+    invalidGetterSetterTypeBothInheritedField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8761,73 +2390,15 @@ const Template<
     required String name2,
   })
 >
-codeInvalidGetterSetterTypeBothInheritedGetter = const Template(
-  "InvalidGetterSetterTypeBothInheritedGetter",
-  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter,
-  withArguments: _withArgumentsInvalidGetterSetterTypeBothInheritedGetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeBothInheritedGetter({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInvalidGetterSetterTypeBothInheritedGetter,
-    problemMessage:
-        """The type '${type_0}' of the inherited getter '${name_0}' is not a subtype of the type '${type2_0}' of the inherited setter '${name2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
-) => _withArgumentsInvalidGetterSetterTypeBothInheritedGetter(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
-);
+codeInvalidGetterSetterTypeBothInheritedGetter =
+    invalidGetterSetterTypeBothInheritedGetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInvalidGetterSetterTypeFieldContext = const Template(
-  "InvalidGetterSetterTypeFieldContext",
-  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeFieldContext,
-  withArguments: _withArgumentsInvalidGetterSetterTypeFieldContext,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeFieldContext({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInvalidGetterSetterTypeFieldContext,
-    problemMessage: """This is the declaration of the field '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeFieldContext(String name) =>
-    _withArgumentsInvalidGetterSetterTypeFieldContext(name: name);
+codeInvalidGetterSetterTypeFieldContext = invalidGetterSetterTypeFieldContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8839,73 +2410,15 @@ const Template<
     required String name2,
   })
 >
-codeInvalidGetterSetterTypeFieldInherited = const Template(
-  "InvalidGetterSetterTypeFieldInherited",
-  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeFieldInherited,
-  withArguments: _withArgumentsInvalidGetterSetterTypeFieldInherited,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeFieldInherited({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInvalidGetterSetterTypeFieldInherited,
-    problemMessage:
-        """The type '${type_0}' of the inherited field '${name_0}' is not a subtype of the type '${type2_0}' of the setter '${name2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeFieldInherited(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
-) => _withArgumentsInvalidGetterSetterTypeFieldInherited(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
-);
+codeInvalidGetterSetterTypeFieldInherited =
+    invalidGetterSetterTypeFieldInherited;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInvalidGetterSetterTypeGetterContext = const Template(
-  "InvalidGetterSetterTypeGetterContext",
-  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeGetterContext,
-  withArguments: _withArgumentsInvalidGetterSetterTypeGetterContext,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeGetterContext({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInvalidGetterSetterTypeGetterContext,
-    problemMessage: """This is the declaration of the getter '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeGetterContext(String name) =>
-    _withArgumentsInvalidGetterSetterTypeGetterContext(name: name);
+codeInvalidGetterSetterTypeGetterContext = invalidGetterSetterTypeGetterContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8917,73 +2430,15 @@ const Template<
     required String name2,
   })
 >
-codeInvalidGetterSetterTypeGetterInherited = const Template(
-  "InvalidGetterSetterTypeGetterInherited",
-  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeGetterInherited,
-  withArguments: _withArgumentsInvalidGetterSetterTypeGetterInherited,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeGetterInherited({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInvalidGetterSetterTypeGetterInherited,
-    problemMessage:
-        """The type '${type_0}' of the inherited getter '${name_0}' is not a subtype of the type '${type2_0}' of the setter '${name2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeGetterInherited(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
-) => _withArgumentsInvalidGetterSetterTypeGetterInherited(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
-);
+codeInvalidGetterSetterTypeGetterInherited =
+    invalidGetterSetterTypeGetterInherited;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInvalidGetterSetterTypeSetterContext = const Template(
-  "InvalidGetterSetterTypeSetterContext",
-  withArgumentsOld: _withArgumentsOldInvalidGetterSetterTypeSetterContext,
-  withArguments: _withArgumentsInvalidGetterSetterTypeSetterContext,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeSetterContext({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInvalidGetterSetterTypeSetterContext,
-    problemMessage: """This is the declaration of the setter '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeSetterContext(String name) =>
-    _withArgumentsInvalidGetterSetterTypeSetterContext(name: name);
+codeInvalidGetterSetterTypeSetterContext = invalidGetterSetterTypeSetterContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8995,46 +2450,8 @@ const Template<
     required String name2,
   })
 >
-codeInvalidGetterSetterTypeSetterInheritedField = const Template(
-  "InvalidGetterSetterTypeSetterInheritedField",
-  withArgumentsOld:
-      _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField,
-  withArguments: _withArgumentsInvalidGetterSetterTypeSetterInheritedField,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeSetterInheritedField({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInvalidGetterSetterTypeSetterInheritedField,
-    problemMessage:
-        """The type '${type_0}' of the field '${name_0}' is not a subtype of the type '${type2_0}' of the inherited setter '${name2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
-) => _withArgumentsInvalidGetterSetterTypeSetterInheritedField(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
-);
+codeInvalidGetterSetterTypeSetterInheritedField =
+    invalidGetterSetterTypeSetterInheritedField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9046,140 +2463,29 @@ const Template<
     required String name2,
   })
 >
-codeInvalidGetterSetterTypeSetterInheritedGetter = const Template(
-  "InvalidGetterSetterTypeSetterInheritedGetter",
-  withArgumentsOld:
-      _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter,
-  withArguments: _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInvalidGetterSetterTypeSetterInheritedGetter,
-    problemMessage:
-        """The type '${type_0}' of the getter '${name_0}' is not a subtype of the type '${type2_0}' of the inherited setter '${name2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
-) => _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
-);
+codeInvalidGetterSetterTypeSetterInheritedGetter =
+    invalidGetterSetterTypeSetterInheritedGetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Uri uri, String string),
   Message Function({required Uri uri, required String string})
 >
-codeInvalidPackageUri = const Template(
-  "InvalidPackageUri",
-  withArgumentsOld: _withArgumentsOldInvalidPackageUri,
-  withArguments: _withArgumentsInvalidPackageUri,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidPackageUri({
-  required Uri uri,
-  required String string,
-}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeInvalidPackageUri,
-    problemMessage: """Invalid package URI '${uri_0}':
-  ${string_0}.""",
-    arguments: {'uri': uri, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidPackageUri(Uri uri, String string) =>
-    _withArgumentsInvalidPackageUri(uri: uri, string: string);
+codeInvalidPackageUri = invalidPackageUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidReturn = const Template(
-  "InvalidReturn",
-  withArgumentsOld: _withArgumentsOldInvalidReturn,
-  withArguments: _withArgumentsInvalidReturn,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidReturn({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidReturn,
-    problemMessage:
-        """A value of type '${type_0}' can't be returned from a function with return type '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidReturn(DartType type, DartType type2) =>
-    _withArgumentsInvalidReturn(type: type, type2: type2);
+codeInvalidReturn = invalidReturn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeInvalidReturnAsync = const Template(
-  "InvalidReturnAsync",
-  withArgumentsOld: _withArgumentsOldInvalidReturnAsync,
-  withArguments: _withArgumentsInvalidReturnAsync,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidReturnAsync({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeInvalidReturnAsync,
-    problemMessage:
-        """A value of type '${type_0}' can't be returned from an async function with return type '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidReturnAsync(DartType type, DartType type2) =>
-    _withArgumentsInvalidReturnAsync(type: type, type2: type2);
+codeInvalidReturnAsync = invalidReturnAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9190,39 +2496,7 @@ const Template<
     required String name2,
   })
 >
-codeInvalidTypeParameterInSupertype = const Template(
-  "InvalidTypeParameterInSupertype",
-  withArgumentsOld: _withArgumentsOldInvalidTypeParameterInSupertype,
-  withArguments: _withArgumentsInvalidTypeParameterInSupertype,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidTypeParameterInSupertype({
-  required String name,
-  required String string2,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string2_0 = conversions.validateString(string2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInvalidTypeParameterInSupertype,
-    problemMessage:
-        """Can't use implicitly 'out' variable '${name_0}' in an '${string2_0}' position in supertype '${name2_0}'.""",
-    arguments: {'name': name, 'string2': string2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidTypeParameterInSupertype(
-  String name,
-  String string2,
-  String name2,
-) => _withArgumentsInvalidTypeParameterInSupertype(
-  name: name,
-  string2: string2,
-  name2: name2,
-);
+codeInvalidTypeParameterInSupertype = invalidTypeParameterInSupertype;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9234,49 +2508,8 @@ const Template<
     required String name2,
   })
 >
-codeInvalidTypeParameterInSupertypeWithVariance = const Template(
-  "InvalidTypeParameterInSupertypeWithVariance",
-  withArgumentsOld:
-      _withArgumentsOldInvalidTypeParameterInSupertypeWithVariance,
-  withArguments: _withArgumentsInvalidTypeParameterInSupertypeWithVariance,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidTypeParameterInSupertypeWithVariance({
-  required String string,
-  required String name,
-  required String string2,
-  required String name2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string2_0 = conversions.validateString(string2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeInvalidTypeParameterInSupertypeWithVariance,
-    problemMessage:
-        """Can't use '${string_0}' type variable '${name_0}' in an '${string2_0}' position in supertype '${name2_0}'.""",
-    arguments: {
-      'string': string,
-      'name': name,
-      'string2': string2,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidTypeParameterInSupertypeWithVariance(
-  String string,
-  String name,
-  String string2,
-  String name2,
-) => _withArgumentsInvalidTypeParameterInSupertypeWithVariance(
-  string: string,
-  name: name,
-  string2: string2,
-  name2: name2,
-);
+codeInvalidTypeParameterInSupertypeWithVariance =
+    invalidTypeParameterInSupertypeWithVariance;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9287,39 +2520,7 @@ const Template<
     required String string2,
   })
 >
-codeInvalidTypeParameterVariancePosition = const Template(
-  "InvalidTypeParameterVariancePosition",
-  withArgumentsOld: _withArgumentsOldInvalidTypeParameterVariancePosition,
-  withArguments: _withArgumentsInvalidTypeParameterVariancePosition,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidTypeParameterVariancePosition({
-  required String string,
-  required String name,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeInvalidTypeParameterVariancePosition,
-    problemMessage:
-        """Can't use '${string_0}' type variable '${name_0}' in an '${string2_0}' position.""",
-    arguments: {'string': string, 'name': name, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidTypeParameterVariancePosition(
-  String string,
-  String name,
-  String string2,
-) => _withArgumentsInvalidTypeParameterVariancePosition(
-  string: string,
-  name: name,
-  string2: string2,
-);
+codeInvalidTypeParameterVariancePosition = invalidTypeParameterVariancePosition;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9330,813 +2531,204 @@ const Template<
     required String string2,
   })
 >
-codeInvalidTypeParameterVariancePositionInReturnType = const Template(
-  "InvalidTypeParameterVariancePositionInReturnType",
-  withArgumentsOld:
-      _withArgumentsOldInvalidTypeParameterVariancePositionInReturnType,
-  withArguments: _withArgumentsInvalidTypeParameterVariancePositionInReturnType,
-);
+codeInvalidTypeParameterVariancePositionInReturnType =
+    invalidTypeParameterVariancePositionInReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidTypeParameterVariancePositionInReturnType({
-  required String string,
-  required String name,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeInvalidTypeParameterVariancePositionInReturnType,
-    problemMessage:
-        """Can't use '${string_0}' type variable '${name_0}' in an '${string2_0}' position in the return type.""",
-    arguments: {'string': string, 'name': name, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidTypeParameterVariancePositionInReturnType(
-  String string,
-  String name,
-  String string2,
-) => _withArgumentsInvalidTypeParameterVariancePositionInReturnType(
-  string: string,
-  name: name,
-  string2: string2,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidUseOfNullAwareAccess = const MessageCode(
-  "InvalidUseOfNullAwareAccess",
-  problemMessage: """Cannot use '?.' here.""",
-  correctionMessage: """Try using '.'.""",
-);
+const MessageCode codeInvalidUseOfNullAwareAccess = invalidUseOfNullAwareAccess;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeInvokeNonFunction = const Template(
-  "InvokeNonFunction",
-  withArgumentsOld: _withArgumentsOldInvokeNonFunction,
-  withArguments: _withArgumentsInvokeNonFunction,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvokeNonFunction({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeInvokeNonFunction,
-    problemMessage:
-        """'${name_0}' isn't a function or method and can't be invoked.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvokeNonFunction(String name) =>
-    _withArgumentsInvokeNonFunction(name: name);
+codeInvokeNonFunction = invokeNonFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJointPatternVariableNotInAll = const Template(
-  "JointPatternVariableNotInAll",
-  withArgumentsOld: _withArgumentsOldJointPatternVariableNotInAll,
-  withArguments: _withArgumentsJointPatternVariableNotInAll,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJointPatternVariableNotInAll({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJointPatternVariableNotInAll,
-    problemMessage:
-        """The variable '${name_0}' is available in some, but not all cases that share this body.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJointPatternVariableNotInAll(String name) =>
-    _withArgumentsJointPatternVariableNotInAll(name: name);
+codeJointPatternVariableNotInAll = jointPatternVariableNotInAll;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJointPatternVariableWithLabelDefault = const Template(
-  "JointPatternVariableWithLabelDefault",
-  withArgumentsOld: _withArgumentsOldJointPatternVariableWithLabelDefault,
-  withArguments: _withArgumentsJointPatternVariableWithLabelDefault,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJointPatternVariableWithLabelDefault({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJointPatternVariableWithLabelDefault,
-    problemMessage:
-        """The variable '${name_0}' is not available because there is a label or 'default' case.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJointPatternVariableWithLabelDefault(String name) =>
-    _withArgumentsJointPatternVariableWithLabelDefault(name: name);
+codeJointPatternVariableWithLabelDefault = jointPatternVariableWithLabelDefault;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJointPatternVariablesMismatch = const Template(
-  "JointPatternVariablesMismatch",
-  withArgumentsOld: _withArgumentsOldJointPatternVariablesMismatch,
-  withArguments: _withArgumentsJointPatternVariablesMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJointPatternVariablesMismatch({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJointPatternVariablesMismatch,
-    problemMessage:
-        """Variable pattern '${name_0}' doesn't have the same type or finality in all cases.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJointPatternVariablesMismatch(String name) =>
-    _withArgumentsJointPatternVariablesMismatch(name: name);
+codeJointPatternVariablesMismatch = jointPatternVariablesMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeJsInteropDartClassExtendsJSClass = const Template(
-  "JsInteropDartClassExtendsJSClass",
-  withArgumentsOld: _withArgumentsOldJsInteropDartClassExtendsJSClass,
-  withArguments: _withArgumentsJsInteropDartClassExtendsJSClass,
-);
+codeJsInteropDartClassExtendsJSClass = jsInteropDartClassExtendsJSClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropDartClassExtendsJSClass({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeJsInteropDartClassExtendsJSClass,
-    problemMessage:
-        """Dart class '${name_0}' cannot extend JS interop class '${name2_0}'.""",
-    correctionMessage:
-        """Try adding the JS interop annotation or removing it from the parent class.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
+const MessageCode codeJsInteropDartJsInteropAnnotationForStaticInteropOnly =
+    jsInteropDartJsInteropAnnotationForStaticInteropOnly;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropDartClassExtendsJSClass(
-  String name,
-  String name2,
-) => _withArgumentsJsInteropDartClassExtendsJSClass(name: name, name2: name2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeJsInteropDartJsInteropAnnotationForStaticInteropOnly = const MessageCode(
-  "JsInteropDartJsInteropAnnotationForStaticInteropOnly",
-  problemMessage:
-      """The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes.""",
-  correctionMessage:
-      """Try making this class an extension type or marking it as '@staticInterop'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropEnclosingClassJSAnnotation = const MessageCode(
-  "JsInteropEnclosingClassJSAnnotation",
-  problemMessage:
-      """Member has a JS interop annotation but the enclosing class does not.""",
-  correctionMessage: """Try adding the annotation to the enclosing class.""",
-);
+const MessageCode codeJsInteropEnclosingClassJSAnnotation =
+    jsInteropEnclosingClassJSAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropEnclosingClassJSAnnotationContext =
-    const MessageCode(
-      "JsInteropEnclosingClassJSAnnotationContext",
-      severity: CfeSeverity.context,
-      problemMessage: """This is the enclosing class.""",
-    );
+    jsInteropEnclosingClassJSAnnotationContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJsInteropExportClassNotMarkedExportable = const Template(
-  "JsInteropExportClassNotMarkedExportable",
-  withArgumentsOld: _withArgumentsOldJsInteropExportClassNotMarkedExportable,
-  withArguments: _withArgumentsJsInteropExportClassNotMarkedExportable,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportClassNotMarkedExportable({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropExportClassNotMarkedExportable,
-    problemMessage:
-        """Class '${name_0}' does not have a `@JSExport` on it or any of its members.""",
-    correctionMessage: """Use the `@JSExport` annotation on this class.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportClassNotMarkedExportable(String name) =>
-    _withArgumentsJsInteropExportClassNotMarkedExportable(name: name);
+codeJsInteropExportClassNotMarkedExportable =
+    jsInteropExportClassNotMarkedExportable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue = const Template(
-  "JsInteropExportDartInterfaceHasNonEmptyJSExportValue",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
-  withArguments:
-      _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
-  severity: CfeSeverity.warning,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
-    problemMessage:
-        """The value in the `@JSExport` annotation on the class or mixin '${name_0}' will be ignored.""",
-    correctionMessage: """Remove the value in the annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportDartInterfaceHasNonEmptyJSExportValue(
-  String name,
-) => _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue(
-  name: name,
-);
+codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
+    jsInteropExportDartInterfaceHasNonEmptyJSExportValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJsInteropExportDisallowedMember = const Template(
-  "JsInteropExportDisallowedMember",
-  withArgumentsOld: _withArgumentsOldJsInteropExportDisallowedMember,
-  withArguments: _withArgumentsJsInteropExportDisallowedMember,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportDisallowedMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropExportDisallowedMember,
-    problemMessage:
-        """Member '${name_0}' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
-    correctionMessage:
-        """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportDisallowedMember(String name) =>
-    _withArgumentsJsInteropExportDisallowedMember(name: name);
+codeJsInteropExportDisallowedMember = jsInteropExportDisallowedMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeJsInteropExportInvalidInteropTypeArgument = const Template(
-  "JsInteropExportInvalidInteropTypeArgument",
-  withArgumentsOld: _withArgumentsOldJsInteropExportInvalidInteropTypeArgument,
-  withArguments: _withArgumentsJsInteropExportInvalidInteropTypeArgument,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportInvalidInteropTypeArgument({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeJsInteropExportInvalidInteropTypeArgument,
-    problemMessage:
-        """Type argument '${type_0}' needs to be a non-JS interop type.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Use a non-JS interop class that uses `@JSExport` instead.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportInvalidInteropTypeArgument(
-  DartType type,
-) => _withArgumentsJsInteropExportInvalidInteropTypeArgument(type: type);
+codeJsInteropExportInvalidInteropTypeArgument =
+    jsInteropExportInvalidInteropTypeArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeJsInteropExportInvalidTypeArgument = const Template(
-  "JsInteropExportInvalidTypeArgument",
-  withArgumentsOld: _withArgumentsOldJsInteropExportInvalidTypeArgument,
-  withArguments: _withArgumentsJsInteropExportInvalidTypeArgument,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportInvalidTypeArgument({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeJsInteropExportInvalidTypeArgument,
-    problemMessage:
-        """Type argument '${type_0}' needs to be an interface type.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Use a non-JS interop class that uses `@JSExport` instead.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportInvalidTypeArgument(DartType type) =>
-    _withArgumentsJsInteropExportInvalidTypeArgument(type: type);
+codeJsInteropExportInvalidTypeArgument = jsInteropExportInvalidTypeArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeJsInteropExportMemberCollision = const Template(
-  "JsInteropExportMemberCollision",
-  withArgumentsOld: _withArgumentsOldJsInteropExportMemberCollision,
-  withArguments: _withArgumentsJsInteropExportMemberCollision,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportMemberCollision({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeJsInteropExportMemberCollision,
-    problemMessage:
-        """The following class members collide with the same export '${name_0}': ${string_0}.""",
-    correctionMessage:
-        """Either remove the conflicting members or use a different export name.""",
-    arguments: {'name': name, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportMemberCollision(
-  String name,
-  String string,
-) => _withArgumentsJsInteropExportMemberCollision(name: name, string: string);
+codeJsInteropExportMemberCollision = jsInteropExportMemberCollision;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJsInteropExportNoExportableMembers = const Template(
-  "JsInteropExportNoExportableMembers",
-  withArgumentsOld: _withArgumentsOldJsInteropExportNoExportableMembers,
-  withArguments: _withArgumentsJsInteropExportNoExportableMembers,
-);
+codeJsInteropExportNoExportableMembers = jsInteropExportNoExportableMembers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExportNoExportableMembers({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropExportNoExportableMembers,
-    problemMessage:
-        """Class '${name_0}' has no exportable members in the class or the inheritance chain.""",
-    correctionMessage:
-        """Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportNoExportableMembers(String name) =>
-    _withArgumentsJsInteropExportNoExportableMembers(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeJsInteropExtensionTypeMemberNotInterop = const MessageCode(
-  "JsInteropExtensionTypeMemberNotInterop",
-  problemMessage:
-      """Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.""",
-  correctionMessage:
-      """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
-);
+const MessageCode codeJsInteropExtensionTypeMemberNotInterop =
+    jsInteropExtensionTypeMemberNotInterop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeJsInteropExtensionTypeNotInterop = const Template(
-  "JsInteropExtensionTypeNotInterop",
-  withArgumentsOld: _withArgumentsOldJsInteropExtensionTypeNotInterop,
-  withArguments: _withArgumentsJsInteropExtensionTypeNotInterop,
-);
+codeJsInteropExtensionTypeNotInterop = jsInteropExtensionTypeNotInterop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropExtensionTypeNotInterop({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeJsInteropExtensionTypeNotInterop,
-    problemMessage:
-        """Extension type '${name_0}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
+const MessageCode codeJsInteropExtensionTypeUsedWithWrongJsAnnotation =
+    jsInteropExtensionTypeUsedWithWrongJsAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExtensionTypeNotInterop(
-  String name,
-  DartType type,
-) => _withArgumentsJsInteropExtensionTypeNotInterop(name: name, type: type);
+const MessageCode codeJsInteropExternalExtensionMemberOnTypeInvalid =
+    jsInteropExternalExtensionMemberOnTypeInvalid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeJsInteropExtensionTypeUsedWithWrongJsAnnotation = const MessageCode(
-  "JsInteropExtensionTypeUsedWithWrongJsAnnotation",
-  problemMessage:
-      """Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
-  correctionMessage:
-      """Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead.""",
-);
+const MessageCode codeJsInteropExternalExtensionMemberWithStaticDisallowed =
+    jsInteropExternalExtensionMemberWithStaticDisallowed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeJsInteropExternalExtensionMemberOnTypeInvalid = const MessageCode(
-  "JsInteropExternalExtensionMemberOnTypeInvalid",
-  problemMessage:
-      """JS interop type or @Native type from an SDK web library required for 'external' extension members.""",
-  correctionMessage:
-      """Try making the on-type a JS interop type or an @Native SDK web library type.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeJsInteropExternalExtensionMemberWithStaticDisallowed = const MessageCode(
-  "JsInteropExternalExtensionMemberWithStaticDisallowed",
-  problemMessage:
-      """External extension members with the keyword 'static' on JS interop and @Native types are disallowed.""",
-  correctionMessage: """Try putting the member in the on-type instead.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropExternalMemberNotJSAnnotated = const MessageCode(
-  "JsInteropExternalMemberNotJSAnnotated",
-  problemMessage: """Only JS interop members may be 'external'.""",
-  correctionMessage:
-      """Try removing the 'external' keyword or adding a JS interop annotation.""",
-);
+const MessageCode codeJsInteropExternalMemberNotJSAnnotated =
+    jsInteropExternalMemberNotJSAnnotated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String conversion),
   Message Function({required String conversion})
 >
-codeJsInteropFunctionToJSNamedParameters = const Template(
-  "JsInteropFunctionToJSNamedParameters",
-  withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSNamedParameters,
-  withArguments: _withArgumentsJsInteropFunctionToJSNamedParameters,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropFunctionToJSNamedParameters({
-  required String conversion,
-}) {
-  var conversion_0 = conversions.validateString(conversion);
-  return new Message(
-    codeJsInteropFunctionToJSNamedParameters,
-    problemMessage:
-        """Functions converted via '${conversion_0}' cannot declare named parameters.""",
-    correctionMessage:
-        """Remove the declared named parameters from the function.""",
-    arguments: {'conversion': conversion},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropFunctionToJSNamedParameters(
-  String conversion,
-) => _withArgumentsJsInteropFunctionToJSNamedParameters(conversion: conversion);
+codeJsInteropFunctionToJSNamedParameters = jsInteropFunctionToJSNamedParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String conversion, DartType type),
   Message Function({required String conversion, required DartType type})
 >
-codeJsInteropFunctionToJSRequiresStaticType = const Template(
-  "JsInteropFunctionToJSRequiresStaticType",
-  withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSRequiresStaticType,
-  withArguments: _withArgumentsJsInteropFunctionToJSRequiresStaticType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropFunctionToJSRequiresStaticType({
-  required String conversion,
-  required DartType type,
-}) {
-  var conversion_0 = conversions.validateString(conversion);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeJsInteropFunctionToJSRequiresStaticType,
-    problemMessage:
-        """Functions converted via '${conversion_0}' require a statically known function type, but Type '${type_0}' is not a precise function type, e.g., `void Function()`.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Insert an explicit cast to the expected function type.""",
-    arguments: {'conversion': conversion, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropFunctionToJSRequiresStaticType(
-  String conversion,
-  DartType type,
-) => _withArgumentsJsInteropFunctionToJSRequiresStaticType(
-  conversion: conversion,
-  type: type,
-);
+codeJsInteropFunctionToJSRequiresStaticType =
+    jsInteropFunctionToJSRequiresStaticType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String conversion),
   Message Function({required String conversion})
 >
-codeJsInteropFunctionToJSTypeParameters = const Template(
-  "JsInteropFunctionToJSTypeParameters",
-  withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSTypeParameters,
-  withArguments: _withArgumentsJsInteropFunctionToJSTypeParameters,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropFunctionToJSTypeParameters({
-  required String conversion,
-}) {
-  var conversion_0 = conversions.validateString(conversion);
-  return new Message(
-    codeJsInteropFunctionToJSTypeParameters,
-    problemMessage:
-        """Functions converted via '${conversion_0}' cannot declare type parameters.""",
-    correctionMessage:
-        """Remove the declared type parameters from the function.""",
-    arguments: {'conversion': conversion},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropFunctionToJSTypeParameters(
-  String conversion,
-) => _withArgumentsJsInteropFunctionToJSTypeParameters(conversion: conversion);
+codeJsInteropFunctionToJSTypeParameters = jsInteropFunctionToJSTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String conversion, String string2),
   Message Function({required String conversion, required String string2})
 >
-codeJsInteropFunctionToJSTypeViolation = const Template(
-  "JsInteropFunctionToJSTypeViolation",
-  withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSTypeViolation,
-  withArguments: _withArgumentsJsInteropFunctionToJSTypeViolation,
-);
+codeJsInteropFunctionToJSTypeViolation = jsInteropFunctionToJSTypeViolation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropFunctionToJSTypeViolation({
-  required String conversion,
-  required String string2,
-}) {
-  var conversion_0 = conversions.validateString(conversion);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeJsInteropFunctionToJSTypeViolation,
-    problemMessage:
-        """Function converted via '${conversion_0}' contains invalid types in its function signature: '${string2_0}'.""",
-    correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
-    arguments: {'conversion': conversion, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropFunctionToJSTypeViolation(
-  String conversion,
-  String string2,
-) => _withArgumentsJsInteropFunctionToJSTypeViolation(
-  conversion: conversion,
-  string2: string2,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropInvalidStaticClassMemberName = const MessageCode(
-  "JsInteropInvalidStaticClassMemberName",
-  problemMessage:
-      """JS interop static class members cannot have '.' in their JS name.""",
-);
+const MessageCode codeJsInteropInvalidStaticClassMemberName =
+    jsInteropInvalidStaticClassMemberName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeJsInteropIsAInvalidTypeVariable = const Template(
-  "JsInteropIsAInvalidTypeVariable",
-  withArgumentsOld: _withArgumentsOldJsInteropIsAInvalidTypeVariable,
-  withArguments: _withArgumentsJsInteropIsAInvalidTypeVariable,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropIsAInvalidTypeVariable({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeJsInteropIsAInvalidTypeVariable,
-    problemMessage:
-        """Type argument '${type_0}' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Use a valid interop extension type that can be determined at compile-time as the type argument instead.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropIsAInvalidTypeVariable(DartType type) =>
-    _withArgumentsJsInteropIsAInvalidTypeVariable(type: type);
+codeJsInteropIsAInvalidTypeVariable = jsInteropIsAInvalidTypeVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeJsInteropIsAObjectLiteralType = const Template(
-  "JsInteropIsAObjectLiteralType",
-  withArgumentsOld: _withArgumentsOldJsInteropIsAObjectLiteralType,
-  withArguments: _withArgumentsJsInteropIsAObjectLiteralType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropIsAObjectLiteralType({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeJsInteropIsAObjectLiteralType,
-    problemMessage:
-        """Type argument '${type_0}' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check.""" +
-        labeler.originMessages,
-    correctionMessage: """Use 'JSObject' as the type argument instead.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropIsAObjectLiteralType(DartType type) =>
-    _withArgumentsJsInteropIsAObjectLiteralType(type: type);
+codeJsInteropIsAObjectLiteralType = jsInteropIsAObjectLiteralType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, String string),
   Message Function({required DartType type, required String string})
 >
-codeJsInteropIsAPrimitiveExtensionType = const Template(
-  "JsInteropIsAPrimitiveExtensionType",
-  withArgumentsOld: _withArgumentsOldJsInteropIsAPrimitiveExtensionType,
-  withArguments: _withArgumentsJsInteropIsAPrimitiveExtensionType,
-);
+codeJsInteropIsAPrimitiveExtensionType = jsInteropIsAPrimitiveExtensionType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropIsAPrimitiveExtensionType({
-  required DartType type,
-  required String string,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeJsInteropIsAPrimitiveExtensionType,
-    problemMessage:
-        """Type argument '${type_0}' wraps primitive JS type '${string_0}', which is specially handled using 'typeof'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Use the primitive JS type '${string_0}' as the type argument instead.""",
-    arguments: {'type': type, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropIsAPrimitiveExtensionType(
-  DartType type,
-  String string,
-) => _withArgumentsJsInteropIsAPrimitiveExtensionType(
-  type: type,
-  string: string,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropIsATearoff = const MessageCode(
-  "JsInteropIsATearoff",
-  problemMessage: """'isA' can't be torn off.""",
-  correctionMessage:
-      """Use a method that calls 'isA' and tear off that method instead.""",
-);
+const MessageCode codeJsInteropIsATearoff = jsInteropIsATearoff;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeJsInteropJSClassExtendsDartClass = const Template(
-  "JsInteropJSClassExtendsDartClass",
-  withArgumentsOld: _withArgumentsOldJsInteropJSClassExtendsDartClass,
-  withArguments: _withArgumentsJsInteropJSClassExtendsDartClass,
-);
+codeJsInteropJSClassExtendsDartClass = jsInteropJSClassExtendsDartClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropJSClassExtendsDartClass({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeJsInteropJSClassExtendsDartClass,
-    problemMessage:
-        """JS interop class '${name_0}' cannot extend Dart class '${name2_0}'.""",
-    correctionMessage:
-        """Try removing the JS interop annotation or adding it to the parent class.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropJSClassExtendsDartClass(
-  String name,
-  String name2,
-) => _withArgumentsJsInteropJSClassExtendsDartClass(name: name, name2: name2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropNamedParameters = const MessageCode(
-  "JsInteropNamedParameters",
-  problemMessage:
-      """Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.""",
-  correctionMessage:
-      """Try replacing them with normal or optional parameters.""",
-);
+const MessageCode codeJsInteropNamedParameters = jsInteropNamedParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -10147,227 +2739,58 @@ const Template<
     required String string3,
   })
 >
-codeJsInteropNativeClassInAnnotation = const Template(
-  "JsInteropNativeClassInAnnotation",
-  withArgumentsOld: _withArgumentsOldJsInteropNativeClassInAnnotation,
-  withArguments: _withArgumentsJsInteropNativeClassInAnnotation,
-);
+codeJsInteropNativeClassInAnnotation = jsInteropNativeClassInAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropNativeClassInAnnotation({
-  required String name,
-  required String name2,
-  required String string3,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string3_0 = conversions.validateString(string3);
-  return new Message(
-    codeJsInteropNativeClassInAnnotation,
-    problemMessage:
-        """Non-static JS interop class '${name_0}' conflicts with natively supported class '${name2_0}' in '${string3_0}'.""",
-    correctionMessage:
-        """Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'string3': string3},
-  );
-}
+const MessageCode codeJsInteropNonExternalConstructor =
+    jsInteropNonExternalConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropNativeClassInAnnotation(
-  String name,
-  String name2,
-  String string3,
-) => _withArgumentsJsInteropNativeClassInAnnotation(
-  name: name,
-  name2: name2,
-  string3: string3,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropNonExternalConstructor = const MessageCode(
-  "JsInteropNonExternalConstructor",
-  problemMessage:
-      """JS interop classes do not support non-external constructors.""",
-  correctionMessage: """Try annotating with `external`.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropNonExternalMember = const MessageCode(
-  "JsInteropNonExternalMember",
-  problemMessage:
-      """This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
-  correctionMessage: """Try annotating the member with `external`.""",
-);
+const MessageCode codeJsInteropNonExternalMember = jsInteropNonExternalMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeJsInteropNonStaticWithStaticInteropSupertype = const Template(
-  "JsInteropNonStaticWithStaticInteropSupertype",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropNonStaticWithStaticInteropSupertype,
-  withArguments: _withArgumentsJsInteropNonStaticWithStaticInteropSupertype,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropNonStaticWithStaticInteropSupertype({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeJsInteropNonStaticWithStaticInteropSupertype,
-    problemMessage:
-        """Class '${name_0}' does not have an `@staticInterop` annotation, but has supertype '${name2_0}', which does.""",
-    correctionMessage:
-        """Try marking '${name_0}' as a `@staticInterop` class, or don't inherit '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropNonStaticWithStaticInteropSupertype(
-  String name,
-  String name2,
-) => _withArgumentsJsInteropNonStaticWithStaticInteropSupertype(
-  name: name,
-  name2: name2,
-);
+codeJsInteropNonStaticWithStaticInteropSupertype =
+    jsInteropNonStaticWithStaticInteropSupertype;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeJsInteropObjectLiteralConstructorPositionalParameters = const Template(
-  "JsInteropObjectLiteralConstructorPositionalParameters",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropObjectLiteralConstructorPositionalParameters,
-  withArguments:
-      _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters,
-);
+codeJsInteropObjectLiteralConstructorPositionalParameters =
+    jsInteropObjectLiteralConstructorPositionalParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters({
-  required String string,
-}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeJsInteropObjectLiteralConstructorPositionalParameters,
-    problemMessage:
-        """${string_0} should not contain any positional parameters.""",
-    correctionMessage: """Try replacing them with named parameters instead.""",
-    arguments: {'string': string},
-  );
-}
+const MessageCode codeJsInteropOperatorCannotBeRenamed =
+    jsInteropOperatorCannotBeRenamed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropObjectLiteralConstructorPositionalParameters(
-  String string,
-) => _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters(
-  string: string,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropOperatorCannotBeRenamed = const MessageCode(
-  "JsInteropOperatorCannotBeRenamed",
-  problemMessage:
-      """JS interop operator methods cannot be renamed using the '@JS' annotation.""",
-  correctionMessage:
-      """Remove the annotation or remove the value inside the annotation.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropOperatorsNotSupported = const MessageCode(
-  "JsInteropOperatorsNotSupported",
-  problemMessage:
-      """JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.""",
-  correctionMessage: """Try making this class a static interop type instead.""",
-);
+const MessageCode codeJsInteropOperatorsNotSupported =
+    jsInteropOperatorsNotSupported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeJsInteropStaticInteropExternalAccessorTypeViolation = const Template(
-  "JsInteropStaticInteropExternalAccessorTypeViolation",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropExternalAccessorTypeViolation,
-  withArguments:
-      _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeJsInteropStaticInteropExternalAccessorTypeViolation,
-    problemMessage:
-        """External JS interop member contains an invalid type: '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropExternalAccessorTypeViolation(
-  DartType type,
-) => _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation(
-  type: type,
-);
+codeJsInteropStaticInteropExternalAccessorTypeViolation =
+    jsInteropStaticInteropExternalAccessorTypeViolation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string2),
   Message Function({required String string2})
 >
-codeJsInteropStaticInteropExternalFunctionTypeViolation = const Template(
-  "JsInteropStaticInteropExternalFunctionTypeViolation",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropExternalFunctionTypeViolation,
-  withArguments:
-      _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation,
-);
+codeJsInteropStaticInteropExternalFunctionTypeViolation =
+    jsInteropStaticInteropExternalFunctionTypeViolation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation({
-  required String string2,
-}) {
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeJsInteropStaticInteropExternalFunctionTypeViolation,
-    problemMessage:
-        """External JS interop member contains invalid types in its function signature: '${string2_0}'.""",
-    correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
-    arguments: {'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropExternalFunctionTypeViolation(
-  String string2,
-) => _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation(
-  string2: string2,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeJsInteropStaticInteropGenerativeConstructor = const MessageCode(
-  "JsInteropStaticInteropGenerativeConstructor",
-  problemMessage:
-      """`@staticInterop` classes should not contain any generative constructors.""",
-  correctionMessage: """Use factory constructors instead.""",
-);
+const MessageCode codeJsInteropStaticInteropGenerativeConstructor =
+    jsInteropStaticInteropGenerativeConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -10386,56 +2809,8 @@ const Template<
     required String string3,
   })
 >
-codeJsInteropStaticInteropMockMissingGetterOrSetter = const Template(
-  "JsInteropStaticInteropMockMissingGetterOrSetter",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropMockMissingGetterOrSetter,
-  withArguments: _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter({
-  required String name,
-  required String string,
-  required String string2,
-  required String name2,
-  required String string3,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string3_0 = conversions.validateString(string3);
-  return new Message(
-    codeJsInteropStaticInteropMockMissingGetterOrSetter,
-    problemMessage:
-        """Dart class '${name_0}' has a ${string_0}, but does not have a ${string2_0} to implement any of the following extension member(s) with export name '${name2_0}': ${string3_0}.""",
-    correctionMessage:
-        """Declare an exportable ${string2_0} that implements one of these extension members.""",
-    arguments: {
-      'name': name,
-      'string': string,
-      'string2': string2,
-      'name2': name2,
-      'string3': string3,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropMockMissingGetterOrSetter(
-  String name,
-  String string,
-  String string2,
-  String name2,
-  String string3,
-) => _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter(
-  name: name,
-  string: string,
-  string2: string2,
-  name2: name2,
-  string3: string3,
-);
+codeJsInteropStaticInteropMockMissingGetterOrSetter =
+    jsInteropStaticInteropMockMissingGetterOrSetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -10446,402 +2821,108 @@ const Template<
     required String string,
   })
 >
-codeJsInteropStaticInteropMockMissingImplements = const Template(
-  "JsInteropStaticInteropMockMissingImplements",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropMockMissingImplements,
-  withArguments: _withArgumentsJsInteropStaticInteropMockMissingImplements,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockMissingImplements({
-  required String name,
-  required String name2,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeJsInteropStaticInteropMockMissingImplements,
-    problemMessage:
-        """Dart class '${name_0}' does not have any members that implement any of the following extension member(s) with export name '${name2_0}': ${string_0}.""",
-    correctionMessage:
-        """Declare an exportable member that implements one of these extension members.""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropMockMissingImplements(
-  String name,
-  String name2,
-  String string,
-) => _withArgumentsJsInteropStaticInteropMockMissingImplements(
-  name: name,
-  name2: name2,
-  string: string,
-);
+codeJsInteropStaticInteropMockMissingImplements =
+    jsInteropStaticInteropMockMissingImplements;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeJsInteropStaticInteropMockNotStaticInteropType = const Template(
-  "JsInteropStaticInteropMockNotStaticInteropType",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropMockNotStaticInteropType,
-  withArguments: _withArgumentsJsInteropStaticInteropMockNotStaticInteropType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockNotStaticInteropType({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeJsInteropStaticInteropMockNotStaticInteropType,
-    problemMessage:
-        """Type argument '${type_0}' needs to be a `@staticInterop` type.""" +
-        labeler.originMessages,
-    correctionMessage: """Use a `@staticInterop` class instead.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropMockNotStaticInteropType(
-  DartType type,
-) => _withArgumentsJsInteropStaticInteropMockNotStaticInteropType(type: type);
+codeJsInteropStaticInteropMockNotStaticInteropType =
+    jsInteropStaticInteropMockNotStaticInteropType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeJsInteropStaticInteropMockTypeParametersNotAllowed = const Template(
-  "JsInteropStaticInteropMockTypeParametersNotAllowed",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropMockTypeParametersNotAllowed,
-  withArguments:
-      _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeJsInteropStaticInteropMockTypeParametersNotAllowed,
-    problemMessage:
-        """Type argument '${type_0}' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Remove the type parameter in the type argument or replace it with its bound.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropMockTypeParametersNotAllowed(
-  DartType type,
-) => _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed(
-  type: type,
-);
+codeJsInteropStaticInteropMockTypeParametersNotAllowed =
+    jsInteropStaticInteropMockTypeParametersNotAllowed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJsInteropStaticInteropNoJSAnnotation = const Template(
-  "JsInteropStaticInteropNoJSAnnotation",
-  withArgumentsOld: _withArgumentsOldJsInteropStaticInteropNoJSAnnotation,
-  withArguments: _withArgumentsJsInteropStaticInteropNoJSAnnotation,
-);
+codeJsInteropStaticInteropNoJSAnnotation = jsInteropStaticInteropNoJSAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropNoJSAnnotation({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropStaticInteropNoJSAnnotation,
-    problemMessage:
-        """`@staticInterop` classes should also have the `@JS` annotation.""",
-    correctionMessage: """Add `@JS` to class '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeJsInteropStaticInteropParameterInitializersAreIgnored =
+    jsInteropStaticInteropParameterInitializersAreIgnored;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropNoJSAnnotation(String name) =>
-    _withArgumentsJsInteropStaticInteropNoJSAnnotation(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeJsInteropStaticInteropParameterInitializersAreIgnored = const MessageCode(
-  "JsInteropStaticInteropParameterInitializersAreIgnored",
-  severity: CfeSeverity.warning,
-  problemMessage:
-      """Initializers for parameters are ignored on static interop external functions.""",
-  correctionMessage:
-      """Declare a forwarding non-external function with this initializer, or remove the initializer.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeJsInteropStaticInteropSyntheticConstructor = const MessageCode(
-  "JsInteropStaticInteropSyntheticConstructor",
-  problemMessage:
-      """Synthetic constructors on `@staticInterop` classes can not be used.""",
-  correctionMessage:
-      """Declare an external factory constructor for this `@staticInterop` class and use that instead.""",
-);
+const MessageCode codeJsInteropStaticInteropSyntheticConstructor =
+    jsInteropStaticInteropSyntheticConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String name),
   Message Function({required String string, required String name})
 >
-codeJsInteropStaticInteropTearOffsDisallowed = const Template(
-  "JsInteropStaticInteropTearOffsDisallowed",
-  withArgumentsOld: _withArgumentsOldJsInteropStaticInteropTearOffsDisallowed,
-  withArguments: _withArgumentsJsInteropStaticInteropTearOffsDisallowed,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropTearOffsDisallowed({
-  required String string,
-  required String name,
-}) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropStaticInteropTearOffsDisallowed,
-    problemMessage:
-        """Tear-offs of external ${string_0} '${name_0}' are disallowed.""",
-    correctionMessage: """Declare a closure that calls this member instead.""",
-    arguments: {'string': string, 'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropTearOffsDisallowed(
-  String string,
-  String name,
-) => _withArgumentsJsInteropStaticInteropTearOffsDisallowed(
-  string: string,
-  name: name,
-);
+codeJsInteropStaticInteropTearOffsDisallowed =
+    jsInteropStaticInteropTearOffsDisallowed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJsInteropStaticInteropTrustTypesUsageNotAllowed = const Template(
-  "JsInteropStaticInteropTrustTypesUsageNotAllowed",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropTrustTypesUsageNotAllowed,
-  withArguments: _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropStaticInteropTrustTypesUsageNotAllowed,
-    problemMessage:
-        """JS interop class '${name_0}' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
-    correctionMessage: """Try removing the `@trustTypes` annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropTrustTypesUsageNotAllowed(
-  String name,
-) => _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed(name: name);
+codeJsInteropStaticInteropTrustTypesUsageNotAllowed =
+    jsInteropStaticInteropTrustTypesUsageNotAllowed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop = const Template(
-  "JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
-  withArguments:
-      _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
-    problemMessage:
-        """JS interop class '${name_0}' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
-    correctionMessage: """Try marking the class using `@staticInterop`.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message
-_withArgumentsOldJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop(
-  String name,
-) => _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop(
-  name: name,
-);
+codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop =
+    jsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeJsInteropStaticInteropWithInstanceMembers = const Template(
-  "JsInteropStaticInteropWithInstanceMembers",
-  withArgumentsOld: _withArgumentsOldJsInteropStaticInteropWithInstanceMembers,
-  withArguments: _withArgumentsJsInteropStaticInteropWithInstanceMembers,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropWithInstanceMembers({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeJsInteropStaticInteropWithInstanceMembers,
-    problemMessage:
-        """JS interop class '${name_0}' with `@staticInterop` annotation cannot declare instance members.""",
-    correctionMessage:
-        """Try moving the instance member to a static extension.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropWithInstanceMembers(
-  String name,
-) => _withArgumentsJsInteropStaticInteropWithInstanceMembers(name: name);
+codeJsInteropStaticInteropWithInstanceMembers =
+    jsInteropStaticInteropWithInstanceMembers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeJsInteropStaticInteropWithNonStaticSupertype = const Template(
-  "JsInteropStaticInteropWithNonStaticSupertype",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropWithNonStaticSupertype,
-  withArguments: _withArgumentsJsInteropStaticInteropWithNonStaticSupertype,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeJsInteropStaticInteropWithNonStaticSupertype,
-    problemMessage:
-        """JS interop class '${name_0}' has an `@staticInterop` annotation, but has supertype '${name2_0}', which does not.""",
-    correctionMessage:
-        """Try marking the supertype as a static interop class using `@staticInterop`.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropWithNonStaticSupertype(
-  String name,
-  String name2,
-) => _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
-  name: name,
-  name2: name2,
-);
+codeJsInteropStaticInteropWithNonStaticSupertype =
+    jsInteropStaticInteropWithNonStaticSupertype;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeLabelNotFound = const Template(
-  "LabelNotFound",
-  withArgumentsOld: _withArgumentsOldLabelNotFound,
-  withArguments: _withArgumentsLabelNotFound,
-);
+codeLabelNotFound = labelNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLabelNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeLabelNotFound,
-    problemMessage: """Can't find label '${name_0}'.""",
-    correctionMessage:
-        """Try defining the label, or correcting the name to match an existing label.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeLanguageVersionInvalidInDotPackages =
+    languageVersionInvalidInDotPackages;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLabelNotFound(String name) =>
-    _withArgumentsLabelNotFound(name: name);
+const MessageCode codeLanguageVersionLibraryContext =
+    languageVersionLibraryContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionInvalidInDotPackages = const MessageCode(
-  "LanguageVersionInvalidInDotPackages",
-  problemMessage:
-      """The language version is not specified correctly in the packages file.""",
-);
+const MessageCode codeLanguageVersionMismatchInPart =
+    languageVersionMismatchInPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionLibraryContext = const MessageCode(
-  "LanguageVersionLibraryContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This is language version annotation in the library.""",
-);
+const MessageCode codeLanguageVersionMismatchInPatch =
+    languageVersionMismatchInPatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionMismatchInPart = const MessageCode(
-  "LanguageVersionMismatchInPart",
-  problemMessage:
-      """The language version override has to be the same in the library and its part(s).""",
-);
+const MessageCode codeLanguageVersionPartContext = languageVersionPartContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionMismatchInPatch = const MessageCode(
-  "LanguageVersionMismatchInPatch",
-  problemMessage:
-      """The language version override has to be the same in the library and its patch(es).""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionPartContext = const MessageCode(
-  "LanguageVersionPartContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This is language version annotation in the part.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionPatchContext = const MessageCode(
-  "LanguageVersionPatchContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This is language version annotation in the patch.""",
-);
+const MessageCode codeLanguageVersionPatchContext = languageVersionPatchContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -10853,44 +2934,7 @@ const Template<
     required int count4,
   })
 >
-codeLanguageVersionTooHighExplicit = const Template(
-  "LanguageVersionTooHighExplicit",
-  withArgumentsOld: _withArgumentsOldLanguageVersionTooHighExplicit,
-  withArguments: _withArgumentsLanguageVersionTooHighExplicit,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLanguageVersionTooHighExplicit({
-  required int count,
-  required int count2,
-  required int count3,
-  required int count4,
-}) {
-  return new Message(
-    codeLanguageVersionTooHighExplicit,
-    problemMessage:
-        """The specified language version ${count}.${count2} is too high. The highest supported language version is ${count3}.${count4}.""",
-    arguments: {
-      'count': count,
-      'count2': count2,
-      'count3': count3,
-      'count4': count4,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLanguageVersionTooHighExplicit(
-  int count,
-  int count2,
-  int count3,
-  int count4,
-) => _withArgumentsLanguageVersionTooHighExplicit(
-  count: count,
-  count2: count2,
-  count3: count3,
-  count4: count4,
-);
+codeLanguageVersionTooHighExplicit = languageVersionTooHighExplicit;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -10903,49 +2947,7 @@ const Template<
     required int count4,
   })
 >
-codeLanguageVersionTooHighPackage = const Template(
-  "LanguageVersionTooHighPackage",
-  withArgumentsOld: _withArgumentsOldLanguageVersionTooHighPackage,
-  withArguments: _withArgumentsLanguageVersionTooHighPackage,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLanguageVersionTooHighPackage({
-  required int count,
-  required int count2,
-  required String name,
-  required int count3,
-  required int count4,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeLanguageVersionTooHighPackage,
-    problemMessage:
-        """The language version ${count}.${count2} specified for the package '${name_0}' is too high. The highest supported language version is ${count3}.${count4}.""",
-    arguments: {
-      'count': count,
-      'count2': count2,
-      'name': name,
-      'count3': count3,
-      'count4': count4,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLanguageVersionTooHighPackage(
-  int count,
-  int count2,
-  String name,
-  int count3,
-  int count4,
-) => _withArgumentsLanguageVersionTooHighPackage(
-  count: count,
-  count2: count2,
-  name: name,
-  count3: count3,
-  count4: count4,
-);
+codeLanguageVersionTooHighPackage = languageVersionTooHighPackage;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -10957,44 +2959,7 @@ const Template<
     required int count4,
   })
 >
-codeLanguageVersionTooLowExplicit = const Template(
-  "LanguageVersionTooLowExplicit",
-  withArgumentsOld: _withArgumentsOldLanguageVersionTooLowExplicit,
-  withArguments: _withArgumentsLanguageVersionTooLowExplicit,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLanguageVersionTooLowExplicit({
-  required int count,
-  required int count2,
-  required int count3,
-  required int count4,
-}) {
-  return new Message(
-    codeLanguageVersionTooLowExplicit,
-    problemMessage:
-        """The specified language version ${count}.${count2} is too low. The lowest supported language version is ${count3}.${count4}.""",
-    arguments: {
-      'count': count,
-      'count2': count2,
-      'count3': count3,
-      'count4': count4,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLanguageVersionTooLowExplicit(
-  int count,
-  int count2,
-  int count3,
-  int count4,
-) => _withArgumentsLanguageVersionTooLowExplicit(
-  count: count,
-  count2: count2,
-  count3: count3,
-  count4: count4,
-);
+codeLanguageVersionTooLowExplicit = languageVersionTooLowExplicit;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11007,662 +2972,187 @@ const Template<
     required int count4,
   })
 >
-codeLanguageVersionTooLowPackage = const Template(
-  "LanguageVersionTooLowPackage",
-  withArgumentsOld: _withArgumentsOldLanguageVersionTooLowPackage,
-  withArguments: _withArgumentsLanguageVersionTooLowPackage,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLanguageVersionTooLowPackage({
-  required int count,
-  required int count2,
-  required String name,
-  required int count3,
-  required int count4,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeLanguageVersionTooLowPackage,
-    problemMessage:
-        """The language version ${count}.${count2} specified for the package '${name_0}' is too low. The lowest supported language version is ${count3}.${count4}.""",
-    arguments: {
-      'count': count,
-      'count2': count2,
-      'name': name,
-      'count3': count3,
-      'count4': count4,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLanguageVersionTooLowPackage(
-  int count,
-  int count2,
-  String name,
-  int count3,
-  int count4,
-) => _withArgumentsLanguageVersionTooLowPackage(
-  count: count,
-  count2: count2,
-  name: name,
-  count3: count3,
-  count4: count4,
-);
+codeLanguageVersionTooLowPackage = languageVersionTooLowPackage;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeLateDefinitelyAssignedError = const Template(
-  "LateDefinitelyAssignedError",
-  withArgumentsOld: _withArgumentsOldLateDefinitelyAssignedError,
-  withArguments: _withArgumentsLateDefinitelyAssignedError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLateDefinitelyAssignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeLateDefinitelyAssignedError,
-    problemMessage: """Late final variable '${name_0}' definitely assigned.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLateDefinitelyAssignedError(String name) =>
-    _withArgumentsLateDefinitelyAssignedError(name: name);
+codeLateDefinitelyAssignedError = lateDefinitelyAssignedError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeLateDefinitelyUnassignedError = const Template(
-  "LateDefinitelyUnassignedError",
-  withArgumentsOld: _withArgumentsOldLateDefinitelyUnassignedError,
-  withArguments: _withArgumentsLateDefinitelyUnassignedError,
-);
+codeLateDefinitelyUnassignedError = lateDefinitelyUnassignedError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLateDefinitelyUnassignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeLateDefinitelyUnassignedError,
-    problemMessage:
-        """Late variable '${name_0}' without initializer is definitely unassigned.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeListLiteralTooManyTypeArguments =
+    listLiteralTooManyTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLateDefinitelyUnassignedError(String name) =>
-    _withArgumentsLateDefinitelyUnassignedError(name: name);
+const MessageCode codeListPatternTooManyTypeArguments =
+    listPatternTooManyTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeListLiteralTooManyTypeArguments = const MessageCode(
-  "ListLiteralTooManyTypeArguments",
-  problemMessage: """List literal requires exactly one type argument.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeListPatternTooManyTypeArguments = const MessageCode(
-  "ListPatternTooManyTypeArguments",
-  problemMessage: """A list pattern requires exactly one type argument.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLoadLibraryTakesNoArguments = const MessageCode(
-  "LoadLibraryTakesNoArguments",
-  problemMessage: """'loadLibrary' takes no arguments.""",
-);
+const MessageCode codeLoadLibraryTakesNoArguments = loadLibraryTakesNoArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeLocalVariableUsedBeforeDeclared = const Template(
-  "LocalVariableUsedBeforeDeclared",
-  withArgumentsOld: _withArgumentsOldLocalVariableUsedBeforeDeclared,
-  withArguments: _withArgumentsLocalVariableUsedBeforeDeclared,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLocalVariableUsedBeforeDeclared({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeLocalVariableUsedBeforeDeclared,
-    problemMessage:
-        """Local variable '${name_0}' can't be referenced before it is declared.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLocalVariableUsedBeforeDeclared(String name) =>
-    _withArgumentsLocalVariableUsedBeforeDeclared(name: name);
+codeLocalVariableUsedBeforeDeclared = localVariableUsedBeforeDeclared;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeLocalVariableUsedBeforeDeclaredContext = const Template(
-  "LocalVariableUsedBeforeDeclaredContext",
-  withArgumentsOld: _withArgumentsOldLocalVariableUsedBeforeDeclaredContext,
-  withArguments: _withArgumentsLocalVariableUsedBeforeDeclaredContext,
-  severity: CfeSeverity.context,
-);
+codeLocalVariableUsedBeforeDeclaredContext =
+    localVariableUsedBeforeDeclaredContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLocalVariableUsedBeforeDeclaredContext({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeLocalVariableUsedBeforeDeclaredContext,
-    problemMessage: """This is the declaration of the variable '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeMainNotFunctionDeclaration = mainNotFunctionDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLocalVariableUsedBeforeDeclaredContext(String name) =>
-    _withArgumentsLocalVariableUsedBeforeDeclaredContext(name: name);
+const MessageCode codeMainNotFunctionDeclarationExported =
+    mainNotFunctionDeclarationExported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainNotFunctionDeclaration = const MessageCode(
-  "MainNotFunctionDeclaration",
-  problemMessage: """The 'main' declaration must be a function declaration.""",
-);
+const MessageCode codeMainRequiredNamedParameters = mainRequiredNamedParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainNotFunctionDeclarationExported = const MessageCode(
-  "MainNotFunctionDeclarationExported",
-  problemMessage:
-      """The exported 'main' declaration must be a function declaration.""",
-);
+const MessageCode codeMainRequiredNamedParametersExported =
+    mainRequiredNamedParametersExported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainRequiredNamedParameters = const MessageCode(
-  "MainRequiredNamedParameters",
-  problemMessage:
-      """The 'main' method cannot have required named parameters.""",
-);
+const MessageCode codeMainTooManyRequiredParameters =
+    mainTooManyRequiredParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainRequiredNamedParametersExported = const MessageCode(
-  "MainRequiredNamedParametersExported",
-  problemMessage:
-      """The exported 'main' method cannot have required named parameters.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainTooManyRequiredParameters = const MessageCode(
-  "MainTooManyRequiredParameters",
-  problemMessage:
-      """The 'main' method must have at most 2 required parameters.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainTooManyRequiredParametersExported = const MessageCode(
-  "MainTooManyRequiredParametersExported",
-  problemMessage:
-      """The exported 'main' method must have at most 2 required parameters.""",
-);
+const MessageCode codeMainTooManyRequiredParametersExported =
+    mainTooManyRequiredParametersExported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeMainWrongParameterType = const Template(
-  "MainWrongParameterType",
-  withArgumentsOld: _withArgumentsOldMainWrongParameterType,
-  withArguments: _withArgumentsMainWrongParameterType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMainWrongParameterType({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeMainWrongParameterType,
-    problemMessage:
-        """The type '${type_0}' of the first parameter of the 'main' method is not a supertype of '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMainWrongParameterType(
-  DartType type,
-  DartType type2,
-) => _withArgumentsMainWrongParameterType(type: type, type2: type2);
+codeMainWrongParameterType = mainWrongParameterType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeMainWrongParameterTypeExported = const Template(
-  "MainWrongParameterTypeExported",
-  withArgumentsOld: _withArgumentsOldMainWrongParameterTypeExported,
-  withArguments: _withArgumentsMainWrongParameterTypeExported,
-);
+codeMainWrongParameterTypeExported = mainWrongParameterTypeExported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMainWrongParameterTypeExported({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeMainWrongParameterTypeExported,
-    problemMessage:
-        """The type '${type_0}' of the first parameter of the exported 'main' method is not a supertype of '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMainWrongParameterTypeExported(
-  DartType type,
-  DartType type2,
-) => _withArgumentsMainWrongParameterTypeExported(type: type, type2: type2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMapPatternTypeArgumentMismatch = const MessageCode(
-  "MapPatternTypeArgumentMismatch",
-  problemMessage: """A map pattern requires exactly two type arguments.""",
-);
+const MessageCode codeMapPatternTypeArgumentMismatch =
+    mapPatternTypeArgumentMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMemberConflictsWithConstructor = const Template(
-  "MemberConflictsWithConstructor",
-  withArgumentsOld: _withArgumentsOldMemberConflictsWithConstructor,
-  withArguments: _withArgumentsMemberConflictsWithConstructor,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberConflictsWithConstructor({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMemberConflictsWithConstructor,
-    problemMessage: """The member conflicts with constructor '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithConstructor(String name) =>
-    _withArgumentsMemberConflictsWithConstructor(name: name);
+codeMemberConflictsWithConstructor = memberConflictsWithConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMemberConflictsWithConstructorCause = const Template(
-  "MemberConflictsWithConstructorCause",
-  withArgumentsOld: _withArgumentsOldMemberConflictsWithConstructorCause,
-  withArguments: _withArgumentsMemberConflictsWithConstructorCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberConflictsWithConstructorCause({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMemberConflictsWithConstructorCause,
-    problemMessage: """Conflicting constructor '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithConstructorCause(String name) =>
-    _withArgumentsMemberConflictsWithConstructorCause(name: name);
+codeMemberConflictsWithConstructorCause = memberConflictsWithConstructorCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMemberConflictsWithFactory = const Template(
-  "MemberConflictsWithFactory",
-  withArgumentsOld: _withArgumentsOldMemberConflictsWithFactory,
-  withArguments: _withArgumentsMemberConflictsWithFactory,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberConflictsWithFactory({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMemberConflictsWithFactory,
-    problemMessage: """The member conflicts with factory '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithFactory(String name) =>
-    _withArgumentsMemberConflictsWithFactory(name: name);
+codeMemberConflictsWithFactory = memberConflictsWithFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMemberConflictsWithFactoryCause = const Template(
-  "MemberConflictsWithFactoryCause",
-  withArgumentsOld: _withArgumentsOldMemberConflictsWithFactoryCause,
-  withArguments: _withArgumentsMemberConflictsWithFactoryCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberConflictsWithFactoryCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMemberConflictsWithFactoryCause,
-    problemMessage: """Conflicting factory '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithFactoryCause(String name) =>
-    _withArgumentsMemberConflictsWithFactoryCause(name: name);
+codeMemberConflictsWithFactoryCause = memberConflictsWithFactoryCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMemberNotFound = const Template(
-  "MemberNotFound",
-  withArgumentsOld: _withArgumentsOldMemberNotFound,
-  withArguments: _withArgumentsMemberNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMemberNotFound,
-    problemMessage: """Member not found: '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberNotFound(String name) =>
-    _withArgumentsMemberNotFound(name: name);
+codeMemberNotFound = memberNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMemberShouldBeListedAsCallableInDynamicInterface = const Template(
-  "MemberShouldBeListedAsCallableInDynamicInterface",
-  withArgumentsOld:
-      _withArgumentsOldMemberShouldBeListedAsCallableInDynamicInterface,
-  withArguments: _withArgumentsMemberShouldBeListedAsCallableInDynamicInterface,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberShouldBeListedAsCallableInDynamicInterface({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMemberShouldBeListedAsCallableInDynamicInterface,
-    problemMessage:
-        """Cannot invoke member '${name_0}' from a dynamic module.""",
-    correctionMessage:
-        """Try removing the call or update the dynamic interface to list member '${name_0}' as callable.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberShouldBeListedAsCallableInDynamicInterface(
-  String name,
-) => _withArgumentsMemberShouldBeListedAsCallableInDynamicInterface(name: name);
+codeMemberShouldBeListedAsCallableInDynamicInterface =
+    memberShouldBeListedAsCallableInDynamicInterface;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface = const Template(
-  "MemberShouldBeListedAsCanBeOverriddenInDynamicInterface",
-  withArgumentsOld:
-      _withArgumentsOldMemberShouldBeListedAsCanBeOverriddenInDynamicInterface,
-  withArguments:
-      _withArgumentsMemberShouldBeListedAsCanBeOverriddenInDynamicInterface,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberShouldBeListedAsCanBeOverriddenInDynamicInterface({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface,
-    problemMessage:
-        """Cannot override member '${name_0}.${name2_0}' in a dynamic module.""",
-    correctionMessage:
-        """Try removing the override or update the dynamic interface to list member '${name_0}.${name2_0}' as can-be-overridden.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message
-_withArgumentsOldMemberShouldBeListedAsCanBeOverriddenInDynamicInterface(
-  String name,
-  String name2,
-) => _withArgumentsMemberShouldBeListedAsCanBeOverriddenInDynamicInterface(
-  name: name,
-  name2: name2,
-);
+codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface =
+    memberShouldBeListedAsCanBeOverriddenInDynamicInterface;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMethodNotFound = const Template(
-  "MethodNotFound",
-  withArgumentsOld: _withArgumentsOldMethodNotFound,
-  withArguments: _withArgumentsMethodNotFound,
-);
+codeMethodNotFound = methodNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMethodNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMethodNotFound,
-    problemMessage: """Method not found: '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMethodNotFound(String name) =>
-    _withArgumentsMethodNotFound(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingExplicitConst = const MessageCode(
-  "MissingExplicitConst",
-  problemMessage: """Constant expression expected.""",
-  correctionMessage: """Try inserting 'const'.""",
-);
+const MessageCode codeMissingExplicitConst = missingExplicitConst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMissingImplementationCause = const Template(
-  "MissingImplementationCause",
-  withArgumentsOld: _withArgumentsOldMissingImplementationCause,
-  withArguments: _withArgumentsMissingImplementationCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingImplementationCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMissingImplementationCause,
-    problemMessage: """'${name_0}' is defined here.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMissingImplementationCause(String name) =>
-    _withArgumentsMissingImplementationCause(name: name);
+codeMissingImplementationCause = missingImplementationCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, List<String> names),
   Message Function({required String name, required List<String> names})
 >
-codeMissingImplementationNotAbstract = const Template(
-  "MissingImplementationNotAbstract",
-  withArgumentsOld: _withArgumentsOldMissingImplementationNotAbstract,
-  withArguments: _withArgumentsMissingImplementationNotAbstract,
-);
+codeMissingImplementationNotAbstract = missingImplementationNotAbstract;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingImplementationNotAbstract({
-  required String name,
-  required List<String> names,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var names_0 = conversions.validateAndItemizeNames(names);
-  return new Message(
-    codeMissingImplementationNotAbstract,
-    problemMessage:
-        """The non-abstract class '${name_0}' is missing implementations for these members:
-${names_0}""",
-    correctionMessage: """Try to either
- - provide an implementation,
- - inherit an implementation from a superclass or mixin,
- - mark the class as abstract, or
- - provide a 'noSuchMethod' implementation.""",
-    arguments: {'name': name, 'names': names},
-  );
-}
+const MessageCode codeMissingInput = missingInput;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMissingImplementationNotAbstract(
-  String name,
-  List<String> names,
-) => _withArgumentsMissingImplementationNotAbstract(name: name, names: names);
+const MessageCode codeMissingMain = missingMain;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingInput = const MessageCode(
-  "MissingInput",
-  problemMessage: """No input file provided to the compiler.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingMain = const MessageCode(
-  "MissingMain",
-  problemMessage: """No 'main' method found.""",
-  correctionMessage: """Try adding a method named 'main' to your program.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingNamedSuperConstructorParameter = const MessageCode(
-  "MissingNamedSuperConstructorParameter",
-  problemMessage:
-      """The super constructor has no corresponding named parameter.""",
-);
+const MessageCode codeMissingNamedSuperConstructorParameter =
+    missingNamedSuperConstructorParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codeMissingPartOf = const Template(
-  "MissingPartOf",
-  withArgumentsOld: _withArgumentsOldMissingPartOf,
-  withArguments: _withArgumentsMissingPartOf,
-);
+codeMissingPartOf = missingPartOf;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingPartOf({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeMissingPartOf,
-    problemMessage:
-        """Can't use '${uri_0}' as a part, because it has no 'part of' declaration.""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMissingPartOf(Uri uri) =>
-    _withArgumentsMissingPartOf(uri: uri);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeMissingPositionalSuperConstructorParameter = const MessageCode(
-  "MissingPositionalSuperConstructorParameter",
-  problemMessage:
-      """The super constructor has no corresponding positional parameter.""",
-);
+const MessageCode codeMissingPositionalSuperConstructorParameter =
+    missingPositionalSuperConstructorParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMissingVariablePattern = const Template(
-  "MissingVariablePattern",
-  withArgumentsOld: _withArgumentsOldMissingVariablePattern,
-  withArguments: _withArgumentsMissingVariablePattern,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingVariablePattern({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMissingVariablePattern,
-    problemMessage:
-        """Variable pattern '${name_0}' is missing in this branch of the logical-or pattern.""",
-    correctionMessage: """Try declaring this variable pattern in the branch.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMissingVariablePattern(String name) =>
-    _withArgumentsMissingVariablePattern(name: name);
+codeMissingVariablePattern = missingVariablePattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11673,135 +3163,36 @@ const Template<
     required DartType type3,
   })
 >
-codeMixinApplicationIncompatibleSupertype = const Template(
-  "MixinApplicationIncompatibleSupertype",
-  withArgumentsOld: _withArgumentsOldMixinApplicationIncompatibleSupertype,
-  withArguments: _withArgumentsMixinApplicationIncompatibleSupertype,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinApplicationIncompatibleSupertype({
-  required DartType type,
-  required DartType type2,
-  required DartType type3,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var type3_0 = labeler.labelType(type3);
-  return new Message(
-    codeMixinApplicationIncompatibleSupertype,
-    problemMessage:
-        """'${type_0}' doesn't implement '${type2_0}' so it can't be used with '${type3_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2, 'type3': type3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationIncompatibleSupertype(
-  DartType type,
-  DartType type2,
-  DartType type3,
-) => _withArgumentsMixinApplicationIncompatibleSupertype(
-  type: type,
-  type2: type2,
-  type3: type3,
-);
+codeMixinApplicationIncompatibleSupertype =
+    mixinApplicationIncompatibleSupertype;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMixinApplicationNoConcreteGetter = const Template(
-  "MixinApplicationNoConcreteGetter",
-  withArgumentsOld: _withArgumentsOldMixinApplicationNoConcreteGetter,
-  withArguments: _withArgumentsMixinApplicationNoConcreteGetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinApplicationNoConcreteGetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMixinApplicationNoConcreteGetter,
-    problemMessage:
-        """The class doesn't have a concrete implementation of the super-accessed member '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationNoConcreteGetter(String name) =>
-    _withArgumentsMixinApplicationNoConcreteGetter(name: name);
+codeMixinApplicationNoConcreteGetter = mixinApplicationNoConcreteGetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMixinApplicationNoConcreteMemberContext =
-    const MessageCode(
-      "MixinApplicationNoConcreteMemberContext",
-      severity: CfeSeverity.context,
-      problemMessage:
-          """This is the super-access that doesn't have a concrete target.""",
-    );
+    mixinApplicationNoConcreteMemberContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMixinApplicationNoConcreteMethod = const Template(
-  "MixinApplicationNoConcreteMethod",
-  withArgumentsOld: _withArgumentsOldMixinApplicationNoConcreteMethod,
-  withArguments: _withArgumentsMixinApplicationNoConcreteMethod,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinApplicationNoConcreteMethod({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMixinApplicationNoConcreteMethod,
-    problemMessage:
-        """The class doesn't have a concrete implementation of the super-invoked member '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationNoConcreteMethod(String name) =>
-    _withArgumentsMixinApplicationNoConcreteMethod(name: name);
+codeMixinApplicationNoConcreteMethod = mixinApplicationNoConcreteMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMixinApplicationNoConcreteSetter = const Template(
-  "MixinApplicationNoConcreteSetter",
-  withArgumentsOld: _withArgumentsOldMixinApplicationNoConcreteSetter,
-  withArguments: _withArgumentsMixinApplicationNoConcreteSetter,
-);
+codeMixinApplicationNoConcreteSetter = mixinApplicationNoConcreteSetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinApplicationNoConcreteSetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMixinApplicationNoConcreteSetter,
-    problemMessage:
-        """The class doesn't have a concrete implementation of the super-accessed setter '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationNoConcreteSetter(String name) =>
-    _withArgumentsMixinApplicationNoConcreteSetter(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMixinDeferredMixin = const MessageCode(
-  "MixinDeferredMixin",
-  problemMessage: """Classes can't mix in deferred mixins.""",
-  correctionMessage: """Try changing the import to not be deferred.""",
-);
+const MessageCode codeMixinDeferredMixin = mixinDeferredMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11812,398 +3203,130 @@ const Template<
     required DartType type,
   })
 >
-codeMixinInferenceNoMatchingClass = const Template(
-  "MixinInferenceNoMatchingClass",
-  withArgumentsOld: _withArgumentsOldMixinInferenceNoMatchingClass,
-  withArguments: _withArgumentsMixinInferenceNoMatchingClass,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinInferenceNoMatchingClass({
-  required String name,
-  required String name2,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeMixinInferenceNoMatchingClass,
-    problemMessage:
-        """Type parameters couldn't be inferred for the mixin '${name_0}' because '${name2_0}' does not implement the mixin's supertype constraint '${type_0}'.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'name2': name2, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinInferenceNoMatchingClass(
-  String name,
-  String name2,
-  DartType type,
-) => _withArgumentsMixinInferenceNoMatchingClass(
-  name: name,
-  name2: name2,
-  type: type,
-);
+codeMixinInferenceNoMatchingClass = mixinInferenceNoMatchingClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeMixinInheritsFromNotObject = const Template(
-  "MixinInheritsFromNotObject",
-  withArgumentsOld: _withArgumentsOldMixinInheritsFromNotObject,
-  withArguments: _withArgumentsMixinInheritsFromNotObject,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinInheritsFromNotObject({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeMixinInheritsFromNotObject,
-    problemMessage:
-        """The class '${name_0}' can't be used as a mixin because it extends a class other than 'Object'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinInheritsFromNotObject(String name) =>
-    _withArgumentsMixinInheritsFromNotObject(name: name);
+codeMixinInheritsFromNotObject = mixinInheritsFromNotObject;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeMixinSubtypeOfBaseIsNotBase = const Template(
-  "MixinSubtypeOfBaseIsNotBase",
-  withArgumentsOld: _withArgumentsOldMixinSubtypeOfBaseIsNotBase,
-  withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinSubtypeOfBaseIsNotBase({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeMixinSubtypeOfBaseIsNotBase,
-    problemMessage:
-        """The mixin '${name_0}' must be 'base' because the supertype '${name2_0}' is 'base'.""",
-    correctionMessage: """Try adding 'base' to the mixin.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinSubtypeOfBaseIsNotBase(
-  String name,
-  String name2,
-) => _withArgumentsMixinSubtypeOfBaseIsNotBase(name: name, name2: name2);
+codeMixinSubtypeOfBaseIsNotBase = mixinSubtypeOfBaseIsNotBase;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeMixinSubtypeOfFinalIsNotBase = const Template(
-  "MixinSubtypeOfFinalIsNotBase",
-  withArgumentsOld: _withArgumentsOldMixinSubtypeOfFinalIsNotBase,
-  withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinSubtypeOfFinalIsNotBase({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeMixinSubtypeOfFinalIsNotBase,
-    problemMessage:
-        """The mixin '${name_0}' must be 'base' because the supertype '${name2_0}' is 'final'.""",
-    correctionMessage: """Try adding 'base' to the mixin.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinSubtypeOfFinalIsNotBase(
-  String name,
-  String name2,
-) => _withArgumentsMixinSubtypeOfFinalIsNotBase(name: name, name2: name2);
+codeMixinSubtypeOfFinalIsNotBase = mixinSubtypeOfFinalIsNotBase;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMixinSuperClassConstraintDeferredClass =
-    const MessageCode(
-      "MixinSuperClassConstraintDeferredClass",
-      problemMessage:
-          """Deferred classes can't be used as superclass constraints.""",
-      correctionMessage: """Try changing the import to not be deferred.""",
-    );
+    mixinSuperClassConstraintDeferredClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMoreThanOneSuperInitializer = const MessageCode(
-  "MoreThanOneSuperInitializer",
-  problemMessage: """Can't have more than one 'super' initializer.""",
-);
+const MessageCode codeMoreThanOneSuperInitializer = moreThanOneSuperInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleRepresentationFields = const MessageCode(
-  "MultipleRepresentationFields",
-  problemMessage:
-      """Each extension type should have exactly one representation field.""",
-);
+const MessageCode codeMultipleRepresentationFields =
+    multipleRepresentationFields;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNameNotFound = const Template(
-  "NameNotFound",
-  withArgumentsOld: _withArgumentsOldNameNotFound,
-  withArguments: _withArgumentsNameNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNameNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNameNotFound,
-    problemMessage: """Undefined name '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNameNotFound(String name) =>
-    _withArgumentsNameNotFound(name: name);
+codeNameNotFound = nameNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, DartType type),
   Message Function({required String string, required DartType type})
 >
-codeNameNotFoundInRecordNameGet = const Template(
-  "NameNotFoundInRecordNameGet",
-  withArgumentsOld: _withArgumentsOldNameNotFoundInRecordNameGet,
-  withArguments: _withArgumentsNameNotFoundInRecordNameGet,
-);
+codeNameNotFoundInRecordNameGet = nameNotFoundInRecordNameGet;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNameNotFoundInRecordNameGet({
-  required String string,
-  required DartType type,
-}) {
-  var string_0 = conversions.validateString(string);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeNameNotFoundInRecordNameGet,
-    problemMessage:
-        """Field name ${string_0} isn't found in records of type ${type_0}.""" +
-        labeler.originMessages,
-    arguments: {'string': string, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNameNotFoundInRecordNameGet(
-  String string,
-  DartType type,
-) => _withArgumentsNameNotFoundInRecordNameGet(string: string, type: type);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeNamedFieldClashesWithPositionalFieldInRecord = const MessageCode(
-  "NamedFieldClashesWithPositionalFieldInRecord",
-  problemMessage:
-      """Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.""",
-);
+const MessageCode codeNamedFieldClashesWithPositionalFieldInRecord =
+    namedFieldClashesWithPositionalFieldInRecord;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeNamedMixinOverride = const Template(
-  "NamedMixinOverride",
-  withArgumentsOld: _withArgumentsOldNamedMixinOverride,
-  withArguments: _withArgumentsNamedMixinOverride,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNamedMixinOverride({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeNamedMixinOverride,
-    problemMessage:
-        """The mixin application class '${name_0}' introduces an erroneous override of '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNamedMixinOverride(String name, String name2) =>
-    _withArgumentsNamedMixinOverride(name: name, name2: name2);
+codeNamedMixinOverride = namedMixinOverride;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNamedParametersInExtensionTypeDeclaration =
-    const MessageCode(
-      "NamedParametersInExtensionTypeDeclaration",
-      problemMessage:
-          """Extension type declarations can't have named parameters.""",
-    );
+    namedParametersInExtensionTypeDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNegativeVariableDimension = const MessageCode(
-  "NegativeVariableDimension",
-  problemMessage:
-      """The variable dimension of a variable-length array must be non-negative.""",
-);
+const MessageCode codeNegativeVariableDimension = negativeVariableDimension;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNeverReachableSwitchDefaultError = const MessageCode(
-  "NeverReachableSwitchDefaultError",
-  problemMessage:
-      """`null` encountered as case in a switch expression with a non-nullable enum type.""",
-);
+const MessageCode codeNeverReachableSwitchDefaultError =
+    neverReachableSwitchDefaultError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNeverReachableSwitchExpressionError = const MessageCode(
-  "NeverReachableSwitchExpressionError",
-  problemMessage:
-      """`null` encountered as case in a switch expression with a non-nullable type.""",
-);
+const MessageCode codeNeverReachableSwitchExpressionError =
+    neverReachableSwitchExpressionError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNeverReachableSwitchStatementError = const MessageCode(
-  "NeverReachableSwitchStatementError",
-  problemMessage:
-      """`null` encountered as case in a switch statement with a non-nullable type.""",
-);
+const MessageCode codeNeverReachableSwitchStatementError =
+    neverReachableSwitchStatementError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNeverValueError = const MessageCode(
-  "NeverValueError",
-  problemMessage:
-      """`null` encountered as the result from expression with type `Never`.""",
-);
+const MessageCode codeNeverValueError = neverValueError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNewAsSelector = const MessageCode(
-  "NewAsSelector",
-  problemMessage: """'new' can only be used as a constructor reference.""",
-);
+const MessageCode codeNewAsSelector = newAsSelector;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoAugmentSuperInvokeTarget = const MessageCode(
-  "NoAugmentSuperInvokeTarget",
-  problemMessage: """Cannot call 'augment super'.""",
-);
+const MessageCode codeNoAugmentSuperInvokeTarget = noAugmentSuperInvokeTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoAugmentSuperReadTarget = const MessageCode(
-  "NoAugmentSuperReadTarget",
-  problemMessage: """Cannot read from 'augment super'.""",
-);
+const MessageCode codeNoAugmentSuperReadTarget = noAugmentSuperReadTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoAugmentSuperWriteTarget = const MessageCode(
-  "NoAugmentSuperWriteTarget",
-  problemMessage: """Cannot write to 'augment super'.""",
-);
+const MessageCode codeNoAugmentSuperWriteTarget = noAugmentSuperWriteTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNoSuchNamedParameter = const Template(
-  "NoSuchNamedParameter",
-  withArgumentsOld: _withArgumentsOldNoSuchNamedParameter,
-  withArguments: _withArgumentsNoSuchNamedParameter,
-);
+codeNoSuchNamedParameter = noSuchNamedParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNoSuchNamedParameter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNoSuchNamedParameter,
-    problemMessage: """No named parameter with the name '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNoSuchNamedParameter(String name) =>
-    _withArgumentsNoSuchNamedParameter(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoUnnamedConstructorInObject = const MessageCode(
-  "NoUnnamedConstructorInObject",
-  problemMessage: """'Object' has no unnamed constructor.""",
-);
+const MessageCode codeNoUnnamedConstructorInObject =
+    noUnnamedConstructorInObject;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonAugmentationDeclarationConflictCause =
-    const MessageCode(
-      "NonAugmentationDeclarationConflictCause",
-      severity: CfeSeverity.context,
-      problemMessage: """This is the existing declaration.""",
-    );
+    nonAugmentationDeclarationConflictCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonAugmentationMemberConflictCause = const MessageCode(
-  "NonAugmentationMemberConflictCause",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the existing member.""",
-);
+const MessageCode codeNonAugmentationMemberConflictCause =
+    nonAugmentationMemberConflictCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonBoolCondition = const MessageCode(
-  "NonBoolCondition",
-  problemMessage: """Conditions must have a static type of 'bool'.""",
-  correctionMessage: """Try changing the condition.""",
-);
+const MessageCode codeNonBoolCondition = nonBoolCondition;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonConstConstructor = const MessageCode(
-  "NonConstConstructor",
-  problemMessage:
-      """Cannot invoke a non-'const' constructor where a const expression is expected.""",
-  correctionMessage: """Try using a constructor or factory that is 'const'.""",
-);
+const MessageCode codeNonConstConstructor = nonConstConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonConstFactory = const MessageCode(
-  "NonConstFactory",
-  problemMessage:
-      """Cannot invoke a non-'const' factory where a const expression is expected.""",
-  correctionMessage: """Try using a constructor or factory that is 'const'.""",
-);
+const MessageCode codeNonConstFactory = nonConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeNonCovariantTypeParameterInRepresentationType = const MessageCode(
-  "NonCovariantTypeParameterInRepresentationType",
-  problemMessage:
-      """An extension type parameter can't be used non-covariantly in its representation type.""",
-  correctionMessage:
-      """Try removing the type parameters from function parameter types and type parameter bounds.""",
-);
+const MessageCode codeNonCovariantTypeParameterInRepresentationType =
+    nonCovariantTypeParameterInRepresentationType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -12214,43 +3337,7 @@ const Template<
     required String string2,
   })
 >
-codeNonExhaustiveSwitchExpression = const Template(
-  "NonExhaustiveSwitchExpression",
-  withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchExpression,
-  withArguments: _withArgumentsNonExhaustiveSwitchExpression,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonExhaustiveSwitchExpression({
-  required DartType type,
-  required String string,
-  required String string2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeNonExhaustiveSwitchExpression,
-    problemMessage:
-        """The type '${type_0}' is not exhaustively matched by the switch cases since it doesn't match '${string_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try adding a wildcard pattern or cases that match '${string2_0}'.""",
-    arguments: {'type': type, 'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonExhaustiveSwitchExpression(
-  DartType type,
-  String string,
-  String string2,
-) => _withArgumentsNonExhaustiveSwitchExpression(
-  type: type,
-  string: string,
-  string2: string2,
-);
+codeNonExhaustiveSwitchExpression = nonExhaustiveSwitchExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -12261,873 +3348,237 @@ const Template<
     required String string2,
   })
 >
-codeNonExhaustiveSwitchStatement = const Template(
-  "NonExhaustiveSwitchStatement",
-  withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchStatement,
-  withArguments: _withArgumentsNonExhaustiveSwitchStatement,
-);
+codeNonExhaustiveSwitchStatement = nonExhaustiveSwitchStatement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonExhaustiveSwitchStatement({
-  required DartType type,
-  required String string,
-  required String string2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeNonExhaustiveSwitchStatement,
-    problemMessage:
-        """The type '${type_0}' is not exhaustively matched by the switch cases since it doesn't match '${string_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try adding a default case or cases that match '${string2_0}'.""",
-    arguments: {'type': type, 'string': string, 'string2': string2},
-  );
-}
+const MessageCode codeNonExtensionTypeMemberContext =
+    nonExtensionTypeMemberContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonExhaustiveSwitchStatement(
-  DartType type,
-  String string,
-  String string2,
-) => _withArgumentsNonExhaustiveSwitchStatement(
-  type: type,
-  string: string,
-  string2: string2,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonExtensionTypeMemberContext = const MessageCode(
-  "NonExtensionTypeMemberContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the inherited non-extension type member.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonExtensionTypeMemberOneOfContext = const MessageCode(
-  "NonExtensionTypeMemberOneOfContext",
-  severity: CfeSeverity.context,
-  problemMessage:
-      """This is one of the inherited non-extension type members.""",
-);
+const MessageCode codeNonExtensionTypeMemberOneOfContext =
+    nonExtensionTypeMemberOneOfContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeNonNullAwareSpreadIsNull = const Template(
-  "NonNullAwareSpreadIsNull",
-  withArgumentsOld: _withArgumentsOldNonNullAwareSpreadIsNull,
-  withArguments: _withArgumentsNonNullAwareSpreadIsNull,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullAwareSpreadIsNull({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeNonNullAwareSpreadIsNull,
-    problemMessage:
-        """Can't spread a value with static type '${type_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonNullAwareSpreadIsNull(DartType type) =>
-    _withArgumentsNonNullAwareSpreadIsNull(type: type);
+codeNonNullAwareSpreadIsNull = nonNullAwareSpreadIsNull;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNonNullableNotAssignedError = const Template(
-  "NonNullableNotAssignedError",
-  withArgumentsOld: _withArgumentsOldNonNullableNotAssignedError,
-  withArguments: _withArgumentsNonNullableNotAssignedError,
-);
+codeNonNullableNotAssignedError = nonNullableNotAssignedError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableNotAssignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNonNullableNotAssignedError,
-    problemMessage:
-        """Non-nullable variable '${name_0}' must be assigned before it can be used.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonNullableNotAssignedError(String name) =>
-    _withArgumentsNonNullableNotAssignedError(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonPositiveArrayDimensions = const MessageCode(
-  "NonPositiveArrayDimensions",
-  problemMessage: """Array dimensions must be positive numbers.""",
-);
+const MessageCode codeNonPositiveArrayDimensions = nonPositiveArrayDimensions;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNonSimpleBoundViaReference = const Template(
-  "NonSimpleBoundViaReference",
-  withArgumentsOld: _withArgumentsOldNonSimpleBoundViaReference,
-  withArguments: _withArgumentsNonSimpleBoundViaReference,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonSimpleBoundViaReference({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNonSimpleBoundViaReference,
-    problemMessage:
-        """Bound of this variable references raw type '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonSimpleBoundViaReference(String name) =>
-    _withArgumentsNonSimpleBoundViaReference(name: name);
+codeNonSimpleBoundViaReference = nonSimpleBoundViaReference;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNonSimpleBoundViaVariable = const Template(
-  "NonSimpleBoundViaVariable",
-  withArgumentsOld: _withArgumentsOldNonSimpleBoundViaVariable,
-  withArguments: _withArgumentsNonSimpleBoundViaVariable,
-  severity: CfeSeverity.context,
-);
+codeNonSimpleBoundViaVariable = nonSimpleBoundViaVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonSimpleBoundViaVariable({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNonSimpleBoundViaVariable,
-    problemMessage:
-        """Bound of this variable references variable '${name_0}' from the same declaration.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeNonVoidReturnOperator = nonVoidReturnOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonSimpleBoundViaVariable(String name) =>
-    _withArgumentsNonSimpleBoundViaVariable(name: name);
+const MessageCode codeNonVoidReturnSetter = nonVoidReturnSetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonVoidReturnOperator = const MessageCode(
-  "NonVoidReturnOperator",
-  problemMessage: """The return type of the operator []= must be 'void'.""",
-  correctionMessage: """Try changing the return type to 'void'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonVoidReturnSetter = const MessageCode(
-  "NonVoidReturnSetter",
-  problemMessage: """The return type of the setter must be 'void' or absent.""",
-  correctionMessage:
-      """Try removing the return type, or define a method rather than a setter.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNotAConstantExpression = const MessageCode(
-  "NotAConstantExpression",
-  problemMessage: """Not a constant expression.""",
-);
+const MessageCode codeNotAConstantExpression = notAConstantExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeNotAPrefixInTypeAnnotation = const Template(
-  "NotAPrefixInTypeAnnotation",
-  withArgumentsOld: _withArgumentsOldNotAPrefixInTypeAnnotation,
-  withArguments: _withArgumentsNotAPrefixInTypeAnnotation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNotAPrefixInTypeAnnotation({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeNotAPrefixInTypeAnnotation,
-    problemMessage:
-        """'${name_0}.${name2_0}' can't be used as a type because '${name_0}' doesn't refer to an import prefix.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNotAPrefixInTypeAnnotation(
-  String name,
-  String name2,
-) => _withArgumentsNotAPrefixInTypeAnnotation(name: name, name2: name2);
+codeNotAPrefixInTypeAnnotation = notAPrefixInTypeAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNotAType = const Template(
-  "NotAType",
-  withArgumentsOld: _withArgumentsOldNotAType,
-  withArguments: _withArgumentsNotAType,
-);
+codeNotAType = notAType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNotAType({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNotAType,
-    problemMessage: """'${name_0}' isn't a type.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeNotATypeContext = notATypeContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNotAType(String name) =>
-    _withArgumentsNotAType(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNotATypeContext = const MessageCode(
-  "NotATypeContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This isn't a type.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNotAnLvalue = const MessageCode(
-  "NotAnLvalue",
-  problemMessage: """Can't assign to this.""",
-);
+const MessageCode codeNotAnLvalue = notAnLvalue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Token lexeme),
   Message Function({required Token lexeme})
 >
-codeNotBinaryOperator = const Template(
-  "NotBinaryOperator",
-  withArgumentsOld: _withArgumentsOldNotBinaryOperator,
-  withArguments: _withArgumentsNotBinaryOperator,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNotBinaryOperator({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
-  return new Message(
-    codeNotBinaryOperator,
-    problemMessage: """'${lexeme_0}' isn't a binary operator.""",
-    arguments: {'lexeme': lexeme},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNotBinaryOperator(Token lexeme) =>
-    _withArgumentsNotBinaryOperator(lexeme: lexeme);
+codeNotBinaryOperator = notBinaryOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeNotConstantExpression = const Template(
-  "NotConstantExpression",
-  withArgumentsOld: _withArgumentsOldNotConstantExpression,
-  withArguments: _withArgumentsNotConstantExpression,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNotConstantExpression({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeNotConstantExpression,
-    problemMessage: """${string_0} is not a constant expression.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNotConstantExpression(String string) =>
-    _withArgumentsNotConstantExpression(string: string);
+codeNotConstantExpression = notConstantExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeNullableExpressionCallError = const Template(
-  "NullableExpressionCallError",
-  withArgumentsOld: _withArgumentsOldNullableExpressionCallError,
-  withArguments: _withArgumentsNullableExpressionCallError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableExpressionCallError({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeNullableExpressionCallError,
-    problemMessage:
-        """Can't use an expression of type '${type_0}' as a function because it's potentially null.""" +
-        labeler.originMessages,
-    correctionMessage: """Try calling using ?.call instead.""",
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableExpressionCallError(DartType type) =>
-    _withArgumentsNullableExpressionCallError(type: type);
+codeNullableExpressionCallError = nullableExpressionCallError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNullableInterfaceError = const Template(
-  "NullableInterfaceError",
-  withArgumentsOld: _withArgumentsOldNullableInterfaceError,
-  withArguments: _withArgumentsNullableInterfaceError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableInterfaceError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNullableInterfaceError,
-    problemMessage: """Can't implement '${name_0}' because it's nullable.""",
-    correctionMessage: """Try removing the question mark.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableInterfaceError(String name) =>
-    _withArgumentsNullableInterfaceError(name: name);
+codeNullableInterfaceError = nullableInterfaceError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeNullableMethodCallError = const Template(
-  "NullableMethodCallError",
-  withArgumentsOld: _withArgumentsOldNullableMethodCallError,
-  withArguments: _withArgumentsNullableMethodCallError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableMethodCallError({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeNullableMethodCallError,
-    problemMessage:
-        """Method '${name_0}' cannot be called on '${type_0}' because it is potentially null.""" +
-        labeler.originMessages,
-    correctionMessage: """Try calling using ?. instead.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableMethodCallError(String name, DartType type) =>
-    _withArgumentsNullableMethodCallError(name: name, type: type);
+codeNullableMethodCallError = nullableMethodCallError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNullableMixinError = const Template(
-  "NullableMixinError",
-  withArgumentsOld: _withArgumentsOldNullableMixinError,
-  withArguments: _withArgumentsNullableMixinError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableMixinError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNullableMixinError,
-    problemMessage: """Can't mix '${name_0}' in because it's nullable.""",
-    correctionMessage: """Try removing the question mark.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableMixinError(String name) =>
-    _withArgumentsNullableMixinError(name: name);
+codeNullableMixinError = nullableMixinError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeNullableOperatorCallError = const Template(
-  "NullableOperatorCallError",
-  withArgumentsOld: _withArgumentsOldNullableOperatorCallError,
-  withArguments: _withArgumentsNullableOperatorCallError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableOperatorCallError({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeNullableOperatorCallError,
-    problemMessage:
-        """Operator '${name_0}' cannot be called on '${type_0}' because it is potentially null.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableOperatorCallError(
-  String name,
-  DartType type,
-) => _withArgumentsNullableOperatorCallError(name: name, type: type);
+codeNullableOperatorCallError = nullableOperatorCallError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeNullablePropertyAccessError = const Template(
-  "NullablePropertyAccessError",
-  withArgumentsOld: _withArgumentsOldNullablePropertyAccessError,
-  withArguments: _withArgumentsNullablePropertyAccessError,
-);
+codeNullablePropertyAccessError = nullablePropertyAccessError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullablePropertyAccessError({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeNullablePropertyAccessError,
-    problemMessage:
-        """Property '${name_0}' cannot be accessed on '${type_0}' because it is potentially null.""" +
-        labeler.originMessages,
-    correctionMessage: """Try accessing using ?. instead.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullablePropertyAccessError(
-  String name,
-  DartType type,
-) => _withArgumentsNullablePropertyAccessError(name: name, type: type);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNullableSpreadError = const MessageCode(
-  "NullableSpreadError",
-  problemMessage:
-      """An expression whose value can be 'null' must be null-checked before it can be dereferenced.""",
-);
+const MessageCode codeNullableSpreadError = nullableSpreadError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNullableSuperclassError = const Template(
-  "NullableSuperclassError",
-  withArgumentsOld: _withArgumentsOldNullableSuperclassError,
-  withArguments: _withArgumentsNullableSuperclassError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableSuperclassError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNullableSuperclassError,
-    problemMessage: """Can't extend '${name_0}' because it's nullable.""",
-    correctionMessage: """Try removing the question mark.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableSuperclassError(String name) =>
-    _withArgumentsNullableSuperclassError(name: name);
+codeNullableSuperclassError = nullableSuperclassError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeNullableTearoffError = const Template(
-  "NullableTearoffError",
-  withArgumentsOld: _withArgumentsOldNullableTearoffError,
-  withArguments: _withArgumentsNullableTearoffError,
-);
+codeNullableTearoffError = nullableTearoffError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableTearoffError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeNullableTearoffError,
-    problemMessage:
-        """Can't tear off method '${name_0}' from a potentially null value.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeObjectExtends = objectExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableTearoffError(String name) =>
-    _withArgumentsNullableTearoffError(name: name);
+const MessageCode codeObjectImplements = objectImplements;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObjectExtends = const MessageCode(
-  "ObjectExtends",
-  problemMessage: """The class 'Object' can't have a superclass.""",
-);
+const MessageCode codeObjectMemberNameUsedForRecordField =
+    objectMemberNameUsedForRecordField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObjectImplements = const MessageCode(
-  "ObjectImplements",
-  problemMessage: """The class 'Object' can't implement anything.""",
-);
+const MessageCode codeObjectMixesIn = objectMixesIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObjectMemberNameUsedForRecordField = const MessageCode(
-  "ObjectMemberNameUsedForRecordField",
-  problemMessage:
-      """Record field names can't be the same as a member from 'Object'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObjectMixesIn = const MessageCode(
-  "ObjectMixesIn",
-  problemMessage: """The class 'Object' can't use mixins.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObsoleteColonForDefaultValue = const MessageCode(
-  "ObsoleteColonForDefaultValue",
-  problemMessage:
-      """Using a colon as a separator before a default value is no longer supported.""",
-  correctionMessage: """Try replacing the colon with an equal sign.""",
-);
+const MessageCode codeObsoleteColonForDefaultValue =
+    obsoleteColonForDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeOperatorMinusParameterMismatch = const Template(
-  "OperatorMinusParameterMismatch",
-  withArgumentsOld: _withArgumentsOldOperatorMinusParameterMismatch,
-  withArguments: _withArgumentsOperatorMinusParameterMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorMinusParameterMismatch({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeOperatorMinusParameterMismatch,
-    problemMessage:
-        """Operator '${name_0}' should have zero or one parameter.""",
-    correctionMessage:
-        """With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorMinusParameterMismatch(String name) =>
-    _withArgumentsOperatorMinusParameterMismatch(name: name);
+codeOperatorMinusParameterMismatch = operatorMinusParameterMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeOperatorParameterMismatch0 = const Template(
-  "OperatorParameterMismatch0",
-  withArgumentsOld: _withArgumentsOldOperatorParameterMismatch0,
-  withArguments: _withArgumentsOperatorParameterMismatch0,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch0({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeOperatorParameterMismatch0,
-    problemMessage: """Operator '${name_0}' shouldn't have any parameters.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch0(String name) =>
-    _withArgumentsOperatorParameterMismatch0(name: name);
+codeOperatorParameterMismatch0 = operatorParameterMismatch0;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeOperatorParameterMismatch1 = const Template(
-  "OperatorParameterMismatch1",
-  withArgumentsOld: _withArgumentsOldOperatorParameterMismatch1,
-  withArguments: _withArgumentsOperatorParameterMismatch1,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch1({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeOperatorParameterMismatch1,
-    problemMessage:
-        """Operator '${name_0}' should have exactly one parameter.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch1(String name) =>
-    _withArgumentsOperatorParameterMismatch1(name: name);
+codeOperatorParameterMismatch1 = operatorParameterMismatch1;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeOperatorParameterMismatch2 = const Template(
-  "OperatorParameterMismatch2",
-  withArgumentsOld: _withArgumentsOldOperatorParameterMismatch2,
-  withArguments: _withArgumentsOperatorParameterMismatch2,
-);
+codeOperatorParameterMismatch2 = operatorParameterMismatch2;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch2({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeOperatorParameterMismatch2,
-    problemMessage:
-        """Operator '${name_0}' should have exactly two parameters.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch2(String name) =>
-    _withArgumentsOperatorParameterMismatch2(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeOperatorWithOptionalFormals = const MessageCode(
-  "OperatorWithOptionalFormals",
-  problemMessage: """An operator can't have optional parameters.""",
-);
+const MessageCode codeOperatorWithOptionalFormals = operatorWithOptionalFormals;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeOptionalNonNullableWithoutInitializerError = const Template(
-  "OptionalNonNullableWithoutInitializerError",
-  withArgumentsOld: _withArgumentsOldOptionalNonNullableWithoutInitializerError,
-  withArguments: _withArgumentsOptionalNonNullableWithoutInitializerError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOptionalNonNullableWithoutInitializerError({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeOptionalNonNullableWithoutInitializerError,
-    problemMessage:
-        """The parameter '${name_0}' can't have a value of 'null' because of its type '${type_0}', but the implicit default value is 'null'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try adding either an explicit non-'null' default value or the 'required' modifier.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOptionalNonNullableWithoutInitializerError(
-  String name,
-  DartType type,
-) => _withArgumentsOptionalNonNullableWithoutInitializerError(
-  name: name,
-  type: type,
-);
+codeOptionalNonNullableWithoutInitializerError =
+    optionalNonNullableWithoutInitializerError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeOptionalParametersInExtensionTypeDeclaration =
-    const MessageCode(
-      "OptionalParametersInExtensionTypeDeclaration",
-      problemMessage:
-          """Extension type declarations can't have optional parameters.""",
-    );
+    optionalParametersInExtensionTypeDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, String name),
   Message Function({required DartType type, required String name})
 >
-codeOptionalSuperParameterWithoutInitializer = const Template(
-  "OptionalSuperParameterWithoutInitializer",
-  withArgumentsOld: _withArgumentsOldOptionalSuperParameterWithoutInitializer,
-  withArguments: _withArgumentsOptionalSuperParameterWithoutInitializer,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOptionalSuperParameterWithoutInitializer({
-  required DartType type,
-  required String name,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeOptionalSuperParameterWithoutInitializer,
-    problemMessage:
-        """Type '${type_0}' of the optional super-initializer parameter '${name_0}' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOptionalSuperParameterWithoutInitializer(
-  DartType type,
-  String name,
-) => _withArgumentsOptionalSuperParameterWithoutInitializer(
-  type: type,
-  name: name,
-);
+codeOptionalSuperParameterWithoutInitializer =
+    optionalSuperParameterWithoutInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeOverriddenMethodCause = const Template(
-  "OverriddenMethodCause",
-  withArgumentsOld: _withArgumentsOldOverriddenMethodCause,
-  withArguments: _withArgumentsOverriddenMethodCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverriddenMethodCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeOverriddenMethodCause,
-    problemMessage: """This is the overridden method ('${name_0}').""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverriddenMethodCause(String name) =>
-    _withArgumentsOverriddenMethodCause(name: name);
+codeOverriddenMethodCause = overriddenMethodCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeOverrideFewerNamedArguments = const Template(
-  "OverrideFewerNamedArguments",
-  withArgumentsOld: _withArgumentsOldOverrideFewerNamedArguments,
-  withArguments: _withArgumentsOverrideFewerNamedArguments,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideFewerNamedArguments({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeOverrideFewerNamedArguments,
-    problemMessage:
-        """The method '${name_0}' has fewer named arguments than those of overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideFewerNamedArguments(
-  String name,
-  String name2,
-) => _withArgumentsOverrideFewerNamedArguments(name: name, name2: name2);
+codeOverrideFewerNamedArguments = overrideFewerNamedArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeOverrideFewerPositionalArguments = const Template(
-  "OverrideFewerPositionalArguments",
-  withArgumentsOld: _withArgumentsOldOverrideFewerPositionalArguments,
-  withArguments: _withArgumentsOverrideFewerPositionalArguments,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideFewerPositionalArguments({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeOverrideFewerPositionalArguments,
-    problemMessage:
-        """The method '${name_0}' has fewer positional arguments than those of overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideFewerPositionalArguments(
-  String name,
-  String name2,
-) => _withArgumentsOverrideFewerPositionalArguments(name: name, name2: name2);
+codeOverrideFewerPositionalArguments = overrideFewerPositionalArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13138,39 +3589,7 @@ const Template<
     required String name3,
   })
 >
-codeOverrideMismatchNamedParameter = const Template(
-  "OverrideMismatchNamedParameter",
-  withArgumentsOld: _withArgumentsOldOverrideMismatchNamedParameter,
-  withArguments: _withArgumentsOverrideMismatchNamedParameter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideMismatchNamedParameter({
-  required String name,
-  required String name2,
-  required String name3,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
-  return new Message(
-    codeOverrideMismatchNamedParameter,
-    problemMessage:
-        """The method '${name_0}' doesn't have the named parameter '${name2_0}' of overridden method '${name3_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideMismatchNamedParameter(
-  String name,
-  String name2,
-  String name3,
-) => _withArgumentsOverrideMismatchNamedParameter(
-  name: name,
-  name2: name2,
-  name3: name3,
-);
+codeOverrideMismatchNamedParameter = overrideMismatchNamedParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13181,71 +3600,15 @@ const Template<
     required String name3,
   })
 >
-codeOverrideMismatchRequiredNamedParameter = const Template(
-  "OverrideMismatchRequiredNamedParameter",
-  withArgumentsOld: _withArgumentsOldOverrideMismatchRequiredNamedParameter,
-  withArguments: _withArgumentsOverrideMismatchRequiredNamedParameter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideMismatchRequiredNamedParameter({
-  required String name,
-  required String name2,
-  required String name3,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
-  return new Message(
-    codeOverrideMismatchRequiredNamedParameter,
-    problemMessage:
-        """The required named parameter '${name_0}' in method '${name2_0}' is not required in overridden method '${name3_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideMismatchRequiredNamedParameter(
-  String name,
-  String name2,
-  String name3,
-) => _withArgumentsOverrideMismatchRequiredNamedParameter(
-  name: name,
-  name2: name2,
-  name3: name3,
-);
+codeOverrideMismatchRequiredNamedParameter =
+    overrideMismatchRequiredNamedParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeOverrideMoreRequiredArguments = const Template(
-  "OverrideMoreRequiredArguments",
-  withArgumentsOld: _withArgumentsOldOverrideMoreRequiredArguments,
-  withArguments: _withArgumentsOverrideMoreRequiredArguments,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideMoreRequiredArguments({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeOverrideMoreRequiredArguments,
-    problemMessage:
-        """The method '${name_0}' has more required arguments than those of overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideMoreRequiredArguments(
-  String name,
-  String name2,
-) => _withArgumentsOverrideMoreRequiredArguments(name: name, name2: name2);
+codeOverrideMoreRequiredArguments = overrideMoreRequiredArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13264,57 +3627,7 @@ const Template<
     required String name3,
   })
 >
-codeOverrideTypeMismatchParameter = const Template(
-  "OverrideTypeMismatchParameter",
-  withArgumentsOld: _withArgumentsOldOverrideTypeMismatchParameter,
-  withArguments: _withArgumentsOverrideTypeMismatchParameter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeMismatchParameter({
-  required String name,
-  required String name2,
-  required DartType type,
-  required DartType type2,
-  required String name3,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
-  return new Message(
-    codeOverrideTypeMismatchParameter,
-    problemMessage:
-        """The parameter '${name_0}' of the method '${name2_0}' has type '${type_0}', which does not match the corresponding type, '${type2_0}', in the overridden method, '${name3_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Change to a supertype of '${type2_0}', or, for a covariant parameter, a subtype.""",
-    arguments: {
-      'name': name,
-      'name2': name2,
-      'type': type,
-      'type2': type2,
-      'name3': name3,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideTypeMismatchParameter(
-  String name,
-  String name2,
-  DartType type,
-  DartType type2,
-  String name3,
-) => _withArgumentsOverrideTypeMismatchParameter(
-  name: name,
-  name2: name2,
-  type: type,
-  type2: type2,
-  name3: name3,
-);
+codeOverrideTypeMismatchParameter = overrideTypeMismatchParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13326,46 +3639,7 @@ const Template<
     required String name2,
   })
 >
-codeOverrideTypeMismatchReturnType = const Template(
-  "OverrideTypeMismatchReturnType",
-  withArgumentsOld: _withArgumentsOldOverrideTypeMismatchReturnType,
-  withArguments: _withArgumentsOverrideTypeMismatchReturnType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeMismatchReturnType({
-  required String name,
-  required DartType type,
-  required DartType type2,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeOverrideTypeMismatchReturnType,
-    problemMessage:
-        """The return type of the method '${name_0}' is '${type_0}', which does not match the return type, '${type2_0}', of the overridden method, '${name2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage: """Change to a subtype of '${type2_0}'.""",
-    arguments: {'name': name, 'type': type, 'type2': type2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideTypeMismatchReturnType(
-  String name,
-  DartType type,
-  DartType type2,
-  String name2,
-) => _withArgumentsOverrideTypeMismatchReturnType(
-  name: name,
-  type: type,
-  type2: type2,
-  name2: name2,
-);
+codeOverrideTypeMismatchReturnType = overrideTypeMismatchReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13377,45 +3651,7 @@ const Template<
     required String name2,
   })
 >
-codeOverrideTypeMismatchSetter = const Template(
-  "OverrideTypeMismatchSetter",
-  withArgumentsOld: _withArgumentsOldOverrideTypeMismatchSetter,
-  withArguments: _withArgumentsOverrideTypeMismatchSetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeMismatchSetter({
-  required String name,
-  required DartType type,
-  required DartType type2,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeOverrideTypeMismatchSetter,
-    problemMessage:
-        """The field '${name_0}' has type '${type_0}', which does not match the corresponding type, '${type2_0}', in the overridden setter, '${name2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type, 'type2': type2, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideTypeMismatchSetter(
-  String name,
-  DartType type,
-  DartType type2,
-  String name2,
-) => _withArgumentsOverrideTypeMismatchSetter(
-  name: name,
-  type: type,
-  type2: type2,
-  name2: name2,
-);
+codeOverrideTypeMismatchSetter = overrideTypeMismatchSetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13434,197 +3670,44 @@ const Template<
     required String name3,
   })
 >
-codeOverrideTypeParametersBoundMismatch = const Template(
-  "OverrideTypeParametersBoundMismatch",
-  withArgumentsOld: _withArgumentsOldOverrideTypeParametersBoundMismatch,
-  withArguments: _withArgumentsOverrideTypeParametersBoundMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeParametersBoundMismatch({
-  required DartType type,
-  required String name,
-  required String name2,
-  required DartType type2,
-  required String name3,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var type2_0 = labeler.labelType(type2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
-  return new Message(
-    codeOverrideTypeParametersBoundMismatch,
-    problemMessage:
-        """Declared bound '${type_0}' of type variable '${name_0}' of '${name2_0}' doesn't match the bound '${type2_0}' on overridden method '${name3_0}'.""" +
-        labeler.originMessages,
-    arguments: {
-      'type': type,
-      'name': name,
-      'name2': name2,
-      'type2': type2,
-      'name3': name3,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideTypeParametersBoundMismatch(
-  DartType type,
-  String name,
-  String name2,
-  DartType type2,
-  String name3,
-) => _withArgumentsOverrideTypeParametersBoundMismatch(
-  type: type,
-  name: name,
-  name2: name2,
-  type2: type2,
-  name3: name3,
-);
+codeOverrideTypeParametersBoundMismatch = overrideTypeParametersBoundMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeOverrideTypeParametersMismatch = const Template(
-  "OverrideTypeParametersMismatch",
-  withArgumentsOld: _withArgumentsOldOverrideTypeParametersMismatch,
-  withArguments: _withArgumentsOverrideTypeParametersMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverrideTypeParametersMismatch({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeOverrideTypeParametersMismatch,
-    problemMessage:
-        """Declared type variables of '${name_0}' doesn't match those on overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverrideTypeParametersMismatch(
-  String name,
-  String name2,
-) => _withArgumentsOverrideTypeParametersMismatch(name: name, name2: name2);
+codeOverrideTypeParametersMismatch = overrideTypeParametersMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, Uri uri),
   Message Function({required String name, required Uri uri})
 >
-codePackageNotFound = const Template(
-  "PackageNotFound",
-  withArgumentsOld: _withArgumentsOldPackageNotFound,
-  withArguments: _withArgumentsPackageNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPackageNotFound({
-  required String name,
-  required Uri uri,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codePackageNotFound,
-    problemMessage:
-        """Couldn't resolve the package '${name_0}' in '${uri_0}'.""",
-    arguments: {'name': name, 'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPackageNotFound(String name, Uri uri) =>
-    _withArgumentsPackageNotFound(name: name, uri: uri);
+codePackageNotFound = packageNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codePackagesFileFormat = const Template(
-  "PackagesFileFormat",
-  withArgumentsOld: _withArgumentsOldPackagesFileFormat,
-  withArguments: _withArgumentsPackagesFileFormat,
-);
+codePackagesFileFormat = packagesFileFormat;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPackagesFileFormat({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codePackagesFileFormat,
-    problemMessage: """Problem in packages configuration file: ${string_0}""",
-    arguments: {'string': string},
-  );
-}
+const MessageCode codePartExport = partExport;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPackagesFileFormat(String string) =>
-    _withArgumentsPackagesFileFormat(string: string);
+const MessageCode codePartExportContext = partExportContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartExport = const MessageCode(
-  "PartExport",
-  problemMessage:
-      """Can't export this file because it contains a 'part of' declaration.""",
-);
+const MessageCode codePartInPart = partInPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartExportContext = const MessageCode(
-  "PartExportContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the file that can't be exported.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartInPart = const MessageCode(
-  "PartInPart",
-  problemMessage:
-      """A file that's a part of a library can't have parts itself.""",
-  correctionMessage:
-      """Try moving the 'part' declaration to the containing library.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartInPartLibraryContext = const MessageCode(
-  "PartInPartLibraryContext",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the containing library.""",
-);
+const MessageCode codePartInPartLibraryContext = partInPartLibraryContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codePartOfInLibrary = const Template(
-  "PartOfInLibrary",
-  withArgumentsOld: _withArgumentsOldPartOfInLibrary,
-  withArguments: _withArgumentsPartOfInLibrary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPartOfInLibrary({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codePartOfInLibrary,
-    problemMessage:
-        """Can't import '${uri_0}', because it has a 'part of' declaration.""",
-    correctionMessage:
-        """Try removing the 'part of' declaration, or using '${uri_0}' as a part.""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPartOfInLibrary(Uri uri) =>
-    _withArgumentsPartOfInLibrary(uri: uri);
+codePartOfInLibrary = partOfInLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13635,721 +3718,224 @@ const Template<
     required String name2,
   })
 >
-codePartOfLibraryNameMismatch = const Template(
-  "PartOfLibraryNameMismatch",
-  withArgumentsOld: _withArgumentsOldPartOfLibraryNameMismatch,
-  withArguments: _withArgumentsPartOfLibraryNameMismatch,
-);
+codePartOfLibraryNameMismatch = partOfLibraryNameMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPartOfLibraryNameMismatch({
-  required Uri uri,
-  required String name,
-  required String name2,
-}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codePartOfLibraryNameMismatch,
-    problemMessage:
-        """Using '${uri_0}' as part of '${name_0}' but its 'part of' declaration says '${name2_0}'.""",
-    arguments: {'uri': uri, 'name': name, 'name2': name2},
-  );
-}
+const MessageCode codePartOfName = partOfName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPartOfLibraryNameMismatch(
-  Uri uri,
-  String name,
-  String name2,
-) =>
-    _withArgumentsPartOfLibraryNameMismatch(uri: uri, name: name, name2: name2);
+const MessageCode codePartOfSelf = partOfSelf;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOfName = const MessageCode(
-  "PartOfName",
-  problemMessage:
-      """The 'part of' directive can't use a name with the enhanced-parts feature.""",
-  correctionMessage: """Try using 'part of' with a URI instead.""",
-);
+const MessageCode codePartOfTwoLibraries = partOfTwoLibraries;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOfSelf = const MessageCode(
-  "PartOfSelf",
-  problemMessage: """A file can't be a part of itself.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOfTwoLibraries = const MessageCode(
-  "PartOfTwoLibraries",
-  problemMessage: """A file can't be part of more than one library.""",
-  correctionMessage:
-      """Try moving the shared declarations into the libraries, or into a new library.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOfTwoLibrariesContext = const MessageCode(
-  "PartOfTwoLibrariesContext",
-  severity: CfeSeverity.context,
-  problemMessage: """Used as a part in this library.""",
-);
+const MessageCode codePartOfTwoLibrariesContext = partOfTwoLibrariesContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Uri uri, Uri uri2, Uri uri3),
   Message Function({required Uri uri, required Uri uri2, required Uri uri3})
 >
-codePartOfUriMismatch = const Template(
-  "PartOfUriMismatch",
-  withArgumentsOld: _withArgumentsOldPartOfUriMismatch,
-  withArguments: _withArgumentsPartOfUriMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPartOfUriMismatch({
-  required Uri uri,
-  required Uri uri2,
-  required Uri uri3,
-}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var uri2_0 = conversions.relativizeUri(uri2);
-  var uri3_0 = conversions.relativizeUri(uri3);
-  return new Message(
-    codePartOfUriMismatch,
-    problemMessage:
-        """Using '${uri_0}' as part of '${uri2_0}' but its 'part of' declaration says '${uri3_0}'.""",
-    arguments: {'uri': uri, 'uri2': uri2, 'uri3': uri3},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPartOfUriMismatch(Uri uri, Uri uri2, Uri uri3) =>
-    _withArgumentsPartOfUriMismatch(uri: uri, uri2: uri2, uri3: uri3);
+codePartOfUriMismatch = partOfUriMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(Uri uri, Uri uri2, String name),
   Message Function({required Uri uri, required Uri uri2, required String name})
 >
-codePartOfUseUri = const Template(
-  "PartOfUseUri",
-  withArgumentsOld: _withArgumentsOldPartOfUseUri,
-  withArguments: _withArgumentsPartOfUseUri,
-);
+codePartOfUseUri = partOfUseUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPartOfUseUri({
-  required Uri uri,
-  required Uri uri2,
-  required String name,
-}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var uri2_0 = conversions.relativizeUri(uri2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codePartOfUseUri,
-    problemMessage:
-        """Using '${uri_0}' as part of '${uri2_0}' but its 'part of' declaration says '${name_0}'.""",
-    correctionMessage:
-        """Try changing the 'part of' declaration to use a relative file name.""",
-    arguments: {'uri': uri, 'uri2': uri2, 'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPartOfUseUri(Uri uri, Uri uri2, String name) =>
-    _withArgumentsPartOfUseUri(uri: uri, uri2: uri2, name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOrphan = const MessageCode(
-  "PartOrphan",
-  problemMessage: """This part doesn't have a containing library.""",
-  correctionMessage: """Try removing the 'part of' declaration.""",
-);
+const MessageCode codePartOrphan = partOrphan;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codePartTwice = const Template(
-  "PartTwice",
-  withArgumentsOld: _withArgumentsOldPartTwice,
-  withArguments: _withArgumentsPartTwice,
-);
+codePartTwice = partTwice;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPartTwice({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codePartTwice,
-    problemMessage: """Can't use '${uri_0}' as a part more than once.""",
-    arguments: {'uri': uri},
-  );
-}
+const MessageCode codePartWithLibraryDirective = partWithLibraryDirective;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPartTwice(Uri uri) =>
-    _withArgumentsPartTwice(uri: uri);
+const MessageCode codePatchClassOrigin = patchClassOrigin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartWithLibraryDirective = const MessageCode(
-  "PartWithLibraryDirective",
-  problemMessage: """A part cannot have a library directive.""",
-  correctionMessage: """Try removing the library directive.""",
-);
+const MessageCode codePatchClassTypeParametersMismatch =
+    patchClassTypeParametersMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchClassOrigin = const MessageCode(
-  "PatchClassOrigin",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the origin class.""",
-);
+const MessageCode codePatchDeclarationOrigin = patchDeclarationOrigin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchClassTypeParametersMismatch = const MessageCode(
-  "PatchClassTypeParametersMismatch",
-  problemMessage:
-      """A patch class must have the same number of type variables as its origin class.""",
-);
+const MessageCode codePatchExtensionOrigin = patchExtensionOrigin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchDeclarationOrigin = const MessageCode(
-  "PatchDeclarationOrigin",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the origin declaration.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchExtensionOrigin = const MessageCode(
-  "PatchExtensionOrigin",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the origin extension.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchExtensionTypeParametersMismatch = const MessageCode(
-  "PatchExtensionTypeParametersMismatch",
-  problemMessage:
-      """A patch extension must have the same number of type variables as its origin extension.""",
-);
+const MessageCode codePatchExtensionTypeParametersMismatch =
+    patchExtensionTypeParametersMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, Uri uri),
   Message Function({required String name, required Uri uri})
 >
-codePatchInjectionFailed = const Template(
-  "PatchInjectionFailed",
-  withArgumentsOld: _withArgumentsOldPatchInjectionFailed,
-  withArguments: _withArgumentsPatchInjectionFailed,
-);
+codePatchInjectionFailed = patchInjectionFailed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPatchInjectionFailed({
-  required String name,
-  required Uri uri,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codePatchInjectionFailed,
-    problemMessage: """Can't inject public '${name_0}' into '${uri_0}'.""",
-    correctionMessage:
-        """Make '${name_0}' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
-    arguments: {'name': name, 'uri': uri},
-  );
-}
+const MessageCode codePatternAssignmentNotLocalVariable =
+    patternAssignmentNotLocalVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPatchInjectionFailed(String name, Uri uri) =>
-    _withArgumentsPatchInjectionFailed(name: name, uri: uri);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatternAssignmentNotLocalVariable = const MessageCode(
-  "PatternAssignmentNotLocalVariable",
-  problemMessage:
-      """Only local variables or formal parameters can be used in pattern assignments.""",
-  correctionMessage: """Try assigning to a local variable.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatternMatchingError = const MessageCode(
-  "PatternMatchingError",
-  problemMessage: """Pattern matching error""",
-);
+const MessageCode codePatternMatchingError = patternMatchingError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codePatternTypeMismatchInIrrefutableContext = const Template(
-  "PatternTypeMismatchInIrrefutableContext",
-  withArgumentsOld: _withArgumentsOldPatternTypeMismatchInIrrefutableContext,
-  withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
-);
+codePatternTypeMismatchInIrrefutableContext =
+    patternTypeMismatchInIrrefutableContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPatternTypeMismatchInIrrefutableContext({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codePatternTypeMismatchInIrrefutableContext,
-    problemMessage:
-        """The matched value of type '${type_0}' isn't assignable to the required type '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try changing the required type of the pattern, or the matched value type.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
+const MessageCode codePatternVariableAssignmentInsideGuard =
+    patternVariableAssignmentInsideGuard;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPatternTypeMismatchInIrrefutableContext(
-  DartType type,
-  DartType type2,
-) => _withArgumentsPatternTypeMismatchInIrrefutableContext(
-  type: type,
-  type2: type2,
-);
+const MessageCode codePlatformPrivateLibraryAccess =
+    platformPrivateLibraryAccess;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatternVariableAssignmentInsideGuard = const MessageCode(
-  "PatternVariableAssignmentInsideGuard",
-  problemMessage:
-      """Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.""",
-  correctionMessage: """Try assigning to a different variable.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePlatformPrivateLibraryAccess = const MessageCode(
-  "PlatformPrivateLibraryAccess",
-  problemMessage: """Can't access platform private library.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePositionalSuperParametersAndArguments = const MessageCode(
-  "PositionalSuperParametersAndArguments",
-  problemMessage:
-      """Positional super-initializer parameters cannot be used when the super initializer has positional arguments.""",
-);
+const MessageCode codePositionalSuperParametersAndArguments =
+    positionalSuperParametersAndArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codePrivateNamedParameterDuplicatePublicName = const Template(
-  "PrivateNamedParameterDuplicatePublicName",
-  withArgumentsOld: _withArgumentsOldPrivateNamedParameterDuplicatePublicName,
-  withArguments: _withArgumentsPrivateNamedParameterDuplicatePublicName,
-);
+codePrivateNamedParameterDuplicatePublicName =
+    privateNamedParameterDuplicatePublicName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPrivateNamedParameterDuplicatePublicName({
-  required String name,
-}) {
-  var name_0 = conversions.validateString(name);
-  return new Message(
-    codePrivateNamedParameterDuplicatePublicName,
-    problemMessage:
-        """The corresponding public name '${name_0}' is already the name of another parameter.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codePrivateNamedParameterWithoutPublicName =
+    privateNamedParameterWithoutPublicName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPrivateNamedParameterDuplicatePublicName(
-  String name,
-) => _withArgumentsPrivateNamedParameterDuplicatePublicName(name: name);
+const MessageCode codeRecordFieldsCantBePrivate = recordFieldsCantBePrivate;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codePrivateNamedParameterWithoutPublicName = const MessageCode(
-  "PrivateNamedParameterWithoutPublicName",
-  problemMessage:
-      """A private named parameter must have a corresponding public name.""",
-);
+const MessageCode codeRecordUseCannotBePlacedHere = recordUseCannotBePlacedHere;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRecordFieldsCantBePrivate = const MessageCode(
-  "RecordFieldsCantBePrivate",
-  problemMessage: """Record field names can't be private.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRecordUseCannotBePlacedHere = const MessageCode(
-  "RecordUseCannotBePlacedHere",
-  problemMessage:
-      """`RecordUse` annotation cannot be placed on this element.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRecordUsedAsCallable = const MessageCode(
-  "RecordUsedAsCallable",
-  problemMessage:
-      """The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`""",
-);
+const MessageCode codeRecordUsedAsCallable = recordUsedAsCallable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRedirectingConstructorWithAnotherInitializer =
-    const MessageCode(
-      "RedirectingConstructorWithAnotherInitializer",
-      problemMessage:
-          """A redirecting constructor can't have other initializers.""",
-    );
+    redirectingConstructorWithAnotherInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRedirectingConstructorWithMultipleRedirectInitializers =
-    const MessageCode(
-      "RedirectingConstructorWithMultipleRedirectInitializers",
-      problemMessage:
-          """A redirecting constructor can't have more than one redirection.""",
-    );
+    redirectingConstructorWithMultipleRedirectInitializers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRedirectingConstructorWithSuperInitializer =
-    const MessageCode(
-      "RedirectingConstructorWithSuperInitializer",
-      problemMessage:
-          """A redirecting constructor can't have a 'super' initializer.""",
-    );
+    redirectingConstructorWithSuperInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeRedirectingFactoryIncompatibleTypeArgument = const Template(
-  "RedirectingFactoryIncompatibleTypeArgument",
-  withArgumentsOld: _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument,
-  withArguments: _withArgumentsRedirectingFactoryIncompatibleTypeArgument,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeRedirectingFactoryIncompatibleTypeArgument,
-    problemMessage:
-        """The type '${type_0}' doesn't extend '${type2_0}'.""" +
-        labeler.originMessages,
-    correctionMessage: """Try using a different type as argument.""",
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument(
-  DartType type,
-  DartType type2,
-) => _withArgumentsRedirectingFactoryIncompatibleTypeArgument(
-  type: type,
-  type2: type2,
-);
+codeRedirectingFactoryIncompatibleTypeArgument =
+    redirectingFactoryIncompatibleTypeArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeRedirectionTargetNotFound = const Template(
-  "RedirectionTargetNotFound",
-  withArgumentsOld: _withArgumentsOldRedirectionTargetNotFound,
-  withArguments: _withArgumentsRedirectionTargetNotFound,
-);
+codeRedirectionTargetNotFound = redirectionTargetNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRedirectionTargetNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeRedirectionTargetNotFound,
-    problemMessage: """Redirection constructor target not found: '${name_0}'""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeRefutablePatternInIrrefutableContext =
+    refutablePatternInIrrefutableContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldRedirectionTargetNotFound(String name) =>
-    _withArgumentsRedirectionTargetNotFound(name: name);
+const MessageCode codeRepresentationFieldModifier = representationFieldModifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRefutablePatternInIrrefutableContext = const MessageCode(
-  "RefutablePatternInIrrefutableContext",
-  problemMessage:
-      """Refutable patterns can't be used in an irrefutable context.""",
-  correctionMessage:
-      """Try using an if-case, a 'switch' statement, or a 'switch' expression instead.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRepresentationFieldModifier = const MessageCode(
-  "RepresentationFieldModifier",
-  problemMessage: """Representation fields can't have modifiers.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRepresentationFieldTrailingComma = const MessageCode(
-  "RepresentationFieldTrailingComma",
-  problemMessage: """The representation field can't have a trailing comma.""",
-);
+const MessageCode codeRepresentationFieldTrailingComma =
+    representationFieldTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeRequiredNamedParameterHasDefaultValueError = const Template(
-  "RequiredNamedParameterHasDefaultValueError",
-  withArgumentsOld: _withArgumentsOldRequiredNamedParameterHasDefaultValueError,
-  withArguments: _withArgumentsRequiredNamedParameterHasDefaultValueError,
-);
+codeRequiredNamedParameterHasDefaultValueError =
+    requiredNamedParameterHasDefaultValueError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsRequiredNamedParameterHasDefaultValueError({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeRequiredNamedParameterHasDefaultValueError,
-    problemMessage:
-        """Named parameter '${name_0}' is required and can't have a default value.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeRestPatternInMapPattern = restPatternInMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldRequiredNamedParameterHasDefaultValueError(
-  String name,
-) => _withArgumentsRequiredNamedParameterHasDefaultValueError(name: name);
+const MessageCode codeRethrowNotCatch = rethrowNotCatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRestPatternInMapPattern = const MessageCode(
-  "RestPatternInMapPattern",
-  problemMessage: """The '...' pattern can't appear in map patterns.""",
-);
+const MessageCode codeReturnFromVoidFunction = returnFromVoidFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRethrowNotCatch = const MessageCode(
-  "RethrowNotCatch",
-  problemMessage: """'rethrow' can only be used in catch clauses.""",
-);
+const MessageCode codeReturnWithoutExpressionAsync =
+    returnWithoutExpressionAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeReturnFromVoidFunction = const MessageCode(
-  "ReturnFromVoidFunction",
-  problemMessage: """Can't return a value from a void function.""",
-);
+const MessageCode codeReturnWithoutExpressionSync = returnWithoutExpressionSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeReturnWithoutExpressionAsync = const MessageCode(
-  "ReturnWithoutExpressionAsync",
-  problemMessage:
-      """A value must be explicitly returned from a non-void async function.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeReturnWithoutExpressionSync = const MessageCode(
-  "ReturnWithoutExpressionSync",
-  problemMessage:
-      """A value must be explicitly returned from a non-void function.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeScriptTagInPartFile = const MessageCode(
-  "ScriptTagInPartFile",
-  problemMessage: """A part file cannot have script tag.""",
-  correctionMessage:
-      """Try removing the script tag or the 'part of' directive.""",
-);
+const MessageCode codeScriptTagInPartFile = scriptTagInPartFile;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codeSdkRootNotFound = const Template(
-  "SdkRootNotFound",
-  withArgumentsOld: _withArgumentsOldSdkRootNotFound,
-  withArguments: _withArgumentsSdkRootNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSdkRootNotFound({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeSdkRootNotFound,
-    problemMessage: """SDK root directory not found: ${uri_0}.""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSdkRootNotFound(Uri uri) =>
-    _withArgumentsSdkRootNotFound(uri: uri);
+codeSdkRootNotFound = sdkRootNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codeSdkSpecificationNotFound = const Template(
-  "SdkSpecificationNotFound",
-  withArgumentsOld: _withArgumentsOldSdkSpecificationNotFound,
-  withArguments: _withArgumentsSdkSpecificationNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSdkSpecificationNotFound({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeSdkSpecificationNotFound,
-    problemMessage: """SDK libraries specification not found: ${uri_0}.""",
-    correctionMessage:
-        """Normally, the specification is a file named 'libraries.json' in the Dart SDK install location.""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSdkSpecificationNotFound(Uri uri) =>
-    _withArgumentsSdkSpecificationNotFound(uri: uri);
+codeSdkSpecificationNotFound = sdkSpecificationNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codeSdkSummaryNotFound = const Template(
-  "SdkSummaryNotFound",
-  withArgumentsOld: _withArgumentsOldSdkSummaryNotFound,
-  withArguments: _withArgumentsSdkSummaryNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSdkSummaryNotFound({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeSdkSummaryNotFound,
-    problemMessage: """SDK summary not found: ${uri_0}.""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSdkSummaryNotFound(Uri uri) =>
-    _withArgumentsSdkSummaryNotFound(uri: uri);
+codeSdkSummaryNotFound = sdkSummaryNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSealedClassSubtypeOutsideOfLibrary = const Template(
-  "SealedClassSubtypeOutsideOfLibrary",
-  withArgumentsOld: _withArgumentsOldSealedClassSubtypeOutsideOfLibrary,
-  withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSealedClassSubtypeOutsideOfLibrary({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSealedClassSubtypeOutsideOfLibrary,
-    problemMessage:
-        """The class '${name_0}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSealedClassSubtypeOutsideOfLibrary(String name) =>
-    _withArgumentsSealedClassSubtypeOutsideOfLibrary(name: name);
+codeSealedClassSubtypeOutsideOfLibrary = sealedClassSubtypeOutsideOfLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSetterConflictsWithDeclaration = const Template(
-  "SetterConflictsWithDeclaration",
-  withArgumentsOld: _withArgumentsOldSetterConflictsWithDeclaration,
-  withArguments: _withArgumentsSetterConflictsWithDeclaration,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSetterConflictsWithDeclaration({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSetterConflictsWithDeclaration,
-    problemMessage: """The setter conflicts with declaration '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSetterConflictsWithDeclaration(String name) =>
-    _withArgumentsSetterConflictsWithDeclaration(name: name);
+codeSetterConflictsWithDeclaration = setterConflictsWithDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSetterConflictsWithDeclarationCause = const Template(
-  "SetterConflictsWithDeclarationCause",
-  withArgumentsOld: _withArgumentsOldSetterConflictsWithDeclarationCause,
-  withArguments: _withArgumentsSetterConflictsWithDeclarationCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSetterConflictsWithDeclarationCause({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSetterConflictsWithDeclarationCause,
-    problemMessage: """Conflicting declaration '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSetterConflictsWithDeclarationCause(String name) =>
-    _withArgumentsSetterConflictsWithDeclarationCause(name: name);
+codeSetterConflictsWithDeclarationCause = setterConflictsWithDeclarationCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSetterNotFound = const Template(
-  "SetterNotFound",
-  withArgumentsOld: _withArgumentsOldSetterNotFound,
-  withArguments: _withArgumentsSetterNotFound,
-);
+codeSetterNotFound = setterNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSetterNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSetterNotFound,
-    problemMessage: """Setter not found: '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSetterNotFound(String name) =>
-    _withArgumentsSetterNotFound(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetterWithWrongNumberOfFormals = const MessageCode(
-  "SetterWithWrongNumberOfFormals",
-  problemMessage: """A setter should have exactly one formal parameter.""",
-);
+const MessageCode codeSetterWithWrongNumberOfFormals =
+    setterWithWrongNumberOfFormals;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -14362,68 +3948,7 @@ const Template<
     required num num3,
   })
 >
-codeSourceBodySummary = const Template(
-  "SourceBodySummary",
-  withArgumentsOld: _withArgumentsOldSourceBodySummary,
-  withArguments: _withArgumentsSourceBodySummary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSourceBodySummary({
-  required int count,
-  required int count2,
-  required num num1,
-  required num num2,
-  required num num3,
-}) {
-  var num1_0 = conversions.formatNumber(
-    num1,
-    fractionDigits: 3,
-    padWidth: 0,
-    padWithZeros: false,
-  );
-  var num2_0 = conversions.formatNumber(
-    num2,
-    fractionDigits: 3,
-    padWidth: 12,
-    padWithZeros: false,
-  );
-  var num3_0 = conversions.formatNumber(
-    num3,
-    fractionDigits: 3,
-    padWidth: 12,
-    padWithZeros: false,
-  );
-  return new Message(
-    codeSourceBodySummary,
-    problemMessage:
-        """Built bodies for ${count} compilation units (${count2} bytes) in ${num1_0}ms, that is,
-${num2_0} bytes/ms, and
-${num3_0} ms/compilation unit.""",
-    arguments: {
-      'count': count,
-      'count2': count2,
-      'num1': num1,
-      'num2': num2,
-      'num3': num3,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSourceBodySummary(
-  int count,
-  int count2,
-  num num1,
-  num num2,
-  num num3,
-) => _withArgumentsSourceBodySummary(
-  count: count,
-  count2: count2,
-  num1: num1,
-  num2: num2,
-  num3: num3,
-);
+codeSourceBodySummary = sourceBodySummary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -14436,2016 +3961,539 @@ const Template<
     required num num3,
   })
 >
-codeSourceOutlineSummary = const Template(
-  "SourceOutlineSummary",
-  withArgumentsOld: _withArgumentsOldSourceOutlineSummary,
-  withArguments: _withArgumentsSourceOutlineSummary,
-);
+codeSourceOutlineSummary = sourceOutlineSummary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSourceOutlineSummary({
-  required int count,
-  required int count2,
-  required num num1,
-  required num num2,
-  required num num3,
-}) {
-  var num1_0 = conversions.formatNumber(
-    num1,
-    fractionDigits: 3,
-    padWidth: 0,
-    padWithZeros: false,
-  );
-  var num2_0 = conversions.formatNumber(
-    num2,
-    fractionDigits: 3,
-    padWidth: 12,
-    padWithZeros: false,
-  );
-  var num3_0 = conversions.formatNumber(
-    num3,
-    fractionDigits: 3,
-    padWidth: 12,
-    padWithZeros: false,
-  );
-  return new Message(
-    codeSourceOutlineSummary,
-    problemMessage:
-        """Built outlines for ${count} compilation units (${count2} bytes) in ${num1_0}ms, that is,
-${num2_0} bytes/ms, and
-${num3_0} ms/compilation unit.""",
-    arguments: {
-      'count': count,
-      'count2': count2,
-      'num1': num1,
-      'num2': num2,
-      'num3': num3,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSourceOutlineSummary(
-  int count,
-  int count2,
-  num num1,
-  num num2,
-  num num3,
-) => _withArgumentsSourceOutlineSummary(
-  count: count,
-  count2: count2,
-  num1: num1,
-  num2: num2,
-  num3: num3,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSpreadElement = const MessageCode(
-  "SpreadElement",
-  severity: CfeSeverity.context,
-  problemMessage: """Iterable spread.""",
-);
+const MessageCode codeSpreadElement = spreadElement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeSpreadElementTypeMismatch = const Template(
-  "SpreadElementTypeMismatch",
-  withArgumentsOld: _withArgumentsOldSpreadElementTypeMismatch,
-  withArguments: _withArgumentsSpreadElementTypeMismatch,
-);
+codeSpreadElementTypeMismatch = spreadElementTypeMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadElementTypeMismatch({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeSpreadElementTypeMismatch,
-    problemMessage:
-        """Can't assign spread elements of type '${type_0}' to collection elements of type '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSpreadElementTypeMismatch(
-  DartType type,
-  DartType type2,
-) => _withArgumentsSpreadElementTypeMismatch(type: type, type2: type2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSpreadMapElement = const MessageCode(
-  "SpreadMapElement",
-  severity: CfeSeverity.context,
-  problemMessage: """Map spread.""",
-);
+const MessageCode codeSpreadMapElement = spreadMapElement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeSpreadMapEntryElementKeyTypeMismatch = const Template(
-  "SpreadMapEntryElementKeyTypeMismatch",
-  withArgumentsOld: _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch,
-  withArguments: _withArgumentsSpreadMapEntryElementKeyTypeMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadMapEntryElementKeyTypeMismatch({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeSpreadMapEntryElementKeyTypeMismatch,
-    problemMessage:
-        """Can't assign spread entry keys of type '${type_0}' to map entry keys of type '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch(
-  DartType type,
-  DartType type2,
-) => _withArgumentsSpreadMapEntryElementKeyTypeMismatch(
-  type: type,
-  type2: type2,
-);
+codeSpreadMapEntryElementKeyTypeMismatch = spreadMapEntryElementKeyTypeMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeSpreadMapEntryElementValueTypeMismatch = const Template(
-  "SpreadMapEntryElementValueTypeMismatch",
-  withArgumentsOld: _withArgumentsOldSpreadMapEntryElementValueTypeMismatch,
-  withArguments: _withArgumentsSpreadMapEntryElementValueTypeMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadMapEntryElementValueTypeMismatch({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeSpreadMapEntryElementValueTypeMismatch,
-    problemMessage:
-        """Can't assign spread entry values of type '${type_0}' to map entry values of type '${type2_0}'.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSpreadMapEntryElementValueTypeMismatch(
-  DartType type,
-  DartType type2,
-) => _withArgumentsSpreadMapEntryElementValueTypeMismatch(
-  type: type,
-  type2: type2,
-);
+codeSpreadMapEntryElementValueTypeMismatch =
+    spreadMapEntryElementValueTypeMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeSpreadMapEntryTypeMismatch = const Template(
-  "SpreadMapEntryTypeMismatch",
-  withArgumentsOld: _withArgumentsOldSpreadMapEntryTypeMismatch,
-  withArguments: _withArgumentsSpreadMapEntryTypeMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadMapEntryTypeMismatch({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeSpreadMapEntryTypeMismatch,
-    problemMessage:
-        """Unexpected type '${type_0}' of a map spread entry.  Expected 'dynamic' or a Map.""" +
-        labeler.originMessages,
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSpreadMapEntryTypeMismatch(DartType type) =>
-    _withArgumentsSpreadMapEntryTypeMismatch(type: type);
+codeSpreadMapEntryTypeMismatch = spreadMapEntryTypeMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeSpreadTypeMismatch = const Template(
-  "SpreadTypeMismatch",
-  withArgumentsOld: _withArgumentsOldSpreadTypeMismatch,
-  withArguments: _withArgumentsSpreadTypeMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadTypeMismatch({required DartType type}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeSpreadTypeMismatch,
-    problemMessage:
-        """Unexpected type '${type_0}' of a spread.  Expected 'dynamic' or an Iterable.""" +
-        labeler.originMessages,
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSpreadTypeMismatch(DartType type) =>
-    _withArgumentsSpreadTypeMismatch(type: type);
+codeSpreadTypeMismatch = spreadTypeMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeStaticConflictsWithInstance = const Template(
-  "StaticConflictsWithInstance",
-  withArgumentsOld: _withArgumentsOldStaticConflictsWithInstance,
-  withArguments: _withArgumentsStaticConflictsWithInstance,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsStaticConflictsWithInstance({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeStaticConflictsWithInstance,
-    problemMessage:
-        """Static property '${name_0}' conflicts with instance property of the same name.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldStaticConflictsWithInstance(String name) =>
-    _withArgumentsStaticConflictsWithInstance(name: name);
+codeStaticConflictsWithInstance = staticConflictsWithInstance;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeStaticConflictsWithInstanceCause = const Template(
-  "StaticConflictsWithInstanceCause",
-  withArgumentsOld: _withArgumentsOldStaticConflictsWithInstanceCause,
-  withArguments: _withArgumentsStaticConflictsWithInstanceCause,
-  severity: CfeSeverity.context,
-);
+codeStaticConflictsWithInstanceCause = staticConflictsWithInstanceCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsStaticConflictsWithInstanceCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeStaticConflictsWithInstanceCause,
-    problemMessage: """Conflicting instance property '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldStaticConflictsWithInstanceCause(String name) =>
-    _withArgumentsStaticConflictsWithInstanceCause(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStaticTearOffFromInstantiatedClass = const MessageCode(
-  "StaticTearOffFromInstantiatedClass",
-  problemMessage:
-      """Cannot access static member on an instantiated generic class.""",
-  correctionMessage:
-      """Try removing the type arguments or placing them after the member name.""",
-);
+const MessageCode codeStaticTearOffFromInstantiatedClass =
+    staticTearOffFromInstantiatedClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeSubtypeOfBaseIsNotBaseFinalOrSealed = const Template(
-  "SubtypeOfBaseIsNotBaseFinalOrSealed",
-  withArgumentsOld: _withArgumentsOldSubtypeOfBaseIsNotBaseFinalOrSealed,
-  withArguments: _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeSubtypeOfBaseIsNotBaseFinalOrSealed,
-    problemMessage:
-        """The type '${name_0}' must be 'base', 'final' or 'sealed' because the supertype '${name2_0}' is 'base'.""",
-    correctionMessage:
-        """Try adding 'base', 'final', or 'sealed' to the type.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSubtypeOfBaseIsNotBaseFinalOrSealed(
-  String name,
-  String name2,
-) =>
-    _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed(name: name, name2: name2);
+codeSubtypeOfBaseIsNotBaseFinalOrSealed = subtypeOfBaseIsNotBaseFinalOrSealed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String name2),
   Message Function({required String name, required String name2})
 >
-codeSubtypeOfFinalIsNotBaseFinalOrSealed = const Template(
-  "SubtypeOfFinalIsNotBaseFinalOrSealed",
-  withArgumentsOld: _withArgumentsOldSubtypeOfFinalIsNotBaseFinalOrSealed,
-  withArguments: _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed,
-);
+codeSubtypeOfFinalIsNotBaseFinalOrSealed = subtypeOfFinalIsNotBaseFinalOrSealed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed({
-  required String name,
-  required String name2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  return new Message(
-    codeSubtypeOfFinalIsNotBaseFinalOrSealed,
-    problemMessage:
-        """The type '${name_0}' must be 'base', 'final' or 'sealed' because the supertype '${name2_0}' is 'final'.""",
-    correctionMessage:
-        """Try adding 'base', 'final', or 'sealed' to the type.""",
-    arguments: {'name': name, 'name2': name2},
-  );
-}
+const MessageCode codeSuperAsExpression = superAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSubtypeOfFinalIsNotBaseFinalOrSealed(
-  String name,
-  String name2,
-) => _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed(
-  name: name,
-  name2: name2,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperAsExpression = const MessageCode(
-  "SuperAsExpression",
-  problemMessage: """Can't use 'super' as an expression.""",
-  correctionMessage:
-      """To delegate a constructor to a super constructor, put the super call as an initializer.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperAsIdentifier = const MessageCode(
-  "SuperAsIdentifier",
-  problemMessage: """Expected identifier, but got 'super'.""",
-);
+const MessageCode codeSuperAsIdentifier = superAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeSuperBoundedHint = const Template(
-  "SuperBoundedHint",
-  withArgumentsOld: _withArgumentsOldSuperBoundedHint,
-  withArguments: _withArgumentsSuperBoundedHint,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperBoundedHint({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeSuperBoundedHint,
-    problemMessage:
-        """If you want '${type_0}' to be a super-bounded type, note that the inverted type '${type2_0}' must then satisfy its bounds, which it does not.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperBoundedHint(DartType type, DartType type2) =>
-    _withArgumentsSuperBoundedHint(type: type, type2: type2);
+codeSuperBoundedHint = superBoundedHint;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSuperExtensionTypeIsIllegal = const Template(
-  "SuperExtensionTypeIsIllegal",
-  withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsIllegal,
-  withArguments: _withArgumentsSuperExtensionTypeIsIllegal,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperExtensionTypeIsIllegal({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSuperExtensionTypeIsIllegal,
-    problemMessage:
-        """The type '${name_0}' can't be implemented by an extension type.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperExtensionTypeIsIllegal(String name) =>
-    _withArgumentsSuperExtensionTypeIsIllegal(name: name);
+codeSuperExtensionTypeIsIllegal = superExtensionTypeIsIllegal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeSuperExtensionTypeIsIllegalAliased = const Template(
-  "SuperExtensionTypeIsIllegalAliased",
-  withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsIllegalAliased,
-  withArguments: _withArgumentsSuperExtensionTypeIsIllegalAliased,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperExtensionTypeIsIllegalAliased({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeSuperExtensionTypeIsIllegalAliased,
-    problemMessage:
-        """The type '${name_0}' which is an alias of '${type_0}' can't be implemented by an extension type.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperExtensionTypeIsIllegalAliased(
-  String name,
-  DartType type,
-) => _withArgumentsSuperExtensionTypeIsIllegalAliased(name: name, type: type);
+codeSuperExtensionTypeIsIllegalAliased = superExtensionTypeIsIllegalAliased;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeSuperExtensionTypeIsNullableAliased = const Template(
-  "SuperExtensionTypeIsNullableAliased",
-  withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsNullableAliased,
-  withArguments: _withArgumentsSuperExtensionTypeIsNullableAliased,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperExtensionTypeIsNullableAliased({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeSuperExtensionTypeIsNullableAliased,
-    problemMessage:
-        """The type '${name_0}' which is an alias of '${type_0}' can't be implemented by an extension type because it is nullable.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperExtensionTypeIsNullableAliased(
-  String name,
-  DartType type,
-) => _withArgumentsSuperExtensionTypeIsNullableAliased(name: name, type: type);
+codeSuperExtensionTypeIsNullableAliased = superExtensionTypeIsNullableAliased;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSuperExtensionTypeIsTypeParameter = const Template(
-  "SuperExtensionTypeIsTypeParameter",
-  withArgumentsOld: _withArgumentsOldSuperExtensionTypeIsTypeParameter,
-  withArguments: _withArgumentsSuperExtensionTypeIsTypeParameter,
-);
+codeSuperExtensionTypeIsTypeParameter = superExtensionTypeIsTypeParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperExtensionTypeIsTypeParameter({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSuperExtensionTypeIsTypeParameter,
-    problemMessage:
-        """The type variable '${name_0}' can't be implemented by an extension type.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeSuperInitializerNotLast = superInitializerNotLast;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperExtensionTypeIsTypeParameter(String name) =>
-    _withArgumentsSuperExtensionTypeIsTypeParameter(name: name);
+const MessageCode codeSuperInitializerParameter = superInitializerParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperInitializerNotLast = const MessageCode(
-  "SuperInitializerNotLast",
-  problemMessage: """Can't have initializers after 'super'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperInitializerParameter = const MessageCode(
-  "SuperInitializerParameter",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the super-initializer parameter.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeSuperParameterInitializerOutsideConstructor = const MessageCode(
-  "SuperParameterInitializerOutsideConstructor",
-  problemMessage:
-      """Super-initializer formal parameters can only be used in generative constructors.""",
-  correctionMessage: """Try removing 'super.'.""",
-);
+const MessageCode codeSuperParameterInitializerOutsideConstructor =
+    superParameterInitializerOutsideConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSuperclassHasNoConstructor = const Template(
-  "SuperclassHasNoConstructor",
-  withArgumentsOld: _withArgumentsOldSuperclassHasNoConstructor,
-  withArguments: _withArgumentsSuperclassHasNoConstructor,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoConstructor({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSuperclassHasNoConstructor,
-    problemMessage: """Superclass has no constructor named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoConstructor(String name) =>
-    _withArgumentsSuperclassHasNoConstructor(name: name);
+codeSuperclassHasNoConstructor = superclassHasNoConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSuperclassHasNoDefaultConstructor = const Template(
-  "SuperclassHasNoDefaultConstructor",
-  withArgumentsOld: _withArgumentsOldSuperclassHasNoDefaultConstructor,
-  withArguments: _withArgumentsSuperclassHasNoDefaultConstructor,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoDefaultConstructor({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSuperclassHasNoDefaultConstructor,
-    problemMessage:
-        """The superclass, '${name_0}', has no unnamed constructor that takes no arguments.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoDefaultConstructor(String name) =>
-    _withArgumentsSuperclassHasNoDefaultConstructor(name: name);
+codeSuperclassHasNoDefaultConstructor = superclassHasNoDefaultConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSuperclassHasNoGetter = const Template(
-  "SuperclassHasNoGetter",
-  withArgumentsOld: _withArgumentsOldSuperclassHasNoGetter,
-  withArguments: _withArgumentsSuperclassHasNoGetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoGetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSuperclassHasNoGetter,
-    problemMessage: """Superclass has no getter named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoGetter(String name) =>
-    _withArgumentsSuperclassHasNoGetter(name: name);
+codeSuperclassHasNoGetter = superclassHasNoGetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSuperclassHasNoMember = const Template(
-  "SuperclassHasNoMember",
-  withArgumentsOld: _withArgumentsOldSuperclassHasNoMember,
-  withArguments: _withArgumentsSuperclassHasNoMember,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSuperclassHasNoMember,
-    problemMessage: """Superclass has no member named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoMember(String name) =>
-    _withArgumentsSuperclassHasNoMember(name: name);
+codeSuperclassHasNoMember = superclassHasNoMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSuperclassHasNoMethod = const Template(
-  "SuperclassHasNoMethod",
-  withArgumentsOld: _withArgumentsOldSuperclassHasNoMethod,
-  withArguments: _withArgumentsSuperclassHasNoMethod,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoMethod({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSuperclassHasNoMethod,
-    problemMessage: """Superclass has no method named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoMethod(String name) =>
-    _withArgumentsSuperclassHasNoMethod(name: name);
+codeSuperclassHasNoMethod = superclassHasNoMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSuperclassHasNoSetter = const Template(
-  "SuperclassHasNoSetter",
-  withArgumentsOld: _withArgumentsOldSuperclassHasNoSetter,
-  withArguments: _withArgumentsSuperclassHasNoSetter,
-);
+codeSuperclassHasNoSetter = superclassHasNoSetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoSetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSuperclassHasNoSetter,
-    problemMessage: """Superclass has no setter named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoSetter(String name) =>
-    _withArgumentsSuperclassHasNoSetter(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSupertypeIsFunction = const MessageCode(
-  "SupertypeIsFunction",
-  problemMessage: """Can't use a function type as supertype.""",
-);
+const MessageCode codeSupertypeIsFunction = supertypeIsFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSupertypeIsIllegal = const Template(
-  "SupertypeIsIllegal",
-  withArgumentsOld: _withArgumentsOldSupertypeIsIllegal,
-  withArguments: _withArgumentsSupertypeIsIllegal,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsIllegal({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSupertypeIsIllegal,
-    problemMessage: """The type '${name_0}' can't be used as supertype.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsIllegal(String name) =>
-    _withArgumentsSupertypeIsIllegal(name: name);
+codeSupertypeIsIllegal = supertypeIsIllegal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeSupertypeIsIllegalAliased = const Template(
-  "SupertypeIsIllegalAliased",
-  withArgumentsOld: _withArgumentsOldSupertypeIsIllegalAliased,
-  withArguments: _withArgumentsSupertypeIsIllegalAliased,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsIllegalAliased({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeSupertypeIsIllegalAliased,
-    problemMessage:
-        """The type '${name_0}' which is an alias of '${type_0}' can't be used as supertype.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsIllegalAliased(
-  String name,
-  DartType type,
-) => _withArgumentsSupertypeIsIllegalAliased(name: name, type: type);
+codeSupertypeIsIllegalAliased = supertypeIsIllegalAliased;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeSupertypeIsNullableAliased = const Template(
-  "SupertypeIsNullableAliased",
-  withArgumentsOld: _withArgumentsOldSupertypeIsNullableAliased,
-  withArguments: _withArgumentsSupertypeIsNullableAliased,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsNullableAliased({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeSupertypeIsNullableAliased,
-    problemMessage:
-        """The type '${name_0}' which is an alias of '${type_0}' can't be used as supertype because it is nullable.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsNullableAliased(
-  String name,
-  DartType type,
-) => _withArgumentsSupertypeIsNullableAliased(name: name, type: type);
+codeSupertypeIsNullableAliased = supertypeIsNullableAliased;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeSupertypeIsTypeParameter = const Template(
-  "SupertypeIsTypeParameter",
-  withArgumentsOld: _withArgumentsOldSupertypeIsTypeParameter,
-  withArguments: _withArgumentsSupertypeIsTypeParameter,
-);
+codeSupertypeIsTypeParameter = supertypeIsTypeParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsTypeParameter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeSupertypeIsTypeParameter,
-    problemMessage:
-        """The type variable '${name_0}' can't be used as supertype.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeSwitchCaseFallThrough = switchCaseFallThrough;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsTypeParameter(String name) =>
-    _withArgumentsSupertypeIsTypeParameter(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSwitchCaseFallThrough = const MessageCode(
-  "SwitchCaseFallThrough",
-  problemMessage: """Switch case may fall through to the next case.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSwitchExpressionNotAssignableCause = const MessageCode(
-  "SwitchExpressionNotAssignableCause",
-  severity: CfeSeverity.context,
-  problemMessage: """The switch expression is here.""",
-);
+const MessageCode codeSwitchExpressionNotAssignableCause =
+    switchExpressionNotAssignableCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type, DartType type2),
   Message Function({required DartType type, required DartType type2})
 >
-codeSwitchExpressionNotSubtype = const Template(
-  "SwitchExpressionNotSubtype",
-  withArgumentsOld: _withArgumentsOldSwitchExpressionNotSubtype,
-  withArguments: _withArgumentsSwitchExpressionNotSubtype,
-);
+codeSwitchExpressionNotSubtype = switchExpressionNotSubtype;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSwitchExpressionNotSubtype({
-  required DartType type,
-  required DartType type2,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  return new Message(
-    codeSwitchExpressionNotSubtype,
-    problemMessage:
-        """Type '${type_0}' of the case expression is not a subtype of type '${type2_0}' of this switch expression.""" +
-        labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSwitchExpressionNotSubtype(
-  DartType type,
-  DartType type2,
-) => _withArgumentsSwitchExpressionNotSubtype(type: type, type2: type2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSyntheticToken = const MessageCode(
-  "SyntheticToken",
-  problemMessage: """This couldn't be parsed.""",
-);
+const MessageCode codeSyntheticToken = syntheticToken;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeThisAccessInFieldInitializer = const Template(
-  "ThisAccessInFieldInitializer",
-  withArgumentsOld: _withArgumentsOldThisAccessInFieldInitializer,
-  withArguments: _withArgumentsThisAccessInFieldInitializer,
-);
+codeThisAccessInFieldInitializer = thisAccessInFieldInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsThisAccessInFieldInitializer({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeThisAccessInFieldInitializer,
-    problemMessage:
-        """Can't access 'this' in a field initializer to read '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldThisAccessInFieldInitializer(String name) =>
-    _withArgumentsThisAccessInFieldInitializer(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeThisAsIdentifier = const MessageCode(
-  "ThisAsIdentifier",
-  problemMessage: """Expected identifier, but got 'this'.""",
-);
+const MessageCode codeThisAsIdentifier = thisAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeThisNotPromoted = const Template(
-  "ThisNotPromoted",
-  withArgumentsOld: _withArgumentsOldThisNotPromoted,
-  withArguments: _withArgumentsThisNotPromoted,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsThisNotPromoted({required String string}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeThisNotPromoted,
-    problemMessage: """'this' can't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldThisNotPromoted(String string) =>
-    _withArgumentsThisNotPromoted(string: string);
+codeThisNotPromoted = thisNotPromoted;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string),
   Message Function({required String string})
 >
-codeThisOrSuperAccessInFieldInitializer = const Template(
-  "ThisOrSuperAccessInFieldInitializer",
-  withArgumentsOld: _withArgumentsOldThisOrSuperAccessInFieldInitializer,
-  withArguments: _withArgumentsThisOrSuperAccessInFieldInitializer,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsThisOrSuperAccessInFieldInitializer({
-  required String string,
-}) {
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeThisOrSuperAccessInFieldInitializer,
-    problemMessage: """Can't access '${string_0}' in a field initializer.""",
-    arguments: {'string': string},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldThisOrSuperAccessInFieldInitializer(String string) =>
-    _withArgumentsThisOrSuperAccessInFieldInitializer(string: string);
+codeThisOrSuperAccessInFieldInitializer = thisOrSuperAccessInFieldInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(DartType type),
   Message Function({required DartType type})
 >
-codeThrowingNotAssignableToObjectError = const Template(
-  "ThrowingNotAssignableToObjectError",
-  withArgumentsOld: _withArgumentsOldThrowingNotAssignableToObjectError,
-  withArguments: _withArgumentsThrowingNotAssignableToObjectError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsThrowingNotAssignableToObjectError({
-  required DartType type,
-}) {
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeThrowingNotAssignableToObjectError,
-    problemMessage:
-        """Can't throw a value of '${type_0}' since it is neither dynamic nor non-nullable.""" +
-        labeler.originMessages,
-    arguments: {'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldThrowingNotAssignableToObjectError(DartType type) =>
-    _withArgumentsThrowingNotAssignableToObjectError(type: type);
+codeThrowingNotAssignableToObjectError = throwingNotAssignableToObjectError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int count, int count2),
   Message Function({required int count, required int count2})
 >
-codeTooFewArguments = const Template(
-  "TooFewArguments",
-  withArgumentsOld: _withArgumentsOldTooFewArguments,
-  withArguments: _withArgumentsTooFewArguments,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTooFewArguments({
-  required int count,
-  required int count2,
-}) {
-  return new Message(
-    codeTooFewArguments,
-    problemMessage:
-        """Too few positional arguments: ${count} required, ${count2} given.""",
-    arguments: {'count': count, 'count2': count2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTooFewArguments(int count, int count2) =>
-    _withArgumentsTooFewArguments(count: count, count2: count2);
+codeTooFewArguments = tooFewArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int count, int count2),
   Message Function({required int count, required int count2})
 >
-codeTooManyArguments = const Template(
-  "TooManyArguments",
-  withArgumentsOld: _withArgumentsOldTooManyArguments,
-  withArguments: _withArgumentsTooManyArguments,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTooManyArguments({
-  required int count,
-  required int count2,
-}) {
-  return new Message(
-    codeTooManyArguments,
-    problemMessage:
-        """Too many positional arguments: ${count} allowed, but ${count2} found.""",
-    correctionMessage: """Try removing the extra positional arguments.""",
-    arguments: {'count': count, 'count2': count2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTooManyArguments(int count, int count2) =>
-    _withArgumentsTooManyArguments(count: count, count2: count2);
+codeTooManyArguments = tooManyArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(int count),
   Message Function({required int count})
 >
-codeTypeArgumentMismatch = const Template(
-  "TypeArgumentMismatch",
-  withArgumentsOld: _withArgumentsOldTypeArgumentMismatch,
-  withArguments: _withArgumentsTypeArgumentMismatch,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeArgumentMismatch({required int count}) {
-  return new Message(
-    codeTypeArgumentMismatch,
-    problemMessage: """Expected ${count} type arguments.""",
-    arguments: {'count': count},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeArgumentMismatch(int count) =>
-    _withArgumentsTypeArgumentMismatch(count: count);
+codeTypeArgumentMismatch = typeArgumentMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeTypeNotFound = const Template(
-  "TypeNotFound",
-  withArgumentsOld: _withArgumentsOldTypeNotFound,
-  withArguments: _withArgumentsTypeNotFound,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeTypeNotFound,
-    problemMessage: """Type '${name_0}' not found.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeNotFound(String name) =>
-    _withArgumentsTypeNotFound(name: name);
+codeTypeNotFound = typeNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, Uri uri),
   Message Function({required String name, required Uri uri})
 >
-codeTypeOrigin = const Template(
-  "TypeOrigin",
-  withArgumentsOld: _withArgumentsOldTypeOrigin,
-  withArguments: _withArgumentsTypeOrigin,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeOrigin({required String name, required Uri uri}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeTypeOrigin,
-    problemMessage: """'${name_0}' is from '${uri_0}'.""",
-    arguments: {'name': name, 'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeOrigin(String name, Uri uri) =>
-    _withArgumentsTypeOrigin(name: name, uri: uri);
+codeTypeOrigin = typeOrigin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, Uri uri, Uri uri2),
   Message Function({required String name, required Uri uri, required Uri uri2})
 >
-codeTypeOriginWithFileUri = const Template(
-  "TypeOriginWithFileUri",
-  withArgumentsOld: _withArgumentsOldTypeOriginWithFileUri,
-  withArguments: _withArgumentsTypeOriginWithFileUri,
-);
+codeTypeOriginWithFileUri = typeOriginWithFileUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeOriginWithFileUri({
-  required String name,
-  required Uri uri,
-  required Uri uri2,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var uri_0 = conversions.relativizeUri(uri);
-  var uri2_0 = conversions.relativizeUri(uri2);
-  return new Message(
-    codeTypeOriginWithFileUri,
-    problemMessage: """'${name_0}' is from '${uri_0}' ('${uri2_0}').""",
-    arguments: {'name': name, 'uri': uri, 'uri2': uri2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeOriginWithFileUri(
-  String name,
-  Uri uri,
-  Uri uri2,
-) => _withArgumentsTypeOriginWithFileUri(name: name, uri: uri, uri2: uri2);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeParameterDuplicatedName = const MessageCode(
-  "TypeParameterDuplicatedName",
-  problemMessage: """A type variable can't have the same name as another.""",
-);
+const MessageCode codeTypeParameterDuplicatedName = typeParameterDuplicatedName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeTypeParameterDuplicatedNameCause = const Template(
-  "TypeParameterDuplicatedNameCause",
-  withArgumentsOld: _withArgumentsOldTypeParameterDuplicatedNameCause,
-  withArguments: _withArgumentsTypeParameterDuplicatedNameCause,
-  severity: CfeSeverity.context,
-);
+codeTypeParameterDuplicatedNameCause = typeParameterDuplicatedNameCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeParameterDuplicatedNameCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeTypeParameterDuplicatedNameCause,
-    problemMessage: """The other type variable named '${name_0}'.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeTypeParameterSameNameAsEnclosing =
+    typeParameterSameNameAsEnclosing;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeParameterDuplicatedNameCause(String name) =>
-    _withArgumentsTypeParameterDuplicatedNameCause(name: name);
+const MessageCode codeTypeVariableInConstantContext =
+    typeVariableInConstantContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeParameterSameNameAsEnclosing = const MessageCode(
-  "TypeParameterSameNameAsEnclosing",
-  problemMessage:
-      """A type variable can't have the same name as its enclosing declaration.""",
-);
+const MessageCode codeTypeVariableInStaticContext = typeVariableInStaticContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeVariableInConstantContext = const MessageCode(
-  "TypeVariableInConstantContext",
-  problemMessage: """Type variables can't be used as constants.""",
-);
+const MessageCode codeTypedefCause = typedefCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeVariableInStaticContext = const MessageCode(
-  "TypeVariableInStaticContext",
-  problemMessage: """Type variables can't be used in static members.""",
-);
+const MessageCode codeTypedefNotFunction = typedefNotFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefCause = const MessageCode(
-  "TypedefCause",
-  severity: CfeSeverity.context,
-  problemMessage: """The issue arises via this type alias.""",
-);
+const MessageCode codeTypedefNotType = typedefNotType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefNotFunction = const MessageCode(
-  "TypedefNotFunction",
-  problemMessage: """Can't create typedef from non-function type.""",
-);
+const MessageCode codeTypedefNullableType = typedefNullableType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefNotType = const MessageCode(
-  "TypedefNotType",
-  problemMessage: """Can't create typedef from non-type.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefNullableType = const MessageCode(
-  "TypedefNullableType",
-  problemMessage: """Can't create typedef from nullable type.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefTypeParameterNotConstructor = const MessageCode(
-  "TypedefTypeParameterNotConstructor",
-  problemMessage:
-      """Can't use a typedef denoting a type variable as a constructor, nor for a static member access.""",
-);
+const MessageCode codeTypedefTypeParameterNotConstructor =
+    typedefTypeParameterNotConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefTypeParameterNotConstructorCause =
-    const MessageCode(
-      "TypedefTypeParameterNotConstructorCause",
-      severity: CfeSeverity.context,
-      problemMessage: """This is the type variable ultimately denoted.""",
-    );
+    typedefTypeParameterNotConstructorCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefUnaliasedTypeCause = const MessageCode(
-  "TypedefUnaliasedTypeCause",
-  severity: CfeSeverity.context,
-  problemMessage: """This is the type denoted by the type alias.""",
-);
+const MessageCode codeTypedefUnaliasedTypeCause = typedefUnaliasedTypeCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codeUnavailableDartLibrary = const Template(
-  "UnavailableDartLibrary",
-  withArgumentsOld: _withArgumentsOldUnavailableDartLibrary,
-  withArguments: _withArgumentsUnavailableDartLibrary,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnavailableDartLibrary({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeUnavailableDartLibrary,
-    problemMessage:
-        """Dart library '${uri_0}' is not available on this platform.""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnavailableDartLibrary(Uri uri) =>
-    _withArgumentsUnavailableDartLibrary(uri: uri);
+codeUnavailableDartLibrary = unavailableDartLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeUndefinedGetter = const Template(
-  "UndefinedGetter",
-  withArgumentsOld: _withArgumentsOldUndefinedGetter,
-  withArguments: _withArgumentsUndefinedGetter,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedGetter({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeUndefinedGetter,
-    problemMessage:
-        """The getter '${name_0}' isn't defined for the type '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try correcting the name to the name of an existing getter, or defining a getter or field named '${name_0}'.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUndefinedGetter(String name, DartType type) =>
-    _withArgumentsUndefinedGetter(name: name, type: type);
+codeUndefinedGetter = undefinedGetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeUndefinedMethod = const Template(
-  "UndefinedMethod",
-  withArgumentsOld: _withArgumentsOldUndefinedMethod,
-  withArguments: _withArgumentsUndefinedMethod,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedMethod({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeUndefinedMethod,
-    problemMessage:
-        """The method '${name_0}' isn't defined for the type '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try correcting the name to the name of an existing method, or defining a method named '${name_0}'.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUndefinedMethod(String name, DartType type) =>
-    _withArgumentsUndefinedMethod(name: name, type: type);
+codeUndefinedMethod = undefinedMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeUndefinedOperator = const Template(
-  "UndefinedOperator",
-  withArgumentsOld: _withArgumentsOldUndefinedOperator,
-  withArguments: _withArgumentsUndefinedOperator,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedOperator({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeUndefinedOperator,
-    problemMessage:
-        """The operator '${name_0}' isn't defined for the type '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try correcting the operator to an existing operator, or defining a '${name_0}' operator.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUndefinedOperator(String name, DartType type) =>
-    _withArgumentsUndefinedOperator(name: name, type: type);
+codeUndefinedOperator = undefinedOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeUndefinedSetter = const Template(
-  "UndefinedSetter",
-  withArgumentsOld: _withArgumentsOldUndefinedSetter,
-  withArguments: _withArgumentsUndefinedSetter,
-);
+codeUndefinedSetter = undefinedSetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUndefinedSetter({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeUndefinedSetter,
-    problemMessage:
-        """The setter '${name_0}' isn't defined for the type '${type_0}'.""" +
-        labeler.originMessages,
-    correctionMessage:
-        """Try correcting the name to the name of an existing setter, or defining a setter or field named '${name_0}'.""",
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUndefinedSetter(String name, DartType type) =>
-    _withArgumentsUndefinedSetter(name: name, type: type);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-codeUnexpectedSuperParametersInGenerativeConstructors = const MessageCode(
-  "UnexpectedSuperParametersInGenerativeConstructors",
-  problemMessage:
-      """Super parameters can only be used in non-redirecting generative constructors.""",
-);
+const MessageCode codeUnexpectedSuperParametersInGenerativeConstructors =
+    unexpectedSuperParametersInGenerativeConstructors;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeUnmatchedAugmentationClass = const Template(
-  "UnmatchedAugmentationClass",
-  withArgumentsOld: _withArgumentsOldUnmatchedAugmentationClass,
-  withArguments: _withArgumentsUnmatchedAugmentationClass,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationClass({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeUnmatchedAugmentationClass,
-    problemMessage:
-        """Augmentation class '${name_0}' doesn't match a class in the augmented library.""",
-    correctionMessage:
-        """Try changing the name to an existing class or removing the 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationClass(String name) =>
-    _withArgumentsUnmatchedAugmentationClass(name: name);
+codeUnmatchedAugmentationClass = unmatchedAugmentationClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeUnmatchedAugmentationClassMember = const Template(
-  "UnmatchedAugmentationClassMember",
-  withArgumentsOld: _withArgumentsOldUnmatchedAugmentationClassMember,
-  withArguments: _withArgumentsUnmatchedAugmentationClassMember,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationClassMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeUnmatchedAugmentationClassMember,
-    problemMessage:
-        """Augmentation member '${name_0}' doesn't match a member in the augmented class.""",
-    correctionMessage:
-        """Try changing the name to an existing member or removing the 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationClassMember(String name) =>
-    _withArgumentsUnmatchedAugmentationClassMember(name: name);
+codeUnmatchedAugmentationClassMember = unmatchedAugmentationClassMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeUnmatchedAugmentationConstructor = const Template(
-  "UnmatchedAugmentationConstructor",
-  withArgumentsOld: _withArgumentsOldUnmatchedAugmentationConstructor,
-  withArguments: _withArgumentsUnmatchedAugmentationConstructor,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationConstructor({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeUnmatchedAugmentationConstructor,
-    problemMessage:
-        """Augmentation constructor '${name_0}' doesn't match a constructor in the augmented class.""",
-    correctionMessage:
-        """Try changing the name to an existing constructor or removing the 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationConstructor(String name) =>
-    _withArgumentsUnmatchedAugmentationConstructor(name: name);
+codeUnmatchedAugmentationConstructor = unmatchedAugmentationConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeUnmatchedAugmentationDeclaration = const Template(
-  "UnmatchedAugmentationDeclaration",
-  withArgumentsOld: _withArgumentsOldUnmatchedAugmentationDeclaration,
-  withArguments: _withArgumentsUnmatchedAugmentationDeclaration,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationDeclaration({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeUnmatchedAugmentationDeclaration,
-    problemMessage:
-        """Augmentation '${name_0}' doesn't match a declaration in the augmented library.""",
-    correctionMessage:
-        """Try changing the name to an existing declaration or removing the 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationDeclaration(String name) =>
-    _withArgumentsUnmatchedAugmentationDeclaration(name: name);
+codeUnmatchedAugmentationDeclaration = unmatchedAugmentationDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeUnmatchedAugmentationLibraryMember = const Template(
-  "UnmatchedAugmentationLibraryMember",
-  withArgumentsOld: _withArgumentsOldUnmatchedAugmentationLibraryMember,
-  withArguments: _withArgumentsUnmatchedAugmentationLibraryMember,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationLibraryMember({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeUnmatchedAugmentationLibraryMember,
-    problemMessage:
-        """Augmentation member '${name_0}' doesn't match a member in the augmented library.""",
-    correctionMessage:
-        """Try changing the name to an existing member or removing the 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationLibraryMember(String name) =>
-    _withArgumentsUnmatchedAugmentationLibraryMember(name: name);
+codeUnmatchedAugmentationLibraryMember = unmatchedAugmentationLibraryMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeUnmatchedPatchClass = const Template(
-  "UnmatchedPatchClass",
-  withArgumentsOld: _withArgumentsOldUnmatchedPatchClass,
-  withArguments: _withArgumentsUnmatchedPatchClass,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedPatchClass({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeUnmatchedPatchClass,
-    problemMessage:
-        """Patch class '${name_0}' doesn't match a class in the origin library.""",
-    correctionMessage:
-        """Try changing the name to an existing class or removing the '@patch' annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchClass(String name) =>
-    _withArgumentsUnmatchedPatchClass(name: name);
+codeUnmatchedPatchClass = unmatchedPatchClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeUnmatchedPatchClassMember = const Template(
-  "UnmatchedPatchClassMember",
-  withArgumentsOld: _withArgumentsOldUnmatchedPatchClassMember,
-  withArguments: _withArgumentsUnmatchedPatchClassMember,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedPatchClassMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeUnmatchedPatchClassMember,
-    problemMessage:
-        """Patch member '${name_0}' doesn't match a member in the origin class.""",
-    correctionMessage:
-        """Try changing the name to an existing member or removing the '@patch' annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchClassMember(String name) =>
-    _withArgumentsUnmatchedPatchClassMember(name: name);
+codeUnmatchedPatchClassMember = unmatchedPatchClassMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeUnmatchedPatchDeclaration = const Template(
-  "UnmatchedPatchDeclaration",
-  withArgumentsOld: _withArgumentsOldUnmatchedPatchDeclaration,
-  withArguments: _withArgumentsUnmatchedPatchDeclaration,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedPatchDeclaration({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeUnmatchedPatchDeclaration,
-    problemMessage:
-        """Patch '${name_0}' doesn't match a declaration in the origin library.""",
-    correctionMessage:
-        """Try changing the name to an existing declaration or removing the '@patch' annotation.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchDeclaration(String name) =>
-    _withArgumentsUnmatchedPatchDeclaration(name: name);
+codeUnmatchedPatchDeclaration = unmatchedPatchDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeUnmatchedPatchLibraryMember = const Template(
-  "UnmatchedPatchLibraryMember",
-  withArgumentsOld: _withArgumentsOldUnmatchedPatchLibraryMember,
-  withArguments: _withArgumentsUnmatchedPatchLibraryMember,
-);
+codeUnmatchedPatchLibraryMember = unmatchedPatchLibraryMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedPatchLibraryMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeUnmatchedPatchLibraryMember,
-    problemMessage:
-        """Patch member '${name_0}' doesn't match a member in the origin library.""",
-    correctionMessage:
-        """Try changing the name to an existing member or removing the '@patch' annotation.""",
-    arguments: {'name': name},
-  );
-}
+const MessageCode codeUnnamedObjectPatternField = unnamedObjectPatternField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchLibraryMember(String name) =>
-    _withArgumentsUnmatchedPatchLibraryMember(name: name);
+const MessageCode codeUnsoundSwitchExpressionError =
+    unsoundSwitchExpressionError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnnamedObjectPatternField = const MessageCode(
-  "UnnamedObjectPatternField",
-  problemMessage: """A pattern field in an object pattern must be named.""",
-  correctionMessage: """Try adding a pattern name or ':' before the pattern.""",
-);
+const MessageCode codeUnsoundSwitchStatementError = unsoundSwitchStatementError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsoundSwitchExpressionError = const MessageCode(
-  "UnsoundSwitchExpressionError",
-  problemMessage:
-      """None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
-);
+const MessageCode codeUnspecifiedGetterNameInObjectPattern =
+    unspecifiedGetterNameInObjectPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsoundSwitchStatementError = const MessageCode(
-  "UnsoundSwitchStatementError",
-  problemMessage:
-      """None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnspecifiedGetterNameInObjectPattern = const MessageCode(
-  "UnspecifiedGetterNameInObjectPattern",
-  problemMessage:
-      """The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsupportedDartExt = const MessageCode(
-  "UnsupportedDartExt",
-  problemMessage: """Dart native extensions are no longer supported.""",
-  correctionMessage:
-      """Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""",
-);
+const MessageCode codeUnsupportedDartExt = unsupportedDartExt;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codeUnsupportedPlatformDartLibraryImport = const Template(
-  "UnsupportedPlatformDartLibraryImport",
-  withArgumentsOld: _withArgumentsOldUnsupportedPlatformDartLibraryImport,
-  withArguments: _withArgumentsUnsupportedPlatformDartLibraryImport,
-  severity: CfeSeverity.warning,
-);
+codeUnsupportedPlatformDartLibraryImport = unsupportedPlatformDartLibraryImport;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnsupportedPlatformDartLibraryImport({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeUnsupportedPlatformDartLibraryImport,
-    problemMessage:
-        """Using stub implementations for APIs in platform-specific Dart library
-'${uri_0}', which will throw 'UnsupportedError' if invoked.""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnsupportedPlatformDartLibraryImport(Uri uri) =>
-    _withArgumentsUnsupportedPlatformDartLibraryImport(uri: uri);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnterminatedToken = const MessageCode(
-  "UnterminatedToken",
-  problemMessage: """Incomplete token.""",
-);
+const MessageCode codeUnterminatedToken = unterminatedToken;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri), Message Function({required Uri uri})>
-codeUntranslatableUri = const Template(
-  "UntranslatableUri",
-  withArgumentsOld: _withArgumentsOldUntranslatableUri,
-  withArguments: _withArgumentsUntranslatableUri,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUntranslatableUri({required Uri uri}) {
-  var uri_0 = conversions.relativizeUri(uri);
-  return new Message(
-    codeUntranslatableUri,
-    problemMessage: """Not found: '${uri_0}'""",
-    arguments: {'uri': uri},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUntranslatableUri(Uri uri) =>
-    _withArgumentsUntranslatableUri(uri: uri);
+codeUntranslatableUri = untranslatableUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-codeValueForRequiredParameterNotProvidedError = const Template(
-  "ValueForRequiredParameterNotProvidedError",
-  withArgumentsOld: _withArgumentsOldValueForRequiredParameterNotProvidedError,
-  withArguments: _withArgumentsValueForRequiredParameterNotProvidedError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsValueForRequiredParameterNotProvidedError({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    codeValueForRequiredParameterNotProvidedError,
-    problemMessage:
-        """Required named parameter '${name_0}' must be provided.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldValueForRequiredParameterNotProvidedError(
-  String name,
-) => _withArgumentsValueForRequiredParameterNotProvidedError(name: name);
+codeValueForRequiredParameterNotProvidedError =
+    valueForRequiredParameterNotProvidedError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, String string),
   Message Function({required String name, required String string})
 >
-codeVariableCouldBeNullDueToWrite = const Template(
-  "VariableCouldBeNullDueToWrite",
-  withArgumentsOld: _withArgumentsOldVariableCouldBeNullDueToWrite,
-  withArguments: _withArgumentsVariableCouldBeNullDueToWrite,
-);
+codeVariableCouldBeNullDueToWrite = variableCouldBeNullDueToWrite;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsVariableCouldBeNullDueToWrite({
-  required String name,
-  required String string,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
-  return new Message(
-    codeVariableCouldBeNullDueToWrite,
-    problemMessage:
-        """Variable '${name_0}' could not be promoted due to an assignment.""",
-    correctionMessage:
-        """Try null checking the variable after the assignment.  See ${string_0}""",
-    arguments: {'name': name, 'string': string},
-  );
-}
+const MessageCode codeVerificationErrorOriginContext =
+    verificationErrorOriginContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldVariableCouldBeNullDueToWrite(
-  String name,
-  String string,
-) => _withArgumentsVariableCouldBeNullDueToWrite(name: name, string: string);
+const MessageCode codeVoidExpression = voidExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVerificationErrorOriginContext = const MessageCode(
-  "VerificationErrorOriginContext",
-  severity: CfeSeverity.context,
-  problemMessage:
-      """The node most likely is taken from here by a transformer.""",
-);
+const MessageCode codeWasmExternInvalidLoad = wasmExternInvalidLoad;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVoidExpression = const MessageCode(
-  "VoidExpression",
-  problemMessage: """This expression has type 'void' and can't be used.""",
-);
+const MessageCode codeWasmExternInvalidTarget = wasmExternInvalidTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWasmExternInvalidLoad = const MessageCode(
-  "WasmExternInvalidLoad",
-  problemMessage:
-      """WebAssembly elements may only be referenced to directly call a method on them.""",
-);
+const MessageCode codeWasmExternMemoryMissingAnnotation =
+    wasmExternMemoryMissingAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWasmExternInvalidTarget = const MessageCode(
-  "WasmExternInvalidTarget",
-  problemMessage:
-      """The receiver of this call must be a top-level variable describing the WebAssembly element.""",
-);
+const MessageCode codeWasmImportOrExportInUserCode =
+    wasmImportOrExportInUserCode;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWasmExternMemoryMissingAnnotation = const MessageCode(
-  "WasmExternMemoryMissingAnnotation",
-  problemMessage:
-      """This external getter returns a memory instance, but no annotation describing it was found""",
-  correctionMessage:
-      """Try adding a `@MemoryType()` or `@Import.memory()` annotation.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWasmImportOrExportInUserCode = const MessageCode(
-  "WasmImportOrExportInUserCode",
-  problemMessage:
-      """Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWasmIntrinsicTearOff = const MessageCode(
-  "WasmIntrinsicTearOff",
-  problemMessage: """This intrinsic extension member may not be torn off.""",
-);
+const MessageCode codeWasmIntrinsicTearOff = wasmIntrinsicTearOff;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeWeakReferenceMismatchReturnAndArgumentTypes =
-    const MessageCode(
-      "WeakReferenceMismatchReturnAndArgumentTypes",
-      problemMessage:
-          """Return and argument types of a weak reference should match.""",
-    );
+    weakReferenceMismatchReturnAndArgumentTypes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceNotOneArgument = const MessageCode(
-  "WeakReferenceNotOneArgument",
-  problemMessage:
-      """Weak reference should take one required positional argument.""",
-);
+const MessageCode codeWeakReferenceNotOneArgument = weakReferenceNotOneArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceNotStatic = const MessageCode(
-  "WeakReferenceNotStatic",
-  problemMessage:
-      """Weak reference pragma can be used on a static method only.""",
-);
+const MessageCode codeWeakReferenceNotStatic = weakReferenceNotStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceReturnTypeNotNullable = const MessageCode(
-  "WeakReferenceReturnTypeNotNullable",
-  problemMessage: """Return type of a weak reference should be nullable.""",
-);
+const MessageCode codeWeakReferenceReturnTypeNotNullable =
+    weakReferenceReturnTypeNotNullable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceTargetHasParameters = const MessageCode(
-  "WeakReferenceTargetHasParameters",
-  problemMessage:
-      """The target of weak reference should not take parameters.""",
-);
+const MessageCode codeWeakReferenceTargetHasParameters =
+    weakReferenceTargetHasParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceTargetNotStaticTearoff = const MessageCode(
-  "WeakReferenceTargetNotStaticTearoff",
-  problemMessage:
-      """The target of weak reference should be a tearoff of a static method.""",
-);
+const MessageCode codeWeakReferenceTargetNotStaticTearoff =
+    weakReferenceTargetNotStaticTearoff;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String string, String string2),
   Message Function({required String string, required String string2})
 >
-codeWebLiteralCannotBeRepresentedExactly = const Template(
-  "WebLiteralCannotBeRepresentedExactly",
-  withArgumentsOld: _withArgumentsOldWebLiteralCannotBeRepresentedExactly,
-  withArguments: _withArgumentsWebLiteralCannotBeRepresentedExactly,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsWebLiteralCannotBeRepresentedExactly({
-  required String string,
-  required String string2,
-}) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeWebLiteralCannotBeRepresentedExactly,
-    problemMessage:
-        """The integer literal ${string_0} can't be represented exactly in JavaScript.""",
-    correctionMessage:
-        """Try changing the literal to something that can be represented in JavaScript. In JavaScript ${string2_0} is the nearest value that can be represented exactly.""",
-    arguments: {'string': string, 'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldWebLiteralCannotBeRepresentedExactly(
-  String string,
-  String string2,
-) => _withArgumentsWebLiteralCannotBeRepresentedExactly(
-  string: string,
-  string2: string2,
-);
+codeWebLiteralCannotBeRepresentedExactly = webLiteralCannotBeRepresentedExactly;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(String name, DartType type),
   Message Function({required String name, required DartType type})
 >
-codeWrongTypeParameterVarianceInSuperinterface = const Template(
-  "WrongTypeParameterVarianceInSuperinterface",
-  withArgumentsOld: _withArgumentsOldWrongTypeParameterVarianceInSuperinterface,
-  withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsWrongTypeParameterVarianceInSuperinterface({
-  required String name,
-  required DartType type,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  return new Message(
-    codeWrongTypeParameterVarianceInSuperinterface,
-    problemMessage:
-        """'${name_0}' can't be used contravariantly or invariantly in '${type_0}'.""" +
-        labeler.originMessages,
-    arguments: {'name': name, 'type': type},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldWrongTypeParameterVarianceInSuperinterface(
-  String name,
-  DartType type,
-) => _withArgumentsWrongTypeParameterVarianceInSuperinterface(
-  name: name,
-  type: type,
-);
+codeWrongTypeParameterVarianceInSuperinterface =
+    wrongTypeParameterVarianceInSuperinterface;

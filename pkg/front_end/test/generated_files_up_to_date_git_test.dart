@@ -136,6 +136,14 @@ void messages() {
       messages.oldUri(repoDir),
       "dart pkg/front_end/tool/generate_messages.dart",
     );
+    check(
+      DartFormat.formatString(
+        messages.newContents,
+        languageVersion: getPackageVersionFor(messages.packageName),
+      ),
+      messages.newUri(repoDir),
+      "dart pkg/front_end/tool/generate_messages.dart",
+    );
   }
 }
 

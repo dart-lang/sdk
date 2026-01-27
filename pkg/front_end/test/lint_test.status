@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 _fe_analyzer_shared/lib/src/debug_helpers/debug_helpers/Exports: Fail
+_fe_analyzer_shared/lib/src/messages/codes/Exports: Fail
 _fe_analyzer_shared/lib/src/metadata/ast/Exports: Fail
 _fe_analyzer_shared/lib/src/parser/parser/Exports: Fail
 _fe_analyzer_shared/lib/src/scanner/scanner/Exports: Fail
