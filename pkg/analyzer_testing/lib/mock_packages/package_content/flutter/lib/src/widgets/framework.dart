@@ -34,7 +34,7 @@ abstract class State<T extends StatefulWidget> {
 
   T get widget => null;
 
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context);
 
   void dispose() {}
 
