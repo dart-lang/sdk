@@ -11,8 +11,31 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ImportLibraryPrefixPriorityTest);
     defineReflectiveTests(ImportLibraryPrefixTest);
   });
+}
+
+@reflectiveTest
+class ImportLibraryPrefixPriorityTest extends FixPriorityTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(flutter: true);
+  }
+
+  Future<void> test_dartUi() async {
+    await resolveTestCode('''
+import 'dart:ui' as ui;
+
+void f(Size size) {}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.importLibraryPrefix,
+      DartFixKind.importLibrarySdk,
+      DartFixKind.importLibrarySdkShow,
+    ]);
+  }
 }
 
 @reflectiveTest
