@@ -86,10 +86,37 @@ enum E {
 ''');
   }
 
+  test_instanceField_private_enum_originPrimaryConstructor() async {
+    await assertNoDiagnostics('''
+// ignore: unused_field_from_primary_constructor
+enum E(final String _v, [final String? v2]) {
+  a('a'),
+  b('b', 'c');
+}
+''');
+  }
+
+  test_instanceField_private_enum_primaryConstructor() async {
+    await assertNoDiagnostics('''
+enum E(this._v, [this._v2]) {
+  a('a'),
+  b('b', 'c');
+}
+''');
+  }
+
   test_instanceField_private_inClassWithConstConstructor() async {
     await assertNoDiagnostics('''
 class C {
   const C([this._i]);
+  final int? _i;
+}
+''');
+  }
+
+  test_instanceField_private_inClassWithConstPrimaryConstructor() async {
+    await assertNoDiagnostics('''
+class const C([this._i]) {
   final int? _i;
 }
 ''');
@@ -100,6 +127,12 @@ class C {
 class C {
   int? i;
 }
+''');
+  }
+
+  test_instanceField_public_originPrimaryConstructor() async {
+    await assertNoDiagnostics('''
+class C(var int? i);
 ''');
   }
 
