@@ -21,11 +21,11 @@ YamlMap? locateEmbedderYamlFor(Folder libFolder) {
       if (loadYaml(embedderYaml) case YamlMap yaml) {
         return yaml;
       }
-    } on Object {
+    } on Exception {
       // TODO(srawlins): If we ever get a malformed `_embedder.yaml` file, we
-      // completely suppress the parse error. We could instead wire up an
+      // completely suppress the parse exception. We could instead wire up an
       // ErrorListener for the call to `loadYaml` above, and/or catch different
-      // errors and exceptions and write them to the instrumentation log.
+      // exceptions and write them to the instrumentation log.
     }
     return null;
   } on FileSystemException {

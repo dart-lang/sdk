@@ -5644,11 +5644,11 @@ bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
   if (!IsSafeSmi(constant)) return false;
   const int64_t index = target::SmiValue(constant);
   const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
-  if (IsITypeImm(offset)) {
-    ASSERT(IsSTypeImm(offset));
-    return true;
-  }
-  return false;
+#if XLEN >= 64
+  return Utils::IsInt(32, offset);
+#else
+  return Utils::IsInt(32, offset) && Utils::IsInt(32, offset + 4);
+#endif
 }
 
 Address Assembler::ElementAddressForIntIndex(bool is_external,

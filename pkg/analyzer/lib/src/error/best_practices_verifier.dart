@@ -863,6 +863,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    var element = node.declaration?.declaredFragment!.element;
+    for (var v in _elementUsageFrontierDetectors) {
+      v.pushElement(element);
+    }
+    // TODO(srawlins): Account for @doNotStore, as in `visitFunctionDeclaration`.
+    super.visitPrimaryConstructorBody(node);
+    for (var v in _elementUsageFrontierDetectors) {
+      v.popElement();
+    }
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _checkStrictInferenceInParameters(node.formalParameters);
     _deprecatedFunctionalityVerifier.primaryConstructorDeclaration(node);

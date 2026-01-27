@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -35,9 +36,22 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   String get refactoringName => 'Convert Getter To Method';
 
   @override
-  Future<RefactoringStatus> checkFinalConditions() {
+  Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
-    return Future.value(result);
+    var elements = await _getElements();
+    for (var element in elements) {
+      var matches = await searchEngine.searchReferences(element);
+      var references = getSourceReferences(matches);
+      for (var reference in references) {
+        if (reference.isReferenceInPatternField) {
+          result.addWarning(
+            'Will match the method tear-off instead of the result.',
+            _getLocation(reference),
+          );
+        }
+      }
+    }
+    return result;
   }
 
   @override
@@ -49,28 +63,11 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   @override
   Future<SourceChange> createChange() async {
     change = SourceChange(refactoringName);
-    // function
-    if (element.enclosingElement is LibraryElement) {
+    var elements = await _getElements();
+    for (var element in elements) {
       await _updateElementDeclaration(element);
       await _updateElementReferences(element);
     }
-    // method
-    var field = element.variable;
-    if (field is FieldElement &&
-        (field.enclosingElement is InterfaceElement ||
-            field.enclosingElement is ExtensionElement)) {
-      var elements = await getHierarchyMembers(searchEngine, field);
-      await Future.forEach(elements, (Element member) async {
-        if (member is FieldElement) {
-          var getter = member.getter;
-          if (getter != null && getter.isOriginDeclaration) {
-            await _updateElementDeclaration(getter);
-            return _updateElementReferences(getter);
-          }
-        }
-      });
-    }
-    // done
     return change;
   }
 
@@ -97,6 +94,52 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   RefactoringStatus _checkInitialConditions() {
     return _checkElement();
+  }
+
+  Future<List<GetterElement>> _getElements() async {
+    var elements = <GetterElement>[];
+    // function
+    if (element.enclosingElement is LibraryElement) {
+      elements.add(element);
+    }
+    // method
+    var field = element.variable;
+    if (field is FieldElement) {
+      var hierarchyMembers = await getHierarchyMembers(searchEngine, field);
+      for (var member in hierarchyMembers) {
+        if (member is FieldElement) {
+          var getter = member.getter;
+          if (getter != null && getter.isOriginDeclaration) {
+            elements.add(getter);
+          }
+        }
+      }
+    }
+    return elements;
+  }
+
+  Location? _getLocation(SourceReference reference) {
+    var file = reference.file;
+    var drivers = workspace.driversContaining(file);
+    if (drivers.isEmpty) {
+      return null;
+    }
+    var result = drivers.first.currentSession.getFile(file);
+    if (result is FileResult) {
+      var lineInfo = result.lineInfo;
+      var start = lineInfo.getLocation(reference.range.offset);
+      var end = lineInfo.getLocation(reference.range.end);
+      return Location(
+        file,
+        reference.range.offset,
+        reference.range.length,
+        start.lineNumber,
+        start.columnNumber,
+        endLine: end.lineNumber,
+        endColumn: end.columnNumber,
+      );
+    }
+    return null;
   }
 
   Future<void> _updateElementDeclaration(GetterElement element) async {
@@ -136,7 +179,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     }
   }
 
-  Future<void> _updateElementReferences(Element element) async {
+  Future<void> _updateElementReferences(GetterElement element) async {
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {

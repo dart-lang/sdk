@@ -8,32 +8,38 @@
 // SharedOptions=--enable-experiment=primary-constructors
 
 class C {
-  void method(final int x, [final int y = 1]) {}
-  //          ^
+  void method1(final int x) {}
+  //           ^
   // [analyzer] unspecified
   // [cfe] unspecified
-  //                        ^
+
+  void method2([final int y = 1]) {}
+  //            ^
   // [analyzer] unspecified
   // [cfe] unspecified
 }
 
 enum E(var int x) {
   e(1);
-  void method(final int x, {required final int y = 1}) {}
-  //          ^
+  void method1(final int x) {}
+  //           ^
   // [analyzer] unspecified
   // [cfe] unspecified
-  //                                 ^
+
+  void method2({required final int y = 1}) {}
+  //                     ^
   // [analyzer] unspecified
   // [cfe] unspecified
 }
 
 extension type ET(final int x) {
-  void method(final int x, {final int y = 1}) {}
-  //          ^
+  void method1(final int x) {}
+  //           ^
   // [analyzer] unspecified
   // [cfe] unspecified
-  //                        ^
+
+  void method2({final int y = 1}) {}
+  //            ^
   // [analyzer] unspecified
   // [cfe] unspecified
 }

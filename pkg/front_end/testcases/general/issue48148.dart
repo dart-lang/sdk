@@ -26,7 +26,7 @@ class HBaseComposite<HKT extends HKindValid, CHILD extends HBase<HKT>>
   final List<CHILD> children;
 
   const HBaseComposite(
-    final this.children,
+    this.children,
   );
 }
 
@@ -35,7 +35,7 @@ class HBaseChild<HKT extends HKindValid, CHILD extends HBase<HKT>>
   final CHILD child;
 
   const HBaseChild(
-    final this.child,
+    this.child,
   );
 }
 
@@ -43,7 +43,7 @@ class HBaseLeaf<HKT extends HKindValid> implements HBase<HKT> {
   final int data;
 
   const HBaseLeaf(
-    final this.data,
+    this.data,
   );
 }
 
@@ -51,7 +51,7 @@ class HBaseError<HKT extends HKindInvalid> implements HBase<HKT> {
   final String errorMessage;
 
   const HBaseError(
-    final this.errorMessage,
+    this.errorMessage,
   );
 }
 

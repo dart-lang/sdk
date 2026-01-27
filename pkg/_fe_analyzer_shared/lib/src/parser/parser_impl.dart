@@ -2255,6 +2255,13 @@ class Parser {
     Token? varOrFinal;
     if (varFinalOrConst != null) {
       if (varFinalOrConst.isA(Keyword.VAR)) {
+        if (isPrimaryConstructorsFeatureEnabled &&
+            memberKind != MemberKind.PrimaryConstructor) {
+          reportRecoverableErrorWithToken(
+            varFinalOrConst,
+            codes.codeExtraneousModifier,
+          );
+        }
         varOrFinal = varFinalOrConst;
         if (typeInfo != noType) {
           if (memberKind != MemberKind.PrimaryConstructor) {
@@ -2270,6 +2277,13 @@ class Parser {
           }
         }
       } else if (varFinalOrConst.isA(Keyword.FINAL)) {
+        if (isPrimaryConstructorsFeatureEnabled &&
+            memberKind != MemberKind.PrimaryConstructor) {
+          reportRecoverableErrorWithToken(
+            varFinalOrConst,
+            codes.codeExtraneousModifier,
+          );
+        }
         varOrFinal = varFinalOrConst;
       }
     }

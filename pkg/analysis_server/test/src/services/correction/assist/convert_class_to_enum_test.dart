@@ -679,6 +679,23 @@ enum _E {
 ''');
   }
 
+  Future<void> test_minimal_privateClass_constructorHasInitializers() async {
+    await resolveTestCode('''
+class _^E {
+  static const _E c = _E();
+
+  const _E() : assert(1 == 1);
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c;
+
+  const _E() : assert(1 == 1);
+}
+''');
+  }
+
   Future<void> test_minimal_privateClass_primaryConstructor() async {
     await resolveTestCode('''
 class const _^E() {
@@ -687,6 +704,19 @@ class const _^E() {
 ''');
     await assertHasAssist('''
 enum _E {
+  c
+}
+''');
+  }
+
+  Future<void> test_minimal_privateClass_primaryConstructor_generic() async {
+    await resolveTestCode('''
+class const _^E<T>() {
+  static const _E c = _E();
+}
+''');
+    await assertHasAssist('''
+enum _E<T> {
   c
 }
 ''');
@@ -795,7 +825,7 @@ enum E {
 ''');
   }
 
-  Future<void> test_noIndex_notInt_primaryClass() async {
+  Future<void> test_noIndex_notInt_primaryConstructor() async {
     await resolveTestCode('''
 class const ^E._(final String name) {
   static const E c0 = E._('c0');

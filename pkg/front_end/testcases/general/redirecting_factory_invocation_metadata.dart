@@ -21,53 +21,53 @@ class Const {
 }
 
 @Const()
-var field = <@Const() T>(@Const() var o1, [@Const() var o2]) {
+var field = <@Const() T>(@Const() o1, [@Const() o2]) {
   @Const()
   var l1;
 
   @Const()
-  l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+  l2<@Const() T>(@Const() o1, [@Const() o2]) {}
 };
 
 @Const()
-method1<@Const() T>(@Const() var o1, [@Const() var o2]) {
+method1<@Const() T>(@Const() o1, [@Const() o2]) {
   @Const()
   var l1;
 
   @Const()
-  l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+  l2<@Const() T>(@Const() o1, [@Const() o2]) {}
 }
 
 @Const()
-method2<@Const() T>(@Const() var o1, {@Const() var o2}) {
-  <@Const() T>(@Const() var o1, {@Const() var o2}) {};
+method2<@Const() T>(@Const() o1, {@Const() o2}) {
+  <@Const() T>(@Const() o1, {@Const() o2}) {};
 }
 
 class Class<@Const() T> {
   @Const()
-  var field = <@Const() T>(@Const() var o1, {@Const() var o2}) {
+  var field = <@Const() T>(@Const() o1, {@Const() o2}) {
     @Const()
     var l1;
 
     @Const()
-    l2<@Const() T>(@Const() var o1, {@Const() var o2}) {}
+    l2<@Const() T>(@Const() o1, {@Const() o2}) {}
   };
 
   @Const()
   Class();
 
   @Const()
-  method1<@Const() T>(@Const() var o1, [@Const() var o2]) {
+  method1<@Const() T>(@Const() o1, [@Const() o2]) {
     @Const()
     var l1;
 
     @Const()
-    l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+    l2<@Const() T>(@Const() o1, [@Const() o2]) {}
   }
 
   @Const()
-  method2<@Const() T>(@Const() var o1, {@Const() var o2}) {
-    <@Const() T>(@Const() var o1, {@Const() var o2}) {};
+  method2<@Const() T>(@Const() o1, {@Const() o2}) {
+    <@Const() T>(@Const() o1, {@Const() o2}) {};
   }
 }
 
@@ -80,34 +80,34 @@ typedef Typedef2<@Const() T> = Function<@Const() T>(@Const() Class,
     {@Const() Class o2});
 
 @Const()
-typedef void Typedef3<@Const() T>(@Const() var o1, [@Const() var o2]);
+typedef void Typedef3<@Const() T>(@Const() o1, [@Const() o2]);
 
 @Const()
-typedef void Typedef4<@Const() T>(@Const() var o1, {@Const() var o2});
+typedef void Typedef4<@Const() T>(@Const() o1, {@Const() o2});
 
 @Const()
 extension Extension<@Const() T> on Class<T> {
   @Const()
-  static var field = <@Const() T>(@Const() var o1, [@Const() var o2]) {
+  static var field = <@Const() T>(@Const() o1, [@Const() o2]) {
     @Const()
     var l1;
 
     @Const()
-    l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+    l2<@Const() T>(@Const() o1, [@Const() o2]) {}
   };
 
   @Const()
-  method1<@Const() T>(@Const() var o1, [@Const() var o2]) {
+  method1<@Const() T>(@Const() o1, [@Const() o2]) {
     @Const()
     var l1;
 
     @Const()
-    l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+    l2<@Const() T>(@Const() o1, [@Const() o2]) {}
   }
 
   @Const()
-  method2<@Const() T>(@Const() var o1, {@Const() var o2}) {
-    <@Const() T>(@Const() var o1, {@Const() var o2}) {};
+  method2<@Const() T>(@Const() o1, {@Const() o2}) {
+    <@Const() T>(@Const() o1, {@Const() o2}) {};
   }
 }
 

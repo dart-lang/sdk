@@ -1960,19 +1960,19 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(representation() == Boxing::NativeRepresentation(rep));
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     const Register result = locs()->out(0).reg();
-    __ ldr(result, element_address, RepresentationUtils::OperandSize(rep));
+    __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     const VRegister result = locs()->out(0).fpu_reg();
     if (rep == kUnboxedFloat) {
       // Load single precision float.
-      __ fldrs(result, element_address);
+      __ LoadS(result, element_address);
     } else if (rep == kUnboxedDouble) {
       // Load double precision float.
-      __ fldrd(result, element_address);
+      __ LoadD(result, element_address);
     } else {
       ASSERT(rep == kUnboxedInt32x4 || rep == kUnboxedFloat32x4 ||
              rep == kUnboxedFloat64x2);
-      __ fldrq(result, element_address);
+      __ LoadQ(result, element_address);
     }
   } else {
     const Register result = locs()->out(0).reg();
@@ -2175,10 +2175,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         value = 0;
       }
       if (value == 0) {
-        __ str(ZR, element_address, compiler::kUnsignedByte);
+        __ Store(ZR, element_address, compiler::kUnsignedByte);
       } else {
         __ LoadImmediate(TMP, static_cast<int8_t>(value));
-        __ str(TMP, element_address, compiler::kUnsignedByte);
+        __ Store(TMP, element_address, compiler::kUnsignedByte);
       }
     } else {
       const Register value = locs()->in(2).reg();
@@ -2186,36 +2186,35 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ CompareImmediate(value, 0xFF);
       __ csetm(TMP, GT);             // TMP = value > 0xFF ? -1 : 0.
       __ csel(TMP, value, TMP, LS);  // TMP = value in range ? value : TMP.
-      __ str(TMP, element_address, compiler::kUnsignedByte);
+      __ Store(TMP, element_address, compiler::kUnsignedByte);
     }
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
     if (locs()->in(2).IsConstant()) {
       ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-      __ str(ZR, element_address, RepresentationUtils::OperandSize(rep));
+      __ Store(ZR, element_address, RepresentationUtils::OperandSize(rep));
     } else {
-      __ str(locs()->in(2).reg(), element_address,
-             RepresentationUtils::OperandSize(rep));
+      __ Store(locs()->in(2).reg(), element_address,
+               RepresentationUtils::OperandSize(rep));
     }
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     if (rep == kUnboxedFloat) {
       if (locs()->in(2).IsConstant()) {
         ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-        __ str(ZR, element_address, compiler::kFourBytes);
+        __ Store(ZR, element_address, compiler::kFourBytes);
       } else {
-        __ fstrs(locs()->in(2).fpu_reg(), element_address);
+        __ StoreS(locs()->in(2).fpu_reg(), element_address);
       }
     } else if (rep == kUnboxedDouble) {
       if (locs()->in(2).IsConstant()) {
         ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-        __ str(ZR, element_address, compiler::kEightBytes);
+        __ Store(ZR, element_address, compiler::kEightBytes);
       } else {
-        __ fstrd(locs()->in(2).fpu_reg(), element_address);
+        __ StoreD(locs()->in(2).fpu_reg(), element_address);
       }
     } else {
       ASSERT(rep == kUnboxedInt32x4 || rep == kUnboxedFloat32x4 ||
              rep == kUnboxedFloat64x2);
-      const VRegister value_reg = locs()->in(2).fpu_reg();
-      __ fstrq(value_reg, element_address);
+      __ StoreQ(locs()->in(2).fpu_reg(), element_address);
     }
   } else if (class_id() == kArrayCid) {
     ASSERT(!ShouldEmitStoreBarrier());  // Specially treated above.
