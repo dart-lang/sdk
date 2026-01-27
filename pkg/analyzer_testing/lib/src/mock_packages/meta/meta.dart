@@ -124,6 +124,7 @@ class _AlwaysThrows {
   TargetKind.getter,
   TargetKind.method,
   TargetKind.topLevelVariable,
+  TargetKind.typedefType,
 })
 class _AwaitNotRequired {
   const _AwaitNotRequired();

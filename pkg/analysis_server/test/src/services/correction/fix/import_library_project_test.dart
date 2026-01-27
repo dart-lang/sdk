@@ -848,6 +848,54 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_pattern() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension IntExt on int {
+  int get foo => 0;
+}
+''');
+
+    await resolveTestCode('''
+void f(Object o) {
+  if (o case int(foo: int())) {}
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f(Object o) {
+  if (o case int(foo: int())) {}
+}
+''');
+  }
+
+  Future<void> test_pattern_simplified() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension IntExt on int {
+  int get foo => 0;
+}
+''');
+
+    await resolveTestCode('''
+void f(Object o) {
+  if (o case int(:var foo)) {
+    print(foo);
+  }
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f(Object o) {
+  if (o case int(:var foo)) {
+    print(foo);
+  }
+}
+''');
+  }
+
   Future<void> test_relativeDirective() async {
     newFile('$testPackageLibPath/a.dart', '''
 class Foo {}

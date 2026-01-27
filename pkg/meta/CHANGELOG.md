@@ -1,3 +1,7 @@
+## 1.18.1
+
+- Allow `@awaitNotRequired` to annotate a typedef.
+
 ## 1.18.0
 
 - The `@redeclare` annotation is no longer considered experimental.

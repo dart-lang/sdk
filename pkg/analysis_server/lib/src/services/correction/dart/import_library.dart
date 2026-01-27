@@ -102,6 +102,18 @@ class ImportLibrary extends MultiCorrectionProducer {
     };
   }
 
+  DartType? _getTypeForPattern(AstNode node) {
+    var parent = node.parent;
+    while (parent is DartPattern || parent?.parent is DartPattern) {
+      if (parent is ObjectPattern) {
+        return parent.type.type;
+      }
+      parent = parent?.parent;
+    }
+    // We don't know how to answer this.
+    return null;
+  }
+
   Future<(_ImportLibraryCombinator?, _ImportLibraryCombinatorMultiple?)>
   _importEditCombinators(
     LibraryImport import,
@@ -442,6 +454,15 @@ class ImportLibrary extends MultiCorrectionProducer {
           node.operator.type == TokenType.TILDE) {
         targetType = node.operand.staticType;
       }
+    } else if (node is PatternFieldName) {
+      memberName = node.name?.lexeme ?? '';
+      if (memberName.isEmpty) {
+        return const [];
+      }
+      targetType = _getTypeForPattern(node);
+    } else if (node is DeclaredVariablePattern) {
+      memberName = node.name.lexeme;
+      targetType = _getTypeForPattern(node);
     } else {
       return const [];
     }
