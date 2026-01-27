@@ -250,7 +250,7 @@ enum E {
   const E() : x = 0, x = 1;
 }
 ''',
-      [error(diag.constEvalThrowsException, 11, 1), error(_errorCode, 50, 1)],
+      [error(_errorCode, 50, 1)],
     );
   }
 }

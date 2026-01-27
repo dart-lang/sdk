@@ -65,10 +65,7 @@ enum E {
   const E() : x = 1;
 }
 ''',
-      [
-        error(diag.constEvalThrowsException, 11, 1),
-        error(diag.fieldInitializedInInitializerAndDeclaration, 47, 1),
-      ],
+      [error(diag.fieldInitializedInInitializerAndDeclaration, 47, 1)],
     );
   }
 }

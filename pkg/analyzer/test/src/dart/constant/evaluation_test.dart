@@ -6219,6 +6219,209 @@ bool true
     );
   }
 
+  test_class_constructor_duplicateInitialization_fieldInitializer_initializer() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  final int x = 1;
+  const A() : x = 2;
+}
+
+const a = A();
+''',
+      [error(diag.fieldInitializedInInitializerAndDeclaration, 43, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_constructor_duplicateInitialization_fieldInitializer_initializingFormal() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  final int x = 1;
+  const A(this.x);
+}
+
+const a = A(2);
+''',
+      [error(diag.finalInitializedInDeclarationAndConstructor, 44, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_constructor_duplicateInitialization_initializer_initializer() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  final int x;
+  const A() : x = 1, x = 2;
+}
+
+const a = A();
+''',
+      [error(diag.fieldInitializedByMultipleInitializers, 46, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_constructor_duplicateInitialization_initializingFormal_initializer() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  final int x;
+  const A(this.x) : x = 1;
+}
+
+const a = A(2);
+''',
+      [error(diag.fieldInitializedInParameterAndInitializer, 45, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_duplicateDefinition_field() async {
+    await assertErrorsInCode(
+      r'''
+class const A(final int x) {
+  final int x = 1;
+}
+
+const a = A(2);
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          41,
+          1,
+          contextMessages: [message(testFile, 24, 1)],
+        ),
+      ],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_duplicateInitialization_fieldInitializer_initializer() async {
+    await assertErrorsInCode(
+      r'''
+class const A() {
+  final int x = 1;
+  this : x = 2;
+}
+
+const a = A();
+''',
+      [error(diag.fieldInitializedInInitializerAndDeclaration, 46, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_duplicateInitialization_fieldInitializer_initializingFormal() async {
+    await assertErrorsInCode(
+      r'''
+class const A(this.x) {
+  final int x = 1;
+}
+
+const a = A(2);
+''',
+      [error(diag.finalInitializedInDeclarationAndConstructor, 19, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_duplicateInitialization_initializer_initializer() async {
+    await assertErrorsInCode(
+      r'''
+class const A() {
+  final int x;
+  this : x = 1, x = 2;
+}
+
+const a = A();
+''',
+      [error(diag.fieldInitializedByMultipleInitializers, 49, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_class_primaryConstructor_duplicateInitialization_initializingFormal_initializer() async {
+    await assertErrorsInCode(
+      r'''
+class const A(this.x) {
+  this : x = 2;
+}
+
+const a = A(1);
+''',
+      [error(diag.initializerForNonExistentField, 33, 5)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+A
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_dotShorthand_assertInitializer_assertIsNot_false() async {
     await assertErrorsInCode(
       '''
@@ -6488,6 +6691,163 @@ const B b = .new(A());
         error(diag.constInitializedWithNonConstantValue, 108, 3),
       ],
     );
+  }
+
+  test_enum_constructor_duplicateInitialization_fieldInitializer_initializer() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v;
+  final int x = 1;
+  const E() : x = 2;
+}
+
+const a = E.v;
+''',
+      [error(diag.fieldInitializedInInitializerAndDeclaration, 47, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+E
+  _name: String v
+  index: int 0
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_enum_constructor_duplicateInitialization_fieldInitializer_initializingFormal() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v(2);
+  final int x = 1;
+  const E(this.x);
+}
+
+const a = E.v;
+''',
+      [error(diag.finalInitializedInDeclarationAndConstructor, 51, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+E
+  _name: String v
+  index: int 0
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_enum_constructor_duplicateInitialization_initializer_initializer() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v;
+  final int x;
+  const E() : x = 1, x = 2;
+}
+
+const a = E.v;
+''',
+      [error(diag.fieldInitializedByMultipleInitializers, 50, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+E
+  _name: String v
+  index: int 0
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_enum_constructor_duplicateInitialization_initializingFormal_initializer() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v(1);
+  final int x;
+  const E(this.x) : x = 2;
+}
+
+const a = E.v;
+''',
+      [error(diag.fieldInitializedInParameterAndInitializer, 52, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+E
+  _name: String v
+  index: int 0
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_enum_primaryConstructor_duplicateDefinition_field() async {
+    await assertErrorsInCode(
+      r'''
+enum E(final int x) {
+  v(2);
+
+  final int x = 1;
+}
+
+const a = E.v;
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          43,
+          1,
+          contextMessages: [message(testFile, 17, 1)],
+        ),
+      ],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+E
+  _name: String v
+  index: int 0
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
+    positionalArguments
+      0: int 2
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_enum_primaryConstructor_duplicateInitialization_initializer_initializer() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  final int x;
+  this : x = 1, x = 2;
+}
+
+const a = E.v;
+''',
+      [error(diag.fieldInitializedByMultipleInitializers, 47, 1)],
+    );
+    assertDartObjectText(_topLevelVar('a'), r'''
+E
+  _name: String v
+  index: int 0
+  x: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
   }
 
   test_field_deferred_issue48991() async {

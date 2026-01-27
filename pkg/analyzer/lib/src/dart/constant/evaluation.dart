@@ -3112,15 +3112,6 @@ class _InstanceCreationEvaluator {
         switch (evaluationResult) {
           case DartObjectImpl():
             var fieldName = initializer.fieldName.name;
-            if (_fieldMap.containsKey(fieldName)) {
-              return _InitializersEvaluationResult(
-                InvalidConstant.forEntity(
-                  entity: _errorNode,
-                  locatableDiagnostic: diag.constEvalThrowsException,
-                ),
-                evaluationIsComplete: true,
-              );
-            }
             _fieldMap[fieldName] = evaluationResult;
             var getter = definingType.getGetter(fieldName);
             if (getter != null) {
@@ -3382,12 +3373,6 @@ class _InstanceCreationEvaluator {
               }
             }
             var fieldName = field.name ?? '';
-            if (_fieldMap.containsKey(fieldName)) {
-              return InvalidConstant.forEntity(
-                entity: _errorNode,
-                locatableDiagnostic: diag.constEvalThrowsException,
-              );
-            }
             _fieldMap[fieldName] = argumentValue;
           }
         }

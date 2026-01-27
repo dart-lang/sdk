@@ -89,10 +89,7 @@ enum E {
   const E(this.x) : x = 1;
 }
 ''',
-      [
-        error(diag.constEvalThrowsException, 11, 4),
-        error(diag.fieldInitializedInParameterAndInitializer, 52, 1),
-      ],
+      [error(diag.fieldInitializedInParameterAndInitializer, 52, 1)],
     );
   }
 
