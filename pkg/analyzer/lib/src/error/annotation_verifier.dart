@@ -109,6 +109,8 @@ class AnnotationVerifier {
           errorNode: variable,
         );
       }
+    } else if (parent case GenericTypeAlias(functionType: var type?)) {
+      checkType(type.returnType?.type);
     } else {
       // Warning reported by `_checkKinds`.
     }

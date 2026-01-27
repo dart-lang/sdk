@@ -369,6 +369,17 @@ extension ExpressionExtension on Expression {
       PropertyAccess(:var propertyName) => propertyName.element,
       _ => null,
     };
+
+    // This handles `p();` where `p` is a parameter typed with a typedef which
+    // is annotated with `@awaitNotRequired`.
+    if (this case FunctionExpressionInvocation self) {
+      if (self.function.staticType?.alias case var alias?) {
+        if (alias.element.hasAwaitNotRequired) {
+          return true;
+        }
+      }
+    }
+
     if (element == null) return false;
     if (element.hasAwaitNotRequired) return true;
 
