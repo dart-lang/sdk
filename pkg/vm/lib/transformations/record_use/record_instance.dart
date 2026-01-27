@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
-import 'package:vm/metadata/loading_units.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
 import 'constant_collector.dart';
@@ -20,8 +19,8 @@ class InstanceRecorder {
   /// ones.
   final Map<Identifier, String> loadingUnitForDefinition = {};
 
-  /// The ordered list of loading units to retrieve the loading unit index from.
-  final List<LoadingUnit> _loadingUnits;
+  /// A function to look up the loading unit for a reference.
+  final LoadingUnitLookup _loadingUnitLookup;
 
   /// The source uri to base relative URIs off of.
   final Uri _source;
@@ -33,7 +32,7 @@ class InstanceRecorder {
   //TODO(mosum): add verbose mode to enable this
   bool exactLocation = false;
 
-  InstanceRecorder(this._source, this._loadingUnits) {
+  InstanceRecorder(this._source, this._loadingUnitLookup) {
     collector = ConstantCollector.collectWith(_collectInstance);
   }
 
@@ -71,8 +70,7 @@ class InstanceRecorder {
 
     return (
       identifier: Identifier(importUri: file, name: cls.name),
-      loadingUnit:
-          loadingUnitForNode(cls.enclosingLibrary, _loadingUnits).toString(),
+      loadingUnit: _loadingUnitLookup(cls),
     );
   }
 
@@ -82,6 +80,6 @@ class InstanceRecorder {
   ) => InstanceReference(
     location: expression.location!.recordLocation(_source, exactLocation),
     instanceConstant: evaluateInstanceConstant(constant),
-    loadingUnit: loadingUnitForNode(expression, _loadingUnits).toString(),
+    loadingUnit: _loadingUnitLookup(expression),
   );
 }

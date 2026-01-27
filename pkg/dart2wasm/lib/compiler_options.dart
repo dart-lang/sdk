@@ -63,6 +63,7 @@ class WasmCompilerOptions {
   bool saveUnopt = false;
   Set<int> moduleIdsToOptimize = const {};
   bool stripWasm = true;
+  Uri? recordedUsesFile;
   List<CompilerPhase> phases = const [
     CompilerPhase.cfe,
     CompilerPhase.tfa,

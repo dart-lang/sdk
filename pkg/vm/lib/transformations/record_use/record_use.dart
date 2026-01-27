@@ -14,6 +14,19 @@ import 'package:vm/metadata/loading_units.dart';
 import 'package:vm/transformations/record_use/record_call.dart';
 import 'package:vm/transformations/record_use/record_instance.dart';
 
+/// Maps a kernel node to the a string representing the loading unit it belongs
+/// to. Different backends may represent loading units differently.
+typedef LoadingUnitLookup = String Function(ast.TreeNode node);
+
+LoadingUnitLookup _getDefaultLoadingUnitLookup(ast.Component component) {
+  final loadingMetadata =
+      component.metadata[LoadingUnitsMetadataRepository.repositoryTag]
+          as LoadingUnitsMetadataRepository;
+  final loadingUnits = loadingMetadata.mapping[component]?.loadingUnits ?? [];
+  return (ast.TreeNode node) =>
+      _loadingUnitForLibrary(enclosingLibrary(node)!, loadingUnits).toString();
+}
+
 /// Collect calls to methods annotated with `@RecordUse`.
 ///
 /// Identify and collect all calls to static methods annotated in the given
@@ -28,15 +41,13 @@ import 'package:vm/transformations/record_use/record_instance.dart';
 ast.Component transformComponent(
   ast.Component component,
   Uri recordedUsagesFile,
-  Uri source,
-) {
-  final tag = LoadingUnitsMetadataRepository.repositoryTag;
-  final loadingMetadata =
-      component.metadata[tag] as LoadingUnitsMetadataRepository;
-  final loadingUnits = loadingMetadata.mapping[component]?.loadingUnits ?? [];
+  Uri source, {
+  LoadingUnitLookup? loadingUnitLookup,
+}) {
+  loadingUnitLookup ??= _getDefaultLoadingUnitLookup(component);
 
-  final callRecorder = CallRecorder(source, loadingUnits);
-  final instanceRecorder = InstanceRecorder(source, loadingUnits);
+  final callRecorder = CallRecorder(source, loadingUnitLookup);
+  final instanceRecorder = InstanceRecorder(source, loadingUnitLookup);
   component.accept(_RecordUseVisitor(callRecorder, instanceRecorder));
 
   final usages = _usages(
@@ -198,9 +209,4 @@ int _loadingUnitForLibrary(
           .firstWhereOrNull((unit) => unit.libraryUris.contains(importUri))
           ?.id ??
       -1;
-}
-
-int loadingUnitForNode(ast.TreeNode node, List<LoadingUnit> loadingUnits) {
-  final library = enclosingLibrary(node)!;
-  return _loadingUnitForLibrary(library, loadingUnits);
 }

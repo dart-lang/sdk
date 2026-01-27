@@ -5,7 +5,6 @@
 import 'package:front_end/src/kernel/record_use.dart' as recordUse;
 import 'package:kernel/ast.dart' as ast;
 import 'package:record_use/record_use_internal.dart';
-import 'package:vm/metadata/loading_units.dart';
 import 'package:vm/transformations/record_use/record_use.dart';
 
 /// Record calls and their constant arguments. Currently tracks
@@ -22,8 +21,8 @@ class CallRecorder {
   /// ones.
   final Map<Identifier, String> loadingUnitForDefinition = {};
 
-  /// The ordered list of loading units to retrieve the loading unit index from.
-  final List<LoadingUnit> _loadingUnits;
+  /// A function to look up the loading unit for a reference.
+  final LoadingUnitLookup _loadingUnitLookup;
 
   /// The source uri to base relative URIs off of.
   final Uri _source;
@@ -32,7 +31,7 @@ class CallRecorder {
   //TODO(mosum): add verbose mode to enable this
   bool exactLocation = false;
 
-  CallRecorder(this._source, this._loadingUnits);
+  CallRecorder(this._source, this._loadingUnitLookup);
 
   /// Will record a static invocation if it is annotated with `@RecordUse`.
   void recordStaticInvocation(ast.StaticInvocation node) {
@@ -54,7 +53,7 @@ class CallRecorder {
         _addToUsage(
           constant.target,
           CallTearOff(
-            loadingUnit: loadingUnitForNode(node, _loadingUnits).toString(),
+            loadingUnit: _loadingUnitLookup(node),
             location: node.location!.recordLocation(_source, exactLocation),
           ),
         );
@@ -122,7 +121,7 @@ class CallRecorder {
     return CallWithArguments(
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
-      loadingUnit: loadingUnitForNode(node, _loadingUnits).toString(),
+      loadingUnit: _loadingUnitLookup(node),
       location: node.location!.recordLocation(_source, exactLocation),
     );
   }
@@ -152,8 +151,7 @@ class CallRecorder {
         scope: target.enclosingClass?.name,
         name: target.name.text,
       ),
-      loadingUnit:
-          loadingUnitForNode(enclosingLibrary, _loadingUnits).toString(),
+      loadingUnit: _loadingUnitLookup(target),
     );
   }
 }
