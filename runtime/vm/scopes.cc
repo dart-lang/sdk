@@ -42,17 +42,6 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
   }
 }
 
-bool LocalScope::IsNestedWithin(LocalScope* scope) const {
-  const LocalScope* current_scope = this;
-  while (current_scope != nullptr) {
-    if (current_scope == scope) {
-      return true;
-    }
-    current_scope = current_scope->parent();
-  }
-  return false;
-}
-
 bool LocalScope::AddVariable(LocalVariable* variable) {
   ASSERT(variable != nullptr);
   if (LocalLookupVariable(variable->name(), variable->kernel_offset()) !=
@@ -373,20 +362,6 @@ LocalVariable* LocalScope::LookupVariable(const String& name,
       return var;
     }
     current_scope = current_scope->parent();
-  }
-  return nullptr;
-}
-
-LocalVariable* LocalScope::LookupVariableByName(const String& name) {
-  ASSERT(name.IsSymbol());
-  for (LocalScope* scope = this; scope != nullptr; scope = scope->parent()) {
-    for (intptr_t i = 0, n = scope->variables_.length(); i < n; ++i) {
-      LocalVariable* var = scope->variables_[i];
-      ASSERT(var->name().IsSymbol());
-      if (var->name().ptr() == name.ptr()) {
-        return var;
-      }
-    }
   }
   return nullptr;
 }
@@ -734,16 +709,6 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
     }
   }
   return false;
-}
-
-void LocalVarDescriptorsBuilder::AddAll(Zone* zone,
-                                        const LocalVarDescriptors& var_descs) {
-  for (intptr_t i = 0, n = var_descs.Length(); i < n; ++i) {
-    VarDesc desc;
-    desc.name = &String::Handle(zone, var_descs.GetName(i));
-    var_descs.GetInfo(i, &desc.info);
-    Add(desc);
-  }
 }
 
 void LocalVarDescriptorsBuilder::AddDeoptIdToContextLevelMappings(

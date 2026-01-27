@@ -2983,11 +2983,15 @@ class _InstanceCreationEvaluator {
     var positionalIndex = 0;
     for (var parameter in _constructor.formalParameters) {
       if (parameter is SuperFormalParameterElement) {
+        var parameterName = _getParameterName(parameter);
+        if (parameterName == null) {
+          continue;
+        }
         var value =
             SimpleIdentifierImpl(
                 token: StringToken(
                   TokenType.STRING,
-                  parameter.name ?? '',
+                  parameterName,
                   parameter.firstFragment.nameOffset ?? -1,
                 ),
               )
@@ -3002,7 +3006,7 @@ class _InstanceCreationEvaluator {
                 label: SimpleIdentifierImpl(
                   token: StringToken(
                     TokenType.STRING,
-                    parameter.name ?? '',
+                    parameterName,
                     parameter.firstFragment.nameOffset ?? -1,
                   ),
                 )..element = parameter,
@@ -3112,15 +3116,6 @@ class _InstanceCreationEvaluator {
         switch (evaluationResult) {
           case DartObjectImpl():
             var fieldName = initializer.fieldName.name;
-            if (_fieldMap.containsKey(fieldName)) {
-              return _InitializersEvaluationResult(
-                InvalidConstant.forEntity(
-                  entity: _errorNode,
-                  locatableDiagnostic: diag.constEvalThrowsException,
-                ),
-                evaluationIsComplete: true,
-              );
-            }
             _fieldMap[fieldName] = evaluationResult;
             var getter = definingType.getGetter(fieldName);
             if (getter != null) {
@@ -3382,16 +3377,13 @@ class _InstanceCreationEvaluator {
               }
             }
             var fieldName = field.name ?? '';
-            if (_fieldMap.containsKey(fieldName)) {
-              return InvalidConstant.forEntity(
-                entity: _errorNode,
-                locatableDiagnostic: diag.constEvalThrowsException,
-              );
-            }
             _fieldMap[fieldName] = argumentValue;
           }
         }
-        _parameterMap[baseParameter.name ?? ''] = argumentValue;
+        var parameterName = _getParameterName(baseParameter);
+        if (parameterName != null) {
+          _parameterMap[parameterName] = argumentValue;
+        }
       }
     }
     return null;
@@ -3511,6 +3503,20 @@ class _InstanceCreationEvaluator {
         _typeParameterMap[typeParameter] = typeArgument;
       }
     }
+  }
+
+  String? _getParameterName(FormalParameterElement parameter) {
+    var name = parameter.name;
+    if (parameter case FieldFormalParameterElement(:var privateName?)) {
+      name = privateName;
+    }
+    if (name == '_') {
+      var index = _constructor.formalParameters.indexOf(
+        parameter as InternalFormalParameterElement,
+      );
+      return '_#$index';
+    }
+    return name;
   }
 
   /// Returns a context message that mimics a stack trace where [superConstructor] is

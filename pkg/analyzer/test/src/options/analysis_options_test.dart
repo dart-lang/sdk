@@ -6,6 +6,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
@@ -27,7 +28,9 @@ main() {
 
 @reflectiveTest
 class AnalysisOptionsTest {
-  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
+  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider(
+    SourceFactoryImpl([]),
+  );
 
   final resourceProvider = MemoryResourceProvider();
 

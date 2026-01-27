@@ -178,10 +178,6 @@ class DartUtils {
                                     const char* name,
                                     const char* val);
   static bool IsDartSchemeURL(const char* url_name);
-  static bool IsDartIOLibURL(const char* url_name);
-  static bool IsDartCLILibURL(const char* url_name);
-  static bool IsDartHttpLibURL(const char* url_name);
-  static bool IsDartBuiltinLibURL(const char* url_name);
 
   // Returns directory name including the last path separator.
   //

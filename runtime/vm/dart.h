@@ -16,7 +16,6 @@
 namespace dart {
 
 // Forward declarations.
-class DebugInfo;
 class Isolate;
 class LocalHandle;
 class ReadOnlyHandles;
@@ -77,11 +76,6 @@ class Dart : public AllStatic {
   static int64_t UptimeMillis() {
     return UptimeMicros() / kMicrosecondsPerMillisecond;
   }
-
-  static void set_pprof_symbol_generator(DebugInfo* value) {
-    pprof_symbol_generator_ = value;
-  }
-  static DebugInfo* pprof_symbol_generator() { return pprof_symbol_generator_; }
 
   static LocalHandle* AllocateReadOnlyApiHandle();
   static bool IsReadOnlyApiHandle(Dart_Handle handle);
@@ -158,7 +152,6 @@ class Dart : public AllStatic {
   static Isolate* vm_isolate_;
   static int64_t start_time_micros_;
   static ThreadPool* thread_pool_;
-  static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
   static Snapshot::Kind vm_snapshot_kind_;
   static Dart_ThreadStartCallback thread_start_callback_;

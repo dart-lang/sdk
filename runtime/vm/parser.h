@@ -171,19 +171,6 @@ class ParsedFunction : public ZoneAllocated {
     return entry_points_temp_var_ != nullptr;
   }
 
-  LocalVariable* finally_return_temp_var() const {
-    ASSERT(has_finally_return_temp_var());
-    return finally_return_temp_var_;
-  }
-  void set_finally_return_temp_var(LocalVariable* value) {
-    ASSERT(!has_finally_return_temp_var());
-    finally_return_temp_var_ = value;
-  }
-  bool has_finally_return_temp_var() const {
-    return finally_return_temp_var_ != nullptr;
-  }
-  void EnsureFinallyReturnTemp(bool is_async);
-
   LocalVariable* EnsureExpressionTemp();
   LocalVariable* EnsureEntryPointsTemp();
 
@@ -250,10 +237,6 @@ class ParsedFunction : public ZoneAllocated {
   void SetGenericCovariantImplParameters(
       const BitVector* generic_covariant_impl_parameters);
 
-  bool HasCovariantParametersInfo() const {
-    return covariant_parameters_ != nullptr;
-  }
-
   // Returns true if i-th parameter is covariant.
   // SetCovariantParameters should be called before using this method.
   bool IsCovariantParameter(intptr_t i) const;
@@ -303,7 +286,6 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* receiver_var_ = nullptr;
   LocalVariable* expression_temp_var_;
   LocalVariable* entry_points_temp_var_;
-  LocalVariable* finally_return_temp_var_;
   DynamicClosureCallVars* dynamic_closure_call_vars_;
   mutable FieldSet guarded_fields_;
   ZoneGrowableArray<const Instance*>* default_parameter_values_;
@@ -319,7 +301,6 @@ class ParsedFunction : public ZoneAllocated {
   const Function* forwarding_stub_super_target_ = nullptr;
   kernel::ScopeBuildingResult* kernel_scopes_;
 
-  const BitVector* covariant_parameters_ = nullptr;
   const BitVector* generic_covariant_impl_parameters_ = nullptr;
 
   friend class Parser;

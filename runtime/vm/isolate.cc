@@ -177,12 +177,6 @@ void IdleTimeHandler::InitializeWithHeap(Heap* heap) {
   heap_ = heap;
 }
 
-bool IdleTimeHandler::ShouldCheckForIdle() {
-  MutexLocker ml(&mutex_);
-  return idle_start_time_ > 0 && FLAG_idle_timeout_micros != 0 &&
-         disabled_counter_ == 0;
-}
-
 void IdleTimeHandler::UpdateStartIdleTime() {
   MutexLocker ml(&mutex_);
   if (disabled_counter_ == 0) {
@@ -2908,15 +2902,6 @@ void IsolateGroup::ForEachIsolate(
   }
 }
 
-Isolate* IsolateGroup::FirstIsolate() const {
-  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
-  return FirstIsolateLocked();
-}
-
-Isolate* IsolateGroup::FirstIsolateLocked() const {
-  return isolates_.IsEmpty() ? nullptr : isolates_.First();
-}
-
 void IsolateGroup::ForEachMutatorAtASafepoint(
     std::function<void(Thread* thread)> function) {
   auto thread = Thread::Current();
@@ -3647,18 +3632,6 @@ intptr_t Isolate::IsolateListLength() {
     group->ForEachIsolate([&](Isolate* isolate) { count++; });
   });
   return count;
-}
-
-Isolate* Isolate::LookupIsolateByPort(Dart_Port port) {
-  Isolate* match = nullptr;
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->ForEachIsolate([&](Isolate* isolate) {
-      if (isolate->main_port() == port) {
-        match = isolate;
-      }
-    });
-  });
-  return match;
 }
 
 std::unique_ptr<char[]> Isolate::LookupIsolateNameByPort(Dart_Port port) {

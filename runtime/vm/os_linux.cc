@@ -542,10 +542,6 @@ intptr_t OS::ActivationFrameAlignment() {
   return alignment;
 }
 
-int OS::NumberOfAvailableProcessors() {
-  return sysconf(_SC_NPROCESSORS_ONLN);
-}
-
 uintptr_t OS::CurrentRSS() {
   // The second value in /proc/self/statm is the current RSS in pages.
   // It is not possible to use getrusage() because the interested fields are not

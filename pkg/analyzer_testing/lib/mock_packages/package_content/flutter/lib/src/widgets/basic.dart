@@ -94,10 +94,6 @@ class SizedBox extends SingleChildRenderObjectWidget {
 
 class ClipRect extends SingleChildRenderObjectWidget {
   const ClipRect({Key? key, Widget? child}) : super(key: key, child: child);
-
-  /// Does not actually exist in Flutter.
-  const ClipRect.rect({Key? key, Widget? child})
-    : super(key: key, child: child);
 }
 
 class ColoredBox extends SingleChildRenderObjectWidget {

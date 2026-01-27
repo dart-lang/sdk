@@ -1352,8 +1352,6 @@ class Class : public Object {
   // to this class.
   ClassPtr Mixin() const;
 
-  bool IsInFullSnapshot() const;
-
   virtual StringPtr DictionaryName() const { return Name(); }
 
   ScriptPtr script() const { return untag()->script(); }
@@ -1668,12 +1666,6 @@ class Class : public Object {
 
   // Check if this class represents the 'Record' class.
   bool IsRecordClass() const { return id() == kRecordCid; }
-
-  static bool IsInFullSnapshot(ClassPtr cls) {
-    NoSafepointScope no_safepoint;
-    return UntaggedLibrary::InFullSnapshotBit::decode(
-        cls->untag()->library()->untag()->flags_);
-  }
 
   static intptr_t GetClassId(ClassPtr cls) {
     NoSafepointScope no_safepoint;
@@ -2340,10 +2332,6 @@ class PatchClass : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedPatchClass));
   }
-  static bool IsInFullSnapshot(PatchClassPtr cls) {
-    NoSafepointScope no_safepoint;
-    return Class::IsInFullSnapshot(cls->untag()->wrapped_class());
-  }
 
   static PatchClassPtr New(const Class& wrapped_class,
                            const KernelProgramInfo& info,
@@ -2597,8 +2585,6 @@ class ICData : public CallSiteData {
 #undef REBIND_ENUM_DEF
         kNumRebindRules,
   };
-  static const char* RebindRuleToCString(RebindRule r);
-  static bool ParseRebindRule(const char* str, RebindRule* out);
   RebindRule rebind_rule() const;
 
   void set_is_megamorphic(bool value) const {
@@ -4372,8 +4358,6 @@ class Function : public Object {
   void set_implicit_closure_function(const Function& value) const;
   ClosurePtr implicit_static_closure() const;
   void set_implicit_static_closure(const Closure& closure) const;
-  ScriptPtr eval_script() const;
-  void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
   bool is_eval_function() const;
@@ -4701,8 +4685,6 @@ class Field : public Object {
 
   int32_t SourceFingerprint() const;
 
-  StringPtr InitializingExpression() const;
-
   bool has_nontrivial_initializer() const {
     return untag()->kind_bits_.Read<HasNontrivialInitializerBit>();
   }
@@ -4922,12 +4904,6 @@ class Field : public Object {
   FunctionPtr CreateFieldInitializerFunction(Thread* thread) const;
   void SetInitializerFunction(const Function& initializer) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
-
-  // For static fields only. Constructs a closure that gets/sets the
-  // field value.
-  InstancePtr GetterClosure() const;
-  InstancePtr SetterClosure() const;
-  InstancePtr AccessorClosure(bool make_setter) const;
 
   // Constructs getter and setter names for fields and vice versa.
   static StringPtr GetterName(const String& field_name);
@@ -5384,14 +5360,6 @@ class Library : public Object {
     StoreNonPointer<Dart_FfiNativeResolver, Dart_FfiNativeResolver,
                     std::memory_order_relaxed>(&untag()->ffi_native_resolver_,
                                                value);
-  }
-
-  bool is_in_fullsnapshot() const {
-    return UntaggedLibrary::InFullSnapshotBit::decode(untag()->flags_);
-  }
-  void set_is_in_fullsnapshot(bool value) const {
-    set_flags(
-        UntaggedLibrary::InFullSnapshotBit::update(value, untag()->flags_));
   }
 
   StringPtr PrivateName(const String& name) const;
@@ -8993,10 +8961,6 @@ class TypeArguments : public Instance {
                            const TypeArguments& other,
                            intptr_t other_length,
                            intptr_t total_length) const;
-
-  // Concatenate [this] and [other] vectors of type parameters.
-  TypeArgumentsPtr ConcatenateTypeParameters(Zone* zone,
-                                             const TypeArguments& other) const;
 
   // Returns an InstantiationMode for this type argument vector, which
   // specifies whether the type argument vector requires instantiation and

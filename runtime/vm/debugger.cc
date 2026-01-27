@@ -1131,21 +1131,6 @@ ObjectPtr ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
   }
 }
 
-ArrayPtr ActivationFrame::GetLocalVariables() {
-  GetDescIndices();
-  intptr_t num_variables = desc_indices_.length();
-  String& var_name = String::Handle();
-  Object& value = Instance::Handle();
-  const Array& list = Array::Handle(Array::New(2 * num_variables));
-  for (intptr_t i = 0; i < num_variables; i++) {
-    TokenPosition ignore = TokenPosition::kNoSource;
-    VariableAt(i, &var_name, &ignore, &ignore, &ignore, &value);
-    list.SetAt(2 * i, var_name);
-    list.SetAt((2 * i) + 1, value);
-  }
-  return list.ptr();
-}
-
 ObjectPtr ActivationFrame::GetReceiver() {
   GetDescIndices();
   intptr_t num_variables = desc_indices_.length();

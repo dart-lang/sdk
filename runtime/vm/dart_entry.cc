@@ -413,11 +413,6 @@ intptr_t ArgumentsDescriptor::PositionAt(intptr_t index) const {
   return Smi::Value(Smi::RawCast(array_.At(offset)));
 }
 
-bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
-                                        const String& other) const {
-  return NameAt(index) == other.ptr();
-}
-
 ArrayPtr ArgumentsDescriptor::GetArgumentNames() const {
   const intptr_t num_named_args = NamedCount();
   if (num_named_args == 0) {
@@ -818,20 +813,6 @@ ObjectPtr DartLibraryCalls::DrainMicrotaskQueue() {
   Function& function =
       Function::Handle(zone, isolate_lib.LookupFunctionAllowPrivate(
                                  Symbols::_runPendingImmediateCallback()));
-  const Object& result = Object::Handle(
-      zone, DartEntry::InvokeFunction(function, Object::empty_array()));
-  ASSERT(result.IsNull() || result.IsError());
-  return result.ptr();
-}
-
-ObjectPtr DartLibraryCalls::EnsureScheduleImmediate() {
-  Zone* zone = Thread::Current()->zone();
-  const Library& async_lib = Library::Handle(zone, Library::AsyncLibrary());
-  ASSERT(!async_lib.IsNull());
-  const Function& function =
-      Function::Handle(zone, async_lib.LookupFunctionAllowPrivate(
-                                 Symbols::_ensureScheduleImmediate()));
-  ASSERT(!function.IsNull());
   const Object& result = Object::Handle(
       zone, DartEntry::InvokeFunction(function, Object::empty_array()));
   ASSERT(result.IsNull() || result.IsError());

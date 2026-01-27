@@ -37,8 +37,6 @@ class ThreadState : public BaseThread {
   // The topmost zone used for allocation in this thread.
   Zone* zone() const { return zone_; }
 
-  bool ZoneIsOwnedByThread(Zone* zone) const;
-
   StackResource* top_resource() const { return top_resource_; }
   void set_top_resource(StackResource* value) { top_resource_ = value; }
   static intptr_t top_resource_offset() {

@@ -13,18 +13,6 @@ ThreadState::ThreadState(bool is_os_thread) : BaseThread(is_os_thread) {}
 
 ThreadState::~ThreadState() {}
 
-bool ThreadState::ZoneIsOwnedByThread(Zone* zone) const {
-  ASSERT(zone != nullptr);
-  Zone* current = zone_;
-  while (current != nullptr) {
-    if (current == zone) {
-      return true;
-    }
-    current = current->previous();
-  }
-  return false;
-}
-
 bool ThreadState::IsValidZoneHandle(Dart_Handle object) const {
   Zone* zone = this->zone();
   while (zone != nullptr) {

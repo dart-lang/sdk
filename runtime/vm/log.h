@@ -40,9 +40,6 @@ class Log {
   // and truncated to cursor afterwards.
   void Flush(const intptr_t cursor = 0);
 
-  // Clears the log.
-  void Clear();
-
   // Current cursor.
   intptr_t cursor() const;
 

@@ -2481,8 +2481,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->untag()->index_ = d.Read<int32_t>();
       lib->untag()->num_imports_ = d.Read<uint16_t>();
       lib->untag()->load_state_ = d.Read<int8_t>();
-      lib->untag()->flags_ =
-          UntaggedLibrary::InFullSnapshotBit::update(true, d.Read<uint8_t>());
+      lib->untag()->flags_ = d.Read<uint8_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(d_->kind() != Snapshot::kFullAOT);
       lib->untag()->kernel_library_index_ = d.Read<uint32_t>();

@@ -10,23 +10,6 @@
 
 namespace dart {
 
-//  Operator precedence table
-//
-//  14  multiplicative  * / ~/ %
-//  13  additive        + -
-//  12  shift           << >> >>>
-//  11  bitwise and     &
-//  10  bitwise xor     ^
-//   9  bitwise or      |
-//   8  relational      >= > <= < is as
-//   7  equality        == != === !==
-//   6  logical and     &&
-//   5  logical or      ||
-//   4  null check      ??
-//   3  conditional     ?
-//   2  assignment      = *= /= ~/= %= += -= <<= >>= >>>= &= ^= |= ??=
-//   1  comma           ,
-
 // Token definitions.
 // Some operator tokens appear in blocks, e.g. assignment operators.
 // There is code that depends on the values within a block to be
@@ -301,11 +284,6 @@ class Token {
     return false;
   }
 
-  static int Precedence(Kind tok) {
-    ASSERT(tok < kNumTokens);
-    return precedence_[tok];
-  }
-
   static Attribute Attributes(Kind tok) {
     ASSERT(tok < kNumTokens);
     return attributes_[tok];
@@ -393,7 +371,6 @@ class Token {
  private:
   static const char* const name_[];
   static const char* const tok_str_[];
-  static const uint8_t precedence_[];
   static const Attribute attributes_[];
 };
 

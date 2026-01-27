@@ -213,9 +213,6 @@ class IdleTimeHandler : public ValueObject {
   // idle notifications will be sent.
   void InitializeWithHeap(Heap* heap);
 
-  // Returns whether the caller should check for idle timeouts.
-  bool ShouldCheckForIdle();
-
   // Declares that the idle time should be reset to now.
   void UpdateStartIdleTime();
 
@@ -647,8 +644,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // adding/removing isolates, so no locks will be held.
   void ForEachIsolate(std::function<void(Isolate* isolate)> function,
                       bool at_safepoint = false);
-  Isolate* FirstIsolate() const;
-  Isolate* FirstIsolateLocked() const;
 
   void ForEachMutatorAtASafepoint(std::function<void(Thread* thread)> function);
 
@@ -1492,10 +1487,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // Kills all system isolates, excluding the kernel service and VM service.
   static void KillAllSystemIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
-
-  // Lookup an isolate by its main port. Returns nullptr if no matching isolate
-  // is found.
-  static Isolate* LookupIsolateByPort(Dart_Port port);
 
   // Lookup an isolate by its main port and return a copy of its name. Returns
   // nullptr if not matching isolate is found.

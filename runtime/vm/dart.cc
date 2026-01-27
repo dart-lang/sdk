@@ -64,7 +64,6 @@ DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 Isolate* Dart::vm_isolate_ = nullptr;
 int64_t Dart::start_time_micros_ = 0;
 ThreadPool* Dart::thread_pool_ = nullptr;
-DebugInfo* Dart::pprof_symbol_generator_ = nullptr;
 ReadOnlyHandles* Dart::predefined_handles_ = nullptr;
 Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
 Dart_ThreadStartCallback Dart::thread_start_callback_ = nullptr;

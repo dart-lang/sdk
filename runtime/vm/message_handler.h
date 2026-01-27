@@ -66,10 +66,6 @@ class MessageHandler : public PortHandler {
   // Returns true on success.
   MessageStatus HandleOOBMessages();
 
-  // Blocks the thread on a condition variable until a message arrives, and then
-  // handles all messages.
-  MessageStatus PauseAndHandleAllMessages(int64_t timeout_millis);
-
   // Returns true if there are pending OOB messages for this message
   // handler.
   bool HasOOBMessages();
@@ -94,8 +90,6 @@ class MessageHandler : public PortHandler {
   }
 
 #if !defined(PRODUCT)
-  void DebugDump();
-
   bool should_pause_on_start() const { return should_pause_on_start_; }
 
   void set_should_pause_on_start(bool should_pause_on_start) {

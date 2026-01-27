@@ -148,13 +148,6 @@ void Log::Flush(const intptr_t cursor) {
   buffer_.TruncateTo(cursor);
 }
 
-void Log::Clear() {
-  if (this == NoOpLog()) {
-    return;
-  }
-  buffer_.TruncateTo(0);
-}
-
 intptr_t Log::cursor() const {
   return buffer_.length();
 }

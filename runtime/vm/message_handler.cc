@@ -289,40 +289,6 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
   return HandleMessages(&ml, true, false);
 }
 
-MessageHandler::MessageStatus MessageHandler::PauseAndHandleAllMessages(
-    int64_t timeout_millis) {
-  MonitorLocker ml(&monitor_, /*no_safepoint_scope=*/false);
-  ASSERT(task_running_);
-#if defined(DEBUG)
-  CheckAccess();
-#endif
-  paused_for_messages_ = true;
-  while (queue_->IsEmpty() && oob_queue_->IsEmpty()) {
-    Monitor::WaitResult wr;
-    {
-      // Ensure this thread is at a safepoint while we wait for new messages to
-      // arrive.
-      TransitionVMToNative transition(Thread::Current());
-      wr = ml.Wait(timeout_millis);
-    }
-    ASSERT(task_running_);
-    if (wr == Monitor::kTimedOut) {
-      break;
-    }
-    if (queue_->IsEmpty()) {
-      // There are only OOB messages. Handle them and then continue waiting for
-      // normal messages unless there is an error.
-      MessageStatus status = HandleMessages(&ml, false, false);
-      if (status != kOK) {
-        paused_for_messages_ = false;
-        return status;
-      }
-    }
-  }
-  paused_for_messages_ = false;
-  return HandleMessages(&ml, true, true);
-}
-
 MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
   if (!oob_message_handling_allowed_) {
     return kOK;
@@ -532,10 +498,6 @@ void MessageHandler::OnAllPortsClosed() {
 }
 
 #if !defined(PRODUCT)
-void MessageHandler::DebugDump() {
-  PortMap::DebugDumpForMessageHandler(this);
-}
-
 void MessageHandler::PausedOnStart(bool paused) {
   MonitorLocker ml(&monitor_);
   PausedOnStartLocked(&ml, paused);
