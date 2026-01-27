@@ -127,29 +127,16 @@ void experimentalFlags() {
 }
 
 void messages() {
-  generateMessages.Messages messages = generateMessages.generateMessagesFiles(
-    repoDir,
-  );
-
-  Uri generatedFile = generateMessages.computeSharedGeneratedFile(repoDir);
-  check(
-    DartFormat.formatString(
-      messages.sharedMessages,
-      languageVersion: getPackageVersionFor('_fe_analyzer_shared'),
-    ),
-    generatedFile,
-    "dart pkg/front_end/tool/generate_messages.dart",
-  );
-
-  Uri cfeGeneratedFile = generateMessages.computeCfeGeneratedFile(repoDir);
-  check(
-    DartFormat.formatString(
-      messages.cfeMessages,
-      languageVersion: getPackageVersionFor('front_end'),
-    ),
-    cfeGeneratedFile,
-    "dart pkg/front_end/tool/generate_messages.dart",
-  );
+  for (var messages in generateMessages.generateMessagesFiles(repoDir)) {
+    check(
+      DartFormat.formatString(
+        messages.oldContents,
+        languageVersion: getPackageVersionFor(messages.packageName),
+      ),
+      messages.oldUri(repoDir),
+      "dart pkg/front_end/tool/generate_messages.dart",
+    );
+  }
 }
 
 bool _checkFoundErrors = false;

@@ -9,18 +9,6 @@ import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/located_error.dart';
 import 'package:analyzer_utilities/messages.dart';
 
-Uri computeSharedGeneratedFile(Uri repoDir) {
-  return repoDir.resolve(
-    "pkg/_fe_analyzer_shared/lib/src/messages/codes_generated.dart",
-  );
-}
-
-Uri computeCfeGeneratedFile(Uri repoDir) {
-  return repoDir.resolve(
-    "pkg/front_end/lib/src/codes/cfe_codes_generated.dart",
-  );
-}
-
 class MessageAccumulator {
   static const doNotEditComment =
       '// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.';
@@ -56,8 +44,12 @@ part of '$partOf';
 """);
   }
 
-  String finish() {
-    return _buffer.toString();
+  Messages finish({required String packageName, required String oldPath}) {
+    return Messages(
+      packageName: packageName,
+      oldPath: oldPath,
+      oldContents: _buffer.toString(),
+    );
   }
 
   void writeConstant({
@@ -90,14 +82,31 @@ part of '$partOf';
   }
 }
 
+/// Information about the message code to generate for a given package.
 class Messages {
-  final String sharedMessages;
-  final String cfeMessages;
+  /// The name of the package to which files are being generated.
+  final String packageName;
 
-  Messages(this.sharedMessages, this.cfeMessages);
+  /// The path to the old generated file, relative to the root of the package.
+  final String oldPath;
+
+  /// The string to write to the old `codes_generated.dart` or
+  /// `cfe_codes_generated.dart` file.
+  final String oldContents;
+
+  Messages({
+    required this.packageName,
+    required this.oldPath,
+    required this.oldContents,
+  });
+
+  /// Computes the absolute file URI to the old generated file.
+  ///
+  /// [repoDir] is the absolute file URI of the SDK repo.
+  Uri oldUri(Uri repoDir) => repoDir.resolve('pkg/$packageName/$oldPath');
 }
 
-Messages generateMessagesFilesRaw(Uri repoDir) {
+List<Messages> generateMessagesFilesRaw(Uri repoDir) {
   MessageAccumulator sharedMessages = new MessageAccumulator(
     partOf: 'codes.dart',
   );
@@ -138,7 +147,16 @@ Messages generateMessagesFilesRaw(Uri repoDir) {
     ],
   );
 
-  return new Messages(sharedMessages.finish(), cfeMessages.finish());
+  return [
+    sharedMessages.finish(
+      packageName: '_fe_analyzer_shared',
+      oldPath: "lib/src/messages/codes_generated.dart",
+    ),
+    cfeMessages.finish(
+      packageName: 'front_end',
+      oldPath: "lib/src/codes/cfe_codes_generated.dart",
+    ),
+  ];
 }
 
 /// Returns a fresh identifier that is not yet present in [usedNames], and adds
