@@ -167,9 +167,6 @@ then that is used instead.''',
     final verbosity = args.option('verbosity')!;
     final enabledExperiments = args.enabledExperiments;
 
-    stdout.writeln('''The `dart build cli` command is in preview at the moment.
-See documentation on https://dart.dev/interop/c-interop#native-assets.
-''');
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       sourceUri,
     );
