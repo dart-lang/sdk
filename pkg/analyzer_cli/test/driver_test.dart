@@ -9,6 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -274,7 +275,7 @@ linter:
   }
 
   YamlMap _parseOptions(String src) =>
-      AnalysisOptionsProvider().getOptionsFromString(src);
+      AnalysisOptionsProvider(SourceFactoryImpl([])).getOptionsFromString(src);
 
   Future<void> _runLinter_noLintsFlag() async {
     await drive(
