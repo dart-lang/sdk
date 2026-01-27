@@ -74,8 +74,9 @@ class InstanceCreationExpressionResolver {
       dotShorthandContextType,
     );
 
-    if (dotShorthandContextType is InterfaceTypeImpl) {
-      InterfaceElementImpl? contextElement = dotShorthandContextType.element;
+    if (dotShorthandContextType case InterfaceTypeImpl(
+      element: var contextElement,
+    ) when contextElement.isAccessibleIn(_resolver.definingLibrary)) {
       // This branch will be true if we're resolving an explicitly marked
       // const constructor invocation. It's completely unresolved, unlike a
       // rewritten [DotShorthandConstructorInvocation] that resulted from
@@ -120,6 +121,10 @@ class InstanceCreationExpressionResolver {
       _resolver.diagnosticReporter.report(
         diag.dotShorthandMissingContext.at(node),
       );
+      // Prevents `constructorElementToInfer` (called by
+      // `_resolveDotShorthandConstructorInvocation`) from considering the
+      // context type to be valid.
+      dotShorthandContextType = InvalidTypeImpl.instance;
     }
 
     _resolveDotShorthandConstructorInvocation(

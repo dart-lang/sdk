@@ -60,7 +60,8 @@ class PropertyElementResolver with ScopeHelpers {
     // `FutureOr<S>`.
     context = _resolver.typeSystem.futureOrBase(context);
 
-    if (context is InterfaceTypeImpl) {
+    if (context is InterfaceTypeImpl &&
+        context.element.isAccessibleIn(_definingLibrary)) {
       var identifier = node.propertyName;
       // Find constructor tearoffs.
       var element = context.lookUpConstructor(
