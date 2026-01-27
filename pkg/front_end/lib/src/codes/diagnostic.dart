@@ -14,4 +14,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show relativizeUri;
 import 'type_labeler.dart';
 
+export 'package:_fe_analyzer_shared/src/messages/diagnostic.dart';
+
 part 'diagnostic.g.dart';
