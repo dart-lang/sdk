@@ -391,7 +391,6 @@ class ActivationFrame : public ZoneAllocated {
                   TokenPosition* visible_end_token_pos,
                   Object* value);
 
-  ArrayPtr GetLocalVariables();
   ObjectPtr GetParameter(intptr_t index);
   ClosurePtr GetClosure();
   ObjectPtr GetReceiver();

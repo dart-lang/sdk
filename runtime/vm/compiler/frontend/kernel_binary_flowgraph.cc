@@ -4418,24 +4418,6 @@ Fragment StreamingFlowGraphBuilder::BuildNullLiteral(TokenPosition* position) {
   return Constant(Instance::ZoneHandle(Z, Instance::null()));
 }
 
-Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
-  const Class& future = Class::Handle(Z, IG->object_store()->future_class());
-  ASSERT(!future.IsNull());
-  const auto& error = future.EnsureIsFinalized(thread());
-  ASSERT(error == Error::null());
-  Function& constructor = Function::ZoneHandle(
-      Z, Resolver::ResolveFunction(Z, future, Symbols::FutureValue()));
-  ASSERT(!constructor.IsNull());
-
-  Fragment instructions;
-  instructions += BuildNullLiteral(position);
-  instructions += StaticCall(TokenPosition::kNoSource, constructor,
-                             /* argument_count = */ 1, ICData::kStatic);
-  return instructions;
-}
-
 Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
     TokenPosition* position,
     Tag tag) {

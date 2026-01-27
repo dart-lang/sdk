@@ -446,7 +446,6 @@ class ObjectPointerVisitor;
   V(_backtrackingStack, "_backtrackingStack")                                  \
   V(_checkSetRangeArguments, "_checkSetRangeArguments")                        \
   V(_current, "_current")                                                      \
-  V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_ffi_resolver_function, "_ffi_resolver_function")                          \
   V(future, "future")                                                          \
   V(_future, "_future")                                                        \
@@ -787,7 +786,6 @@ class Symbols : public AllStatic {
 
   static StringPtr FromGet(Thread* thread, const String& str);
   static StringPtr FromSet(Thread* thread, const String& str);
-  static StringPtr FromDot(Thread* thread, const String& str);
 
   static StringPtr FromCharCode(Thread* thread, uint16_t char_code);
 
@@ -809,7 +807,6 @@ class Symbols : public AllStatic {
 
   static StringPtr LookupFromGet(Thread* thread, const String& str);
   static StringPtr LookupFromSet(Thread* thread, const String& str);
-  static StringPtr LookupFromDot(Thread* thread, const String& str);
 
   static void GetStats(IsolateGroup* isolate_group,
                        intptr_t* size,

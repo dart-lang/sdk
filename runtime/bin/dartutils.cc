@@ -210,22 +210,6 @@ bool DartUtils::IsDartSchemeURL(const char* url_name) {
   return (strncmp(url_name, kDartScheme, kDartSchemeLen) == 0);
 }
 
-bool DartUtils::IsDartIOLibURL(const char* url_name) {
-  return (strcmp(url_name, kIOLibURL) == 0);
-}
-
-bool DartUtils::IsDartCLILibURL(const char* url_name) {
-  return (strcmp(url_name, kCLILibURL) == 0);
-}
-
-bool DartUtils::IsDartHttpLibURL(const char* url_name) {
-  return (strcmp(url_name, kHttpLibURL) == 0);
-}
-
-bool DartUtils::IsDartBuiltinLibURL(const char* url_name) {
-  return (strcmp(url_name, kBuiltinLibURL) == 0);
-}
-
 char* DartUtils::DirName(const char* url) {
   const char* slash = strrchr(url, File::PathSeparator()[0]);
   if (slash == nullptr) {

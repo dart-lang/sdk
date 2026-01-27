@@ -232,12 +232,6 @@ intptr_t OS::ActivationFrameAlignment() {
 #endif
 }
 
-int OS::NumberOfAvailableProcessors() {
-  SYSTEM_INFO info;
-  GetSystemInfo(&info);
-  return info.dwNumberOfProcessors;
-}
-
 uintptr_t OS::CurrentRSS() {
 // Although the documentation at
 // https://docs.microsoft.com/en-us/windows/win32/api/psapi/nf-psapi-getprocessmemoryinfo

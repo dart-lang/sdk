@@ -1887,9 +1887,6 @@ class UntaggedLibrary : public UntaggedObject {
   // True if debugger can stop in library.
   using DebuggableBit =
       BitField<decltype(flags_), bool, DartSchemeBit::kNextBit>;
-  // True if library is in a full snapshot.
-  using InFullSnapshotBit =
-      BitField<decltype(flags_), bool, DebuggableBit::kNextBit>;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   uint32_t kernel_library_index_;

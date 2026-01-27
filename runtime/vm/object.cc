@@ -3273,12 +3273,6 @@ ClassPtr Class::Mixin() const {
   return ptr();
 }
 
-bool Class::IsInFullSnapshot() const {
-  NoSafepointScope no_safepoint;
-  return UntaggedLibrary::InFullSnapshotBit::decode(
-      untag()->library()->untag()->flags_);
-}
-
 TypePtr Class::RareType() const {
   if (!IsGeneric()) {
     return DeclarationType();
@@ -7435,26 +7429,6 @@ TypeArgumentsPtr TypeArguments::Prepend(Zone* zone,
   return result.Canonicalize(Thread::Current());
 }
 
-TypeArgumentsPtr TypeArguments::ConcatenateTypeParameters(
-    Zone* zone,
-    const TypeArguments& other) const {
-  ASSERT(!IsNull() && !other.IsNull());
-  const intptr_t this_len = Length();
-  const intptr_t other_len = other.Length();
-  const auto& result = TypeArguments::Handle(
-      zone, TypeArguments::New(this_len + other_len, Heap::kNew));
-  auto& type = AbstractType::Handle(zone);
-  for (intptr_t i = 0; i < this_len; ++i) {
-    type = TypeAt(i);
-    result.SetTypeAt(i, type);
-  }
-  for (intptr_t i = 0; i < other_len; ++i) {
-    type = other.TypeAt(i);
-    result.SetTypeAt(this_len + i, type);
-  }
-  return result.ptr();
-}
-
 InstantiationMode TypeArguments::GetInstantiationMode(Zone* zone,
                                                       const Function* function,
                                                       const Class* cls) const {
@@ -8767,20 +8741,6 @@ void Function::set_implicit_static_closure(const Closure& closure) const {
     return;
   }
   UNREACHABLE();
-}
-
-ScriptPtr Function::eval_script() const {
-  const Object& obj = Object::Handle(untag()->data());
-  if (obj.IsScript()) {
-    return Script::Cast(obj).ptr();
-  }
-  return Script::null();
-}
-
-void Function::set_eval_script(const Script& script) const {
-  ASSERT(token_pos() == TokenPosition::kMinSource);
-  ASSERT(untag()->data() == Object::null());
-  set_data(script);
 }
 
 FunctionPtr Function::extracted_method_closure() const {
@@ -11577,14 +11537,6 @@ ScriptPtr Function::script() const {
     return Script::RawCast(
         fdata.At(static_cast<intptr_t>(EvalFunctionData::kScript)));
   }
-  if (token_pos() == TokenPosition::kMinSource) {
-    // Testing for position 0 is an optimization that relies on temporary
-    // eval functions having token position 0.
-    const Script& script = Script::Handle(eval_script());
-    if (!script.IsNull()) {
-      return script.ptr();
-    }
-  }
   const Object& obj = Object::Handle(untag()->owner());
   if (obj.IsPatchClass()) {
     return PatchClass::Cast(obj).script();
@@ -12854,11 +12806,6 @@ int32_t Field::SourceFingerprint() const {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-StringPtr Field::InitializingExpression() const {
-  UNREACHABLE();
-  return String::null();
-}
-
 const char* Field::UserVisibleNameCString() const {
   NoSafepointScope no_safepoint;
   if (FLAG_show_internal_names) {
@@ -12950,45 +12897,6 @@ const char* Field::ToCString() const {
   const char* cls_name = String::Handle(cls.Name()).ToCString();
   return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s%s%s",
                      cls_name, field_name, kF0, kF1, kF2, kF3, kF4);
-}
-
-// Build a closure object that gets (or sets) the contents of a static
-// field f and cache the closure in a newly created static field
-// named #f (or #f= in case of a setter).
-InstancePtr Field::AccessorClosure(bool make_setter) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  ASSERT(is_static());
-  const Class& field_owner = Class::Handle(zone, Owner());
-
-  String& closure_name = String::Handle(zone, this->name());
-  closure_name = Symbols::FromConcat(thread, Symbols::HashMark(), closure_name);
-  if (make_setter) {
-    closure_name =
-        Symbols::FromConcat(thread, Symbols::HashMark(), closure_name);
-  }
-
-  Field& closure_field = Field::Handle(zone);
-  closure_field = field_owner.LookupStaticField(closure_name);
-  if (!closure_field.IsNull()) {
-    ASSERT(closure_field.is_static());
-    const Instance& closure =
-        Instance::Handle(zone, Instance::RawCast(closure_field.StaticValue()));
-    ASSERT(!closure.IsNull());
-    ASSERT(closure.IsClosure());
-    return closure.ptr();
-  }
-
-  UNREACHABLE();
-  return Instance::null();
-}
-
-InstancePtr Field::GetterClosure() const {
-  return AccessorClosure(false);
-}
-
-InstancePtr Field::SetterClosure() const {
-  return AccessorClosure(true);
 }
 
 WeakArrayPtr Field::dependent_code() const {
@@ -15204,7 +15112,6 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_native_entry_symbol_resolver(nullptr);
   result.set_ffi_native_resolver(nullptr);
   result.set_flags(0);
-  result.set_is_in_fullsnapshot(false);
   // This logic is also in the DAP debug adapter in DDS to avoid needing
   // to call setLibraryDebuggable for every library for every isolate.
   // If these defaults change, the same should be done there in
@@ -17451,29 +17358,6 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
   if (reason <= kLastRecordedDeoptReason) {
     untag()->state_bits_.FetchOr<DeoptReasonBits>(1 << reason);
   }
-}
-
-const char* ICData::RebindRuleToCString(RebindRule r) {
-  switch (r) {
-#define RULE_CASE(Name)                                                        \
-  case RebindRule::k##Name:                                                    \
-    return #Name;
-    FOR_EACH_REBIND_RULE(RULE_CASE)
-#undef RULE_CASE
-    default:
-      return nullptr;
-  }
-}
-
-bool ICData::ParseRebindRule(const char* str, RebindRule* out) {
-#define RULE_CASE(Name)                                                        \
-  if (strcmp(str, #Name) == 0) {                                               \
-    *out = RebindRule::k##Name;                                                \
-    return true;                                                               \
-  }
-  FOR_EACH_REBIND_RULE(RULE_CASE)
-#undef RULE_CASE
-  return false;
 }
 
 ICData::RebindRule ICData::rebind_rule() const {

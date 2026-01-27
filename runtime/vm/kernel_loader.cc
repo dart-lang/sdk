@@ -486,21 +486,6 @@ KernelLoader::KernelLoader(const KernelProgramInfo& kernel_program_info,
   H.InitFromKernelProgramInfo(kernel_program_info_);
 }
 
-bool KernelLoader::IsClassName(NameIndex name,
-                               const String& library,
-                               const String& klass) {
-  ASSERT(H.IsClass(name));
-  StringIndex class_name_index = H.CanonicalNameString(name);
-
-  if (!H.StringEquals(class_name_index, klass.ToCString())) {
-    return false;
-  }
-  ASSERT(H.IsLibrary(H.CanonicalNameParent(name)));
-  StringIndex library_name_index =
-      H.CanonicalNameString(H.CanonicalNameParent(name));
-  return H.StringEquals(library_name_index, library.ToCString());
-}
-
 ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
   SafepointWriteRwLocker ml(thread_, thread_->isolate_group()->program_lock());
   ASSERT(kernel_program_info_.constants() == Array::null());

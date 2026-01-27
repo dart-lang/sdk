@@ -297,9 +297,6 @@ class LocalVarDescriptorsBuilder : public ValueObject {
   // Add variable descriptor.
   void Add(const VarDesc& var_desc) { vars_.Add(var_desc); }
 
-  // Add all variable descriptors from given [LocalVarDescriptors] object.
-  void AddAll(Zone* zone, const LocalVarDescriptors& var_descs);
-
   // Record deopt-id -> context-level mappings, using ranges of deopt-ids with
   // the same context-level. [context_level_array] contains (deopt_id,
   // context_level) tuples.
@@ -322,9 +319,6 @@ class LocalScope : public ZoneAllocated {
   LocalScope* sibling() const { return sibling_; }
   int function_level() const { return function_level_; }
   int loop_level() const { return loop_level_; }
-
-  // Check if this scope is nested within the passed in scope.
-  bool IsNestedWithin(LocalScope* scope) const;
 
   // The context level is only set in a scope that is either the owner scope of
   // a captured variable or that is the owner scope of a context.
@@ -387,9 +381,6 @@ class LocalScope : public ZoneAllocated {
   LocalVariable* LookupVariable(const String& name,
                                 intptr_t kernel_offset,
                                 bool test_only);
-
-  // Lookup a variable in this scope and its parents by name.
-  LocalVariable* LookupVariableByName(const String& name);
 
   // Mark this variable as captured by this scope.
   void CaptureVariable(LocalVariable* variable);

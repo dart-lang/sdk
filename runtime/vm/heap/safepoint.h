@@ -63,21 +63,6 @@ class ReloadSafepointOperationScope : public SafepointOperationScope {
   DISALLOW_COPY_AND_ASSIGN(ReloadSafepointOperationScope);
 };
 
-// A stack based scope that can be used to perform an operation after getting
-// all threads to a safepoint. At the end of the operation all the threads are
-// resumed. Allocations in the scope will force heap growth.
-class ForceGrowthSafepointOperationScope : public ThreadStackResource {
- public:
-  ForceGrowthSafepointOperationScope(Thread* T, SafepointLevel level);
-  ~ForceGrowthSafepointOperationScope();
-
- private:
-  SafepointLevel level_;
-  bool current_growth_controller_state_;
-
-  DISALLOW_COPY_AND_ASSIGN(ForceGrowthSafepointOperationScope);
-};
-
 // Subclasses of SafepointTask are able to run on thread blocked at a safepoint.
 class SafepointTask : public ThreadPool::Task,
                       public IntrusiveDListEntry<SafepointTask> {
@@ -236,7 +221,6 @@ class SafepointHandler {
   friend class Isolate;
   friend class IsolateGroup;
   friend class SafepointOperationScope;
-  friend class ForceGrowthSafepointOperationScope;
   friend class HeapIterationScope;
 };
 

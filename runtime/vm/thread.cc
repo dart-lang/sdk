@@ -1689,16 +1689,6 @@ void Thread::set_forward_table_old(WeakTable* table) {
   forward_table_old_ = std::move(value);
 }
 
-void Thread::VisitMutators(MutatorThreadVisitor* visitor) {
-  if (visitor == nullptr) {
-    return;
-  }
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->thread_registry()->ForEachThread(
-        [&](Thread* thread) { visitor->VisitMutatorThread(thread); });
-  });
-}
-
 #if defined(DART_INCLUDE_PROFILER)
 DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
     : StackResource(thread) {

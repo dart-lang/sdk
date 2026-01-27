@@ -351,17 +351,6 @@ struct TsanUtils {
   }
 };
 
-class MutatorThreadVisitor {
- public:
-  MutatorThreadVisitor() {}
-  virtual ~MutatorThreadVisitor() {}
-
-  virtual void VisitMutatorThread(Thread* mutator) = 0;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MutatorThreadVisitor);
-};
-
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
 // a thread is allocated by ThreadRegistry::GetFromFreelistLocked either
@@ -1379,8 +1368,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   void set_default_tag(const UserTag& tag);
 
   void set_user_tag(uword tag) { user_tag_ = tag; }
-
-  static void VisitMutators(MutatorThreadVisitor* visitor);
 
   ArrayPtr thread_locals() const { return thread_locals_; }
   void set_thread_locals(const Array& thread_locals);

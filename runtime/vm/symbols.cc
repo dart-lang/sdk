@@ -220,10 +220,6 @@ StringPtr Symbols::FromSet(Thread* thread, const String& str) {
   return FromConcat(thread, SetterPrefix(), str);
 }
 
-StringPtr Symbols::FromDot(Thread* thread, const String& str) {
-  return FromConcat(thread, str, Dot());
-}
-
 // TODO(srdjan): If this becomes performance critical code, consider looking
 // up symbol from hash of pieces instead of concatenating them first into
 // a string.
@@ -401,10 +397,6 @@ StringPtr Symbols::LookupFromGet(Thread* thread, const String& str) {
 
 StringPtr Symbols::LookupFromSet(Thread* thread, const String& str) {
   return LookupFromConcat(thread, SetterPrefix(), str);
-}
-
-StringPtr Symbols::LookupFromDot(Thread* thread, const String& str) {
-  return LookupFromConcat(thread, str, Dot());
 }
 
 StringPtr Symbols::New(Thread* thread, const String& str) {

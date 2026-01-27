@@ -39,7 +39,6 @@ class KernelFingerprintHelper : public KernelReaderHelper {
   void CalculateListOfDartTypesFingerprint();
   void CalculateListOfVariableDeclarationsFingerprint();
   void CalculateStringReferenceFingerprint();
-  void CalculateListOfStringsFingerprint();
   void CalculateTypeParameterFingerprint();
   void CalculateTypeParametersListFingerprint();
   void CalculateCanonicalNameFingerprint();
@@ -136,13 +135,6 @@ void KernelFingerprintHelper::CalculateListOfDartTypesFingerprint() {
 void KernelFingerprintHelper::CalculateStringReferenceFingerprint() {
   BuildHash(
       H.DartString(ReadStringReference()).Hash());  // read ith string index.
-}
-
-void KernelFingerprintHelper::CalculateListOfStringsFingerprint() {
-  intptr_t list_length = ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    CalculateStringReferenceFingerprint();  // read ith string index.
-  }
 }
 
 void KernelFingerprintHelper::CalculateListOfVariableDeclarationsFingerprint() {
