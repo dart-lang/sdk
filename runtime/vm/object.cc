@@ -25845,7 +25845,7 @@ void Array::Truncate(intptr_t new_len) const {
   intptr_t old_size = Array::InstanceSize(old_len);
   intptr_t new_size = Array::InstanceSize(new_len);
 
-  NoSafepointScope no_safepoint;
+  NoSafepointScope no_safepoint(thread);
 
   // If there is any left over space fill it with either an Array object or
   // just a plain object (depending on the amount of left over space) so
@@ -25855,13 +25855,9 @@ void Array::Truncate(intptr_t new_len) const {
   // Update the size in the header field and length of the array object.
   // These release operations are balanced by acquire operations in the
   // concurrent sweeper.
-  uword old_tags = array.untag()->tags_;
-  uword new_tags;
-  ASSERT(kArrayCid == UntaggedObject::ClassIdTag::decode(old_tags));
-  do {
-    new_tags = UntaggedObject::SizeTag::update(new_size, old_tags);
-  } while (!array.untag()->tags_.compare_exchange_weak(
-      old_tags, new_tags, std::memory_order_release));
+  array.untag()
+      ->tags_.Update<UntaggedObject::SizeTag, std::memory_order_release>(
+          new_size);
 
   // Between the CAS of the header above and the SetLength below, the array is
   // temporarily in an inconsistent state. The header is considered the
