@@ -86,6 +86,7 @@
   CONSTANT(Instructions, kNonBarePayloadAlignment)                             \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(Page, kBytesPerCardLog2)                                            \
+  CONSTANT(Page, kPageMask)                                                    \
   CONSTANT(Record, kMaxElements)                                               \
   CONSTANT(RecordShape, kFieldNamesIndexMask)                                  \
   CONSTANT(RecordShape, kFieldNamesIndexShift)                                 \

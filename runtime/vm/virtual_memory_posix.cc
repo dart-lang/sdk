@@ -584,7 +584,7 @@ void VirtualMemory::Init() {
     int count = fscanf(fp, "%zu", &max_map_count);
     fclose(fp);
     if (count == 1) {
-      size_t max_heap_pages = FLAG_old_gen_heap_size * MB / kPageSize;
+      size_t max_heap_pages = FLAG_old_gen_heap_size * MB / Page::kPageSize;
       if (max_map_count < max_heap_pages) {
         OS::PrintErr(
             "warning: vm.max_map_count (%zu) is not large enough to support "

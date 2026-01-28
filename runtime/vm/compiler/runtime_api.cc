@@ -347,10 +347,6 @@ intptr_t RuntimeEntry::argument_count() const {
 
 namespace target {
 
-const word kPageSize = dart::kPageSize;
-const word kPageSizeInWords = dart::kPageSize / kWordSize;
-const word kPageMask = dart::kPageMask;
-
 static word TranslateOffsetInWordsToHost(word offset) {
   RELEASE_ASSERT((offset % kCompressedWordSize) == 0);
   return (offset / kCompressedWordSize) * dart::kCompressedWordSize;

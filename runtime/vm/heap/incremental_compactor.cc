@@ -176,7 +176,7 @@ class PrologueTask : public SafepointTask {
 
 bool GCIncrementalCompactor::SelectEvacuationCandidates(PageSpace* old_space) {
   // Only evacuate pages that are at least half empty.
-  constexpr intptr_t kEvacuationThreshold = kPageSize / 2;
+  constexpr intptr_t kEvacuationThreshold = Page::kPageSize / 2;
 
   // Evacuate no more than this amount of objects. This puts a bound on the
   // stop-the-world evacuate step that is similar to the existing longest

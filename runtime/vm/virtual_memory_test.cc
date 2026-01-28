@@ -52,7 +52,7 @@ VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
 }
 
 VM_UNIT_TEST_CASE(AllocateAlignedVirtualMemory) {
-  intptr_t kHeapPageSize = kPageSize;
+  intptr_t kHeapPageSize = Page::kPageSize;
   intptr_t kVirtualPageSize = 4096;
 
   intptr_t kIterations = kHeapPageSize / kVirtualPageSize;
@@ -111,7 +111,7 @@ VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
 
   const bool is_executable = false;
   VirtualMemory* vm2 = VirtualMemory::AllocateAligned(
-      vm->size(), kPageSize, is_executable,
+      vm->size(), Page::kPageSize, is_executable,
       /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
   bool ok = vm->DuplicateRX(vm2);
   EXPECT_EQ(true, ok);
