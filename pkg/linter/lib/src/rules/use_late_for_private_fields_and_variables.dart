@@ -135,7 +135,8 @@ class _Visitor extends RecursiveAstVisitor<void> {
     var parent = node.parent?.parent;
     if (parent is ExtensionTypeDeclaration && !node.isStatic) return;
     if (parent != null) {
-      if (parent.isPrivateExtension) {
+      if (parent is ExtensionDeclaration &&
+          parent.declaredFragment!.element.isPrivate) {
         node.fields.variables.forEach(_visit);
       } else {
         for (var variable in node.fields.variables) {
@@ -249,16 +250,6 @@ class _Visitor extends RecursiveAstVisitor<void> {
       // This is OK; non-null access.
     } else {
       nullableAccess.add(canonicalElement.baseElement);
-    }
-  }
-}
-
-extension on AstNode {
-  bool get isPrivateExtension {
-    if (this case ExtensionDeclaration(:var name)) {
-      return name == null || Identifier.isPrivateName(name.lexeme);
-    } else {
-      return false;
     }
   }
 }
