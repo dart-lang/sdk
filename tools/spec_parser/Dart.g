@@ -4,6 +4,11 @@
 
 // CHANGES:
 //
+// v0.58 Add isNoSkip() predicate to disambiguate metadata from record types.
+// Without this, "@Foo () f() {}" would parse "()" as metadata arguments.
+// With this, whitespace between the identifier and "(" causes the parser to
+// treat "@Foo" as metadata without arguments, and "()" as a record return type.
+//
 // v0.57 Introduce augmentation related updates.
 //
 // v0.56 Update constructor declaration syntax to allow `constructorHead`.
@@ -222,6 +227,22 @@ import java.util.Stack;
       return !asyncEtcAreKeywords.peek();
     }
     return false;
+  }
+
+  // Returns true if there is no skipped token (whitespace, comments) between
+  // the previous and the current visible token.
+  //
+  // This works by comparing character positions in the source text:
+  // - LT(-1).getStopIndex(): where the previous token ends
+  // - LT(1).getStartIndex(): where the next token begins
+  //
+  // If stopIndex + 1 == startIndex, the tokens are adjacent with no gap.
+  // If there's a gap, whitespace or comments were skipped between them.
+  //
+  // Example: "@Foo()" -> "Foo" ends at 3, "(" starts at 4 -> 3+1==4 -> true
+  // Example: "@Foo ()" -> "Foo" ends at 3, "(" starts at 5 -> 3+1!=5 -> false
+  boolean isNoSkip() {
+    return _input.LT(-1).getStopIndex() + 1 == _input.LT(1).getStartIndex();
   }
 }
 
@@ -729,7 +750,7 @@ metadata
     ;
 
 metadatum
-    :    constructorDesignation arguments
+    :    constructorDesignation { isNoSkip() }? arguments
     |    identifier
     |    qualifiedName
     ;

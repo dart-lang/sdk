@@ -4,6 +4,11 @@
 
 // CHANGES:
 //
+// v0.59 Add _isNoSkip() predicate to disambiguate metadata from record types.
+// Without this, "@Foo () f() {}" would parse "()" as metadata arguments.
+// With this, whitespace between the identifier and "(" causes the parser to
+// treat "@Foo" as metadata without arguments, and "()" as a record return type.
+//
 // v0.58 Introduce augmentation related updates.
 //
 // v0.57 Update constructor declaration syntax to allow `constructorHead`.
@@ -287,6 +292,22 @@ bool _asyncEtcPredicate() {
     return !_asyncEtcAreKeywords.last;
   }
   return false;
+}
+
+// Returns true if there is no skipped token (whitespace, comments) between
+// the previous and the current visible token.
+//
+// This works by comparing character positions in the source text:
+// - LT(-1).stopIndex: where the previous token ends
+// - LT(1).startIndex: where the next token begins
+//
+// If stopIndex + 1 == startIndex, the tokens are adjacent with no gap.
+// If there's a gap, whitespace or comments were skipped between them.
+//
+// Example: "@Foo()" -> "Foo" ends at 3, "(" starts at 4 -> 3+1==4 -> true
+// Example: "@Foo ()" -> "Foo" ends at 3, "(" starts at 5 -> 3+1!=5 -> false
+bool _isNoSkip() {
+  return tokenStream.LT(-1)!.stopIndex + 1 == tokenStream.LT(1)!.startIndex;
 }
 }
 
@@ -743,7 +764,7 @@ metadata
     ;
 
 metadatum
-    :    constructorDesignation arguments
+    :    constructorDesignation { _isNoSkip() }? arguments
     |    identifier
     |    qualifiedName
     ;
