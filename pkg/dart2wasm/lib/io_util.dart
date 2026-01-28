@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io' show File, Directory, Process, ProcessResult;
 import 'dart:typed_data';
 
@@ -16,6 +17,7 @@ import 'package:kernel/kernel.dart'
 import 'package:path/path.dart' as path;
 
 import 'compiler_options.dart';
+import 'source_map_utils.dart';
 
 class CompilerPhaseInputOutputManager {
   final FileSystem fileSystem;
@@ -107,6 +109,20 @@ class CompilerPhaseInputOutputManager {
     final wasmOutName =
         _moduleNameToWasmFile(options.outputFile, outputModuleName);
     final wasmInName = _moduleNameToWasmFile(mainWasmModule, inputModuleName);
+    final sourceMapInName =
+        _moduleNameToSourceMapFile(mainWasmModule, inputModuleName);
+    final sourceMapOutName =
+        _moduleNameToSourceMapFile(options.outputFile, outputModuleName);
+
+    // wasm-opt drops custom sections and reorders names section, read custom
+    // section for deobfuscating class names before wasm-opt, add them back
+    // after.
+    List<String?>? classNames;
+    if (moduleId == WasmCompilerOptions.mainModuleId) {
+      classNames = getMinifiedClassNames(
+          jsonDecode(await File(sourceMapInName).readAsString()));
+    }
+
     final args = [
       ...flags,
       wasmInName,
@@ -114,9 +130,9 @@ class CompilerPhaseInputOutputManager {
       wasmOutName,
       if (options.translatorOptions.generateSourceMaps) ...[
         '-ism',
-        _moduleNameToSourceMapFile(mainWasmModule, inputModuleName),
+        sourceMapInName,
         '-osm',
-        _moduleNameToSourceMapFile(options.outputFile, outputModuleName),
+        sourceMapOutName,
         '-osu',
         _moduleNameToRelativeSourceMapUri(outputModuleName).toString(),
       ],
@@ -137,6 +153,13 @@ class CompilerPhaseInputOutputManager {
       throw Exception(
           'wasm-opt failed on module $inputModuleName with exit code ${result.exitCode}:'
           '\n${result.stdout}\n${result.stderr}');
+    }
+
+    if (classNames != null) {
+      final Map<String, Object?> sourceMapJson =
+          jsonDecode(await File(sourceMapOutName).readAsString());
+      addMinifiedClassNames(sourceMapJson, classNames);
+      await File(sourceMapOutName).writeAsString(jsonEncode(sourceMapJson));
     }
   }
 

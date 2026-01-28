@@ -63,14 +63,11 @@ The format looks like this:
  ...
  x_org_dartlang_dart2js: {
     minified_names: {
-      global: {
-        "a": 3,  // an index in the names table, e.g. "topLevelMethod1"
-        "X": 4,  // e.g. "MyAbstractClass"
-      },
-      instance: {
-        "a": 5,  // e.g. "instanceMethod1"
-        "gb": 6, // e.g. "myGetter"
-      }
+      // E.g. names[3] = "topLevelMethod1", names[4] = "MyAbstractClass"
+      global: "a,3,X,4", // (minified name, index in the names table) pairs
+
+      // E.g. names[5] = "instanceMethod1", names[6] = "myGetter"
+      instance: "a,5,gb,6" // same format as `global`
     }
   }
 ```
