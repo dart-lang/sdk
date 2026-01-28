@@ -3418,9 +3418,6 @@ void f() {
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> test@155
   155 11:12 |test| REFERENCE qualified
-<testLibraryFragment> f@226
-  236 19:5 || REFERENCE qualified
-  253 20:14 || REFERENCE qualified
 ''');
   }
 
@@ -3609,9 +3606,6 @@ void f() {
   69 4:5 |test| READ
 <testLibraryFragment> test@154
   154 11:12 |test| REFERENCE qualified
-<testLibraryFragment> f@225
-  235 19:5 || REFERENCE qualified
-  252 20:14 || REFERENCE qualified
 ''');
   }
 
@@ -3769,9 +3763,6 @@ void f() {
   41 3:5 |test| READ
   51 4:5 |test| WRITE
   65 5:5 |test| READ_WRITE
-  87 8:7 || REFERENCE qualified
-  102 9:12 || REFERENCE qualified
-  114 10:9 || REFERENCE qualified
 ''');
   }
 
@@ -3914,10 +3905,6 @@ void f(A a) {
   53 4:5 |test| READ
   63 5:5 |test| WRITE
   77 6:5 |test| READ_WRITE
-<testLibraryFragment> f@100
-  117 11:9 || REFERENCE qualified
-  134 12:14 || REFERENCE qualified
-  148 13:11 || REFERENCE qualified
 ''');
   }
 
@@ -4057,10 +4044,6 @@ void f() {
   37 3:3 |test| READ
   45 4:3 |test| WRITE
   57 5:3 |test| READ_WRITE
-<testLibraryFragment> f@75
-  87 8:7 || REFERENCE qualified
-  102 9:12 || REFERENCE qualified
-  114 10:9 || REFERENCE qualified
 ''');
   }
 
@@ -5996,9 +5979,6 @@ void f() {
 <testLibraryFragment> new@null
   58 6:8 |test| READ
   91 7:28 |test| READ
-<testLibraryFragment> f@114
-  124 11:5 || REFERENCE qualified
-  141 12:14 || REFERENCE qualified
 ''');
   }
 

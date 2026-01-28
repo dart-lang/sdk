@@ -904,21 +904,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitExpression(Expression node) {
-    var parameterElement = node.correspondingParameter;
-    if (parameterElement != null && parameterElement.isOptionalPositional) {
-      recordRelationOffset(
-        parameterElement,
-        IndexRelationKind.IS_REFERENCED_BY,
-        node.offset,
-        0,
-        true,
-      );
-    }
-    super.visitExpression(node);
-  }
-
-  @override
   void visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
     node.superclass.accept(this);

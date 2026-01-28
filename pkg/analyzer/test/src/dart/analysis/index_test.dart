@@ -2181,8 +2181,6 @@ void f() {
     var element = findElement2.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 155 11:12 |test| IS_REFERENCED_BY qualified
-236 19:5 || IS_REFERENCED_BY qualified
-253 20:14 || IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -2350,8 +2348,6 @@ void f() {
     var element = findElement2.unnamedConstructor('A').parameter('test');
     assertElementIndexText(element, r'''
 154 11:12 |test| IS_REFERENCED_BY qualified
-235 19:5 || IS_REFERENCED_BY qualified
-252 20:14 || IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -2486,9 +2482,6 @@ void f() {
     assertErrorsInResult([]);
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-87 8:7 || IS_REFERENCED_BY qualified
-102 9:12 || IS_REFERENCED_BY qualified
-114 10:9 || IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -2605,9 +2598,6 @@ void f(A a) {
     assertErrorsInResult([]);
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-117 11:9 || IS_REFERENCED_BY qualified
-134 12:14 || IS_REFERENCED_BY qualified
-148 13:11 || IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -2724,9 +2714,6 @@ void f() {
     assertErrorsInResult([]);
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-87 8:7 || IS_REFERENCED_BY qualified
-102 9:12 || IS_REFERENCED_BY qualified
-114 10:9 || IS_REFERENCED_BY qualified
 ''');
   }
 
@@ -4116,8 +4103,6 @@ void f() {
     assertErrorsInResult([]);
     var element = findElement2.unnamedConstructor('B').parameter('test');
     assertElementIndexText(element, r'''
-124 11:5 || IS_REFERENCED_BY qualified
-141 12:14 || IS_REFERENCED_BY qualified
 ''');
   }
 

@@ -963,9 +963,7 @@ class Search {
         return parent is ClassDeclaration || parent is CompilationUnit;
       }, searchedFiles),
     );
-    if (parameter.isNamed ||
-        parameter.isOptionalPositional ||
-        parameter.enclosingElement is ConstructorElement) {
+    if (parameter.isNamed || parameter.enclosingElement is ConstructorElement) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;
