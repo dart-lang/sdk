@@ -46,7 +46,9 @@ enum _DryRunErrorCode {
   invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs(10),
   invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs(11),
   invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs(12),
-  avoidDoubleAndIntChecks(13);
+  avoidDoubleAndIntChecks(13),
+  noPackageJs(14),
+  noDartJsUtil(15);
 
   const _DryRunErrorCode(this.code);
 
@@ -99,19 +101,39 @@ class DryRunSummarizer {
 
   static const Map<String, _DryRunErrorCode> _disallowedDartUris = {
     'dart:html': _DryRunErrorCode.noDartHtml,
+    'dart:indexed_db': _DryRunErrorCode.noDartHtml,
     'dart:js': _DryRunErrorCode.noDartJs,
+    'dart:js_util': _DryRunErrorCode.noDartJsUtil,
+    'dart:svg': _DryRunErrorCode.noDartHtml,
+    'dart:web_audio': _DryRunErrorCode.noDartHtml,
+    'dart:web_gl': _DryRunErrorCode.noDartHtml,
     // 'dart:ffi' is handled by interop checks.
   };
+
+  static const Map<String, _DryRunErrorCode> _disallowedPackageUris = {
+    'package:js/js.dart': _DryRunErrorCode.noPackageJs,
+    // Note that we use `noDartJsUtil` as this is just a re-export.
+    'package:js/js_util.dart': _DryRunErrorCode.noDartJsUtil,
+  };
+
+  bool _shouldSkipLibrary(Library library) {
+    if (library.importUri.scheme == 'dart') return true;
+    // Ignore any dry-run analysis within disallowed packages as we check
+    // imports of those separately.
+    return _disallowedPackageUris.containsKey(library.importUri.toString());
+  }
 
   List<_DryRunError> _analyzeImports() {
     final errors = <_DryRunError>[];
 
     for (final library in component.libraries) {
-      if (library.importUri.scheme == 'dart') continue;
+      if (_shouldSkipLibrary(library)) continue;
 
       for (final dep in library.dependencies) {
         final depLib = dep.importedLibraryReference.asLibrary;
-        final code = _disallowedDartUris[depLib.importUri.toString()];
+        final depUriString = depLib.importUri.toString();
+        var code = _disallowedDartUris[depUriString] ??
+            _disallowedPackageUris[depUriString];
         if (code != null) {
           errors.add(_DryRunError(code, '${depLib.importUri} unsupported',
               errorSourceUri: library.importUri, errorLocation: dep.location));
@@ -139,7 +161,7 @@ class DryRunSummarizer {
 
     final pathUriMap = <String, Uri>{};
     for (final library in component.libraries) {
-      if (library.importUri.scheme == 'dart') continue;
+      if (_shouldSkipLibrary(library)) continue;
       final uri = library.fileUri;
       pathUriMap[p.normalize(
           p.absolute(uri.toFilePath(windows: Platform.isWindows)))] = uri;
@@ -194,12 +216,10 @@ class DryRunSummarizer {
           _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
         diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart =>
           _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsIsDart,
-        diag
-              .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs =>
+        diag.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs =>
           _DryRunErrorCode
               .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
-        diag
-              .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs =>
+        diag.invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs =>
           _DryRunErrorCode
               .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
         diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs =>
