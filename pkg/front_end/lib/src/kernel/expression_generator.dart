@@ -2240,8 +2240,8 @@ class StaticAccessGenerator extends Generator {
         !_helper.isIdentical(invokeTarget) &&
         !_helper.libraryFeatures.constFunctions.isEnabled) {
       return _helper.buildProblem(
-        message: diag.notConstantExpression.withArgumentsOld(
-          'Method invocation',
+        message: diag.notConstantExpression.withArguments(
+          description: 'Method invocation',
         ),
         fileUri: _helper.uri,
         fileOffset: offset,

@@ -1252,8 +1252,8 @@ const MessageCode constEvalContext = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String nameOKEmpty),
-  Message Function({required String nameOKEmpty})
+  Message Function(String importName),
+  Message Function({required String importName})
 >
 constEvalDeferredLibrary = const Template(
   "ConstEvalDeferredLibrary",
@@ -1262,21 +1262,21 @@ constEvalDeferredLibrary = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDeferredLibrary({required String nameOKEmpty}) {
-  var nameOKEmpty_0 = conversions.nameOrUnnamed(nameOKEmpty);
+Message _withArgumentsConstEvalDeferredLibrary({required String importName}) {
+  var importName_0 = conversions.nameOrUnnamed(importName);
   return new Message(
     constEvalDeferredLibrary,
     problemMessage:
-        """'${nameOKEmpty_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+        """'${importName_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
     correctionMessage:
         """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
+    arguments: {'importName': importName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalDeferredLibrary(String nameOKEmpty) =>
-    _withArgumentsConstEvalDeferredLibrary(nameOKEmpty: nameOKEmpty);
+Message _withArgumentsOldConstEvalDeferredLibrary(String importName) =>
+    _withArgumentsConstEvalDeferredLibrary(importName: importName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1434,8 +1434,8 @@ Message _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String message),
+  Message Function({required String message})
 >
 constEvalError = const Template(
   "ConstEvalError",
@@ -1444,18 +1444,18 @@ constEvalError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalError({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsConstEvalError({required String message}) {
+  var message_0 = conversions.validateString(message);
   return new Message(
     constEvalError,
-    problemMessage: """Error evaluating constant expression: ${string_0}""",
-    arguments: {'string': string},
+    problemMessage: """Error evaluating constant expression: ${message_0}""",
+    arguments: {'message': message},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalError(String string) =>
-    _withArgumentsConstEvalError(string: string);
+Message _withArgumentsOldConstEvalError(String message) =>
+    _withArgumentsConstEvalError(message: message);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constEvalExtension = const MessageCode(
@@ -1486,8 +1486,8 @@ const MessageCode constEvalFailedAssertion = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty),
-  Message Function({required String stringOKEmpty})
+  Message Function(String message),
+  Message Function({required String message})
 >
 constEvalFailedAssertionWithMessage = const Template(
   "ConstEvalFailedAssertionWithMessage",
@@ -1497,23 +1497,19 @@ constEvalFailedAssertionWithMessage = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalFailedAssertionWithMessage({
-  required String stringOKEmpty,
+  required String message,
 }) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  var message_0 = conversions.stringOrEmpty(message);
   return new Message(
     constEvalFailedAssertionWithMessage,
-    problemMessage:
-        """This assertion failed with message: ${stringOKEmpty_0}""",
-    arguments: {'stringOKEmpty': stringOKEmpty},
+    problemMessage: """This assertion failed with message: ${message_0}""",
+    arguments: {'message': message},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalFailedAssertionWithMessage(
-  String stringOKEmpty,
-) => _withArgumentsConstEvalFailedAssertionWithMessage(
-  stringOKEmpty: stringOKEmpty,
-);
+Message _withArgumentsOldConstEvalFailedAssertionWithMessage(String message) =>
+    _withArgumentsConstEvalFailedAssertionWithMessage(message: message);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constEvalFailedAssertionWithNonStringMessage =
@@ -1794,8 +1790,8 @@ Message _withArgumentsOldConstEvalInvalidRecordNameGet(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String nameOKEmpty),
-  Message Function({required String nameOKEmpty})
+  Message Function(String target),
+  Message Function({required String target})
 >
 constEvalInvalidStaticInvocation = const Template(
   "ConstEvalInvalidStaticInvocation",
@@ -1805,20 +1801,20 @@ constEvalInvalidStaticInvocation = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidStaticInvocation({
-  required String nameOKEmpty,
+  required String target,
 }) {
-  var nameOKEmpty_0 = conversions.nameOrUnnamed(nameOKEmpty);
+  var target_0 = conversions.nameOrUnnamed(target);
   return new Message(
     constEvalInvalidStaticInvocation,
     problemMessage:
-        """The invocation of '${nameOKEmpty_0}' is not allowed in a constant expression.""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
+        """The invocation of '${target_0}' is not allowed in a constant expression.""",
+    arguments: {'target': target},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidStaticInvocation(String nameOKEmpty) =>
-    _withArgumentsConstEvalInvalidStaticInvocation(nameOKEmpty: nameOKEmpty);
+Message _withArgumentsOldConstEvalInvalidStaticInvocation(String target) =>
+    _withArgumentsConstEvalInvalidStaticInvocation(target: target);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1856,8 +1852,8 @@ Message _withArgumentsOldConstEvalInvalidStringInterpolationOperand(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant name),
+  Message Function({required Constant name})
 >
 constEvalInvalidSymbolName = const Template(
   "ConstEvalInvalidSymbolName",
@@ -1866,21 +1862,21 @@ constEvalInvalidSymbolName = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidSymbolName({required Constant constant}) {
+Message _withArgumentsConstEvalInvalidSymbolName({required Constant name}) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var name_0 = labeler.labelConstant(name);
   return new Message(
     constEvalInvalidSymbolName,
     problemMessage:
-        """The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '${constant_0}'.""" +
+        """The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '${name_0}'.""" +
         labeler.originMessages,
-    arguments: {'constant': constant},
+    arguments: {'name': name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalInvalidSymbolName(Constant constant) =>
-    _withArgumentsConstEvalInvalidSymbolName(constant: constant);
+Message _withArgumentsOldConstEvalInvalidSymbolName(Constant name) =>
+    _withArgumentsConstEvalInvalidSymbolName(name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2139,8 +2135,8 @@ const MessageCode constEvalUnevaluated = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty),
-  Message Function({required String stringOKEmpty})
+  Message Function(String exceptionText),
+  Message Function({required String exceptionText})
 >
 constEvalUnhandledCoreException = const Template(
   "ConstEvalUnhandledCoreException",
@@ -2150,26 +2146,26 @@ constEvalUnhandledCoreException = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalUnhandledCoreException({
-  required String stringOKEmpty,
+  required String exceptionText,
 }) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  var exceptionText_0 = conversions.stringOrEmpty(exceptionText);
   return new Message(
     constEvalUnhandledCoreException,
-    problemMessage: """Unhandled core exception: ${stringOKEmpty_0}""",
-    arguments: {'stringOKEmpty': stringOKEmpty},
+    problemMessage: """Unhandled core exception: ${exceptionText_0}""",
+    arguments: {'exceptionText': exceptionText},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalUnhandledCoreException(
-  String stringOKEmpty,
+  String exceptionText,
 ) =>
-    _withArgumentsConstEvalUnhandledCoreException(stringOKEmpty: stringOKEmpty);
+    _withArgumentsConstEvalUnhandledCoreException(exceptionText: exceptionText);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant exception),
+  Message Function({required Constant exception})
 >
 constEvalUnhandledException = const Template(
   "ConstEvalUnhandledException",
@@ -2179,21 +2175,21 @@ constEvalUnhandledException = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalUnhandledException({
-  required Constant constant,
+  required Constant exception,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var exception_0 = labeler.labelConstant(exception);
   return new Message(
     constEvalUnhandledException,
     problemMessage:
-        """Unhandled exception: ${constant_0}""" + labeler.originMessages,
-    arguments: {'constant': constant},
+        """Unhandled exception: ${exception_0}""" + labeler.originMessages,
+    arguments: {'exception': exception},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalUnhandledException(Constant constant) =>
-    _withArgumentsConstEvalUnhandledException(constant: constant);
+Message _withArgumentsOldConstEvalUnhandledException(Constant exception) =>
+    _withArgumentsConstEvalUnhandledException(exception: exception);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -12547,8 +12543,8 @@ Message _withArgumentsOldNotBinaryOperator(Token lexeme) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String description),
+  Message Function({required String description})
 >
 notConstantExpression = const Template(
   "NotConstantExpression",
@@ -12557,18 +12553,18 @@ notConstantExpression = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNotConstantExpression({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsNotConstantExpression({required String description}) {
+  var description_0 = conversions.validateString(description);
   return new Message(
     notConstantExpression,
-    problemMessage: """${string_0} is not a constant expression.""",
-    arguments: {'string': string},
+    problemMessage: """${description_0} is not a constant expression.""",
+    arguments: {'description': description},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNotConstantExpression(String string) =>
-    _withArgumentsNotConstantExpression(string: string);
+Message _withArgumentsOldNotConstantExpression(String description) =>
+    _withArgumentsNotConstantExpression(description: description);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

@@ -5271,7 +5271,9 @@ class BodyBuilderImpl extends StackListenerImpl
     if (constantContext != ConstantContext.none) {
       push(
         buildProblem(
-          message: diag.notConstantExpression.withArgumentsOld('Throw'),
+          message: diag.notConstantExpression.withArguments(
+            description: 'Throw',
+          ),
           fileUri: uri,
           fileOffset: throwToken.offset,
           length: throwToken.length,
@@ -6378,8 +6380,8 @@ class BodyBuilderImpl extends StackListenerImpl
       pop(); // Pop the created new expression.
       push(
         buildProblem(
-          message: diag.notConstantExpression.withArgumentsOld(
-            'New expression',
+          message: diag.notConstantExpression.withArguments(
+            description: 'New expression',
           ),
           fileUri: uri,
           fileOffset: token.charOffset,
@@ -10290,8 +10292,8 @@ class BodyBuilderImpl extends StackListenerImpl
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
-        message: diag.notConstantExpression.withArgumentsOld(
-          'Method invocation',
+        message: diag.notConstantExpression.withArguments(
+          description: 'Method invocation',
         ),
         fileUri: uri,
         fileOffset: offset,
@@ -10322,8 +10324,8 @@ class BodyBuilderImpl extends StackListenerImpl
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
-        message: diag.notConstantExpression.withArgumentsOld(
-          'Method invocation',
+        message: diag.notConstantExpression.withArguments(
+          description: 'Method invocation',
         ),
         fileUri: uri,
         fileOffset: offset,

@@ -729,7 +729,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
           }
           loader.addProblem(
             diag.constructorShouldBeListedAsCallableInDynamicInterface
-                .withArgumentsOld(name),
+                .withArguments(name: name),
             node.fileOffset,
             noLength,
             node.location!.file,
@@ -746,8 +746,9 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             }
           }
           loader.addProblem(
-            diag.memberShouldBeListedAsCallableInDynamicInterface
-                .withArgumentsOld(name),
+            diag.memberShouldBeListedAsCallableInDynamicInterface.withArguments(
+              name: name,
+            ),
             node.fileOffset,
             noLength,
             node.location!.file,
@@ -763,7 +764,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         case ExtensionTypeDeclaration():
           loader.addProblem(
             diag.extensionTypeShouldBeListedAsCallableInDynamicInterface
-                .withArgumentsOld(target.name),
+                .withArguments(name: target.name),
             node.fileOffset,
             noLength,
             node.location!.file,

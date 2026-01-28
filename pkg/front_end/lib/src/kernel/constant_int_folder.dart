@@ -109,7 +109,9 @@ class VmConstantIntFolder extends ConstantIntFolder {
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
           node,
-          diag.notConstantExpression.withArgumentsOld("Unary '$op' operation"),
+          diag.notConstantExpression.withArguments(
+            description: "Unary '$op' operation",
+          ),
         );
     }
   }
@@ -164,7 +166,9 @@ class VmConstantIntFolder extends ConstantIntFolder {
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
           node,
-          diag.notConstantExpression.withArgumentsOld("Binary '$op' operation"),
+          diag.notConstantExpression.withArguments(
+            description: "Binary '$op' operation",
+          ),
         );
     }
   }
@@ -239,7 +243,9 @@ class JsConstantIntFolder extends ConstantIntFolder {
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
           node,
-          diag.notConstantExpression.withArgumentsOld("Unary '$op' operation"),
+          diag.notConstantExpression.withArguments(
+            description: "Unary '$op' operation",
+          ),
         );
     }
   }
@@ -300,7 +306,9 @@ class JsConstantIntFolder extends ConstantIntFolder {
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
           node,
-          diag.notConstantExpression.withArgumentsOld("Binary '$op' operation"),
+          diag.notConstantExpression.withArguments(
+            description: "Binary '$op' operation",
+          ),
         );
     }
   }

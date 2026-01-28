@@ -2720,10 +2720,12 @@ class ConstantEvaluator
           final Object value = result.throwValue;
           Message? message;
           if (value is Constant) {
-            message = diag.constEvalUnhandledException.withArgumentsOld(value);
+            message = diag.constEvalUnhandledException.withArguments(
+              exception: value,
+            );
           } else if (value is Error) {
-            message = diag.constEvalUnhandledCoreException.withArgumentsOld(
-              value.toString(),
+            message = diag.constEvalUnhandledCoreException.withArguments(
+              exceptionText: value.toString(),
             );
           }
           assert(message != null);
@@ -2803,9 +2805,10 @@ class ConstantEvaluator
     // Coverage-ignore(suite): Not run.
     return createEvaluationErrorConstant(
       statement,
-      diag.constEvalError.withArgumentsOld(
-        'No valid constant returned from the execution of the '
-        'statement.',
+      diag.constEvalError.withArguments(
+        message:
+            'No valid constant returned from the execution of the '
+            'statement.',
       ),
     );
   }
@@ -2833,16 +2836,16 @@ class ConstantEvaluator
       // Coverage-ignore: Should not be reachable.
       return createEvaluationErrorConstant(
         constructor,
-        diag.constEvalError.withArgumentsOld(
-          "Constructors can't have a return value.",
+        diag.constEvalError.withArguments(
+          message: "Constructors can't have a return value.",
         ),
       );
     } else if (status is! ProceedStatus) {
       // Coverage-ignore-block(suite): Not run.
       return createEvaluationErrorConstant(
         constructor,
-        diag.constEvalError.withArgumentsOld(
-          "Invalid execution status of constructor body.",
+        diag.constEvalError.withArguments(
+          message: "Invalid execution status of constructor body.",
         ),
       );
     }
@@ -3120,8 +3123,8 @@ class ConstantEvaluator
     if (!node.isConst && !enableConstFunctions) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld(
-          'Non-constant list literal',
+        diag.notConstantExpression.withArguments(
+          description: 'Non-constant list literal',
         ),
       );
     }
@@ -3228,7 +3231,9 @@ class ConstantEvaluator
     if (!node.isConst) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld('Non-constant set literal'),
+        diag.notConstantExpression.withArguments(
+          description: 'Non-constant set literal',
+        ),
       );
     }
 
@@ -3287,7 +3292,9 @@ class ConstantEvaluator
     if (!node.isConst) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld('Non-constant map literal'),
+        diag.notConstantExpression.withArguments(
+          description: 'Non-constant map literal',
+        ),
       );
     }
 
@@ -3366,7 +3373,9 @@ class ConstantEvaluator
     }
     return createExpressionErrorConstant(
       node,
-      diag.notConstantExpression.withArgumentsOld('Function expression'),
+      diag.notConstantExpression.withArguments(
+        description: 'Function expression',
+      ),
     );
   }
 
@@ -3375,7 +3384,7 @@ class ConstantEvaluator
     if (!node.isConst && !enableConstFunctions) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld('New expression'),
+        diag.notConstantExpression.withArguments(description: 'New expression'),
       );
     }
 
@@ -3442,7 +3451,7 @@ class ConstantEvaluator
       // Coverage-ignore(suite): Not run.
       return createEvaluationErrorConstant(
         node.arguments.positional.first,
-        diag.constEvalInvalidSymbolName.withArgumentsOld(nameValue),
+        diag.constEvalInvalidSymbolName.withArguments(name: nameValue),
       );
     }
 
@@ -3803,8 +3812,8 @@ class ConstantEvaluator
         } else if (message is StringConstant) {
           return createEvaluationErrorConstant(
             statement.condition,
-            diag.constEvalFailedAssertionWithMessage.withArgumentsOld(
-              message.value,
+            diag.constEvalFailedAssertionWithMessage.withArguments(
+              message: message.value,
             ),
           );
         } else if (message is NullConstant) {
@@ -3845,7 +3854,9 @@ class ConstantEvaluator
     if (node.arguments.types.isNotEmpty) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld("Dynamic invocation"),
+        diag.notConstantExpression.withArguments(
+          description: "Dynamic invocation",
+        ),
       );
     }
 
@@ -3854,7 +3865,9 @@ class ConstantEvaluator
     if (node.arguments.named.isNotEmpty) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld("Dynamic invocation"),
+        diag.notConstantExpression.withArguments(
+          description: "Dynamic invocation",
+        ),
       );
     }
 
@@ -3902,7 +3915,9 @@ class ConstantEvaluator
     if (node.arguments.types.isNotEmpty) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld("Instance invocation"),
+        diag.notConstantExpression.withArguments(
+          description: "Instance invocation",
+        ),
       );
     }
 
@@ -3911,7 +3926,9 @@ class ConstantEvaluator
     if (node.arguments.named.isNotEmpty) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld("Instance invocation"),
+        diag.notConstantExpression.withArguments(
+          description: "Instance invocation",
+        ),
       );
     }
 
@@ -3959,7 +3976,9 @@ class ConstantEvaluator
     if (!enableConstFunctions) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld('Function invocation'),
+        diag.notConstantExpression.withArguments(
+          description: 'Function invocation',
+        ),
       );
     }
 
@@ -3974,8 +3993,8 @@ class ConstantEvaluator
     if (!enableConstFunctions) {
       return createExpressionErrorConstant(
         node,
-        diag.notConstantExpression.withArgumentsOld(
-          'Local function invocation',
+        diag.notConstantExpression.withArguments(
+          description: 'Local function invocation',
         ),
       );
     }
@@ -4037,8 +4056,8 @@ class ConstantEvaluator
       // Coverage-ignore-block(suite): Not run.
       return createEvaluationErrorConstant(
         node,
-        diag.constEvalError.withArgumentsOld(
-          'Function invocation with invalid receiver.',
+        diag.constEvalError.withArguments(
+          message: 'Function invocation with invalid receiver.',
         ),
       );
     }
@@ -4573,9 +4592,10 @@ class ConstantEvaluator
       // Coverage-ignore: Probably unreachable.
       return createEvaluationErrorConstant(
         node,
-        diag.constEvalError.withArgumentsOld(
-          'Could not evaluate field get ${node.name} on incomplete '
-          'instance',
+        diag.constEvalError.withArguments(
+          message:
+              'Could not evaluate field get ${node.name} on incomplete '
+              'instance',
         ),
       );
     }
@@ -4795,8 +4815,8 @@ class ConstantEvaluator
     }
     return createExpressionErrorConstant(
       node,
-      diag.notConstantExpression.withArgumentsOld(
-        'Read of a non-const variable',
+      diag.notConstantExpression.withArguments(
+        description: 'Read of a non-const variable',
       ),
     );
   }
@@ -4814,8 +4834,8 @@ class ConstantEvaluator
       // Coverage-ignore(suite): Not run.
       return createEvaluationErrorConstant(
         node,
-        diag.constEvalError.withArgumentsOld(
-          'Variable set of an unknown value.',
+        diag.constEvalError.withArguments(
+          message: 'Variable set of an unknown value.',
         ),
       );
     }
@@ -4854,7 +4874,9 @@ class ConstantEvaluator
     }
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalInvalidStaticInvocation.withArgumentsOld(target.name.text),
+      diag.constEvalInvalidStaticInvocation.withArguments(
+        target: target.name.text,
+      ),
     );
   }
 
@@ -5093,8 +5115,8 @@ class ConstantEvaluator
         } else {
           return createExpressionErrorConstant(
             node,
-            diag.notConstantExpression.withArgumentsOld(
-              'Non-redirecting const factory invocation',
+            diag.notConstantExpression.withArguments(
+              description: 'Non-redirecting const factory invocation',
             ),
           );
         }
@@ -5109,14 +5131,16 @@ class ConstantEvaluator
         } else if (!node.isConst) {
           return createExpressionErrorConstant(
             node,
-            diag.notConstantExpression.withArgumentsOld('New expression'),
+            diag.notConstantExpression.withArguments(
+              description: 'New expression',
+            ),
           );
         } else {
           // Coverage-ignore-block(suite): Not run.
           return createEvaluationErrorConstant(
             node,
-            diag.notConstantExpression.withArgumentsOld(
-              'Non-const factory invocation',
+            diag.notConstantExpression.withArguments(
+              description: 'Non-const factory invocation',
             ),
           );
         }
@@ -5166,8 +5190,8 @@ class ConstantEvaluator
       } else {
         return createEvaluationErrorConstant(
           node,
-          diag.notConstantExpression.withArgumentsOld(
-            'Invocation of non-const extension type member',
+          diag.notConstantExpression.withArguments(
+            description: 'Invocation of non-const extension type member',
           ),
         );
       }
@@ -5184,7 +5208,9 @@ class ConstantEvaluator
 
     return createExpressionErrorConstant(
       node,
-      diag.notConstantExpression.withArgumentsOld('Static invocation'),
+      diag.notConstantExpression.withArguments(
+        description: 'Static invocation',
+      ),
     );
   }
 
@@ -5408,10 +5434,11 @@ class ConstantEvaluator
         // Coverage-ignore: Probably unreachable.
         return createEvaluationErrorConstant(
           node,
-          diag.constEvalError.withArgumentsOld(
-            'The number of type arguments supplied in the partial '
-            'instantiation does not match the number of type arguments '
-            'of the $constant.',
+          diag.constEvalError.withArguments(
+            message:
+                'The number of type arguments supplied in the partial '
+                'instantiation does not match the number of type arguments '
+                'of the $constant.',
           ),
         );
       }
@@ -5421,8 +5448,8 @@ class ConstantEvaluator
     // Coverage-ignore: Probably unreachable.
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalError.withArgumentsOld(
-        'Only tear-off constants can be partially instantiated.',
+      diag.constEvalError.withArguments(
+        message: 'Only tear-off constants can be partially instantiated.',
       ),
     );
   }
@@ -5457,8 +5484,8 @@ class ConstantEvaluator
       // Coverage-ignore: Probably unreachable.
       return createEvaluationErrorConstant(
         node,
-        diag.constEvalError.withArgumentsOld(
-          "Unsupported typedef tearoff target: ${constant}.",
+        diag.constEvalError.withArguments(
+          message: "Unsupported typedef tearoff target: ${constant}.",
         ),
       );
     }
@@ -5468,7 +5495,9 @@ class ConstantEvaluator
   Constant visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalDeferredLibrary.withArgumentsOld(node.import.name!),
+      diag.constEvalDeferredLibrary.withArguments(
+        importName: node.import.name!,
+      ),
     );
   }
 
@@ -5873,7 +5902,9 @@ class ConstantEvaluator
     // Coverage-ignore: Probably unreachable.
     return createExpressionErrorConstant(
       node,
-      diag.notConstantExpression.withArgumentsOld("Binary '$op' operation"),
+      diag.notConstantExpression.withArguments(
+        description: "Binary '$op' operation",
+      ),
     );
   }
 
@@ -5941,7 +5972,9 @@ class ConstantEvaluator
   Constant visitSwitchExpression(SwitchExpression node) {
     return createExpressionErrorConstant(
       node,
-      diag.notConstantExpression.withArgumentsOld('Switch expression'),
+      diag.notConstantExpression.withArguments(
+        description: 'Switch expression',
+      ),
     );
   }
 
@@ -5950,7 +5983,9 @@ class ConstantEvaluator
   Constant visitPatternAssignment(PatternAssignment node) {
     return createExpressionErrorConstant(
       node,
-      diag.notConstantExpression.withArgumentsOld('Pattern assignment'),
+      diag.notConstantExpression.withArguments(
+        description: 'Pattern assignment',
+      ),
     );
   }
 
@@ -6250,7 +6285,7 @@ class StatementConstantEvaluator
     return new AbortStatus(
       exprEvaluator.createEvaluationErrorConstant(
         node,
-        diag.constEvalError.withArgumentsOld('For-in statement.'),
+        diag.constEvalError.withArguments(message: 'For-in statement.'),
       ),
     );
   }
@@ -6261,7 +6296,7 @@ class StatementConstantEvaluator
     return new AbortStatus(
       exprEvaluator.createEvaluationErrorConstant(
         node,
-        diag.constEvalError.withArgumentsOld('If-case statement.'),
+        diag.constEvalError.withArguments(message: 'If-case statement.'),
       ),
     );
   }
@@ -6271,7 +6306,7 @@ class StatementConstantEvaluator
     return new AbortStatus(
       exprEvaluator.createEvaluationErrorConstant(
         node,
-        diag.constEvalError.withArgumentsOld('Pattern switch statement.'),
+        diag.constEvalError.withArguments(message: 'Pattern switch statement.'),
       ),
     );
   }
@@ -6284,7 +6319,9 @@ class StatementConstantEvaluator
     return new AbortStatus(
       exprEvaluator.createEvaluationErrorConstant(
         node,
-        diag.constEvalError.withArgumentsOld('Pattern variable declaration.'),
+        diag.constEvalError.withArguments(
+          message: 'Pattern variable declaration.',
+        ),
       ),
     );
   }
@@ -6295,7 +6332,7 @@ class StatementConstantEvaluator
     return new AbortStatus(
       exprEvaluator.createEvaluationErrorConstant(
         node,
-        diag.constEvalError.withArgumentsOld('Yield statement.'),
+        diag.constEvalError.withArguments(message: 'Yield statement.'),
       ),
     );
   }
