@@ -1758,7 +1758,11 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
       } else if (element is VariableElement) {
         bool isGet = node.inGetterContext();
         bool isSet = node.inSetterContext();
-        if (isGet && isSet) {
+        if (element is FormalParameterElement &&
+            parent is Label &&
+            parent.parent is NamedExpression) {
+          kind = SearchResultKind.REFERENCE_BY_NAMED_ARGUMENT;
+        } else if (isGet && isSet) {
           kind = SearchResultKind.READ_WRITE;
         } else if (isGet) {
           if (parent is MethodInvocation && parent.methodName == node) {

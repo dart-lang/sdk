@@ -3733,11 +3733,8 @@ void f() {
   41 3:5 |test| READ
   51 4:5 |test| WRITE
   65 5:5 |test| READ_WRITE
-  87 8:7 |test| REFERENCE qualified
   87 8:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  108 9:12 |test| REFERENCE qualified
   108 9:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  126 10:9 |test| REFERENCE qualified
   126 10:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
@@ -3787,11 +3784,8 @@ void f() {
   49 3:5 |test| READ
   59 4:5 |test| WRITE
   73 5:5 |test| READ_WRITE
-  95 8:7 |test| REFERENCE qualified
   95 8:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  116 9:12 |test| REFERENCE qualified
   116 9:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  134 10:9 |test| REFERENCE qualified
   134 10:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
