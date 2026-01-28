@@ -26,24 +26,50 @@ extension PublicExtensionTypeExtension on Object? {
   _E get asE => v;
 }
 
-void check(Public_E e, int expected) {
+void check(_E e, int expected) {
   Expect.equals(e.i, expected);
 }
 
-void checkConst(Public_ConstE e, int expected) {
+void checkConst(_ConstE e, int expected) {
+  Expect.equals(e.i, expected);
+}
+
+void checkAlias(Public_E e, int expected) {
+  Expect.equals(e.i, expected);
+}
+
+void checkConstAlias(Public_ConstE e, int expected) {
   Expect.equals(e.i, expected);
 }
 
 void main() {
   check(.new(0).asE, 0);
+  checkAlias(.new(0).asE, 0);
+
   check(.new(0), 0);
+  checkAlias(.new(0), 0);
+
   check(.named(1), 1);
+  checkAlias(.named(1), 1);
+
   check(.getter, 2);
+  checkAlias(.getter, 2);
+
   check(.method(), 3);
+  checkAlias(.method(), 3);
+
   check(Public_E(4), 4);
+  checkAlias(Public_E(4), 4);
 
   checkConst(constV, 0);
+  checkConstAlias(constV, 0);
+
   checkConst(const .new(1), 1);
+  checkConstAlias(const .new(1), 1);
+
   checkConst(const .named(2), 2);
+  checkConstAlias(const .named(2), 2);
+
   checkConst(const Public_ConstE(3), 3);
+  checkConstAlias(const Public_ConstE(3), 3);
 }

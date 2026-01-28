@@ -13,3 +13,6 @@ enum _E {
 
 typedef Public_E = _E;
 final Public_E v = _E.e1;
+
+void context(_E e) {}
+void contextAlias(Public_E e) {}
