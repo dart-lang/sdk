@@ -441,6 +441,9 @@ class DiagnosticTables {
   final Map<String, MessageWithAnalyzerCode> diagnosticsByAnalyzerUniqueName =
       {};
 
+  /// Map from [DiagnosticCodeName.pascalCaseName] to front end diagnostic.
+  final Map<String, CfeStyleMessage> frontEndDiagnosticsByPascalCaseName = {};
+
   DiagnosticTables._(List<Message> messages) {
     var frontEndCodeDuplicateChecker = _DuplicateChecker<DiagnosticCodeName>(
       kind: 'Front end code',
@@ -458,6 +461,8 @@ class DiagnosticTables {
         var frontEndCode = message.frontEndCode;
         frontEndCodeDuplicateChecker[frontEndCode] = message;
         sortedFrontEndDiagnostics.add(message);
+        frontEndDiagnosticsByPascalCaseName[frontEndCode.pascalCaseName] =
+            message;
       }
       if (message is SharedMessage) {
         sortedSharedDiagnostics.add(message);
