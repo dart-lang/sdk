@@ -7,6 +7,8 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final foundationAssertionsLibrary = MockLibraryUnit(
   'lib/src/foundation/assertions.dart',
   r'''
+import 'diagnostics.dart';
+
 class FlutterErrorDetails with Diagnosticable {
   const FlutterErrorDetails({
     required Object exception,

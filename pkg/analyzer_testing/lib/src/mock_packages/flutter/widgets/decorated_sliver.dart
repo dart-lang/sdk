@@ -7,6 +7,11 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final widgetsDecoratedSliverLibrary = MockLibraryUnit(
   'lib/src/widgets/decorated_sliver.dart',
   r'''
+import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
+
+import 'framework.dart';
+
 class DecoratedSliver extends SingleChildRenderObjectWidget {
   const DecoratedSliver({
     super.key,
