@@ -13,16 +13,21 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-final class PluginRegistryImpl implements PluginRegistry {
+final class PluginRegistryImpl extends PluginRegistry with RegistryMixin {
   final String pluginName;
 
   final List<AssistKind> assistKinds = [];
 
   final Map<FixKind, List<String>> fixKinds = {};
 
-  final List<String> warningRules = [];
+  @override
+  final Map<String, AbstractAnalysisRule> warningRules = {};
 
-  final List<String> lintRules = [];
+  @override
+  final Map<String, AbstractAnalysisRule> lintRules = {};
+
+  @override
+  final Map<String, DiagnosticCode> codeMap = {};
 
   PluginRegistryImpl(this.pluginName);
 
@@ -63,13 +68,13 @@ final class PluginRegistryImpl implements PluginRegistry {
   @override
   void registerLintRule(AbstractAnalysisRule rule) {
     Registry.ruleRegistry.registerLintRule(rule);
-    lintRules.add(rule.name);
+    super.registerLintRule(rule);
   }
 
   @override
   void registerWarningRule(AbstractAnalysisRule rule) {
     Registry.ruleRegistry.registerWarningRule(rule);
-    warningRules.add(rule.name);
+    super.registerWarningRule(rule);
   }
 
   /// Registers the "ignore diagnostic" producer generators.

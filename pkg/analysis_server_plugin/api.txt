@@ -144,12 +144,10 @@ package:analysis_server_plugin/plugin.dart:
     shutDown (method: FutureOr<void> Function())
     start (method: FutureOr<void> Function())
 package:analysis_server_plugin/registry.dart:
-  PluginRegistry (class extends Object):
+  PluginRegistry (class extends RegistryBase):
     new (constructor: PluginRegistry Function())
     registerAssist (method: void Function(CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
     registerFixForRule (method: void Function(DiagnosticCode, CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
-    registerLintRule (method: void Function(AbstractAnalysisRule))
-    registerWarningRule (method: void Function(AbstractAnalysisRule))
 dart:async:
   Future (referenced)
   FutureOr (referenced)
@@ -169,8 +167,6 @@ package:_fe_analyzer_shared/src/base/source_range.dart:
   SourceRange (referenced)
 package:_fe_analyzer_shared/src/scanner/token.dart:
   Token (referenced)
-package:analyzer/analysis_rule/analysis_rule.dart:
-  AbstractAnalysisRule (referenced)
 package:analyzer/dart/analysis/analysis_options.dart:
   AnalysisOptions (referenced)
 package:analyzer/dart/analysis/features.dart:
@@ -213,6 +209,8 @@ package:analyzer/src/dart/ast/ast.dart:
 package:analyzer/src/dart/element/inheritance_manager3.dart:
   InheritanceManager3 (referenced)
   Name (referenced)
+package:analyzer/src/lint/registry.dart:
+  RegistryBase (referenced)
 package:analyzer_plugin/protocol/protocol_common.dart:
   SourceChange (referenced)
 package:analyzer_plugin/utilities/assist/assist.dart:
