@@ -7,20 +7,24 @@
 import "package:expect/expect.dart";
 
 class SomeClass {
+  @pragma("wasm:never-inline")
   SomeClass.namedConstructor() {
     throw new Exception();
   }
 
+  @pragma("wasm:never-inline")
   SomeClass() {
     throw new Exception();
   }
 
+  @pragma("wasm:never-inline")
   factory SomeClass.useFactory() {
     throw new Exception();
   }
 }
 
 class OnlyHasFactory {
+  @pragma("wasm:never-inline")
   factory OnlyHasFactory() {
     throw new Exception();
   }
