@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity, severityEnumValues;
 import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_utilities/messages.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
@@ -255,7 +256,9 @@ class MessageTestSuite extends ChainContext {
             case "problemMessage":
               if (skipSpellCheck) continue;
               spell.SpellingResult spellingResult = spell.spellcheckString(
-                node.span.text.replaceAll(r"\n", "\n\n"),
+                node.span.text
+                    .replaceAll(placeholderPattern, '*')
+                    .replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
                   spell.Dictionaries.common,
                   spell.Dictionaries.cfeMessages,
@@ -279,7 +282,9 @@ class MessageTestSuite extends ChainContext {
             case "correctionMessage":
               if (skipSpellCheck) continue;
               spell.SpellingResult spellingResult = spell.spellcheckString(
-                node.span.text.replaceAll(r"\n", "\n\n"),
+                node.span.text
+                    .replaceAll(placeholderPattern, '*')
+                    .replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
                   spell.Dictionaries.common,
                   spell.Dictionaries.cfeMessages,
