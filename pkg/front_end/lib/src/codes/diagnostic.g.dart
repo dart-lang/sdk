@@ -1397,8 +1397,8 @@ Message _withArgumentsOldConstEvalElementNotPrimitiveEquality(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant, DartType type),
-  Message Function({required Constant constant, required DartType type})
+  Message Function(Constant receiver, DartType actualType),
+  Message Function({required Constant receiver, required DartType actualType})
 >
 constEvalEqualsOperandNotPrimitiveEquality = const Template(
   "ConstEvalEqualsOperandNotPrimitiveEquality",
@@ -1408,28 +1408,28 @@ constEvalEqualsOperandNotPrimitiveEquality = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality({
-  required Constant constant,
-  required DartType type,
+  required Constant receiver,
+  required DartType actualType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  var type_0 = labeler.labelType(type);
+  var receiver_0 = labeler.labelConstant(receiver);
+  var actualType_0 = labeler.labelType(actualType);
   return new Message(
     constEvalEqualsOperandNotPrimitiveEquality,
     problemMessage:
-        """Binary operator '==' requires receiver constant '${constant_0}' of a type with primitive equality or type 'double', but was of type '${type_0}'.""" +
+        """Binary operator '==' requires receiver constant '${receiver_0}' of a type with primitive equality or type 'double', but was of type '${actualType_0}'.""" +
         labeler.originMessages,
-    arguments: {'constant': constant, 'type': type},
+    arguments: {'receiver': receiver, 'actualType': actualType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalEqualsOperandNotPrimitiveEquality(
-  Constant constant,
-  DartType type,
+  Constant receiver,
+  DartType actualType,
 ) => _withArgumentsConstEvalEqualsOperandNotPrimitiveEquality(
-  constant: constant,
-  type: type,
+  receiver: receiver,
+  actualType: actualType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1524,8 +1524,8 @@ const MessageCode constEvalFailedAssertionWithNonStringMessage =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String nameOKEmpty),
-  Message Function({required String nameOKEmpty})
+  Message Function(String name),
+  Message Function({required String name})
 >
 constEvalGetterNotFound = const Template(
   "ConstEvalGetterNotFound",
@@ -1534,18 +1534,18 @@ constEvalGetterNotFound = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalGetterNotFound({required String nameOKEmpty}) {
-  var nameOKEmpty_0 = conversions.nameOrUnnamed(nameOKEmpty);
+Message _withArgumentsConstEvalGetterNotFound({required String name}) {
+  var name_0 = conversions.nameOrUnnamed(name);
   return new Message(
     constEvalGetterNotFound,
-    problemMessage: """Variable get not found: '${nameOKEmpty_0}'""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
+    problemMessage: """Variable get not found: '${name_0}'""",
+    arguments: {'name': name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalGetterNotFound(String nameOKEmpty) =>
-    _withArgumentsConstEvalGetterNotFound(nameOKEmpty: nameOKEmpty);
+Message _withArgumentsOldConstEvalGetterNotFound(String name) =>
+    _withArgumentsConstEvalGetterNotFound(name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1646,8 +1646,8 @@ Message _withArgumentsOldConstEvalInvalidEqualsOperandType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty, Constant constant),
-  Message Function({required String stringOKEmpty, required Constant constant})
+  Message Function(String method, Constant receiver),
+  Message Function({required String method, required Constant receiver})
 >
 constEvalInvalidMethodInvocation = const Template(
   "ConstEvalInvalidMethodInvocation",
@@ -1657,34 +1657,34 @@ constEvalInvalidMethodInvocation = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidMethodInvocation({
-  required String stringOKEmpty,
-  required Constant constant,
+  required String method,
+  required Constant receiver,
 }) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  var method_0 = conversions.stringOrEmpty(method);
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var receiver_0 = labeler.labelConstant(receiver);
   return new Message(
     constEvalInvalidMethodInvocation,
     problemMessage:
-        """The method '${stringOKEmpty_0}' can't be invoked on '${constant_0}' in a constant expression.""" +
+        """The method '${method_0}' can't be invoked on '${receiver_0}' in a constant expression.""" +
         labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': constant},
+    arguments: {'method': method, 'receiver': receiver},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidMethodInvocation(
-  String stringOKEmpty,
-  Constant constant,
+  String method,
+  Constant receiver,
 ) => _withArgumentsConstEvalInvalidMethodInvocation(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
+  method: method,
+  receiver: receiver,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty, Constant constant),
-  Message Function({required String stringOKEmpty, required Constant constant})
+  Message Function(String property, Constant receiver),
+  Message Function({required String property, required Constant receiver})
 >
 constEvalInvalidPropertyGet = const Template(
   "ConstEvalInvalidPropertyGet",
@@ -1694,34 +1694,34 @@ constEvalInvalidPropertyGet = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidPropertyGet({
-  required String stringOKEmpty,
-  required Constant constant,
+  required String property,
+  required Constant receiver,
 }) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  var property_0 = conversions.stringOrEmpty(property);
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var receiver_0 = labeler.labelConstant(receiver);
   return new Message(
     constEvalInvalidPropertyGet,
     problemMessage:
-        """The property '${stringOKEmpty_0}' can't be accessed on '${constant_0}' in a constant expression.""" +
+        """The property '${property_0}' can't be accessed on '${receiver_0}' in a constant expression.""" +
         labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': constant},
+    arguments: {'property': property, 'receiver': receiver},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidPropertyGet(
-  String stringOKEmpty,
-  Constant constant,
+  String property,
+  Constant receiver,
 ) => _withArgumentsConstEvalInvalidPropertyGet(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
+  property: property,
+  receiver: receiver,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty, Constant constant),
-  Message Function({required String stringOKEmpty, required Constant constant})
+  Message Function(String index, Constant receiver),
+  Message Function({required String index, required Constant receiver})
 >
 constEvalInvalidRecordIndexGet = const Template(
   "ConstEvalInvalidRecordIndexGet",
@@ -1731,34 +1731,34 @@ constEvalInvalidRecordIndexGet = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidRecordIndexGet({
-  required String stringOKEmpty,
-  required Constant constant,
+  required String index,
+  required Constant receiver,
 }) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  var index_0 = conversions.stringOrEmpty(index);
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var receiver_0 = labeler.labelConstant(receiver);
   return new Message(
     constEvalInvalidRecordIndexGet,
     problemMessage:
-        """The property '${stringOKEmpty_0}' can't be accessed on '${constant_0}' in a constant expression.""" +
+        """The property '${index_0}' can't be accessed on '${receiver_0}' in a constant expression.""" +
         labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': constant},
+    arguments: {'index': index, 'receiver': receiver},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidRecordIndexGet(
-  String stringOKEmpty,
-  Constant constant,
+  String index,
+  Constant receiver,
 ) => _withArgumentsConstEvalInvalidRecordIndexGet(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
+  index: index,
+  receiver: receiver,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty, Constant constant),
-  Message Function({required String stringOKEmpty, required Constant constant})
+  Message Function(String property, Constant receiver),
+  Message Function({required String property, required Constant receiver})
 >
 constEvalInvalidRecordNameGet = const Template(
   "ConstEvalInvalidRecordNameGet",
@@ -1768,28 +1768,28 @@ constEvalInvalidRecordNameGet = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidRecordNameGet({
-  required String stringOKEmpty,
-  required Constant constant,
+  required String property,
+  required Constant receiver,
 }) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  var property_0 = conversions.stringOrEmpty(property);
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var receiver_0 = labeler.labelConstant(receiver);
   return new Message(
     constEvalInvalidRecordNameGet,
     problemMessage:
-        """The property '${stringOKEmpty_0}' can't be accessed on '${constant_0}' in a constant expression.""" +
+        """The property '${property_0}' can't be accessed on '${receiver_0}' in a constant expression.""" +
         labeler.originMessages,
-    arguments: {'stringOKEmpty': stringOKEmpty, 'constant': constant},
+    arguments: {'property': property, 'receiver': receiver},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidRecordNameGet(
-  String stringOKEmpty,
-  Constant constant,
+  String property,
+  Constant receiver,
 ) => _withArgumentsConstEvalInvalidRecordNameGet(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
+  property: property,
+  receiver: receiver,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1995,11 +1995,11 @@ Message _withArgumentsOldConstEvalKeyNotPrimitiveEquality(Constant key) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2, String string3),
+  Message Function(String operator, String receiver, String shiftAmount),
   Message Function({
-    required String string,
-    required String string2,
-    required String string3,
+    required String operator,
+    required String receiver,
+    required String shiftAmount,
   })
 >
 constEvalNegativeShift = const Template(
@@ -2010,30 +2010,34 @@ constEvalNegativeShift = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalNegativeShift({
-  required String string,
-  required String string2,
-  required String string3,
+  required String operator,
+  required String receiver,
+  required String shiftAmount,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  var string3_0 = conversions.validateString(string3);
+  var operator_0 = conversions.validateString(operator);
+  var receiver_0 = conversions.validateString(receiver);
+  var shiftAmount_0 = conversions.validateString(shiftAmount);
   return new Message(
     constEvalNegativeShift,
     problemMessage:
-        """Binary operator '${string_0}' on '${string2_0}' requires non-negative operand, but was '${string3_0}'.""",
-    arguments: {'string': string, 'string2': string2, 'string3': string3},
+        """Binary operator '${operator_0}' on '${receiver_0}' requires non-negative operand, but was '${shiftAmount_0}'.""",
+    arguments: {
+      'operator': operator,
+      'receiver': receiver,
+      'shiftAmount': shiftAmount,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalNegativeShift(
-  String string,
-  String string2,
-  String string3,
+  String operator,
+  String receiver,
+  String shiftAmount,
 ) => _withArgumentsConstEvalNegativeShift(
-  string: string,
-  string2: string2,
-  string3: string3,
+  operator: operator,
+  receiver: receiver,
+  shiftAmount: shiftAmount,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2097,8 +2101,8 @@ const MessageCode constEvalStartingPoint = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String receiver, String operand),
+  Message Function({required String receiver, required String operand})
 >
 constEvalTruncateError = const Template(
   "ConstEvalTruncateError",
@@ -2108,24 +2112,24 @@ constEvalTruncateError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalTruncateError({
-  required String string,
-  required String string2,
+  required String receiver,
+  required String operand,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var receiver_0 = conversions.validateString(receiver);
+  var operand_0 = conversions.validateString(operand);
   return new Message(
     constEvalTruncateError,
     problemMessage:
-        """Binary operator '${string_0} ~/ ${string2_0}' results is Infinity or NaN.""",
-    arguments: {'string': string, 'string2': string2},
+        """Binary operator '${receiver_0} ~/ ${operand_0}' results is Infinity or NaN.""",
+    arguments: {'receiver': receiver, 'operand': operand},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalTruncateError(
-  String string,
-  String string2,
-) => _withArgumentsConstEvalTruncateError(string: string, string2: string2);
+  String receiver,
+  String operand,
+) => _withArgumentsConstEvalTruncateError(receiver: receiver, operand: operand);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constEvalUnevaluated = const MessageCode(
@@ -2193,8 +2197,8 @@ Message _withArgumentsOldConstEvalUnhandledException(Constant constant) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String operator, String value),
+  Message Function({required String operator, required String value})
 >
 constEvalZeroDivisor = const Template(
   "ConstEvalZeroDivisor",
@@ -2204,22 +2208,22 @@ constEvalZeroDivisor = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalZeroDivisor({
-  required String string,
-  required String string2,
+  required String operator,
+  required String value,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var operator_0 = conversions.validateString(operator);
+  var value_0 = conversions.validateString(value);
   return new Message(
     constEvalZeroDivisor,
     problemMessage:
-        """Binary operator '${string_0}' on '${string2_0}' requires non-zero divisor, but divisor was '0'.""",
-    arguments: {'string': string, 'string2': string2},
+        """Binary operator '${operator_0}' on '${value_0}' requires non-zero divisor, but divisor was '0'.""",
+    arguments: {'operator': operator, 'value': value},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalZeroDivisor(String string, String string2) =>
-    _withArgumentsConstEvalZeroDivisor(string: string, string2: string2);
+Message _withArgumentsOldConstEvalZeroDivisor(String operator, String value) =>
+    _withArgumentsConstEvalZeroDivisor(operator: operator, value: value);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constFactoryRedirectionToNonConst = const MessageCode(

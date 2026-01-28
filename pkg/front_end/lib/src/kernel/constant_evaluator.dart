@@ -4091,9 +4091,9 @@ class ConstantEvaluator
       } else {
         return createEvaluationErrorConstant(
           node,
-          diag.constEvalEqualsOperandNotPrimitiveEquality.withArgumentsOld(
-            left,
-            left.getType(staticTypeContext),
+          diag.constEvalEqualsOperandNotPrimitiveEquality.withArguments(
+            receiver: left,
+            actualType: left.getType(staticTypeContext),
           ),
         );
       }
@@ -4427,7 +4427,10 @@ class ConstantEvaluator
 
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalInvalidMethodInvocation.withArgumentsOld(op, receiver),
+      diag.constEvalInvalidMethodInvocation.withArguments(
+        method: op,
+        receiver: receiver,
+      ),
     );
   }
 
@@ -4472,9 +4475,9 @@ class ConstantEvaluator
         // Coverage-ignore(suite): Not run.
         return createEvaluationErrorConstant(
           node,
-          diag.constEvalInvalidMethodInvocation.withArgumentsOld(
-            logicalExpressionOperatorToString(node.operatorEnum),
-            left,
+          diag.constEvalInvalidMethodInvocation.withArguments(
+            method: logicalExpressionOperatorToString(node.operatorEnum),
+            receiver: left,
           ),
         );
       case LogicalExpressionOperator.AND:
@@ -4502,9 +4505,9 @@ class ConstantEvaluator
         // Coverage-ignore(suite): Not run.
         return createEvaluationErrorConstant(
           node,
-          diag.constEvalInvalidMethodInvocation.withArgumentsOld(
-            logicalExpressionOperatorToString(node.operatorEnum),
-            left,
+          diag.constEvalInvalidMethodInvocation.withArguments(
+            method: logicalExpressionOperatorToString(node.operatorEnum),
+            receiver: left,
           ),
         );
     }
@@ -4646,9 +4649,9 @@ class ConstantEvaluator
     }
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalInvalidPropertyGet.withArgumentsOld(
-        node.name.text,
-        receiver,
+      diag.constEvalInvalidPropertyGet.withArguments(
+        property: node.name.text,
+        receiver: receiver,
       ),
     );
   }
@@ -4666,9 +4669,9 @@ class ConstantEvaluator
     }
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalInvalidRecordIndexGet.withArgumentsOld(
-        "${node.index}",
-        receiver,
+      diag.constEvalInvalidRecordIndexGet.withArguments(
+        index: "${node.index}",
+        receiver: receiver,
       ),
     );
   }
@@ -4688,7 +4691,10 @@ class ConstantEvaluator
     }
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalInvalidRecordNameGet.withArgumentsOld(node.name, receiver),
+      diag.constEvalInvalidRecordNameGet.withArguments(
+        property: node.name,
+        receiver: receiver,
+      ),
     );
   }
 
@@ -4711,9 +4717,9 @@ class ConstantEvaluator
     // Coverage-ignore(suite): Not run.
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalInvalidPropertyGet.withArgumentsOld(
-        node.name.text,
-        receiver,
+      diag.constEvalInvalidPropertyGet.withArguments(
+        property: node.name.text,
+        receiver: receiver,
       ),
     );
   }
@@ -4724,9 +4730,9 @@ class ConstantEvaluator
     if (receiver is AbortConstant) return receiver;
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalInvalidPropertyGet.withArgumentsOld(
-        node.name.text,
-        receiver,
+      diag.constEvalInvalidPropertyGet.withArguments(
+        property: node.name.text,
+        receiver: receiver,
       ),
     );
   }
@@ -4738,9 +4744,9 @@ class ConstantEvaluator
     // Coverage-ignore(suite): Not run.
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalInvalidPropertyGet.withArgumentsOld(
-        Name.callName.text,
-        receiver,
+      diag.constEvalInvalidPropertyGet.withArguments(
+        property: Name.callName.text,
+        receiver: receiver,
       ),
     );
   }
@@ -4767,8 +4773,8 @@ class ConstantEvaluator
           // Coverage-ignore(suite): Not run.
           createEvaluationErrorConstant(
             node,
-            diag.constEvalGetterNotFound.withArgumentsOld(
-              variable.cosmeticName ?? '',
+            diag.constEvalGetterNotFound.withArguments(
+              name: variable.cosmeticName ?? '',
             ),
           );
     } else {
@@ -4886,8 +4892,8 @@ class ConstantEvaluator
       } else {
         return createEvaluationErrorConstant(
           node,
-          diag.constEvalInvalidStringInterpolationOperand.withArgumentsOld(
-            constant,
+          diag.constEvalInvalidStringInterpolationOperand.withArguments(
+            constant: constant,
           ),
         );
       }
@@ -5845,7 +5851,7 @@ class ConstantEvaluator
         if (b == 0) {
           return createEvaluationErrorConstant(
             node,
-            diag.constEvalZeroDivisor.withArgumentsOld(op, '$a'),
+            diag.constEvalZeroDivisor.withArguments(operator: op, value: '$a'),
           );
         }
         return intFolder.truncatingDivide(node, a, b);

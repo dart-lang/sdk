@@ -413,8 +413,8 @@ codeConstEvalElementNotPrimitiveEquality = constEvalElementNotPrimitiveEquality;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant, DartType type),
-  Message Function({required Constant constant, required DartType type})
+  Message Function(Constant receiver, DartType actualType),
+  Message Function({required Constant receiver, required DartType actualType})
 >
 codeConstEvalEqualsOperandNotPrimitiveEquality =
     constEvalEqualsOperandNotPrimitiveEquality;
@@ -452,8 +452,8 @@ const MessageCode codeConstEvalFailedAssertionWithNonStringMessage =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String nameOKEmpty),
-  Message Function({required String nameOKEmpty})
+  Message Function(String name),
+  Message Function({required String name})
 >
 codeConstEvalGetterNotFound = constEvalGetterNotFound;
 
@@ -483,29 +483,29 @@ codeConstEvalInvalidEqualsOperandType = constEvalInvalidEqualsOperandType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty, Constant constant),
-  Message Function({required String stringOKEmpty, required Constant constant})
+  Message Function(String method, Constant receiver),
+  Message Function({required String method, required Constant receiver})
 >
 codeConstEvalInvalidMethodInvocation = constEvalInvalidMethodInvocation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty, Constant constant),
-  Message Function({required String stringOKEmpty, required Constant constant})
+  Message Function(String property, Constant receiver),
+  Message Function({required String property, required Constant receiver})
 >
 codeConstEvalInvalidPropertyGet = constEvalInvalidPropertyGet;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty, Constant constant),
-  Message Function({required String stringOKEmpty, required Constant constant})
+  Message Function(String index, Constant receiver),
+  Message Function({required String index, required Constant receiver})
 >
 codeConstEvalInvalidRecordIndexGet = constEvalInvalidRecordIndexGet;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String stringOKEmpty, Constant constant),
-  Message Function({required String stringOKEmpty, required Constant constant})
+  Message Function(String property, Constant receiver),
+  Message Function({required String property, required Constant receiver})
 >
 codeConstEvalInvalidRecordNameGet = constEvalInvalidRecordNameGet;
 
@@ -562,11 +562,11 @@ codeConstEvalKeyNotPrimitiveEquality = constEvalKeyNotPrimitiveEquality;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2, String string3),
+  Message Function(String operator, String receiver, String shiftAmount),
   Message Function({
-    required String string,
-    required String string2,
-    required String string3,
+    required String operator,
+    required String receiver,
+    required String shiftAmount,
   })
 >
 codeConstEvalNegativeShift = constEvalNegativeShift;
@@ -596,8 +596,8 @@ const MessageCode codeConstEvalStartingPoint = constEvalStartingPoint;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String receiver, String operand),
+  Message Function({required String receiver, required String operand})
 >
 codeConstEvalTruncateError = constEvalTruncateError;
 
@@ -620,8 +620,8 @@ codeConstEvalUnhandledException = constEvalUnhandledException;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String operator, String value),
+  Message Function({required String operator, required String value})
 >
 codeConstEvalZeroDivisor = constEvalZeroDivisor;
 
