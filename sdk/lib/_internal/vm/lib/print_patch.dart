@@ -20,4 +20,5 @@ void _unsupportedPrint(String line) {
 // _printClosure can be overwritten by the embedder to supply a different
 // print implementation.
 @pragma("vm:entry-point", "set")
+@pragma("vm:shared")
 _PrintClosure _printClosure = _unsupportedPrint;

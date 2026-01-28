@@ -48,7 +48,7 @@ main(List<String> args) {
   testFailToCaptureClassWithNonFinalCapturingClosure();
   testCapturesClassWithFinalCapturingClosure();
 
-  testFailToPrint();
+  testPrint();
 
   testFailToIsolateGroupRunSyncThrows();
   testIsolateCurrent();
@@ -326,16 +326,10 @@ void testCapturesClassWithFinalCapturingClosure() {
 }
 
 ///
-void testFailToPrint() {
-  Expect.throws(
-    () {
-      IsolateGroup.runSync(() {
-        print('42');
-      });
-    },
-    (e) => e is Error && e.toString().contains("AccessError"),
-    'Expect error printing',
-  );
+void testPrint() {
+  IsolateGroup.runSync(() {
+    print('42');
+  });
 }
 
 ///

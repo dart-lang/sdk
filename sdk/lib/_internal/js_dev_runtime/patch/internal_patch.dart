@@ -125,3 +125,11 @@ abstract interface class IsolateGroup {
 final List<Object> _toStringVisiting = [];
 @patch
 List<Object> get toStringVisiting => _toStringVisiting;
+
+void Function(String)? _printToZone = null;
+@patch
+void Function(String)? get printToZone => _printToZone;
+@patch
+set printToZone(void Function(String)? value) {
+  _printToZone = value;
+}
