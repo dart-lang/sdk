@@ -1280,8 +1280,8 @@ Message _withArgumentsOldConstEvalDeferredLibrary(String nameOKEmpty) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant element),
+  Message Function({required Constant element})
 >
 constEvalDuplicateElement = const Template(
   "ConstEvalDuplicateElement",
@@ -1290,26 +1290,26 @@ constEvalDuplicateElement = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDuplicateElement({required Constant constant}) {
+Message _withArgumentsConstEvalDuplicateElement({required Constant element}) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var element_0 = labeler.labelConstant(element);
   return new Message(
     constEvalDuplicateElement,
     problemMessage:
-        """The element '${constant_0}' conflicts with another existing element in the set.""" +
+        """The element '${element_0}' conflicts with another existing element in the set.""" +
         labeler.originMessages,
-    arguments: {'constant': constant},
+    arguments: {'element': element},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalDuplicateElement(Constant constant) =>
-    _withArgumentsConstEvalDuplicateElement(constant: constant);
+Message _withArgumentsOldConstEvalDuplicateElement(Constant element) =>
+    _withArgumentsConstEvalDuplicateElement(element: element);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant key),
+  Message Function({required Constant key})
 >
 constEvalDuplicateKey = const Template(
   "ConstEvalDuplicateKey",
@@ -1318,26 +1318,26 @@ constEvalDuplicateKey = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDuplicateKey({required Constant constant}) {
+Message _withArgumentsConstEvalDuplicateKey({required Constant key}) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var key_0 = labeler.labelConstant(key);
   return new Message(
     constEvalDuplicateKey,
     problemMessage:
-        """The key '${constant_0}' conflicts with another existing key in the map.""" +
+        """The key '${key_0}' conflicts with another existing key in the map.""" +
         labeler.originMessages,
-    arguments: {'constant': constant},
+    arguments: {'key': key},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalDuplicateKey(Constant constant) =>
-    _withArgumentsConstEvalDuplicateKey(constant: constant);
+Message _withArgumentsOldConstEvalDuplicateKey(Constant key) =>
+    _withArgumentsConstEvalDuplicateKey(key: key);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant element),
+  Message Function({required Constant element})
 >
 constEvalElementImplementsEqual = const Template(
   "ConstEvalElementImplementsEqual",
@@ -1347,27 +1347,27 @@ constEvalElementImplementsEqual = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalElementImplementsEqual({
-  required Constant constant,
+  required Constant element,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var element_0 = labeler.labelConstant(element);
   return new Message(
     constEvalElementImplementsEqual,
     problemMessage:
-        """The element '${constant_0}' does not have a primitive operator '=='.""" +
+        """The element '${element_0}' does not have a primitive operator '=='.""" +
         labeler.originMessages,
-    arguments: {'constant': constant},
+    arguments: {'element': element},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalElementImplementsEqual(Constant constant) =>
-    _withArgumentsConstEvalElementImplementsEqual(constant: constant);
+Message _withArgumentsOldConstEvalElementImplementsEqual(Constant element) =>
+    _withArgumentsConstEvalElementImplementsEqual(element: element);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant element),
+  Message Function({required Constant element})
 >
 constEvalElementNotPrimitiveEquality = const Template(
   "ConstEvalElementNotPrimitiveEquality",
@@ -1377,23 +1377,23 @@ constEvalElementNotPrimitiveEquality = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalElementNotPrimitiveEquality({
-  required Constant constant,
+  required Constant element,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var element_0 = labeler.labelConstant(element);
   return new Message(
     constEvalElementNotPrimitiveEquality,
     problemMessage:
-        """The element '${constant_0}' does not have a primitive equality.""" +
+        """The element '${element_0}' does not have a primitive equality.""" +
         labeler.originMessages,
-    arguments: {'constant': constant},
+    arguments: {'element': element},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalElementNotPrimitiveEquality(
-  Constant constant,
-) => _withArgumentsConstEvalElementNotPrimitiveEquality(constant: constant);
+  Constant element,
+) => _withArgumentsConstEvalElementNotPrimitiveEquality(element: element);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1550,16 +1550,16 @@ Message _withArgumentsOldConstEvalGetterNotFound(String nameOKEmpty) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    String stringOKEmpty,
-    Constant constant,
-    DartType type,
-    DartType type2,
+    String operator,
+    Constant receiver,
+    DartType expectedType,
+    DartType actualType,
   ),
   Message Function({
-    required String stringOKEmpty,
-    required Constant constant,
-    required DartType type,
-    required DartType type2,
+    required String operator,
+    required Constant receiver,
+    required DartType expectedType,
+    required DartType actualType,
   })
 >
 constEvalInvalidBinaryOperandType = const Template(
@@ -1570,47 +1570,47 @@ constEvalInvalidBinaryOperandType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidBinaryOperandType({
-  required String stringOKEmpty,
-  required Constant constant,
-  required DartType type,
-  required DartType type2,
+  required String operator,
+  required Constant receiver,
+  required DartType expectedType,
+  required DartType actualType,
 }) {
-  var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  var operator_0 = conversions.stringOrEmpty(operator);
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var receiver_0 = labeler.labelConstant(receiver);
+  var expectedType_0 = labeler.labelType(expectedType);
+  var actualType_0 = labeler.labelType(actualType);
   return new Message(
     constEvalInvalidBinaryOperandType,
     problemMessage:
-        """Binary operator '${stringOKEmpty_0}' on '${constant_0}' requires operand of type '${type_0}', but was of type '${type2_0}'.""" +
+        """Binary operator '${operator_0}' on '${receiver_0}' requires operand of type '${expectedType_0}', but was of type '${actualType_0}'.""" +
         labeler.originMessages,
     arguments: {
-      'stringOKEmpty': stringOKEmpty,
-      'constant': constant,
-      'type': type,
-      'type2': type2,
+      'operator': operator,
+      'receiver': receiver,
+      'expectedType': expectedType,
+      'actualType': actualType,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidBinaryOperandType(
-  String stringOKEmpty,
-  Constant constant,
-  DartType type,
-  DartType type2,
+  String operator,
+  Constant receiver,
+  DartType expectedType,
+  DartType actualType,
 ) => _withArgumentsConstEvalInvalidBinaryOperandType(
-  stringOKEmpty: stringOKEmpty,
-  constant: constant,
-  type: type,
-  type2: type2,
+  operator: operator,
+  receiver: receiver,
+  expectedType: expectedType,
+  actualType: actualType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant, DartType type),
-  Message Function({required Constant constant, required DartType type})
+  Message Function(Constant receiver, DartType actualType),
+  Message Function({required Constant receiver, required DartType actualType})
 >
 constEvalInvalidEqualsOperandType = const Template(
   "ConstEvalInvalidEqualsOperandType",
@@ -1620,28 +1620,28 @@ constEvalInvalidEqualsOperandType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidEqualsOperandType({
-  required Constant constant,
-  required DartType type,
+  required Constant receiver,
+  required DartType actualType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
-  var type_0 = labeler.labelType(type);
+  var receiver_0 = labeler.labelConstant(receiver);
+  var actualType_0 = labeler.labelType(actualType);
   return new Message(
     constEvalInvalidEqualsOperandType,
     problemMessage:
-        """Binary operator '==' requires receiver constant '${constant_0}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '${type_0}'.""" +
+        """Binary operator '==' requires receiver constant '${receiver_0}' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '${actualType_0}'.""" +
         labeler.originMessages,
-    arguments: {'constant': constant, 'type': type},
+    arguments: {'receiver': receiver, 'actualType': actualType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidEqualsOperandType(
-  Constant constant,
-  DartType type,
+  Constant receiver,
+  DartType actualType,
 ) => _withArgumentsConstEvalInvalidEqualsOperandType(
-  constant: constant,
-  type: type,
+  receiver: receiver,
+  actualType: actualType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1884,11 +1884,15 @@ Message _withArgumentsOldConstEvalInvalidSymbolName(Constant constant) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant, DartType type, DartType type2),
+  Message Function(
+    Constant constant,
+    DartType expectedType,
+    DartType actualType,
+  ),
   Message Function({
     required Constant constant,
-    required DartType type,
-    required DartType type2,
+    required DartType expectedType,
+    required DartType actualType,
   })
 >
 constEvalInvalidType = const Template(
@@ -1900,37 +1904,41 @@ constEvalInvalidType = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidType({
   required Constant constant,
-  required DartType type,
-  required DartType type2,
+  required DartType expectedType,
+  required DartType actualType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
   var constant_0 = labeler.labelConstant(constant);
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var expectedType_0 = labeler.labelType(expectedType);
+  var actualType_0 = labeler.labelType(actualType);
   return new Message(
     constEvalInvalidType,
     problemMessage:
-        """Expected constant '${constant_0}' to be of type '${type_0}', but was of type '${type2_0}'.""" +
+        """Expected constant '${constant_0}' to be of type '${expectedType_0}', but was of type '${actualType_0}'.""" +
         labeler.originMessages,
-    arguments: {'constant': constant, 'type': type, 'type2': type2},
+    arguments: {
+      'constant': constant,
+      'expectedType': expectedType,
+      'actualType': actualType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstEvalInvalidType(
   Constant constant,
-  DartType type,
-  DartType type2,
+  DartType expectedType,
+  DartType actualType,
 ) => _withArgumentsConstEvalInvalidType(
   constant: constant,
-  type: type,
-  type2: type2,
+  expectedType: expectedType,
+  actualType: actualType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant key),
+  Message Function({required Constant key})
 >
 constEvalKeyImplementsEqual = const Template(
   "ConstEvalKeyImplementsEqual",
@@ -1939,28 +1947,26 @@ constEvalKeyImplementsEqual = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalKeyImplementsEqual({
-  required Constant constant,
-}) {
+Message _withArgumentsConstEvalKeyImplementsEqual({required Constant key}) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var key_0 = labeler.labelConstant(key);
   return new Message(
     constEvalKeyImplementsEqual,
     problemMessage:
-        """The key '${constant_0}' does not have a primitive operator '=='.""" +
+        """The key '${key_0}' does not have a primitive operator '=='.""" +
         labeler.originMessages,
-    arguments: {'constant': constant},
+    arguments: {'key': key},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalKeyImplementsEqual(Constant constant) =>
-    _withArgumentsConstEvalKeyImplementsEqual(constant: constant);
+Message _withArgumentsOldConstEvalKeyImplementsEqual(Constant key) =>
+    _withArgumentsConstEvalKeyImplementsEqual(key: key);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant key),
+  Message Function({required Constant key})
 >
 constEvalKeyNotPrimitiveEquality = const Template(
   "ConstEvalKeyNotPrimitiveEquality",
@@ -1970,22 +1976,22 @@ constEvalKeyNotPrimitiveEquality = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalKeyNotPrimitiveEquality({
-  required Constant constant,
+  required Constant key,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var constant_0 = labeler.labelConstant(constant);
+  var key_0 = labeler.labelConstant(key);
   return new Message(
     constEvalKeyNotPrimitiveEquality,
     problemMessage:
-        """The key '${constant_0}' does not have a primitive equality.""" +
+        """The key '${key_0}' does not have a primitive equality.""" +
         labeler.originMessages,
-    arguments: {'constant': constant},
+    arguments: {'key': key},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalKeyNotPrimitiveEquality(Constant constant) =>
-    _withArgumentsConstEvalKeyNotPrimitiveEquality(constant: constant);
+Message _withArgumentsOldConstEvalKeyNotPrimitiveEquality(Constant key) =>
+    _withArgumentsConstEvalKeyNotPrimitiveEquality(key: key);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

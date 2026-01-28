@@ -385,29 +385,29 @@ codeConstEvalDeferredLibrary = constEvalDeferredLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant element),
+  Message Function({required Constant element})
 >
 codeConstEvalDuplicateElement = constEvalDuplicateElement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant key),
+  Message Function({required Constant key})
 >
 codeConstEvalDuplicateKey = constEvalDuplicateKey;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant element),
+  Message Function({required Constant element})
 >
 codeConstEvalElementImplementsEqual = constEvalElementImplementsEqual;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant element),
+  Message Function({required Constant element})
 >
 codeConstEvalElementNotPrimitiveEquality = constEvalElementNotPrimitiveEquality;
 
@@ -460,24 +460,24 @@ codeConstEvalGetterNotFound = constEvalGetterNotFound;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    String stringOKEmpty,
-    Constant constant,
-    DartType type,
-    DartType type2,
+    String operator,
+    Constant receiver,
+    DartType expectedType,
+    DartType actualType,
   ),
   Message Function({
-    required String stringOKEmpty,
-    required Constant constant,
-    required DartType type,
-    required DartType type2,
+    required String operator,
+    required Constant receiver,
+    required DartType expectedType,
+    required DartType actualType,
   })
 >
 codeConstEvalInvalidBinaryOperandType = constEvalInvalidBinaryOperandType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant, DartType type),
-  Message Function({required Constant constant, required DartType type})
+  Message Function(Constant receiver, DartType actualType),
+  Message Function({required Constant receiver, required DartType actualType})
 >
 codeConstEvalInvalidEqualsOperandType = constEvalInvalidEqualsOperandType;
 
@@ -533,26 +533,30 @@ codeConstEvalInvalidSymbolName = constEvalInvalidSymbolName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant, DartType type, DartType type2),
+  Message Function(
+    Constant constant,
+    DartType expectedType,
+    DartType actualType,
+  ),
   Message Function({
     required Constant constant,
-    required DartType type,
-    required DartType type2,
+    required DartType expectedType,
+    required DartType actualType,
   })
 >
 codeConstEvalInvalidType = constEvalInvalidType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant key),
+  Message Function({required Constant key})
 >
 codeConstEvalKeyImplementsEqual = constEvalKeyImplementsEqual;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Constant constant),
-  Message Function({required Constant constant})
+  Message Function(Constant key),
+  Message Function({required Constant key})
 >
 codeConstEvalKeyNotPrimitiveEquality = constEvalKeyNotPrimitiveEquality;
 

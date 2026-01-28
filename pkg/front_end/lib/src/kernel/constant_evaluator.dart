@@ -1488,8 +1488,8 @@ class ConstantsTransformer extends RemovingTransformer {
             constantEvaluator.errorReporter.report(
               constantEvaluator.createLocatedMessage(
                 caseExpression,
-                diag.constEvalCaseImplementsEqual.withArgumentsOld(
-                  caseExpression.constant,
+                diag.constEvalCaseImplementsEqual.withArguments(
+                  constant: caseExpression.constant,
                 ),
               ),
               null,
@@ -3823,10 +3823,10 @@ class ConstantEvaluator
       // Coverage-ignore-block(suite): Not run.
       return createEvaluationErrorConstant(
         statement.condition,
-        diag.constEvalInvalidType.withArgumentsOld(
-          condition,
-          typeEnvironment.coreTypes.boolNonNullableRawType,
-          condition.getType(staticTypeContext),
+        diag.constEvalInvalidType.withArguments(
+          constant: condition,
+          expectedType: typeEnvironment.coreTypes.boolNonNullableRawType,
+          actualType: condition.getType(staticTypeContext),
         ),
       );
     }
@@ -4112,9 +4112,9 @@ class ConstantEvaluator
       } else {
         return createEvaluationErrorConstant(
           node,
-          diag.constEvalInvalidEqualsOperandType.withArgumentsOld(
-            left,
-            left.getType(staticTypeContext),
+          diag.constEvalInvalidEqualsOperandType.withArguments(
+            receiver: left,
+            actualType: left.getType(staticTypeContext),
           ),
         );
       }
@@ -4159,11 +4159,12 @@ class ConstantEvaluator
             }
             return createEvaluationErrorConstant(
               node,
-              diag.constEvalInvalidBinaryOperandType.withArgumentsOld(
-                '+',
-                receiver,
-                typeEnvironment.coreTypes.stringNonNullableRawType,
-                other.getType(staticTypeContext),
+              diag.constEvalInvalidBinaryOperandType.withArguments(
+                operator: '+',
+                receiver: receiver,
+                expectedType:
+                    typeEnvironment.coreTypes.stringNonNullableRawType,
+                actualType: other.getType(staticTypeContext),
               ),
             );
           case '[]':
@@ -4181,11 +4182,11 @@ class ConstantEvaluator
               // Coverage-ignore(suite): Not run.
               return createEvaluationErrorConstant(
                 node,
-                diag.constEvalInvalidBinaryOperandType.withArgumentsOld(
-                  '[]',
-                  receiver,
-                  typeEnvironment.coreTypes.intNonNullableRawType,
-                  other.getType(staticTypeContext),
+                diag.constEvalInvalidBinaryOperandType.withArguments(
+                  operator: '[]',
+                  receiver: receiver,
+                  expectedType: typeEnvironment.coreTypes.intNonNullableRawType,
+                  actualType: other.getType(staticTypeContext),
                 ),
               );
             }
@@ -4205,11 +4206,11 @@ class ConstantEvaluator
               (op == '<<' || op == '>>' || op == '>>>')) {
             return createEvaluationErrorConstant(
               node,
-              diag.constEvalInvalidBinaryOperandType.withArgumentsOld(
-                op,
-                other,
-                typeEnvironment.coreTypes.intNonNullableRawType,
-                other.getType(staticTypeContext),
+              diag.constEvalInvalidBinaryOperandType.withArguments(
+                operator: op,
+                receiver: other,
+                expectedType: typeEnvironment.coreTypes.intNonNullableRawType,
+                actualType: other.getType(staticTypeContext),
               ),
             );
           }
@@ -4225,11 +4226,11 @@ class ConstantEvaluator
         }
         return createEvaluationErrorConstant(
           node,
-          diag.constEvalInvalidBinaryOperandType.withArgumentsOld(
-            op,
-            receiver,
-            typeEnvironment.coreTypes.numNonNullableRawType,
-            other.getType(staticTypeContext),
+          diag.constEvalInvalidBinaryOperandType.withArguments(
+            operator: op,
+            receiver: receiver,
+            expectedType: typeEnvironment.coreTypes.numNonNullableRawType,
+            actualType: other.getType(staticTypeContext),
           ),
         );
       }
@@ -4238,11 +4239,11 @@ class ConstantEvaluator
           (op == '<<' || op == '>>' || op == '>>>')) {
         return createEvaluationErrorConstant(
           node,
-          diag.constEvalInvalidBinaryOperandType.withArgumentsOld(
-            op,
-            receiver,
-            typeEnvironment.coreTypes.intNonNullableRawType,
-            receiver.getType(staticTypeContext),
+          diag.constEvalInvalidBinaryOperandType.withArguments(
+            operator: op,
+            receiver: receiver,
+            expectedType: typeEnvironment.coreTypes.intNonNullableRawType,
+            actualType: receiver.getType(staticTypeContext),
           ),
         );
       }
@@ -4263,11 +4264,11 @@ class ConstantEvaluator
         // Coverage-ignore(suite): Not run.
         return createEvaluationErrorConstant(
           node,
-          diag.constEvalInvalidBinaryOperandType.withArgumentsOld(
-            op,
-            receiver,
-            typeEnvironment.coreTypes.numNonNullableRawType,
-            other.getType(staticTypeContext),
+          diag.constEvalInvalidBinaryOperandType.withArguments(
+            operator: op,
+            receiver: receiver,
+            expectedType: typeEnvironment.coreTypes.numNonNullableRawType,
+            actualType: other.getType(staticTypeContext),
           ),
         );
       }
@@ -4311,11 +4312,11 @@ class ConstantEvaluator
             // Coverage-ignore(suite): Not run.
             return createEvaluationErrorConstant(
               node,
-              diag.constEvalInvalidBinaryOperandType.withArgumentsOld(
-                '[]',
-                receiver,
-                typeEnvironment.coreTypes.intNonNullableRawType,
-                other.getType(staticTypeContext),
+              diag.constEvalInvalidBinaryOperandType.withArguments(
+                operator: '[]',
+                receiver: receiver,
+                expectedType: typeEnvironment.coreTypes.intNonNullableRawType,
+                actualType: other.getType(staticTypeContext),
               ),
             );
           case 'add':
@@ -4460,11 +4461,11 @@ class ConstantEvaluator
           // Coverage-ignore(suite): Not run.
           return createEvaluationErrorConstant(
             node,
-            diag.constEvalInvalidBinaryOperandType.withArgumentsOld(
-              logicalExpressionOperatorToString(node.operatorEnum),
-              left,
-              typeEnvironment.coreTypes.boolNonNullableRawType,
-              right.getType(staticTypeContext),
+            diag.constEvalInvalidBinaryOperandType.withArguments(
+              operator: logicalExpressionOperatorToString(node.operatorEnum),
+              receiver: left,
+              expectedType: typeEnvironment.coreTypes.boolNonNullableRawType,
+              actualType: right.getType(staticTypeContext),
             ),
           );
         }
@@ -4490,11 +4491,11 @@ class ConstantEvaluator
           // Coverage-ignore(suite): Not run.
           return createEvaluationErrorConstant(
             node,
-            diag.constEvalInvalidBinaryOperandType.withArgumentsOld(
-              logicalExpressionOperatorToString(node.operatorEnum),
-              left,
-              typeEnvironment.coreTypes.boolNonNullableRawType,
-              right.getType(staticTypeContext),
+            diag.constEvalInvalidBinaryOperandType.withArguments(
+              operator: logicalExpressionOperatorToString(node.operatorEnum),
+              receiver: left,
+              expectedType: typeEnvironment.coreTypes.boolNonNullableRawType,
+              actualType: right.getType(staticTypeContext),
             ),
           );
         }
@@ -4537,10 +4538,10 @@ class ConstantEvaluator
       // Coverage-ignore-block(suite): Not run.
       return createEvaluationErrorConstant(
         node.condition,
-        diag.constEvalInvalidType.withArgumentsOld(
-          condition,
-          typeEnvironment.coreTypes.boolNonNullableRawType,
-          condition.getType(staticTypeContext),
+        diag.constEvalInvalidType.withArguments(
+          constant: condition,
+          expectedType: typeEnvironment.coreTypes.boolNonNullableRawType,
+          actualType: condition.getType(staticTypeContext),
         ),
       );
     }
@@ -5219,10 +5220,10 @@ class ConstantEvaluator
         // function has a non-nullable return type.
         return createEvaluationErrorConstant(
           function,
-          diag.constEvalInvalidType.withArgumentsOld(
-            result,
-            function.returnType,
-            result.getType(staticTypeContext),
+          diag.constEvalInvalidType.withArguments(
+            constant: result,
+            expectedType: function.returnType,
+            actualType: result.getType(staticTypeContext),
           ),
         );
       }
@@ -5314,10 +5315,10 @@ class ConstantEvaluator
     // Coverage-ignore(suite): Not run.
     return createEvaluationErrorConstant(
       node,
-      diag.constEvalInvalidType.withArgumentsOld(
-        constant,
-        typeEnvironment.coreTypes.boolNonNullableRawType,
-        constant.getType(staticTypeContext),
+      diag.constEvalInvalidType.withArguments(
+        constant: constant,
+        expectedType: typeEnvironment.coreTypes.boolNonNullableRawType,
+        actualType: constant.getType(staticTypeContext),
       ),
     );
   }
@@ -5635,10 +5636,10 @@ class ConstantEvaluator
     if (!result) {
       return createEvaluationErrorConstant(
         node,
-        diag.constEvalInvalidType.withArgumentsOld(
-          constant,
-          type,
-          constant.getType(staticTypeContext),
+        diag.constEvalInvalidType.withArguments(
+          constant: constant,
+          expectedType: type,
+          actualType: constant.getType(staticTypeContext),
         ),
       );
     }

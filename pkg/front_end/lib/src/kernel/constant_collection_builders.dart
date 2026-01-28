@@ -185,12 +185,14 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
           context,
-          diag.constEvalElementNotPrimitiveEquality.withArgumentsOld(constant),
+          diag.constEvalElementNotPrimitiveEquality.withArguments(
+            element: constant,
+          ),
         );
       } else {
         return evaluator.createEvaluationErrorConstant(
           context,
-          diag.constEvalElementImplementsEqual.withArgumentsOld(constant),
+          diag.constEvalElementImplementsEqual.withArguments(element: constant),
         );
       }
     }
@@ -198,7 +200,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     if (!unseen) {
       return evaluator.createEvaluationErrorConstant(
         context,
-        diag.constEvalDuplicateElement.withArgumentsOld(constant),
+        diag.constEvalDuplicateElement.withArguments(element: constant),
       );
     }
 
@@ -358,13 +360,13 @@ class MapConstantBuilder {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
           keyContext,
-          diag.constEvalKeyNotPrimitiveEquality.withArgumentsOld(key),
+          diag.constEvalKeyNotPrimitiveEquality.withArguments(key: key),
         );
       } else {
         // Coverage-ignore-block(suite): Not run.
         return evaluator.createEvaluationErrorConstant(
           keyContext,
-          diag.constEvalKeyImplementsEqual.withArgumentsOld(key),
+          diag.constEvalKeyImplementsEqual.withArguments(key: key),
         );
       }
     }
@@ -372,7 +374,7 @@ class MapConstantBuilder {
     if (!unseenKey) {
       return evaluator.createEvaluationErrorConstant(
         keyContext,
-        diag.constEvalDuplicateKey.withArgumentsOld(key),
+        diag.constEvalDuplicateKey.withArguments(key: key),
       );
     }
 
