@@ -494,6 +494,7 @@ deterministic
 dev
 developed
 device
+diag
 dictates
 dies
 diff

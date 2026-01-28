@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/reference_from_index.dart';
 
 import '../base/extension_scope.dart';
@@ -138,12 +139,12 @@ class DeclarationNameSpaceBuilder {
       );
       if (tv != null) {
         _problemReporting.addProblem(
-          codeConflictsWithTypeParameter.withArgumentsOld(name),
+          diag.conflictsWithTypeParameter.withArgumentsOld(name),
           memberBuilder.fileOffset,
           name.length,
           fileUri,
           context: [
-            codeConflictsWithTypeParameterCause.withLocation(
+            diag.conflictsWithTypeParameterCause.withLocation(
               tv.fileUri!,
               tv.fileOffset,
               name.length,
@@ -248,13 +249,13 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // better specialize the message.
       if (declarationBuilder.isEnum && name == 'values') {
         problemReporting.addProblem(
-          codeEnumWithNameValues,
+          diag.enumWithNameValues,
           declarationBuilder.fileOffset,
           name.length,
           declarationBuilder.fileUri,
         );
       } else {
-        problemReporting.addProblem2(codeMemberWithSameNameAsClass, uriOffset);
+        problemReporting.addProblem2(diag.memberWithSameNameAsClass, uriOffset);
       }
     }
     if (isConstructor) {
@@ -269,7 +270,7 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // TODO(johnniwinther): Test adding a no-name constructor in the
       //  patch, either as an injected or duplicated constructor.
       problemReporting.addProblem2(
-        codePatchInjectionFailed.withArgumentsOld(
+        diag.patchInjectionFailed.withArgumentsOld(
           name,
           enclosingLibraryBuilder.importUri,
         ),
@@ -396,7 +397,7 @@ class _LibraryBuilderRegistry implements BuilderRegistry {
         !name.startsWith('_') &&
         !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
       problemReporting.addProblem2(
-        codePatchInjectionFailed.withArgumentsOld(
+        diag.patchInjectionFailed.withArgumentsOld(
           name,
           enclosingLibraryBuilder.importUri,
         ),

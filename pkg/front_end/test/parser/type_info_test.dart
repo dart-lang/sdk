@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as scanner;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide scanString;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/base/messages.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/source/diet_parser.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -129,7 +130,7 @@ class NoTypeInfoTest {
       'handleNoTypeArguments ;',
       'handleType  null',
     ]);
-    expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
+    expect(listener.errors, [new ExpectedError(diag.expectedType, 7, 1)]);
   }
 
   void test_ensureTypeOrVoid() {
@@ -152,7 +153,7 @@ class NoTypeInfoTest {
       'handleNoTypeArguments ;',
       'handleType  null',
     ]);
-    expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
+    expect(listener.errors, [new ExpectedError(diag.expectedType, 7, 1)]);
   }
 
   void test_parseType() {
@@ -246,7 +247,7 @@ class VoidTypeInfoTest {
       'handleNoTypeArguments ;',
       'handleType void null',
     ]);
-    expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
+    expect(listener.errors, [new ExpectedError(diag.invalidVoid, 7, 4)]);
   }
 
   void test_ensureTypeOrVoid() {
@@ -307,7 +308,7 @@ class VoidTypeInfoTest {
       'handleNoTypeArguments ;',
       'handleType void null',
     ]);
-    expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
+    expect(listener.errors, [new ExpectedError(diag.invalidVoid, 7, 4)]);
   }
 }
 
@@ -592,7 +593,7 @@ class SimpleTypeTest {
       'C.',
       required: true,
       couldBeExpression: true,
-      expectedErrors: [error(codeExpectedType, 2, 0)],
+      expectedErrors: [error(diag.expectedType, 2, 0)],
     );
     expectInfo(simpleType, 'C=', required: true);
     expectInfo(simpleType, 'C*', required: true);
@@ -959,8 +960,8 @@ class TypeInfoTest {
       required: true,
       couldBeExpression: true,
       expectedErrors: [
-        error(codeExpectedType, 0, 1),
-        error(codeExpectedType, 1, 0),
+        error(diag.expectedType, 0, 1),
+        error(diag.expectedType, 1, 0),
       ],
     );
 
@@ -969,7 +970,7 @@ class TypeInfoTest {
       '.Foo',
       required: true,
       couldBeExpression: true,
-      expectedErrors: [error(codeExpectedType, 0, 1)],
+      expectedErrors: [error(diag.expectedType, 0, 1)],
     );
   }
 
@@ -980,27 +981,27 @@ class TypeInfoTest {
       'abstract',
       required: true,
       couldBeExpression: true,
-      expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 8)],
+      expectedErrors: [error(diag.builtInIdentifierAsType, 0, 8)],
     );
     expectComplexInfo(
       'export',
       required: true,
       couldBeExpression: true,
-      expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 6)],
+      expectedErrors: [error(diag.builtInIdentifierAsType, 0, 6)],
     );
     expectComplexInfo(
       'abstract Function()',
       required: false,
       couldBeExpression: true,
       expectedAfter: 'Function',
-      expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 8)],
+      expectedErrors: [error(diag.builtInIdentifierAsType, 0, 8)],
     );
     expectComplexInfo(
       'export Function()',
       required: false,
       couldBeExpression: true,
       expectedAfter: 'Function',
-      expectedErrors: [error(codeBuiltInIdentifierAsType, 0, 6)],
+      expectedErrors: [error(diag.builtInIdentifierAsType, 0, 6)],
     );
   }
 
@@ -1663,7 +1664,7 @@ class TypeInfoTest {
         'endTypeArguments 2 < >',
         'handleType G null',
       ],
-      expectedErrors: [error(codeExpectedButGot, 6, 6)],
+      expectedErrors: [error(diag.expectedButGot, 6, 6)],
     );
 
     expectComplexInfo(
@@ -1678,7 +1679,7 @@ class TypeInfoTest {
         'endTypeArguments 1 < >',
         'handleType C null',
       ],
-      expectedErrors: [error(codeExpectedType, 2, 1)],
+      expectedErrors: [error(diag.expectedType, 2, 1)],
     );
     expectComplexInfo(
       'C<> f',
@@ -1693,7 +1694,7 @@ class TypeInfoTest {
         'endTypeArguments 1 < >',
         'handleType C null',
       ],
-      expectedErrors: [error(codeExpectedType, 2, 1)],
+      expectedErrors: [error(diag.expectedType, 2, 1)],
     );
   }
 
@@ -2483,7 +2484,7 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeArg(
       '<S extends T>',
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedAfterButGot, 1, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 1, 1)],
       expectedCalls: [
         'beginTypeArguments <',
         'handleIdentifier S typeReference',
@@ -2495,7 +2496,7 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeArg(
       '<S extends List<T>>',
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedAfterButGot, 1, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 1, 1)],
       expectedCalls: [
         'beginTypeArguments <',
         'handleIdentifier S typeReference',
@@ -2507,7 +2508,7 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeArg(
       '<@A S,T>',
       typeArgumentCount: 2,
-      expectedErrors: [error(codeAnnotationOnTypeArgument, 1, 2)],
+      expectedErrors: [error(diag.annotationOnTypeArgument, 1, 2)],
       expectedCalls: [
         'beginTypeArguments <',
         'handleIdentifier S typeReference',
@@ -2522,7 +2523,7 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeArg(
       '<@A() S,T>',
       typeArgumentCount: 2,
-      expectedErrors: [error(codeAnnotationOnTypeArgument, 1, 4)],
+      expectedErrors: [error(diag.annotationOnTypeArgument, 1, 4)],
       expectedCalls: [
         'beginTypeArguments <',
         'handleIdentifier S typeReference',
@@ -2538,8 +2539,8 @@ class TypeParamOrArgInfoTest {
       '<@A() @B S,T>',
       typeArgumentCount: 2,
       expectedErrors: [
-        error(codeAnnotationOnTypeArgument, 1, 4),
-        error(codeAnnotationOnTypeArgument, 6, 2),
+        error(diag.annotationOnTypeArgument, 1, 4),
+        error(diag.annotationOnTypeArgument, 6, 2),
       ],
       expectedCalls: [
         'beginTypeArguments <',
@@ -2556,28 +2557,28 @@ class TypeParamOrArgInfoTest {
       '<S T>',
       inDeclaration: true,
       typeArgumentCount: 2,
-      expectedErrors: [error(codeExpectedButGot, 3, 1)],
+      expectedErrors: [error(diag.expectedButGot, 3, 1)],
     );
     expectComplexTypeArg(
       '<S',
       inDeclaration: true,
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedAfterButGot, 1, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 1, 1)],
     );
     expectComplexTypeArg(
       '<@Foo S',
       inDeclaration: true,
       typeArgumentCount: 1,
       expectedErrors: [
-        error(codeAnnotationOnTypeArgument, 1, 4),
-        error(codeExpectedAfterButGot, 6, 1),
+        error(diag.annotationOnTypeArgument, 1, 4),
+        error(diag.expectedAfterButGot, 6, 1),
       ],
     );
     expectComplexTypeArg(
       '<S<T',
       inDeclaration: true,
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedAfterButGot, 3, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 3, 1)],
       expectedCalls: [
         'beginTypeArguments <',
         'handleIdentifier S typeReference',
@@ -2769,7 +2770,7 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeParam(
       '<T extends void>',
       typeArgumentCount: 1,
-      expectedErrors: [error(codeInvalidVoid, 11, 4)],
+      expectedErrors: [error(diag.invalidVoid, 11, 4)],
       expectedCalls: [
         'beginTypeVariables <',
         'beginMetadataStar T',
@@ -2790,7 +2791,7 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeParam(
       '<S Function()>',
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedAfterButGot, 1, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 1, 1)],
       expectedCalls: [
         'beginTypeVariables <',
         'beginMetadataStar S',
@@ -2806,7 +2807,7 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeParam(
       '<void Function()>',
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedIdentifier, 1, 4)],
+      expectedErrors: [error(diag.expectedIdentifier, 1, 4)],
       expectedCalls: [
         'beginTypeVariables <',
         'beginMetadataStar void',
@@ -2822,7 +2823,7 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeParam(
       '<S<T>>',
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedAfterButGot, 1, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 1, 1)],
       expectedCalls: [
         'beginTypeVariables <',
         'beginMetadataStar S',
@@ -2839,32 +2840,32 @@ class TypeParamOrArgInfoTest {
       '<S T>',
       inDeclaration: true,
       typeArgumentCount: 2,
-      expectedErrors: [error(codeExpectedButGot, 3, 1)],
+      expectedErrors: [error(diag.expectedButGot, 3, 1)],
     );
     expectComplexTypeParam(
       '<S',
       inDeclaration: true,
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedAfterButGot, 1, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 1, 1)],
     );
     expectComplexTypeParam(
       '<@Foo S',
       inDeclaration: true,
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedAfterButGot, 6, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 6, 1)],
     );
     expectComplexTypeParam(
       '<@Foo }',
       inDeclaration: true,
       typeArgumentCount: 0,
       expectedAfter: '}',
-      expectedErrors: [error(codeExpectedIdentifier, 6, 1)],
+      expectedErrors: [error(diag.expectedIdentifier, 6, 1)],
     );
     expectComplexTypeParam(
       '<S extends List<T fieldName;',
       inDeclaration: true,
       typeArgumentCount: 1,
-      expectedErrors: [error(codeExpectedAfterButGot, 16, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 16, 1)],
       expectedAfter: 'fieldName',
       expectedCalls: [
         'beginTypeVariables <',
@@ -3055,7 +3056,7 @@ class TypeParamOrArgInfoTest {
       '<S<T>> A',
       typeArgumentCount: 1,
       expectedAfter: 'A',
-      expectedErrors: [error(codeExpectedAfterButGot, 1, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 1, 1)],
       expectedCalls: [
         'beginTypeVariables <',
         'beginMetadataStar S',
@@ -3073,7 +3074,7 @@ class TypeParamOrArgInfoTest {
       inDeclaration: true,
       typeArgumentCount: 1,
       expectedAfter: 'A',
-      expectedErrors: [error(codeExpectedAfterButGot, 1, 1)],
+      expectedErrors: [error(diag.expectedAfterButGot, 1, 1)],
       expectedCalls: [
         'beginTypeVariables <',
         'beginMetadataStar S',

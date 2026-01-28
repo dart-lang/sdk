@@ -2,17 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/kernel/hierarchy/members_node.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
-import '../../base/messages.dart'
-    show
-        LocatedMessage,
-        codeDeclaredMemberConflictsWithInheritedMembersCause,
-        codeDeclaredMemberConflictsWithOverriddenMembersCause,
-        codeCombinedMemberSignatureFailed,
-        codeExtensionTypeCombinedMemberSignatureFailed;
+import '../../base/messages.dart' show LocatedMessage;
 import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
@@ -599,12 +594,12 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
             ? 1
             : name.length;
         List<LocatedMessage> context = declarations.map((ClassMember d) {
-          return codeDeclaredMemberConflictsWithOverriddenMembersCause
+          return diag.declaredMemberConflictsWithOverriddenMembersCause
               .withLocation2(d.uriOffset);
         }).toList();
 
         classBuilder.libraryBuilder.addProblem(
-          codeCombinedMemberSignatureFailed.withArgumentsOld(
+          diag.combinedMemberSignatureFailed.withArgumentsOld(
             name,
             declarations.first.fullNameForErrors,
           ),
@@ -1017,12 +1012,12 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       String name = extensionTypeDeclarationBuilder.fullNameForErrors;
       int nameLength = name.length;
       List<LocatedMessage> context = declarations.map((ClassMember d) {
-        return codeDeclaredMemberConflictsWithInheritedMembersCause
+        return diag.declaredMemberConflictsWithInheritedMembersCause
             .withLocation2(d.uriOffset);
       }).toList();
 
       extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-        codeExtensionTypeCombinedMemberSignatureFailed.withArgumentsOld(
+        diag.extensionTypeCombinedMemberSignatureFailed.withArgumentsOld(
           name,
           declarations.first.fullNameForErrors,
         ),

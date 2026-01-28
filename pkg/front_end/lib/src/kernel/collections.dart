@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
 import '../base/compiler_context.dart';
-import '../base/messages.dart'
-    show noLength, codeExpectedAfterButGot, ProblemReporting;
+import '../base/messages.dart' show noLength, ProblemReporting;
 import '../base/problems.dart' show getFileUri, unsupported;
 import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
@@ -1434,7 +1434,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
   return new MapLiteralEntry(
     problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeExpectedAfterButGot.withArgumentsOld(':'),
+      message: diag.expectedAfterButGot.withArgumentsOld(':'),
       fileUri: fileUri,
       fileOffset: element.fileOffset,
       // TODO(danrubel): what is the length of the expression?

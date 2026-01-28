@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:front_end/src/base/messages.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/source/diet_parser.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -31,7 +32,7 @@ class CollectionElementTest {
         'handleSend  ',
         'handleLiteralList 1, [, null, ]',
       ],
-      errors: [error(codeExpectedIdentifier, 2, 1)],
+      errors: [error(diag.expectedIdentifier, 2, 1)],
       expectAfter: '}',
     );
   }
@@ -46,7 +47,7 @@ class CollectionElementTest {
         'handleSend  ',
         'handleLiteralList 1, [, null, ]',
       ],
-      errors: [error(codeExpectedIdentifier, 2, 1)],
+      errors: [error(diag.expectedIdentifier, 2, 1)],
     );
   }
 
@@ -550,9 +551,9 @@ class MapElementTest {
         'handleLiteralMapEntry :, }',
       ],
       errors: [
-        error(codeExpectedIdentifier, 7, 1),
-        error(codeExpectedButGot, 7, 1),
-        error(codeExpectedIdentifier, 7, 1),
+        error(diag.expectedIdentifier, 7, 1),
+        error(diag.expectedButGot, 7, 1),
+        error(diag.expectedIdentifier, 7, 1),
       ],
       expectAfter: '}',
     );
@@ -573,9 +574,9 @@ class MapElementTest {
         'handleLiteralMapEntry :, ,',
       ],
       errors: [
-        error(codeExpectedIdentifier, 7, 1),
-        error(codeExpectedButGot, 7, 1),
-        error(codeExpectedIdentifier, 7, 1),
+        error(diag.expectedIdentifier, 7, 1),
+        error(diag.expectedButGot, 7, 1),
+        error(diag.expectedIdentifier, 7, 1),
       ],
       expectAfter: ',',
     );

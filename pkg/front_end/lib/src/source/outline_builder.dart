@@ -20,6 +20,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart'
     show AsyncMarker, InvalidType, Nullability, ProcedureKind, TreeNode;
 
@@ -945,7 +946,7 @@ class OutlineBuilder extends StackListenerImpl {
       push(charOffset);
       // Point to dollar sign
       int interpolationOffset = charOffset + beginToken.lexeme.length;
-      addProblem(codeInterpolationInUri, interpolationOffset, 1);
+      addProblem(diag.interpolationInUri, interpolationOffset, 1);
     }
   }
 
@@ -1492,7 +1493,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype != null) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            codeNullableSuperclassError.withArgumentsOld(
+            diag.nullableSuperclassError.withArgumentsOld(
               supertype.fullNameForErrors,
             ),
             identifier.nameOffset,
@@ -1505,7 +1506,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder mixin in mixins) {
           if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
+              diag.nullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
               identifier.nameOffset,
               classNameForErrors.length,
               uri,
@@ -1517,7 +1518,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableInterfaceError.withArgumentsOld(
+              diag.nullableInterfaceError.withArgumentsOld(
                 interface.fullNameForErrors,
               ),
               identifier.nameOffset,
@@ -1599,7 +1600,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder supertype in supertypeConstraints) {
           if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableSuperclassError.withArgumentsOld(
+              diag.nullableSuperclassError.withArgumentsOld(
                 supertype.fullNameForErrors,
               ),
               identifier.nameOffset,
@@ -1613,7 +1614,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableInterfaceError.withArgumentsOld(
+              diag.nullableInterfaceError.withArgumentsOld(
                 interface.fullNameForErrors,
               ),
               identifier.nameOffset,
@@ -1865,7 +1866,7 @@ class OutlineBuilder extends StackListenerImpl {
               type.hasFunctionFormalParameterSyntax) {
             _compilationUnit.addProblem(
               // ignore: lines_longer_than_80_chars
-              codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
+              diag.extensionTypePrimaryConstructorFunctionFormalParameterSyntax,
               formal.fileOffset,
               formal.name.length,
               formal.fileUri,
@@ -1873,7 +1874,7 @@ class OutlineBuilder extends StackListenerImpl {
           }
           if (type is ImplicitTypeBuilder) {
             _compilationUnit.addProblem(
-              codeExpectedRepresentationType,
+              diag.expectedRepresentationType,
               formal.fileOffset,
               formal.name.length,
               formal.fileUri,
@@ -1888,7 +1889,7 @@ class OutlineBuilder extends StackListenerImpl {
             ignoreRequired: true,
           )) {
             _compilationUnit.addProblem(
-              codeRepresentationFieldModifier,
+              diag.representationFieldModifier,
               formal.fileOffset,
               formal.name.length,
               formal.fileUri,
@@ -1896,7 +1897,7 @@ class OutlineBuilder extends StackListenerImpl {
           }
           if (formal.isInitializingFormal) {
             _compilationUnit.addProblem(
-              codeExtensionTypePrimaryConstructorWithInitializingFormal,
+              diag.extensionTypePrimaryConstructorWithInitializingFormal,
               formal.fileOffset,
               formal.name.length,
               formal.fileUri,
@@ -1932,28 +1933,28 @@ class OutlineBuilder extends StackListenerImpl {
       if (forExtensionType) {
         if (firstOptionalPositionalParameterOffset != null) {
           _compilationUnit.addProblem(
-            codeOptionalParametersInExtensionTypeDeclaration,
+            diag.optionalParametersInExtensionTypeDeclaration,
             firstOptionalPositionalParameterOffset,
             1,
             uri,
           );
         } else if (firstNamedParameterOffset != null) {
           _compilationUnit.addProblem(
-            codeNamedParametersInExtensionTypeDeclaration,
+            diag.namedParametersInExtensionTypeDeclaration,
             firstNamedParameterOffset,
             1,
             uri,
           );
         } else if (requiredPositionalCount == 0) {
           _compilationUnit.addProblem(
-            codeExpectedRepresentationField,
+            diag.expectedRepresentationField,
             charOffset,
             1,
             uri,
           );
         } else if (formals.length > 1) {
           _compilationUnit.addProblem(
-            codeMultipleRepresentationFields,
+            diag.multipleRepresentationFields,
             charOffset,
             1,
             uri,
@@ -2167,7 +2168,7 @@ class OutlineBuilder extends StackListenerImpl {
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     if (!enableNative) {
       super.handleRecoverableError(
-        codeExpectedBlockToSkip,
+        diag.expectedBlockToSkip,
         nativeToken,
         nativeToken,
       );
@@ -2405,19 +2406,19 @@ class OutlineBuilder extends StackListenerImpl {
         Template<Message Function(String name), Function> template;
         switch (requiredArgumentCount) {
           case 0:
-            template = codeOperatorParameterMismatch0;
+            template = diag.operatorParameterMismatch0;
             break;
 
           case 1:
             if (Operator.subtract == operator) {
-              template = codeOperatorMinusParameterMismatch;
+              template = diag.operatorMinusParameterMismatch;
             } else {
-              template = codeOperatorParameterMismatch1;
+              template = diag.operatorParameterMismatch1;
             }
             break;
 
           case 2:
-            template = codeOperatorParameterMismatch2;
+            template = diag.operatorParameterMismatch2;
             break;
 
           // Coverage-ignore(suite): Not run.
@@ -2435,7 +2436,7 @@ class OutlineBuilder extends StackListenerImpl {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequiredPositional) {
               addProblem(
-                codeOperatorWithOptionalFormals,
+                diag.operatorWithOptionalFormals,
                 formal.fileOffset,
                 formal.name.length,
               );
@@ -2445,7 +2446,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       if (typeParameters != null) {
         addProblem(
-          codeOperatorWithTypeParameters,
+          diag.operatorWithTypeParameters,
           typeParameters.charOffset,
           typeParameters.spanLength,
         );
@@ -2573,7 +2574,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     if (typeParameters != null) {
       addProblem(
-        codeConstructorWithTypeParameters,
+        diag.constructorWithTypeParameters,
         typeParameters.charOffset,
         typeParameters.spanLength,
       );
@@ -2609,12 +2610,12 @@ class OutlineBuilder extends StackListenerImpl {
     if (isConst &&
         bodyKind != MethodBody.Abstract &&
         !libraryFeatures.constFunctions.isEnabled) {
-      addProblem(codeConstConstructorWithBody, varFinalOrConstOffset, 5);
+      addProblem(diag.constConstructorWithBody, varFinalOrConstOffset, 5);
       modifiers -= Modifiers.Const;
     }
     if (returnType != null) {
       addProblem(
-        codeConstructorWithReturnType,
+        diag.constructorWithReturnType,
         returnType.charOffset ?? // Coverage-ignore(suite): Not run.
             beginToken.offset,
         noLength,
@@ -2738,7 +2739,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype is TypeBuilder) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            codeNullableSuperclassError.withArgumentsOld(
+            diag.nullableSuperclassError.withArgumentsOld(
               supertype.fullNameForErrors,
             ),
             identifier.nameOffset,
@@ -2750,7 +2751,7 @@ class OutlineBuilder extends StackListenerImpl {
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-            codeNullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
+            diag.nullableMixinError.withArgumentsOld(mixin.fullNameForErrors),
             identifier.nameOffset,
             classNameForErrors.length,
             uri,
@@ -2761,7 +2762,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableInterfaceError.withArgumentsOld(
+              diag.nullableInterfaceError.withArgumentsOld(
                 interface.fullNameForErrors,
               ),
               identifier.nameOffset,
@@ -3091,7 +3092,7 @@ class OutlineBuilder extends StackListenerImpl {
           kind == MemberKind.PrimaryConstructor &&
           declarationContext == DeclarationContext.ExtensionType) {
         _compilationUnit.addProblem(
-          codeRepresentationFieldTrailingComma,
+          diag.representationFieldTrailingComma,
           tokenBeforeEnd.charOffset,
           1,
           uri,
@@ -3130,11 +3131,11 @@ class OutlineBuilder extends StackListenerImpl {
             formals[0].name == formals[1].name &&
             !formals[0].isWildcard) {
           addProblem(
-            codeDuplicatedParameterName.withArgumentsOld(formals[1].name),
+            diag.duplicatedParameterName.withArgumentsOld(formals[1].name),
             formals[1].fileOffset,
             formals[1].name.length,
             context: [
-              codeDuplicatedParameterNameCause
+              diag.duplicatedParameterNameCause
                   .withArgumentsOld(formals[1].name)
                   .withLocation(
                     uri,
@@ -3174,11 +3175,11 @@ class OutlineBuilder extends StackListenerImpl {
           if (formal.name == FormalParameterBuilder.noNameSentinel) continue;
           if (seenNames.containsKey(formal.name)) {
             addProblem(
-              codeDuplicatedParameterName.withArgumentsOld(formal.name),
+              diag.duplicatedParameterName.withArgumentsOld(formal.name),
               formal.fileOffset,
               formal.name.length,
               context: [
-                codeDuplicatedParameterNameCause
+                diag.duplicatedParameterNameCause
                     .withArgumentsOld(formal.name)
                     .withLocation(
                       uri,
@@ -3224,7 +3225,7 @@ class OutlineBuilder extends StackListenerImpl {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isSuperInitializingFormal) {
           _compilationUnit.addProblem(
-            codeExtensionTypeConstructorWithSuperFormalParameter,
+            diag.extensionTypeConstructorWithSuperFormalParameter,
             formal.fileOffset,
             formal.name.length,
             formal.fileUri,
@@ -3244,11 +3245,13 @@ class OutlineBuilder extends StackListenerImpl {
     FormalParameterBuilder previous,
   ) {
     addProblem(
-      codePrivateNamedParameterDuplicatePublicName.withArgumentsOld(publicName),
+      diag.privateNamedParameterDuplicatePublicName.withArgumentsOld(
+        publicName,
+      ),
       formal.fileOffset,
       formal.name.length,
       context: [
-        codeDuplicatedParameterNameCause
+        diag.duplicatedParameterNameCause
             .withArgumentsOld(publicName)
             .withLocation(uri, previous.fileOffset, previous.name.length),
       ],
@@ -3436,7 +3439,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (enumConstantInfos == null) {
         if (!leftBrace.isSynthetic) {
           addProblem(
-            codeEnumDeclarationEmpty,
+            diag.enumDeclarationEmpty,
             identifier.token.offset,
             identifier.token.length,
           );
@@ -3446,7 +3449,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-              codeNullableInterfaceError.withArgumentsOld(
+              diag.nullableInterfaceError.withArgumentsOld(
                 interface.fullNameForErrors,
               ),
               interface.charOffset ?? startOffset,
@@ -3519,7 +3522,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
-        codeExperimentNotEnabledOffByDefault.withArgumentsOld(
+        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
           ExperimentalFlag.records.name,
         ),
         leftBracket.offset,
@@ -3728,11 +3731,15 @@ class OutlineBuilder extends StackListenerImpl {
       if (type is FunctionTypeBuilder &&
           !libraryFeatures.nonfunctionTypeAliases.isEnabled) {
         if (type.nullabilityBuilder.build() == Nullability.nullable) {
-          addProblem(codeTypedefNullableType, equals.charOffset, equals.length);
+          addProblem(
+            diag.typedefNullableType,
+            equals.charOffset,
+            equals.length,
+          );
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             new InvalidBuilder(
               identifier.name,
-              codeTypedefNullableType.withLocation(
+              diag.typedefNullableType.withLocation(
                 uri,
                 equals.charOffset,
                 equals.length,
@@ -3754,11 +3761,11 @@ class OutlineBuilder extends StackListenerImpl {
         if (type is TypeBuilder) {
           aliasedType = type;
         } else {
-          addProblem(codeTypedefNotType, equals.charOffset, equals.length);
+          addProblem(diag.typedefNotType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             new InvalidBuilder(
               "${name}",
-              codeTypedefNotType.withLocation(
+              diag.typedefNotType.withLocation(
                 uri,
                 equals.charOffset,
                 equals.length,
@@ -3773,11 +3780,11 @@ class OutlineBuilder extends StackListenerImpl {
         assert(type is! FunctionTypeBuilder);
         // TODO(ahe): Improve this error message.
         if (type is TypeBuilder) {
-          addProblem(codeTypedefNotFunction, equals.charOffset, equals.length);
+          addProblem(diag.typedefNotFunction, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             new InvalidBuilder(
               identifier.name,
-              codeTypedefNotFunction.withLocation(
+              diag.typedefNotFunction.withLocation(
                 uri,
                 equals.charOffset,
                 equals.length,
@@ -3788,11 +3795,11 @@ class OutlineBuilder extends StackListenerImpl {
                 InstanceTypeParameterAccessState.Allowed,
           );
         } else {
-          addProblem(codeTypedefNotType, equals.charOffset, equals.length);
+          addProblem(diag.typedefNotType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
             new InvalidBuilder(
               identifier.name,
-              codeTypedefNotType.withLocation(
+              diag.typedefNotType.withLocation(
                 uri,
                 equals.charOffset,
                 equals.length,
@@ -3908,7 +3915,7 @@ class OutlineBuilder extends StackListenerImpl {
     );
     if (externalToken != null && lateToken != null) {
       handleRecoverableError(
-        codeExternalLateField,
+        diag.externalLateField,
         externalToken,
         externalToken,
       );
@@ -4001,7 +4008,7 @@ class OutlineBuilder extends StackListenerImpl {
     );
     if (staticToken != null && abstractToken != null) {
       handleRecoverableError(
-        codeAbstractStaticField,
+        diag.abstractStaticField,
         abstractToken,
         abstractToken,
       );
@@ -4009,14 +4016,14 @@ class OutlineBuilder extends StackListenerImpl {
     }
     if (abstractToken != null && lateToken != null) {
       handleRecoverableError(
-        codeAbstractLateField,
+        diag.abstractLateField,
         abstractToken,
         abstractToken,
       );
       abstractToken = null;
     } else if (externalToken != null && lateToken != null) {
       handleRecoverableError(
-        codeExternalLateField,
+        diag.externalLateField,
         externalToken,
         externalToken,
       );
@@ -4038,7 +4045,7 @@ class OutlineBuilder extends StackListenerImpl {
       // It is a compile-time error if an instance variable is declared to be
       // constant.
       addProblem(
-        codeConstInstanceField,
+        diag.constInstanceField,
         varFinalOrConst!.charOffset,
         varFinalOrConst.length,
       );
@@ -4263,7 +4270,7 @@ class OutlineBuilder extends StackListenerImpl {
       Identifier containingLibrary = pop() as Identifier;
       if (libraryFeatures.enhancedParts.isEnabled) {
         _compilationUnit.addProblem(
-          codePartOfName,
+          diag.partOfName,
           containingLibrary.firstOffset,
           noLength,
           uri,
@@ -4414,7 +4421,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     if (typeParameters != null) {
       addProblem(
-        codeConstructorWithTypeParameters,
+        diag.constructorWithTypeParameters,
         typeParameters.charOffset,
         typeParameters.spanLength,
       );
@@ -4477,7 +4484,7 @@ class OutlineBuilder extends StackListenerImpl {
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
     if (!libraryFeatures.constFunctions.isEnabled) {
-      handleRecoverableError(codeConstFactory, constKeyword, constKeyword);
+      handleRecoverableError(diag.constFactory, constKeyword, constKeyword);
     }
   }
 

@@ -21,6 +21,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         scan;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/kernel/internal_ast.dart'
     show VariableDeclarationImpl;
 import 'package:kernel/ast.dart';
@@ -539,7 +540,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
         if (packageForLanguageVersion.languageVersion
             is package_config.InvalidLanguageVersion) {
           packageLanguageVersionProblem =
-              codeLanguageVersionInvalidInDotPackages;
+              diag.languageVersionInvalidInDotPackages;
           packageLanguageVersion = new InvalidLanguageVersion(
             fileUri,
             0,
@@ -553,7 +554,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
             packageForLanguageVersion.languageVersion!.minor,
           );
           if (version > target.currentSdkVersion) {
-            packageLanguageVersionProblem = codeLanguageVersionTooHighPackage
+            packageLanguageVersionProblem = diag.languageVersionTooHighPackage
                 .withArgumentsOld(
                   version.major,
                   version.minor,
@@ -569,7 +570,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
               false,
             );
           } else if (version < target.leastSupportedVersion) {
-            packageLanguageVersionProblem = codeLanguageVersionTooLowPackage
+            packageLanguageVersionProblem = diag.languageVersionTooLowPackage
                 .withArgumentsOld(
                   version.major,
                   version.minor,
@@ -715,7 +716,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
         !accessor.isAugmenting) {
       accessor.addProblem(
-        codePlatformPrivateLibraryAccess,
+        diag.platformPrivateLibraryAccess,
         charOffset,
         noLength,
         accessor.fileUri,
@@ -771,12 +772,12 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       isSupportedBySpec:
           (importability == Importability.always || importableWithFlag),
     )) {
-      diagnostic = codeUnavailableDartLibrary.withArguments(uri: importUri);
+      diagnostic = diag.unavailableDartLibrary.withArguments(uri: importUri);
     }
     // Coverage-ignore(suite): Not run.
     else if (importableWithFlag) {
       // Display a warning for each import of an unsupported library.
-      diagnostic = codeUnsupportedPlatformDartLibraryImport.withArguments(
+      diagnostic = diag.unsupportedPlatformDartLibraryImport.withArguments(
         uri: importUri,
       );
     }
@@ -825,13 +826,13 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       // Coverage-ignore-block(suite): Not run.
       if (firstLibrary != null) {
         firstLibrary.addProblem(
-          codePlatformPrivateLibraryAccess,
+          diag.platformPrivateLibraryAccess,
           -1,
           noLength,
           firstLibrary.importUri,
         );
       } else {
-        addProblem(codePlatformPrivateLibraryAccess, -1, noLength, null);
+        addProblem(diag.platformPrivateLibraryAccess, -1, noLength, null);
       }
     }
     if (firstLibrary != null) {
@@ -918,7 +919,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     // where the latest library is saved in a context somewhere.
     await buildBody(null);
     currentUriForCrashReporting = null;
-    logSummary(codeSourceBodySummary);
+    logSummary(diag.sourceBodySummary);
   }
 
   void logSummary(Template<SummaryTemplate, Function> template) {
@@ -1013,7 +1014,7 @@ severity: $severity
     }
     if (message.code.severity == CfeSeverity.context) {
       internalProblem(
-        codeInternalProblemContextSeverity.withArgumentsOld(message.code.name),
+        diag.internalProblemContextSeverity.withArgumentsOld(message.code.name),
         charOffset,
         fileUri,
       );
@@ -1103,7 +1104,7 @@ severity: $severity
   ClassMembersBuilder get membersBuilder => _membersBuilder!;
 
   Template<SummaryTemplate, Function> get outlineSummaryTemplate =>
-      codeSourceOutlineSummary;
+      diag.sourceOutlineSummary;
 
   /// The [SourceCompilationUnit]s for the `dart:` libraries that are not
   /// available.
@@ -1135,7 +1136,7 @@ severity: $severity
           _unavailableDartLibraries.add(compilationUnit);
         } else {
           compilationUnit.addProblemAtAccessors(
-            codeUntranslatableUri.withArgumentsOld(importUri),
+            diag.untranslatableUri.withArgumentsOld(importUri),
           );
         }
         bytes = synthesizeSourceForMissingFile(importUri, null);
@@ -1143,12 +1144,12 @@ severity: $severity
         // Coverage-ignore-block(suite): Not run.
         target.benchmarker?.endSubdivide();
         return internalProblem(
-          codeInternalProblemUriMissingScheme.withArgumentsOld(fileUri),
+          diag.internalProblemUriMissingScheme.withArgumentsOld(fileUri),
           -1,
           compilationUnit.importUri,
         );
       } else if (fileUri.isScheme(MALFORMED_URI_SCHEME)) {
-        compilationUnit.addProblemAtAccessors(codeExpectedUri);
+        compilationUnit.addProblemAtAccessors(diag.expectedUri);
         bytes = synthesizeSourceForMissingFile(compilationUnit.importUri, null);
       }
       if (bytes != null) {
@@ -1163,7 +1164,7 @@ severity: $severity
       try {
         rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
       } on FileSystemException catch (e) {
-        Message message = codeCantReadFile.withArgumentsOld(
+        Message message = diag.cantReadFile.withArgumentsOld(
           fileUri,
           target.context.options.osErrorMessage(e.message),
         );
@@ -1308,7 +1309,7 @@ severity: $severity
       for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
         List<LocatedMessage>? context;
         Uri importUri = compilationUnit.importUri;
-        Message message = codeUnavailableDartLibrary.withArgumentsOld(
+        Message message = diag.unavailableDartLibrary.withArgumentsOld(
           importUri,
         );
         if (rootLibrary != null) {
@@ -1330,7 +1331,7 @@ severity: $severity
           if (importChain.isNotEmpty) {
             if (importChain.containsAll(verboseImportChain)) {
               context = [
-                codeImportChainContextSimple
+                diag.importChainContextSimple
                     .withArgumentsOld(
                       compilationUnit.importUri,
                       importChain.map((part) => '    $part\n').join(),
@@ -1339,7 +1340,7 @@ severity: $severity
               ];
             } else {
               context = [
-                codeImportChainContext
+                diag.importChainContext
                     .withArgumentsOld(
                       compilationUnit.importUri,
                       importChain.map((part) => '    $part\n').join(),
@@ -1371,7 +1372,7 @@ severity: $severity
       // message.
       for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
         Uri importUri = compilationUnit.importUri;
-        Message message = codeUnavailableDartLibrary.withArgumentsOld(
+        Message message = diag.unavailableDartLibrary.withArgumentsOld(
           importUri,
         );
 
@@ -1968,7 +1969,7 @@ severity: $severity
         // TODO(johnniwinther): Update the message for when an extension type
         //  depends on a cycle but does not depend on itself.
         extensionTypeBuilder.libraryBuilder.addProblem(
-          codeCyclicClassHierarchy.withArgumentsOld(
+          diag.cyclicClassHierarchy.withArgumentsOld(
             extensionTypeBuilder.fullNameForErrors,
           ),
           extensionTypeBuilder.fileOffset,
@@ -1992,14 +1993,14 @@ severity: $severity
       ConstructorBuilder constructorBuilder = iterator.current;
       if (!constructorBuilder.isSynthetic) {
         classBuilder.libraryBuilder.addProblem(
-          codeIllegalMixinDueToConstructors.withArgumentsOld(
+          diag.illegalMixinDueToConstructors.withArgumentsOld(
             mixinClassBuilder.fullNameForErrors,
           ),
           classBuilder.fileOffset,
           noLength,
           classBuilder.fileUri,
           context: [
-            codeIllegalMixinDueToConstructorsCause
+            diag.illegalMixinDueToConstructorsCause
                 .withArgumentsOld(mixinClassBuilder.fullNameForErrors)
                 .withLocation(
                   constructorBuilder.fileUri!,
@@ -2016,7 +2017,9 @@ severity: $severity
     if (!classBuilder.libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
       // Coverage-ignore-block(suite): Not run.
       classBuilder.libraryBuilder.addProblem(
-        codeEnumSupertypeOfNonAbstractClass.withArgumentsOld(classBuilder.name),
+        diag.enumSupertypeOfNonAbstractClass.withArgumentsOld(
+          classBuilder.name,
+        ),
         classBuilder.fileOffset,
         noLength,
         classBuilder.fileUri,
@@ -2039,7 +2042,7 @@ severity: $severity
       TypeDeclarationBuilder? supertype = directSupertypes[i];
       if (supertype is SourceEnumBuilder) {
         classBuilder.libraryBuilder.addProblem(
-          codeExtendingEnum.withArgumentsOld(supertype.name),
+          diag.extendingEnum.withArgumentsOld(supertype.name),
           classBuilder.fileOffset,
           noLength,
           classBuilder.fileUri,
@@ -2051,14 +2054,14 @@ severity: $severity
         TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           classBuilder.libraryBuilder.addProblem(
-            codeExtendingRestricted.withArgumentsOld(
+            diag.extendingRestricted.withArgumentsOld(
               supertype!.fullNameForErrors,
             ),
             classBuilder.fileOffset,
             noLength,
             classBuilder.fileUri,
             context: [
-              codeTypedefCause.withLocation(
+              diag.typedefCause.withLocation(
                 aliasBuilder.fileUri,
                 aliasBuilder.fileOffset,
                 noLength,
@@ -2067,7 +2070,7 @@ severity: $severity
           );
         } else {
           classBuilder.libraryBuilder.addProblem(
-            codeExtendingRestricted.withArgumentsOld(
+            diag.extendingRestricted.withArgumentsOld(
               supertype!.fullNameForErrors,
             ),
             classBuilder.fileOffset,
@@ -2090,7 +2093,7 @@ severity: $severity
           if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
               denyListedClasses.contains(unaliasedDeclaration)) {
             classBuilder.libraryBuilder.addProblem(
-              codeExtendingRestricted.withArgumentsOld(
+              diag.extendingRestricted.withArgumentsOld(
                 mixedInTypeBuilder.fullNameForErrors,
               ),
               classBuilder.fileOffset,
@@ -2098,7 +2101,7 @@ severity: $severity
               classBuilder.fileUri,
               context: declaration is TypeAliasBuilder
                   ? [
-                      codeTypedefUnaliasedTypeCause.withLocation(
+                      diag.typedefUnaliasedTypeCause.withLocation(
                         unaliasedDeclaration.fileUri,
                         unaliasedDeclaration.fileOffset,
                         noLength,
@@ -2123,7 +2126,7 @@ severity: $severity
           // TODO(ahe): Either we need to check this for superclass and
           // interfaces, or this shouldn't be necessary (or handled elsewhere).
           classBuilder.libraryBuilder.addProblem(
-            codeIllegalMixin.withArgumentsOld(
+            diag.illegalMixin.withArgumentsOld(
               mixedInTypeBuilder.fullNameForErrors,
             ),
             classBuilder.fileOffset,
@@ -2131,7 +2134,7 @@ severity: $severity
             classBuilder.fileUri,
             context: declaration is TypeAliasBuilder
                 ? [
-                    codeTypedefCause.withLocation(
+                    diag.typedefCause.withLocation(
                       declaration.fileUri,
                       declaration.fileOffset,
                       noLength,
@@ -2143,7 +2146,7 @@ severity: $severity
           if (!unaliasedDeclaration.errorHasBeenReported) {
             // Coverage-ignore-block(suite): Not run.
             classBuilder.libraryBuilder.addProblem(
-              codeIllegalMixin.withArgumentsOld(
+              diag.illegalMixin.withArgumentsOld(
                 mixedInTypeBuilder.fullNameForErrors,
               ),
               classBuilder.fileOffset,
@@ -2151,7 +2154,7 @@ severity: $severity
               classBuilder.fileUri,
               context: declaration is TypeAliasBuilder
                   ? [
-                      codeTypedefCause.withLocation(
+                      diag.typedefCause.withLocation(
                         declaration.fileUri,
                         declaration.fileOffset,
                         noLength,
@@ -2357,8 +2360,8 @@ severity: $severity
           }
           final Template<Message Function(String, String), Function> template =
               cls.isMixinDeclaration
-              ? codeMixinSubtypeOfFinalIsNotBase
-              : codeSubtypeOfFinalIsNotBaseFinalOrSealed;
+              ? diag.mixinSubtypeOfFinalIsNotBase
+              : diag.subtypeOfFinalIsNotBaseFinalOrSealed;
           cls.libraryBuilder.addProblem(
             template.withArgumentsOld(
               cls.fullNameForErrors,
@@ -2371,8 +2374,8 @@ severity: $severity
         } else if (baseOrFinalSuperClass.isBase) {
           final Template<Message Function(String, String), Function> template =
               cls.isMixinDeclaration
-              ? codeMixinSubtypeOfBaseIsNotBase
-              : codeSubtypeOfBaseIsNotBaseFinalOrSealed;
+              ? diag.mixinSubtypeOfBaseIsNotBase
+              : diag.subtypeOfBaseIsNotBaseFinalOrSealed;
           cls.libraryBuilder.addProblem(
             template.withArgumentsOld(
               cls.fullNameForErrors,
@@ -2398,7 +2401,7 @@ severity: $severity
               !mayIgnoreClassModifiers(supertypeDeclaration)) {
             if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
               cls.libraryBuilder.addProblem(
-                codeInterfaceClassExtendedOutsideOfLibrary.withArgumentsOld(
+                diag.interfaceClassExtendedOutsideOfLibrary.withArgumentsOld(
                   supertypeDeclaration.fullNameForErrors,
                 ),
                 supertypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2409,7 +2412,7 @@ severity: $severity
             } else if (supertypeDeclaration.isFinal) {
               if (cls.isMixinDeclaration) {
                 cls.libraryBuilder.addProblem(
-                  codeFinalClassUsedAsMixinConstraintOutsideOfLibrary
+                  diag.finalClassUsedAsMixinConstraintOutsideOfLibrary
                       .withArgumentsOld(supertypeDeclaration.fullNameForErrors),
                   supertypeBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,
@@ -2419,7 +2422,7 @@ severity: $severity
                 );
               } else {
                 cls.libraryBuilder.addProblem(
-                  codeFinalClassExtendedOutsideOfLibrary.withArgumentsOld(
+                  diag.finalClassExtendedOutsideOfLibrary.withArgumentsOld(
                     supertypeDeclaration.fullNameForErrors,
                   ),
                   supertypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2438,7 +2441,7 @@ severity: $severity
             supertypeDeclaration.isSealed &&
             cls.libraryBuilder != supertypeDeclaration.libraryBuilder) {
           cls.libraryBuilder.addProblem(
-            codeSealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
+            diag.sealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
               supertypeDeclaration.fullNameForErrors,
             ),
             supertypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2465,7 +2468,7 @@ severity: $severity
               !mixedInTypeDeclaration.isMixinClass &&
               !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
             cls.libraryBuilder.addProblem(
-              codeCantUseClassAsMixin.withArgumentsOld(
+              diag.cantUseClassAsMixin.withArgumentsOld(
                 mixedInTypeDeclaration.fullNameForErrors,
               ),
               mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2481,7 +2484,7 @@ severity: $severity
             mixedInTypeDeclaration.isSealed &&
             cls.libraryBuilder != mixedInTypeDeclaration.libraryBuilder) {
           cls.libraryBuilder.addProblem(
-            codeSealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
+            diag.sealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
               mixedInTypeDeclaration.fullNameForErrors,
             ),
             mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
@@ -2510,7 +2513,7 @@ severity: $severity
                 !mayIgnoreClassModifiers(checkedClass)) {
               final List<LocatedMessage> context = [
                 if (checkedClass != interfaceDeclaration)
-                  codeBaseOrFinalClassImplementedOutsideOfLibraryCause
+                  diag.baseOrFinalClassImplementedOutsideOfLibraryCause
                       .withArgumentsOld(
                         interfaceDeclaration.fullNameForErrors,
                         checkedClass.fullNameForErrors,
@@ -2527,8 +2530,8 @@ severity: $severity
                 // of its library.
                 final Template<Message Function(String), Function> template =
                     checkedClass.isMixinDeclaration
-                    ? codeBaseMixinImplementedOutsideOfLibrary
-                    : codeBaseClassImplementedOutsideOfLibrary;
+                    ? diag.baseMixinImplementedOutsideOfLibrary
+                    : diag.baseClassImplementedOutsideOfLibrary;
                 cls.libraryBuilder.addProblem(
                   template.withArgumentsOld(checkedClass.fullNameForErrors),
                   interfaceBuilder.charOffset ?? TreeNode.noOffset,
@@ -2546,8 +2549,8 @@ severity: $severity
                 final Template<Message Function(String), Function> template =
                     cls.cls.isAnonymousMixin &&
                         checkedClass == interfaceDeclaration
-                    ? codeFinalClassUsedAsMixinConstraintOutsideOfLibrary
-                    : codeFinalClassImplementedOutsideOfLibrary;
+                    ? diag.finalClassUsedAsMixinConstraintOutsideOfLibrary
+                    : diag.finalClassImplementedOutsideOfLibrary;
                 cls.libraryBuilder.addProblem(
                   template.withArgumentsOld(checkedClass.fullNameForErrors),
                   interfaceBuilder.charOffset ?? TreeNode.noOffset,
@@ -2570,7 +2573,7 @@ severity: $severity
               interfaceDeclaration.isSealed &&
               cls.libraryBuilder != interfaceDeclaration.libraryBuilder) {
             cls.libraryBuilder.addProblem(
-              codeSealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
+              diag.sealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
                 interfaceDeclaration.fullNameForErrors,
               ),
               interfaceBuilder.charOffset ?? TreeNode.noOffset,
@@ -2762,12 +2765,12 @@ severity: $severity
                 member.enclosingClass != classBuilder.cls &&
                 member.isAbstract == false) {
               classBuilder.libraryBuilder.addProblem(
-                codeEnumInheritsRestricted.withArgumentsOld(name.text),
+                diag.enumInheritsRestricted.withArgumentsOld(name.text),
                 classBuilder.fileOffset,
                 classBuilder.name.length,
                 classBuilder.fileUri,
                 context: <LocatedMessage>[
-                  codeEnumInheritsRestrictedMember.withLocation2(
+                  diag.enumInheritsRestrictedMember.withLocation2(
                     classMember.uriOffset,
                   ),
                 ],
@@ -3044,12 +3047,12 @@ severity: $severity
       if (mainBuilder.isProperty) {
         if (mainBuilder.libraryBuilder != libraryBuilder) {
           libraryBuilder.addProblem(
-            codeMainNotFunctionDeclarationExported,
+            diag.mainNotFunctionDeclarationExported,
             libraryBuilder.fileOffset,
             noLength,
             libraryBuilder.fileUri,
             context: [
-              codeExportedMain.withLocation(
+              diag.exportedMain.withLocation(
                 mainBuilder.fileUri!,
                 mainBuilder.fileOffset,
                 mainBuilder.name.length,
@@ -3058,7 +3061,7 @@ severity: $severity
           );
         } else {
           libraryBuilder.addProblem(
-            codeMainNotFunctionDeclaration,
+            diag.mainNotFunctionDeclaration,
             mainBuilder.fileOffset,
             mainBuilder.name.length,
             mainBuilder.fileUri,
@@ -3069,12 +3072,12 @@ severity: $severity
         if (procedure.function.requiredParameterCount > 2) {
           if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
-              codeMainTooManyRequiredParametersExported,
+              diag.mainTooManyRequiredParametersExported,
               libraryBuilder.fileOffset,
               noLength,
               libraryBuilder.fileUri,
               context: [
-                codeExportedMain.withLocation(
+                diag.exportedMain.withLocation(
                   mainBuilder.fileUri!,
                   mainBuilder.fileOffset,
                   mainBuilder.name.length,
@@ -3083,7 +3086,7 @@ severity: $severity
             );
           } else {
             libraryBuilder.addProblem(
-              codeMainTooManyRequiredParameters,
+              diag.mainTooManyRequiredParameters,
               mainBuilder.fileOffset,
               mainBuilder.name.length,
               mainBuilder.fileUri,
@@ -3094,12 +3097,12 @@ severity: $severity
         )) {
           if (mainBuilder.libraryBuilder != libraryBuilder) {
             libraryBuilder.addProblem(
-              codeMainRequiredNamedParametersExported,
+              diag.mainRequiredNamedParametersExported,
               libraryBuilder.fileOffset,
               noLength,
               libraryBuilder.fileUri,
               context: [
-                codeExportedMain.withLocation(
+                diag.exportedMain.withLocation(
                   mainBuilder.fileUri!,
                   mainBuilder.fileOffset,
                   mainBuilder.name.length,
@@ -3108,7 +3111,7 @@ severity: $severity
             );
           } else {
             libraryBuilder.addProblem(
-              codeMainRequiredNamedParameters,
+              diag.mainRequiredNamedParameters,
               mainBuilder.fileOffset,
               mainBuilder.name.length,
               mainBuilder.fileUri,
@@ -3121,7 +3124,7 @@ severity: $severity
           if (!typeEnvironment.isSubtypeOf(listOfString, parameterType)) {
             if (mainBuilder.libraryBuilder != libraryBuilder) {
               libraryBuilder.addProblem(
-                codeMainWrongParameterTypeExported.withArgumentsOld(
+                diag.mainWrongParameterTypeExported.withArgumentsOld(
                   parameterType,
                   listOfString,
                 ),
@@ -3129,7 +3132,7 @@ severity: $severity
                 noLength,
                 libraryBuilder.fileUri,
                 context: [
-                  codeExportedMain.withLocation(
+                  diag.exportedMain.withLocation(
                     mainBuilder.fileUri!,
                     mainBuilder.fileOffset,
                     mainBuilder.name.length,
@@ -3138,7 +3141,7 @@ severity: $severity
               );
             } else {
               libraryBuilder.addProblem(
-                codeMainWrongParameterType.withArgumentsOld(
+                diag.mainWrongParameterType.withArgumentsOld(
                   parameterType,
                   listOfString,
                 ),
@@ -3153,12 +3156,12 @@ severity: $severity
     } else if (mainBuilder != null) {
       if (mainBuilder.parent != libraryBuilder) {
         libraryBuilder.addProblem(
-          codeMainNotFunctionDeclarationExported,
+          diag.mainNotFunctionDeclarationExported,
           libraryBuilder.fileOffset,
           noLength,
           libraryBuilder.fileUri,
           context: [
-            codeExportedMain.withLocation(
+            diag.exportedMain.withLocation(
               mainBuilder.fileUri!,
               mainBuilder.fileOffset,
               noLength,
@@ -3167,7 +3170,7 @@ severity: $severity
         );
       } else {
         libraryBuilder.addProblem(
-          codeMainNotFunctionDeclaration,
+          diag.mainNotFunctionDeclaration,
           mainBuilder.fileOffset,
           noLength,
           mainBuilder.fileUri,
@@ -3618,7 +3621,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
         noLength,
         _typeBuilder.fileUri!,
         context: [
-          codeMixinApplicationNoConcreteMemberContext.withLocation(
+          diag.mixinApplicationNoConcreteMemberContext.withLocation(
             _enclosingMember.fileUri,
             accessFileOffset,
             noLength,
@@ -3634,7 +3637,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
     _checkMember(
       node.interfaceTarget.name,
       isSetter: false,
-      template: codeMixinApplicationNoConcreteMethod,
+      template: diag.mixinApplicationNoConcreteMethod,
       accessFileOffset: node.fileOffset,
     );
   }
@@ -3645,7 +3648,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
     _checkMember(
       node.interfaceTarget.name,
       isSetter: false,
-      template: codeMixinApplicationNoConcreteGetter,
+      template: diag.mixinApplicationNoConcreteGetter,
       accessFileOffset: node.fileOffset,
     );
   }
@@ -3656,7 +3659,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
     _checkMember(
       node.interfaceTarget.name,
       isSetter: true,
-      template: codeMixinApplicationNoConcreteSetter,
+      template: diag.mixinApplicationNoConcreteSetter,
       accessFileOffset: node.fileOffset,
     );
   }

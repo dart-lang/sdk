@@ -17,6 +17,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/stack_checker.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/non_null.dart';
@@ -369,7 +370,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType inferredType = result.inferredType;
     if (inferredType is VoidType && !isVoidAllowed) {
       problemReporting.addProblem(
-        codeVoidExpression,
+        diag.voidExpression,
         expression.fileOffset,
         noLength,
         fileUri,
@@ -386,7 +387,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // Coverage-ignore-block(suite): Not run.
         Expression replacement = createLet(
           createVariable(result.expression, result.inferredType),
-          createReachabilityError(expression.fileOffset, codeNeverValueError),
+          createReachabilityError(expression.fileOffset, diag.neverValueError),
         );
         flowAnalysis.forwardExpression(replacement, result.expression);
         result = new ExpressionInferenceResult(
@@ -974,7 +975,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (operandType.isPotentiallyNullable) {
           result = problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeInstantiationNullableGenericFunctionType
+            message: diag.instantiationNullableGenericFunctionType
                 .withArgumentsOld(operandType),
             fileUri: fileUri,
             fileOffset: node.fileOffset,
@@ -990,7 +991,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (operandType.typeParameters.isEmpty) {
           result = problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeInstantiationNonGenericFunctionType.withArgumentsOld(
+            message: diag.instantiationNonGenericFunctionType.withArgumentsOld(
               operandType,
             ),
             fileUri: fileUri,
@@ -1001,7 +1002,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             node.typeArguments.length) {
           result = problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeInstantiationTooFewArguments.withArgumentsOld(
+            message: diag.instantiationTooFewArguments.withArgumentsOld(
               operandType.typeParameters.length,
               node.typeArguments.length,
             ),
@@ -1013,7 +1014,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             node.typeArguments.length) {
           result = problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeInstantiationTooManyArguments.withArgumentsOld(
+            message: diag.instantiationTooManyArguments.withArgumentsOld(
               operandType.typeParameters.length,
               node.typeArguments.length,
             ),
@@ -1026,7 +1027,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (operandType is! InvalidType) {
       result = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: codeInstantiationNonGenericFunctionType.withArgumentsOld(
+        message: diag.instantiationNonGenericFunctionType.withArgumentsOld(
           operandType,
         ),
         fileUri: fileUri,
@@ -1179,7 +1180,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.operand = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: wrapped,
-        message: codeAwaitOfExtensionTypeNotFuture,
+        message: diag.awaitOfExtensionTypeNotFuture,
         fileUri: fileUri,
         fileOffset: wrapped.fileOffset,
         length: 1,
@@ -2700,7 +2701,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // Coverage-ignore-block(suite): Not run.
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeNonConstConstructor,
+          message: diag.nonConstConstructor,
           fileUri: fileUri,
           fileOffset: fileOffset,
           length: noLength,
@@ -2743,7 +2744,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // the message for non-const constructors here.
           return problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeNonConstConstructor,
+            message: diag.nonConstConstructor,
             fileUri: fileUri,
             fileOffset: fileOffset,
             length: noLength,
@@ -2751,7 +2752,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         } else {
           return problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeNonConstFactory,
+            message: diag.nonConstFactory,
             fileUri: fileUri,
             fileOffset: fileOffset,
             length: noLength,
@@ -3204,7 +3205,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       variableGet,
       isVoidAllowed: true,
       fileOffset: parent.fileOffset,
-      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      errorTemplate: diag.forInLoopElementTypeNotAssignable,
     );
     Statement? expressionEffect;
     if (!identical(implicitDowncast, variableGet)) {
@@ -3269,7 +3270,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       wrapType(const DynamicType(), iterableClass, Nullability.nonNullable),
       inferredExpressionType,
       iterable,
-      errorTemplate: codeForInLoopTypeNotIterable,
+      errorTemplate: diag.forInLoopTypeNotIterable,
     );
     DartType inferredType = const DynamicType();
     if (inferredExpressionType is TypeDeclarationType) {
@@ -3428,7 +3429,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ),
       result.expressionType.unwrapTypeView(),
       iterable,
-      errorTemplate: codeForInLoopTypeNotIterable,
+      errorTemplate: diag.forInLoopTypeNotIterable,
     );
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
@@ -4056,7 +4057,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (intValue == null) {
       Expression replacement = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: codeIntegerLiteralIsOutOfRange.withArgumentsOld(node.literal),
+        message: diag.integerLiteralIsOutOfRange.withArgumentsOld(node.literal),
         fileUri: fileUri,
         fileOffset: node.fileOffset,
         length: node.literal.length,
@@ -4169,7 +4170,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (coreTypes.isNull(spreadTypeBound) && !element.isNullAware) {
         replacement = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeNonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
+          message: diag.nonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
           fileUri: fileUri,
           fileOffset: element.expression.fileOffset,
           length: 1,
@@ -4182,7 +4183,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           Expression receiver = element.expression;
           replacement = problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeNullableSpreadError,
+            message: diag.nullableSpreadError,
             fileUri: fileUri,
             fileOffset: receiver.fileOffset,
             length: 1,
@@ -4197,7 +4198,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         replacement = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeSpreadTypeMismatch.withArgumentsOld(spreadType),
+          message: diag.spreadTypeMismatch.withArgumentsOld(spreadType),
           fileUri: fileUri,
           fileOffset: element.expression.fileOffset,
           length: 1,
@@ -4208,7 +4209,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!isAssignable(inferredTypeArgument, spreadElementType)) {
         replacement = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeSpreadElementTypeMismatch.withArgumentsOld(
+          message: diag.spreadElementTypeMismatch.withArgumentsOld(
             spreadElementType,
             inferredTypeArgument,
           ),
@@ -4224,7 +4225,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Expression receiver = element.expression;
         replacement = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeNullableSpreadError,
+          message: diag.nullableSpreadError,
           fileUri: fileUri,
           fileOffset: receiver.fileOffset,
           length: 1,
@@ -7122,7 +7123,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         replacement = new MapLiteralEntry(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeNonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
+            message: diag.nonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
             fileUri: fileUri,
             fileOffset: entry.expression.fileOffset,
             length: 1,
@@ -7137,7 +7138,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           Expression receiver = entry.expression;
           Expression problem = problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeNullableSpreadError,
+            message: diag.nullableSpreadError,
             fileUri: fileUri,
             fileOffset: receiver.fileOffset,
             length: 1,
@@ -7160,7 +7161,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Expression receiver = entry.expression;
         Expression problem = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeSpreadMapEntryTypeMismatch.withArgumentsOld(spreadType),
+          message: diag.spreadMapEntryTypeMismatch.withArgumentsOld(spreadType),
           fileUri: fileUri,
           fileOffset: receiver.fileOffset,
           length: 1,
@@ -7181,7 +7182,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!isAssignable(inferredKeyType, actualKeyType)) {
         keyError = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeSpreadMapEntryElementKeyTypeMismatch.withArgumentsOld(
+          message: diag.spreadMapEntryElementKeyTypeMismatch.withArgumentsOld(
             actualKeyType,
             inferredKeyType,
           ),
@@ -7193,7 +7194,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!isAssignable(inferredValueType, actualValueType)) {
         valueError = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeSpreadMapEntryElementValueTypeMismatch.withArgumentsOld(
+          message: diag.spreadMapEntryElementValueTypeMismatch.withArgumentsOld(
             actualValueType,
             inferredValueType,
           ),
@@ -7209,7 +7210,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Expression receiver = entry.expression;
         keyError = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeNullableSpreadError,
+          message: diag.nullableSpreadError,
           fileUri: fileUri,
           fileOffset: receiver.fileOffset,
           length: 1,
@@ -7993,7 +7994,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = new MapLiteralEntry(
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeSpreadMapEntryTypeMismatch.withArgumentsOld(
+          message: diag.spreadMapEntryTypeMismatch.withArgumentsOld(
             offsets.iterableSpreadType!,
           ),
           fileUri: fileUri,
@@ -8331,7 +8332,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (canBeSet && canBeMap && node.entries.isNotEmpty) {
         Expression replacement = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeCantDisambiguateNotEnoughInformation,
+          message: diag.cantDisambiguateNotEnoughInformation,
           fileUri: fileUri,
           fileOffset: node.fileOffset,
           length: 1,
@@ -8344,7 +8345,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!canBeSet && !canBeMap) {
         Expression replacement = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeCantDisambiguateAmbiguousInformation,
+          message: diag.cantDisambiguateAmbiguousInformation,
           fileUri: fileUri,
           fileOffset: node.fileOffset,
           length: 1,
@@ -8514,7 +8515,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // encountered in top level inference.
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeExpectedButGot.withArgumentsOld(','),
+      message: diag.expectedButGot.withArgumentsOld(','),
       fileUri: fileUri,
       fileOffset: entry.fileOffset,
       length: 1,
@@ -10595,7 +10596,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     rightResult = ensureAssignableResult(
       contextType,
       rightResult,
-      errorTemplate: codeArgumentTypeNotAssignable,
+      errorTemplate: diag.argumentTypeNotAssignable,
     );
     right = rightResult.expression;
 
@@ -10816,7 +10817,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: binary,
-          message: codeNullableOperatorCallError.withArgumentsOld(
+          message: diag.nullableOperatorCallError.withArgumentsOld(
             binaryName.text,
             leftType,
           ),
@@ -10980,7 +10981,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: unary,
-          message: codeNullableOperatorCallError.withArgumentsOld(
+          message: diag.nullableOperatorCallError.withArgumentsOld(
             unaryName.text,
             expressionType,
           ),
@@ -11140,7 +11141,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: read,
-          message: codeNullableOperatorCallError.withArgumentsOld(
+          message: diag.nullableOperatorCallError.withArgumentsOld(
             indexGetName.text,
             receiverType,
           ),
@@ -11294,7 +11295,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: write,
-        message: codeNullableOperatorCallError.withArgumentsOld(
+        message: diag.nullableOperatorCallError.withArgumentsOld(
           indexSetName.text,
           receiverType,
         ),
@@ -11526,7 +11527,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       result = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: write,
-        message: codeNullablePropertyAccessError.withArgumentsOld(
+        message: diag.nullablePropertyAccessError.withArgumentsOld(
           propertyName.text,
           receiverType,
         ),
@@ -12403,7 +12404,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         return wrapExpressionInferenceResultInProblem(
           new ExpressionInferenceResult(const InvalidType(), node),
-          codeIndexOutOfBoundInRecordIndexGet.withArgumentsOld(
+          diag.indexOutOfBoundInRecordIndexGet.withArgumentsOld(
             node.index,
             receiverType.positional.length,
             receiverType,
@@ -12415,7 +12416,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       return wrapExpressionInferenceResultInProblem(
         new ExpressionInferenceResult(const InvalidType(), node),
-        codeInternalProblemUnsupported.withArgumentsOld("RecordIndexGet"),
+        diag.internalProblemUnsupported.withArgumentsOld("RecordIndexGet"),
         node.fileOffset,
         noLength,
       );
@@ -12452,7 +12453,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         return wrapExpressionInferenceResultInProblem(
           new ExpressionInferenceResult(const InvalidType(), node),
-          codeNameNotFoundInRecordNameGet.withArgumentsOld(
+          diag.nameNotFoundInRecordNameGet.withArgumentsOld(
             node.name,
             receiverType,
           ),
@@ -12463,7 +12464,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       return wrapExpressionInferenceResultInProblem(
         new ExpressionInferenceResult(const InvalidType(), node),
-        codeInternalProblemUnsupported.withArgumentsOld("RecordIndexGet"),
+        diag.internalProblemUnsupported.withArgumentsOld("RecordIndexGet"),
         node.fileOffset,
         noLength,
       );
@@ -13349,7 +13350,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             _createExpressionStatement(
               createReachabilityError(
                 node.fileOffset,
-                codeNeverReachableSwitchDefaultError,
+                diag.neverReachableSwitchDefaultError,
               ),
             ),
             isDefault: true,
@@ -13465,7 +13466,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 jointVariable.type != inferredType) {
               jointVariable.initializer = problemReporting.buildProblem(
                 compilerContext: compilerContext,
-                message: codeJointPatternVariablesMismatch.withArgumentsOld(
+                message: diag.jointPatternVariablesMismatch.withArgumentsOld(
                   jointVariable.name!,
                 ),
                 fileUri: fileUri,
@@ -13530,7 +13531,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         const DynamicType(),
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeThrowingNotAssignableToObjectError.withArgumentsOld(
+          message: diag.throwingNotAssignableToObjectError.withArgumentsOld(
             expressionResult.inferredType,
           ),
           fileUri: fileUri,
@@ -13952,7 +13953,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (intValue == null) {
             Expression error = problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: codeIntegerLiteralIsOutOfRange.withArgumentsOld(
+              message: diag.integerLiteralIsOutOfRange.withArgumentsOld(
                 receiver.literal,
               ),
               fileUri: fileUri,
@@ -14211,7 +14212,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // literals and types without crashing.
       type = const InvalidType();
       result = new InvalidExpression(
-        codeExperimentNotEnabledOffByDefault
+        diag.experimentNotEnabledOffByDefault
             .withArgumentsOld(ExperimentalFlag.records.name)
             .withoutLocation()
             .problemMessage,
@@ -15073,7 +15074,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (leftVariable.type != rightVariable.type ||
             leftVariable.isFinal != rightVariable.isFinal) {
           problemReporting.addProblem(
-            codeJointPatternVariablesMismatch.withArgumentsOld(
+            diag.jointPatternVariablesMismatch.withArgumentsOld(
               rightVariableName,
             ),
             leftVariable.fileOffset,
@@ -16085,7 +16086,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         replacement = new InvalidPattern(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeLateDefinitelyAssignedError.withArgumentsOld(
+            message: diag.lateDefinitelyAssignedError.withArgumentsOld(
               node.variable.name!,
             ),
             fileUri: fileUri,
@@ -16100,7 +16101,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         replacement = new InvalidPattern(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeFinalPossiblyAssignedError.withArgumentsOld(
+            message: diag.finalPossiblyAssignedError.withArgumentsOld(
               node.variable.name!,
             ),
             fileUri: fileUri,
@@ -16114,7 +16115,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = new InvalidPattern(
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeCannotAssignToFinalVariable.withArgumentsOld(
+          message: diag.cannotAssignToFinalVariable.withArgumentsOld(
             node.variable.name!,
           ),
           fileUri: fileUri,
@@ -16580,7 +16581,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         const DynamicType(),
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeDotShorthandsInvalidContext.withArgumentsOld(
+          message: diag.dotShorthandsInvalidContext.withArgumentsOld(
             node.name.text,
           ),
           fileUri: fileUri,
@@ -16642,7 +16643,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           const DynamicType(),
           problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: codeDotShorthandsConstructorInvocationWithTypeArguments,
+            message: diag.dotShorthandsConstructorInvocationWithTypeArguments,
             fileUri: fileUri,
             fileOffset: node.nameOffset,
             length: node.name.text.length,
@@ -16656,7 +16657,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             const DynamicType(),
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: codeNonConstConstructor,
+              message: diag.nonConstConstructor,
               fileUri: fileUri,
               fileOffset: node.nameOffset,
               length: node.name.text.length,
@@ -16670,7 +16671,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             const DynamicType(),
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: codeAbstractClassInstantiation.withArgumentsOld(
+              message: diag.abstractClassInstantiation.withArgumentsOld(
                 typeDeclaration.name,
               ),
               fileUri: fileUri,
@@ -16717,7 +16718,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             const DynamicType(),
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: codeNonConstConstructor,
+              message: diag.nonConstConstructor,
               fileUri: fileUri,
               fileOffset: node.nameOffset,
               length: node.name.text.length,
@@ -16796,7 +16797,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // [node.name] in the declaration of [cachedContext].
       replacement = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: codeDotShorthandsUndefinedInvocation.withArgumentsOld(
+        message: diag.dotShorthandsUndefinedInvocation.withArgumentsOld(
           node.name.text,
           cachedContext,
         ),
@@ -16811,7 +16812,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // e.g. `var x = .one;`
       replacement = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: codeDotShorthandsInvalidContext.withArgumentsOld(
+        message: diag.dotShorthandsInvalidContext.withArgumentsOld(
           node.name.text,
         ),
         fileUri: fileUri,
@@ -16845,7 +16846,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         const DynamicType(),
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeDotShorthandsInvalidContext.withArgumentsOld(
+          message: diag.dotShorthandsInvalidContext.withArgumentsOld(
             node.name.text,
           ),
           fileUri: fileUri,
@@ -16898,7 +16899,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               problemReporting.buildProblem(
                 compilerContext: compilerContext,
                 message:
-                    codeDotShorthandsConstructorInvocationWithTypeArguments,
+                    diag.dotShorthandsConstructorInvocationWithTypeArguments,
                 fileUri: fileUri,
                 fileOffset: node.nameOffset,
                 length: node.name.text.length,
@@ -16912,7 +16913,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 const DynamicType(),
                 problemReporting.buildProblem(
                   compilerContext: compilerContext,
-                  message: codeAbstractClassConstructorTearOff,
+                  message: diag.abstractClassConstructorTearOff,
                   fileUri: fileUri,
                   fileOffset: node.nameOffset,
                   length: node.name.text.length,
@@ -16943,7 +16944,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             const DynamicType(),
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: codeDotShorthandsUndefinedGetter.withArgumentsOld(
+              message: diag.dotShorthandsUndefinedGetter.withArgumentsOld(
                 node.name.text,
                 cachedContext,
               ),
@@ -16961,7 +16962,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             const DynamicType(),
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: codeDotShorthandsInvalidContext.withArgumentsOld(
+              message: diag.dotShorthandsInvalidContext.withArgumentsOld(
                 node.name.text,
               ),
               fileUri: fileUri,

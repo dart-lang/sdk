@@ -10,8 +10,7 @@ import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
-import '../codes/cfe_codes.dart' show codeExpectedBlockToSkip;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 
 /// Listener that records imports, exports, and part directives.
 ///
@@ -113,7 +112,7 @@ class DirectiveListener extends Listener {
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     super.handleRecoverableError(
-      codeExpectedBlockToSkip,
+      diag.expectedBlockToSkip,
       nativeToken,
       nativeToken,
     );

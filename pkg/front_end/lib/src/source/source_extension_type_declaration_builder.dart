@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -245,17 +246,17 @@ class SourceExtensionTypeDeclarationBuilder
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
-            errorMessage = codeSuperExtensionTypeIsIllegalAliased
+            errorMessage = diag.superExtensionTypeIsIllegalAliased
                 .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
             errorContext = [
-              codeTypedefCause.withLocation(
+              diag.typedefCause.withLocation(
                 aliasBuilder.fileUri,
                 aliasBuilder.fileOffset,
                 noLength,
               ),
             ];
           } else {
-            errorMessage = codeSuperExtensionTypeIsIllegal.withArgumentsOld(
+            errorMessage = diag.superExtensionTypeIsIllegal.withArgumentsOld(
               typeBuilder.fullNameForErrors,
             );
           }
@@ -280,11 +281,11 @@ class SourceExtensionTypeDeclarationBuilder
             if (!variance.greaterThanOrEqual(variable.variance)) {
               Message? errorMessage;
               if (variable.parameter.isLegacyCovariant) {
-                errorMessage = codeWrongTypeParameterVarianceInSuperinterface
+                errorMessage = diag.wrongTypeParameterVarianceInSuperinterface
                     .withArgumentsOld(variable.name, interface);
               } else {
                 // Coverage-ignore-block(suite): Not run.
-                errorMessage = codeInvalidTypeParameterInSupertypeWithVariance
+                errorMessage = diag.invalidTypeParameterInSupertypeWithVariance
                     .withArgumentsOld(
                       variable.variance.keyword,
                       variable.name,
@@ -304,12 +305,12 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (interface is ExtensionType) {
           if (interface.nullability == Nullability.nullable) {
-            Message? errorMessage = codeSuperExtensionTypeIsNullableAliased
+            Message? errorMessage = diag.superExtensionTypeIsNullableAliased
                 .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
             List<LocatedMessage>? errorContext;
             if (aliasBuilder != null) {
               errorContext = [
-                codeTypedefCause.withLocation(
+                diag.typedefCause.withLocation(
                   aliasBuilder.fileUri,
                   aliasBuilder.fileOffset,
                   noLength,
@@ -331,15 +332,15 @@ class SourceExtensionTypeDeclarationBuilder
             Message? errorMessage;
             List<LocatedMessage>? errorContext;
             if (typeBuilder.nullabilityBuilder.isNullable) {
-              errorMessage = codeNullableInterfaceError.withArgumentsOld(
+              errorMessage = diag.nullableInterfaceError.withArgumentsOld(
                 typeBuilder.fullNameForErrors,
               );
             } else {
-              errorMessage = codeSuperExtensionTypeIsNullableAliased
+              errorMessage = diag.superExtensionTypeIsNullableAliased
                   .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
               if (aliasBuilder != null) {
                 errorContext = [
-                  codeTypedefCause.withLocation(
+                  diag.typedefCause.withLocation(
                     aliasBuilder.fileUri,
                     aliasBuilder.fileOffset,
                     noLength,
@@ -358,13 +359,13 @@ class SourceExtensionTypeDeclarationBuilder
             extensionTypeDeclaration.implements.add(interface);
           }
         } else if (interface is TypeParameterType) {
-          Message? errorMessage = codeSuperExtensionTypeIsTypeParameter
+          Message? errorMessage = diag.superExtensionTypeIsTypeParameter
               .withArgumentsOld(typeBuilder.fullNameForErrors);
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
             errorContext = [
-              codeTypedefCause.withLocation(
+              diag.typedefCause.withLocation(
                 aliasBuilder.fileUri,
                 aliasBuilder.fileOffset,
                 noLength,
@@ -382,17 +383,17 @@ class SourceExtensionTypeDeclarationBuilder
           Message? errorMessage;
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
-            errorMessage = codeSuperExtensionTypeIsIllegalAliased
+            errorMessage = diag.superExtensionTypeIsIllegalAliased
                 .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
             errorContext = [
-              codeTypedefCause.withLocation(
+              diag.typedefCause.withLocation(
                 aliasBuilder.fileUri,
                 aliasBuilder.fileOffset,
                 noLength,
               ),
             ];
           } else {
-            errorMessage = codeSuperExtensionTypeIsIllegal.withArgumentsOld(
+            errorMessage = diag.superExtensionTypeIsIllegal.withArgumentsOld(
               typeBuilder.fullNameForErrors,
             );
           }
@@ -429,7 +430,7 @@ class SourceExtensionTypeDeclarationBuilder
             );
             if (representationType.accept(checker)) {
               libraryBuilder.addProblem(
-                codeNonCovariantTypeParameterInRepresentationType,
+                diag.nonCovariantTypeParameterInRepresentationType,
                 typeBuilder.charOffset!,
                 noLength,
                 typeBuilder.fileUri,
@@ -438,7 +439,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
           if (isBottom(representationType)) {
             libraryBuilder.addProblem(
-              codeExtensionTypeRepresentationTypeBottom,
+              diag.extensionTypeRepresentationTypeBottom,
               _representationFieldFragment!.nameOffset,
               _representationFieldFragment!.name.length,
               _representationFieldFragment!.fileUri,
@@ -492,7 +493,7 @@ class SourceExtensionTypeDeclarationBuilder
                 in seenExtensionTypeDeclarations) {
               if (extensionTypeDeclarationBuilder != this) {
                 context.add(
-                  codeExtensionTypeDeclarationCause.withLocation(
+                  diag.extensionTypeDeclarationCause.withLocation(
                     extensionTypeDeclarationBuilder.fileUri,
                     extensionTypeDeclarationBuilder.fileOffset,
                     extensionTypeDeclarationBuilder.name.length,
@@ -502,7 +503,7 @@ class SourceExtensionTypeDeclarationBuilder
             }
             for (TypeAliasBuilder typeAliasBuilder in usedTypeAliasBuilders) {
               context.add(
-                codeTypedefCause.withLocation(
+                diag.typedefCause.withLocation(
                   typeAliasBuilder.fileUri,
                   typeAliasBuilder.fileOffset,
                   typeAliasBuilder.name.length,
@@ -510,7 +511,7 @@ class SourceExtensionTypeDeclarationBuilder
               );
             }
             libraryBuilder.addProblem(
-              codeCyclicRepresentationDependency,
+              diag.cyclicRepresentationDependency,
               _representationFieldFragment!.type.charOffset!,
               noLength,
               _representationFieldFragment!.type.fileUri,
@@ -667,7 +668,7 @@ class SourceExtensionTypeDeclarationBuilder
             interface,
           )) {
             libraryBuilder.addProblem(
-              codeInvalidExtensionTypeSuperInterface.withArgumentsOld(
+              diag.invalidExtensionTypeSuperInterface.withArgumentsOld(
                 interface,
                 declaredRepresentationType,
                 name,
@@ -691,7 +692,7 @@ class SourceExtensionTypeDeclarationBuilder
               instantiatedImplementedRepresentationType,
             )) {
               libraryBuilder.addProblem(
-                codeInvalidExtensionTypeSuperExtensionType.withArgumentsOld(
+                diag.invalidExtensionTypeSuperExtensionType.withArgumentsOld(
                   declaredRepresentationType,
                   name,
                   instantiatedImplementedRepresentationType,
@@ -731,7 +732,7 @@ class SourceExtensionTypeDeclarationBuilder
         for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
             in duplicationProblems.entries) {
           libraryBuilder.addProblem(
-            codeImplementsRepeated.withArgumentsOld(
+            diag.implementsRepeated.withArgumentsOld(
               typeDeclaration.name,
               count,
             ),

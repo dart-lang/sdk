@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -371,7 +372,7 @@ class InferableRedirectingFactory implements InferableMember {
       name += ".${_builder.name}";
     }
     _builder.libraryBuilder.addProblem(
-      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
+      diag.cantInferTypeDueToCircularity.withArgumentsOld(name),
       _builder.fileOffset,
       name.length,
       _builder.fileUri,

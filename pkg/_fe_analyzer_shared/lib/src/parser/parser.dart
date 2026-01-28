@@ -4,6 +4,8 @@
 
 library _fe_analyzer_shared.parser;
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
 import '../scanner/token.dart' show Token;
 
 import 'experimental_features.dart';
@@ -13,8 +15,7 @@ import 'parser_impl.dart' show Parser;
 
 import 'parser_error.dart' show ParserError;
 
-import '../messages/codes.dart'
-    show Message, codeNativeClauseShouldBeAnnotation;
+import '../messages/codes.dart' show Message;
 
 export 'assert.dart' show Assert;
 
@@ -64,7 +65,7 @@ class ErrorCollectingListener extends Listener {
     Token endToken,
   ) {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
-    if (message == codeNativeClauseShouldBeAnnotation) {
+    if (message == diag.nativeClauseShouldBeAnnotation) {
       return;
     }
     recoverableErrors.add(

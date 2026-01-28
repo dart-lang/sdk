@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../messages/codes.dart' show Message, Template, codeExpectedIdentifier;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
+import '../messages/codes.dart' show Message, Template;
 
 import '../scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
@@ -300,7 +302,7 @@ abstract class IdentifierContext {
     this.isScopeReference = false,
     this.isBuiltInIdentifierAllowed = true,
     bool? allowedInConstantExpression,
-    this.recoveryTemplate = codeExpectedIdentifier,
+    this.recoveryTemplate = diag.expectedIdentifier,
   }) : this.allowedInConstantExpression =
            // Generally, declarations are legal in constant expressions.  A
            // continuation doesn't affect constant expressions: if what it's

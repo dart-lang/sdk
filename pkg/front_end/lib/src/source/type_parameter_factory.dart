@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
+
 import '../base/messages.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/metadata_builder.dart';
@@ -197,12 +199,12 @@ void checkTypeParameterDependencies(
       if (dependency != null) {
         Message message;
         if (dependency.viaTypeParameters != null) {
-          message = codeCycleInTypeParameters.withArgumentsOld(
+          message = diag.cycleInTypeParameters.withArgumentsOld(
             dependency.typeParameterBoundOfItself.name,
             dependency.viaTypeParameters!.map((v) => v.name).join("', '"),
           );
         } else {
-          message = codeDirectCycleInTypeParameters.withArgumentsOld(
+          message = diag.directCycleInTypeParameters.withArgumentsOld(
             dependency.typeParameterBoundOfItself.name,
           );
         }

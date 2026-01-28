@@ -11,8 +11,8 @@ import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     as constantEvaluator show ConstantEvaluator;
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show codeWasmImportOrExportInUserCode;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -575,7 +575,7 @@ void _checkWasmImportExportPragmas(List<Library> libraries, CoreTypes coreTypes,
           util.hasWasmExportPragma(coreTypes, member) ||
           util.hasWasmWeakExportPragma(coreTypes, member)) {
         diagnosticReporter.report(
-          codeWasmImportOrExportInUserCode,
+          diag.wasmImportOrExportInUserCode,
           member.fileOffset,
           0,
           library.fileUri,

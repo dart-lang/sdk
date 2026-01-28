@@ -18,7 +18,8 @@ import 'package:front_end/src/base/command_line_reporting.dart'
 import 'package:front_end/src/builder/declaration_builders.dart'
     show TypeDeclarationBuilder, TypeAliasBuilder;
 import 'package:front_end/src/builder/type_builder.dart' show TypeBuilder;
-import 'package:front_end/src/codes/cfe_codes.dart' as cfe show codeUnspecified;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilderImpl;
 import 'package:front_end/src/kernel/constness.dart' show Constness;
 import 'package:front_end/src/kernel/expression_generator_helper.dart'
@@ -290,7 +291,7 @@ mixin BodyBuilderTestMixin on BodyBuilderImpl {
     }
     if (doReport) {
       addProblem(
-        cfe.codeUnspecified.withArgumentsOld("Should use new or const"),
+        diag.unspecified.withArgumentsOld("Should use new or const"),
         nameToken.charOffset,
         nameToken.length,
       );

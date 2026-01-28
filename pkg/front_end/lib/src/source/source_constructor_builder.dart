@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -10,8 +11,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
-import '../base/messages.dart'
-    show codeCantInferTypeDueToCircularity, ProblemReporting;
+import '../base/messages.dart' show ProblemReporting;
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -481,7 +481,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       constructorName += ".${name}";
     }
     libraryBuilder.addProblem(
-      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
+      diag.cantInferTypeDueToCircularity.withArgumentsOld(name),
       fileOffset,
       constructorName.length,
       fileUri,

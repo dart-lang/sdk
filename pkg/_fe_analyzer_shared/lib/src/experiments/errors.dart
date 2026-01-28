@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
 import '../messages/codes.dart';
 import 'flags.dart';
 
@@ -9,12 +11,12 @@ import 'flags.dart';
 /// enabled.
 Message getExperimentNotEnabledMessage(ExperimentalFlag experimentalFlag) {
   if (experimentalFlag.isEnabledByDefault) {
-    return codeExperimentNotEnabled.withArgumentsOld(
+    return diag.experimentNotEnabled.withArgumentsOld(
       experimentalFlag.name,
       experimentalFlag.experimentEnabledVersion.toText(),
     );
   } else {
-    return codeExperimentNotEnabledOffByDefault.withArgumentsOld(
+    return diag.experimentNotEnabledOffByDefault.withArgumentsOld(
       experimentalFlag.name,
     );
   }

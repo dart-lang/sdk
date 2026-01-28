@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -316,7 +317,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       );
       if (returnType is! VoidType) {
         problemReporting.addProblem(
-          codeNonVoidReturnSetter,
+          diag.nonVoidReturnSetter,
           _fragment.returnType.charOffset!,
           noLength,
           _fragment.fileUri,
@@ -669,7 +670,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       );
       if (returnType is! VoidType) {
         problemReporting.addProblem(
-          codeNonVoidReturnSetter,
+          diag.nonVoidReturnSetter,
           _fragment.returnType.charOffset!,
           noLength,
           _fragment.fileUri,

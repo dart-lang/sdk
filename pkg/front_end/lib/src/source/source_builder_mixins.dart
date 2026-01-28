@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -140,7 +141,7 @@ mixin SourceDeclarationBuilderBaseMixin
         ),
       );
       return unhandled(
-        codeTypeArgumentMismatch
+        diag.typeArgumentMismatch
             .withArgumentsOld(typeParametersCount)
             .problemMessage,
         "buildTypeArguments",
@@ -200,7 +201,9 @@ mixin SourceDeclarationBuilderMixin
           libraryBuilder.addProblem(
             // TODO(johnniwinther): Use a different error message for
             //  extension type declarations.
-            codeExtensionMemberConflictsWithObjectMember.withArgumentsOld(name),
+            diag.extensionMemberConflictsWithObjectMember.withArgumentsOld(
+              name,
+            ),
             declaration.fileOffset,
             name.length,
             declaration.fileUri,

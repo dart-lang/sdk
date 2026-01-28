@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
@@ -60,7 +61,7 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     library.addProblem(
-      codeSupertypeIsIllegal.withArgumentsOld('void'),
+      diag.supertypeIsIllegal.withArgumentsOld('void'),
       charOffset!,
       noLength,
       fileUri,
@@ -71,7 +72,7 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
     library.addProblem(
-      codeSupertypeIsIllegal.withArgumentsOld('void'),
+      diag.supertypeIsIllegal.withArgumentsOld('void'),
       charOffset!,
       noLength,
       fileUri,

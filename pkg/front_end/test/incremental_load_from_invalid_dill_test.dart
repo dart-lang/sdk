@@ -20,13 +20,8 @@ import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler, RecorderForTesting;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show
-        Code,
-        codeInitializeFromDillNotSelfContained,
-        codeInitializeFromDillNotSelfContainedNoDump,
-        codeInitializeFromDillUnknownProblem,
-        codeInitializeFromDillUnknownProblemNoDump;
+import 'package:front_end/src/codes/cfe_codes.dart' show Code;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
@@ -239,11 +234,11 @@ main() {
 
     // Initializing from partial dill should not be ok.
     await compileExpectInitializeFailAndSpecificWarning(
-      codeInitializeFromDillNotSelfContained,
+      diag.initializeFromDillNotSelfContained,
       true,
     );
     await compileExpectInitializeFailAndSpecificWarning(
-      codeInitializeFromDillNotSelfContainedNoDump,
+      diag.initializeFromDillNotSelfContainedNoDump,
       false,
     );
 
@@ -251,11 +246,11 @@ main() {
     data = new List<int>.filled(42, 42);
     fs.entityForUri(initializeFrom).writeAsBytesSync(data);
     await compileExpectInitializeFailAndSpecificWarning(
-      codeInitializeFromDillUnknownProblem,
+      diag.initializeFromDillUnknownProblem,
       true,
     );
     await compileExpectInitializeFailAndSpecificWarning(
-      codeInitializeFromDillUnknownProblemNoDump,
+      diag.initializeFromDillUnknownProblemNoDump,
       false,
     );
 

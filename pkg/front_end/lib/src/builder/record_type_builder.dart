@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart'
     show
         DartType,
@@ -15,15 +16,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/cfe_codes.dart'
-    show
-        codeNamedFieldClashesWithPositionalFieldInRecord,
-        codeObjectMemberNameUsedForRecordField,
-        codeRecordFieldsCantBePrivate,
-        codeSupertypeIsFunction,
-        noLength,
-        codeDuplicatedRecordTypeFieldName,
-        codeDuplicatedRecordTypeFieldNameContext;
+import '../codes/cfe_codes.dart' show noLength;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
@@ -193,7 +186,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
           }
           if (fieldName.startsWith("_")) {
             library.addProblem(
-              codeRecordFieldsCantBePrivate,
+              diag.recordFieldsCantBePrivate,
               field.charOffset,
               fieldName.length,
               fileUri,
@@ -203,7 +196,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
           }
           if (forbiddenObjectMemberNames.contains(fieldName)) {
             library.addProblem(
-              codeObjectMemberNameUsedForRecordField,
+              diag.objectMemberNameUsedForRecordField,
               field.charOffset,
               fieldName.length,
               fileUri,
@@ -214,12 +207,12 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
           RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
           if (existingField != null) {
             library.addProblem(
-              codeDuplicatedRecordTypeFieldName.withArgumentsOld(fieldName),
+              diag.duplicatedRecordTypeFieldName.withArgumentsOld(fieldName),
               field.charOffset,
               fieldName.length,
               fileUri,
               context: [
-                codeDuplicatedRecordTypeFieldNameContext
+                diag.duplicatedRecordTypeFieldNameContext
                     .withArgumentsOld(fieldName)
                     .withLocation(
                       fileUri,
@@ -256,7 +249,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         }
         if (forbiddenObjectMemberNames.contains(name)) {
           library.addProblem(
-            codeObjectMemberNameUsedForRecordField,
+            diag.objectMemberNameUsedForRecordField,
             field.charOffset,
             name.length,
             fileUri,
@@ -266,7 +259,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         }
         if (name.startsWith("_")) {
           library.addProblem(
-            codeRecordFieldsCantBePrivate,
+            diag.recordFieldsCantBePrivate,
             field.charOffset,
             name.length,
             fileUri,
@@ -280,7 +273,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
             ) !=
             null) {
           library.addProblem(
-            codeNamedFieldClashesWithPositionalFieldInRecord,
+            diag.namedFieldClashesWithPositionalFieldInRecord,
             field.charOffset,
             name.length,
             fileUri,
@@ -291,12 +284,12 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         RecordTypeFieldBuilder? existingField = fieldsMap[name];
         if (existingField != null) {
           library.addProblem(
-            codeDuplicatedRecordTypeFieldName.withArgumentsOld(name),
+            diag.duplicatedRecordTypeFieldName.withArgumentsOld(name),
             field.charOffset,
             name.length,
             fileUri,
             context: [
-              codeDuplicatedRecordTypeFieldNameContext
+              diag.duplicatedRecordTypeFieldNameContext
                   .withArgumentsOld(name)
                   .withLocation(fileUri, existingField.charOffset, name.length),
             ],
@@ -334,7 +327,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(codeSupertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem(diag.supertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
 

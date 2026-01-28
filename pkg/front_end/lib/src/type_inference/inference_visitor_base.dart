@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.d
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
@@ -492,7 +493,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Template<Message Function(DartType, DartType), Function>? errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
-    errorTemplate ??= codeInvalidAssignmentError;
+    errorTemplate ??= diag.invalidAssignmentError;
 
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
@@ -556,7 +557,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         result = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: expression,
-          message: codeVoidExpression,
+          message: diag.voidExpression,
           fileUri: fileUri,
           fileOffset: expression.fileOffset,
           length: noLength,
@@ -582,7 +583,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         result = _wrapTearoffErrorExpression(
           expression,
           contextType,
-          codeNullableTearoffError,
+          diag.nullableTearoffError,
         );
         break;
       case AssignabilityKind.unassignableNullability:
@@ -2049,7 +2050,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 prevNamedExpression.value,
                 namedExpression.value,
               ),
-              message: codeDuplicatedNamedArgument.withArgumentsOld(name),
+              message: diag.duplicatedNamedArgument.withArgumentsOld(name),
               fileUri: fileUri,
               fileOffset: namedExpression.fileOffset,
               length: name.length,
@@ -2160,7 +2161,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           argumentResultToCheck,
           isVoidAllowed: expectedType is VoidType,
           isCoercionAllowed: argumentInfo.coerceExpression,
-          errorTemplate: codeArgumentTypeNotAssignable,
+          errorTemplate: diag.argumentTypeNotAssignable,
         );
 
         argumentInfo.argument.expression = argumentResultToCheck.expression;
@@ -2310,7 +2311,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           formal.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
-          codeOptionalNonNullableWithoutInitializerError.withArgumentsOld(
+          diag.optionalNonNullableWithoutInitializerError.withArgumentsOld(
             formal.cosmeticName!,
             formal.type,
           ),
@@ -2380,7 +2381,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Required named parameters shouldn't have initializers.
       if (formal.isRequired && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
-          codeRequiredNamedParameterHasDefaultValueError.withArgumentsOld(
+          diag.requiredNamedParameterHasDefaultValueError.withArgumentsOld(
             formal.cosmeticName!,
           ),
           formal.fileOffset,
@@ -2702,7 +2703,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         result = wrapExpressionInferenceResultInProblem(
           result,
-          codeNullableExpressionCallError.withArgumentsOld(receiverType),
+          diag.nullableExpressionCallError.withArgumentsOld(receiverType),
           fileOffset,
           noLength,
           context: context,
@@ -2766,7 +2767,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           replacement = problemReporting.wrapInProblem(
             compilerContext: compilerContext,
             expression: replacement,
-            message: codeNullableExpressionCallError.withArgumentsOld(
+            message: diag.nullableExpressionCallError.withArgumentsOld(
               receiverType,
             ),
             fileUri: fileUri,
@@ -2785,7 +2786,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           replacement = problemReporting.wrapInProblem(
             compilerContext: compilerContext,
             expression: replacement,
-            message: codeNullableMethodCallError.withArgumentsOld(
+            message: diag.nullableMethodCallError.withArgumentsOld(
               name.text,
               receiverType,
             ),
@@ -2908,7 +2909,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: codeNullableExpressionCallError.withArgumentsOld(
+          message: diag.nullableExpressionCallError.withArgumentsOld(
             receiverType,
           ),
           fileUri: fileUri,
@@ -2923,7 +2924,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: codeNullableMethodCallError.withArgumentsOld(
+          message: diag.nullableMethodCallError.withArgumentsOld(
             callName.text,
             receiverType,
           ),
@@ -3159,7 +3160,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: codeNullableExpressionCallError.withArgumentsOld(
+          message: diag.nullableExpressionCallError.withArgumentsOld(
             receiverType,
           ),
           fileUri: fileUri,
@@ -3174,7 +3175,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: codeNullableMethodCallError.withArgumentsOld(
+          message: diag.nullableMethodCallError.withArgumentsOld(
             methodName.text,
             receiverType,
           ),
@@ -3269,7 +3270,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (isExpressionInvocation) {
       Expression error = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: codeImplicitCallOfNonMethod.withArgumentsOld(receiverType),
+        message: diag.implicitCallOfNonMethod.withArgumentsOld(receiverType),
         fileUri: fileUri,
         fileOffset: fileOffset,
         length: noLength,
@@ -3308,7 +3309,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       invocationResult = wrapExpressionInferenceResultInProblem(
         invocationResult,
-        codeNullableExpressionCallError.withArgumentsOld(receiverType),
+        diag.nullableExpressionCallError.withArgumentsOld(receiverType),
         fileOffset,
         noLength,
         context: context,
@@ -3501,7 +3502,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (isExpressionInvocation) {
       Expression error = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: codeImplicitCallOfNonMethod.withArgumentsOld(receiverType),
+        message: diag.implicitCallOfNonMethod.withArgumentsOld(receiverType),
         fileUri: fileUri,
         fileOffset: fileOffset,
         length: noLength,
@@ -3543,7 +3544,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       invocationResult = wrapExpressionInferenceResultInProblem(
         invocationResult,
-        codeNullableExpressionCallError.withArgumentsOld(receiverType),
+        diag.nullableExpressionCallError.withArgumentsOld(receiverType),
         fileOffset,
         noLength,
         context: context,
@@ -3806,7 +3807,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           );
           readResult = wrapExpressionInferenceResultInProblem(
             readResult,
-            codeNullableExpressionCallError.withArgumentsOld(receiverType),
+            diag.nullableExpressionCallError.withArgumentsOld(receiverType),
             fileOffset,
             noLength,
             context: context,
@@ -3829,7 +3830,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.nullableRecordNamed:
         if (isImplicitCall && !target.isNullable) {
           libraryBuilder.addProblem(
-            codeRecordUsedAsCallable,
+            diag.recordUsedAsCallable,
             receiver.fileOffset,
             noLength,
             fileUri,
@@ -3857,7 +3858,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           );
           readResult = wrapExpressionInferenceResultInProblem(
             readResult,
-            codeNullableExpressionCallError.withArgumentsOld(receiverType),
+            diag.nullableExpressionCallError.withArgumentsOld(receiverType),
             fileOffset,
             noLength,
             context: context,
@@ -3914,7 +3915,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           );
           readResult = wrapExpressionInferenceResultInProblem(
             readResult,
-            codeNullableExpressionCallError.withArgumentsOld(receiverType),
+            diag.nullableExpressionCallError.withArgumentsOld(receiverType),
             fileOffset,
             noLength,
             context: context,
@@ -4368,7 +4369,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             problemReporting.wrapInProblem(
               compilerContext: compilerContext,
               expression: resultExpression,
-              message: codeLateDefinitelyUnassignedError.withArgumentsOld(name),
+              message: diag.lateDefinitelyUnassignedError.withArgumentsOld(
+                name,
+              ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
               length: name.length,
@@ -4383,7 +4386,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               problemReporting.wrapInProblem(
                 compilerContext: compilerContext,
                 expression: resultExpression,
-                message: codeFinalNotAssignedError.withArgumentsOld(
+                message: diag.finalNotAssignedError.withArgumentsOld(
                   node.variable.name!,
                 ),
                 fileUri: fileUri,
@@ -4397,7 +4400,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               problemReporting.wrapInProblem(
                 compilerContext: compilerContext,
                 expression: resultExpression,
-                message: codeNonNullableNotAssignedError.withArgumentsOld(
+                message: diag.nonNullableNotAssignedError.withArgumentsOld(
                   node.expressionVariable.cosmeticName!,
                 ),
                 fileUri: fileUri,
@@ -4488,7 +4491,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             problemReporting.wrapInProblem(
               compilerContext: compilerContext,
               expression: resultExpression,
-              message: codeLateDefinitelyAssignedError.withArgumentsOld(
+              message: diag.lateDefinitelyAssignedError.withArgumentsOld(
                 node.variable.name!,
               ),
               fileUri: fileUri,
@@ -4504,7 +4507,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             problemReporting.wrapInProblem(
               compilerContext: compilerContext,
               expression: resultExpression,
-              message: codeFinalPossiblyAssignedError.withArgumentsOld(
+              message: diag.finalPossiblyAssignedError.withArgumentsOld(
                 node.variable.name!,
               ),
               fileUri: fileUri,
@@ -4864,28 +4867,28 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Template<Message Function(DartType, DartType), Function>?
   _getPreciseTypeErrorTemplate(Expression expression) {
     if (expression is ListLiteral) {
-      return codeInvalidCastLiteralList;
+      return diag.invalidCastLiteralList;
     }
     if (expression is MapLiteral) {
-      return codeInvalidCastLiteralMap;
+      return diag.invalidCastLiteralMap;
     }
     if (expression is SetLiteral || _isLoweredSetLiteral(expression)) {
-      return codeInvalidCastLiteralSet;
+      return diag.invalidCastLiteralSet;
     }
     if (expression is FunctionExpression) {
-      return codeInvalidCastFunctionExpr;
+      return diag.invalidCastFunctionExpr;
     }
     if (expression is ConstructorInvocation) {
-      return codeInvalidCastNewExpr;
+      return diag.invalidCastNewExpr;
     }
     if (expression is StaticGet) {
       Member target = expression.target;
       if (target is Procedure && target.kind == ProcedureKind.Method) {
         // Coverage-ignore-block(suite): Not run.
         if (target.enclosingClass != null) {
-          return codeInvalidCastStaticMethod;
+          return diag.invalidCastStaticMethod;
         } else {
-          return codeInvalidCastTopLevelFunction;
+          return diag.invalidCastTopLevelFunction;
         }
       }
       return null;
@@ -4893,15 +4896,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (expression is StaticTearOff) {
       Member target = expression.target;
       if (target.enclosingClass != null) {
-        return codeInvalidCastStaticMethod;
+        return diag.invalidCastStaticMethod;
       } else {
-        return codeInvalidCastTopLevelFunction;
+        return diag.invalidCastTopLevelFunction;
       }
     }
     if (expression is VariableGet) {
       ExpressionVariable variable = expression.expressionVariable;
       if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
-        return codeInvalidCastLocalFunction;
+        return diag.invalidCastLocalFunction;
       }
     }
     return null;
@@ -5001,7 +5004,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       context = extensionAccessCandidates
           .map(
             (ExtensionAccessCandidate c) =>
-                codeAmbiguousExtensionCause.withLocation(
+                diag.ambiguousExtensionCause.withLocation(
                   c.memberBuilder.fileUri!,
                   c.memberBuilder.fileOffset,
                   name == unaryMinusName ? 1 : c.memberBuilder.name.length,
@@ -5063,7 +5066,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             name,
             arguments!,
           ),
-          message: codeInvokeNonFunction.withArgumentsOld(
+          message: diag.invokeNonFunction.withArgumentsOld(
             implicitInvocationPropertyName.text,
           ),
           fileUri: fileUri,
@@ -5074,7 +5077,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // Coverage-ignore-block(suite): Not run.
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeInvokeNonFunction.withArgumentsOld(
+          message: diag.invokeNonFunction.withArgumentsOld(
             implicitInvocationPropertyName.text,
           ),
           fileUri: fileUri,
@@ -5092,8 +5095,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             ? _createInvalidInvocation(fileOffset, receiver, name, arguments!)
             : null,
         extensionAccessCandidates,
-        codeUndefinedMethod,
-        codeAmbiguousExtensionMethod,
+        diag.undefinedMethod,
+        diag.ambiguousExtensionMethod,
       );
     }
   }
@@ -5313,7 +5316,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (readTarget.isNullable) {
       readResult = wrapExpressionInferenceResultInProblem(
         readResult,
-        codeNullablePropertyAccessError.withArgumentsOld(
+        diag.nullablePropertyAccessError.withArgumentsOld(
           propertyName.text,
           receiverType,
         ),
@@ -5339,7 +5342,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedGetter;
+        diag.undefinedGetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       propertyName.text.length,
@@ -5350,7 +5353,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           : null,
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionProperty,
+      diag.ambiguousExtensionProperty,
     );
   }
 
@@ -5364,7 +5367,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedSetter;
+        diag.undefinedSetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       propertyName.text.length,
@@ -5373,7 +5376,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       _createInvalidSet(fileOffset, receiver, propertyName, value),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionProperty,
+      diag.ambiguousExtensionProperty,
     );
   }
 
@@ -5385,7 +5388,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedOperator;
+        diag.undefinedOperator;
 
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5400,7 +5403,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionOperator,
+      diag.ambiguousExtensionOperator,
     );
   }
 
@@ -5414,7 +5417,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedOperator;
+        diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       noLength,
@@ -5428,7 +5431,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionOperator,
+      diag.ambiguousExtensionOperator,
     );
   }
 
@@ -5442,7 +5445,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }) {
     assert(binaryName != equalsName);
     Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedOperator;
+        diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       binaryName.text.length,
@@ -5456,7 +5459,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionOperator,
+      diag.ambiguousExtensionOperator,
     );
   }
 
@@ -5468,7 +5471,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     Template<Message Function(String, DartType), Function> codeMissing =
-        codeUndefinedOperator;
+        diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       unaryName == unaryMinusName ? 1 : unaryName.text.length,
@@ -5482,7 +5485,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ),
       extensionAccessCandidates,
       codeMissing,
-      codeAmbiguousExtensionOperator,
+      diag.ambiguousExtensionOperator,
     );
   }
 
@@ -5500,7 +5503,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(!libraryBuilder.libraryFeatures.genericMetadata.isEnabled);
     if (isGenericFunctionTypeOrAlias(typeArgument)) {
       libraryBuilder.addProblem(
-        codeGenericFunctionTypeInferredAsActualTypeArgument.withArgumentsOld(
+        diag.genericFunctionTypeInferredAsActualTypeArgument.withArgumentsOld(
           typeArgument,
         ),
         fileOffset,
@@ -5534,7 +5537,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     int length = literal?.length ?? noLength;
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeWebLiteralCannotBeRepresentedExactly.withArgumentsOld(
+      message: diag.webLiteralCannotBeRepresentedExactly.withArgumentsOld(
         text,
         nearest,
       ),
@@ -5676,7 +5679,7 @@ class _WhyNotPromotedVisitor
     }
     int offset = node.fileOffset;
     return [
-      codeVariableCouldBeNullDueToWrite
+      diag.variableCouldBeNullDueToWrite
           .withArgumentsOld(
             reason.variable.cosmeticName!,
             reason.documentationLink.url,
@@ -5711,7 +5714,7 @@ class _WhyNotPromotedVisitor
     if (fieldNameInfo != null) {
       for (SourceMemberBuilder field in fieldNameInfo.conflictingFields) {
         messages.add(
-          codeFieldNotPromotedBecauseConflictingField
+          diag.fieldNotPromotedBecauseConflictingField
               .withArgumentsOld(
                 reason.propertyName,
                 field.readTarget!.enclosingClass!.name,
@@ -5722,7 +5725,7 @@ class _WhyNotPromotedVisitor
       }
       for (SourceMemberBuilder getter in fieldNameInfo.conflictingGetters) {
         messages.add(
-          codeFieldNotPromotedBecauseConflictingGetter
+          diag.fieldNotPromotedBecauseConflictingGetter
               .withArgumentsOld(
                 reason.propertyName,
                 getter.readTarget!.enclosingClass!.name,
@@ -5733,7 +5736,7 @@ class _WhyNotPromotedVisitor
       }
       for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
         messages.add(
-          codeFieldNotPromotedBecauseConflictingNsmForwarder
+          diag.fieldNotPromotedBecauseConflictingNsmForwarder
               .withArgumentsOld(
                 reason.propertyName,
                 nsmClass.name,
@@ -5772,13 +5775,13 @@ class _WhyNotPromotedVisitor
       Template<Message Function(String, String), Function> template =
           switch (reason.whyNotPromotable) {
             PropertyNonPromotabilityReason.isNotField =>
-              codeFieldNotPromotedBecauseNotField,
+              diag.fieldNotPromotedBecauseNotField,
             PropertyNonPromotabilityReason.isNotPrivate =>
-              codeFieldNotPromotedBecauseNotPrivate,
+              diag.fieldNotPromotedBecauseNotPrivate,
             PropertyNonPromotabilityReason.isExternal =>
-              codeFieldNotPromotedBecauseExternal,
+              diag.fieldNotPromotedBecauseExternal,
             PropertyNonPromotabilityReason.isNotFinal =>
-              codeFieldNotPromotedBecauseNotFinal,
+              diag.fieldNotPromotedBecauseNotFinal,
           };
       List<LocatedMessage> messages = [
         template
@@ -5803,7 +5806,7 @@ class _WhyNotPromotedVisitor
   @override
   List<LocatedMessage> visitThisNotPromoted(ThisNotPromoted reason) {
     return [
-      codeThisNotPromoted
+      diag.thisNotPromoted
           .withArgumentsOld(reason.documentationLink.url)
           .withoutLocation(),
     ];
@@ -5816,7 +5819,7 @@ class _WhyNotPromotedVisitor
     Object? member = reason.propertyMember;
     if (member is Member) {
       messages.add(
-        codeFieldNotPromotedBecauseNotEnabled
+        diag.fieldNotPromotedBecauseNotEnabled
             .withArgumentsOld(
               reason.propertyName,
               NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
@@ -6066,7 +6069,7 @@ class _ObjectAccessDescriptor {
         // Coverage-ignore(suite): Not run.
         case Nullability.undetermined:
           return internalProblem(
-            codeInternalProblemUnsupportedNullability.withArgumentsOld(
+            diag.internalProblemUnsupportedNullability.withArgumentsOld(
               "${receiverBound.nullability}",
               receiverBound,
             ),

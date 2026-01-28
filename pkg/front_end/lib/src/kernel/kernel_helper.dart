@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
-import '../base/messages.dart';
 import '../builder/library_builder.dart';
 
 /// Data for clone default values for synthesized function nodes once the
@@ -301,7 +301,7 @@ class DelayedDefaultValueCloner {
       synthesizedParameter.hasDeclaredInitializer = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
-          codeOptionalSuperParameterWithoutInitializer.withArgumentsOld(
+          diag.optionalSuperParameterWithoutInitializer.withArgumentsOld(
             synthesizedParameter.type,
             synthesizedParameter.name!,
           ),

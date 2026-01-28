@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_algebra.dart';
@@ -127,7 +128,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
       if (!isValid) {
         if (getterIsDeclared && setterIsDeclared) {
           libraryBuilder.addProblem(
-            codeInvalidGetterSetterType.withArgumentsOld(
+            diag.invalidGetterSetterType.withArgumentsOld(
               getterType,
               getterFullName,
               setterType,
@@ -137,7 +138,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             name.text.length,
             getterUri,
             context: [
-              codeInvalidGetterSetterTypeSetterContext
+              diag.invalidGetterSetterTypeSetterContext
                   .withArgumentsOld(setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
@@ -147,9 +148,9 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             Message Function(DartType, String, DartType, String),
             Function
           >
-          template = codeInvalidGetterSetterTypeSetterInheritedGetter;
+          template = diag.invalidGetterSetterTypeSetterInheritedGetter;
           if (getterIsField) {
-            template = codeInvalidGetterSetterTypeSetterInheritedField;
+            template = diag.invalidGetterSetterTypeSetterInheritedField;
           }
           libraryBuilder.addProblem(
             template.withArgumentsOld(
@@ -162,7 +163,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             name.text.length,
             getterUri,
             context: [
-              codeInvalidGetterSetterTypeSetterContext
+              diag.invalidGetterSetterTypeSetterContext
                   .withArgumentsOld(setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
@@ -172,12 +173,12 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             Message Function(DartType, String, DartType, String),
             Function
           >
-          template = codeInvalidGetterSetterTypeGetterInherited;
+          template = diag.invalidGetterSetterTypeGetterInherited;
           Template<Message Function(String), Function> context =
-              codeInvalidGetterSetterTypeGetterContext;
+              diag.invalidGetterSetterTypeGetterContext;
           if (getterIsField) {
-            template = codeInvalidGetterSetterTypeFieldInherited;
-            context = codeInvalidGetterSetterTypeFieldContext;
+            template = diag.invalidGetterSetterTypeFieldInherited;
+            context = diag.invalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
             template.withArgumentsOld(
@@ -200,12 +201,12 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             Message Function(DartType, String, DartType, String),
             Function
           >
-          template = codeInvalidGetterSetterTypeBothInheritedGetter;
+          template = diag.invalidGetterSetterTypeBothInheritedGetter;
           Template<Message Function(String), Function> context =
-              codeInvalidGetterSetterTypeGetterContext;
+              diag.invalidGetterSetterTypeGetterContext;
           if (getterIsField) {
-            template = codeInvalidGetterSetterTypeBothInheritedField;
-            context = codeInvalidGetterSetterTypeFieldContext;
+            template = diag.invalidGetterSetterTypeBothInheritedField;
+            context = diag.invalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
             template.withArgumentsOld(
@@ -221,7 +222,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
               context
                   .withArgumentsOld(getterFullName)
                   .withLocation(getterUri, getterOffset, name.text.length),
-              codeInvalidGetterSetterTypeSetterContext
+              diag.invalidGetterSetterTypeSetterContext
                   .withArgumentsOld(setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -156,7 +157,7 @@ class AnalysisVisitor extends StaticTypeVisitorBase {
         location.column,
       );
     }
-    LocatedMessage locatedMessage = codeUnspecified
+    LocatedMessage locatedMessage = diag.unspecified
         .withArgumentsOld(message)
         .withLocation(uri, node.fileOffset, noLength);
     FormattedMessage diagnosticMessage = locatedMessage.withFormatting(

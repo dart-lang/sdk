@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 
 import 'package:_fe_analyzer_shared/src/parser/listener.dart'
@@ -29,8 +30,6 @@ import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
         $x,
         hexDigitValue,
         isHexDigit;
-
-import 'package:_fe_analyzer_shared/src/messages/codes.dart' as codes;
 
 enum Quote {
   Single,
@@ -242,7 +241,7 @@ String unescapeCodeUnits(
       if (codeUnits.length == ++i) {
         // This should only be reachable in error cases.
         listener.handleUnescapeError(
-          codes.codeInvalidEscapeStarted,
+          diag.invalidEscapeStarted,
           location,
           i,
           /* length = */ 1,
@@ -276,7 +275,7 @@ String unescapeCodeUnits(
         int begin = i;
         if (codeUnits.length <= i + 2) {
           listener.handleUnescapeError(
-            codes.codeInvalidHexEscape,
+            diag.invalidHexEscape,
             location,
             begin,
             codeUnits.length + 1 - begin,
@@ -288,7 +287,7 @@ String unescapeCodeUnits(
           int digit = codeUnits[++i];
           if (!isHexDigit(digit)) {
             listener.handleUnescapeError(
-              codes.codeInvalidHexEscape,
+              diag.invalidHexEscape,
               location,
               begin,
               i + 1 - begin,
@@ -301,7 +300,7 @@ String unescapeCodeUnits(
         int begin = i;
         if (codeUnits.length == i + 1) {
           listener.handleUnescapeError(
-            codes.codeInvalidUnicodeEscapeUStarted,
+            diag.invalidUnicodeEscapeUStarted,
             location,
             begin,
             codeUnits.length + 1 - begin,
@@ -314,7 +313,7 @@ String unescapeCodeUnits(
           // Expect 1-6 hex digits followed by '}'.
           if (codeUnits.length == ++i) {
             listener.handleUnescapeError(
-              codes.codeInvalidUnicodeEscapeUBracket,
+              diag.invalidUnicodeEscapeUBracket,
               location,
               begin,
               i + 1 - begin,
@@ -325,7 +324,7 @@ String unescapeCodeUnits(
           for (int j = 0; j < 7; j++) {
             if (codeUnits.length == ++i) {
               listener.handleUnescapeError(
-                codes.codeInvalidUnicodeEscapeUBracket,
+                diag.invalidUnicodeEscapeUBracket,
                 location,
                 begin,
                 i + 1 - begin,
@@ -341,7 +340,7 @@ String unescapeCodeUnits(
             }
             if (!isHexDigit(digit)) {
               listener.handleUnescapeError(
-                codes.codeInvalidUnicodeEscapeUBracket,
+                diag.invalidUnicodeEscapeUBracket,
                 location,
                 begin,
                 i + 2 - begin,
@@ -352,7 +351,7 @@ String unescapeCodeUnits(
           }
           if (!foundEndBracket) {
             listener.handleUnescapeError(
-              codes.codeInvalidUnicodeEscapeUBracket,
+              diag.invalidUnicodeEscapeUBracket,
               location,
               begin,
               i + 1 - begin,
@@ -362,7 +361,7 @@ String unescapeCodeUnits(
           // Expect exactly 4 hex digits.
           if (codeUnits.length <= i + 4) {
             listener.handleUnescapeError(
-              codes.codeInvalidUnicodeEscapeUNoBracket,
+              diag.invalidUnicodeEscapeUNoBracket,
               location,
               begin,
               codeUnits.length + 1 - begin,
@@ -374,7 +373,7 @@ String unescapeCodeUnits(
             int digit = codeUnits[++i];
             if (!isHexDigit(digit)) {
               listener.handleUnescapeError(
-                codes.codeInvalidUnicodeEscapeUNoBracket,
+                diag.invalidUnicodeEscapeUNoBracket,
                 location,
                 begin,
                 i + 1 - begin,
@@ -386,7 +385,7 @@ String unescapeCodeUnits(
         }
         if (code > 0x10FFFF) {
           listener.handleUnescapeError(
-            codes.codeInvalidCodePoint,
+            diag.invalidCodePoint,
             location,
             begin,
             i + 1 - begin,

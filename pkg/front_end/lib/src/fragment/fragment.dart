@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';

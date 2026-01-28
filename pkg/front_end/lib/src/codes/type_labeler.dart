@@ -4,9 +4,10 @@
 
 import 'dart:convert' show json;
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
-import 'cfe_codes.dart' show Message, codeTypeOrigin, codeTypeOriginWithFileUri;
+import 'cfe_codes.dart' show Message;
 import 'denylisted_classes.dart' show denylistedCoreClasses;
 
 /// A labeled string returned by [TypeLabeler].
@@ -664,10 +665,10 @@ class LabeledNode {
       }
     }
     Message message = (importUri == fileUri || importUri.isScheme('dart'))
-        ? codeTypeOrigin.withArgumentsOld(toString(), importUri)
+        ? diag.typeOrigin.withArgumentsOld(toString(), importUri)
         :
           // Coverage-ignore(suite): Not run.
-          codeTypeOriginWithFileUri.withArgumentsOld(
+          diag.typeOriginWithFileUri.withArgumentsOld(
             toString(),
             importUri,
             fileUri,

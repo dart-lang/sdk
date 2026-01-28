@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -29,18 +30,7 @@ import '../base/messages.dart'
         FormattedMessage,
         LocatedMessage,
         Message,
-        codeConstConstructorLateFinalFieldCause,
-        codeConstConstructorLateFinalFieldError,
-        codeConstConstructorNonFinalField,
-        codeConstConstructorNonFinalFieldCause,
-        codeConstConstructorRedirectionToNonConst,
         noLength,
-        codeFieldNonNullableNotInitializedByConstructorError,
-        codeFieldNonNullableWithoutInitializerError,
-        codeFinalFieldNotInitialized,
-        codeFinalFieldNotInitializedByConstructor,
-        codeMissingImplementationCause,
-        codeSuperclassHasNoDefaultConstructor,
         CompilationPhaseForProblemReporting;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/ticker.dart' show Ticker;
@@ -1448,7 +1438,7 @@ class KernelTarget {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
             classBuilder.libraryBuilder.addProblem(
-              codeConstConstructorRedirectionToNonConst,
+              diag.constConstructorRedirectionToNonConst,
               initializer.fileOffset,
               initializer.target.name.text.length,
               constructor.fileUri,
@@ -1475,7 +1465,7 @@ class KernelTarget {
               offset = cls.fileOffset;
               fileUri = cls.fileUri;
             }
-            Message message = codeSuperclassHasNoDefaultConstructor
+            Message message = diag.superclassHasNoDefaultConstructor
                 .withArgumentsOld(cls.superclass!.name);
             classBuilder.libraryBuilder.addProblem(
               message,
@@ -1561,13 +1551,13 @@ class KernelTarget {
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.libraryBuilder.addProblem(
-          codeConstConstructorNonFinalField,
+          diag.constConstructorNonFinalField,
           constructor.fileOffset,
           noLength,
           constructor.fileUri,
           context: nonFinalFields
               .map(
-                (field) => codeConstConstructorNonFinalFieldCause.withLocation(
+                (field) => diag.constConstructorNonFinalFieldCause.withLocation(
                   field.fileUri,
                   field.fileOffset,
                   noLength,
@@ -1580,10 +1570,10 @@ class KernelTarget {
       if (constructor.isConst && lateFinalFields.isNotEmpty) {
         for (SourcePropertyBuilder field in lateFinalFields) {
           classDeclaration.libraryBuilder.addProblem2(
-            codeConstConstructorLateFinalFieldError,
+            diag.constConstructorLateFinalFieldError,
             field.fieldUriOffset!,
             context: [
-              codeConstConstructorLateFinalFieldCause.withLocation(
+              diag.constConstructorLateFinalFieldCause.withLocation(
                 constructor.fileUri,
                 constructor.fileOffset,
                 noLength,
@@ -1633,7 +1623,7 @@ class KernelTarget {
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
               libraryBuilder.addProblem(
-                codeFinalFieldNotInitialized.withArgumentsOld(
+                diag.finalFieldNotInitialized.withArgumentsOld(
                   fieldBuilder.name,
                 ),
                 fieldBuilder.fileOffset,
@@ -1644,7 +1634,7 @@ class KernelTarget {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-              codeFieldNonNullableWithoutInitializerError.withArgumentsOld(
+              diag.fieldNonNullableWithoutInitializerError.withArgumentsOld(
                 fieldBuilder.name,
                 fieldBuilder.fieldType,
               ),
@@ -1677,14 +1667,14 @@ class KernelTarget {
             // properly.
             if (!constructorBuilder.invokeTarget.isErroneous) {
               libraryBuilder.addProblem(
-                codeFinalFieldNotInitializedByConstructor.withArgumentsOld(
+                diag.finalFieldNotInitializedByConstructor.withArgumentsOld(
                   fieldBuilder.name,
                 ),
                 constructorBuilder.fileOffset,
                 constructorBuilder.name.length,
                 constructorBuilder.fileUri,
                 context: [
-                  codeMissingImplementationCause
+                  diag.missingImplementationCause
                       .withArgumentsOld(fieldBuilder.name)
                       .withLocation(
                         fieldBuilder.fileUri,
@@ -1699,13 +1689,13 @@ class KernelTarget {
               !fieldBuilder.isLate &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-              codeFieldNonNullableNotInitializedByConstructorError
+              diag.fieldNonNullableNotInitializedByConstructorError
                   .withArgumentsOld(fieldBuilder.name, fieldBuilder.fieldType),
               constructorBuilder.fileOffset,
               noLength,
               constructorBuilder.fileUri,
               context: [
-                codeMissingImplementationCause
+                diag.missingImplementationCause
                     .withArgumentsOld(fieldBuilder.name)
                     .withLocation(
                       fieldBuilder.fileUri,

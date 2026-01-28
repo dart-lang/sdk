@@ -8,6 +8,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/messages.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/kernel/utils.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -66,10 +67,10 @@ Future<void> main() async {
 }
 
 const Set<Code> ignoredCodes = {
-  codeInvalidAssignmentError,
-  codeTypeVariableInStaticContext,
-  codeExtensionDeclaresInstanceField,
-  codeExtraneousModifier,
+  diag.invalidAssignmentError,
+  diag.typeVariableInStaticContext,
+  diag.extensionDeclaresInstanceField,
+  diag.extraneousModifier,
 };
 
 class TestCompiler {
