@@ -19,14 +19,6 @@ import '../extensions.dart';
 
 const _desc = r'Use late for private members with a non-nullable type.';
 
-bool _isPrivateExtension(AstNode parent) {
-  if (parent is! ExtensionDeclaration) {
-    return false;
-  }
-  var parentName = parent.name?.lexeme;
-  return parentName == null || Identifier.isPrivateName(parentName);
-}
-
 class UseLateForPrivateFieldsAndVariables extends AnalysisRule {
   UseLateForPrivateFieldsAndVariables()
     : super(
@@ -50,8 +42,7 @@ class UseLateForPrivateFieldsAndVariables extends AnalysisRule {
 }
 
 class _Visitor extends RecursiveAstVisitor<void> {
-  final Map<LibraryFragment, List<VariableDeclaration>> lateables =
-      <LibraryFragment, List<VariableDeclaration>>{};
+  final Map<LibraryFragment, List<AstNode>> lateables = {};
 
   final Set<Element> nullableAccess = <Element>{};
 
@@ -70,7 +61,12 @@ class _Visitor extends RecursiveAstVisitor<void> {
       var variables = lateables[libraryFragment];
       if (variables == null) continue;
       for (var variable in variables) {
-        var variableElement = variable.declaredFragment?.element;
+        var variableElement = switch (variable) {
+          VariableDeclaration() => variable.declaredFragment?.element,
+          FieldFormalParameter() => variable.declaredFragment?.element,
+          _ => null,
+        };
+        if (variableElement == null) continue;
         if (!nullableAccess.contains(variableElement)) {
           var contextUnit = context.allUnits.firstWhereOrNull(
             (u) => u.unit.declaredFragment == libraryFragment,
@@ -112,6 +108,11 @@ class _Visitor extends RecursiveAstVisitor<void> {
       }
     }
 
+    if (node.namePart case PrimaryConstructorDeclaration primaryConstructor
+        when primaryConstructor.constKeyword != null) {
+      return;
+    }
+
     super.visitClassDeclaration(node);
   }
 
@@ -134,17 +135,19 @@ class _Visitor extends RecursiveAstVisitor<void> {
     var parent = node.parent?.parent;
     if (parent is ExtensionTypeDeclaration && !node.isStatic) return;
     if (parent != null) {
-      var parentIsPrivateExtension = _isPrivateExtension(parent);
-      for (var variable in node.fields.variables) {
-        // See
-        // https://github.com/dart-lang/linter/pull/2189#issuecomment-660115569.
-        // We could also include public members in private classes but to do
-        // that we'd need to ensure that there are no instances of either the
-        // enclosing class or any subclass of the enclosing class that are ever
-        // accessible outside this library.
-        if (parentIsPrivateExtension ||
-            Identifier.isPrivateName(variable.name.lexeme)) {
-          _visit(variable);
+      if (parent.isPrivateExtension) {
+        node.fields.variables.forEach(_visit);
+      } else {
+        for (var variable in node.fields.variables) {
+          // See
+          // https://github.com/dart-lang/linter/pull/2189#issuecomment-660115569.
+          // We could also include public members in private classes but to do
+          // that we'd need to ensure that there are no instances of either the
+          // enclosing class or any subclass of the enclosing class that are ever
+          // accessible outside this library.
+          if (Identifier.isPrivateName(variable.name.lexeme)) {
+            _visit(variable);
+          }
         }
       }
     }
@@ -156,6 +159,38 @@ class _Visitor extends RecursiveAstVisitor<void> {
     var element = node.element?.canonicalElement2;
     _visitIdentifierOrPropertyAccess(node, element);
     super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var parent = node.parent;
+    if (parent is ExtensionTypeDeclaration) return;
+    if (parent != null) {
+      for (var parameter in node.formalParameters.parameters) {
+        // See
+        // https://github.com/dart-lang/linter/pull/2189#issuecomment-660115569.
+        // We could also include public members in private classes but to do
+        // that we'd need to ensure that there are no instances of either the
+        // enclosing class or any subclass of the enclosing class that are ever
+        // accessible outside this library.
+        var name = parameter.name?.lexeme;
+        if (name != null && Identifier.isPrivateName(name)) {
+          var parameterElement = parameter.declaredFragment!.element;
+          if (parameterElement is FieldFormalParameterElement &&
+              // ignore: experimental_member_use
+              !parameterElement.isDeclaring) {
+            continue;
+          }
+          if (context.typeSystem.isNonNullable(parameterElement.type)) {
+            continue;
+          }
+          lateables
+              .putIfAbsent(currentLibraryFragment, () => [])
+              .add(parameter);
+        }
+      }
+    }
+    super.visitPrimaryConstructorDeclaration(node);
   }
 
   @override
@@ -214,6 +249,16 @@ class _Visitor extends RecursiveAstVisitor<void> {
       // This is OK; non-null access.
     } else {
       nullableAccess.add(canonicalElement.baseElement);
+    }
+  }
+}
+
+extension on AstNode {
+  bool get isPrivateExtension {
+    if (this case ExtensionDeclaration(:var name)) {
+      return name == null || Identifier.isPrivateName(name.lexeme);
+    } else {
+      return false;
     }
   }
 }

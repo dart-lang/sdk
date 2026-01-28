@@ -29,7 +29,7 @@ abstract class MyWidget extends StatefulWidget {
   MyState createState();
 }
 
-abstract class MyState extends State {
+abstract class MyState extends State<MyWidget> {
   int field = 0;
 }
 ''');
@@ -44,11 +44,12 @@ class MyWidget extends StatefulWidget {
   MyState createState() => MyState();
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''');
   }
@@ -62,11 +63,12 @@ class MyWidget extends StatefulWidget {
   MyState createState() => .new();
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''');
   }
@@ -81,12 +83,13 @@ class MyWidget extends StatefulWidget {
   MyState createState() => MyState(1);
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field;
   MyState(this.field);
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''',
       [lint(119, 10)],
@@ -103,12 +106,13 @@ class MyWidget extends StatefulWidget {
   MyState createState() => .new(1);
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field;
   MyState(this.field);
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''',
       [lint(119, 7)],
@@ -125,11 +129,12 @@ class MyWidget extends StatefulWidget {
   MyState createState() => MyState()..field = 0;
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''',
       [lint(119, 20)],
@@ -146,11 +151,12 @@ class MyWidget extends StatefulWidget {
   MyState createState() => .new()..field = 0;
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''',
       [lint(119, 17)],
@@ -170,11 +176,12 @@ class MyWidget extends StatefulWidget {
   }
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''',
       [lint(161, 8)],
@@ -192,11 +199,12 @@ class MyWidget extends StatefulWidget {
   }
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''');
   }
@@ -212,11 +220,12 @@ class MyWidget extends StatefulWidget {
   }
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''');
   }
@@ -233,11 +242,12 @@ class MyWidget extends StatefulWidget {
   }
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''',
       [lint(129, 20)],
@@ -256,11 +266,12 @@ class MyWidget extends StatefulWidget {
   }
 }
 
-class MyState extends State {
+class MyState extends State<MyWidget> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyWidget();
 }
 ''',
       [lint(129, 17)],
@@ -280,11 +291,12 @@ class MyStatefulBad extends StatefulWidget {
   }
 }
 
-class MyState extends State {
+class MyState extends State<MyStatefulBad> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyStatefulBad();
 }
 
 var global = MyState();
@@ -306,11 +318,12 @@ class MyStatefulBad extends StatefulWidget {
   }
 }
 
-class MyState extends State {
+class MyState extends State<MyStatefulBad> {
   int field = 0;
 
   late BuildContext context;
   bool get mounted => false;
+  Widget build(_) => MyStatefulBad();
 }
 
 var global = MyState();

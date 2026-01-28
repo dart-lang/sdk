@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as fe_diag;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart';
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
@@ -86,7 +87,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       );
 
     default:
-      if (errorCode == codeUnmatchedToken) {
+      if (errorCode == fe_diag.unmatchedToken) {
         charOffset = token.begin!.endToken!.charOffset;
         TokenType type = token.begin!.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
@@ -102,7 +103,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
         if (type == TokenType.LT) {
           return makeError(diag.expectedToken.withArguments(token: '>'));
         }
-      } else if (errorCode == codeUnexpectedDollarInString) {
+      } else if (errorCode == fe_diag.unexpectedDollarInString) {
         return makeError(diag.missingIdentifier);
       }
       throw UnimplementedError('$errorCode "${errorCode.pseudoSharedCode}"');

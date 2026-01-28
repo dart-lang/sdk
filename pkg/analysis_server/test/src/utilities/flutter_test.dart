@@ -436,10 +436,10 @@ var w = new Foo();
 import 'package:flutter/widgets.dart';
 
 class MyStatelessWidget extends StatelessWidget {}
-class MyStatefulWidget extends StatefulWidget {}
+abstract class MyStatefulWidget extends StatefulWidget {}
 class MyContainer extends Container {}
 class NotFlutter {}
-class NotWidget extends State {}
+abstract class NotWidget extends State {}
 ''');
 
     var myStatelessWidget = findElement2.class_('MyStatelessWidget');
