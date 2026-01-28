@@ -9,6 +9,7 @@ import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
@@ -77,7 +78,7 @@ class AnalysisOptionsProvider {
 
     YamlMap options;
     try {
-      options = getOptionsFromString(source.contents.data);
+      options = getOptionsFromString(source.stringContents);
     } on Exception {
       return YamlMap();
     }
