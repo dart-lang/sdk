@@ -3245,8 +3245,8 @@ class OutlineBuilder extends StackListenerImpl {
     FormalParameterBuilder previous,
   ) {
     addProblem(
-      diag.privateNamedParameterDuplicatePublicName.withArgumentsOld(
-        publicName,
+      diag.privateNamedParameterDuplicatePublicName.withArguments(
+        name: publicName,
       ),
       formal.fileOffset,
       formal.name.length,
