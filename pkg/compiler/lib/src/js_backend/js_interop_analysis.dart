@@ -14,6 +14,21 @@ import '../universe/world_builder.dart' show SelectorConstraints;
 import 'namer.dart';
 import 'native_data.dart';
 
+const String _candidateParameterNames =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+String _generateParameterName(int index) {
+  final StringBuffer buffer = StringBuffer();
+  while (index >= _candidateParameterNames.length) {
+    buffer.write(
+      _candidateParameterNames[index % _candidateParameterNames.length],
+    );
+    index = index ~/ _candidateParameterNames.length;
+  }
+  buffer.write(_candidateParameterNames[index]);
+  return buffer.toString();
+}
+
 js_ast.Statement? buildJsInteropBootstrap(
   CodegenWorld codegenWorld,
   NativeBasicData nativeBasicData,
@@ -30,11 +45,9 @@ js_ast.Statement? buildJsInteropBootstrap(
         // TODO(jacobr): support named arguments.
         if (selector.namedArgumentCount > 0) return;
         int argumentCount = selector.argumentCount;
-        String candidateParameterNames =
-            'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         List<String> parameters = List<String>.generate(
           argumentCount,
-          (i) => candidateParameterNames[i],
+          _generateParameterName,
         );
 
         js_ast.Name name = namer.invocationName(selector);
