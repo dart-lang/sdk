@@ -2001,7 +2001,9 @@ abstract mixin class Stream<T> {
   /// The countdown is stopped when listening on the returned stream is
   /// paused or cancelled.
   /// No new countdown is started when a countdown completes
-  /// and the [onTimeout] function is called, even if events are emitted.
+  /// and the [onTimeout] function is called, even if events are emitted by the
+  /// [EventSink] provided to [onTimeout]. The countdown is only restarted when
+  /// a new event comes from this stream.
   /// If the delay between events of this stream is multiple times
   /// [timeLimit], at most one timeout will happen between events.
   ///
