@@ -4,19 +4,11 @@
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity, severityTexts;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' show FileUriNode, TreeNode;
 
 import 'command_line_reporting.dart' as command_line_reporting;
-import 'messages.dart'
-    show
-        LocatedMessage,
-        Message,
-        noLength,
-        codeInternalProblemDebugAbort,
-        codeInternalProblemUnexpected,
-        codeInternalProblemUnhandled,
-        codeInternalProblemUnimplemented,
-        codeInternalProblemUnsupported;
+import 'messages.dart' show LocatedMessage, Message, noLength;
 
 // Coverage-ignore(suite): Not run.
 class DebugAbort {
@@ -24,10 +16,10 @@ class DebugAbort {
 
   DebugAbort(Uri? uri, int charOffset, CfeSeverity severity, StackTrace trace)
     : message = uri != null
-          ? codeInternalProblemDebugAbort
+          ? diag.internalProblemDebugAbort
                 .withArgumentsOld(severityTexts[severity]!, "$trace")
                 .withLocation(uri, charOffset, noLength)
-          : codeInternalProblemDebugAbort
+          : diag.internalProblemDebugAbort
                 .withArgumentsOld(severityTexts[severity]!, "$trace")
                 .withoutLocation();
 
@@ -66,7 +58,7 @@ Never internalProblem(Message message, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unimplemented(String what, int charOffset, Uri? uri) {
   return internalProblem(
-    codeInternalProblemUnimplemented.withArgumentsOld(what),
+    diag.internalProblemUnimplemented.withArgumentsOld(what),
     charOffset,
     uri,
   );
@@ -75,7 +67,7 @@ Never unimplemented(String what, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unhandled(String what, String where, int charOffset, Uri? uri) {
   return internalProblem(
-    codeInternalProblemUnhandled.withArgumentsOld(what, where),
+    diag.internalProblemUnhandled.withArgumentsOld(what, where),
     charOffset,
     uri,
   );
@@ -84,7 +76,7 @@ Never unhandled(String what, String where, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unexpected(String expected, String actual, int charOffset, Uri? uri) {
   return internalProblem(
-    codeInternalProblemUnexpected.withArgumentsOld(expected, actual),
+    diag.internalProblemUnexpected.withArgumentsOld(expected, actual),
     charOffset,
     uri,
   );
@@ -93,7 +85,7 @@ Never unexpected(String expected, String actual, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unsupported(String operation, int charOffset, Uri? uri) {
   return internalProblem(
-    codeInternalProblemUnsupported.withArgumentsOld(operation),
+    diag.internalProblemUnsupported.withArgumentsOld(operation),
     charOffset,
     uri,
   );

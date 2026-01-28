@@ -8,20 +8,8 @@ import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, SimpleErrorReporter;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        LocatedMessage,
-        codeFfiAddressOfMustBeNative,
-        codeFfiAddressPosition,
-        codeFfiAddressReceiver,
-        codeFfiCreateOfStructOrUnion,
-        codeFfiExceptionalReturnNull,
-        codeFfiExpectedConstant,
-        codeFfiDartTypeMismatch,
-        codeFfiNativeCallableListenerReturnVoid,
-        codeFfiExpectedConstantArg,
-        codeFfiExpectedExceptionalReturn,
-        codeFfiExpectedNoExceptionalReturn,
-        codeFfiExtendsOrImplementsSealedClass,
-        codeFfiNotStatic;
+        LocatedMessage;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart';
@@ -182,7 +170,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         target.name != Name("#fromTypedDataBase") &&
         target.name != Name("#fromTypedData")) {
       diagnosticReporter.report(
-        codeFfiCreateOfStructOrUnion,
+        diag.ffiCreateOfStructOrUnion,
         node.fileOffset,
         1,
         node.location?.file,
@@ -623,7 +611,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         // Check return type.
         if (ffiFuncType.returnType != VoidType()) {
           diagnosticReporter.report(
-            codeFfiNativeCallableListenerReturnVoid.withArgumentsOld(
+            diag.ffiNativeCallableListenerReturnVoid.withArgumentsOld(
               ffiFuncType.returnType,
             ),
             func.fileOffset,
@@ -688,7 +676,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         // remaining invocations occur are places where `<expr>.address` is
         // disallowed, so issue an error.
         diagnosticReporter.report(
-          codeFfiAddressPosition,
+          diag.ffiAddressPosition,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1163,7 +1151,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isStaticFunction = _isStaticFunction(func);
     if (fromFunction && !isStaticFunction) {
       diagnosticReporter.report(
-        codeFfiNotStatic.withArgumentsOld(fromFunctionMethod.name.text),
+        diag.ffiNotStatic.withArgumentsOld(fromFunctionMethod.name.text),
         func.fileOffset,
         1,
         func.location?.file,
@@ -1210,7 +1198,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         expectedReturnClass.superclass == unionClass) {
       if (hasExceptionalReturn) {
         diagnosticReporter.report(
-          codeFfiExpectedNoExceptionalReturn.withArgumentsOld(
+          diag.ffiExpectedNoExceptionalReturn.withArgumentsOld(
             ffiFuncType.returnType,
           ),
           node.fileOffset,
@@ -1223,7 +1211,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       // The exceptional return value is not optional for other return types.
       if (!hasExceptionalReturn) {
         diagnosticReporter.report(
-          codeFfiExpectedExceptionalReturn.withArgumentsOld(
+          diag.ffiExpectedExceptionalReturn.withArgumentsOld(
             ffiFuncType.returnType,
           ),
           node.fileOffset,
@@ -1241,7 +1229,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       );
       if (exceptionalReturnValue is UnevaluatedConstant) {
         diagnosticReporter.report(
-          codeFfiExpectedConstant,
+          diag.ffiExpectedConstant,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1252,7 +1240,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       // Moreover it may not be null.
       if (exceptionalReturnValue is NullConstant) {
         diagnosticReporter.report(
-          codeFfiExceptionalReturnNull,
+          diag.ffiExceptionalReturnNull,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1266,7 +1254,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
       if (!env.isSubtypeOf(returnType, funcType.returnType)) {
         diagnosticReporter.report(
-          codeFfiDartTypeMismatch.withArgumentsOld(
+          diag.ffiDartTypeMismatch.withArgumentsOld(
             returnType,
             funcType.returnType,
           ),
@@ -1869,7 +1857,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final Class? extended = _extendsOrImplementsSealedClass(klass);
     if (extended != null) {
       diagnosticReporter.report(
-        codeFfiExtendsOrImplementsSealedClass.withArgumentsOld(extended.name),
+        diag.ffiExtendsOrImplementsSealedClass.withArgumentsOld(extended.name),
         klass.fileOffset,
         1,
         klass.location?.file,
@@ -1882,7 +1870,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isLeaf = getIsLeafBoolean(node);
     if (isLeaf == null) {
       diagnosticReporter.report(
-        codeFfiExpectedConstantArg.withArgumentsOld('isLeaf'),
+        diag.ffiExpectedConstantArg.withArgumentsOld('isLeaf'),
         node.fileOffset,
         1,
         node.location?.file,
@@ -1926,7 +1914,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     if (nativeAnnotation == null) {
       diagnosticReporter.report(
-        codeFfiAddressOfMustBeNative,
+        diag.ffiAddressOfMustBeNative,
         arg.fileOffset,
         1,
         node.location?.file,
@@ -2242,7 +2230,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     diagnosticReporter.report(
-      codeFfiAddressReceiver,
+      diag.ffiAddressReceiver,
       argument.fileOffset,
       1,
       argument.location?.file,

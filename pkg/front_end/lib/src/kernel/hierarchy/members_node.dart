@@ -2,28 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/names.dart' show noSuchMethodName;
 
 import '../../base/common.dart';
-import '../../base/messages.dart'
-    show
-        LocatedMessage,
-        ProblemReporting,
-        codeDeclaredMemberConflictsWithInheritedMember,
-        codeDeclaredMemberConflictsWithInheritedMemberCause,
-        codeDeclaredMemberConflictsWithOverriddenMembersCause,
-        codeEnumAbstractMember,
-        codeInheritedMembersConflict,
-        codeInheritedMembersConflictCause1,
-        codeInheritedMembersConflictCause2,
-        codeCantInferReturnTypeDueToNoCombinedSignature,
-        codeCantInferTypeDueToNoCombinedSignature,
-        codeCantInferTypesDueToNoCombinedSignature,
-        codeInstanceAndSynthesizedStaticConflict,
-        codeMissingImplementationCause,
-        codeMissingImplementationNotAbstract;
+import '../../base/messages.dart' show LocatedMessage, ProblemReporting;
 import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -59,8 +44,8 @@ abstract class MembersNodeBuilder {
       second = a;
     }
     return <LocatedMessage>[
-      codeInheritedMembersConflictCause1.withLocation2(first.uriOffset),
-      codeInheritedMembersConflictCause2.withLocation2(second.uriOffset),
+      diag.inheritedMembersConflictCause1.withLocation2(first.uriOffset),
+      diag.inheritedMembersConflictCause2.withLocation2(second.uriOffset),
     ];
   }
 
@@ -74,27 +59,27 @@ abstract class MembersNodeBuilder {
     if (a.declarationBuilder != b.declarationBuilder) {
       if (a.declarationBuilder == declarationBuilder) {
         declarationBuilder.libraryBuilder.addProblem2(
-          codeDeclaredMemberConflictsWithInheritedMember,
+          diag.declaredMemberConflictsWithInheritedMember,
           a.uriOffset,
           context: <LocatedMessage>[
-            codeDeclaredMemberConflictsWithInheritedMemberCause.withLocation2(
+            diag.declaredMemberConflictsWithInheritedMemberCause.withLocation2(
               b.uriOffset,
             ),
           ],
         );
       } else if (b.declarationBuilder == declarationBuilder) {
         declarationBuilder.libraryBuilder.addProblem2(
-          codeDeclaredMemberConflictsWithInheritedMember,
+          diag.declaredMemberConflictsWithInheritedMember,
           b.uriOffset,
           context: <LocatedMessage>[
-            codeDeclaredMemberConflictsWithInheritedMemberCause.withLocation2(
+            diag.declaredMemberConflictsWithInheritedMemberCause.withLocation2(
               a.uriOffset,
             ),
           ],
         );
       } else {
         declarationBuilder.libraryBuilder.addProblem(
-          codeInheritedMembersConflict,
+          diag.inheritedMembersConflict,
           declarationBuilder.fileOffset,
           declarationBuilder.fullNameForErrors.length,
           declarationBuilder.fileUri,
@@ -117,7 +102,7 @@ abstract class MembersNodeBuilder {
         // TODO(johnniwinther): Move this to the creation of the shared
         // property builder.
         declarationBuilder.libraryBuilder.addProblem2(
-          codeInstanceAndSynthesizedStaticConflict.withArgumentsOld(
+          diag.instanceAndSynthesizedStaticConflict.withArgumentsOld(
             staticMember.name.text,
           ),
           instanceMember.uriOffset,
@@ -1152,7 +1137,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       if (classBuilder.isEnum &&
           declaration.declarationBuilder == classBuilder) {
         classBuilder.libraryBuilder.addProblem2(
-          codeEnumAbstractMember,
+          diag.enumAbstractMember,
           declaration.uriOffset,
         );
       } else {
@@ -1161,7 +1146,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         String displayName = declaration.isSetter
             ? "$className.$name="
             : "$className.$name";
-        contextMap[displayName] = codeMissingImplementationCause
+        contextMap[displayName] = diag.missingImplementationCause
             .withArgumentsOld(displayName)
             .withLocation2(declaration.uriOffset);
       }
@@ -1173,7 +1158,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       context.add(contextMap[names[i]]!);
     }
     classBuilder.libraryBuilder.addProblem(
-      codeMissingImplementationNotAbstract.withArgumentsOld(
+      diag.missingImplementationNotAbstract.withArgumentsOld(
         classBuilder.fullNameForErrors,
         names,
       ),
@@ -3089,7 +3074,7 @@ void reportCantInferParameterType(
   String name = parameter.name;
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return codeDeclaredMemberConflictsWithOverriddenMembersCause
+        return diag.declaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -3097,7 +3082,7 @@ void reportCantInferParameterType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    codeCantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
+    diag.cantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
     parameter.fileOffset,
     name.length,
     parameter.fileUri,
@@ -3116,7 +3101,7 @@ void reportCantInferTypes(
 }) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return codeDeclaredMemberConflictsWithOverriddenMembersCause
+        return diag.declaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -3124,7 +3109,7 @@ void reportCantInferTypes(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    codeCantInferTypesDueToNoCombinedSignature.withArgumentsOld(name),
+    diag.cantInferTypesDueToNoCombinedSignature.withArgumentsOld(name),
     nameOffset,
     nameLength,
     fileUri,
@@ -3143,7 +3128,7 @@ void reportCantInferReturnType(
 }) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return codeDeclaredMemberConflictsWithOverriddenMembersCause
+        return diag.declaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -3151,7 +3136,7 @@ void reportCantInferReturnType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    codeCantInferReturnTypeDueToNoCombinedSignature.withArgumentsOld(name),
+    diag.cantInferReturnTypeDueToNoCombinedSignature.withArgumentsOld(name),
     nameOffset,
     nameLength,
     fileUri,
@@ -3170,7 +3155,7 @@ void reportCantInferFieldType(
 }) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return codeDeclaredMemberConflictsWithOverriddenMembersCause
+        return diag.declaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -3178,7 +3163,7 @@ void reportCantInferFieldType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    codeCantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
+    diag.cantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
     nameOffset,
     nameLength,
     fileUri,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/future_value_type.dart';
 
@@ -220,7 +221,7 @@ class _SyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: codeReturnWithoutExpressionSync,
+          message: diag.returnWithoutExpressionSync,
           fileUri: inferrer.fileUri,
           fileOffset: statement.fileOffset,
           length: noLength,
@@ -243,7 +244,7 @@ class _SyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: statement.expression!,
-          message: codeReturnFromVoidFunction,
+          message: diag.returnFromVoidFunction,
           fileUri: inferrer.fileUri,
           fileOffset: statement.expression!.fileOffset,
           length: noLength,
@@ -256,7 +257,7 @@ class _SyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: statement.expression!,
-          message: codeInvalidReturn.withArgumentsOld(
+          message: diag.invalidReturn.withArgumentsOld(
             expressionType,
             _declaredReturnType,
           ),
@@ -273,7 +274,7 @@ class _SyncClosureContext implements ClosureContext {
           statement.expression!,
           fileOffset: statement.expression!.fileOffset,
           isVoidAllowed: true,
-          errorTemplate: codeInvalidReturn,
+          errorTemplate: diag.invalidReturn,
         );
         statement.expression = expression..parent = statement;
       }
@@ -405,7 +406,7 @@ class _SyncClosureContext implements ClosureContext {
         inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = fileOffset,
-          message: codeImplicitReturnNull.withArgumentsOld(returnType),
+          message: diag.implicitReturnNull.withArgumentsOld(returnType),
           fileUri: inferrer.fileUri,
           fileOffset: fileOffset,
           length: noLength,
@@ -505,7 +506,7 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: codeReturnWithoutExpressionAsync,
+          message: diag.returnWithoutExpressionAsync,
           fileUri: inferrer.fileUri,
           fileOffset: statement.fileOffset,
           length: noLength,
@@ -536,7 +537,7 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: codeInvalidReturnAsync.withArgumentsOld(
+          message: diag.invalidReturnAsync.withArgumentsOld(
             expressionType,
             returnType,
           ),
@@ -553,7 +554,7 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: codeInvalidReturnAsync.withArgumentsOld(
+          message: diag.invalidReturnAsync.withArgumentsOld(
             expressionType,
             returnType,
           ),
@@ -576,7 +577,7 @@ class _AsyncClosureContext implements ClosureContext {
           runtimeCheckedType: inferrer.computeGreatestClosure2(_returnContext),
           declaredContextType: returnType,
           isVoidAllowed: false,
-          errorTemplate: codeInvalidReturnAsync,
+          errorTemplate: diag.invalidReturnAsync,
         )..parent = statement;
       }
     }
@@ -710,7 +711,7 @@ class _AsyncClosureContext implements ClosureContext {
         inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = fileOffset,
-          message: codeImplicitReturnNull.withArgumentsOld(returnType),
+          message: diag.implicitReturnNull.withArgumentsOld(returnType),
           fileUri: inferrer.fileUri,
           fileOffset: fileOffset,
           length: noLength,

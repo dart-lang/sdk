@@ -390,7 +390,7 @@ class EnumElementDeclaration
         assert(libraryBuilder.loader.hasSeenError);
         String text = libraryBuilder.loader.target.context
             .format(
-              codeConstructorNotFound
+              diag.constructorNotFound
                   .withArgumentsOld(fullConstructorNameForErrors)
                   .withLocation(fileUri, fileOffset, noLength),
               CfeSeverity.error,

@@ -8,8 +8,8 @@ import 'package:analyzer/file_system/physical_file_system.dart'
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
@@ -45,14 +45,14 @@ class ContextLocatorImpl {
   /// `analysis_options.yaml` file that should be used in place of the ones that
   /// would be found by looking in the directories containing the context roots.
   ///
-  /// If a [packagesFile] is specified, then it is assumed to be the path to the
-  /// `.packages` file that should be used in place of the one that would be
-  /// found by looking in the directories containing the context roots.
+  /// If a [packageConfigFile] is specified, then it is assumed to be the path
+  /// to the package config file that should be used in place of the one that
+  /// would be found by looking in the directories containing the context roots.
   List<ContextRootImpl> locateRoots({
     required List<String> includedPaths,
     List<String>? excludedPaths,
     String? optionsFile,
-    String? packagesFile,
+    String? packageConfigFile,
   }) {
     //
     // Compute the list of folders and files that are to be included.
@@ -99,11 +99,11 @@ class ContextLocatorImpl {
         defaultOptionsFile = null;
       }
     }
-    File? defaultPackagesFile;
-    if (packagesFile != null) {
-      defaultPackagesFile = resourceProvider.getFile(packagesFile);
-      if (!defaultPackagesFile.exists) {
-        defaultPackagesFile = null;
+    File? defaultPackageConfigFile;
+    if (packageConfigFile != null) {
+      defaultPackageConfigFile = resourceProvider.getFile(packageConfigFile);
+      if (!defaultPackageConfigFile.exists) {
+        defaultPackageConfigFile = null;
       }
     }
 
@@ -112,7 +112,7 @@ class ContextLocatorImpl {
     _sortIncludedFoldersIntoWorkspaceResolutions(
       includedFolders,
       defaultOptionsFile,
-      defaultPackagesFile,
+      defaultPackageConfigFile,
       nonWorkspaceResolutionFolders,
       workspaceResolutionRootMap,
     );
@@ -125,7 +125,7 @@ class ContextLocatorImpl {
       var location = _contextRootLocation(
         workspaceRootFolder,
         defaultOptionsFile: defaultOptionsFile,
-        defaultPackagesFile: defaultPackagesFile,
+        defaultPackageConfigFile: defaultPackageConfigFile,
         defaultRootFolder: () => workspaceRootFolder,
       );
 
@@ -134,7 +134,7 @@ class ContextLocatorImpl {
         rootFolder: workspaceRootFolder,
         workspace: location.workspace,
         optionsFile: location.optionsFile,
-        packagesFile: location.packagesFile,
+        packagesFile: location.packageConfigFile,
       );
 
       var rootEnabledLegacyPlugins = _getEnabledLegacyPlugins(
@@ -159,7 +159,7 @@ class ContextLocatorImpl {
           rootEnabledLegacyPlugins,
           root.excludedGlobs,
           defaultOptionsFile,
-          defaultPackagesFile,
+          defaultPackageConfigFile,
         );
       }
       if (!usedRoot) {
@@ -173,7 +173,7 @@ class ContextLocatorImpl {
       var location = _contextRootLocation(
         folder,
         defaultOptionsFile: defaultOptionsFile,
-        defaultPackagesFile: defaultPackagesFile,
+        defaultPackageConfigFile: defaultPackageConfigFile,
         defaultRootFolder: () => folder,
       );
 
@@ -206,7 +206,7 @@ class ContextLocatorImpl {
         rootFolder: folder,
         workspace: location.workspace,
         optionsFile: location.optionsFile,
-        packagesFile: location.packagesFile,
+        packagesFile: location.packageConfigFile,
       );
 
       if (!root.isAnalyzed(folder.path)) {
@@ -227,7 +227,7 @@ class ContextLocatorImpl {
         rootEnabledLegacyPlugins,
         root.excludedGlobs,
         defaultOptionsFile,
-        defaultPackagesFile,
+        defaultPackageConfigFile,
       );
     }
 
@@ -237,7 +237,7 @@ class ContextLocatorImpl {
       var location = _contextRootLocation(
         parent,
         defaultOptionsFile: defaultOptionsFile,
-        defaultPackagesFile: defaultPackagesFile,
+        defaultPackageConfigFile: defaultPackageConfigFile,
         defaultRootFolder: () => _fileSystemRoot(parent),
       );
 
@@ -255,7 +255,7 @@ class ContextLocatorImpl {
         rootFolder: location.rootFolder,
         workspace: location.workspace,
         optionsFile: location.optionsFile,
-        packagesFile: location.packagesFile,
+        packagesFile: location.packageConfigFile,
       );
 
       if (!root.isAnalyzed(file.path)) {
@@ -275,16 +275,16 @@ class ContextLocatorImpl {
   /// If the [defaultOptionsFile] is provided, it will be used, not a file
   /// found relative to the [parent].
   ///
-  /// If the [defaultPackagesFile] is provided, it will be used, not a file
+  /// If the [defaultPackageConfigFile] is provided, it will be used, not a file
   /// found relative to the [parent].
   ///
-  /// The root folder of the context is the parent of either the options,
-  /// or the packages (grand-parent for `.dart_tool/package_config.json`) file,
-  /// whichever is lower.
+  /// The root folder of the context is the parent of either the options, or the
+  /// grand-parent of the `.dart_tool/package_config.json` file, whichever is
+  /// lower.
   _RootLocation _contextRootLocation(
     Folder parent, {
     required File? defaultOptionsFile,
-    required File? defaultPackagesFile,
+    required File? defaultPackageConfigFile,
     required Folder Function() defaultRootFolder,
   }) {
     File? optionsFile;
@@ -296,14 +296,15 @@ class ContextLocatorImpl {
       optionsFolderToChooseRoot = optionsFile?.parent;
     }
 
-    File? packagesFile;
+    File? packageConfigFile;
     Folder? packagesFolderToChooseRoot;
-    if (defaultPackagesFile != null) {
-      packagesFile = defaultPackagesFile;
-      // If  the packages file is in .dart_tool directory, use the grandparent
+    if (defaultPackageConfigFile != null) {
+      packageConfigFile = defaultPackageConfigFile;
+      // If the packages file is in .dart_tool directory, use the grandparent
       // folder, else use the parent folder.
       packagesFolderToChooseRoot =
-          _findPackagesFile(packagesFile.parent)?.parent ?? packagesFile.parent;
+          _findFolderWithPackageConfigFile(packageConfigFile.parent) ??
+          packageConfigFile.parent;
     }
 
     var buildGnFile = _findBuildGnFile(parent);
@@ -313,7 +314,7 @@ class ContextLocatorImpl {
     // If default packages file is given, create workspace for it.
     var workspace = _createWorkspace(
       folder: parent,
-      packagesFile: packagesFile,
+      packageConfigFile: packageConfigFile,
       buildGnFile: buildGnFile,
     );
 
@@ -325,7 +326,7 @@ class ContextLocatorImpl {
     }
 
     if (workspace is PackageConfigWorkspace) {
-      packagesFile ??= workspace.packageConfigFile;
+      packageConfigFile ??= workspace.packageConfigFile;
       // If the default packages folder is a parent of the workspace root,
       // choose that as the root.
       if (rootFolder != null && packagesFolderToChooseRoot != null) {
@@ -340,7 +341,7 @@ class ContextLocatorImpl {
       if (workspace is BasicWorkspace) {
         workspace = _createWorkspace(
           folder: rootFolder,
-          packagesFile: packagesFile,
+          packageConfigFile: packageConfigFile,
           buildGnFile: buildGnFile,
         );
       }
@@ -350,7 +351,7 @@ class ContextLocatorImpl {
       rootFolder: rootFolder,
       workspace: workspace,
       optionsFile: optionsFile,
-      packagesFile: packagesFile,
+      packageConfigFile: packageConfigFile,
     );
   }
 
@@ -406,8 +407,10 @@ class ContextLocatorImpl {
     File? packagesFile, {
     File? optionsFileFromParentInSameRoot,
   }) {
-    var packagesFileToUse =
-        packagesFile ?? _getPackagesFile(folder) ?? containingRoot.packagesFile;
+    var packageConfigFileToUse =
+        packagesFile ??
+        _getPackageConfigFile(folder) ??
+        containingRoot.packagesFile;
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
 
     var optionsFileToUse = optionsFile;
@@ -446,11 +449,11 @@ class ContextLocatorImpl {
     // Create a context root for the given [folder] if a packages or build file
     // is locally specified, or the set of enabled legacy plugins changed.
     if (pluginsDiffer ||
-        packagesFileToUse != containingRoot.packagesFile ||
+        packageConfigFileToUse != containingRoot.packagesFile ||
         buildGnFile != null) {
       var workspace = _createWorkspace(
         folder: folder,
-        packagesFile: packagesFileToUse,
+        packageConfigFile: packageConfigFileToUse,
         buildGnFile: buildGnFile,
       );
       var root = ContextRootImpl(
@@ -458,7 +461,7 @@ class ContextLocatorImpl {
         folder,
         workspace,
         optionsFile: optionsFileToUse ?? containingRoot.optionsFile,
-        packagesFile: packagesFileToUse,
+        packagesFile: packageConfigFileToUse,
       );
       root.included.add(folder);
       containingRoot.excluded.add(folder);
@@ -470,18 +473,17 @@ class ContextLocatorImpl {
       usedThisRoot = false;
     }
 
-    if (optionsFileToUse != null) {
+    if (optionsFileToUse != null &&
+        optionsFileToUse != optionsFileFromParentInSameRoot) {
       containingRoot.optionsFileMap
           .putIfAbsent(optionsFileToUse, () => {})
           .add(folder);
-      if (optionsFileToUse != optionsFileFromParentInSameRoot) {
-        // Add excluded globs only if we found a new options file.
-        var excludes = _getExcludedGlobs(
-          optionsFileToUse,
-          containingRoot.workspace,
-        );
-        containingRoot.excludedGlobs.addAll(excludes);
-      }
+      // Add excluded globs only if we found a new options file.
+      var excludes = _getExcludedGlobs(
+        optionsFileToUse,
+        containingRoot.workspace,
+      );
+      containingRoot.excludedGlobs.addAll(excludes);
     }
     _createContextRootsIn(
       roots,
@@ -574,7 +576,7 @@ class ContextLocatorImpl {
 
   Workspace _createWorkspace({
     required Folder folder,
-    required File? packagesFile,
+    required File? packageConfigFile,
     required File? buildGnFile,
   }) {
     if (buildGnFile != null) {
@@ -585,8 +587,11 @@ class ContextLocatorImpl {
     }
 
     Packages packages;
-    if (packagesFile != null) {
-      packages = parsePackageConfigJsonFile(resourceProvider, packagesFile);
+    if (packageConfigFile != null) {
+      packages = parsePackageConfigJsonFile(
+        resourceProvider,
+        packageConfigFile,
+      );
     } else {
       packages = Packages.empty;
     }
@@ -635,14 +640,15 @@ class ContextLocatorImpl {
     return null;
   }
 
-  /// Return the packages file to be used to analyze files in the given
-  /// [folder], or `null` if there is no packages file in the given folder or
-  /// any parent folder.
-  _PackagesFile? _findPackagesFile(Folder folder) {
+  /// Returns the folder containing the `.dart_tool/` folder which contains the
+  /// package config file to be used to analyze files in the given [folder], or
+  /// `null` if there is no package config file in the given folder or any
+  /// parent folder.
+  Folder? _findFolderWithPackageConfigFile(Folder folder) {
     for (var current in folder.withAncestors) {
-      var file = _getPackagesFile(current);
+      var file = _getPackageConfigFile(current);
       if (file != null) {
-        return _PackagesFile(current, file);
+        return current;
       }
     }
     return null;
@@ -719,9 +725,9 @@ class ContextLocatorImpl {
     return patterns;
   }
 
-  /// Return the packages file in the given [folder], or `null` if the folder
-  /// does not contain a packages file.
-  File? _getPackagesFile(Folder folder) {
+  /// Returns the package config file in the given [folder], or `null` if the
+  /// folder does not contain a package config file.
+  File? _getPackageConfigFile(Folder folder) {
     var file = folder
         .getChildAssumingFolder(file_paths.dotDartTool)
         .getChildAssumingFile(file_paths.packageConfigJson);
@@ -806,7 +812,7 @@ class ContextLocatorImpl {
   void _sortIncludedFoldersIntoWorkspaceResolutions(
     List<Folder> includedFolders,
     File? defaultOptionsFile,
-    File? defaultPackagesFile,
+    File? defaultPackageConfigFile,
     List<Folder> nonWorkspaceResolutionFolders,
     Map<String, List<Folder>> workspaceResolutionRootMap,
   ) {
@@ -815,7 +821,7 @@ class ContextLocatorImpl {
       var location = _contextRootLocation(
         folder,
         defaultOptionsFile: defaultOptionsFile,
-        defaultPackagesFile: defaultPackagesFile,
+        defaultPackageConfigFile: defaultPackageConfigFile,
         defaultRootFolder: () => folder,
       );
 
@@ -893,7 +899,7 @@ class ContextLocatorImpl {
       return false;
     }
 
-    if (existingRoot.packagesFile != location.packagesFile) {
+    if (existingRoot.packagesFile != location.packageConfigFile) {
       return false;
     }
 
@@ -926,28 +932,16 @@ class ContextLocatorImpl {
   }
 }
 
-/// The packages [file] found for the [parent].
-///
-/// In case of `.packages` file, [parent] is the parent of [file].
-///
-/// In case of `.dart_tool/package_config.json` it is a grand-parent.
-class _PackagesFile {
-  final Folder parent;
-  final File file;
-
-  _PackagesFile(this.parent, this.file);
-}
-
 class _RootLocation {
   final Folder rootFolder;
   final Workspace workspace;
   final File? optionsFile;
-  final File? packagesFile;
+  final File? packageConfigFile;
 
   _RootLocation({
     required this.rootFolder,
     required this.workspace,
     required this.optionsFile,
-    required this.packagesFile,
+    required this.packageConfigFile,
   });
 }

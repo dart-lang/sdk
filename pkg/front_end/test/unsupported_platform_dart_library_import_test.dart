@@ -8,8 +8,8 @@ import 'package:dev_compiler/dev_compiler.dart';
 import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_unstable/ddc.dart';
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show codeUnsupportedPlatformDartLibraryImport, codeUnavailableDartLibrary;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
 import 'package:kernel/target/targets.dart';
 
@@ -37,7 +37,7 @@ Future<void> testUnsupportedPlatformImportWarning() async {
     ..onDiagnostic = (CfeDiagnosticMessage message) {
       Expect.equals(CfeSeverity.warning, message.severity);
       Expect.identical(
-        codeUnsupportedPlatformDartLibraryImport,
+        diag.unsupportedPlatformDartLibraryImport,
         getMessageCodeObject(message),
       );
       Expect.isTrue(message.plainTextFormatted.length == 1);
@@ -62,7 +62,7 @@ Future<void> testUnsupportedPlatformImportError() async {
     ..onDiagnostic = (CfeDiagnosticMessage message) {
       Expect.equals(CfeSeverity.error, message.severity);
       Expect.identical(
-        codeUnavailableDartLibrary,
+        diag.unavailableDartLibrary,
         getMessageCodeObject(message),
       );
       Expect.isTrue(message.plainTextFormatted.length == 1);

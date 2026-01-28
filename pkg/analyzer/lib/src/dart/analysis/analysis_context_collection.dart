@@ -45,7 +45,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     List<String>? excludedPaths,
     List<String>? librarySummaryPaths,
     String? optionsFile,
-    String? packagesFile,
+    String? packageConfigFile,
     bool withFineDependencies = false,
     PerformanceLog? performanceLog,
     ResourceProvider? resourceProvider,
@@ -99,7 +99,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       includedPaths: includedPaths,
       excludedPaths: excludedPaths,
       optionsFile: optionsFile,
-      packagesFile: packagesFile,
+      packageConfigFile: packageConfigFile,
     );
 
     byteStore ??= MemoryByteStore();

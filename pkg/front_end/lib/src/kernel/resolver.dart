@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -965,7 +966,7 @@ class Resolver {
       if (!target.isConst) {
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeNonConstConstructor,
+          message: diag.nonConstConstructor,
           fileUri: fileUri,
           fileOffset: fileOffset,
           length: noLength,
@@ -995,7 +996,7 @@ class Resolver {
       if (!procedure.isConst) {
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeNonConstConstructor,
+          message: diag.nonConstConstructor,
           fileUri: fileUri,
           fileOffset: fileOffset,
           length: noLength,
@@ -1034,7 +1035,7 @@ class Resolver {
     if (periodIndex != -1) {
       length -= periodIndex + 1;
     }
-    LocatedMessage message = codeConstructorNotFound
+    LocatedMessage message = diag.constructorNotFound
         .withArgumentsOld(name)
         .withLocation(fileUri, fileOffset, length);
     return problemReporting.buildProblem(
@@ -1243,7 +1244,7 @@ class Resolver {
       // body.
       problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: codeIllegalMixinDueToConstructors.withArgumentsOld(
+        message: diag.illegalMixinDueToConstructors.withArgumentsOld(
           bodyBuilderContext.className,
         ),
         fileUri: fileUri,
@@ -1398,7 +1399,7 @@ class Resolver {
           new ExpressionStatement(
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: codeExternalMethodWithBody,
+              message: diag.externalMethodWithBody,
               fileUri: fileUri,
               fileOffset: body.fileOffset,
               length: noLength,

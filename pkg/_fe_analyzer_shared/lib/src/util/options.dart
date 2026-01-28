@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
 import '../messages/codes.dart';
 import 'resolve_input_uri.dart';
 
@@ -11,7 +13,7 @@ class CommandLineProblem {
   CommandLineProblem(this.message);
 
   CommandLineProblem.deprecated(String message)
-    : this(codeUnspecified.withArgumentsOld(message));
+    : this(diag.unspecified.withArgumentsOld(message));
 
   @override
   String toString() => message.problemMessage;
@@ -124,7 +126,7 @@ class ParsedOptions {
         if (requiresValue && value == null) {
           if (!iterator.moveNext()) {
             throw new CommandLineProblem(
-              codeFastaCLIArgumentRequired.withArgumentsOld(argument),
+              diag.fastaCLIArgumentRequired.withArgumentsOld(argument),
             );
           }
           value = iterator.current;

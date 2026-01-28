@@ -21,3 +21,8 @@ extension type const _ConstE(int i) {
 
 typedef Public_ConstE = _ConstE;
 const Public_ConstE constV = _ConstE(0);
+
+void context(_E e) {}
+void contextConst(_ConstE e) {}
+void contextAlias(Public_E e) {}
+void contextConstAlias(Public_ConstE e) {}

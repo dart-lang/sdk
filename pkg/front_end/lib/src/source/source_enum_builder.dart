@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
@@ -152,7 +153,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       ConstructorBuilder constructorBuilder = constructorIterator.current;
       if (!constructorBuilder.isConst) {
         libraryBuilder.addProblem(
-          codeEnumNonConstConstructor,
+          diag.enumNonConstConstructor,
           constructorBuilder.fileOffset,
           noLength,
           fileUri,
@@ -247,7 +248,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           customIndexDeclaration = customIndexDeclaration?.next;
         }
         libraryBuilder.addProblem(
-          codeEnumContainsRestrictedInstanceDeclaration.withArgumentsOld(
+          diag.enumContainsRestrictedInstanceDeclaration.withArgumentsOld(
             restrictedInstanceMemberName,
           ),
           customIndexDeclaration!.fileOffset,
@@ -452,7 +453,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // sources. (We should add a correct message. We no longer depend on
           // Object here.)
           libraryBuilder.addProblem(
-            codeNoUnnamedConstructorInObject,
+            diag.noUnnamedConstructorInObject,
             objectClass.fileOffset,
             objectClass.name.length,
             objectClass.fileUri,

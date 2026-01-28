@@ -20,8 +20,8 @@ import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show codeInternalProblemVerificationError;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;
 import 'package:front_end/src/kernel/utils.dart' show writeComponentToFile;
@@ -335,7 +335,7 @@ class BatchCompiler {
       message: "Wrote component to ",
     );
     for (CfeDiagnosticMessage error in _errors) {
-      if (error.codeName == codeInternalProblemVerificationError.name) {
+      if (error.codeName == diag.internalProblemVerificationError.name) {
         hadVerifyError = true;
       }
     }

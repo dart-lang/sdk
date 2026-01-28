@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
@@ -44,7 +45,7 @@ abstract class HierarchyNodeBuilder {
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
       libraryBuilder.addProblem(
-        codeAmbiguousSupertypes.withArgumentsOld(
+        diag.ambiguousSupertypes.withArgumentsOld(
           _name,
           superclass.asInterfaceType,
           type.asInterfaceType,
@@ -559,7 +560,7 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
       libraryBuilder.addProblem(
-        codeAmbiguousSupertypes.withArgumentsOld(_name, superclass, type),
+        diag.ambiguousSupertypes.withArgumentsOld(_name, superclass, type),
         _fileOffset,
         noLength,
         _fileUri,

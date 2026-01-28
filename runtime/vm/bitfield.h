@@ -66,14 +66,14 @@ class AtomicBitFieldContainer {
     field_.fetch_or(TargetBitField::encode(value), std::memory_order_relaxed);
   }
 
-  template <class TargetBitField>
+  template <class TargetBitField,
+            std::memory_order order = std::memory_order_relaxed>
   void Update(typename TargetBitField::Type value) {
     T old_field = field_.load(std::memory_order_relaxed);
     T new_field;
     do {
       new_field = TargetBitField::update(value, old_field);
-    } while (!field_.compare_exchange_weak(old_field, new_field,
-                                           std::memory_order_relaxed));
+    } while (!field_.compare_exchange_weak(old_field, new_field, order));
   }
 
   template <class TargetBitField>

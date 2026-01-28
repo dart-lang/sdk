@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/type_inference/inference_results.dart';
 import 'package:front_end/src/type_inference/object_access_target.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
@@ -2070,7 +2071,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (TypeParameter typeParam in typeDefinitions) {
         if (!isLegalIdentifier(typeParam.name!)) {
           lastGoodKernelTarget.loader.addProblem(
-            codeIncrementalCompilerIllegalTypeParameter.withArgumentsOld(
+            diag.incrementalCompilerIllegalTypeParameter.withArgumentsOld(
               '$typeParam',
             ),
             typeParam.fileOffset,
@@ -2090,7 +2091,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
 
         lastGoodKernelTarget.loader.addProblem(
-          codeIncrementalCompilerIllegalParameter.withArgumentsOld(name),
+          diag.incrementalCompilerIllegalParameter.withArgumentsOld(name),
           // TODO: pass variable declarations instead of
           // parameter names for proper location detection.
           // https://github.com/dart-lang/sdk/issues/44158
@@ -2602,7 +2603,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
       problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: node,
-        message: codeExpressionEvaluationKnownVariableUnavailable
+        message: diag.expressionEvaluationKnownVariableUnavailable
             .withArgumentsOld(variable.cosmeticName!),
         fileUri: fileUri,
         fileOffset: node.fileOffset,
@@ -3007,24 +3008,24 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
         }
         if (e is CanonicalNameError) {
           Message message = gzInitializedFrom != null
-              ? codeInitializeFromDillNotSelfContained.withArgumentsOld(
+              ? diag.initializeFromDillNotSelfContained.withArgumentsOld(
                   initializeFromDillUri.toString(),
                   gzInitializedFrom,
                 )
-              : codeInitializeFromDillNotSelfContainedNoDump.withArgumentsOld(
+              : diag.initializeFromDillNotSelfContainedNoDump.withArgumentsOld(
                   initializeFromDillUri.toString(),
                 );
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         } else {
           // Unknown error: Report problem as such.
           Message message = gzInitializedFrom != null
-              ? codeInitializeFromDillUnknownProblem.withArgumentsOld(
+              ? diag.initializeFromDillUnknownProblem.withArgumentsOld(
                   initializeFromDillUri.toString(),
                   "$e",
                   "$st",
                   gzInitializedFrom,
                 )
-              : codeInitializeFromDillUnknownProblemNoDump.withArgumentsOld(
+              : diag.initializeFromDillUnknownProblemNoDump.withArgumentsOld(
                   initializeFromDillUri.toString(),
                   "$e",
                   "$st",

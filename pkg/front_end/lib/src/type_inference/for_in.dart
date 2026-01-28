@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
-import '../codes/cfe_codes.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import 'inference_results.dart';
@@ -66,7 +66,7 @@ class LocalForInVariable implements ForInVariable {
       variableType,
       rhsType,
       variableSet.value,
-      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      errorTemplate: diag.forInLoopElementTypeNotAssignable,
       isVoidAllowed: true,
     );
 
@@ -134,7 +134,7 @@ class PropertyForInVariable implements ForInVariable {
       receiverType,
       propertySet.name,
       propertySet.fileOffset,
-      codeUndefinedSetter,
+      diag.undefinedSetter,
     );
     if (error != null) {
       _rhs = error;
@@ -150,7 +150,7 @@ class PropertyForInVariable implements ForInVariable {
       visitor.computeGreatestClosure(_writeType!),
       rhsType,
       _rhs!,
-      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      errorTemplate: diag.forInLoopElementTypeNotAssignable,
       isVoidAllowed: true,
     );
 
@@ -192,7 +192,7 @@ class AbstractSuperPropertyForInVariable implements ForInVariable {
       visitor.computeGreatestClosure(_writeType!),
       rhsType,
       superPropertySet.value,
-      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      errorTemplate: diag.forInLoopElementTypeNotAssignable,
       isVoidAllowed: true,
     );
     superPropertySet.value = rhs..parent = superPropertySet;
@@ -236,7 +236,7 @@ class SuperPropertyForInVariable implements ForInVariable {
       visitor.computeGreatestClosure(_writeType!),
       rhsType,
       superPropertySet.value,
-      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      errorTemplate: diag.forInLoopElementTypeNotAssignable,
       isVoidAllowed: true,
     );
     superPropertySet.value = rhs..parent = superPropertySet;
@@ -267,7 +267,7 @@ class StaticForInVariable implements ForInVariable {
       setterType,
       rhsType,
       staticSet.value,
-      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      errorTemplate: diag.forInLoopElementTypeNotAssignable,
       isVoidAllowed: true,
     );
 
@@ -333,7 +333,7 @@ class ExtensionSetForInVariable implements ForInVariable {
       setterType!,
       rhsType,
       extensionSet.value,
-      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      errorTemplate: diag.forInLoopElementTypeNotAssignable,
       isVoidAllowed: true,
     );
 

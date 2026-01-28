@@ -4,17 +4,12 @@
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart';
 
-import '../codes/cfe_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        codeVerificationErrorOriginContext,
-        noLength,
-        codeInternalProblemVerificationError;
+import '../codes/cfe_codes.dart' show LocatedMessage, Message, noLength;
 import '../base/compiler_context.dart' show CompilerContext;
 
 List<LocatedMessage> verifyComponent(
@@ -54,7 +49,7 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
     required TreeNode? context,
     required TreeNode? origin,
   }) {
-    Message message = codeInternalProblemVerificationError.withArgumentsOld(
+    Message message = diag.internalProblemVerificationError.withArgumentsOld(
       details,
     );
     LocatedMessage locatedMessage = problemUri != null
@@ -67,7 +62,7 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
     List<LocatedMessage>? contextMessages;
     if (origin != null) {
       contextMessages = [
-        codeVerificationErrorOriginContext.withLocation(
+        diag.verificationErrorOriginContext.withLocation(
           origin.location!.file,
           origin.fileOffset,
           noLength,

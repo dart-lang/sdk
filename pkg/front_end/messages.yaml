@@ -159,8 +159,8 @@ constEvalContext:
 
 constEvalDuplicateElement:
   parameters:
-    Constant constant: undocumented
-  problemMessage: "The element '#constant' conflicts with another existing element in the set."
+    Constant element: The duplicate element.
+  problemMessage: "The element '#element' conflicts with another existing element in the set."
   script: |
     const foo = {1, 1};
   includeErrorContext: true
@@ -168,8 +168,8 @@ constEvalDuplicateElement:
 
 constEvalDuplicateKey:
   parameters:
-    Constant constant: undocumented
-  problemMessage: "The key '#constant' conflicts with another existing key in the map."
+    Constant key: The duplicate key.
+  problemMessage: "The key '#key' conflicts with another existing key in the map."
   script: |
     const foo = {1: 2, 1: 3};
   includeErrorContext: true
@@ -177,8 +177,8 @@ constEvalDuplicateKey:
 
 constEvalElementImplementsEqual:
   parameters:
-    Constant constant: undocumented
-  problemMessage: "The element '#constant' does not have a primitive operator '=='."
+    Constant element: The element that implements `==`.
+  problemMessage: "The element '#element' does not have a primitive operator '=='."
   script: |
     //@dart=2.18
     const Set<dynamic> setWithNonPrimitiveEquals = {const WithEquals(42)};
@@ -194,8 +194,8 @@ constEvalElementImplementsEqual:
 
 constEvalElementNotPrimitiveEquality:
   parameters:
-    Constant constant: undocumented
-  problemMessage: "The element '#constant' does not have a primitive equality."
+    Constant element: The element that doesn't have primitive equality.
+  problemMessage: "The element '#element' does not have a primitive equality."
   script: |
     const Set<dynamic> setWithNonPrimitiveEquals = {const WithEquals(42)};
     class WithEquals {
@@ -210,13 +210,13 @@ constEvalElementNotPrimitiveEquality:
 
 constEvalKeyImplementsEqual:
   parameters:
-    Constant constant: undocumented
-  problemMessage: "The key '#constant' does not have a primitive operator '=='."
+    Constant key: The key that implements `==`.
+  problemMessage: "The key '#key' does not have a primitive operator '=='."
 
 constEvalKeyNotPrimitiveEquality:
   parameters:
-    Constant constant: undocumented
-  problemMessage: "The key '#constant' does not have a primitive equality."
+    Constant key: The key that doesn't have primitive equality.
+  problemMessage: "The key '#key' does not have a primitive equality."
   script: |
     const Map<dynamic, int> mapWithNonPrimitiveEqualsKey = {
       const WithEquals(42): 42
@@ -234,7 +234,7 @@ constEvalKeyNotPrimitiveEquality:
 
 constEvalCaseImplementsEqual:
   parameters:
-    Constant constant: undocumented
+    Constant constant: The case expression that implements `==`.
   problemMessage: "Case expression '#constant' does not have a primitive operator '=='."
   script: |
     // @dart=2.19
@@ -251,10 +251,10 @@ constEvalCaseImplementsEqual:
 
 constEvalInvalidType:
   parameters:
-    Constant constant: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
+    Constant constant: The constant that was of the wrong type.
+    Type expectedType: The type required to avoid an error.
+    Type actualType: The actual type of the constant.
+  problemMessage: "Expected constant '#constant' to be of type '#expectedType', but was of type '#actualType'."
   script: |
     const Map foo = {...bar};
     const dynamic bar = "Hello";
@@ -263,11 +263,11 @@ constEvalInvalidType:
 
 constEvalInvalidBinaryOperandType:
   parameters:
-    StringOKEmpty stringOKEmpty: undocumented
-    Constant constant: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'."
+    StringOKEmpty operator: The binary operator.
+    Constant receiver: The constant being acted upon.
+    Type expectedType: The type required to avoid an error.
+    Type actualType: The actual type of the operand.
+  problemMessage: "Binary operator '#operator' on '#receiver' requires operand of type '#expectedType', but was of type '#actualType'."
   script: |
     const dynamic willBeDouble = const bool.fromEnvironment("foo") ? 42 : 42.42;
     const binaryOnDouble = willBeDouble << 2;
@@ -276,9 +276,9 @@ constEvalInvalidBinaryOperandType:
 
 constEvalInvalidEqualsOperandType:
   parameters:
-    Constant constant: undocumented
-    Type type: undocumented
-  problemMessage: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
+    Constant receiver: The constant being acted upon.
+    Type actualType: The actual type of the constant.
+  problemMessage: "Binary operator '==' requires receiver constant '#receiver' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#actualType'."
   script: |
     //@dart=2.18
     class Foo {

@@ -19,7 +19,15 @@ class _Impl with _M {
 typedef Public_M = _M;
 final Public_M v = _Impl(0);
 
-void check(Public_M m, int expected) {
+void check(_M m, int expected) {
+  if (m is _Impl) {
+    Expect.equals(m.i, expected);
+  } else {
+    Expect.fail("m should be _Impl");
+  }
+}
+
+void checkAlias(Public_M m, int expected) {
   if (m is _Impl) {
     Expect.equals(m.i, expected);
   } else {
@@ -29,7 +37,14 @@ void check(Public_M m, int expected) {
 
 void main() {
   check(v, 0);
+  checkAlias(v, 0);
+
   check(.getter, 1);
+  checkAlias(.getter, 1);
+
   check(.method(), 2);
+  checkAlias(.method(), 2);
+
   check(Public_M.getter, 1);
+  checkAlias(Public_M.getter, 1);
 }

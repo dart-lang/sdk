@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
@@ -54,7 +55,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeSwitchExpressionNotSubtype.withArgumentsOld(
+      message: diag.switchExpressionNotSubtype.withArgumentsOld(
         caseExpressionType.unwrapTypeView(),
         scrutineeType.unwrapTypeView(),
       ),
@@ -62,7 +63,7 @@ class SharedTypeAnalyzerErrors
       fileOffset: caseExpression.fileOffset,
       length: noLength,
       context: [
-        codeSwitchExpressionNotAssignableCause.withLocation(
+        diag.switchExpressionNotAssignableCause.withLocation(
           uri,
           scrutinee.fileOffset,
           noLength,
@@ -79,14 +80,14 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeDuplicatePatternAssignmentVariable.withArgumentsOld(
+      message: diag.duplicatePatternAssignmentVariable.withArgumentsOld(
         variable.name!,
       ),
       fileUri: uri,
       fileOffset: duplicate.fileOffset,
       length: noLength,
       context: [
-        codeDuplicatePatternAssignmentVariableContext.withLocation(
+        diag.duplicatePatternAssignmentVariableContext.withLocation(
           uri,
           original.fileOffset,
           noLength,
@@ -104,12 +105,12 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeDuplicateRecordPatternField.withArgumentsOld(name),
+      message: diag.duplicateRecordPatternField.withArgumentsOld(name),
       fileUri: uri,
       fileOffset: duplicate.pattern.fileOffset,
       length: noLength,
       context: [
-        codeDuplicateRecordPatternFieldContext.withLocation(
+        diag.duplicateRecordPatternFieldContext.withLocation(
           uri,
           original.pattern.fileOffset,
           noLength,
@@ -126,12 +127,12 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeDuplicateRestElementInPattern,
+      message: diag.duplicateRestElementInPattern,
       fileUri: uri,
       fileOffset: duplicate.fileOffset,
       length: noLength,
       context: [
-        codeDuplicateRestElementInPatternContext.withLocation(
+        diag.duplicateRestElementInPatternContext.withLocation(
           uri,
           original.fileOffset,
           noLength,
@@ -144,7 +145,7 @@ class SharedTypeAnalyzerErrors
   InvalidExpression emptyMapPattern({required Pattern pattern}) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeEmptyMapPattern,
+      message: diag.emptyMapPattern,
       fileUri: uri,
       fileOffset: pattern.fileOffset,
       length: noLength,
@@ -188,7 +189,7 @@ class SharedTypeAnalyzerErrors
   InvalidExpression nonBooleanCondition({required Expression node}) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeNonBoolCondition,
+      message: diag.nonBoolCondition,
       fileUri: uri,
       fileOffset: node.fileOffset,
       length: noLength,
@@ -203,7 +204,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeForInLoopTypeNotIterable.withArgumentsOld(
+      message: diag.forInLoopTypeNotIterable.withArgumentsOld(
         expressionType.unwrapTypeView(),
         coreTypes.iterableNonNullableRawType,
       ),
@@ -222,7 +223,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codePatternTypeMismatchInIrrefutableContext.withArgumentsOld(
+      message: diag.patternTypeMismatchInIrrefutableContext.withArgumentsOld(
         matchedType.unwrapTypeView(),
         requiredType.unwrapTypeView(),
       ),
@@ -239,7 +240,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeRefutablePatternInIrrefutableContext,
+      message: diag.refutablePatternInIrrefutableContext,
       fileUri: uri,
       fileOffset: pattern.fileOffset,
       length: noLength,
@@ -254,7 +255,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeArgumentTypeNotAssignable.withArgumentsOld(
+      message: diag.argumentTypeNotAssignable.withArgumentsOld(
         operandType.unwrapTypeView(),
         parameterType.unwrapTypeView(),
       ),
@@ -271,7 +272,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeInvalidAssignmentError.withArgumentsOld(
+      message: diag.invalidAssignmentError.withArgumentsOld(
         returnType.unwrapTypeView(),
         coreTypes.boolNonNullableRawType,
       ),
@@ -288,7 +289,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeRestPatternInMapPattern,
+      message: diag.restPatternInMapPattern,
       fileUri: uri,
       fileOffset: element.fileOffset,
       length: noLength,
@@ -302,7 +303,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeSwitchCaseFallThrough,
+      message: diag.switchCaseFallThrough,
       fileUri: uri,
       fileOffset: node.cases[caseIndex].fileOffset,
       length: noLength,

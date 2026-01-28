@@ -23,3 +23,8 @@ const Public_Const constV = _Const();
 extension PublicCExtension on Object? {
   _C get asC => v;
 }
+
+void context(_C c) {}
+void contextConst(_Const c) {}
+void contextAlias(Public_C c) {}
+void contextConstAlias(Public_Const c) {}

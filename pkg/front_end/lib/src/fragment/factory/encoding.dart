@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
@@ -383,7 +384,7 @@ class FactoryEncoding implements InferredTypeListener {
             // cases of handling of type arguments after constructor
             // names.
             libraryBuilder.addProblem(
-              codeConstructorWithTypeArguments,
+              diag.constructorWithTypeArguments,
               redirectionTargetName.nameOffset,
               redirectionTargetName.nameLength,
               _fragment.fileUri,
@@ -396,7 +397,7 @@ class FactoryEncoding implements InferredTypeListener {
       if (result != null && result.isInvalidLookup) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeDuplicatedDeclarationUse.withArgumentsOld(
+          message: diag.duplicatedDeclarationUse.withArgumentsOld(
             redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
@@ -411,7 +412,7 @@ class FactoryEncoding implements InferredTypeListener {
       } else {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeRedirectionTargetNotFound.withArgumentsOld(
+          message: diag.redirectionTargetNotFound.withArgumentsOld(
             redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
@@ -424,7 +425,7 @@ class FactoryEncoding implements InferredTypeListener {
           targetNode.enclosingClass.isAbstract) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeAbstractRedirectedClassInstantiation.withArgumentsOld(
+          message: diag.abstractRedirectedClassInstantiation.withArgumentsOld(
             redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
@@ -438,7 +439,7 @@ class FactoryEncoding implements InferredTypeListener {
           targetNode.enclosingClass.isEnum) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeEnumFactoryRedirectsToConstructor,
+          message: diag.enumFactoryRedirectsToConstructor,
           fileOffset: redirectionTarget.charOffset,
           length: noLength,
           fileUri: redirectionTarget.fileUri,
@@ -489,7 +490,7 @@ class FactoryEncoding implements InferredTypeListener {
     // Ensure that constant factories only have constant targets/bodies.
     if (_fragment.modifiers.isConst && !target.isConst) {
       libraryBuilder.addProblem(
-        codeConstFactoryRedirectionToNonConst,
+        diag.constFactoryRedirectionToNonConst,
         _fragment.fullNameOffset,
         noLength,
         _fragment.fileUri,
@@ -553,7 +554,7 @@ class FactoryEncoding implements InferredTypeListener {
     if (_isCyclicRedirectingFactory(factoryBuilder)) {
       _addProblemForRedirectingFactory(
         libraryBuilder: libraryBuilder,
-        message: codeCyclicRedirectingFactoryConstructors.withArgumentsOld(
+        message: diag.cyclicRedirectingFactoryConstructors.withArgumentsOld(
           "${factoryBuilder.declarationBuilder.name}"
           "${_fragment.name == '' ? '' : '.${_fragment.name}'}",
         ),
@@ -627,7 +628,7 @@ class FactoryEncoding implements InferredTypeListener {
       )) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeIncompatibleRedirecteeFunctionType.withArgumentsOld(
+          message: diag.incompatibleRedirecteeFunctionType.withArgumentsOld(
             redirecteeType,
             factoryTypeWithoutTypeParameters,
           ),
@@ -693,7 +694,7 @@ class FactoryEncoding implements InferredTypeListener {
         targetFunctionType.typeParameters.length != typeArguments.length) {
       _addProblemForRedirectingFactory(
         libraryBuilder: libraryBuilder,
-        message: codeTypeArgumentMismatch.withArgumentsOld(
+        message: diag.typeArgumentMismatch.withArgumentsOld(
           targetFunctionType.typeParameters.length,
         ),
         fileOffset: redirectionTarget.charOffset,
@@ -724,7 +725,7 @@ class FactoryEncoding implements InferredTypeListener {
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound)) {
           _addProblemForRedirectingFactory(
             libraryBuilder: libraryBuilder,
-            message: codeRedirectingFactoryIncompatibleTypeArgument
+            message: diag.redirectingFactoryIncompatibleTypeArgument
                 .withArgumentsOld(typeArgument, typeParameterBound),
             fileOffset: redirectionTarget.charOffset,
             length: noLength,
@@ -736,7 +737,7 @@ class FactoryEncoding implements InferredTypeListener {
             // Coverage-ignore-block(suite): Not run.
             _addProblemForRedirectingFactory(
               libraryBuilder: libraryBuilder,
-              message: codeRedirectingFactoryIncompatibleTypeArgument
+              message: diag.redirectingFactoryIncompatibleTypeArgument
                   .withArgumentsOld(typeArgument, typeParameterBound),
               fileOffset: redirectionTarget.charOffset,
               length: noLength,
@@ -949,7 +950,7 @@ class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
     TypeBuilder returnType = new NamedTypeBuilderImpl.forInvalidType(
       fullName,
       const NullabilityBuilder.omitted(),
-      codeExtensionDeclaresConstructor.withLocation(
+      diag.extensionDeclaresConstructor.withLocation(
         fileUri,
         fullNameOffset,
         fullNameLength,

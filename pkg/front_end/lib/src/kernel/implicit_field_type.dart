@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/assumptions.dart';
@@ -11,7 +12,6 @@ import 'package:kernel/src/printer.dart';
 import '../base/problems.dart' show unsupported;
 import '../builder/inferable_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart';
 import '../source/source_library_builder.dart';
 
 abstract class InferredType extends AuxiliaryType {
@@ -160,7 +160,7 @@ class _ImplicitType extends InferredType {
   (DartType, Expression?) computeType(ClassHierarchyBase hierarchy) {
     if (isStarted) {
       _libraryBuilder.addProblem(
-        codeCantInferTypeDueToCircularity.withArgumentsOld(_name),
+        diag.cantInferTypeDueToCircularity.withArgumentsOld(_name),
         _nameOffset,
         _nameLength,
         _fileUri,

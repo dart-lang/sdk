@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
@@ -53,10 +54,10 @@ void _checkAugmentation(
     switch (declaration.kind) {
       case _DeclarationKind.Class:
         message = declaration.inPatch
-            ? codeUnmatchedPatchClass.withArgumentsOld(declaration.displayName)
+            ? diag.unmatchedPatchClass.withArgumentsOld(declaration.displayName)
             :
               // Coverage-ignore(suite): Not run.
-              codeUnmatchedAugmentationClass.withArgumentsOld(
+              diag.unmatchedAugmentationClass.withArgumentsOld(
                 declaration.displayName,
               );
       case _DeclarationKind.Constructor:
@@ -65,22 +66,22 @@ void _checkAugmentation(
       case _DeclarationKind.Property:
         if (declaration.inLibrary) {
           message = declaration.inPatch
-              ? codeUnmatchedPatchLibraryMember.withArgumentsOld(
+              ? diag.unmatchedPatchLibraryMember.withArgumentsOld(
                   declaration.displayName,
                 )
               :
                 // Coverage-ignore(suite): Not run.
-                codeUnmatchedAugmentationLibraryMember.withArgumentsOld(
+                diag.unmatchedAugmentationLibraryMember.withArgumentsOld(
                   declaration.displayName,
                 );
         } else {
           message = declaration.inPatch
-              ? codeUnmatchedPatchClassMember.withArgumentsOld(
+              ? diag.unmatchedPatchClassMember.withArgumentsOld(
                   declaration.displayName,
                 )
               :
                 // Coverage-ignore(suite): Not run.
-                codeUnmatchedAugmentationClassMember.withArgumentsOld(
+                diag.unmatchedAugmentationClassMember.withArgumentsOld(
                   declaration.displayName,
                 );
         }
@@ -94,12 +95,12 @@ void _checkAugmentation(
       case _DeclarationKind.Typedef:
         // TODO(johnniwinther): Specialize more messages.
         message = declaration.inPatch
-            ? codeUnmatchedPatchDeclaration.withArgumentsOld(
+            ? diag.unmatchedPatchDeclaration.withArgumentsOld(
                 declaration.displayName,
               )
             :
               // Coverage-ignore(suite): Not run.
-              codeUnmatchedAugmentationDeclaration.withArgumentsOld(
+              diag.unmatchedAugmentationDeclaration.withArgumentsOld(
                 declaration.displayName,
               );
     }
@@ -276,12 +277,12 @@ class BuilderFactory {
             augmentation.typeParameters?.length ?? 0;
         if (introductoryTypeParameterCount != augmentationTypeParameterCount) {
           _problemReporting.addProblem(
-            codePatchClassTypeParametersMismatch,
+            diag.patchClassTypeParametersMismatch,
             augmentation.nameOffset,
             name.length,
             augmentation.fileUri,
             context: [
-              codePatchClassOrigin.withLocation(
+              diag.patchClassOrigin.withLocation(
                 fragment.fileUri,
                 fragment.nameOffset,
                 name.length,
@@ -735,12 +736,12 @@ class BuilderFactory {
             augmentation.typeParameters?.length ?? 0;
         if (introductoryTypeParameterCount != augmentationTypeParameterCount) {
           _problemReporting.addProblem(
-            codePatchExtensionTypeParametersMismatch,
+            diag.patchExtensionTypeParametersMismatch,
             augmentation.nameOrExtensionOffset,
             nameLength,
             augmentation.fileUri,
             context: [
-              codePatchExtensionOrigin.withLocation(
+              diag.patchExtensionOrigin.withLocation(
                 fragment.fileUri,
                 fragment.nameOrExtensionOffset,
                 nameLength,
@@ -1334,7 +1335,7 @@ class EnumValuesDeclaration extends _PropertyDeclaration
     _Declaration declaration,
   ) {
     problemReporting.addProblem2(
-      codeEnumContainsValuesDeclaration,
+      diag.enumContainsValuesDeclaration,
       declaration.uriOffset,
     );
   }
@@ -1345,7 +1346,7 @@ class EnumValuesDeclaration extends _PropertyDeclaration
     _PropertyDeclaration declaration,
   ) {
     problemReporting.addProblem2(
-      codeInstanceAndSynthesizedStaticConflict.withArgumentsOld(displayName),
+      diag.instanceAndSynthesizedStaticConflict.withArgumentsOld(displayName),
       declaration.uriOffset,
     );
   }
@@ -1667,10 +1668,10 @@ mixin _DeclarationReportingMixin implements _Declaration {
       case _ExistingKind.Getable:
         if (newIsSetter) {
           problemReporting.addProblem2(
-            codeSetterConflictsWithDeclaration.withArgumentsOld(name),
+            diag.setterConflictsWithDeclaration.withArgumentsOld(name),
             newUriOffset,
             context: [
-              codeSetterConflictsWithDeclarationCause
+              diag.setterConflictsWithDeclarationCause
                   .withArgumentsOld(name)
                   .withLocation2(existingUriOffset),
             ],
@@ -1681,10 +1682,10 @@ mixin _DeclarationReportingMixin implements _Declaration {
       case _ExistingKind.ExplicitSetter:
         if (!newIsSetter) {
           problemReporting.addProblem2(
-            codeDeclarationConflictsWithSetter.withArgumentsOld(name),
+            diag.declarationConflictsWithSetter.withArgumentsOld(name),
             newUriOffset,
             context: <LocatedMessage>[
-              codeDeclarationConflictsWithSetterCause
+              diag.declarationConflictsWithSetterCause
                   .withArgumentsOld(name)
                   .withLocation2(existingUriOffset),
             ],
@@ -1694,10 +1695,10 @@ mixin _DeclarationReportingMixin implements _Declaration {
         break;
       case _ExistingKind.ImplicitSetter:
         problemReporting.addProblem2(
-          codeConflictsWithImplicitSetter.withArgumentsOld(name),
+          diag.conflictsWithImplicitSetter.withArgumentsOld(name),
           newUriOffset,
           context: [
-            codeConflictsWithImplicitSetterCause
+            diag.conflictsWithImplicitSetterCause
                 .withArgumentsOld(name)
                 .withLocation2(existingUriOffset),
           ],
@@ -1706,10 +1707,10 @@ mixin _DeclarationReportingMixin implements _Declaration {
     }
 
     problemReporting.addProblem2(
-      codeDuplicatedDeclaration.withArgumentsOld(name),
+      diag.duplicatedDeclaration.withArgumentsOld(name),
       newUriOffset,
       context: <LocatedMessage>[
-        codeDuplicatedDeclarationCause
+        diag.duplicatedDeclarationCause
             .withArgumentsOld(name)
             .withLocation2(existingUriOffset),
       ],
@@ -1749,10 +1750,10 @@ class _FactoryConstructorDeclaration extends _ConstructorDeclaration
     //    }
     //
     problemReporting.addProblem2(
-      codeMemberConflictsWithFactory.withArgumentsOld(displayName),
+      diag.memberConflictsWithFactory.withArgumentsOld(displayName),
       nonConstructorDeclaration.uriOffset,
       context: [
-        codeMemberConflictsWithFactoryCause
+        diag.memberConflictsWithFactoryCause
             .withArgumentsOld(displayName)
             .withLocation2(uriOffset),
       ],
@@ -1848,10 +1849,10 @@ class _GenerativeConstructorDeclaration extends _ConstructorDeclaration
     //    }
     //
     problemReporting.addProblem2(
-      codeMemberConflictsWithConstructor.withArgumentsOld(displayName),
+      diag.memberConflictsWithConstructor.withArgumentsOld(displayName),
       nonConstructorDeclaration.uriOffset,
       context: [
-        codeMemberConflictsWithConstructorCause
+        diag.memberConflictsWithConstructorCause
             .withArgumentsOld(displayName)
             .withLocation2(uriOffset),
       ],
@@ -1936,10 +1937,10 @@ abstract class _NonConstructorDeclaration extends _Declaration {
       //    }
       //
       problemReporting.addProblem2(
-        codeConstructorConflictsWithMember.withArgumentsOld(displayName),
+        diag.constructorConflictsWithMember.withArgumentsOld(displayName),
         constructorDeclaration.uriOffset,
         context: [
-          codeConstructorConflictsWithMemberCause
+          diag.constructorConflictsWithMemberCause
               .withArgumentsOld(displayName)
               .withLocation2(uriOffset),
         ],
@@ -1957,10 +1958,10 @@ abstract class _NonConstructorDeclaration extends _Declaration {
       //    }
       //
       problemReporting.addProblem2(
-        codeFactoryConflictsWithMember.withArgumentsOld(displayName),
+        diag.factoryConflictsWithMember.withArgumentsOld(displayName),
         constructorDeclaration.uriOffset,
         context: [
-          codeFactoryConflictsWithMemberCause
+          diag.factoryConflictsWithMemberCause
               .withArgumentsOld(displayName)
               .withLocation2(uriOffset),
         ],
@@ -2027,20 +2028,20 @@ abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
   ) {
     if (isStatic) {
       problemReporting.addProblem2(
-        codeInstanceConflictsWithStatic.withArgumentsOld(displayName),
+        diag.instanceConflictsWithStatic.withArgumentsOld(displayName),
         declaration.uriOffset,
         context: [
-          codeInstanceConflictsWithStaticCause
+          diag.instanceConflictsWithStaticCause
               .withArgumentsOld(displayName)
               .withLocation2(uriOffset),
         ],
       );
     } else {
       problemReporting.addProblem2(
-        codeStaticConflictsWithInstance.withArgumentsOld(displayName),
+        diag.staticConflictsWithInstance.withArgumentsOld(displayName),
         declaration.uriOffset,
         context: [
-          codeStaticConflictsWithInstanceCause
+          diag.staticConflictsWithInstanceCause
               .withArgumentsOld(displayName)
               .withLocation2(uriOffset),
         ],

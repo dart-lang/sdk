@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
 
@@ -497,7 +498,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // If trying to set a language version that is higher than the current sdk
       // version it's an error.
       addPostponedProblem(
-        codeLanguageVersionTooHighExplicit.withArgumentsOld(
+        diag.languageVersionTooHighExplicit.withArgumentsOld(
           version.major,
           version.minor,
           loader.target.currentSdkVersion.major,
@@ -518,7 +519,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       );
     } else if (version < loader.target.leastSupportedVersion) {
       addPostponedProblem(
-        codeLanguageVersionTooLowExplicit.withArgumentsOld(
+        diag.languageVersionTooLowExplicit.withArgumentsOld(
           version.major,
           version.minor,
           loader.target.leastSupportedVersion.major,
@@ -677,7 +678,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _problemReporting.registerLibrary(libraryBuilder.library);
     if (isPart) {
       // This is a part with no enclosing library.
-      addProblem(codePartOrphan, 0, 1, fileUri);
+      addProblem(diag.partOrphan, 0, 1, fileUri);
       _compilationUnitData.parts.clear();
       _reportExporters();
     }
@@ -831,21 +832,25 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     Set<Uri> seenParts = new Set<Uri>();
     for (Part part in _compilationUnitData.parts) {
       if (part.compilationUnit == this) {
-        addProblem(codePartOfSelf, part.fileOffset, noLength, part.fileUri);
+        addProblem(diag.partOfSelf, part.fileOffset, noLength, part.fileUri);
       } else if (seenParts.add(part.compilationUnit.fileUri)) {
         if (part.compilationUnit.partOfLibrary != null) {
           addProblem(
-            codePartOfTwoLibraries,
+            diag.partOfTwoLibraries,
             part.fileOffset,
             noLength,
             part.fileUri,
             context: [
-              codePartOfTwoLibrariesContext.withLocation(
+              diag.partOfTwoLibrariesContext.withLocation(
                 part.compilationUnit.partOfLibrary!.fileUri,
                 -1,
                 noLength,
               ),
-              codePartOfTwoLibrariesContext.withLocation(fileUri, -1, noLength),
+              diag.partOfTwoLibrariesContext.withLocation(
+                fileUri,
+                -1,
+                noLength,
+              ),
             ],
           );
         } else {
@@ -863,7 +868,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         }
       } else {
         addProblem(
-          codePartTwice.withArgumentsOld(part.compilationUnit.fileUri),
+          diag.partTwice.withArgumentsOld(part.compilationUnit.fileUri),
           part.fileOffset,
           noLength,
           part.fileUri,
@@ -913,7 +918,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             if (isNotMalformedUriScheme(partOfUri) &&
                 partOfUri != parentCompilationUnit.importUri) {
               parentCompilationUnit.addProblem(
-                codePartOfUriMismatch.withArgumentsOld(
+                diag.partOfUriMismatch.withArgumentsOld(
                   part.fileUri,
                   parentCompilationUnit.importUri,
                   partOfUri,
@@ -930,7 +935,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             if (libraryName != null) {
               if (partOfName != libraryName) {
                 parentCompilationUnit.addProblem(
-                  codePartOfLibraryNameMismatch.withArgumentsOld(
+                  diag.partOfLibraryNameMismatch.withArgumentsOld(
                     part.fileUri,
                     libraryName,
                     partOfName,
@@ -943,7 +948,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
               }
             } else {
               parentCompilationUnit.addProblem(
-                codePartOfUseUri.withArgumentsOld(
+                diag.partOfUseUri.withArgumentsOld(
                   part.fileUri,
                   parentCompilationUnit.fileUri,
                   partOfName,
@@ -958,7 +963,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           LibraryDirective? libraryDirective = part.libraryDirective;
           if (libraryDirective != null) {
             part.addProblem(
-              codePartWithLibraryDirective,
+              diag.partWithLibraryDirective,
               libraryDirective.fileOffset,
               noLength,
               libraryDirective.fileUri,
@@ -968,7 +973,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           assert(!part.isPart);
           if (isNotMalformedUriScheme(part.fileUri)) {
             parentCompilationUnit.addProblem(
-              codeMissingPartOf.withArgumentsOld(part.fileUri),
+              diag.missingPartOf.withArgumentsOld(part.fileUri),
               partOffset,
               noLength,
               parentCompilationUnit.fileUri,
@@ -998,7 +1003,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // "part of" declaration).
         if (isNotMalformedUriScheme(part.fileUri)) {
           parentCompilationUnit.addProblem(
-            codeMissingPartOf.withArgumentsOld(part.fileUri),
+            diag.missingPartOf.withArgumentsOld(part.fileUri),
             partOffset,
             noLength,
             parentCompilationUnit.fileUri,
@@ -1028,7 +1033,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       List<LocatedMessage> context = <LocatedMessage>[];
       if (parentCompilationUnit.languageVersion.isExplicit) {
         context.add(
-          codeLanguageVersionLibraryContext.withLocation(
+          diag.languageVersionLibraryContext.withLocation(
             parentCompilationUnit.languageVersion.fileUri!,
             parentCompilationUnit.languageVersion.charOffset,
             parentCompilationUnit.languageVersion.charCount,
@@ -1044,7 +1049,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           partOffset = part.languageVersion.charOffset;
           partUri = part.languageVersion.fileUri!;
           context.add(
-            codeLanguageVersionPatchContext.withLocation(
+            diag.languageVersionPatchContext.withLocation(
               part.languageVersion.fileUri!,
               part.languageVersion.charOffset,
               part.languageVersion.charCount,
@@ -1052,7 +1057,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           );
         }
         parentCompilationUnit.addProblem(
-          codeLanguageVersionMismatchInPatch,
+          diag.languageVersionMismatchInPatch,
           partOffset,
           noLength,
           partUri,
@@ -1061,7 +1066,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       } else {
         if (part.languageVersion.isExplicit) {
           context.add(
-            codeLanguageVersionPartContext.withLocation(
+            diag.languageVersionPartContext.withLocation(
               part.languageVersion.fileUri!,
               part.languageVersion.charOffset,
               part.languageVersion.charCount,
@@ -1069,7 +1074,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           );
         }
         parentCompilationUnit.addProblem(
-          codeLanguageVersionMismatchInPart,
+          diag.languageVersionMismatchInPart,
           partOffset,
           noLength,
           partUri,
@@ -1122,11 +1127,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   void _reportExporters() {
     if (exporters.isNotEmpty) {
       List<LocatedMessage> context = <LocatedMessage>[
-        codePartExportContext.withLocation(fileUri, -1, 1),
+        diag.partExportContext.withLocation(fileUri, -1, 1),
       ];
       for (Export export in exporters) {
         export.exporter.addProblem(
-          codePartExport,
+          diag.partExport,
           export.charOffset,
           "export".length,
           null,
@@ -1156,7 +1161,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     if (!allowPartInParts) {
       if (_compilationUnitData.parts.isNotEmpty) {
         List<LocatedMessage> context = <LocatedMessage>[
-          codePartInPartLibraryContext.withLocation(
+          diag.partInPartLibraryContext.withLocation(
             libraryBuilder.fileUri,
             -1,
             1,
@@ -1164,7 +1169,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         ];
         for (Part part in _compilationUnitData.parts) {
           addProblem(
-            codePartInPart,
+            diag.partInPart,
             part.fileOffset,
             noLength,
             fileUri,
@@ -1258,7 +1263,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     for (Import import in _compilationUnitData.imports) {
       if (import.importedCompilationUnit?.isPart ?? false) {
         addProblem(
-          codePartOfInLibrary.withArgumentsOld(
+          diag.partOfInLibrary.withArgumentsOld(
             import.importedCompilationUnit!.fileUri,
           ),
           import.importOffset,
@@ -1449,7 +1454,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           ? feature.enabledVersion.toText()
           : "the current release";
       if (_languageVersion.isExplicit) {
-        message = codeExperimentOptOutExplicit.withArgumentsOld(
+        message = diag.experimentOptOutExplicit.withArgumentsOld(
           feature.flag.name,
           enabledVersionText,
         );
@@ -1459,7 +1464,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           length,
           fileUri,
           context: <LocatedMessage>[
-            codeExperimentOptOutComment
+            diag.experimentOptOutComment
                 .withArgumentsOld(feature.flag.name)
                 .withLocation(
                   _languageVersion.fileUri!,
@@ -1469,7 +1474,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           ],
         );
       } else {
-        message = codeExperimentOptOutImplicit.withArgumentsOld(
+        message = diag.experimentOptOutImplicit.withArgumentsOld(
           feature.flag.name,
           enabledVersionText,
         );
@@ -1479,18 +1484,18 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       if (feature.flag.isEnabledByDefault) {
         // Coverage-ignore-block(suite): Not run.
         if (_languageVersion.version < feature.enabledVersion) {
-          message = codeExperimentDisabledInvalidLanguageVersion
+          message = diag.experimentDisabledInvalidLanguageVersion
               .withArgumentsOld(
                 feature.flag.name,
                 feature.enabledVersion.toText(),
               );
           addProblem(message, charOffset, length, fileUri);
         } else {
-          message = codeExperimentDisabled.withArgumentsOld(feature.flag.name);
+          message = diag.experimentDisabled.withArgumentsOld(feature.flag.name);
           addProblem(message, charOffset, length, fileUri);
         }
       } else {
-        message = codeExperimentNotEnabledOffByDefault.withArgumentsOld(
+        message = diag.experimentNotEnabledOffByDefault.withArgumentsOld(
           feature.flag.name,
         );
         addProblem(message, charOffset, length, fileUri);
@@ -1519,12 +1524,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
       if (deferredFileOffset != null) {
         _problemReporting.addProblem(
-          codeDeferredPrefixDuplicated.withArgumentsOld(name),
+          diag.deferredPrefixDuplicated.withArgumentsOld(name),
           deferredFileOffset,
           noLength,
           fileUri,
           context: [
-            codeDeferredPrefixDuplicatedCause
+            diag.deferredPrefixDuplicatedCause
                 .withArgumentsOld(name)
                 .withLocation(fileUri, otherFileOffset!, noLength),
           ],
@@ -1539,12 +1544,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       NamedBuilder existing = result.getable ?? result.setable!;
       String fullName = name;
       _problemReporting.addProblem(
-        codeDuplicatedDeclaration.withArgumentsOld(fullName),
+        diag.duplicatedDeclaration.withArgumentsOld(fullName),
         charOffset,
         fullName.length,
         prefixFragment.fileUri,
         context: <LocatedMessage>[
-          codeDuplicatedDeclarationCause
+          diag.duplicatedDeclarationCause
               .withArgumentsOld(fullName)
               .withLocation(
                 existing.fileUri!,

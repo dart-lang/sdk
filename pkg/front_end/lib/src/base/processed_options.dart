@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
         LibrariesSpecification,
         LibrariesSpecificationException,
         TargetLibrariesSpecification;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart'
     show CanonicalName, Component, Location, Version;
@@ -32,23 +33,7 @@ import '../codes/cfe_codes.dart'
         LocatedMessage,
         Message,
         PlainAndColorizedString,
-        codeCantInferPackagesFromManyInputs,
-        codeCantInferPackagesFromPackageUri,
-        codeInternalProblemProvidedBothCompileSdkAndSdkSummary,
-        codeMissingInput,
-        noLength,
-        codeCannotReadSdkSpecification,
-        codeCantReadFile,
-        codeDebugTrace,
-        codeExceptionReadingFile,
-        codeExperimentExpiredDisabled,
-        codeExperimentExpiredEnabled,
-        codeInputFileNotFound,
-        codeInternalProblemUnsupported,
-        codePackagesFileFormat,
-        codeSdkRootNotFound,
-        codeSdkSpecificationNotFound,
-        codeSdkSummaryNotFound;
+        noLength;
 import 'command_line_reporting.dart' as command_line_reporting;
 import 'compiler_context.dart';
 import 'messages.dart' show getLocation;
@@ -313,7 +298,7 @@ class ProcessedOptions {
       }
       if (_raw.skipForDebugging < 0) {
         print(
-          codeDebugTrace
+          diag.debugTrace
               .withArgumentsOld("$severity", "${StackTrace.current}")
               .problemMessage,
         );
@@ -408,7 +393,7 @@ class ProcessedOptions {
 
     if (errorOnMissingInput && inputs.isEmpty) {
       // Coverage-ignore-block(suite): Not run.
-      reportWithoutLocation(codeMissingInput, CfeSeverity.error);
+      reportWithoutLocation(diag.missingInput, CfeSeverity.error);
       return false;
     }
 
@@ -417,7 +402,7 @@ class ProcessedOptions {
         !await fileSystem.entityForUri(sdkRoot!).exists()) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-        codeSdkRootNotFound.withArgumentsOld(sdkRoot!),
+        diag.sdkRootNotFound.withArgumentsOld(sdkRoot!),
         CfeSeverity.error,
       );
       return false;
@@ -427,7 +412,7 @@ class ProcessedOptions {
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-        codeSdkSummaryNotFound.withArgumentsOld(summary),
+        diag.sdkSummaryNotFound.withArgumentsOld(summary),
         CfeSeverity.error,
       );
       return false;
@@ -436,7 +421,7 @@ class ProcessedOptions {
     if (compileSdk && summary != null) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-        codeInternalProblemProvidedBothCompileSdkAndSdkSummary,
+        diag.internalProblemProvidedBothCompileSdkAndSdkSummary,
         CfeSeverity.internalProblem,
       );
       return false;
@@ -448,7 +433,7 @@ class ProcessedOptions {
       // recover from this.
       if (!await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
-          codeInputFileNotFound.withArgumentsOld(source),
+          diag.inputFileNotFound.withArgumentsOld(source),
           CfeSeverity.error,
         );
         return false;
@@ -464,14 +449,14 @@ class ProcessedOptions {
         // Coverage-ignore-block(suite): Not run.
         if (value) {
           reportWithoutLocation(
-            codeExperimentExpiredEnabled.withArgumentsOld(
+            diag.experimentExpiredEnabled.withArgumentsOld(
               experimentalFlag.name,
             ),
             CfeSeverity.error,
           );
         } else {
           reportWithoutLocation(
-            codeExperimentExpiredDisabled.withArgumentsOld(
+            diag.experimentExpiredDisabled.withArgumentsOld(
               experimentalFlag.name,
             ),
             CfeSeverity.error,
@@ -634,7 +619,7 @@ class ProcessedOptions {
       if (compileSdk) {
         // Coverage-ignore-block(suite): Not run.
         reportWithoutLocation(
-          codeSdkSpecificationNotFound.withArgumentsOld(
+          diag.sdkSpecificationNotFound.withArgumentsOld(
             librariesSpecificationUri!,
           ),
           CfeSeverity.error,
@@ -653,7 +638,7 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on LibrariesSpecificationException catch (e) {
       reportWithoutLocation(
-        codeCannotReadSdkSpecification.withArgumentsOld('${e.error}'),
+        diag.cannotReadSdkSpecification.withArgumentsOld('${e.error}'),
         CfeSeverity.error,
       );
       return new TargetLibrariesSpecification(name);
@@ -693,7 +678,7 @@ class ProcessedOptions {
       // TODO(sigmund): consider not reporting an error if we would infer
       // the same `package_config.json` file from all of the inputs.
       reportWithoutLocation(
-        codeCantInferPackagesFromManyInputs,
+        diag.cantInferPackagesFromManyInputs,
         CfeSeverity.error,
       );
       _packageConfigAndUri = _PackageConfigAndUri.empty;
@@ -704,7 +689,7 @@ class ProcessedOptions {
 
     if (input.isScheme('package')) {
       reportNoSourceLine(
-        codeCantInferPackagesFromPackageUri.withLocation(input, -1, noLength),
+        diag.cantInferPackagesFromPackageUri.withLocation(input, -1, noLength),
         CfeSeverity.error,
       );
       _packageConfigAndUri = _PackageConfigAndUri.empty;
@@ -730,12 +715,12 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FileSystemException catch (e) {
       reportWithoutLocation(
-        codeCantReadFile.withArgumentsOld(uri, osErrorMessage(e.message)),
+        diag.cantReadFile.withArgumentsOld(uri, osErrorMessage(e.message)),
         CfeSeverity.error,
       );
     } catch (e) {
       // Coverage-ignore-block(suite): Not run.
-      Message message = codeExceptionReadingFile.withArgumentsOld(uri, '$e');
+      Message message = diag.exceptionReadingFile.withArgumentsOld(uri, '$e');
       reportWithoutLocation(message, CfeSeverity.error);
       // We throw a new exception to ensure that the message include the uri
       // that led to the exception. Exceptions in Uri don't include the
@@ -766,7 +751,7 @@ class ProcessedOptions {
       void Function(Object error) onError = (Object error) {
         if (error is FormatException) {
           reportNoSourceLine(
-            codePackagesFileFormat
+            diag.packagesFileFormat
                 .withArgumentsOld(error.message)
                 .withLocation(
                   requestedUri,
@@ -779,7 +764,7 @@ class ProcessedOptions {
         } else {
           // Coverage-ignore-block(suite): Not run.
           reportWithoutLocation(
-            codeCantReadFile.withArgumentsOld(
+            diag.cantReadFile.withArgumentsOld(
               requestedUri,
               osErrorMessage(error),
             ),
@@ -795,7 +780,7 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FormatException catch (e) {
       reportNoSourceLine(
-        codePackagesFileFormat
+        diag.packagesFileFormat
             .withArgumentsOld(e.message)
             .withLocation(requestedUri, e.offset ?? -1, noLength),
         CfeSeverity.error,
@@ -803,7 +788,7 @@ class ProcessedOptions {
     } catch (e) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-        codeCantReadFile.withArgumentsOld(requestedUri, "$e"),
+        diag.cantReadFile.withArgumentsOld(requestedUri, "$e"),
         CfeSeverity.error,
       );
     }
@@ -839,7 +824,7 @@ class ProcessedOptions {
     Uri dir = scriptUri.resolve('.');
     if (!dir.isAbsolute) {
       reportWithoutLocation(
-        codeInternalProblemUnsupported.withArgumentsOld(
+        diag.internalProblemUnsupported.withArgumentsOld(
           "Expected input Uri to be absolute: $scriptUri.",
         ),
         CfeSeverity.internalProblem,
@@ -854,7 +839,7 @@ class ProcessedOptions {
         if (await fileSystem.entityForUri(candidate).exists()) return candidate;
         return null;
       } catch (e) {
-        Message message = codeExceptionReadingFile.withArgumentsOld(
+        Message message = diag.exceptionReadingFile.withArgumentsOld(
           candidate!,
           '$e',
         );
@@ -993,7 +978,7 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FileSystemException catch (error) {
       reportWithoutLocation(
-        codeCantReadFile.withArgumentsOld(
+        diag.cantReadFile.withArgumentsOld(
           error.uri,
           osErrorMessage(error.message),
         ),
@@ -1010,7 +995,7 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FileSystemException catch (error) {
       reportWithoutLocation(
-        codeCantReadFile.withArgumentsOld(
+        diag.cantReadFile.withArgumentsOld(
           error.uri,
           osErrorMessage(error.message),
         ),

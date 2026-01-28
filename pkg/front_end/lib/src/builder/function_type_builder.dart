@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart'
     show
         DartType,
@@ -15,7 +16,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/cfe_codes.dart' show codeSupertypeIsFunction, noLength;
+import '../codes/cfe_codes.dart' show noLength;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
@@ -220,7 +221,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(codeSupertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem(diag.supertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
 

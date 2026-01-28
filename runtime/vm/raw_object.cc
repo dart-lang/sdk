@@ -255,21 +255,24 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
   ASSERT(instance_size != 0);
 #if defined(DEBUG)
   intptr_t tags_size = SizeTag::decode(tags);
-  if ((class_id == kArrayCid) && (instance_size > tags_size && tags_size > 0)) {
-    // TODO(22501): Array::MakeFixedLength could be in the process of shrinking
-    // the array (see comment therein), having already updated the tags but not
-    // yet set the new length. Wait a millisecond and try again.
-    int retries_remaining = 1000;  // ... but not forever.
-    do {
-      OS::Sleep(1);
-      const ArrayPtr raw_array = static_cast<const ArrayPtr>(this);
-      intptr_t array_length = Smi::Value(raw_array->untag()->length());
-      instance_size = Array::InstanceSize(array_length);
-    } while ((instance_size > tags_size) && (--retries_remaining > 0));
-  }
   if ((instance_size != tags_size) && (tags_size != 0)) {
-    FATAL("Size mismatch: %" Pd " from class vs %" Pd " from tags %" Px "\n",
-          instance_size, tags_size, tags);
+    // Array::Truncate could be in the process of shrinking the array.
+    // Unfortunately, we cannot do a sanity check by reload tags here expecting
+    // to eventually see consistent sizes because another scavenge worker may
+    // have already replaced the tags with a forwarding pointer. But the
+    // truncation should be ensuring the heap remains iterable no matter what
+    // intermediate state we see, so instead check there appears to be a filler
+    // covering the gap between the two sizes.
+    if (class_id == kArrayCid) {
+      intptr_t smaller_size = Utils::Minimum(tags_size, instance_size);
+      intptr_t larger_size = Utils::Maximum(tags_size, instance_size);
+      ObjectPtr filler = FromAddr(ToAddr(this) + smaller_size);
+      intptr_t filler_size = filler->untag()->HeapSize();
+      ASSERT(smaller_size + filler_size == larger_size);
+    } else {
+      FATAL("Size mismatch: %" Pd " from class vs %" Pd " from tags %" Px "\n",
+            instance_size, tags_size, tags);
+    }
   }
 #endif  // DEBUG
   return instance_size;

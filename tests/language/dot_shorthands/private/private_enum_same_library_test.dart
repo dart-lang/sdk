@@ -18,15 +18,30 @@ enum _E {
 typedef Public_E = _E;
 final Public_E v = _E.e1;
 
-void check(Public_E e, Public_E expected) {
+void check(_E e, _E expected) {
+  Expect.equals(e, expected);
+}
+
+void checkAlias(Public_E e, Public_E expected) {
   Expect.equals(e, expected);
 }
 
 void main() {
   check(v, _E.e1);
+  checkAlias(v, _E.e1);
+
   check(.e2, _E.e2);
+  checkAlias(.e2, _E.e2);
+
   check(.getter, _E.e1);
+  checkAlias(.getter, _E.e1);
+
   check(.method(), _E.e2);
+  checkAlias(.method(), _E.e2);
+
   check(.fact(), _E.e1);
+  checkAlias(.fact(), _E.e1);
+
   check(Public_E.e1, _E.e1);
+  checkAlias(Public_E.e1, _E.e1);
 }

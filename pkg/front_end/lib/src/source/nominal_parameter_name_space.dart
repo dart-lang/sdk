@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
+
 import '../base/messages.dart';
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
@@ -28,12 +30,12 @@ class NominalParameterNameSpace {
           _typeParametersByName[tv.name] = tv;
         } else {
           _problemReporting.addProblem(
-            codeTypeParameterDuplicatedName,
+            diag.typeParameterDuplicatedName,
             tv.fileOffset,
             tv.name.length,
             tv.fileUri,
             context: [
-              codeTypeParameterDuplicatedNameCause
+              diag.typeParameterDuplicatedNameCause
                   .withArgumentsOld(tv.name)
                   .withLocation(
                     existing.fileUri,
@@ -51,7 +53,7 @@ class NominalParameterNameSpace {
         // [#54602](https://github.com/dart-lang/sdk/issues/54602).
         if (tv.name == ownerName && !allowNameConflict) {
           _problemReporting.addProblem(
-            codeTypeParameterSameNameAsEnclosing,
+            diag.typeParameterSameNameAsEnclosing,
             tv.fileOffset,
             tv.name.length,
             tv.fileUri,

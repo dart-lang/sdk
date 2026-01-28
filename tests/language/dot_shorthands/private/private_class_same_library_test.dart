@@ -30,24 +30,50 @@ extension PublicCExtension on Object? {
   _C get asC => v;
 }
 
-void check(Public_C c, int expected) {
+void check(_C c, int expected) {
   Expect.equals(c.i, expected);
 }
 
-void checkConst(Public_Const c, int expected) {
+void checkAlias(Public_C c, int expected) {
+  Expect.equals(c.i, expected);
+}
+
+void checkConst(_Const c, int expected) {
+  Expect.equals(c.i, expected);
+}
+
+void checkConstAlias(Public_Const c, int expected) {
   Expect.equals(c.i, expected);
 }
 
 void main() {
   check(.new(1).asC, 0);
+  checkAlias(.new(1).asC, 0);
+
   check(.new(1), 1);
+  checkAlias(.new(1), 1);
+
   check(.named(2), 2);
+  checkAlias(.named(2), 2);
+
   check(.getter, 3);
+  checkAlias(.getter, 3);
+
   check(.method(), 4);
+  checkAlias(.method(), 4);
+
   check(Public_C(5), 5);
+  checkAlias(Public_C(5), 5);
 
   checkConst(constV, 0);
+  checkConstAlias(constV, 0);
+
   checkConst(const .new(1), 1);
+  checkConstAlias(const .new(1), 1);
+
   checkConst(const .named(2), 2);
+  checkConstAlias(const .named(2), 2);
+
   checkConst(const Public_Const(3), 3);
+  checkConstAlias(const Public_Const(3), 3);
 }

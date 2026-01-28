@@ -11,3 +11,6 @@ class _Impl with _M {}
 
 typedef Public_M = _M;
 final Public_M v = _Impl();
+
+void context(_M m) {}
+void contextAlias(Public_M m) {}

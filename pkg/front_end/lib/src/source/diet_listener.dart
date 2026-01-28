@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -27,8 +28,7 @@ import '../base/identifiers.dart'
         OmittedIdentifier;
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/scope.dart';
-import '../codes/cfe_codes.dart'
-    show Code, LocatedMessage, Message, codeExpectedBlockToSkip;
+import '../codes/cfe_codes.dart' show Code, LocatedMessage, Message;
 import '../fragment/fragment.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/body_builder_context.dart';
@@ -789,7 +789,7 @@ class DietListener extends StackListenerImpl {
     debugEvent("NativeFunctionBodySkipped");
     if (!enableNative) {
       super.handleRecoverableError(
-        codeExpectedBlockToSkip,
+        diag.expectedBlockToSkip,
         nativeToken,
         nativeToken,
       );

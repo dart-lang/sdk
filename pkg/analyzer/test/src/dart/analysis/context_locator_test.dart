@@ -692,7 +692,7 @@ analyzer:
 
     List<ContextRoot> roots = contextLocator.locateRoots(
       includedPaths: [testFile1.path, testFile2.path],
-      packagesFile: overridePackagesFile.path,
+      packageConfigFile: overridePackagesFile.path,
     );
     expect(roots, hasLength(1));
 
@@ -1085,7 +1085,7 @@ ${getFolder(outPath).path}
 
     List<ContextRoot> roots = contextLocator.locateRoots(
       includedPaths: [outerRootFolder.path],
-      packagesFile: overridePackagesFile.path,
+      packageConfigFile: overridePackagesFile.path,
     );
     expect(roots, hasLength(1));
 
@@ -1141,7 +1141,7 @@ ${getFolder(outPath).path}
     List<ContextRoot> roots = contextLocator.locateRoots(
       includedPaths: [outerRootFolder.path],
       optionsFile: overrideOptionsFile.path,
-      packagesFile: overridePackagesFile.path,
+      packageConfigFile: overridePackagesFile.path,
     );
     expect(roots, hasLength(1));
 
@@ -1248,7 +1248,7 @@ ${getFolder(outPath).path}
 
     List<ContextRoot> roots = contextLocator.locateRoots(
       includedPaths: [outerRootFolder.path],
-      packagesFile: overridePackagesFile.path,
+      packageConfigFile: overridePackagesFile.path,
     );
     expect(roots, hasLength(1));
 

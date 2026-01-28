@@ -235,7 +235,7 @@ class _InitializerBuilder {
         // initializer.
         _problemReporting.buildProblem(
           compilerContext: _compilerContext,
-          message: codeIllegalMixinDueToConstructors.withArgumentsOld(
+          message: diag.illegalMixinDueToConstructors.withArgumentsOld(
             _bodyBuilderContext.className,
           ),
           fileUri: _fileUri,
@@ -279,7 +279,7 @@ class _InitializerBuilder {
                   initializer = createInvalidInitializer(
                     _problemReporting.buildProblem(
                       compilerContext: _compilerContext,
-                      message: codeEnumConstructorSuperInitializer,
+                      message: diag.enumConstructorSuperInitializer,
                       fileUri: _fileUri,
                       fileOffset: initializer.fileOffset,
                       length: noLength,
@@ -291,12 +291,12 @@ class _InitializerBuilder {
                   if (superParameterArguments.positionalCount > 0) {
                     if (arguments.positionalCount > 0) {
                       _problemReporting.addProblem(
-                        codePositionalSuperParametersAndArguments,
+                        diag.positionalSuperParametersAndArguments,
                         arguments.fileOffset,
                         noLength,
                         _fileUri,
                         context: <LocatedMessage>[
-                          codeSuperInitializerParameter.withLocation(
+                          diag.superInitializerParameter.withLocation(
                             _fileUri,
                             superParameterArguments.firstPositionalOffset,
                             noLength,
@@ -347,7 +347,7 @@ class _InitializerBuilder {
         createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeConstructorNotSync,
+            message: diag.constructorNotSync,
             fileUri: _fileUri,
             fileOffset: asyncModifierFileOffset!,
             length: noLength,
@@ -380,7 +380,7 @@ class _InitializerBuilder {
         createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeMoreThanOneSuperInitializer,
+            message: diag.moreThanOneSuperInitializer,
             fileUri: _fileUri,
             fileOffset: initializer.fileOffset,
             length: "super".length,
@@ -393,7 +393,7 @@ class _InitializerBuilder {
         createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeRedirectingConstructorWithSuperInitializer,
+            message: diag.redirectingConstructorWithSuperInitializer,
             fileUri: _fileUri,
             fileOffset: initializer.fileOffset,
             length: "super".length,
@@ -417,7 +417,7 @@ class _InitializerBuilder {
         createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeRedirectingConstructorWithSuperInitializer,
+            message: diag.redirectingConstructorWithSuperInitializer,
             fileUri: _fileUri,
             fileOffset: _superInitializer!.fileOffset,
             length: "super".length,
@@ -431,7 +431,8 @@ class _InitializerBuilder {
         createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeRedirectingConstructorWithMultipleRedirectInitializers,
+            message:
+                diag.redirectingConstructorWithMultipleRedirectInitializers,
             fileUri: _fileUri,
             fileOffset: initializer.fileOffset,
             length: noLength,
@@ -449,7 +450,7 @@ class _InitializerBuilder {
         _regularInitializers[i] = createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeRedirectingConstructorWithAnotherInitializer,
+            message: diag.redirectingConstructorWithAnotherInitializer,
             fileUri: _fileUri,
             fileOffset: initializer.fileOffset,
             length: length,
@@ -477,7 +478,7 @@ class _InitializerBuilder {
         createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeRedirectingConstructorWithAnotherInitializer,
+            message: diag.redirectingConstructorWithAnotherInitializer,
             fileUri: _fileUri,
             fileOffset: initializer.fileOffset,
             length: length,
@@ -491,7 +492,7 @@ class _InitializerBuilder {
         createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeSuperInitializerNotLast,
+            message: diag.superInitializerNotLast,
             fileUri: _fileUri,
             fileOffset: initializer.fileOffset,
             length: noLength,
@@ -638,7 +639,7 @@ class _InitializerBuilder {
         initializer = createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeSuperclassHasNoDefaultConstructor.withArgumentsOld(
+            message: diag.superclassHasNoDefaultConstructor.withArgumentsOld(
               superclass,
             ),
             fileUri: _fileUri,
@@ -673,7 +674,8 @@ class _InitializerBuilder {
                   InvalidExpression errorMessageExpression = _problemReporting
                       .buildProblem(
                         compilerContext: _compilerContext,
-                        message: codeMissingPositionalSuperConstructorParameter,
+                        message:
+                            diag.missingPositionalSuperConstructorParameter,
                         fileUri: _fileUri,
                         fileOffset: argument.expression.fileOffset,
                         length: noLength,
@@ -690,7 +692,7 @@ class _InitializerBuilder {
                   InvalidExpression errorMessageExpression = _problemReporting
                       .buildProblem(
                         compilerContext: _compilerContext,
-                        message: codeMissingNamedSuperConstructorParameter,
+                        message: diag.missingNamedSuperConstructorParameter,
                         fileUri: _fileUri,
                         fileOffset: argument.namedExpression.fileOffset,
                         length: noLength,
@@ -705,7 +707,7 @@ class _InitializerBuilder {
         errorMessageInitializer ??= createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: codeImplicitSuperInitializerMissingArguments
+            message: diag.implicitSuperInitializerMissingArguments
                 .withArgumentsOld(superTarget.enclosingClass.name),
             fileUri: _fileUri,
             fileOffset: argumentIssue.charOffset,
@@ -716,7 +718,7 @@ class _InitializerBuilder {
       } else {
         if (_bodyBuilderContext.isConstConstructor && !superTarget.isConst) {
           _problemReporting.addProblem(
-            codeConstConstructorWithNonConstSuper,
+            diag.constConstructorWithNonConstSuper,
             _bodyBuilderContext.memberNameOffset,
             superTarget.name.text.length,
             _fileUri,
