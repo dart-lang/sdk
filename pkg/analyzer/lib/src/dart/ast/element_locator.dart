@@ -297,6 +297,11 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    return node.declaration?.declaredFragment?.element;
+  }
+
+  @override
   Element? visitPrimaryConstructorDeclaration(
     PrimaryConstructorDeclaration node,
   ) {
