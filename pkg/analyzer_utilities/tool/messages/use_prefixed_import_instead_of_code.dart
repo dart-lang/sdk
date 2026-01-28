@@ -21,6 +21,7 @@ import 'package:path/path.dart';
 const packages = {
   '_fe_analyzer_shared',
   '_js_interop_checks',
+  'compiler',
   'dart2wasm',
   'front_end',
   'vm',
