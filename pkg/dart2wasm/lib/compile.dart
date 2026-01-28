@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
     show DynamicInterfaceYamlFile;
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
@@ -45,6 +47,7 @@ import 'js/runtime_generator.dart' as js;
 import 'modules.dart';
 import 'record_class_generator.dart';
 import 'records.dart';
+import 'source_map_utils.dart';
 import 'target.dart' as wasm show Mode;
 import 'target.dart' hide Mode;
 import 'translator.dart';
@@ -633,17 +636,28 @@ Future<CompilationResult> _runCodegenPhase(
   final generateSourceMaps = options.translatorOptions.generateSourceMaps;
   final modules = translator.translate(ioManager.sourceMapUrlGenerator);
   final writeFutures = <Future<void>>[];
-  modules.forEach((moduleOutput, module) {
-    if (moduleOutput.skipEmit) return;
+
+  List<String?>? classNames;
+  if (generateSourceMaps && options.translatorOptions.minify) {
+    classNames = [];
+    for (var classId = 0; classId < translator.classes.length; classId += 1) {
+      classNames.add(translator.classes[classId].cls?.name);
+    }
+  }
+
+  modules.forEach((moduleMetadata, module) {
+    if (moduleMetadata.skipEmit) return;
     final serializer = Serializer();
     module.serialize(serializer);
     writeFutures.add(
-        ioManager.writeWasmModule(serializer.data, moduleOutput.moduleName));
-
+        ioManager.writeWasmModule(serializer.data, moduleMetadata.moduleName));
     if (generateSourceMaps) {
-      final sourceMap = serializer.sourceMapSerializer.serialize();
-      writeFutures.add(
-          ioManager.writeWasmSourceMap(sourceMap, moduleOutput.moduleName));
+      final sourceMapJson = serializer.sourceMapSerializer.serializeAsJson();
+      if (moduleMetadata.isMain && classNames != null) {
+        addMinifiedClassNames(sourceMapJson, classNames);
+      }
+      writeFutures.add(ioManager.writeWasmSourceMap(
+          jsonEncode(sourceMapJson), moduleMetadata.moduleName));
     }
   });
   await Future.wait(writeFutures);

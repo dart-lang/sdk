@@ -2277,21 +2277,22 @@ class _Utf8Decoder {
     }
 
     String result = '';
-    final int chunks = length ~/ _characterArraySize;
-    final int remaining = length % _characterArraySize;
+    const maxBytes = _maxChunkSizeInBytes;
+    final int chunks = length ~/ maxBytes;
+    final int remaining = length % maxBytes;
     for (int i = 0; i < chunks; ++i) {
       result += _convertChunkInternal(
         bytes,
         start,
-        start + _characterArraySize,
+        start + maxBytes,
         codeUnits,
         errorOffset,
         true,
       );
-      start += _characterArraySize;
+      start += maxBytes;
     }
     if (remaining > 0) {
-      assert(remaining < _characterArraySize);
+      assert(remaining < maxBytes);
       result += _convertChunkInternal(
         bytes,
         start,
@@ -2347,21 +2348,22 @@ class _Utf8Decoder {
     }
 
     String result = '';
-    final int chunks = length ~/ _characterArraySize;
-    final int remaining = length % _characterArraySize;
+    const maxBytes = _maxChunkSizeInBytes;
+    final int chunks = length ~/ maxBytes;
+    final int remaining = length % maxBytes;
     for (int i = 0; i < chunks; ++i) {
       result += _convertChunkInternal(
         bytes,
         start,
-        start + _characterArraySize,
+        start + maxBytes,
         codeUnits,
         errorOffset,
         true,
       );
-      start += _characterArraySize;
+      start += maxBytes;
     }
     if (remaining > 0) {
-      assert(remaining < _characterArraySize);
+      assert(remaining < maxBytes);
       result += _convertChunkInternal(
         bytes,
         start,
@@ -2378,7 +2380,28 @@ class _Utf8Decoder {
 
   @pragma('wasm:initialize-at-startup')
   static final _characterArray = WasmArray<WasmI16>(_characterArraySize);
-  static const _characterArraySize = 1024;
+  static const _characterArraySize = 1025;
+
+  // We use the pre-allocated [_characterArray] to avoid temporary allocations
+  // of `WasmArray<WasmI16>` objects when calling
+  // `wasm:js-string.fromCharCodeArray` builtin.
+  //
+  // This constant defines the maximum size of a chunk of utf-8 encoded
+  // bytes that will - when decoded to UTF-16 code units - fit into the
+  // [_characterArray].
+  //
+  // The reason we subtract one from the [_characterArraySize] is the following:
+  // When processing a chunk of N bytes we may have a carryover state from the
+  // previous chunk that contains an uninished unicode point that requires
+  // encoding it as a surrogate pair (i.e. 2 UTF-16 code units).
+  //
+  // So when e.g. processing 1024 bytes, the first byte may finish a unicode
+  // point that requires 2 UTF-16 code units, the remaining 1023 bytes may be
+  // ascii. So the 1024 byte chunk may turn into 1025 UTF-16 code units.
+  //
+  // => The [_characterArraySize] must be one larger than
+  // [_maxChunkSizeInBytes].
+  static const _maxChunkSizeInBytes = _characterArraySize - 1;
 
   @pragma('wasm:prefer-inline')
   String _convertChunkInternal(
