@@ -158,7 +158,8 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
     if (uriString == "package:front_end/src/util/parser_ast_helper.dart" ||
         uriString ==
             "package:front_end/src/api_prototype/experimental_flags_generated.dart" ||
-        uriString == "package:front_end/src/codes/cfe_codes_generated.dart") {
+        uriString == "package:front_end/src/codes/cfe_codes_generated.dart" ||
+        uriString == "package:front_end/src/codes/diagnostic.g.dart") {
       continue;
     }
 

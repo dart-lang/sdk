@@ -13,6 +13,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryHideMultipleTest);
+    defineReflectiveTests(ImportLibraryHidePriorityTest);
     defineReflectiveTests(ImportLibraryHideTest);
   });
 }
@@ -268,6 +269,31 @@ void f(A a1) {
             testCode.indexOf("a')") == error.offset;
       },
     );
+  }
+}
+
+@reflectiveTest
+class ImportLibraryHidePriorityTest extends FixPriorityTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(flutter: true);
+  }
+
+  Future<void> test_dartUi() async {
+    newFile(join(testPackageLibPath, 'size.dart'), '''
+class Size {}
+''');
+    await resolveTestCode('''
+import 'size.dart' hide Size;
+
+void f(Size size) {}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.importLibraryCombinator,
+      DartFixKind.importLibrarySdk,
+      DartFixKind.importLibrarySdkShow,
+    ]);
   }
 }
 

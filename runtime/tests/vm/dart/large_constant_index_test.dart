@@ -7,6 +7,7 @@
 import "package:expect/expect.dart";
 import 'dart:typed_data';
 
+// ARM64 has three addressing strategies for 12, 24, 24+ bits.
 const large = 1 << 25;
 
 @pragma("vm:never-inline")
@@ -84,7 +85,8 @@ testFloat64(Float64List array) {
 main() {
   var x;
   for (var i = 0; i < 20; i++) {
-    x = new List.filled(large + 1, 0);
+    x = new List<int?>.filled(large + 1, null);
+    x[large] = 0;
     testArray(x);
     Expect.equals(x[large], 1);
 

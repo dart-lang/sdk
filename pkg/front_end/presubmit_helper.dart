@@ -83,11 +83,13 @@ const Map<String, String> _compileAndLintDirs = {
 const Set<String> _generatedFilesUpToDateFiles = {
   "pkg/_fe_analyzer_shared/lib/src/experiments/flags.dart",
   "pkg/_fe_analyzer_shared/lib/src/messages/codes_generated.dart",
+  "pkg/_fe_analyzer_shared/lib/src/messages/diagnostic.g.dart",
   "pkg/_fe_analyzer_shared/lib/src/parser/listener.dart",
   "pkg/_fe_analyzer_shared/lib/src/parser/parser_impl.dart",
   "pkg/_fe_analyzer_shared/messages.yaml",
   "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart",
   "pkg/front_end/lib/src/codes/cfe_codes_generated.dart",
+  "pkg/front_end/lib/src/codes/diagnostic.g.dart",
   "pkg/front_end/lib/src/util/parser_ast_helper.dart",
   "pkg/front_end/messages.yaml",
   "pkg/front_end/test/generated_files_up_to_date_git_test.dart",

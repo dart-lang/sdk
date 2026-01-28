@@ -10,6 +10,8 @@ library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;
 
+import 'diagnostic.dart';
+
 import 'diagnostic_message.dart' show CfeDiagnosticMessage;
 
 import '../scanner/token.dart' show Token;
@@ -17,8 +19,6 @@ import '../scanner/token.dart' show Token;
 import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
-
-import 'conversions.dart' as conversions;
 
 part 'codes_generated.dart';
 

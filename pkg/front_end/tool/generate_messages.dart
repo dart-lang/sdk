@@ -18,6 +18,10 @@ void main(List<String> arguments) {
       new File.fromUri(messages.oldUri(repoDir)),
       messages.oldContents,
     );
+    _writeAndFormat(
+      new File.fromUri(messages.newUri(repoDir)),
+      messages.newContents,
+    );
   }
 }
 

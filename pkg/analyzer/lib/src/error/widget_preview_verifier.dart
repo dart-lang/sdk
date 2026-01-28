@@ -95,23 +95,23 @@ class WidgetPreviewVerifier {
   /// Returns whether [name] is private or `node.parent` is a [ClassDeclaration]
   /// that has a private name.
   bool _isPrivateContext({required String? name, required AstNode node}) {
-    if (Identifier.isPrivateName(name ?? '')) return true;
+    if (name != null && Identifier.isPrivateName(name)) return true;
 
     var parent = node.parent?.parent;
     if (parent == null) return false;
 
-    return switch (parent) {
-      ClassDeclaration(:var name) => Identifier.isPrivateName(name.lexeme),
-      EnumDeclaration(:var name) => Identifier.isPrivateName(name.lexeme),
-      ExtensionDeclaration(:var name) => Identifier.isPrivateName(
-        name?.lexeme ?? '',
-      ),
-      ExtensionTypeDeclaration(:var name) => Identifier.isPrivateName(
-        name.lexeme,
-      ),
-      MixinDeclaration(:var name) => Identifier.isPrivateName(name.lexeme),
-      _ => false,
+    var nameToken = switch (parent) {
+      ClassDeclaration declaration => declaration.namePart.typeName,
+      EnumDeclaration declaration => declaration.namePart.typeName,
+      ExtensionDeclaration declaration => declaration.name,
+      ExtensionTypeDeclaration declaration =>
+        declaration.primaryConstructor.typeName,
+      MixinDeclaration declaration => declaration.name,
+      _ => null,
     };
+    if (nameToken == null) return false;
+
+    return Identifier.isPrivateName(nameToken.lexeme);
   }
 
   /// Returns true if `node.parent` is a supported context for defining widget

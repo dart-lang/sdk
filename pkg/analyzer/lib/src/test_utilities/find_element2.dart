@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -223,6 +224,13 @@ class FindElement2 extends _FindElementBase {
       findInExecutables(extension_.getters);
       findInExecutables(extension_.setters);
       findInExecutables(extension_.methods);
+    }
+
+    for (var typeAlias in libraryElement.typeAliases) {
+      var aliasedType = typeAlias.aliasedType;
+      if (aliasedType is FunctionType) {
+        findIn(aliasedType.formalParameters);
+      }
     }
 
     unit.accept(

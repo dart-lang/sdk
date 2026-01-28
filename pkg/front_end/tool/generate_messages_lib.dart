@@ -14,12 +14,13 @@ class MessageAccumulator {
       '// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.';
 
   /// The buffer in which generated code will be accumulated.
-  final StringBuffer _buffer = new StringBuffer();
+  final StringBuffer _oldBuffer = new StringBuffer();
+  final StringBuffer _newBuffer = new StringBuffer();
 
-  /// The URI which the generated file which will be part of.
-  final String partOf;
+  /// The URI which the old generated file which will be part of.
+  final String oldPartOf;
 
-  MessageAccumulator({required this.partOf}) {
+  MessageAccumulator({required this.oldPartOf}) {
     const String preamble1 = """
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37,29 +38,45 @@ class MessageAccumulator {
 // ignore_for_file: lines_longer_than_80_chars
 """;
 
-    _buffer.writeln(preamble1);
-    _buffer.writeln(preamble2);
-    _buffer.writeln("""
-part of '$partOf';
+    _oldBuffer.writeln(preamble1);
+    _oldBuffer.writeln(preamble2);
+    _oldBuffer.writeln("""
+part of '$oldPartOf';
+""");
+
+    _newBuffer.writeln(preamble1);
+    _newBuffer.writeln(preamble2);
+    _newBuffer.writeln("""
+part of 'diagnostic.dart';
 """);
   }
 
-  Messages finish({required String packageName, required String oldPath}) {
+  Messages finish({
+    required String packageName,
+    required String oldPath,
+    required String newPath,
+  }) {
     return Messages(
       packageName: packageName,
       oldPath: oldPath,
-      oldContents: _buffer.toString(),
+      oldContents: _oldBuffer.toString(),
+      newPath: newPath,
+      newContents: _newBuffer.toString(),
     );
   }
 
   void writeConstant({
     required String type,
-    required String name,
+    required String oldName,
+    required String newName,
     required String initializer,
   }) {
-    _buffer.writeln(doNotEditComment);
-    _buffer.writeln('const $type $name = $initializer;');
-    _buffer.writeln();
+    _newBuffer.writeln(doNotEditComment);
+    _newBuffer.writeln('const $type $newName = $initializer;');
+    _newBuffer.writeln();
+    _oldBuffer.writeln(doNotEditComment);
+    _oldBuffer.writeln('const $type $oldName = $newName;');
+    _oldBuffer.writeln();
   }
 
   void writeEnum({
@@ -67,18 +84,18 @@ part of '$partOf';
     required String name,
     required List<String> values,
   }) {
-    _buffer.writeln();
-    _buffer.writeln('/// $documentation');
-    _buffer.writeln('enum $name {');
+    _newBuffer.writeln();
+    _newBuffer.writeln('/// $documentation');
+    _newBuffer.writeln('enum $name {');
     for (var value in values) {
-      _buffer.writeln('  $value,');
+      _newBuffer.writeln('  $value,');
     }
-    _buffer.writeln('}');
+    _newBuffer.writeln('}');
   }
 
   void writeWithArgumentsFunction(String function) {
-    _buffer.writeln(doNotEditComment);
-    _buffer.writeln(function);
+    _newBuffer.writeln(doNotEditComment);
+    _newBuffer.writeln(function);
   }
 }
 
@@ -94,11 +111,24 @@ class Messages {
   /// `cfe_codes_generated.dart` file.
   final String oldContents;
 
+  /// The path to the new generated file, relative to the root of the package.
+  final String newPath;
+
+  /// The string to write to the new `diagnostic.g.dart` file.
+  final String newContents;
+
   Messages({
     required this.packageName,
     required this.oldPath,
     required this.oldContents,
+    required this.newPath,
+    required this.newContents,
   });
+
+  /// Computes the absolute file URI to the new generated file.
+  ///
+  /// [repoDir] is the absolute file URI of the SDK repo.
+  Uri newUri(Uri repoDir) => repoDir.resolve('pkg/$packageName/$newPath');
 
   /// Computes the absolute file URI to the old generated file.
   ///
@@ -108,10 +138,10 @@ class Messages {
 
 List<Messages> generateMessagesFilesRaw(Uri repoDir) {
   MessageAccumulator sharedMessages = new MessageAccumulator(
-    partOf: 'codes.dart',
+    oldPartOf: 'codes.dart',
   );
   MessageAccumulator cfeMessages = new MessageAccumulator(
-    partOf: 'cfe_codes.dart',
+    oldPartOf: 'cfe_codes.dart',
   );
 
   var pseudoSharedCodeValues = <String>{};
@@ -151,10 +181,12 @@ List<Messages> generateMessagesFilesRaw(Uri repoDir) {
     sharedMessages.finish(
       packageName: '_fe_analyzer_shared',
       oldPath: "lib/src/messages/codes_generated.dart",
+      newPath: "lib/src/messages/diagnostic.g.dart",
     ),
     cfeMessages.finish(
       packageName: 'front_end',
       oldPath: "lib/src/codes/cfe_codes_generated.dart",
+      newPath: "lib/src/codes/diagnostic.g.dart",
     ),
   ];
 }
@@ -173,7 +205,8 @@ String _newName({required Set<String> usedNames, required String nameHint}) {
 }
 
 class _TemplateCompiler {
-  final String name;
+  final String pascalCaseName;
+  final String camelCaseName;
   final CfeStyleMessage message;
   final List<TemplatePart> problemMessage;
   final List<TemplatePart>? correctionMessage;
@@ -203,7 +236,8 @@ class _TemplateCompiler {
   _TemplateCompiler({
     required this.message,
     required this.pseudoSharedCodeValues,
-  }) : name = message.frontEndCode.pascalCaseName,
+  }) : pascalCaseName = message.frontEndCode.pascalCaseName,
+       camelCaseName = message.frontEndCode.camelCaseName,
        problemMessage = message.problemMessage,
        correctionMessage = message.correctionMessage,
        severity = message.cfeSeverity,
@@ -213,7 +247,6 @@ class _TemplateCompiler {
            : null;
 
   void compile(MessageAccumulator messageAccumulator) {
-    var constantName = 'code$name';
     var codeArguments = <String>[
       if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
         'pseudoSharedCode: ${_encodePseudoSharedCode(pseudoSharedCode!)}',
@@ -239,12 +272,14 @@ class _TemplateCompiler {
 
       constantType = 'MessageCode';
       constantInitializer =
-          'const MessageCode("$name", ${codeArguments.join(', ')},)';
+          'const MessageCode("$pascalCaseName", ${codeArguments.join(', ')},)';
     } else {
       List<String> templateArguments = <String>[];
-      templateArguments.add('\"$name\"');
-      templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
-      templateArguments.add("withArguments: _withArguments$name");
+      templateArguments.add('\"$pascalCaseName\"');
+      templateArguments.add(
+        "withArgumentsOld: _withArgumentsOld$pascalCaseName",
+      );
+      templateArguments.add("withArguments: _withArguments$pascalCaseName");
       templateArguments.addAll(codeArguments);
 
       List<String> messageArguments = <String>[
@@ -270,21 +305,22 @@ Template<
 >""";
       constantInitializer = 'const Template(${templateArguments.join(', ')},)';
       withArgumentsFunctions.add("""
-Message _withArguments$name({${namedParameters.join(', ')}}) {
+Message _withArguments$pascalCaseName({${namedParameters.join(', ')}}) {
   ${withArgumentsStatements.join('\n  ')}
   return new Message(
-     $constantName,
+     $camelCaseName,
      ${messageArguments.join(', ')},);
 }
 """);
       withArgumentsFunctions.add("""
-Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
-    _withArguments$name(${oldToNewArguments.join(', ')});
+Message _withArgumentsOld$pascalCaseName(${positionalParameters.join(', ')}) =>
+    _withArguments$pascalCaseName(${oldToNewArguments.join(', ')});
 """);
     }
     messageAccumulator.writeConstant(
       type: constantType,
-      name: constantName,
+      oldName: 'code$pascalCaseName',
+      newName: camelCaseName,
       initializer: constantInitializer,
     );
     for (var withArgumentsFunction in withArgumentsFunctions) {

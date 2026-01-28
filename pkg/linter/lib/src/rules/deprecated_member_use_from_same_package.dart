@@ -282,6 +282,12 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    _deprecatedVerifier.patternField(node);
+    super.visitPatternField(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     _deprecatedVerifier.postfixExpression(node);
     super.visitPostfixExpression(node);

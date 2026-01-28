@@ -29,8 +29,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         codeExpectedIdentifier,
         codeExperimentNotEnabled,
         codeExtraneousModifier,
-        codeInternalProblemUnhandled,
-        PseudoSharedCode;
+        codeInternalProblemUnhandled;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,

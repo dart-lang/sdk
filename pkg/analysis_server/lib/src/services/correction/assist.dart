@@ -186,6 +186,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     "Convert to 'package:' import",
   );
+  static const convertToPrimaryConstructor = AssistKind(
+    'convert_to_primary_constructor',
+    DartAssistKindPriority.default_,
+    'Convert to a primary constructor',
+  );
   static const convertToRelativeImport = AssistKind(
     'dart.assist.convert.packageToRelativeImport',
     DartAssistKindPriority.default_,

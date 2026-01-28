@@ -227,7 +227,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var producers = <ResolvedCorrectionProducer>[];
     // Maybe there is an existing import, but it is with prefix and we don't use
     // this prefix.
-    var alreadyImportedWithPrefix = <LibraryElement>{};
+    var alreadyImported = <LibraryElement>{};
     for (var importDirective
         in unitResult.unit.directives.whereType<ImportDirective>()) {
       // Prepare the element.
@@ -274,7 +274,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         );
         continue;
       } else if (combinatorProducer != null) {
-        alreadyImportedWithPrefix.add(libraryElement);
+        alreadyImported.add(libraryElement);
         producers.add(combinatorProducer);
         if (combinatorProducerMultiple != null) {
           producers.add(combinatorProducerMultiple);
@@ -292,7 +292,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       // Check the source.
-      if (alreadyImportedWithPrefix.contains(libraryElement)) {
+      if (alreadyImported.contains(libraryElement)) {
         continue;
       }
       // Check that the import doesn't end with '.template.dart'.
