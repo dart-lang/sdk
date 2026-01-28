@@ -14,13 +14,9 @@ import 'diagnostic.dart';
 
 import 'diagnostic_message.dart' show CfeDiagnosticMessage;
 
-import '../scanner/token.dart' show Token;
-
 import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
-
-part 'codes_generated.dart';
 
 const int noLength = 1;
 

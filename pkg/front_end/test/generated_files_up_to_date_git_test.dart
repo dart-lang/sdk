@@ -130,18 +130,10 @@ void messages() {
   for (var messages in generateMessages.generateMessagesFiles(repoDir)) {
     check(
       DartFormat.formatString(
-        messages.oldContents,
+        messages.contents,
         languageVersion: getPackageVersionFor(messages.packageName),
       ),
-      messages.oldUri(repoDir),
-      "dart pkg/front_end/tool/generate_messages.dart",
-    );
-    check(
-      DartFormat.formatString(
-        messages.newContents,
-        languageVersion: getPackageVersionFor(messages.packageName),
-      ),
-      messages.newUri(repoDir),
+      messages.uri(repoDir),
       "dart pkg/front_end/tool/generate_messages.dart",
     );
   }
