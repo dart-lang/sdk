@@ -493,8 +493,8 @@ Message _withArgumentsOldBoundIssueViaRawTypeWithNonSimpleBounds(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String label),
+  Message Function({required String label})
 >
 breakTargetOutsideFunction = const Template(
   "BreakTargetOutsideFunction",
@@ -503,18 +503,18 @@ breakTargetOutsideFunction = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBreakTargetOutsideFunction({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsBreakTargetOutsideFunction({required String label}) {
+  var label_0 = conversions.validateAndDemangleName(label);
   return new Message(
     breakTargetOutsideFunction,
-    problemMessage: """Can't break to '${name_0}' in a different function.""",
-    arguments: {'name': name},
+    problemMessage: """Can't break to '${label_0}' in a different function.""",
+    arguments: {'label': label},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBreakTargetOutsideFunction(String name) =>
-    _withArgumentsBreakTargetOutsideFunction(name: name);
+Message _withArgumentsOldBreakTargetOutsideFunction(String label) =>
+    _withArgumentsBreakTargetOutsideFunction(label: label);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode candidateFound = const MessageCode(
@@ -2443,8 +2443,8 @@ const MessageCode continueLabelInvalid = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String label),
+  Message Function({required String label})
 >
 continueTargetOutsideFunction = const Template(
   "ContinueTargetOutsideFunction",
@@ -2453,19 +2453,19 @@ continueTargetOutsideFunction = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsContinueTargetOutsideFunction({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsContinueTargetOutsideFunction({required String label}) {
+  var label_0 = conversions.validateAndDemangleName(label);
   return new Message(
     continueTargetOutsideFunction,
     problemMessage:
-        """Can't continue at '${name_0}' in a different function.""",
-    arguments: {'name': name},
+        """Can't continue at '${label_0}' in a different function.""",
+    arguments: {'label': label},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldContinueTargetOutsideFunction(String name) =>
-    _withArgumentsContinueTargetOutsideFunction(name: name);
+Message _withArgumentsOldContinueTargetOutsideFunction(String label) =>
+    _withArgumentsContinueTargetOutsideFunction(label: label);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
