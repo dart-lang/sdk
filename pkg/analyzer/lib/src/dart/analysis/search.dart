@@ -726,6 +726,10 @@ class Search {
   ) async {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element, searchedFiles, const {
+      IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
+      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+      IndexRelationKind.IS_READ_BY: SearchResultKind.READ,
+      IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
       IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT:
           SearchResultKind.REFERENCE_BY_NAMED_ARGUMENT,
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
@@ -933,8 +937,7 @@ class Search {
 
     // Prepare the enclosing node.
     var enclosingNode = node.thisOrAncestorMatching(
-      (node) =>
-          isRootNode(node) || node is ClassMember || node is CompilationUnit,
+      (node) => isRootNode(node) || node is CompilationUnit,
     );
     assert(
       enclosingNode != null && enclosingNode is! CompilationUnit,
@@ -953,18 +956,18 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Parameter(
-    FormalParameterElement parameter,
+    FormalParameterElement element,
     SearchedFiles searchedFiles,
   ) async {
     List<SearchResult> results = <SearchResult>[];
-    results.addAll(
-      await _searchReferences_Local(parameter, (AstNode node) {
-        var parent = node.parent;
-        return parent is ClassDeclaration || parent is CompilationUnit;
-      }, searchedFiles),
-    );
-    if (parameter.isNamed || parameter.enclosingElement is ConstructorElement) {
-      results.addAll(await _searchReferences(parameter, searchedFiles));
+    if (element.enclosingElement is LocalFunctionElement) {
+      results.addAll(
+        await _searchReferences_Local(element, (node) {
+          return node is Block || node.parent is CompilationUnit;
+        }, searchedFiles),
+      );
+    } else {
+      results.addAll(await _searchReferences(element, searchedFiles));
     }
     return results;
   }

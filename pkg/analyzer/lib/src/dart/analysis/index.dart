@@ -616,6 +616,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
         return;
       }
     }
+    // Ignore formal parameters of local functions.
+    if (element is FormalParameterElement &&
+        element.enclosingElement is LocalFunctionElement) {
+      return;
+    }
     // Elements for generic function types are enclosed by the compilation
     // units, but don't have names. So, we cannot index references to their
     // named parameters. Ignore them.
@@ -654,6 +659,17 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   void recordUriReference(Element? element, StringLiteral uri) {
     recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, uri, true);
+  }
+
+  @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    recordRelation(
+      node.element,
+      IndexRelationKind.IS_WRITTEN_BY,
+      node.name,
+      false,
+    );
+    super.visitAssignedVariablePattern(node);
   }
 
   @override
@@ -1151,21 +1167,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
       recordNameRelation(node, kind, isQualified);
     }
-    // ignore a local reference to a parameter
-    if (element is FormalParameterElement) {
-      if (node.parent is! Label) {
-        return;
-      }
-      if (element.enclosingElement is LocalFunctionElement) {
-        return;
-      }
-    }
-
     IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;
-    if (element is FormalParameterElement && element.isNamed) {
-      // Use a different kind for named arguments so that we can handle
-      // refactoring private named parameters.
-      kind = IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT;
+    if (element is FormalParameterElement) {
+      var parent = node.parent;
+      var isGet = node.inGetterContext();
+      var isSet = node.inSetterContext();
+      if (parent is CommentReference) {
+        kind = IndexRelationKind.IS_REFERENCED_BY;
+      } else if (parent is Label && parent.parent is NamedExpression) {
+        kind = IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT;
+      } else if (isGet && isSet) {
+        kind = IndexRelationKind.IS_READ_WRITTEN_BY;
+      } else if (isGet) {
+        if (parent is MethodInvocation && parent.methodName == node) {
+          kind = IndexRelationKind.IS_INVOKED_BY;
+        } else {
+          kind = IndexRelationKind.IS_READ_BY;
+        }
+      } else if (isSet) {
+        kind = IndexRelationKind.IS_WRITTEN_BY;
+      }
     }
 
     // record specific relations

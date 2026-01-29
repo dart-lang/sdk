@@ -3316,10 +3316,14 @@ void f() {
 
   test_searchReferences_FormalParameterElement_ofConstructor_primary_optionalNamed() async {
     await resolveTestCode('''
-/// [test]
 class A({int? test}) {
+  /// [test]
   this : assert(test != null) {
     test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   A.redirect({int? test}) : this(test: test);
@@ -3340,24 +3344,35 @@ void f() {
 ''');
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment> redirect@85
-  114 7:34 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> test@161
-  161 11:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> A@6
+  30 2:8 |test| REFERENCE
+  52 3:17 |test| READ
+  72 4:5 |test| READ
+  82 5:5 |test| WRITE
+  96 6:5 |test| READ_WRITE
+  112 7:6 |test| WRITE
+  136 8:10 |test| WRITE
+<testLibraryFragment> redirect@161
+  190 11:34 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> test@237
+  237 15:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 <testLibraryFragment> new@null
-  217 15:26 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> f@238
-  248 19:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  271 20:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  293 19:26 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> f@314
+  324 23:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  347 24:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
   test_searchReferences_FormalParameterElement_ofConstructor_primary_optionalNamed_genericClass() async {
     await resolveTestCode('''
-/// [test]
 class A<T>({T? test}) {
+  /// [test]
   this : assert(test != null) {
     test;
+    test = null;
+    (test,) = (null,);
+    for (test in [null]) {}
   }
 
   A.redirect({T? test}) : this(test: test);
@@ -3378,24 +3393,35 @@ void f() {
 ''');
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment> redirect@86
-  113 7:32 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> test@166
-  166 11:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> A@6
+  31 2:8 |test| REFERENCE
+  53 3:17 |test| READ
+  73 4:5 |test| READ
+  83 5:5 |test| WRITE
+  101 6:6 |test| WRITE
+  128 7:10 |test| WRITE
+<testLibraryFragment> redirect@156
+  183 10:32 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> test@236
+  236 14:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 <testLibraryFragment> new@null
-  226 15:24 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> f@247
-  257 19:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  285 20:19 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  296 18:24 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> f@317
+  327 22:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  355 23:19 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
   test_searchReferences_FormalParameterElement_ofConstructor_primary_optionalPositional() async {
     await resolveTestCode('''
-/// [test]
 class A([int? test]) {
+  /// [test]
   this : assert(test != null) {
     test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   A.redirect([int? test]) : this(test);
@@ -3416,17 +3442,29 @@ void f() {
 ''');
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment> test@155
-  155 11:12 |test| REFERENCE qualified
+<testLibraryFragment> A@6
+  30 2:8 |test| REFERENCE
+  52 3:17 |test| READ
+  72 4:5 |test| READ
+  82 5:5 |test| WRITE
+  96 6:5 |test| READ_WRITE
+  112 7:6 |test| WRITE
+  136 8:10 |test| WRITE
+<testLibraryFragment> test@231
+  231 15:12 |test| REFERENCE qualified
 ''');
   }
 
   test_searchReferences_FormalParameterElement_ofConstructor_primary_requiredNamed() async {
     await resolveTestCode('''
-/// [test]
 class A({required int test}) {
+  /// [test]
   this : assert(test != -1) {
     test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   A.redirect({required int test}) : this(test: test);
@@ -3447,24 +3485,36 @@ void f() {
 ''');
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment> redirect@91
-  128 7:42 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> test@184
-  184 11:21 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> A@6
+  38 2:8 |test| REFERENCE
+  60 3:17 |test| READ
+  78 4:5 |test| READ
+  88 5:5 |test| WRITE
+  102 6:5 |test| READ_WRITE
+  118 7:6 |test| WRITE
+  142 8:10 |test| WRITE
+<testLibraryFragment> redirect@167
+  204 11:42 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> test@260
+  260 15:21 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 <testLibraryFragment> new@null
-  248 15:34 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> f@269
-  279 19:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  302 20:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  324 19:34 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> f@345
+  355 23:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  378 24:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
   test_searchReferences_FormalParameterElement_ofConstructor_primary_requiredPositional() async {
     await resolveTestCode('''
-/// [test]
 class A(int test) {
+  /// [test]
   this : assert(test != -1) {
     test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   A.redirect(int test) : this(test);
@@ -3485,8 +3535,16 @@ void f() {
 ''');
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
-<testLibraryFragment> test@146
-  146 11:11 |test| REFERENCE qualified
+<testLibraryFragment> A@6
+  27 2:8 |test| REFERENCE
+  49 3:17 |test| READ
+  67 4:5 |test| READ
+  77 5:5 |test| WRITE
+  91 6:5 |test| READ_WRITE
+  107 7:6 |test| WRITE
+  131 8:10 |test| WRITE
+<testLibraryFragment> test@222
+  222 15:11 |test| REFERENCE qualified
 ''');
   }
 
@@ -3496,6 +3554,10 @@ class A {
   /// [test]
   A({int? test}) : assert(test != null) {
     test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   A.redirect({int? test}) : this(test: test);
@@ -3517,18 +3579,22 @@ void f() {
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> new@null
-  17 2:8 |test| READ
+  17 2:8 |test| REFERENCE
   49 3:27 |test| READ
   69 4:5 |test| READ
-<testLibraryFragment> redirect@84
-  113 7:34 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> test@160
-  160 11:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  79 5:5 |test| WRITE
+  93 6:5 |test| READ_WRITE
+  109 7:6 |test| WRITE
+  133 8:10 |test| WRITE
+<testLibraryFragment> redirect@158
+  187 11:34 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> test@234
+  234 15:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 <testLibraryFragment> new@null
-  216 15:26 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> f@237
-  247 19:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  270 20:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  290 19:26 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> f@311
+  321 23:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  344 24:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -3538,6 +3604,9 @@ class A<T> {
   /// [test]
   A({T? test}) : assert(test != null) {
     test;
+    test = null;
+    (test,) = (null,);
+    for (test in [null]) {}
   }
 
   A.redirect({T? test}) : this(test: test);
@@ -3559,18 +3628,21 @@ void f() {
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> new@null
-  20 2:8 |test| READ
+  20 2:8 |test| REFERENCE
   50 3:25 |test| READ
   70 4:5 |test| READ
-<testLibraryFragment> redirect@85
-  112 7:32 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> test@165
-  165 11:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  80 5:5 |test| WRITE
+  98 6:6 |test| WRITE
+  125 7:10 |test| WRITE
+<testLibraryFragment> redirect@153
+  180 10:32 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> test@233
+  233 14:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 <testLibraryFragment> new@null
-  225 15:24 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> f@246
-  256 19:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  284 20:19 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  293 18:24 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> f@314
+  324 22:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  352 23:19 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -3580,6 +3652,10 @@ class A {
   /// [test]
   A([int? test]) : assert(test != null) {
     test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   A.redirect([int? test]) : this(test);
@@ -3601,11 +3677,15 @@ void f() {
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> new@null
-  17 2:8 |test| READ
+  17 2:8 |test| REFERENCE
   49 3:27 |test| READ
   69 4:5 |test| READ
-<testLibraryFragment> test@154
-  154 11:12 |test| REFERENCE qualified
+  79 5:5 |test| WRITE
+  93 6:5 |test| READ_WRITE
+  109 7:6 |test| WRITE
+  133 8:10 |test| WRITE
+<testLibraryFragment> test@228
+  228 15:12 |test| REFERENCE qualified
 ''');
   }
 
@@ -3615,6 +3695,10 @@ class A {
   /// [test]
   A({required int test}) : assert(test != -1) {
     test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   A.redirect({required int test}) : this(test: test);
@@ -3636,18 +3720,22 @@ void f() {
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> new@null
-  17 2:8 |test| READ
+  17 2:8 |test| REFERENCE
   57 3:35 |test| READ
   75 4:5 |test| READ
-<testLibraryFragment> redirect@90
-  127 7:42 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> test@183
-  183 11:21 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  85 5:5 |test| WRITE
+  99 6:5 |test| READ_WRITE
+  115 7:6 |test| WRITE
+  139 8:10 |test| WRITE
+<testLibraryFragment> redirect@164
+  201 11:42 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> test@257
+  257 15:21 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 <testLibraryFragment> new@null
-  247 15:34 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-<testLibraryFragment> f@268
-  278 19:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  301 20:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  321 19:34 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+<testLibraryFragment> f@342
+  352 23:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  375 24:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -3657,6 +3745,10 @@ class A {
   /// [test]
   A(int test) : assert(test != -1) {
     test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   A.redirect(int test) : this(test);
@@ -3678,11 +3770,15 @@ void f() {
     var element = findElement2.unnamedConstructor('A').parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> new@null
-  17 2:8 |test| READ
+  17 2:8 |test| REFERENCE
   46 3:24 |test| READ
   64 4:5 |test| READ
-<testLibraryFragment> test@145
-  145 11:11 |test| REFERENCE qualified
+  74 5:5 |test| WRITE
+  88 6:5 |test| READ_WRITE
+  104 7:6 |test| WRITE
+  128 8:10 |test| WRITE
+<testLibraryFragment> test@219
+  219 15:11 |test| REFERENCE qualified
 ''');
   }
 
@@ -3716,10 +3812,13 @@ void g(F<int> f) {
     _makeTestFilePriority();
     await resolveTestCode('''
 void f() {
+  /// [test]
   void foo({int? test}) {
     test;
-    test = 1;
-    test += 2;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   foo(test: 0);
@@ -3730,12 +3829,14 @@ void f() {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> f@5
-  41 3:5 |test| READ
-  51 4:5 |test| WRITE
-  65 5:5 |test| READ_WRITE
-  87 8:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  108 9:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  126 10:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  54 4:5 |test| READ
+  64 5:5 |test| WRITE
+  78 6:5 |test| READ_WRITE
+  94 7:6 |test| WRITE
+  118 8:10 |test| WRITE
+  145 11:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  166 12:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  184 13:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -3743,10 +3844,13 @@ void f() {
     _makeTestFilePriority();
     await resolveTestCode('''
 void f() {
+  /// [test]
   void foo([int? test]) {
     test;
-    test = 1;
-    test += 2;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   foo(0);
@@ -3757,9 +3861,11 @@ void f() {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> f@5
-  41 3:5 |test| READ
-  51 4:5 |test| WRITE
-  65 5:5 |test| READ_WRITE
+  54 4:5 |test| READ
+  64 5:5 |test| WRITE
+  78 6:5 |test| READ_WRITE
+  94 7:6 |test| WRITE
+  118 8:10 |test| WRITE
 ''');
   }
 
@@ -3767,10 +3873,13 @@ void f() {
     _makeTestFilePriority();
     await resolveTestCode('''
 void f() {
+  /// [test]
   void foo({required int test}) {
     test;
-    test = 1;
-    test += 2;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   foo(test: 0);
@@ -3781,12 +3890,14 @@ void f() {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> f@5
-  49 3:5 |test| READ
-  59 4:5 |test| WRITE
-  73 5:5 |test| READ_WRITE
-  95 8:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  116 9:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  134 10:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  62 4:5 |test| READ
+  72 5:5 |test| WRITE
+  86 6:5 |test| READ_WRITE
+  102 7:6 |test| WRITE
+  126 8:10 |test| WRITE
+  153 11:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  174 12:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  192 13:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -3794,10 +3905,13 @@ void f() {
     _makeTestFilePriority();
     await resolveTestCode('''
 void f() {
+  /// [test]
   void foo(int test) {
     test;
-    test = 1;
-    test += 2;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 
   foo(0);
@@ -3808,9 +3922,11 @@ void f() {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> f@5
-  38 3:5 |test| READ
-  48 4:5 |test| WRITE
-  62 5:5 |test| READ_WRITE
+  51 4:5 |test| READ
+  61 5:5 |test| WRITE
+  75 6:5 |test| READ_WRITE
+  91 7:6 |test| WRITE
+  115 8:10 |test| WRITE
 ''');
   }
 
@@ -3820,8 +3936,10 @@ class A {
   /// [test]
   void foo({int? test}) {
     test;
-    test = 1;
-    test += 2;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 }
 
@@ -3834,14 +3952,16 @@ void f(A a) {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@30
-  17 2:8 |test| READ
+  17 2:8 |test| REFERENCE
   53 4:5 |test| READ
   63 5:5 |test| WRITE
   77 6:5 |test| READ_WRITE
-<testLibraryFragment> f@100
-  117 11:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  140 12:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  160 13:11 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  93 7:6 |test| WRITE
+  117 8:10 |test| WRITE
+<testLibraryFragment> f@145
+  162 13:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  185 14:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  205 15:11 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -3853,6 +3973,8 @@ class A<T> {
     test;
     test = null;
     test = test;
+    (test,) = (null,);
+    for (test in [null]) {}
   }
 }
 
@@ -3865,13 +3987,15 @@ void f(A<int> a) {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@33
-  20 2:8 |test| READ
+  20 2:8 |test| REFERENCE
   54 4:5 |test| READ
   64 5:5 |test| WRITE
   81 6:5 |test| WRITE
   88 6:12 |test| READ
-<testLibraryFragment> f@106
-  128 11:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  99 7:6 |test| WRITE
+  126 8:10 |test| WRITE
+<testLibraryFragment> f@157
+  179 13:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -3881,8 +4005,10 @@ class A {
   /// [test]
   void foo([int? test]) {
     test;
-    test = 1;
-    test += 2;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 }
 
@@ -3895,10 +4021,12 @@ void f(A a) {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@30
-  17 2:8 |test| READ
+  17 2:8 |test| REFERENCE
   53 4:5 |test| READ
   63 5:5 |test| WRITE
   77 6:5 |test| READ_WRITE
+  93 7:6 |test| WRITE
+  117 8:10 |test| WRITE
 ''');
   }
 
@@ -3908,8 +4036,10 @@ class A {
   /// [test]
   void foo({required int test}) {
     test;
-    test = 1;
-    test += 2;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 }
 
@@ -3922,14 +4052,16 @@ void f(A a) {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@30
-  17 2:8 |test| READ
+  17 2:8 |test| REFERENCE
   61 4:5 |test| READ
   71 5:5 |test| WRITE
   85 6:5 |test| READ_WRITE
-<testLibraryFragment> f@108
-  125 11:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  148 12:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  168 13:11 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  101 7:6 |test| WRITE
+  125 8:10 |test| WRITE
+<testLibraryFragment> f@153
+  170 13:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  193 14:14 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  213 15:11 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -3939,8 +4071,10 @@ class A {
   /// [test]
   void foo(int test) {
     test;
-    test = 1;
-    test += 2;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
   }
 }
 
@@ -3953,10 +4087,12 @@ void f(A a) {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@30
-  17 2:8 |test| READ
+  17 2:8 |test| REFERENCE
   50 4:5 |test| READ
   60 5:5 |test| WRITE
   74 6:5 |test| READ_WRITE
+  90 7:6 |test| WRITE
+  114 8:10 |test| WRITE
 ''');
   }
 
@@ -3965,8 +4101,10 @@ void f(A a) {
 /// [test]
 void foo({int? test}) {
   test;
-  test = 1;
-  test += 2;
+  test = 0;
+  test += 0;
+  (test,) = (0,);
+  for (test in [0]) {}
 }
 void f() {
   foo(test: 0);
@@ -3977,14 +4115,16 @@ void f() {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@16
-  5 1:6 |test| READ
+  5 1:6 |test| REFERENCE
   37 3:3 |test| READ
   45 4:3 |test| WRITE
   57 5:3 |test| READ_WRITE
-<testLibraryFragment> f@75
-  87 8:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  108 9:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  126 10:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  71 6:4 |test| WRITE
+  93 7:8 |test| WRITE
+<testLibraryFragment> f@116
+  128 10:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  149 11:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  167 12:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -3993,8 +4133,10 @@ void f() {
 /// [test]
 void foo(int a, int b, {int? test}) {
   test;
-  test = 1;
-  test += 2;
+  test = 0;
+  test += 0;
+  (test,) = (0,);
+  for (test in [0]) {}
 }
 
 void f() {
@@ -4006,14 +4148,16 @@ void f() {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@16
-  5 1:6 |test| READ
+  5 1:6 |test| REFERENCE
   51 3:3 |test| READ
   59 4:3 |test| WRITE
   71 5:3 |test| READ_WRITE
-<testLibraryFragment> f@90
-  105 9:10 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  132 10:15 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  156 11:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  85 6:4 |test| WRITE
+  107 7:8 |test| WRITE
+<testLibraryFragment> f@131
+  146 11:10 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  173 12:15 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  197 13:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -4022,8 +4166,10 @@ void f() {
 /// [test]
 void foo([int? test]) {
   test;
-  test = 1;
-  test += 2;
+  test = 0;
+  test += 0;
+  (test,) = (0,);
+  for (test in [0]) {}
 }
 void f() {
   foo(0);
@@ -4034,10 +4180,12 @@ void f() {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@16
-  5 1:6 |test| READ
+  5 1:6 |test| REFERENCE
   37 3:3 |test| READ
   45 4:3 |test| WRITE
   57 5:3 |test| READ_WRITE
+  71 6:4 |test| WRITE
+  93 7:8 |test| WRITE
 ''');
   }
 
@@ -4046,8 +4194,10 @@ void f() {
 /// [test]
 void foo({required int test}) {
   test;
-  test = 1;
-  test += 2;
+  test = 0;
+  test += 0;
+  (test,) = (0,);
+  for (test in [0]) {}
 }
 
 void f() {
@@ -4059,14 +4209,16 @@ void f() {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@16
-  5 1:6 |test| READ
+  5 1:6 |test| REFERENCE
   45 3:3 |test| READ
   53 4:3 |test| WRITE
   65 5:3 |test| READ_WRITE
-<testLibraryFragment> f@84
-  96 9:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  117 10:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
-  135 11:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  79 6:4 |test| WRITE
+  101 7:8 |test| WRITE
+<testLibraryFragment> f@125
+  137 11:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  158 12:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  176 13:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -4075,8 +4227,10 @@ void f() {
 /// [test]
 void foo(int test) {
   test;
-  test = 1;
-  test += 2;
+  test = 0;
+  test += 0;
+  (test,) = (0,);
+  for (test in [0]) {}
 }
 
 void f() {
@@ -4088,10 +4242,12 @@ void f() {
     var element = findElement2.parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> foo@16
-  5 1:6 |test| READ
+  5 1:6 |test| REFERENCE
   34 3:3 |test| READ
   42 4:3 |test| WRITE
   54 5:3 |test| READ_WRITE
+  68 6:4 |test| WRITE
+  90 7:8 |test| WRITE
 ''');
   }
 
@@ -5944,7 +6100,7 @@ void f() {
     var element = findElement2.unnamedConstructor('B').parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> new@null
-  58 6:8 |test| READ
+  58 6:8 |test| REFERENCE
   91 7:28 |test| READ
 <testLibraryFragment> f@114
   124 11:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
@@ -5971,7 +6127,7 @@ void f() {
     var element = findElement2.unnamedConstructor('B').parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> new@null
-  58 6:8 |test| READ
+  58 6:8 |test| REFERENCE
   91 7:28 |test| READ
 ''');
   }
@@ -5995,7 +6151,7 @@ void f() {
     var element = findElement2.unnamedConstructor('B').parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> new@null
-  66 6:8 |test| READ
+  66 6:8 |test| REFERENCE
   108 7:37 |test| READ
 <testLibraryFragment> f@129
   139 11:5 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
@@ -6022,7 +6178,7 @@ void f() {
     var element = findElement2.unnamedConstructor('B').parameter('test');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> new@null
-  55 6:8 |test| READ
+  55 6:8 |test| REFERENCE
   86 7:26 |test| READ
 ''');
   }
