@@ -118,9 +118,9 @@ class NonAsciiIdentifierToken extends ErrorToken {
   String toString() => "NonAsciiIdentifierToken($character)";
 
   @override
-  Message get assertionMessage => diag.nonAsciiIdentifier.withArgumentsOld(
-    new String.fromCharCodes([character]),
-    character,
+  Message get assertionMessage => diag.nonAsciiIdentifier.withArguments(
+    character: new String.fromCharCodes([character]),
+    codePoint: character,
   );
 }
 
@@ -136,7 +136,7 @@ class NonAsciiWhitespaceToken extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      diag.nonAsciiWhitespace.withArgumentsOld(character);
+      diag.nonAsciiWhitespace.withArguments(codePoint: character);
 }
 
 /// Represents an ASCII control character outside a string or comment.

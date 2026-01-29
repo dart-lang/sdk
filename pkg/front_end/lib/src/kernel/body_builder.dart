@@ -4330,8 +4330,8 @@ class BodyBuilderImpl extends StackListenerImpl
           NamedExpression? existingExpression = namedElements[element.name];
           if (existingExpression != null) {
             existingExpression.value = buildProblem(
-              message: diag.duplicatedRecordLiteralFieldName.withArgumentsOld(
-                element.name,
+              message: diag.duplicatedRecordLiteralFieldName.withArguments(
+                fieldName: element.name,
               ),
               fileUri: uri,
               fileOffset: element.fileOffset,

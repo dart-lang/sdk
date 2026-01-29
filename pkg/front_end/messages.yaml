@@ -700,29 +700,29 @@ extensionTypeShouldBeListedAsCallableInDynamicInterface:
 
 classShouldBeListedAsCallableInDynamicInterface:
   parameters:
-    Name name: undocumented
+    Name name: Class name.
   problemMessage: "Cannot use class '#name' in a dynamic module."
   correctionMessage: "Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as callable."
 
 classShouldBeListedAsExtendableInDynamicInterface:
   parameters:
-    Name name: undocumented
+    Name name: Class name.
   problemMessage: "Cannot extend, implement or mix-in class '#name' in a dynamic module."
   correctionMessage: "Try removing the reference to class '#name' or update the dynamic interface to list class '#name' as extendable."
 
 memberShouldBeListedAsCanBeOverriddenInDynamicInterface:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Cannot override member '#name.#name2' in a dynamic module."
-  correctionMessage: "Try removing the override or update the dynamic interface to list member '#name.#name2' as can-be-overridden."
+    Name className: The name of the class containing the problematic member.
+    Name memberName: The name of the problematic member.
+  problemMessage: "Cannot override member '#className.#memberName' in a dynamic module."
+  correctionMessage: "Try removing the override or update the dynamic interface to list member '#className.#memberName' as can-be-overridden."
 
 nonAsciiIdentifier:
   pseudoSharedCode: ILLEGAL_CHARACTER
   parameters:
-    Character character: undocumented
-    Unicode unicode: undocumented
-  problemMessage: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
+    Character character: The non-ascii character
+    Unicode codePoint: The unicode code point of the non-ascii character
+  problemMessage: "The non-ASCII character '#character' (#codePoint) can't be used in identifiers, only in strings and comments."
   correctionMessage: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."
   expression: "å"
   exampleAllowOtherCodes: true
@@ -730,8 +730,8 @@ nonAsciiIdentifier:
 nonAsciiWhitespace:
   pseudoSharedCode: ILLEGAL_CHARACTER
   parameters:
-    Unicode unicode: undocumented
-  problemMessage: "The non-ASCII space character #unicode can only be used in strings and comments."
+    Unicode codePoint: The unicode code point of the non-ascii character
+  problemMessage: "The non-ASCII space character #codePoint can only be used in strings and comments."
   expression: "\u2028 1"
 
 encoding:
@@ -742,15 +742,15 @@ encoding:
 
 experimentDisabled:
   parameters:
-    String string: undocumented
-  problemMessage: "This requires the '#string' language feature to be enabled."
-  correctionMessage: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed."
+    String featureName: The name of the experimental language feature.
+  problemMessage: "This requires the '#featureName' language feature to be enabled."
+  correctionMessage: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#featureName' command line option is passed."
 
 experimentDisabledInvalidLanguageVersion:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "This requires the '#string' language feature, which requires language version of #string2 or higher."
+    String featureName: The name of the experimental language feature.
+    String requiredLanguageVersion: The language version in which that language feature was enabled.
+  problemMessage: "This requires the '#featureName' language feature, which requires language version of #requiredLanguageVersion or higher."
 
 emptyNamedParameterList:
   pseudoSharedCode: "MISSING_IDENTIFIER"
@@ -766,22 +766,22 @@ emptyNamedParameterList:
 
 duplicatedRecordTypeFieldName:
   parameters:
-    Name name: undocumented
-  problemMessage: "Duplicated record type field name '#name'."
+    Name fieldName: The name of the duplicated field.
+  problemMessage: "Duplicated record type field name '#fieldName'."
   correctionMessage: "Try renaming or removing one of the named record type fields."
   script: |
     ({int a, String a}) record = throw '';
 
 duplicatedRecordTypeFieldNameContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the existing record type field named '#name'."
+    Name fieldName: The name of the duplicated field.
+  problemMessage: "This is the existing record type field named '#fieldName'."
   severity: CONTEXT
 
 duplicatedRecordLiteralFieldName:
   parameters:
-    Name name: undocumented
-  problemMessage: "Duplicated record literal field name '#name'."
+    Name fieldName: The name of the duplicated field.
+  problemMessage: "Duplicated record literal field name '#fieldName'."
   correctionMessage: "Try renaming or removing one of the named record literal fields."
   script: |
     dynamic field = (a: 0, a: 1);

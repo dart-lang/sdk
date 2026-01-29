@@ -1484,14 +1484,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       if (feature.flag.isEnabledByDefault) {
         // Coverage-ignore-block(suite): Not run.
         if (_languageVersion.version < feature.enabledVersion) {
-          message = diag.experimentDisabledInvalidLanguageVersion
-              .withArgumentsOld(
-                feature.flag.name,
-                feature.enabledVersion.toText(),
-              );
+          message = diag.experimentDisabledInvalidLanguageVersion.withArguments(
+            featureName: feature.flag.name,
+            requiredLanguageVersion: feature.enabledVersion.toText(),
+          );
           addProblem(message, charOffset, length, fileUri);
         } else {
-          message = diag.experimentDisabled.withArgumentsOld(feature.flag.name);
+          message = diag.experimentDisabled.withArguments(
+            featureName: feature.flag.name,
+          );
           addProblem(message, charOffset, length, fileUri);
         }
       } else {
