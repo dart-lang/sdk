@@ -7,6 +7,10 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final cupertinoColorsLibrary = MockLibraryUnit(
   'lib/src/cupertino/colors.dart',
   r'''
+import 'dart:ui';
+
+import '../../foundation.dart';
+
 abstract final class CupertinoColors {
   static const CupertinoDynamicColor activeBlue = systemBlue;
 

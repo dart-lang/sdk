@@ -10,6 +10,22 @@ import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_testing/src/mock_packages/ffi/ffi.dart' as mock_ffi;
 import 'package:analyzer_testing/src/mock_packages/fixnum/fixnum.dart'
     as mock_fixnum;
+import 'package:analyzer_testing/src/mock_packages/flutter/animation.dart'
+    as mock_flutter_animation;
+import 'package:analyzer_testing/src/mock_packages/flutter/cupertino.dart'
+    as mock_flutter_cupertino;
+import 'package:analyzer_testing/src/mock_packages/flutter/foundation.dart'
+    as mock_flutter_foundation;
+import 'package:analyzer_testing/src/mock_packages/flutter/material.dart'
+    as mock_flutter_material;
+import 'package:analyzer_testing/src/mock_packages/flutter/painting.dart'
+    as mock_flutter_painting;
+import 'package:analyzer_testing/src/mock_packages/flutter/rendering.dart'
+    as mock_flutter_rendering;
+import 'package:analyzer_testing/src/mock_packages/flutter/widget_previews.dart'
+    as mock_flutter_widget_previews;
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets.dart'
+    as mock_flutter_widgets;
 import 'package:analyzer_testing/src/mock_packages/meta/meta.dart' as mock_meta;
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 import 'package:analyzer_testing/src/mock_packages/test_reflective_loader/test_reflective_loader.dart'
@@ -54,39 +70,27 @@ Map<String, String> _cacheFiles() {
 class BlazeMockPackages {
   static final BlazeMockPackages instance = BlazeMockPackages._();
 
-  /// The mapping from relative Posix paths of files to the file contents.
-  final Map<String, String> _cachedFiles = _cacheFiles();
-
   BlazeMockPackages._();
 
   void addFlutter(ResourceProvider provider) {
-    _addFiles(provider, 'flutter');
+    _addFiles(provider, 'flutter', [
+      ...mock_flutter_animation.units,
+      ...mock_flutter_cupertino.units,
+      ...mock_flutter_foundation.units,
+      ...mock_flutter_material.units,
+      ...mock_flutter_painting.units,
+      ...mock_flutter_rendering.units,
+      ...mock_flutter_widget_previews.units,
+      ...mock_flutter_widgets.units,
+    ]);
   }
 
   void addMeta(ResourceProvider provider) {
-    _addFiles2(provider, 'meta', mock_meta.units);
-  }
-
-  /// Add files of the given [packageName] to the [provider].
-  Folder _addFiles(ResourceProvider provider, String packageName) {
-    var packagesPath = provider.convertPath('/workspace/third_party/dart');
-
-    for (var entry in _cachedFiles.entries) {
-      var relativePosixPath = entry.key;
-      var relativePathComponents = relativePosixPath.split('/');
-      if (relativePathComponents[0] == packageName) {
-        var relativePath = provider.pathContext.joinAll(relativePathComponents);
-        var path = provider.pathContext.join(packagesPath, relativePath);
-        provider.getFile(path).writeAsStringSync(entry.value);
-      }
-    }
-
-    var packagesFolder = provider.getFolder(packagesPath);
-    return packagesFolder.getChildAssumingFolder(packageName);
+    _addFiles(provider, 'meta', mock_meta.units);
   }
 
   /// Adds files of the given [packageName] to the [provider].
-  Folder _addFiles2(
+  Folder _addFiles(
     ResourceProvider provider,
     String packageName,
     List<MockLibraryUnit> units,
@@ -137,7 +141,16 @@ mixin MockPackagesMixin {
   }
 
   Folder addFlutter() {
-    var packageFolder = _addFiles('flutter');
+    var packageFolder = _addFiles2('flutter', [
+      ...mock_flutter_animation.units,
+      ...mock_flutter_cupertino.units,
+      ...mock_flutter_foundation.units,
+      ...mock_flutter_material.units,
+      ...mock_flutter_painting.units,
+      ...mock_flutter_rendering.units,
+      ...mock_flutter_widget_previews.units,
+      ...mock_flutter_widgets.units,
+    ]);
     return packageFolder.getChildAssumingFolder('lib');
   }
 

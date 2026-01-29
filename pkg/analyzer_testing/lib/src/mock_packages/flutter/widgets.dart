@@ -2,7 +2,47 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/async.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/basic.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/container.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/decorated_sliver.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/framework.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/gesture_detector.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/icon.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/icon_data.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/inherited_theme.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/navigator.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/placeholder.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/scroll_view.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/sliver.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/text.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/ticker_provider.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/value_listenable_builder.dart';
+import 'package:analyzer_testing/src/mock_packages/flutter/widgets/widget_inspector.dart';
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
+
+/// The set of compilation units that make up the mock 'widgets'
+/// component of the 'flutter' package.
+final List<MockLibraryUnit> units = [
+  widgetsLibrary,
+  widgetsAsyncLibrary,
+  widgetsBasicLibrary,
+  widgetsContainerLibrary,
+  widgetsFrameworkLibrary,
+  widgetsDecoratedSliverLibrary,
+  widgetsGestureDetectorLibrary,
+  widgetsIconDataLibrary,
+  widgetsIconLibrary,
+  widgetsInheritedThemeLibrary,
+  widgetsNavigatorLibrary,
+  widgetsPlaceholderLibrary,
+  widgetsScrollViewLibrary,
+  widgetsSliverLibrary,
+  widgetsTextLibrary,
+  widgetsTickerProviderLibrary,
+  widgetsValueListenableBuilderLibrary,
+  widgetsWidgetInspectorLibrary,
+];
 
 final widgetsLibrary = MockLibraryUnit('lib/widgets.dart', r'''
 export 'package:vector_math/vector_math.dart';

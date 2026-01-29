@@ -163,6 +163,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Flex(
+      direction: Axis.horizontal,
       children: [^Text('aaa')],
     );
   }
@@ -173,6 +174,7 @@ import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget f() {
     return Flex(
+      direction: Axis.horizontal,
       children: [Flexible(child: Text('aaa'))],
     );
   }

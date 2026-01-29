@@ -91,6 +91,5 @@ abstract class ProxyWidget extends Widget {}
 abstract class InheritedWidget extends ProxyWidget {}
 
 abstract class ParentDataWidget<T extends ParentData> extends ProxyWidget {}
-
 ''',
 );
