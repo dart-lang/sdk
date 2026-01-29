@@ -2833,7 +2833,7 @@ class Parser {
       if (skipped == 1) {
         reportRecoverableError(
           skipToken,
-          diag.unexpectedToken.withArgumentsOld(skipToken),
+          diag.unexpectedToken.withArguments(lexeme: skipToken),
         );
       } else {
         reportRecoverableErrorWithEnd(
@@ -3829,7 +3829,7 @@ class Parser {
     Token next = token.next!;
     reportRecoverableError(
       messageOnToken ?? next,
-      message ?? context.recoveryTemplate.withArgumentsOld(next),
+      message ?? context.recoveryTemplate.withArguments(lexeme: next),
     );
     return rewriter.insertSyntheticIdentifier(token);
   }
@@ -4825,7 +4825,7 @@ class Parser {
   Token ensureLiteralString(Token token) {
     Token next = token.next!;
     if (next.kind != STRING_TOKEN) {
-      codes.Message message = diag.expectedString.withArgumentsOld(next);
+      codes.Message message = diag.expectedString.withArguments(lexeme: next);
       Token newToken = new SyntheticStringToken(
         TokenType.STRING,
         '""',
@@ -6316,7 +6316,7 @@ class Parser {
         // and move forward.
         reportRecoverableError(
           token,
-          diag.unexpectedToken.withArgumentsOld(token),
+          diag.unexpectedToken.withArguments(lexeme: token),
         );
         token = token.next!;
       }
@@ -9594,7 +9594,7 @@ class Parser {
       if (!looksLikeName(next)) {
         reportRecoverableError(
           next,
-          diag.expectedIdentifier.withArgumentsOld(next),
+          diag.expectedIdentifier.withArguments(lexeme: next),
         );
         next = rewriter.insertSyntheticIdentifier(next);
       }
@@ -9701,7 +9701,9 @@ class Parser {
       insertSyntheticIdentifier(
         beforeType,
         IdentifierContext.localVariableDeclaration,
-        message: diag.expectedIdentifier.withArgumentsOld(beforeType.next!),
+        message: diag.expectedIdentifier.withArguments(
+          lexeme: beforeType.next!,
+        ),
       );
       typeInfo = computeType(beforeType, /* required = */ true);
     }
@@ -10157,7 +10159,7 @@ class Parser {
         token = token.next!;
         reportRecoverableError(
           token,
-          diag.unexpectedToken.withArgumentsOld(token),
+          diag.unexpectedToken.withArguments(lexeme: token),
         );
       }
       ++statementCount;
@@ -10657,7 +10659,7 @@ class Parser {
           // invalid and move forward.
           reportRecoverableError(
             next,
-            diag.unexpectedToken.withArgumentsOld(next),
+            diag.unexpectedToken.withArguments(lexeme: next),
           );
           token = next;
         }
@@ -11044,12 +11046,13 @@ class Parser {
 
   void reportRecoverableErrorWithToken(
     Token token,
-    codes.Template<_MessageWithArgument<Token>, Function> template,
+    codes.Template<Function, codes.Message Function({required Token lexeme})>
+    template,
   ) {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);
     listener.handleRecoverableError(
-      template.withArgumentsOld(token),
+      template.withArguments(lexeme: token),
       token,
       token,
     );
@@ -12056,7 +12059,7 @@ class Parser {
           if (next.isA(Keyword.CASE)) {
             reportRecoverableError(
               next,
-              diag.unexpectedToken.withArgumentsOld(next),
+              diag.unexpectedToken.withArguments(lexeme: next),
             );
             token = next;
           }
@@ -12164,9 +12167,6 @@ class Parser {
     }
   }
 }
-
-// TODO(ahe): Remove when analyzer supports generalized function syntax.
-typedef _MessageWithArgument<T> = codes.Message Function(T);
 
 enum AwaitOrYieldContext { Statement, UnaryExpression }
 

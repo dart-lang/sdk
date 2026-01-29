@@ -3883,7 +3883,7 @@ duplicateDefinition = DiagnosticWithArguments(
 /// 0: the modifier that was duplicated
 ///
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token lexeme: THe token that was found.
 const DiagnosticCode duplicatedModifier = DiagnosticCodeWithExpectedTypes(
   name: 'duplicated_modifier',
   problemMessage: "The modifier '{0}' was already specified.",
@@ -4514,7 +4514,7 @@ const DiagnosticWithoutArguments expectedFinallyClauseBody =
     );
 
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token lexeme: The token that was found.
 const DiagnosticCode expectedIdentifierButGotKeyword =
     DiagnosticCodeWithExpectedTypes(
       name: 'expected_identifier_but_got_keyword',
@@ -5556,7 +5556,7 @@ extraAnnotationOnStructField = DiagnosticWithoutArgumentsImpl(
 );
 
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token lexeme: The token that was found.
 const DiagnosticCode extraneousModifier = DiagnosticCodeWithExpectedTypes(
   name: 'extraneous_modifier',
   problemMessage: "Can't have modifier '{0}' here.",
@@ -5567,7 +5567,7 @@ const DiagnosticCode extraneousModifier = DiagnosticCodeWithExpectedTypes(
 );
 
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token lexeme: The token that was found.
 const DiagnosticCode extraneousModifierInExtensionType =
     DiagnosticCodeWithExpectedTypes(
       name: 'extraneous_modifier_in_extension_type',
@@ -5579,7 +5579,7 @@ const DiagnosticCode extraneousModifierInExtensionType =
     );
 
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token lexeme: The token that was found.
 const DiagnosticCode extraneousModifierInPrimaryConstructor =
     DiagnosticCodeWithExpectedTypes(
       name: 'extraneous_modifier_in_primary_constructor',
@@ -8585,7 +8585,7 @@ invalidNullAwareOperatorAfterShortCircuit = DiagnosticWithArguments(
 /// 0: the operator that is invalid
 ///
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token lexeme: The token that was found.
 const DiagnosticCode invalidOperator = DiagnosticCodeWithExpectedTypes(
   name: 'invalid_operator',
   problemMessage: "The string '{0}' isn't a user-definable operator.",
@@ -9009,7 +9009,7 @@ const DiagnosticWithoutArguments invalidUseOfCovariant =
 /// No parameters.
 ///
 /// Parameters:
-/// Token lexeme: undocumented
+/// Token lexeme: The token that was found.
 const DiagnosticCode invalidUseOfCovariantInExtension =
     DiagnosticCodeWithExpectedTypes(
       name: 'invalid_use_of_covariant_in_extension',
