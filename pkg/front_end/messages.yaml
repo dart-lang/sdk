@@ -947,7 +947,7 @@ expectedClassMember:
 expectedFunctionBody:
   pseudoSharedCode: MISSING_FUNCTION_BODY
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Expected a function body, but got '#lexeme'."
   script: |
     var get b, c;
@@ -1146,8 +1146,8 @@ invalidBreakTarget:
 
 breakTargetOutsideFunction:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't break to '#name' in a different function."
+    Name label: The label targeted by the `break`.
+  problemMessage: "Can't break to '#label' in a different function."
   statement: |
     label: while (true) {
       void f() {
@@ -1191,8 +1191,8 @@ invalidContinueTarget:
 
 continueTargetOutsideFunction:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't continue at '#name' in a different function."
+    Name label: The label targeted by the `continue`.
+  problemMessage: "Can't continue at '#label' in a different function."
   statement: |
     label: while (true) {
       void f() {
@@ -2980,7 +2980,7 @@ annotationOnFunctionTypeTypeParameter:
 expectedEnumBody:
   pseudoSharedCode: MISSING_ENUM_BODY
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Expected a enum body, but got '#lexeme'."
   correctionMessage: "An enum definition must have a body with at least one constant name."
   script:

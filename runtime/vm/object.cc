@@ -2966,25 +2966,7 @@ void Object::InitializeObject(uword address,
     }
 #endif
   }
-  uword tags = 0;
-  ASSERT(class_id != kIllegalCid);
-  tags = UntaggedObject::ClassIdTag::update(class_id, tags);
-  tags = UntaggedObject::SizeTag::update(size, tags);
-  const bool is_old =
-      (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
-  tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
-  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
-  tags = UntaggedObject::ShallowImmutableBit::update(
-      Object::ShouldHaveShallowImmutabilityBitSet(class_id), tags);
-  tags = UntaggedObject::DeeplyImmutableBit::update(
-      Object::ShouldHaveDeeplyImmutabilityBitSet(class_id), tags);
-#if defined(HASH_IN_OBJECT_HEADER)
-  tags = UntaggedObject::HashTag::update(0, tags);
-#endif
-
-  reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
+  InitializeHeader(address, class_id, size);
 #if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
   StoreStoreFence();
 #endif

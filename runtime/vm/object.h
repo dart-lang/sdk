@@ -990,6 +990,35 @@ class Object {
     return -kWordSize;
   }
 
+  // Initialize the oject header for a freshly allocated object at [address]
+  // of size [instance_size] with cid [class_id]. If the hash is stored in
+  // the object header, it is initialized to 0.
+  //
+  // Whether the object is old or new is determined from the address,
+  // see ObjectAlignment in pointer_tagging.h for details.
+  DART_FORCE_INLINE static void InitializeHeader(uword address,
+                                                 intptr_t class_id,
+                                                 intptr_t instance_size) {
+    uword tags = 0;
+    ASSERT(class_id != kIllegalCid);
+    tags = UntaggedObject::ClassIdTag::update(class_id, tags);
+    tags = UntaggedObject::SizeTag::update(instance_size, tags);
+    const bool is_old =
+        (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
+    tags = UntaggedObject::AlwaysSetBit::update(true, tags);
+    tags = UntaggedObject::NotMarkedBit::update(true, tags);
+    tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
+    tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
+    tags = UntaggedObject::ShallowImmutableBit::update(
+        Object::ShouldHaveShallowImmutabilityBitSet(class_id), tags);
+    tags = UntaggedObject::DeeplyImmutableBit::update(
+        Object::ShouldHaveDeeplyImmutabilityBitSet(class_id), tags);
+#if defined(HASH_IN_OBJECT_HEADER)
+    tags = UntaggedObject::HashTag::update(0, tags);
+#endif
+    reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
+  }
+
   static void InitializeObject(uword address,
                                intptr_t id,
                                intptr_t size,

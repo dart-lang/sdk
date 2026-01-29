@@ -151,11 +151,30 @@ class ElementUsageDetector<TagInfo extends Object> {
   void dotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
+    if (node.element?.enclosingElement case var interfaceElement?) {
+      // A dot-shorthand constructor invocation contains an implicit reference
+      // to the interface on which the constructor was declared.
+      checkUsage(interfaceElement, node);
+    }
     _invocationArguments(node.constructorName.element, node.argumentList);
   }
 
   void dotShorthandInvocation(DotShorthandInvocation node) {
+    if (node.memberName.element?.enclosingElement case var interfaceElement?) {
+      // A dot-shorthand invocation contains an implicit reference to the
+      // interface on which the constructor was declared.
+      checkUsage(interfaceElement, node);
+    }
     _invocationArguments(node.memberName.element, node.argumentList);
+  }
+
+  void dotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    if (node.propertyName.element?.enclosingElement
+        case var interfaceElement?) {
+      // A dot-shorthand property access contains an implicit reference to the
+      // interface on which the constructor was declared.
+      checkUsage(interfaceElement, node);
+    }
   }
 
   void exportDirective(ExportDirective node) {

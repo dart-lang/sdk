@@ -231,56 +231,6 @@ DART_FORCE_INLINE static FunctionPtr FrameFunction(ObjectPtr* FP) {
   return Function::RawCast(FP[kKBCFunctionSlotFromFp]);
 }
 
-DART_FORCE_INLINE static ObjectPtr InitializeHeader(uword addr,
-                                                    intptr_t class_id,
-                                                    intptr_t instance_size) {
-  uint32_t tags = 0;
-  ASSERT(class_id != kIllegalCid);
-  tags = UntaggedObject::ClassIdTag::update(class_id, tags);
-  tags = UntaggedObject::SizeTag::update(instance_size, tags);
-  const bool is_old = false;
-  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
-  tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
-  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
-  tags = UntaggedObject::ShallowImmutableBit::update(
-      Object::ShouldHaveShallowImmutabilityBitSet(class_id), tags);
-  tags = UntaggedObject::DeeplyImmutableBit::update(
-      Object::ShouldHaveDeeplyImmutabilityBitSet(class_id), tags);
-#if defined(HASH_IN_OBJECT_HEADER)
-  tags = UntaggedObject::HashTag::update(0, tags);
-#endif
-  // Also writes zero in the hash_ field.
-  *reinterpret_cast<uword*>(addr + Object::tags_offset()) = tags;
-  return UntaggedObject::FromAddr(addr);
-}
-
-DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
-                                          intptr_t class_id,
-                                          intptr_t instance_size,
-                                          ObjectPtr* result) {
-  ASSERT(instance_size > 0);
-  ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
-  ASSERT(IsAllocatableInNewSpace(instance_size));
-
-#if !defined(PRODUCT)
-  auto* const class_table = thread->isolate_group()->class_table();
-  if (UNLIKELY(class_table->ShouldTraceAllocationFor(class_id))) {
-    // Fall back to the runtime for profiled allocation of classes.
-    return false;
-  }
-#endif  // !defined(PRODUCT)
-
-  const uword top = thread->top();
-  const intptr_t remaining = thread->end() - top;
-  if (LIKELY(remaining >= instance_size)) {
-    thread->set_top(top + instance_size);
-    *result = InitializeHeader(top, class_id, instance_size);
-    return true;
-  }
-  return false;
-}
-
 void LookupCache::Clear() {
   for (intptr_t i = 0; i < kNumEntries; i++) {
     entries_[i].receiver_cid = kIllegalCid;

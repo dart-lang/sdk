@@ -12,7 +12,11 @@ class BlockKind {
 
   final codes.Message? message;
 
-  final codes.Template<codes.Message Function(Token token), Function>? template;
+  final codes.Template<
+    Function,
+    codes.Message Function({required Token lexeme})
+  >?
+  template;
 
   const BlockKind._(this.name, {this.template, this.message});
 

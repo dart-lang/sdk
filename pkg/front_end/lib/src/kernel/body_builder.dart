@@ -9459,11 +9459,12 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement problem;
     bool isBreak = keyword.isA(Keyword.BREAK);
     if (name != null) {
-      Template<Message Function(String), Function> template = isBreak
+      Template<Function, Message Function({required String label})> template =
+          isBreak
           ? diag.breakTargetOutsideFunction
           : diag.continueTargetOutsideFunction;
       problem = buildProblemStatement(
-        template.withArgumentsOld(name),
+        template.withArguments(label: name),
         offsetForToken(keyword),
         length: lengthOfSpan(keyword, keyword.next),
       );
@@ -10076,7 +10077,7 @@ class BodyBuilderImpl extends StackListenerImpl
       push(
         forest.createBlock(offsetForToken(token), noLocation, <Statement>[
           buildProblemStatement(
-            diag.expectedFunctionBody.withArgumentsOld(token),
+            diag.expectedFunctionBody.withArguments(lexeme: token),
             token.charOffset,
             length: token.length,
           ),
