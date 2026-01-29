@@ -947,7 +947,7 @@ expectedClassMember:
 expectedFunctionBody:
   pseudoSharedCode: MISSING_FUNCTION_BODY
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Expected a function body, but got '#lexeme'."
   script: |
     var get b, c;
@@ -2980,7 +2980,7 @@ annotationOnFunctionTypeTypeParameter:
 expectedEnumBody:
   pseudoSharedCode: MISSING_ENUM_BODY
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Expected a enum body, but got '#lexeme'."
   correctionMessage: "An enum definition must have a body with at least one constant name."
   script:

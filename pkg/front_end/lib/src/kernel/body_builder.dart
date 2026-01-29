@@ -10077,7 +10077,7 @@ class BodyBuilderImpl extends StackListenerImpl
       push(
         forest.createBlock(offsetForToken(token), noLocation, <Statement>[
           buildProblemStatement(
-            diag.expectedFunctionBody.withArgumentsOld(token),
+            diag.expectedFunctionBody.withArguments(lexeme: token),
             token.charOffset,
             length: token.length,
           ),

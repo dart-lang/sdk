@@ -4740,8 +4740,8 @@ class Parser {
   Token ensureBlock(Token token, BlockKind? missingBlockKind) {
     Token next = token.next!;
     if (next.isA(TokenType.OPEN_CURLY_BRACKET)) return next;
-    codes.Template<codes.Message Function(Token token), Function>? template =
-        missingBlockKind?.template;
+    codes.Template<Function, codes.Message Function({required Token lexeme})>?
+    template = missingBlockKind?.template;
     if (template == null) {
       codes.Message? message = missingBlockKind?.message;
       if (message == null) {
@@ -4751,7 +4751,7 @@ class Parser {
         reportRecoverableError(token, message);
       }
     } else {
-      reportRecoverableError(next, template.withArgumentsOld(next));
+      reportRecoverableError(next, template.withArguments(lexeme: next));
     }
     return insertBlock(token);
   }
