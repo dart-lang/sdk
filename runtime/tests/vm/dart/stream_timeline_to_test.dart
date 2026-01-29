@@ -1,6 +1,9 @@
 // Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// VMOptions=
+// VMOptions=--timeline-recorder=none
 
 import 'dart:convert';
 import 'dart:developer';
@@ -58,6 +61,8 @@ Future<void> testPerfettoRecorder({
   var state = IncrementalState();
   final seenEvents = <String>{};
   final seenStacks = <List<String>>{};
+  final seenTracks = <int>{};
+  final seenTrackDescriptors = <int>{};
   for (var packet in trace.packet) {
     if ((packet.sequenceFlags &
             TracePacket_SequenceFlags.SEQ_INCREMENTAL_STATE_CLEARED.value) !=
@@ -74,7 +79,13 @@ Future<void> testPerfettoRecorder({
       if (trackEvent.type == TrackEvent_Type.TYPE_SLICE_BEGIN) {
         final name = state.eventNames[packet.trackEvent.nameIid.toInt()]!;
         seenEvents.add(name);
+        seenTracks.add(trackEvent.trackUuid.toInt());
       }
+    }
+
+    if (packet.hasTrackDescriptor()) {
+      final trackDescriptor = packet.trackDescriptor;
+      seenTrackDescriptors.add(trackDescriptor.uuid.toInt());
     }
 
     if (packet.hasPerfSample()) {
@@ -85,6 +96,13 @@ Future<void> testPerfettoRecorder({
   Expect.isTrue(
     seenEvents.containsAll(['workload-loop', 'CollectNewGeneration']),
   );
+
+  Expect.isTrue(seenTrackDescriptors.containsAll(seenTracks), '''
+expected to see a track descriptor for every track:
+  seen descriptors    ${seenTrackDescriptors}
+  seen tracks         ${seenTracks}
+  missing descriptors ${seenTracks.difference(seenTrackDescriptors)}
+''');
 
   if (withProfiler) {
     Expect.isNotNull(
