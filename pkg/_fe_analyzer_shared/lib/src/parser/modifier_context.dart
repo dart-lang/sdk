@@ -210,9 +210,16 @@ class ModifierContext {
   ) {
     token = _parseModifiers(token);
 
-    if (parameterKind != FormalParameterKind.optionalNamed) {
-      reportExtraneousModifier(requiredToken);
+    if (memberKind == MemberKind.PrimaryConstructor) {
+      if (!parameterKind.isNamed) {
+        reportExtraneousModifier(requiredToken);
+      }
+    } else {
+      if (parameterKind != FormalParameterKind.optionalNamed) {
+        reportExtraneousModifier(requiredToken);
+      }
     }
+
     switch (memberKind) {
       case MemberKind.StaticMethod:
       case MemberKind.TopLevelMethod:

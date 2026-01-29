@@ -17,16 +17,24 @@ import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 
 Future<void> main() async {
-  await _Generator().generate();
+  var generator = AstNodeImplGenerator();
+  var code = await generator.generate();
+  io.File(generator.astPath).writeAsStringSync(code);
 }
 
-class _Generator {
+class AstNodeImplGenerator {
   late String newCode;
   late ClassElement parameterKindClass;
   late ClassElement currentClassElement;
   List<_ImplClass> implClasses = [];
 
-  Future<void> generate() async {
+  String get astPath {
+    var analyzerPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
+    var analyzerLibPath = normalize(join(analyzerPath, 'lib'));
+    return normalize(join(analyzerLibPath, 'src', 'dart', 'ast', 'ast.dart'));
+  }
+
+  Future<String> generate() async {
     var astUnitResult = await _getAstResolvedUnit();
 
     newCode = astUnitResult.content;
@@ -43,10 +51,8 @@ class _Generator {
     _removeGeneratedMembers(astUnitResult);
     _generateAllClassMembers();
 
-    var astPath = _getAstPath();
     newCode = await _formatSortCode(astPath, newCode);
-
-    io.File(astPath).writeAsStringSync(newCode);
+    return newCode;
   }
 
   Future<_ImplClass?> _buildImplClass(ClassDeclarationImpl nodeImpl) async {
@@ -663,17 +669,7 @@ void visitChildren(AstVisitor visitor) {''');
     buffer.writeln('\n}');
   }
 
-  String _getAstPath() {
-    var analyzerPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
-    var analyzerLibPath = normalize(join(analyzerPath, 'lib'));
-    var astPath = normalize(
-      join(analyzerLibPath, 'src', 'dart', 'ast', 'ast.dart'),
-    );
-    return astPath;
-  }
-
   Future<ResolvedUnitResult> _getAstResolvedUnit() async {
-    var astPath = _getAstPath();
     var collection = AnalysisContextCollection(includedPaths: [astPath]);
     var analysisContext = collection.contextFor(astPath);
     var analysisSession = analysisContext.currentSession;

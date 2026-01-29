@@ -1645,7 +1645,163 @@ ClassDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_covariant() {
+  test_primaryConstructor_formalParameters_named_keyword_required_covariant() {
+    var parseResult = parseStringWithErrors(r'''
+class A({required covariant int it}) {}
+''');
+    parseResult.assertErrors([
+      error(diag.invalidCovariantModifierInPrimaryConstructor, 18, 9),
+    ]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          covariantKeyword: covariant
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: it
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_named_keyword_required_covariant_final() {
+    var parseResult = parseStringWithErrors(r'''
+class A({required covariant final int it}) {}
+''');
+    parseResult.assertErrors([
+      error(diag.invalidCovariantModifierInPrimaryConstructor, 18, 9),
+    ]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          covariantKeyword: covariant
+          requiredKeyword: required
+          keyword: final
+          type: NamedType
+            name: int
+          name: it
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_named_keyword_required_covariant_var() {
+    var parseResult = parseStringWithErrors(r'''
+class A({required covariant var int it}) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          covariantKeyword: covariant
+          requiredKeyword: required
+          keyword: var
+          type: NamedType
+            name: int
+          name: it
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_named_keyword_required_required() {
+    var parseResult = parseStringWithErrors(r'''
+class A({required required int a}) {}
+''');
+    parseResult.assertErrors([error(diag.duplicatedModifier, 18, 8)]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: a
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_named_keyword_required_required_covariant_var() {
+    var parseResult = parseStringWithErrors(r'''
+class A({required required covariant var int a}) {}
+''');
+    parseResult.assertErrors([error(diag.duplicatedModifier, 18, 8)]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          covariantKeyword: covariant
+          requiredKeyword: required
+          keyword: var
+          type: NamedType
+            name: int
+          name: a
+      rightDelimiter: }
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_positional_keyword_covariant() {
     var parseResult = parseStringWithErrors(r'''
 class A(covariant int it) {}
 ''');
@@ -1673,7 +1829,7 @@ ClassDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_covariant_final() {
+  test_primaryConstructor_formalParameters_positional_keyword_covariant_final() {
     var parseResult = parseStringWithErrors(r'''
 class A(covariant final int it) {}
 ''');
@@ -1702,7 +1858,7 @@ ClassDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_covariant_var() {
+  test_primaryConstructor_formalParameters_positional_keyword_covariant_var() {
     var parseResult = parseStringWithErrors(r'''
 class A(covariant var int it) {}
 ''');
@@ -1722,6 +1878,32 @@ ClassDeclaration
         type: NamedType
           name: int
         name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_positional_keyword_required() {
+    var parseResult = parseStringWithErrors(r'''
+class A(required int a) {}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 8)]);
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: a
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {

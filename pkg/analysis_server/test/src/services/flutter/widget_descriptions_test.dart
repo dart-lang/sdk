@@ -263,22 +263,22 @@ void f() {
     "kind": "ENUM",
     "enumItems": [
       {
-        "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+        "libraryUri": "package:flutter/src/painting/text_painter.dart",
         "className": "TextOverflow",
         "name": "clip"
       },
       {
-        "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+        "libraryUri": "package:flutter/src/painting/text_painter.dart",
         "className": "TextOverflow",
         "name": "fade"
       },
       {
-        "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+        "libraryUri": "package:flutter/src/painting/text_painter.dart",
         "className": "TextOverflow",
         "name": "ellipsis"
       },
       {
-        "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+        "libraryUri": "package:flutter/src/painting/text_painter.dart",
         "className": "TextOverflow",
         "name": "visible"
       }
@@ -286,7 +286,7 @@ void f() {
   },
   "value": {
     "enumValue": {
-      "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+      "libraryUri": "package:flutter/src/painting/text_painter.dart",
       "className": "TextOverflow",
       "name": "fade"
     }
@@ -825,7 +825,7 @@ void f() {
       property.id,
       protocol.FlutterWidgetPropertyValue(
         enumValue: protocol.FlutterWidgetPropertyValueEnumItem(
-          'package:flutter/src/rendering/paragraph.dart',
+          'package:flutter/src/painting/text_painter.dart',
           'TextOverflow',
           'ellipsis',
         ),

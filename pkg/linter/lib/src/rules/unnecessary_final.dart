@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -81,19 +80,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList parameterList) {
     for (var node in parameterList.parameters) {
-      if (node.isFinal) {
-        if (node.declaredFragment!.element case FieldFormalParameterElement(
-          // ignore: experimental_member_use
-          isDeclaring: true,
-        ) when context.isFeatureEnabled(Feature.primary_constructors)) {
-          continue;
-        }
-        var (keyword, type) = getParameterDetails(node);
-        if (keyword == null) continue;
+      if (!node.isFinal) continue;
+      // No 'final' keyword on a parameter is unnecessary, when primary
+      // constructors is enabled.
+      if (context.isFeatureEnabled(Feature.primary_constructors)) continue;
 
-        var diagnosticCode = getDiagnosticCode(type);
-        rule.reportAtToken(keyword, diagnosticCode: diagnosticCode);
-      }
+      var (keyword, type) = getParameterDetails(node);
+      if (keyword == null) continue;
+
+      var diagnosticCode = getDiagnosticCode(type);
+      rule.reportAtToken(keyword, diagnosticCode: diagnosticCode);
     }
   }
 

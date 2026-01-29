@@ -203,7 +203,7 @@ class C(final int x);
 ''');
   }
 
-  test_parameter_declaring_primaryConstructorsDisabled() async {
+  test_parameter_declaring_prePrimaryConstructors() async {
     await assertDiagnostics(
       r'''
 // @dart = 3.10
@@ -218,6 +218,15 @@ class C(final int x);
   }
 
   test_parameter_function_finalTyped() async {
+    await assertDiagnostics(
+      r'''
+void f(final int x) {}
+''',
+      [error(diag.extraneousModifier, 7, 5)],
+    );
+  }
+
+  test_parameter_function_finalTyped_prePrimaryConstructors() async {
     await assertDiagnostics(
       r'''
 // @dart = 3.10
@@ -235,6 +244,17 @@ void f(int x) {
   }
 
   test_parameter_functionExpression_final() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  (final c) => c.length;
+}
+''',
+      [error(diag.extraneousModifier, 14, 5)],
+    );
+  }
+
+  test_parameter_functionExpression_final_prePrimaryConstructors() async {
     await assertDiagnostics(
       r'''
 // @dart = 3.10
