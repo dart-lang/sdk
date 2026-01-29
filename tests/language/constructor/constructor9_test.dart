@@ -7,8 +7,6 @@
 
 class Klass {
   Klass(var v) : field_ = v {}
-  // [error column 3, length 5]
-  // [analyzer] COMPILE_TIME_ERROR.FINAL_NOT_INITIALIZED_CONSTRUCTOR
   final uninitializedFinalField_;
   //    ^
   // [cfe] Final field 'uninitializedFinalField_' is not initialized.

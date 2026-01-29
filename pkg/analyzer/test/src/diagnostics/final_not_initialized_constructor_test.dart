@@ -204,6 +204,26 @@ augment class A {
     assertErrorsInResult([error(diag.finalNotInitializedConstructor1, 42, 1)]);
   }
 
+  test_class_duplicateField() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  A();
+  final int x;
+  final int x;
+}
+''',
+      [
+        error(
+          diag.duplicateDefinition,
+          44,
+          1,
+          contextMessages: [message(testFile, 29, 1)],
+        ),
+      ],
+    );
+  }
+
   test_class_named() async {
     await assertErrorsInCode(
       '''

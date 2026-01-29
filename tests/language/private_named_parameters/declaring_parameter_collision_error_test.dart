@@ -34,7 +34,7 @@ class C3({required final String foo, required final String _foo}) {}
 /// Collide with previous private named parameter.
 class C4({String? _foo, required final String _foo}) {}
 //                ^^^^
-// [analyzer] COMPILE_TIME_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
+// [analyzer] SYNTACTIC_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
 // [cfe] unspecified
 //                                            ^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
@@ -81,6 +81,8 @@ class C9(this.foo, {required final String _foo}) {
 class C10({required final String _foo, String? _foo}) {}
 //                                             ^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+//                                             ^^^^
+// [analyzer] SYNTACTIC_ERROR.PRIVATE_NAMED_NON_FIELD_PARAMETER
 // [cfe] unspecified
 
 /// Collide with later public named parameter.
