@@ -118,7 +118,8 @@ class CompilerPhaseInputOutputManager {
     // section for deobfuscating class names before wasm-opt, add them back
     // after.
     List<String?>? classNames;
-    if (moduleId == WasmCompilerOptions.mainModuleId) {
+    if (options.translatorOptions.generateSourceMaps &&
+        moduleId == WasmCompilerOptions.mainModuleId) {
       classNames = getMinifiedClassNames(
           jsonDecode(await File(sourceMapInName).readAsString()));
     }
