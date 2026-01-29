@@ -3421,8 +3421,8 @@ Message _withArgumentsOldDuplicatedParameterNameCause(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 duplicatedRecordLiteralFieldName = const Template(
   "DuplicatedRecordLiteralFieldName",
@@ -3431,20 +3431,23 @@ duplicatedRecordLiteralFieldName = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedRecordLiteralFieldName({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDuplicatedRecordLiteralFieldName({
+  required String fieldName,
+}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     duplicatedRecordLiteralFieldName,
-    problemMessage: """Duplicated record literal field name '${name_0}'.""",
+    problemMessage:
+        """Duplicated record literal field name '${fieldName_0}'.""",
     correctionMessage:
         """Try renaming or removing one of the named record literal fields.""",
-    arguments: {'name': name},
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordLiteralFieldName(String name) =>
-    _withArgumentsDuplicatedRecordLiteralFieldName(name: name);
+Message _withArgumentsOldDuplicatedRecordLiteralFieldName(String fieldName) =>
+    _withArgumentsDuplicatedRecordLiteralFieldName(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -3477,8 +3480,8 @@ Message _withArgumentsOldDuplicatedRecordLiteralFieldNameContext(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 duplicatedRecordTypeFieldName = const Template(
   "DuplicatedRecordTypeFieldName",
@@ -3487,25 +3490,27 @@ duplicatedRecordTypeFieldName = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedRecordTypeFieldName({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDuplicatedRecordTypeFieldName({
+  required String fieldName,
+}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     duplicatedRecordTypeFieldName,
-    problemMessage: """Duplicated record type field name '${name_0}'.""",
+    problemMessage: """Duplicated record type field name '${fieldName_0}'.""",
     correctionMessage:
         """Try renaming or removing one of the named record type fields.""",
-    arguments: {'name': name},
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordTypeFieldName(String name) =>
-    _withArgumentsDuplicatedRecordTypeFieldName(name: name);
+Message _withArgumentsOldDuplicatedRecordTypeFieldName(String fieldName) =>
+    _withArgumentsDuplicatedRecordTypeFieldName(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 duplicatedRecordTypeFieldNameContext = const Template(
   "DuplicatedRecordTypeFieldNameContext",
@@ -3516,20 +3521,21 @@ duplicatedRecordTypeFieldNameContext = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedRecordTypeFieldNameContext({
-  required String name,
+  required String fieldName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     duplicatedRecordTypeFieldNameContext,
     problemMessage:
-        """This is the existing record type field named '${name_0}'.""",
-    arguments: {'name': name},
+        """This is the existing record type field named '${fieldName_0}'.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordTypeFieldNameContext(String name) =>
-    _withArgumentsDuplicatedRecordTypeFieldNameContext(name: name);
+Message _withArgumentsOldDuplicatedRecordTypeFieldNameContext(
+  String fieldName,
+) => _withArgumentsDuplicatedRecordTypeFieldNameContext(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode dynamicCallsAreNotAllowedInDynamicModule = const MessageCode(
@@ -3835,8 +3841,8 @@ const MessageCode expectedUri = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String featureName),
+  Message Function({required String featureName})
 >
 experimentDisabled = const Template(
   "ExperimentDisabled",
@@ -3845,26 +3851,29 @@ experimentDisabled = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentDisabled({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsExperimentDisabled({required String featureName}) {
+  var featureName_0 = conversions.validateString(featureName);
   return new Message(
     experimentDisabled,
     problemMessage:
-        """This requires the '${string_0}' language feature to be enabled.""",
+        """This requires the '${featureName_0}' language feature to be enabled.""",
     correctionMessage:
-        """The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-${string_0}' command line option is passed.""",
-    arguments: {'string': string},
+        """The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-${featureName_0}' command line option is passed.""",
+    arguments: {'featureName': featureName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentDisabled(String string) =>
-    _withArgumentsExperimentDisabled(string: string);
+Message _withArgumentsOldExperimentDisabled(String featureName) =>
+    _withArgumentsExperimentDisabled(featureName: featureName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String featureName, String requiredLanguageVersion),
+  Message Function({
+    required String featureName,
+    required String requiredLanguageVersion,
+  })
 >
 experimentDisabledInvalidLanguageVersion = const Template(
   "ExperimentDisabledInvalidLanguageVersion",
@@ -3874,26 +3883,31 @@ experimentDisabledInvalidLanguageVersion = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExperimentDisabledInvalidLanguageVersion({
-  required String string,
-  required String string2,
+  required String featureName,
+  required String requiredLanguageVersion,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var featureName_0 = conversions.validateString(featureName);
+  var requiredLanguageVersion_0 = conversions.validateString(
+    requiredLanguageVersion,
+  );
   return new Message(
     experimentDisabledInvalidLanguageVersion,
     problemMessage:
-        """This requires the '${string_0}' language feature, which requires language version of ${string2_0} or higher.""",
-    arguments: {'string': string, 'string2': string2},
+        """This requires the '${featureName_0}' language feature, which requires language version of ${requiredLanguageVersion_0} or higher.""",
+    arguments: {
+      'featureName': featureName,
+      'requiredLanguageVersion': requiredLanguageVersion,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExperimentDisabledInvalidLanguageVersion(
-  String string,
-  String string2,
+  String featureName,
+  String requiredLanguageVersion,
 ) => _withArgumentsExperimentDisabledInvalidLanguageVersion(
-  string: string,
-  string2: string2,
+  featureName: featureName,
+  requiredLanguageVersion: requiredLanguageVersion,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11453,8 +11467,8 @@ Message _withArgumentsOldMemberShouldBeListedAsCallableInDynamicInterface(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String memberName),
+  Message Function({required String className, required String memberName})
 >
 memberShouldBeListedAsCanBeOverriddenInDynamicInterface = const Template(
   "MemberShouldBeListedAsCanBeOverriddenInDynamicInterface",
@@ -11466,29 +11480,29 @@ memberShouldBeListedAsCanBeOverriddenInDynamicInterface = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMemberShouldBeListedAsCanBeOverriddenInDynamicInterface({
-  required String name,
-  required String name2,
+  required String className,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     memberShouldBeListedAsCanBeOverriddenInDynamicInterface,
     problemMessage:
-        """Cannot override member '${name_0}.${name2_0}' in a dynamic module.""",
+        """Cannot override member '${className_0}.${memberName_0}' in a dynamic module.""",
     correctionMessage:
-        """Try removing the override or update the dynamic interface to list member '${name_0}.${name2_0}' as can-be-overridden.""",
-    arguments: {'name': name, 'name2': name2},
+        """Try removing the override or update the dynamic interface to list member '${className_0}.${memberName_0}' as can-be-overridden.""",
+    arguments: {'className': className, 'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message
 _withArgumentsOldMemberShouldBeListedAsCanBeOverriddenInDynamicInterface(
-  String name,
-  String name2,
+  String className,
+  String memberName,
 ) => _withArgumentsMemberShouldBeListedAsCanBeOverriddenInDynamicInterface(
-  name: name,
-  name2: name2,
+  className: className,
+  memberName: memberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

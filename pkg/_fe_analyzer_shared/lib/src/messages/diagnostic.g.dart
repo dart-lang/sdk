@@ -2544,8 +2544,8 @@ const MessageCode newConstructorQualifiedName = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String character, int unicode),
-  Message Function({required String character, required int unicode})
+  Message Function(String character, int codePoint),
+  Message Function({required String character, required int codePoint})
 >
 nonAsciiIdentifier = const Template(
   "NonAsciiIdentifier",
@@ -2557,28 +2557,31 @@ nonAsciiIdentifier = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonAsciiIdentifier({
   required String character,
-  required int unicode,
+  required int codePoint,
 }) {
   var character_0 = conversions.validateCharacter(character);
-  var unicode_0 = conversions.codePointToUnicode(unicode);
+  var codePoint_0 = conversions.codePointToUnicode(codePoint);
   return new Message(
     nonAsciiIdentifier,
     problemMessage:
-        """The non-ASCII character '${character_0}' (${unicode_0}) can't be used in identifiers, only in strings and comments.""",
+        """The non-ASCII character '${character_0}' (${codePoint_0}) can't be used in identifiers, only in strings and comments.""",
     correctionMessage:
         """Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).""",
-    arguments: {'character': character, 'unicode': unicode},
+    arguments: {'character': character, 'codePoint': codePoint},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonAsciiIdentifier(String character, int unicode) =>
-    _withArgumentsNonAsciiIdentifier(character: character, unicode: unicode);
+Message _withArgumentsOldNonAsciiIdentifier(String character, int codePoint) =>
+    _withArgumentsNonAsciiIdentifier(
+      character: character,
+      codePoint: codePoint,
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int unicode),
-  Message Function({required int unicode})
+  Message Function(int codePoint),
+  Message Function({required int codePoint})
 >
 nonAsciiWhitespace = const Template(
   "NonAsciiWhitespace",
@@ -2588,19 +2591,19 @@ nonAsciiWhitespace = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonAsciiWhitespace({required int unicode}) {
-  var unicode_0 = conversions.codePointToUnicode(unicode);
+Message _withArgumentsNonAsciiWhitespace({required int codePoint}) {
+  var codePoint_0 = conversions.codePointToUnicode(codePoint);
   return new Message(
     nonAsciiWhitespace,
     problemMessage:
-        """The non-ASCII space character ${unicode_0} can only be used in strings and comments.""",
-    arguments: {'unicode': unicode},
+        """The non-ASCII space character ${codePoint_0} can only be used in strings and comments.""",
+    arguments: {'codePoint': codePoint},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonAsciiWhitespace(int unicode) =>
-    _withArgumentsNonAsciiWhitespace(unicode: unicode);
+Message _withArgumentsOldNonAsciiWhitespace(int codePoint) =>
+    _withArgumentsNonAsciiWhitespace(codePoint: codePoint);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nonPartOfDirectiveInPart = const MessageCode(

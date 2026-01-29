@@ -207,13 +207,15 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
           RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
           if (existingField != null) {
             library.addProblem(
-              diag.duplicatedRecordTypeFieldName.withArgumentsOld(fieldName),
+              diag.duplicatedRecordTypeFieldName.withArguments(
+                fieldName: fieldName,
+              ),
               field.charOffset,
               fieldName.length,
               fileUri,
               context: [
                 diag.duplicatedRecordTypeFieldNameContext
-                    .withArgumentsOld(fieldName)
+                    .withArguments(fieldName: fieldName)
                     .withLocation(
                       fileUri,
                       existingField.charOffset,
@@ -284,13 +286,13 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         RecordTypeFieldBuilder? existingField = fieldsMap[name];
         if (existingField != null) {
           library.addProblem(
-            diag.duplicatedRecordTypeFieldName.withArgumentsOld(name),
+            diag.duplicatedRecordTypeFieldName.withArguments(fieldName: name),
             field.charOffset,
             name.length,
             fileUri,
             context: [
               diag.duplicatedRecordTypeFieldNameContext
-                  .withArgumentsOld(name)
+                  .withArguments(fieldName: name)
                   .withLocation(fileUri, existingField.charOffset, name.length),
             ],
           );

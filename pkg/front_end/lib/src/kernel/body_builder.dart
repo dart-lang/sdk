@@ -2079,7 +2079,7 @@ class BodyBuilderImpl extends StackListenerImpl
         } else {
           push(
             buildProblem(
-              message: diag.invalidOperator.withArgumentsOld(token),
+              message: diag.invalidOperator.withArguments(lexeme: token),
               fileUri: uri,
               fileOffset: token.charOffset,
               length: token.length,
@@ -2159,7 +2159,7 @@ class BodyBuilderImpl extends StackListenerImpl
       token = token.next!;
       push(
         buildProblem(
-          message: diag.expectedIdentifier.withArgumentsOld(token),
+          message: diag.expectedIdentifier.withArguments(lexeme: token),
           fileUri: uri,
           fileOffset: offsetForToken(token),
           length: lengthForToken(token),
@@ -2206,7 +2206,7 @@ class BodyBuilderImpl extends StackListenerImpl
       token = token.next!;
       push(
         buildProblem(
-          message: diag.expectedIdentifier.withArgumentsOld(token),
+          message: diag.expectedIdentifier.withArguments(lexeme: token),
           fileUri: uri,
           fileOffset: offsetForToken(token),
           length: lengthForToken(token),
@@ -2255,7 +2255,7 @@ class BodyBuilderImpl extends StackListenerImpl
       token = token.next!;
       push(
         buildProblem(
-          message: diag.expectedIdentifier.withArgumentsOld(token),
+          message: diag.expectedIdentifier.withArguments(lexeme: token),
           fileUri: uri,
           fileOffset: offsetForToken(token),
           length: lengthForToken(token),
@@ -4330,8 +4330,8 @@ class BodyBuilderImpl extends StackListenerImpl
           NamedExpression? existingExpression = namedElements[element.name];
           if (existingExpression != null) {
             existingExpression.value = buildProblem(
-              message: diag.duplicatedRecordLiteralFieldName.withArgumentsOld(
-                element.name,
+              message: diag.duplicatedRecordLiteralFieldName.withArguments(
+                fieldName: element.name,
               ),
               fileUri: uri,
               fileOffset: element.fileOffset,
@@ -5346,7 +5346,7 @@ class BodyBuilderImpl extends StackListenerImpl
         varOrFinalOrConst != null &&
         varOrFinalOrConst.isA(Keyword.VAR)) {
       handleRecoverableError(
-        diag.extraneousModifier.withArgumentsOld(varOrFinalOrConst),
+        diag.extraneousModifier.withArguments(lexeme: varOrFinalOrConst),
         varOrFinalOrConst,
         varOrFinalOrConst,
       );
@@ -11049,7 +11049,7 @@ class BodyBuilderImpl extends StackListenerImpl
       token = token.next!;
       push(
         buildProblem(
-          message: diag.expectedIdentifier.withArgumentsOld(token),
+          message: diag.expectedIdentifier.withArguments(lexeme: token),
           fileUri: uri,
           fileOffset: offsetForToken(token),
           length: lengthForToken(token),

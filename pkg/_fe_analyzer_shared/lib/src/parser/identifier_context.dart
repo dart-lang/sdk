@@ -291,7 +291,8 @@ abstract class IdentifierContext {
   /// expressions are required.
   final bool allowedInConstantExpression;
 
-  final Template<_MessageWithArgument<Token>, Function> recoveryTemplate;
+  final Template<Function, Message Function({required Token lexeme})>
+  recoveryTemplate;
 
   const IdentifierContext(
     this._name, {
@@ -424,6 +425,3 @@ bool isOkNextValueInFormalParameter(Token token) =>
     token.isA(TokenType.CLOSE_PAREN) ||
     token.isA(TokenType.CLOSE_SQUARE_BRACKET) ||
     token.isA(TokenType.CLOSE_CURLY_BRACKET);
-
-// TODO(ahe): Remove when analyzer supports generalized function syntax.
-typedef _MessageWithArgument<T> = Message Function(T);

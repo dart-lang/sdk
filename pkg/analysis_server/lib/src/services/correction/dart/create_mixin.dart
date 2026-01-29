@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -160,7 +161,7 @@ class _CreateMixin extends ResolvedCorrectionProducer {
             targetUnit = library.firstFragment;
             var targetSource = targetUnit.source;
             try {
-              offset = targetSource.contents.data.length;
+              offset = targetSource.stringContents.length;
               filePath = targetSource.fullName;
             } on FileSystemException {
               // If we can't read the file to get the offset, then we can't

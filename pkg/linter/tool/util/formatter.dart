@@ -7,6 +7,7 @@ import 'dart:math';
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 String _getLineContents(int lineNumber, Diagnostic diagnostic) {
@@ -87,7 +88,7 @@ class ReportFormatter {
 
   void _writeLint(Diagnostic diagnostic) {
     var offset = diagnostic.offset;
-    var lineInfo = LineInfo.fromContent(diagnostic.source.contents.data);
+    var lineInfo = LineInfo.fromContent(diagnostic.source.stringContents);
     var location = lineInfo.getLocation(offset);
     var line = location.lineNumber;
     var column = location.columnNumber;

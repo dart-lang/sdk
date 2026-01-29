@@ -108,6 +108,7 @@ class ConstructorFieldsVerifier {
     }
 
     var fieldMap = <FieldElement, _InitState>{};
+    var fieldNameCounts = <String, int>{};
 
     for (var field in element.fields) {
       if (field.isOriginGetterSetter) {
@@ -119,12 +120,19 @@ class ConstructorFieldsVerifier {
       fieldMap[field] = field.hasInitializer
           ? _InitState.initInDeclaration
           : _InitState.notInit;
+      if (field.name case var name?) {
+        fieldNameCounts.update(name, (count) => count + 1, ifAbsent: () => 1);
+      }
     }
 
     return _interfaces[element] = _Interface(
       typeSystem: typeSystem,
       element: element,
       fields: fieldMap,
+      duplicateFieldNames: {
+        for (var entry in fieldNameCounts.entries)
+          if (entry.value > 1) entry.key,
+      },
     );
   }
 }
@@ -134,6 +142,7 @@ class _Constructor {
   final DiagnosticReporter diagnosticReporter;
   final SourceRange errorRange;
   final Map<FieldElement, _InitState> fields;
+  final Set<String> duplicateFieldNames;
 
   /// Set to `true` if the constructor redirects.
   bool hasRedirectingConstructorInvocation = false;
@@ -143,6 +152,7 @@ class _Constructor {
     required this.diagnosticReporter,
     required this.errorRange,
     required this.fields,
+    required this.duplicateFieldNames,
   });
 
   void report() {
@@ -161,6 +171,7 @@ class _Constructor {
 
       var name = field.name;
       if (name == null) return;
+      if (duplicateFieldNames.contains(name)) return;
 
       if (field.isFinal) {
         notInitFinalFields.add(_Field(field, name));
@@ -322,6 +333,7 @@ enum _InitState {
 class _Interface {
   final TypeSystemImpl typeSystem;
   final InterfaceElement element;
+  final Set<String> duplicateFieldNames;
 
   /// [_InitState.notInit] or [_InitState.initInDeclaration] for each field
   /// in [element]. This map works as the initial state for
@@ -334,6 +346,7 @@ class _Interface {
     required this.typeSystem,
     required this.element,
     required this.fields,
+    required this.duplicateFieldNames,
   });
 
   _Constructor forConstructor({
@@ -346,6 +359,7 @@ class _Interface {
       diagnosticReporter: diagnosticReporter,
       errorRange: errorRange,
       fields: {...fields},
+      duplicateFieldNames: duplicateFieldNames,
     );
   }
 }

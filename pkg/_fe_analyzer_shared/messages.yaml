@@ -501,7 +501,7 @@ expectedSwitchStatementBody:
 expectedIdentifierButGotKeyword:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "'#lexeme' can't be used as an identifier because it's a keyword."
   correctionMessage: "Try renaming this to be an identifier that isn't a keyword."
   analyzerCode: expectedIdentifierButGotKeyword
@@ -830,7 +830,7 @@ covariantAndStatic:
 duplicatedModifier:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: THe token that was found.
   problemMessage: "The modifier '#lexeme' was already specified."
   correctionMessage: "Try removing all but one occurrence of the modifier."
   analyzerCode: duplicatedModifier
@@ -884,7 +884,7 @@ externalLateField:
 extraneousModifier:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Can't have modifier '#lexeme' here."
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: extraneousModifier
@@ -906,7 +906,7 @@ extraneousModifier:
 extraneousModifierInExtension:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Can't have modifier '#lexeme' in an extension."
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: invalidUseOfCovariantInExtension
@@ -946,7 +946,7 @@ extraneousModifierInExtension:
 extraneousModifierInExtensionType:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Can't have modifier '#lexeme' in an extension type."
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: extraneousModifierInExtensionType
@@ -957,7 +957,7 @@ extraneousModifierInExtensionType:
 extraneousModifierInPrimaryConstructor:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "Can't have modifier '#lexeme' in a primary constructor."
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: extraneousModifierInPrimaryConstructor
@@ -1907,7 +1907,7 @@ missingOperatorKeyword:
 invalidOperator:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
+    Token lexeme: The token that was found.
   problemMessage: "The string '#lexeme' isn't a user-definable operator."
   analyzerCode: invalidOperator
   hasPublishedDocs: false
