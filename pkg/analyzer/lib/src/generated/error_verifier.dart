@@ -6394,9 +6394,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (parent is PrimaryConstructorDeclaration &&
-        parent.parent is ExtensionTypeDeclaration) {
-      // Already reported while checking representation.
+    // Parser reports `invalidCovariantModifierInPrimaryConstructor`.
+    if (parent is PrimaryConstructorDeclaration) {
       return;
     }
 
