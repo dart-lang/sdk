@@ -27,34 +27,61 @@ import 'plugin_server_test_base.dart';
 
 void main() {
   defineReflectiveTests(PluginServerTest);
+  defineReflectiveTests(PluginServerMapTest);
 }
 
 @reflectiveTest
-class PluginServerTest extends PluginServerTestBase {
-  protocol.ContextRoot get contextRoot => protocol.ContextRoot(packagePath, []);
+class PluginServerMapTest extends PluginServerTestBase
+    with PluginServerTestMixin {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
 
-  String get file2Path => join(packagePath, 'lib', 'test2.dart');
-
-  String get filePath => join(packagePath, 'lib', 'test.dart');
-
-  String get packagePath => convertPath('/package1');
-
-  String get testFilePath => join(packagePath, 'test', 'test.dart');
-
-  StreamQueue<protocol.AnalysisErrorsParams> get _analysisErrorsParams {
-    return StreamQueue(
-      channel.notifications
-          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
-          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-          .where(
-            (p) =>
-                p.file == filePath ||
-                p.file == file2Path ||
-                p.file == testFilePath,
-          ),
+    pluginServer = PluginServer.new2(
+      resourceProvider: resourceProvider,
+      plugins: {
+        'other_plugin': _OtherPlugin(),
+        'no_literals': _NoLiteralsPlugin(),
+      },
     );
+    await startPlugin();
   }
 
+  Future<void> test_warningsCanBeIgnored_correctPlugin() async {
+    // See https://github.com/dart-lang/sdk/issues/62173
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, '''
+// ignore: no_literals/no_bools
+bool b = false;
+''');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  void writeAnalysisOptionsWithPlugin([
+    Map<String, String> diagnosticConfiguration = const {},
+  ]) {
+    var buffer = StringBuffer('''
+plugins:
+  other_plugin:
+    path: some/other/path
+  no_literals:
+    path: some/path
+''');
+    for (var MapEntry(key: diagnosticName, value: enablement)
+        in diagnosticConfiguration.entries) {
+      buffer.writeln('      $diagnosticName: $enablement');
+    }
+    newAnalysisOptionsYamlFile(packagePath, buffer.toString());
+  }
+}
+
+@reflectiveTest
+class PluginServerTest extends PluginServerTestBase with PluginServerTestMixin {
   @override
   Future<void> setUp() async {
     await super.setUp();
@@ -727,6 +754,32 @@ plugins:
   }
 }
 
+mixin PluginServerTestMixin on PluginServerTestBase {
+  protocol.ContextRoot get contextRoot => protocol.ContextRoot(packagePath, []);
+
+  String get file2Path => join(packagePath, 'lib', 'test2.dart');
+
+  String get filePath => join(packagePath, 'lib', 'test.dart');
+
+  String get packagePath => convertPath('/package1');
+
+  String get testFilePath => join(packagePath, 'test', 'test.dart');
+
+  StreamQueue<protocol.AnalysisErrorsParams> get _analysisErrorsParams {
+    return StreamQueue(
+      channel.notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+          .where(
+            (p) =>
+                p.file == filePath ||
+                p.file == file2Path ||
+                p.file == testFilePath,
+          ),
+    );
+  }
+}
+
 class _InvertBoolean extends ResolvedCorrectionProducer {
   static const _invertBooleanKind = AssistKind(
     'dart.fix.invertBoolean',
@@ -768,6 +821,16 @@ class _NoLiteralsPlugin extends Plugin {
     registry.registerLintRule(NoTypeAnnotationsRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
     registry.registerAssist(_InvertBoolean.new);
+  }
+}
+
+class _OtherPlugin extends Plugin {
+  @override
+  String get name => 'Other Plugin';
+
+  @override
+  void register(PluginRegistry registry) {
+    // No-op.
   }
 }
 

@@ -291,9 +291,9 @@ constEvalInvalidEqualsOperandType:
 
 constEvalEqualsOperandNotPrimitiveEquality:
   parameters:
-    Constant constant: undocumented
-    Type type: undocumented
-  problemMessage: "Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'."
+    Constant receiver: The constant being acted upon.
+    Type actualType: The actual type of the constant.
+  problemMessage: "Binary operator '==' requires receiver constant '#receiver' of a type with primitive equality or type 'double', but was of type '#actualType'."
   script: |
     const FooWithHashCodeField fooWithHashCodeField1 = const FooWithHashCodeField(42);
     const FooWithHashCodeField fooWithHashCodeField2 = const FooWithHashCodeField(42);
@@ -308,9 +308,9 @@ constEvalEqualsOperandNotPrimitiveEquality:
 
 constEvalZeroDivisor:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'."
+    String operator: The operator used to divide by zero.
+    String value: The value that was divided by zero.
+  problemMessage: "Binary operator '#operator' on '#value' requires non-zero divisor, but divisor was '0'."
   script: |
     const int i = 42 ~/ 0;
   includeErrorContext: true
@@ -318,10 +318,10 @@ constEvalZeroDivisor:
 
 constEvalNegativeShift:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-    String string3: undocumented
-  problemMessage: "Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'."
+    String operator: The operator that was used to apply a negative shift.
+    String receiver: The value that was shifted.
+    String shiftAmount: The amount of shift that was requested.
+  problemMessage: "Binary operator '#operator' on '#receiver' requires non-negative operand, but was '#shiftAmount'."
   script: |
     const int foo = 42 >> -1;
   includeErrorContext: true
@@ -329,9 +329,9 @@ constEvalNegativeShift:
 
 constEvalTruncateError:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Binary operator '#string ~/ #string2' results is Infinity or NaN."
+    String receiver: The value that the divide was applied to.
+    String operand: The operand of the divide operation.
+  problemMessage: "Binary operator '#receiver ~/ #operand' results is Infinity or NaN."
   script: |
     const double doubleNan = 0/0;
     const int doubleTruncateDivNaN = 84.2 ~/ doubleNan;
@@ -350,14 +350,14 @@ constEvalNonNull:
 
 constEvalGetterNotFound:
   parameters:
-    NameOKEmpty nameOKEmpty: undocumented
-  problemMessage: "Variable get not found: '#nameOKEmpty'"
+    NameOKEmpty name: The name of the variable that was not found.
+  problemMessage: "Variable get not found: '#name'"
 
 constEvalInvalidMethodInvocation:
   parameters:
-    StringOKEmpty stringOKEmpty: undocumented
-    Constant constant: undocumented
-  problemMessage: "The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression."
+    StringOKEmpty method: The name of the method that was invoked.
+    Constant receiver: The constant being acted upon.
+  problemMessage: "The method '#method' can't be invoked on '#receiver' in a constant expression."
   script: |
     const List<String> listConcat = ["Hello"] + ["World"];
   includeErrorContext: true
@@ -365,25 +365,25 @@ constEvalInvalidMethodInvocation:
 
 constEvalInvalidPropertyGet:
   parameters:
-    StringOKEmpty stringOKEmpty: undocumented
-    Constant constant: undocumented
-  problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
+    StringOKEmpty property: The name of the property that was invoked.
+    Constant receiver: The constant being acted upon.
+  problemMessage: "The property '#property' can't be accessed on '#receiver' in a constant expression."
 
 constEvalInvalidRecordIndexGet:
   parameters:
-    StringOKEmpty stringOKEmpty: undocumented
-    Constant constant: undocumented
-  problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
+    StringOKEmpty index: The index that was invoked.
+    Constant receiver: The constant being acted upon.
+  problemMessage: "The property '#index' can't be accessed on '#receiver' in a constant expression."
 
 constEvalInvalidRecordNameGet:
   parameters:
-    StringOKEmpty stringOKEmpty: undocumented
-    Constant constant: undocumented
-  problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
+    StringOKEmpty property: The name of the property that was invoked.
+    Constant receiver: The constant being acted upon.
+  problemMessage: "The property '#property' can't be accessed on '#receiver' in a constant expression."
 
 constEvalInvalidStringInterpolationOperand:
   parameters:
-    Constant constant: undocumented
+    Constant constant: The constant being used as part of a string interpolation.
   problemMessage: |
     The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
     Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.
@@ -398,13 +398,13 @@ constEvalInvalidStringInterpolationOperand:
 
 constEvalInvalidStaticInvocation:
   parameters:
-    NameOKEmpty nameOKEmpty: undocumented
-  problemMessage: "The invocation of '#nameOKEmpty' is not allowed in a constant expression."
+    NameOKEmpty target: The name of the member that was invoked.
+  problemMessage: "The invocation of '#target' is not allowed in a constant expression."
 
 constEvalInvalidSymbolName:
   parameters:
-    Constant constant: undocumented
-  problemMessage: "The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'."
+    Constant name: The name of the invalid symbol.
+  problemMessage: "The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#name'."
 
 constEvalFailedAssertion:
   parameters: none
@@ -420,8 +420,8 @@ constEvalFailedAssertion:
 
 constEvalFailedAssertionWithMessage:
   parameters:
-    StringOKEmpty stringOKEmpty: undocumented
-  problemMessage: "This assertion failed with message: #stringOKEmpty"
+    StringOKEmpty message: The assertion failure message.
+  problemMessage: "This assertion failed with message: #message"
   script: |
     class Foo {
       final int x;
@@ -450,9 +450,9 @@ constEvalNonConstantVariableGet:
 
 constEvalDeferredLibrary:
   parameters:
-    NameOKEmpty nameOKEmpty: undocumented
+    NameOKEmpty importName: The name of the deferred library import.
   problemMessage: >
-    '#nameOKEmpty' can't be used in a constant expression because it's marked as
+    '#importName' can't be used in a constant expression because it's marked as
     'deferred' which means it isn't available until loaded.
   correctionMessage: >
     Try moving the constant from the deferred library, or removing 'deferred'
@@ -623,13 +623,13 @@ constEvalUnevaluated:
 
 constEvalError:
   parameters:
-    String string: undocumented
-  problemMessage: "Error evaluating constant expression: #string"
+    String message: A text description of the error.
+  problemMessage: "Error evaluating constant expression: #message"
 
 constEvalUnhandledCoreException:
   parameters:
-    StringOKEmpty stringOKEmpty: undocumented
-  problemMessage: "Unhandled core exception: #stringOKEmpty"
+    StringOKEmpty exceptionText: The text of the unhandled exception.
+  problemMessage: "Unhandled core exception: #exceptionText"
   experiments: const-functions
   script: |
     const foo = [].single;
@@ -638,8 +638,8 @@ constEvalUnhandledCoreException:
 
 constEvalUnhandledException:
   parameters:
-    Constant constant: undocumented
-  problemMessage: "Unhandled exception: #constant"
+    Constant exception: The exception object that was unhandled.
+  problemMessage: "Unhandled exception: #exception"
   experiments: const-functions
   script: |
     const foo = doThrow();
@@ -649,8 +649,8 @@ constEvalUnhandledException:
 
 notConstantExpression:
   parameters:
-    String string: undocumented
-  problemMessage: "#string is not a constant expression."
+    String description: A description of the kind of expression.
+  problemMessage: "#description is not a constant expression."
   script: |
     void foo() {
       const x = new Map();
@@ -682,19 +682,19 @@ dynamicCallsAreNotAllowedInDynamicModule:
 
 constructorShouldBeListedAsCallableInDynamicInterface:
   parameters:
-    Name name: undocumented
+    Name name: Constructor name.
   problemMessage: "Cannot invoke constructor '#name' from a dynamic module."
   correctionMessage: "Try removing the call or update the dynamic interface to list constructor '#name' as callable."
 
 memberShouldBeListedAsCallableInDynamicInterface:
   parameters:
-    Name name: undocumented
+    Name name: Member name.
   problemMessage: "Cannot invoke member '#name' from a dynamic module."
   correctionMessage: "Try removing the call or update the dynamic interface to list member '#name' as callable."
 
 extensionTypeShouldBeListedAsCallableInDynamicInterface:
   parameters:
-    Name name: undocumented
+    Name name: Extension type name.
   problemMessage: "Cannot use extension type '#name' in a dynamic module."
   correctionMessage: "Try removing the reference to extension type '#name' or update the dynamic interface to list extension type '#name' as callable."
 

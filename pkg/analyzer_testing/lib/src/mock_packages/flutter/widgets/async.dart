@@ -13,6 +13,10 @@ typedef AsyncWidgetBuilder<T> =
 @immutable
 class AsyncSnapshot<T> {}
 
+class FutureBuilder<T> extends StatefulWidget {
+  const FutureBuilder({super.key, required this.future, this.initialData, required this.builder});
+}
+
 class StreamBuilder<T> extends StreamBuilderBase<T, AsyncSnapshot<T>> {
   final T? initialData;
 
@@ -25,4 +29,6 @@ class StreamBuilder<T> extends StreamBuilderBase<T, AsyncSnapshot<T>> {
     required this.builder,
   });
 }
+
+abstract class StreamBuilderBase<T, S> extends StatefulWidget {}
 ''');

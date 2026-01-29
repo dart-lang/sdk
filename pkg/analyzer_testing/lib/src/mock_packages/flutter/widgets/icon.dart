@@ -5,7 +5,12 @@
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 
 final widgetsIconLibrary = MockLibraryUnit('lib/src/widgets/icon.dart', r'''
+import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
+
+import 'basic.dart';
 import 'framework.dart';
+import 'icon_data.dart';
 
 class Icon extends StatelessWidget {
   final IconData? icon;

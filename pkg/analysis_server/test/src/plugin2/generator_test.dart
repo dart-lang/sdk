@@ -160,4 +160,25 @@ environment:
 '''),
     );
   }
+
+  void test_useMapConstructor() {
+    var pluginPackageGenerator = PluginPackageGenerator(
+      useMapConstructor: true,
+      configurations: [
+        PluginConfiguration(
+          name: 'no_bools',
+          source: VersionedPluginSource(constraint: '^1.0.0'),
+        ),
+        PluginConfiguration(
+          name: 'no_ints',
+          source: VersionedPluginSource(constraint: '^1.2.0'),
+        ),
+      ],
+    );
+    var entrypoint = pluginPackageGenerator.generateEntrypoint();
+    expect(entrypoint, contains("'no_bools': no_bools.plugin,"));
+    expect(entrypoint, contains("'no_ints': no_ints.plugin,"));
+    var pubspec = pluginPackageGenerator.generatePubspec();
+    expect(pubspec, contains('analysis_server_plugin: ^0.3.8'));
+  }
 }

@@ -2153,7 +2153,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   }
 
   // Write barrier.
-  __ AndImmediate(kTemp, kSuspendState, target::kPageMask);
+  __ AndImmediate(kTemp, kSuspendState, target::Page::kPageMask);
   __ LoadFromOffset(kTemp, kTemp, target::Page::original_top_offset());
   __ CompareRegisters(kSuspendState, kTemp);
   __ BranchIf(UNSIGNED_LESS, &remember_object);

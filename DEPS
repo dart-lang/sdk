@@ -80,7 +80,7 @@ vars = {
   "jsc_tag": "version:305906",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:f77ce52b56d025399f489a8c0aad8c18c4b06045",
+  "clang_version": "git_revision:b153f17b8aeb23ae45b05d8f5e6b4dfd76442dc4",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:103f8b437f5e791e0aef9d5c372521a5d675fabb",
@@ -168,9 +168,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "145.0.7632.5",
+  "chrome_tag": "145.0.7632.18",
   "download_firefox": False,
-  "firefox_tag": "147.0.1",
+  "firefox_tag": "147.0.2",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,

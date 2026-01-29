@@ -1152,8 +1152,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordNameRelation(node, kind, isQualified);
     }
     // ignore a local reference to a parameter
-    if (element is FormalParameterElement && node.parent is! Label) {
-      return;
+    if (element is FormalParameterElement) {
+      if (node.parent is! Label) {
+        return;
+      }
+      if (element.enclosingElement is LocalFunctionElement) {
+        return;
+      }
     }
 
     IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;

@@ -14,14 +14,7 @@ export 'generate_messages_lib.dart';
 void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
   for (var messages in generateMessagesFiles(repoDir)) {
-    _writeAndFormat(
-      new File.fromUri(messages.oldUri(repoDir)),
-      messages.oldContents,
-    );
-    _writeAndFormat(
-      new File.fromUri(messages.newUri(repoDir)),
-      messages.newContents,
-    );
+    _writeAndFormat(new File.fromUri(messages.uri(repoDir)), messages.contents);
   }
 }
 

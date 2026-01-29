@@ -3617,9 +3617,6 @@ void Isolate::PauseEventHandler() {
 #endif  // !defined(PRODUCT)
 
 void Isolate::VisitIsolates(IsolateVisitor* visitor) {
-  if (visitor == nullptr) {
-    return;
-  }
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate(
         [&](Isolate* isolate) { visitor->VisitIsolate(isolate); });
@@ -3635,7 +3632,6 @@ intptr_t Isolate::IsolateListLength() {
 }
 
 std::unique_ptr<char[]> Isolate::LookupIsolateNameByPort(Dart_Port port) {
-  MonitorLocker ml(isolate_creation_monitor_);
   std::unique_ptr<char[]> result;
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate([&](Isolate* isolate) {

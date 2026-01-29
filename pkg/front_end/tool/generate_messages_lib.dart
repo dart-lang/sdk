@@ -14,13 +14,9 @@ class MessageAccumulator {
       '// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.';
 
   /// The buffer in which generated code will be accumulated.
-  final StringBuffer _oldBuffer = new StringBuffer();
   final StringBuffer _newBuffer = new StringBuffer();
 
-  /// The URI which the old generated file which will be part of.
-  final String oldPartOf;
-
-  MessageAccumulator({required this.oldPartOf}) {
+  MessageAccumulator() {
     const String preamble1 = """
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38,12 +34,6 @@ class MessageAccumulator {
 // ignore_for_file: lines_longer_than_80_chars
 """;
 
-    _oldBuffer.writeln(preamble1);
-    _oldBuffer.writeln(preamble2);
-    _oldBuffer.writeln("""
-part of '$oldPartOf';
-""");
-
     _newBuffer.writeln(preamble1);
     _newBuffer.writeln(preamble2);
     _newBuffer.writeln("""
@@ -51,17 +41,11 @@ part of 'diagnostic.dart';
 """);
   }
 
-  Messages finish({
-    required String packageName,
-    required String oldPath,
-    required String newPath,
-  }) {
+  Messages finish({required String packageName, required String path}) {
     return Messages(
       packageName: packageName,
-      oldPath: oldPath,
-      oldContents: _oldBuffer.toString(),
-      newPath: newPath,
-      newContents: _newBuffer.toString(),
+      path: path,
+      contents: _newBuffer.toString(),
     );
   }
 
@@ -74,9 +58,6 @@ part of 'diagnostic.dart';
     _newBuffer.writeln(doNotEditComment);
     _newBuffer.writeln('const $type $newName = $initializer;');
     _newBuffer.writeln();
-    _oldBuffer.writeln(doNotEditComment);
-    _oldBuffer.writeln('const $type $oldName = $newName;');
-    _oldBuffer.writeln();
   }
 
   void writeEnum({
@@ -104,45 +85,27 @@ class Messages {
   /// The name of the package to which files are being generated.
   final String packageName;
 
-  /// The path to the old generated file, relative to the root of the package.
-  final String oldPath;
+  /// The path to the generated file, relative to the root of the package.
+  final String path;
 
-  /// The string to write to the old `codes_generated.dart` or
-  /// `cfe_codes_generated.dart` file.
-  final String oldContents;
-
-  /// The path to the new generated file, relative to the root of the package.
-  final String newPath;
-
-  /// The string to write to the new `diagnostic.g.dart` file.
-  final String newContents;
+  /// The string to write to the generated file.
+  final String contents;
 
   Messages({
     required this.packageName,
-    required this.oldPath,
-    required this.oldContents,
-    required this.newPath,
-    required this.newContents,
+    required this.path,
+    required this.contents,
   });
 
-  /// Computes the absolute file URI to the new generated file.
+  /// Computes the absolute file URI to the generated file.
   ///
   /// [repoDir] is the absolute file URI of the SDK repo.
-  Uri newUri(Uri repoDir) => repoDir.resolve('pkg/$packageName/$newPath');
-
-  /// Computes the absolute file URI to the old generated file.
-  ///
-  /// [repoDir] is the absolute file URI of the SDK repo.
-  Uri oldUri(Uri repoDir) => repoDir.resolve('pkg/$packageName/$oldPath');
+  Uri uri(Uri repoDir) => repoDir.resolve('pkg/$packageName/$path');
 }
 
 List<Messages> generateMessagesFilesRaw(Uri repoDir) {
-  MessageAccumulator sharedMessages = new MessageAccumulator(
-    oldPartOf: 'codes.dart',
-  );
-  MessageAccumulator cfeMessages = new MessageAccumulator(
-    oldPartOf: 'cfe_codes.dart',
-  );
+  MessageAccumulator sharedMessages = new MessageAccumulator();
+  MessageAccumulator cfeMessages = new MessageAccumulator();
 
   var pseudoSharedCodeValues = <String>{};
   for (var message in diagnosticTables.sortedFrontEndDiagnostics) {
@@ -180,13 +143,11 @@ List<Messages> generateMessagesFilesRaw(Uri repoDir) {
   return [
     sharedMessages.finish(
       packageName: '_fe_analyzer_shared',
-      oldPath: "lib/src/messages/codes_generated.dart",
-      newPath: "lib/src/messages/diagnostic.g.dart",
+      path: "lib/src/messages/diagnostic.g.dart",
     ),
     cfeMessages.finish(
       packageName: 'front_end',
-      oldPath: "lib/src/codes/cfe_codes_generated.dart",
-      newPath: "lib/src/codes/diagnostic.g.dart",
+      path: "lib/src/codes/diagnostic.g.dart",
     ),
   ];
 }

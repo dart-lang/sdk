@@ -2459,9 +2459,6 @@ void f() {
     assertErrorsInResult([]);
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-87 8:7 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
-108 9:12 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
-126 10:9 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 
@@ -2502,9 +2499,6 @@ void f() {
     assertErrorsInResult([]);
     var element = findElement2.parameter('test');
     assertElementIndexText(element, r'''
-95 8:7 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
-116 9:12 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
-134 10:9 |test| IS_REFERENCED_BY_NAMED_ARGUMENT qualified
 ''');
   }
 

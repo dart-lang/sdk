@@ -88,16 +88,44 @@ class PluginServer {
   int _overlayModificationStamp = 0;
 
   /// The list of registered features for each plugin, for reporting purposes.
-  final _registries = <PluginRegistryImpl>[];
+  final _registries = <String, PluginRegistryImpl>{};
 
   PluginServer({
     required ResourceProvider resourceProvider,
     required List<Plugin> plugins,
   }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
        _plugins = plugins {
+    int i = 0;
     for (var plugin in plugins) {
       var registry = PluginRegistryImpl(plugin.name);
-      _registries.add(registry);
+      // For this unnamed (old) constructor, we were not tracking them by name
+      // so we do this (use '$i') simply to store the registries uniquely.
+      //
+      // `_registries` was previously only used for the `PLUGIN_REQUEST_DETAILS`
+      // request handling.
+      //
+      // Now, we plan on deprecating this constructor and move to `new2`, since
+      // that allows us to track plugins by name and fix issues with ignores and
+      // avoiding diagnostic collisions.
+      //
+      // When initializing with this constructor we can't use `_registries` to
+      // find them by name, so we use the main `Registry.ruleRegistry` to find
+      // the rules instead.
+      _registries['$i'] = registry;
+      plugin.register(registry);
+      i++;
+    }
+    PluginRegistryImpl.registerIgnoreProducerGenerators();
+  }
+
+  PluginServer.new2({
+    required ResourceProvider resourceProvider,
+    required Map<String, Plugin> plugins,
+  }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
+       _plugins = plugins.values.toList() {
+    for (var MapEntry(key: name, value: plugin) in plugins.entries) {
+      var registry = PluginRegistryImpl(plugin.name);
+      _registries[name.toLowerCase()] = registry;
       plugin.register(registry);
     }
     PluginRegistryImpl.registerIgnoreProducerGenerators();
@@ -437,8 +465,8 @@ class PluginServer {
 
     for (var configuration in analysisOptions.pluginConfigurations) {
       if (!configuration.isEnabled) continue;
-      // TODO(srawlins): Namespace rules by their plugin, to avoid collisions.
-      var rules = Registry.ruleRegistry.enabled({
+      var registry = _registries[configuration.name] ?? Registry.ruleRegistry;
+      var rules = registry.enabled({
         for (var entry in configuration.diagnosticConfigs.entries)
           entry.key.toLowerCase(): entry.value,
       });
@@ -631,7 +659,7 @@ class PluginServer {
 
       case protocol.PLUGIN_REQUEST_DETAILS:
         var details = <protocol.PluginDetails>[];
-        for (var pluginRegistry in _registries) {
+        for (var pluginRegistry in _registries.values) {
           var assists = [
             for (var assistKind in pluginRegistry.assistKinds)
               protocol.AssistDescription(assistKind.id, assistKind.message),
@@ -644,8 +672,8 @@ class PluginServer {
           details.add(
             protocol.PluginDetails(
               pluginRegistry.pluginName,
-              pluginRegistry.lintRules,
-              pluginRegistry.warningRules,
+              pluginRegistry.lintRules.keys.toList(),
+              pluginRegistry.warningRules.keys.toList(),
               assists,
               fixes,
             ),

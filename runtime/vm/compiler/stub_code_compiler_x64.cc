@@ -48,7 +48,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // the remembered set and/or deferred marking worklist. This test assumes a
   // Page's TLAB use is always ascending.
   Label done;
-  __ AndImmediate(TMP, RAX, target::kPageMask);
+  __ AndImmediate(TMP, RAX, target::Page::kPageMask);
   __ LoadFromOffset(TMP, TMP, target::Page::original_top_offset());
   __ CompareRegisters(RAX, TMP);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
@@ -2260,8 +2260,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   if (cards) {
     // Get card table.
     __ Bind(&remember_card);
-    __ movq(TMP, RDX);                           // Object.
-    __ andq(TMP, Immediate(target::kPageMask));  // Page.
+    __ movq(TMP, RDX);                                 // Object.
+    __ andq(TMP, Immediate(target::Page::kPageMask));  // Page.
 
     // Atomically dirty the card.
     __ pushq(RAX);

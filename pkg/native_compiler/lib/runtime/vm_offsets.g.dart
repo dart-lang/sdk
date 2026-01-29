@@ -24,6 +24,7 @@ base class VMOffsets {
   int get Instructions_kNonBarePayloadAlignment => throw 'Unknown';
   int get NativeEntry_kNumCallWrapperArguments => throw 'Unknown';
   int get Page_kBytesPerCardLog2 => throw 'Unknown';
+  int get Page_kPageMask => throw 'Unknown';
   int get Record_kMaxElements => throw 'Unknown';
   int get RecordShape_kFieldNamesIndexMask => throw 'Unknown';
   int get RecordShape_kFieldNamesIndexShift => throw 'Unknown';
@@ -588,6 +589,8 @@ final class Arm64VMOffsets extends VMOffsets {
   int get NativeEntry_kNumCallWrapperArguments => 0x2;
   @override
   int get Page_kBytesPerCardLog2 => 0x8;
+  @override
+  int get Page_kPageMask => -0x80000;
   @override
   int get Record_kMaxElements => 0xffff;
   @override
@@ -1497,6 +1500,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get NativeEntry_kNumCallWrapperArguments => 0x2;
   @override
   int get Page_kBytesPerCardLog2 => 0x8;
+  @override
+  int get Page_kPageMask => -0x80000;
   @override
   int get Record_kMaxElements => 0xffff;
   @override

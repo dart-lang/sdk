@@ -767,7 +767,7 @@ class CountingBlock {
   }
 
   intptr_t Lookup(uword addr) const {
-    uword block_offset = addr & ~kBlockMask;
+    uword block_offset = addr & ~Page::kBlockMask;
     intptr_t bitvector_shift = block_offset >> kObjectAlignmentLog2;
     ASSERT(bitvector_shift < kBitsPerWord);
     uword preceding_bitmask = (static_cast<uword>(1) << bitvector_shift) - 1;
@@ -781,7 +781,7 @@ class CountingBlock {
       base_count_ = id;  // First object in the block.
     }
 
-    uword block_offset = old_addr & ~kBlockMask;
+    uword block_offset = old_addr & ~Page::kBlockMask;
     intptr_t bitvector_shift = block_offset >> kObjectAlignmentLog2;
     ASSERT(bitvector_shift < kBitsPerWord);
     count_bitvector_ |= static_cast<uword>(1) << bitvector_shift;
@@ -790,7 +790,7 @@ class CountingBlock {
  private:
   intptr_t base_count_;
   uword count_bitvector_;
-  COMPILE_ASSERT(kBitVectorWordsPerBlock == 1);
+  COMPILE_ASSERT(Page::kBitVectorWordsPerBlock == 1);
 
   DISALLOW_COPY_AND_ASSIGN(CountingBlock);
 };
@@ -798,7 +798,7 @@ class CountingBlock {
 class CountingPage {
  public:
   void Clear() {
-    for (intptr_t i = 0; i < kBlocksPerPage; i++) {
+    for (intptr_t i = 0; i < Page::kBlocksPerPage; i++) {
       blocks_[i].Clear();
     }
   }
@@ -809,15 +809,15 @@ class CountingPage {
   }
 
   CountingBlock* BlockFor(uword addr) {
-    intptr_t page_offset = addr & ~kPageMask;
-    intptr_t block_number = page_offset / kBlockSize;
+    intptr_t page_offset = addr & ~Page::kPageMask;
+    intptr_t block_number = page_offset / Page::kBlockSize;
     ASSERT(block_number >= 0);
-    ASSERT(block_number <= kBlocksPerPage);
+    ASSERT(block_number <= Page::kBlocksPerPage);
     return &blocks_[block_number];
   }
 
  private:
-  CountingBlock blocks_[kBlocksPerPage];
+  CountingBlock blocks_[Page::kBlocksPerPage];
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(CountingPage);

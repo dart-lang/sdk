@@ -77,9 +77,6 @@ extern InvalidClass kUWordMax;
 extern InvalidClass kNewObjectAlignmentOffset;
 extern InvalidClass kOldObjectAlignmentOffset;
 extern InvalidClass kNewObjectBitPosition;
-extern InvalidClass kPageSize;
-extern InvalidClass kPageSizeInWords;
-extern InvalidClass kPageMask;
 extern InvalidClass kObjectAlignment;
 extern InvalidClass kObjectAlignmentLog2;
 extern InvalidClass kObjectAlignmentMask;
@@ -305,11 +302,6 @@ constexpr intptr_t kSmiBits = 30;
 #endif
 constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
 constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
-
-// Information about heap pages.
-extern const word kPageSize;
-extern const word kPageSizeInWords;
-extern const word kPageMask;
 
 static constexpr intptr_t kObjectAlignment = ObjectAlignment::kObjectAlignment;
 
@@ -1505,6 +1497,7 @@ class ClosureData : public AllStatic {
 class Page : public AllStatic {
  public:
   static const word kBytesPerCardLog2;
+  static const word kPageMask;
 
   static word card_table_offset();
   static word original_top_offset();

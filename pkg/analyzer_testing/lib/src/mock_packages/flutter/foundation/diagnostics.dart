@@ -26,6 +26,10 @@ class DiagnosticPropertiesBuilder {
 
 abstract class DiagnosticsNode {}
 
+enum DiagnosticsTreeStyle {
+  singleLine;
+}
+
 class DiagnosticsProperty<T> extends DiagnosticsNode {
   DiagnosticsProperty(
     String? name,

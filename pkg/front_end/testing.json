@@ -216,9 +216,7 @@
       ],
       "exclude": [
         "kernel/lib/transformations/.*\\.dart$",
-        "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
         "_fe_analyzer_shared/lib/src/messages/diagnostic\\.g\\.dart$",
-        "front_end/lib/src/codes/cfe_codes_generated\\.dart$",
         "front_end/lib/src/codes/diagnostic\\.g\\.dart$"
       ]
     },
@@ -265,9 +263,7 @@
         ".dart"
       ],
       "exclude": [
-        "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
         "_fe_analyzer_shared/lib/src/messages/diagnostic\\.g\\.dart$",
-        "front_end/lib/src/codes/cfe_codes_generated\\.dart$",
         "front_end/lib/src/codes/diagnostic\\.g\\.dart$"
       ]
     },

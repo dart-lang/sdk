@@ -56,6 +56,9 @@ class DartUnitHoverComputer {
         node is VariableDeclaration ||
         node is VariablePattern ||
         node is PatternFieldName ||
+        node is PrimaryConstructorBody ||
+        node is PrimaryConstructorDeclaration ||
+        node is PrimaryConstructorName ||
         node is DartPattern ||
         (node is LibraryDirective && node.name == null) ||
         (node is SimpleIdentifier && node.parent is ImportDirective) ||
@@ -139,10 +142,17 @@ class DartUnitHoverComputer {
     } else if (node is DotShorthandConstructorInvocation) {
       return (offset: node.offset, length: node.length);
     } else if (node is ConstructorDeclaration) {
-      // TODO(scheglov): support primary constructors
       var offset = node.typeName!.offset;
       var end = node.name?.end ?? node.typeName!.end;
       var length = end - node.typeName!.offset;
+      return (offset: offset, length: length);
+    } else if (node is PrimaryConstructorDeclaration) {
+      if (node.constructorName != null) {
+        return (offset: entity.offset, length: entity.length);
+      }
+      var offset = node.typeName.offset;
+      var end = node.typeName.end;
+      var length = end - offset;
       return (offset: offset, length: length);
     } else {
       return (offset: entity.offset, length: entity.length);
@@ -217,6 +227,10 @@ class DartUnitHoverComputer {
       NameWithTypeParameters() => node.typeName,
       NamedType() => node.name,
       PatternFieldName() => node.name,
+      PrimaryConstructorBody() =>
+        node.declaration?.constructorName ?? node.declaration?.typeName,
+      PrimaryConstructorDeclaration() => node.constructorName ?? node.typeName,
+      PrimaryConstructorName() => node.name,
       TypeAlias() => node.name,
       VariableDeclaration() => node.name,
       VariablePattern() => node.name,
@@ -263,6 +277,8 @@ class DartUnitHoverComputer {
       return parent;
     } else if (node is SimpleIdentifier &&
         parent is DotShorthandConstructorInvocation) {
+      return parent;
+    } else if (node is PrimaryConstructorName) {
       return parent;
     }
     return node;

@@ -37,7 +37,7 @@ class ForwardingBlock {
   }
 
   uword Lookup(uword old_addr) const {
-    uword block_offset = old_addr & ~kBlockMask;
+    uword block_offset = old_addr & ~Page::kBlockMask;
     intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
     ASSERT(first_unit_position < kBitsPerWord);
     uword preceding_live_bitmask =
@@ -58,7 +58,7 @@ class ForwardingBlock {
     if (size_in_units >= kBitsPerWord) {
       size_in_units = kBitsPerWord - 1;
     }
-    uword block_offset = old_addr & ~kBlockMask;
+    uword block_offset = old_addr & ~Page::kBlockMask;
     intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
     ASSERT(first_unit_position < kBitsPerWord);
     live_bitvector_ |= ((static_cast<uword>(1) << size_in_units) - 1)
@@ -66,7 +66,7 @@ class ForwardingBlock {
   }
 
   bool IsLive(uword old_addr) const {
-    uword block_offset = old_addr & ~kBlockMask;
+    uword block_offset = old_addr & ~Page::kBlockMask;
     intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
     ASSERT(first_unit_position < kBitsPerWord);
     return (live_bitvector_ & (static_cast<uword>(1) << first_unit_position)) !=
@@ -79,7 +79,7 @@ class ForwardingBlock {
  private:
   uword new_address_;
   uword live_bitvector_;
-  COMPILE_ASSERT(kBitVectorWordsPerBlock == 1);
+  COMPILE_ASSERT(Page::kBitVectorWordsPerBlock == 1);
 
   DISALLOW_COPY_AND_ASSIGN(ForwardingBlock);
 };
@@ -87,7 +87,7 @@ class ForwardingBlock {
 class ForwardingPage {
  public:
   void Clear() {
-    for (intptr_t i = 0; i < kBlocksPerPage; i++) {
+    for (intptr_t i = 0; i < Page::kBlocksPerPage; i++) {
       blocks_[i].Clear();
     }
   }
@@ -95,15 +95,15 @@ class ForwardingPage {
   uword Lookup(uword old_addr) { return BlockFor(old_addr)->Lookup(old_addr); }
 
   ForwardingBlock* BlockFor(uword old_addr) {
-    intptr_t page_offset = old_addr & ~kPageMask;
-    intptr_t block_number = page_offset / kBlockSize;
+    intptr_t page_offset = old_addr & ~Page::kPageMask;
+    intptr_t block_number = page_offset / Page::kBlockSize;
     ASSERT(block_number >= 0);
-    ASSERT(block_number <= kBlocksPerPage);
+    ASSERT(block_number <= Page::kBlocksPerPage);
     return &blocks_[block_number];
   }
 
  private:
-  ForwardingBlock blocks_[kBlocksPerPage];
+  ForwardingBlock blocks_[Page::kBlocksPerPage];
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ForwardingPage);
@@ -506,8 +506,8 @@ void CompactorTask::SlidePage(Page* page) {
 // object that starts in that block.
 uword CompactorTask::PlanBlock(uword first_object,
                                ForwardingPage* forwarding_page) {
-  uword block_start = first_object & kBlockMask;
-  uword block_end = block_start + kBlockSize;
+  uword block_start = first_object & Page::kBlockMask;
+  uword block_end = block_start + Page::kBlockSize;
   ForwardingBlock* forwarding_block = forwarding_page->BlockFor(first_object);
 
   // 1. Compute bitvector of surviving allocation units in the block.
@@ -536,8 +536,8 @@ uword CompactorTask::PlanBlock(uword first_object,
 
 uword CompactorTask::SlideBlock(uword first_object,
                                 ForwardingPage* forwarding_page) {
-  uword block_start = first_object & kBlockMask;
-  uword block_end = block_start + kBlockSize;
+  uword block_start = first_object & Page::kBlockMask;
+  uword block_end = block_start + Page::kBlockSize;
   ForwardingBlock* forwarding_block = forwarding_page->BlockFor(first_object);
 
   uword old_addr = first_object;
@@ -592,7 +592,7 @@ uword CompactorTask::SlideBlock(uword first_object,
 
 void CompactorTask::PlanMoveToContiguousSize(intptr_t size) {
   // Move the free cursor to ensure 'size' bytes of contiguous space.
-  ASSERT(size <= kPageSize);
+  ASSERT(size <= Page::kPageSize);
 
   // Check if the current free page has enough space.
   intptr_t free_remaining = free_end_ - free_current_;

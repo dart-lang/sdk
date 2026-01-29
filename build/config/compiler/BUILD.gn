@@ -40,7 +40,7 @@ config("default_include_dirs") {
 
 if (is_win && (is_asan || is_ubsan)) {
   copy("copy_sanitizer_runtime") {
-    sources = [ "//buildtools/win-x64/clang/lib/clang/22/lib/x86_64-pc-windows-msvc/clang_rt.asan_dynamic.dll" ]
+    sources = [ "//buildtools/win-x64/clang/lib/clang/23/lib/x86_64-pc-windows-msvc/clang_rt.asan_dynamic.dll" ]
     outputs = [ "$root_out_dir/{{source_file_part}}" ]
   }
 }
@@ -133,7 +133,7 @@ config("compiler") {
         # linking.  Hence, pass the runtime libraries instead of -fsanitize=address
         # or -fsanitize=fuzzer.
         _clang_lib_dir =
-            "//buildtools/win-x64/clang/lib/clang/22/lib/x86_64-pc-windows-msvc"
+            "//buildtools/win-x64/clang/lib/clang/23/lib/x86_64-pc-windows-msvc"
         libs = [ "$_clang_lib_dir/clang_rt.asan_dynamic.lib" ]
         ldflags += [ "-libpath:" + rebase_path("$_clang_lib_dir") ]
         if (is_shared_library) {
@@ -174,7 +174,7 @@ config("compiler") {
         # linking.  Hence, pass the runtime libraries instead of
         # -fsanitize=undefined.
         _clang_lib_dir =
-            "//buildtools/win-x64/clang/lib/clang/22/lib/x86_64-pc-windows-msvc"
+            "//buildtools/win-x64/clang/lib/clang/23/lib/x86_64-pc-windows-msvc"
         libs = [ "$_clang_lib_dir/clang_rt.ubsan_standalone.lib" ]
         ldflags += [ "-libpath:" + rebase_path("$_clang_lib_dir") ]
       } else {
@@ -189,15 +189,15 @@ config("compiler") {
     if (is_mac && (is_asan || is_lsan || is_tsan || is_ubsan)) {
       ldflags += [
         "-rpath",
-        "buildtools/mac-$host_cpu/clang/lib/clang/22/lib/darwin",
+        "buildtools/mac-$host_cpu/clang/lib/clang/23/lib/darwin",
 
         # Back from xcodebuild/ReleaseTSAN/dart
         "-rpath",
-        "@loader_path/../../buildtools/mac-$host_cpu/clang/lib/clang/22/lib/darwin",
+        "@loader_path/../../buildtools/mac-$host_cpu/clang/lib/clang/23/lib/darwin",
 
         # Back from xcodebuild/ReleaseTSAN/dart-sdk/bin/dart
         "-rpath",
-        "@loader_path/../../../../buildtools/mac-$host_cpu/clang/lib/clang/22/lib/darwin",
+        "@loader_path/../../../../buildtools/mac-$host_cpu/clang/lib/clang/23/lib/darwin",
       ]
     }
   }
