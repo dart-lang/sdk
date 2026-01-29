@@ -272,12 +272,12 @@ class MethodInvocationResolver with ScopeHelpers {
       dotShorthandContextType,
     );
 
-    // TODO(kallentu): Dot shorthands work - Support other context types
-    if (dotShorthandContextType is InterfaceTypeImpl) {
-      var receiver = dotShorthandContextType.element;
+    if (dotShorthandContextType case InterfaceTypeImpl(
+      :var element,
+    ) when element.isAccessibleIn(_resolver.definingLibrary)) {
       return _resolveReceiverTypeLiteralForDotShorthand(
         node,
-        receiver,
+        element,
         node.memberName,
         node.memberName.name,
         whyNotPromotedArguments,
