@@ -571,7 +571,10 @@ void f() {
   g(.new());
 }
 ''',
-      [error(diag.experimentalMemberUse, 46, 3)],
+      [
+        error(diag.experimentalMemberUse, 45, 6),
+        error(diag.experimentalMemberUse, 46, 3),
+      ],
     );
   }
 
@@ -586,13 +589,16 @@ class A {
 void g(A a) {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 import 'package:aaa/a.dart';
 
 void f() {
   g(.new());
 }
-''');
+''',
+      [error(diag.experimentalMemberUse, 45, 6)],
+    );
   }
 
   test_dotShorthandConstructorInvocation_experimentalClass_unexperimentalNamedConstructor() async {
@@ -603,6 +609,7 @@ import 'package:meta/meta.dart';
 class A {
   A.a();
 }
+void g(A _) {}
 ''');
 
     await assertErrorsInCode(
@@ -610,13 +617,10 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .a();
+  g(.a());
 }
 ''',
-      [
-        error(diag.experimentalMemberUse, 43, 1),
-        error(diag.unusedLocalVariable, 45, 1),
-      ],
+      [error(diag.experimentalMemberUse, 45, 4)],
     );
   }
 

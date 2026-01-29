@@ -396,6 +396,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    for (var v in _elementUsageFrontierDetectors) {
+      v.dotShorthandPropertyAccess(node);
+    }
+    super.visitDotShorthandPropertyAccess(node);
+  }
+
+  @override
   void visitEnumDeclaration(EnumDeclaration node) {
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(node.declaredFragment!.element);
