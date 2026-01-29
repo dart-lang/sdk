@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -27,7 +28,8 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
     if (parameter is! FieldFormalParameter || parameter.parameters != null) {
       return;
     }
-    var field = parameter.declaredFragment?.element.field;
+    var fragment = parameter.declaredFragment;
+    var field = fragment?.element.field;
     if (field == null) {
       return;
     }
@@ -38,6 +40,17 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
       return;
     }
     var initializers = constructor.initializers;
+
+    var declaredName = parameter.name.lexeme;
+    var parameterName = declaredName;
+    var fieldName = field.name;
+
+    if (parameter.isNamed &&
+        isEnabled(Feature.private_named_parameters) &&
+        fragment?.privateName != null) {
+      parameterName = fragment!.element.name;
+    }
+
     await builder.addDartFileEdit(file, (builder) {
       var thisRange = range.startEnd(parameter.thisKeyword, parameter.period);
 
@@ -55,13 +68,16 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
 
       var type = parameter.type;
       if (type == null) {
-        // The type of the field needs to be added to the declaration.
         builder.addReplacement(thisRange, (builder) {
           builder.writeType(field.type);
           builder.write(' ');
         });
       } else {
         builder.addDeletion(thisRange);
+      }
+
+      if (declaredName != parameterName) {
+        builder.addSimpleReplacement(range.token(parameter.name), parameterName);
       }
 
       int offset;
@@ -73,7 +89,6 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
         offset = initializers.last.end;
         prefix = ',';
       }
-
       builder.addSimpleInsertion(offset, '$prefix $fieldName = $parameterName');
     });
   }

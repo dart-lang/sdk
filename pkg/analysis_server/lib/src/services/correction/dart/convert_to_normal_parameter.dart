@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -32,27 +33,43 @@ class ConvertToNormalParameter extends ResolvedCorrectionProducer {
     var constructor = parameterList.parent;
     if (constructor is! ConstructorDeclaration) return;
 
-    var parameterElement = parameter.declaredFragment!.element;
-    var name = parameter.name.lexeme;
+    var fragment = parameter.declaredFragment!;
+    var parameterElement = fragment.element;
+    var field = parameterElement.field;
     var type = parameterElement.type;
 
+    var declaredName = parameter.name.lexeme;
+    var parameterName = declaredName;
+    var fieldName = field?.name ?? declaredName;
+
+    if (parameter.isNamed &&
+        isEnabled(Feature.private_named_parameters) &&
+        fragment.privateName != null) {
+      parameterName = parameterElement.name;
+    }
+
     await builder.addDartFileEdit(file, (builder) {
-      // replace parameter
       if (type is DynamicType) {
-        builder.addSimpleReplacement(range.node(parameter), name);
+        builder.addSimpleReplacement(range.node(parameter), parameterName);
       } else {
         builder.addReplacement(range.node(parameter), (builder) {
           builder.writeType(type);
           builder.write(' ');
-          builder.write(name);
+          builder.write(parameterName);
         });
       }
-      // add field initializer
+
       List<ConstructorInitializer> initializers = constructor.initializers;
       if (initializers.isEmpty) {
-        builder.addSimpleInsertion(parameterList.end, ' : $name = $name');
+        builder.addSimpleInsertion(
+          parameterList.end,
+          ' : $fieldName = $parameterName',
+        );
       } else {
-        builder.addSimpleInsertion(initializers.last.end, ', $name = $name');
+        builder.addSimpleInsertion(
+          initializers.last.end,
+          ', $fieldName = $parameterName',
+        );
       }
     });
   }
