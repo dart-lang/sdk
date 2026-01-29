@@ -1278,6 +1278,7 @@ class A(int a) {
   this {
     a;
     foo;
+    (a,) = (0,);
   }
   void foo() {}
 }
@@ -1302,6 +1303,31 @@ PrimaryConstructorBody
             token: foo
             element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
+          semicolon: ;
+        ExpressionStatement
+          expression: PatternAssignment
+            pattern: RecordPattern
+              leftParenthesis: (
+              fields
+                PatternField
+                  pattern: AssignedVariablePattern
+                    name: a
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                    matchedValueType: int
+                  element: <null>
+              rightParenthesis: )
+              matchedValueType: (int,)
+            equals: =
+            expression: RecordLiteral
+              leftParenthesis: (
+              fields
+                IntegerLiteral
+                  literal: 0
+                  staticType: int
+              rightParenthesis: )
+              staticType: (int,)
+            patternTypeSchema: (int,)
+            staticType: (int,)
           semicolon: ;
       rightBracket: }
 ''');

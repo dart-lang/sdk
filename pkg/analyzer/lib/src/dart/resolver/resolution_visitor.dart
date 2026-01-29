@@ -1210,9 +1210,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    _withElementWalker(null, () {
-      super.visitPrimaryConstructorBody(node);
-    });
+    if (node.declaration case var declaration?) {
+      var fragment = declaration.declaredFragment!;
+      _withElementHolder(ElementHolder(fragment), () {
+        _withNameScope(() {
+          _defineFormalParameters(fragment.element.formalParameters);
+          _withElementWalker(null, () {
+            super.visitPrimaryConstructorBody(node);
+          });
+        });
+      });
+    } else {
+      _withElementWalker(null, () {
+        super.visitPrimaryConstructorBody(node);
+      });
+    }
   }
 
   @override
