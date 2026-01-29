@@ -26,9 +26,48 @@ void f1(bool f(int e)) {}
     );
   }
 
+  test_classicSyntax_declaring() async {
+    await assertDiagnostics(
+      r'''
+class C(final bool x(int e));
+''',
+      [lint(8, 19)],
+    );
+  }
+
+  @FailingTest(reason: 'Unimplemented')
+  test_classicSyntax_fieldFormal() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  C(bool this.x(int e));
+
+  bool Function(int) x;
+}
+''',
+      [lint(14, 18)],
+    );
+  }
+
   test_functionTypeSyntax() async {
     await assertNoDiagnostics(r'''
 void f2(bool Function(int e) f) {}
+''');
+  }
+
+  test_functionTypeSyntax_declaring() async {
+    await assertNoDiagnostics(r'''
+class C(final bool Function(int) x);
+''');
+  }
+
+  test_functionTypeSyntax_fieldFormal() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C(bool Function(int) this.x);
+
+  bool Function(int) x;
+}
 ''');
   }
 }
