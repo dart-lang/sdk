@@ -756,6 +756,8 @@ class IncrementalState {
 Set<String> extractSeenEvents(Trace trace) {
   var state = IncrementalState();
   final seenEvents = <String>{};
+  final seenTracks = <int>{};
+  final seenTrackDescriptors = <int>{};
   for (var packet in trace.packet) {
     if ((packet.sequenceFlags &
             TracePacket_SequenceFlags.SEQ_INCREMENTAL_STATE_CLEARED.value) !=
@@ -774,8 +776,16 @@ Set<String> extractSeenEvents(Trace trace) {
         final name = state.eventNames[packet.trackEvent.nameIid.toInt()]!;
         seenEvents.add(name);
       }
+      seenTracks.add(trackEvent.trackUuid.toInt());
+    }
+
+    if (packet.hasTrackDescriptor()) {
+      final trackDescriptor = packet.trackDescriptor;
+      seenTrackDescriptors.add(trackDescriptor.uuid.toInt());
     }
   }
+
+  expect(seenTrackDescriptors, containsAll(seenTracks));
 
   return seenEvents;
 }

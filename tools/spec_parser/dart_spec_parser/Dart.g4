@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.59 Gather some occurrences of `AUGMENT` in a single location. Rename
+// `topLevelDefinition` to `topLevelDeclaration` (as in the specification).
+//
 // v0.58 Introduce augmentation related updates.
 //
 // v0.57 Update constructor declaration syntax to allow `constructorHead`.
@@ -302,11 +305,11 @@ libraryDeclaration
          libraryName?
          importOrExport*
          partDirective*
-         (metadata topLevelDefinition)*
+         (metadata topLevelDeclaration)*
          EOF
     ;
 
-topLevelDefinition
+topLevelDeclaration
     :    classDeclaration
     |    mixinDeclaration
     |    extensionTypeDeclaration
@@ -462,7 +465,7 @@ memberedDeclarationBody
     ;
 
 memberDeclarations
-    :    (metadata memberDeclaration)*
+    :    (metadata AUGMENT? memberDeclaration)*
     ;
 
 classModifiers
@@ -488,8 +491,8 @@ interfaces
     ;
 
 memberDeclaration
-    :    AUGMENT? methodSignature functionBody
-    |    AUGMENT? declaration ';'
+    :    methodSignature functionBody
+    |    declaration ';'
     ;
 
 mixinApplicationClass
@@ -1572,7 +1575,7 @@ partDeclaration
     :    FEFF? partHeader
          importOrExport*
          partDirective*
-         (metadata topLevelDefinition)*
+         (metadata topLevelDeclaration)*
          EOF
     ;
 
