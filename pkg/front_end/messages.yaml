@@ -2424,28 +2424,28 @@ instanceConflictsWithStatic:
 
 instanceConflictsWithStaticCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting static property '#name'."
+    Name propertyName: The name of the instance property that has a conflict.
+  problemMessage: "Conflicting static property '#propertyName'."
   severity: CONTEXT
 
 setterConflictsWithDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "The setter conflicts with declaration '#name'."
+    Name setterName: The name of the setter that has a conflict.
+  problemMessage: "The setter conflicts with declaration '#setterName'."
   script: |
     class Foo {}
     set Foo(_) {}
 
 setterConflictsWithDeclarationCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting declaration '#name'."
+    Name setterName: The name of the setter that has a conflict.
+  problemMessage: "Conflicting declaration '#setterName'."
   severity: CONTEXT
 
 constructorConflictsWithMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "The constructor conflicts with member '#name'."
+    Name memberName: The name of the member that the constructor conflicts with.
+  problemMessage: "The constructor conflicts with member '#memberName'."
   script: |
     class A {
       static int get foo => 42;
@@ -2454,14 +2454,14 @@ constructorConflictsWithMember:
 
 constructorConflictsWithMemberCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting member '#name'."
+    Name memberName: The name of the member that the constructor conflicts with.
+  problemMessage: "Conflicting member '#memberName'."
   severity: CONTEXT
 
 factoryConflictsWithMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "The factory conflicts with member '#name'."
+    Name memberName: The name of the member that the factory conflicts with.
+  problemMessage: "The factory conflicts with member '#memberName'."
   script: |
     class A {
       static int get foo => 42;
@@ -2470,14 +2470,14 @@ factoryConflictsWithMember:
 
 factoryConflictsWithMemberCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting member '#name'."
+    Name memberName: The name of the member that the factory conflicts with.
+  problemMessage: "Conflicting member '#memberName'."
   severity: CONTEXT
 
 memberConflictsWithConstructor:
   parameters:
-    Name name: undocumented
-  problemMessage: "The member conflicts with constructor '#name'."
+    Name constructorName: The name of the constructor that the member conflicts with.
+  problemMessage: "The member conflicts with constructor '#constructorName'."
   script: |
     class A {
       A.foo();
@@ -2486,14 +2486,14 @@ memberConflictsWithConstructor:
 
 memberConflictsWithConstructorCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting constructor '#name'."
+    Name constructorName: The name of the constructor that the member conflicts with.
+  problemMessage: "Conflicting constructor '#constructorName'."
   severity: CONTEXT
 
 memberConflictsWithFactory:
   parameters:
-    Name name: undocumented
-  problemMessage: "The member conflicts with factory '#name'."
+    Name factoryName: The name of the factory that the member conflicts with.
+  problemMessage: "The member conflicts with factory '#factoryName'."
   script: |
     class A {
       factory A.foo() => throw '';
@@ -2502,36 +2502,36 @@ memberConflictsWithFactory:
 
 memberConflictsWithFactoryCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting factory '#name'."
+    Name factoryName: The name of the factory that the member conflicts with.
+  problemMessage: "Conflicting factory '#factoryName'."
   severity: CONTEXT
 
 declarationConflictsWithSetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "The declaration conflicts with setter '#name'."
+    Name setterName: The name of the setter that the declaration conflicts with.
+  problemMessage: "The declaration conflicts with setter '#setterName'."
   script: |
     void set foo(_) {}
     void foo() {}
 
 declarationConflictsWithSetterCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting setter '#name'."
+    Name setterName: The name of the setter that the declaration conflicts with.
+  problemMessage: "Conflicting setter '#setterName'."
   severity: CONTEXT
 
 conflictsWithImplicitSetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicts with the implicit setter of the field '#name'."
+    Name fieldName: The name of the field whose implicit setter has a conflict.
+  problemMessage: "Conflicts with the implicit setter of the field '#fieldName'."
   script: |
     int? foo;
     void set foo(_) {}
 
 conflictsWithImplicitSetterCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Field '#name' with the implicit setter."
+    Name fieldName: The name of the field whose implicit setter has a conflict.
+  problemMessage: "Field '#fieldName' with the implicit setter."
   severity: CONTEXT
 
 conflictsWithTypeParameter:
