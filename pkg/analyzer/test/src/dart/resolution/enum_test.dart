@@ -1299,7 +1299,8 @@ PrimaryConstructorDeclaration
   }
 
   test_primaryConstructorBody_duplicate() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(
+      r'''
 enum A(bool x, bool y) {
   v(true, true);
   this : assert(x) {
@@ -1309,7 +1310,9 @@ enum A(bool x, bool y) {
     !y;
   }
 }
-''');
+''',
+      [error(diag.constConstructorWithBody, 61, 1)],
+    );
 
     var node = findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''

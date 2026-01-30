@@ -1477,6 +1477,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             constructorElement: element,
             errorRange: node.errorRange,
           );
+          _checkForConstConstructorWithBodyPrimary(node);
         }
 
         _checkForUndefinedConstructorInInitializerImplicit(
@@ -2902,6 +2903,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         body.initializers.last != superConstructorInvocation) {
       diagnosticReporter.report(
         diag.superInvocationNotLast.at(superConstructorInvocation.superKeyword),
+      );
+    }
+  }
+
+  void _checkForConstConstructorWithBodyPrimary(
+    PrimaryConstructorDeclaration node,
+  ) {
+    var element = node.declaredFragment!.element;
+    if (!element.isConst) {
+      return;
+    }
+
+    if (node.body?.body case BlockFunctionBody blockBody) {
+      diagnosticReporter.report(
+        diag.constConstructorWithBody.at(blockBody.block.leftBracket),
       );
     }
   }
