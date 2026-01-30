@@ -13375,6 +13375,18 @@ primaryConstructorBodyWithoutDeclaration = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments primaryConstructorCannotRedirect =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'primary_constructor_cannot_redirect',
+      problemMessage:
+          "A primary constructor can't be a redirecting constructor.",
+      correctionMessage: "Try removing the redirect.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'primary_constructor_cannot_redirect',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String collidingName: the private name that collides
 /// String mixin1: the name of the first mixin
@@ -14985,21 +14997,17 @@ const DiagnosticWithoutArguments superInRedirectingConstructor =
       expectedTypes: [],
     );
 
-/// Parameters:
-/// String superConstructorName: the superinitializer
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String superConstructorName})
->
-superInvocationNotLast = DiagnosticWithArguments(
-  name: 'super_invocation_not_last',
-  problemMessage:
-      "The superconstructor call must be last in an initializer list: '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'super_invocation_not_last',
-  withArguments: _withArgumentsSuperInvocationNotLast,
-  expectedTypes: [ExpectedType.string],
-);
+/// No parameters.
+const DiagnosticWithoutArguments superInvocationNotLast =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'super_invocation_not_last',
+      problemMessage:
+          "The superconstructor call must be last in an initializer list.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'super_invocation_not_last',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments switchCaseCompletesNormally =
@@ -20825,14 +20833,6 @@ _withArgumentsSuperFormalParameterTypeIsNotSubtypeOfAssociated({
     diag.superFormalParameterTypeIsNotSubtypeOfAssociated,
     [parameterType, superParameterType],
   );
-}
-
-LocatableDiagnostic _withArgumentsSuperInvocationNotLast({
-  required String superConstructorName,
-}) {
-  return LocatableDiagnosticImpl(diag.superInvocationNotLast, [
-    superConstructorName,
-  ]);
 }
 
 LocatableDiagnostic _withArgumentsTextDirectionCodePointInComment({

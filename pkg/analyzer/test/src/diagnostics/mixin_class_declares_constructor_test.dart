@@ -220,7 +220,7 @@ mixin class A.named() {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 12, 7)],
+      [error(diag.mixinClassDeclaresConstructor, 31, 1)],
     );
   }
 
@@ -242,7 +242,7 @@ mixin class A.named() {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 12, 7)],
+      [error(diag.mixinClassDeclaresConstructor, 31, 1)],
     );
   }
 
@@ -270,7 +270,19 @@ mixin class A() {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 12, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 25, 1)],
+    );
+  }
+
+  test_mixinClass_primaryConstructor_unnamed_nonTrivial_hasBody_block_hasInitializer() async {
+    await assertErrorsInCode(
+      r'''
+mixin class A() {
+  this : assert(true) {}
+}
+class B with A {}
+''',
+      [error(diag.mixinClassDeclaresConstructor, 25, 1)],
     );
   }
 
@@ -292,7 +304,7 @@ mixin class A() {
 }
 class B with A {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 12, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 25, 1)],
     );
   }
 

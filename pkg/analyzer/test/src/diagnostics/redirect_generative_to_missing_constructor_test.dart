@@ -9,14 +9,25 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RedirectGenerativeToNonGenerativeConstructorTest);
+    defineReflectiveTests(RedirectGenerativeToMissingConstructorTest);
   });
 }
 
 @reflectiveTest
-class RedirectGenerativeToNonGenerativeConstructorTest
+class RedirectGenerativeToMissingConstructorTest
     extends PubPackageResolutionTest {
-  test_class_missing() async {
+  test_class_primary_missing() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  this : this.noSuchConstructor();
+}
+''',
+      [error(diag.primaryConstructorCannotRedirect, 21, 4)],
+    );
+  }
+
+  test_class_typeName_missing() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -27,7 +38,19 @@ class A {
     );
   }
 
-  test_enum_missing() async {
+  test_enum_primary_missing() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  this : this.noSuchConstructor();
+}
+''',
+      [error(diag.primaryConstructorCannotRedirect, 25, 4)],
+    );
+  }
+
+  test_enum_typeName_missing() async {
     await assertErrorsInCode(
       r'''
 enum E {

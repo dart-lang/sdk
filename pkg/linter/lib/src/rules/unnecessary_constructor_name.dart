@@ -29,7 +29,7 @@ class UnnecessaryConstructorName extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
-    registry.addPrimaryConstructorName(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -41,6 +41,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    var unnamedConstructors = node
+        .declaredFragment!
+        .element
+        .enclosingElement
+        .constructors
+        .where((c) => c.name == 'new');
+    if (unnamedConstructors.length > 1) {
+      // Don't report lint in addition to the duplicate constructor error.
+      return;
+    }
     var parent = node.parent?.parent;
     if (parent is ExtensionTypeDeclaration &&
         parent.primaryConstructor.constructorName == null) {
@@ -56,8 +66,18 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitPrimaryConstructorName(PrimaryConstructorName node) {
-    _check(node.name);
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var unnamedConstructors = node
+        .declaredFragment!
+        .element
+        .enclosingElement
+        .constructors
+        .where((c) => c.name == 'new');
+    if (unnamedConstructors.length > 1) {
+      // Don't report lint in addition to the duplicate constructor error.
+      return;
+    }
+    _check(node.constructorName?.name);
   }
 
   void _check(Token? name) {

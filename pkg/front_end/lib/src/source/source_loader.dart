@@ -1309,8 +1309,8 @@ severity: $severity
       for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
         List<LocatedMessage>? context;
         Uri importUri = compilationUnit.importUri;
-        Message message = diag.unavailableDartLibrary.withArgumentsOld(
-          importUri,
+        Message message = diag.unavailableDartLibrary.withArguments(
+          uri: importUri,
         );
         if (rootLibrary != null) {
           loadedLibraries ??= new LoadedLibrariesImpl([
@@ -1372,8 +1372,8 @@ severity: $severity
       // message.
       for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
         Uri importUri = compilationUnit.importUri;
-        Message message = diag.unavailableDartLibrary.withArgumentsOld(
-          importUri,
+        Message message = diag.unavailableDartLibrary.withArguments(
+          uri: importUri,
         );
 
         if (compilationUnit.accessors.length > 1) {

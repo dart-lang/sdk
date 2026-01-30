@@ -16,7 +16,19 @@ main() {
 @reflectiveTest
 class RedirectGenerativeToNonGenerativeConstructorTest
     extends PubPackageResolutionTest {
-  test_nonGenerative() async {
+  test_primary_toFactory() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  this : this.x();
+  factory A.x() => throw 0;
+}
+''',
+      [error(diag.primaryConstructorCannotRedirect, 21, 4)],
+    );
+  }
+
+  test_typeName_toFactory() async {
     await assertErrorsInCode(
       r'''
 class A {

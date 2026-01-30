@@ -1,4 +1,8 @@
-## 10.0.1-dev
+## 10.0.2
+
+* Internal changes only
+
+## 10.0.1
 
 * Require version ^1.18.0 of the meta package.
 

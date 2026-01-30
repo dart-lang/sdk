@@ -1354,6 +1354,8 @@ prefix_shadowed_by_local_declaration:
   status: noFix
 primary_constructor_body_without_declaration:
   status: needsEvaluation
+primary_constructor_cannot_redirect:
+  status: needsEvaluation
 private_collision_in_mixin_application:
   status: noFix
 private_named_parameter_duplicate_public_name:

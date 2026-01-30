@@ -635,8 +635,8 @@ const MessageCode equalityCannotBeEqualityOperand = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String expected),
+  Message Function({required String expected})
 >
 expectedAfterButGot = const Template(
   "ExpectedAfterButGot",
@@ -646,18 +646,18 @@ expectedAfterButGot = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedAfterButGot({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsExpectedAfterButGot({required String expected}) {
+  var expected_0 = conversions.validateString(expected);
   return new Message(
     expectedAfterButGot,
-    problemMessage: """Expected '${string_0}' after this.""",
-    arguments: {'string': string},
+    problemMessage: """Expected '${expected_0}' after this.""",
+    arguments: {'expected': expected},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedAfterButGot(String string) =>
-    _withArgumentsExpectedAfterButGot(string: string);
+Message _withArgumentsOldExpectedAfterButGot(String expected) =>
+    _withArgumentsExpectedAfterButGot(expected: expected);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode expectedAnInitializer = const MessageCode(
@@ -676,8 +676,8 @@ const MessageCode expectedBody = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String expected),
+  Message Function({required String expected})
 >
 expectedButGot = const Template(
   "ExpectedButGot",
@@ -687,23 +687,23 @@ expectedButGot = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedButGot({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsExpectedButGot({required String expected}) {
+  var expected_0 = conversions.validateString(expected);
   return new Message(
     expectedButGot,
-    problemMessage: """Expected '${string_0}' before this.""",
-    arguments: {'string': string},
+    problemMessage: """Expected '${expected_0}' before this.""",
+    arguments: {'expected': expected},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedButGot(String string) =>
-    _withArgumentsExpectedButGot(string: string);
+Message _withArgumentsOldExpectedButGot(String expected) =>
+    _withArgumentsExpectedButGot(expected: expected);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String expected, String expected2),
+  Message Function({required String expected, required String expected2})
 >
 expectedButGot2 = const Template(
   "ExpectedButGot2",
@@ -714,21 +714,22 @@ expectedButGot2 = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedButGot2({
-  required String string,
-  required String string2,
+  required String expected,
+  required String expected2,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var expected_0 = conversions.validateString(expected);
+  var expected2_0 = conversions.validateString(expected2);
   return new Message(
     expectedButGot2,
-    problemMessage: """Expected '${string_0}' or '${string2_0}' before this.""",
-    arguments: {'string': string, 'string2': string2},
+    problemMessage:
+        """Expected '${expected_0}' or '${expected2_0}' before this.""",
+    arguments: {'expected': expected, 'expected2': expected2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedButGot2(String string, String string2) =>
-    _withArgumentsExpectedButGot2(string: string, string2: string2);
+Message _withArgumentsOldExpectedButGot2(String expected, String expected2) =>
+    _withArgumentsExpectedButGot2(expected: expected, expected2: expected2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode expectedCatchClauseBody = const MessageCode(
@@ -1037,8 +1038,8 @@ const MessageCode expectedSwitchStatementBody = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String expected),
+  Message Function({required String expected})
 >
 expectedToken = const Template(
   "ExpectedToken",
@@ -1048,18 +1049,18 @@ expectedToken = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedToken({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsExpectedToken({required String expected}) {
+  var expected_0 = conversions.validateString(expected);
   return new Message(
     expectedToken,
-    problemMessage: """Expected to find '${string_0}'.""",
-    arguments: {'string': string},
+    problemMessage: """Expected to find '${expected_0}'.""",
+    arguments: {'expected': expected},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedToken(String string) =>
-    _withArgumentsExpectedToken(string: string);
+Message _withArgumentsOldExpectedToken(String expected) =>
+    _withArgumentsExpectedToken(expected: expected);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode expectedTryStatementBody = const MessageCode(
@@ -3047,8 +3048,8 @@ const MessageCode unexpectedTokens = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, Token lexeme),
-  Message Function({required String string, required Token lexeme})
+  Message Function(String expected, Token lexeme),
+  Message Function({required String expected, required Token lexeme})
 >
 unmatchedToken = const Template(
   "UnmatchedToken",
@@ -3059,26 +3060,26 @@ unmatchedToken = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnmatchedToken({
-  required String string,
+  required String expected,
   required Token lexeme,
 }) {
-  var string_0 = conversions.validateString(string);
+  var expected_0 = conversions.validateString(expected);
   var lexeme_0 = conversions.tokenToLexeme(lexeme);
   return new Message(
     unmatchedToken,
-    problemMessage: """Can't find '${string_0}' to match '${lexeme_0}'.""",
-    arguments: {'string': string, 'lexeme': lexeme},
+    problemMessage: """Can't find '${expected_0}' to match '${lexeme_0}'.""",
+    arguments: {'expected': expected, 'lexeme': lexeme},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedToken(String string, Token lexeme) =>
-    _withArgumentsUnmatchedToken(string: string, lexeme: lexeme);
+Message _withArgumentsOldUnmatchedToken(String expected, Token lexeme) =>
+    _withArgumentsUnmatchedToken(expected: expected, lexeme: lexeme);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String message),
+  Message Function({required String message})
 >
 unspecified = const Template(
   "Unspecified",
@@ -3088,23 +3089,23 @@ unspecified = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnspecified({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsUnspecified({required String message}) {
+  var message_0 = conversions.validateString(message);
   return new Message(
     unspecified,
-    problemMessage: """${string_0}""",
-    arguments: {'string': string},
+    problemMessage: """${message_0}""",
+    arguments: {'message': message},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnspecified(String string) =>
-    _withArgumentsUnspecified(string: string);
+Message _withArgumentsOldUnspecified(String message) =>
+    _withArgumentsUnspecified(message: message);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token operator),
+  Message Function({required Token operator})
 >
 unsupportedOperator = const Template(
   "UnsupportedOperator",
@@ -3114,18 +3115,18 @@ unsupportedOperator = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnsupportedOperator({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+Message _withArgumentsUnsupportedOperator({required Token operator}) {
+  var operator_0 = conversions.tokenToLexeme(operator);
   return new Message(
     unsupportedOperator,
-    problemMessage: """The '${lexeme_0}' operator is not supported.""",
-    arguments: {'lexeme': lexeme},
+    problemMessage: """The '${operator_0}' operator is not supported.""",
+    arguments: {'operator': operator},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnsupportedOperator(Token lexeme) =>
-    _withArgumentsUnsupportedOperator(lexeme: lexeme);
+Message _withArgumentsOldUnsupportedOperator(Token operator) =>
+    _withArgumentsUnsupportedOperator(operator: operator);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode unsupportedPrefixPlus = const MessageCode(
@@ -3144,8 +3145,11 @@ const MessageCode unterminatedComment = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String openQuote, String expectedCloseQuote),
+  Message Function({
+    required String openQuote,
+    required String expectedCloseQuote,
+  })
 >
 unterminatedString = const Template(
   "UnterminatedString",
@@ -3156,22 +3160,30 @@ unterminatedString = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnterminatedString({
-  required String string,
-  required String string2,
+  required String openQuote,
+  required String expectedCloseQuote,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var openQuote_0 = conversions.validateString(openQuote);
+  var expectedCloseQuote_0 = conversions.validateString(expectedCloseQuote);
   return new Message(
     unterminatedString,
     problemMessage:
-        """String starting with ${string_0} must end with ${string2_0}.""",
-    arguments: {'string': string, 'string2': string2},
+        """String starting with ${openQuote_0} must end with ${expectedCloseQuote_0}.""",
+    arguments: {
+      'openQuote': openQuote,
+      'expectedCloseQuote': expectedCloseQuote,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnterminatedString(String string, String string2) =>
-    _withArgumentsUnterminatedString(string: string, string2: string2);
+Message _withArgumentsOldUnterminatedString(
+  String openQuote,
+  String expectedCloseQuote,
+) => _withArgumentsUnterminatedString(
+  openQuote: openQuote,
+  expectedCloseQuote: expectedCloseQuote,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode varAsTypeName = const MessageCode(

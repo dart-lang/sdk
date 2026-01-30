@@ -113,6 +113,7 @@ import 'const_constructor_field_type_mismatch_test.dart'
     as const_constructor_field_type_mismatch;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
+import 'const_constructor_with_body_test.dart' as const_constructor_with_body;
 import 'const_constructor_with_field_initialized_by_non_const_test.dart'
     as const_constructor_with_field_initialized_by_non_const;
 import 'const_constructor_with_mixin_with_field_test.dart'
@@ -1034,6 +1035,7 @@ main() {
     conflicting_type_variable_and_member.main();
     const_constructor_field_type_mismatch.main();
     const_constructor_param_type_mismatch.main();
+    const_constructor_with_body.main();
     const_constructor_with_field_initialized_by_non_const.main();
     const_constructor_with_mixin_with_field.main();
     const_constructor_with_non_const_super.main();

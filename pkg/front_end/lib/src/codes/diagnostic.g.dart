@@ -3451,8 +3451,8 @@ Message _withArgumentsOldDuplicatedRecordLiteralFieldName(String fieldName) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 duplicatedRecordLiteralFieldNameContext = const Template(
   "DuplicatedRecordLiteralFieldNameContext",
@@ -3463,20 +3463,22 @@ duplicatedRecordLiteralFieldNameContext = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedRecordLiteralFieldNameContext({
-  required String name,
+  required String fieldName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     duplicatedRecordLiteralFieldNameContext,
     problemMessage:
-        """This is the existing record literal field named '${name_0}'.""",
-    arguments: {'name': name},
+        """This is the existing record literal field named '${fieldName_0}'.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedRecordLiteralFieldNameContext(String name) =>
-    _withArgumentsDuplicatedRecordLiteralFieldNameContext(name: name);
+Message _withArgumentsOldDuplicatedRecordLiteralFieldNameContext(
+  String fieldName,
+) =>
+    _withArgumentsDuplicatedRecordLiteralFieldNameContext(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5905,8 +5907,8 @@ Message _withArgumentsOldFinalClassUsedAsMixinConstraintOutsideOfLibrary(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 finalFieldNotInitialized = const Template(
   "FinalFieldNotInitialized",
@@ -5915,25 +5917,25 @@ finalFieldNotInitialized = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalFieldNotInitialized({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFinalFieldNotInitialized({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     finalFieldNotInitialized,
-    problemMessage: """Final field '${name_0}' is not initialized.""",
+    problemMessage: """Final field '${fieldName_0}' is not initialized.""",
     correctionMessage:
         """Try to initialize the field in the declaration or in every constructor.""",
-    arguments: {'name': name},
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalFieldNotInitialized(String name) =>
-    _withArgumentsFinalFieldNotInitialized(name: name);
+Message _withArgumentsOldFinalFieldNotInitialized(String fieldName) =>
+    _withArgumentsFinalFieldNotInitialized(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 finalFieldNotInitializedByConstructor = const Template(
   "FinalFieldNotInitializedByConstructor",
@@ -5943,22 +5945,23 @@ finalFieldNotInitializedByConstructor = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalFieldNotInitializedByConstructor({
-  required String name,
+  required String fieldName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     finalFieldNotInitializedByConstructor,
     problemMessage:
-        """Final field '${name_0}' is not initialized by this constructor.""",
+        """Final field '${fieldName_0}' is not initialized by this constructor.""",
     correctionMessage:
         """Try to initialize the field using an initializing formal or a field initializer.""",
-    arguments: {'name': name},
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalFieldNotInitializedByConstructor(String name) =>
-    _withArgumentsFinalFieldNotInitializedByConstructor(name: name);
+Message _withArgumentsOldFinalFieldNotInitializedByConstructor(
+  String fieldName,
+) => _withArgumentsFinalFieldNotInitializedByConstructor(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6421,8 +6424,8 @@ const MessageCode implementsNever = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, int count),
-  Message Function({required String name, required int count})
+  Message Function(String name, int extraCount),
+  Message Function({required String name, required int extraCount})
 >
 implementsRepeated = const Template(
   "ImplementsRepeated",
@@ -6433,20 +6436,20 @@ implementsRepeated = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplementsRepeated({
   required String name,
-  required int count,
+  required int extraCount,
 }) {
   var name_0 = conversions.validateAndDemangleName(name);
   return new Message(
     implementsRepeated,
     problemMessage: """'${name_0}' can only be implemented once.""",
-    correctionMessage: """Try removing ${count} of the occurrences.""",
-    arguments: {'name': name, 'count': count},
+    correctionMessage: """Try removing ${extraCount} of the occurrences.""",
+    arguments: {'name': name, 'extraCount': extraCount},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplementsRepeated(String name, int count) =>
-    _withArgumentsImplementsRepeated(name: name, count: count);
+Message _withArgumentsOldImplementsRepeated(String name, int extraCount) =>
+    _withArgumentsImplementsRepeated(name: name, extraCount: extraCount);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7419,8 +7422,8 @@ Message _withArgumentsOldInitializeFromDillUnknownProblemNoDump(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 initializerForStaticField = const Template(
   "InitializerForStaticField",
@@ -7429,18 +7432,19 @@ initializerForStaticField = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInitializerForStaticField({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsInitializerForStaticField({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     initializerForStaticField,
-    problemMessage: """'${name_0}' isn't an instance field of this class.""",
-    arguments: {'name': name},
+    problemMessage:
+        """'${fieldName_0}' isn't an instance field of this class.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInitializerForStaticField(String name) =>
-    _withArgumentsInitializerForStaticField(name: name);
+Message _withArgumentsOldInitializerForStaticField(String fieldName) =>
+    _withArgumentsInitializerForStaticField(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8238,8 +8242,8 @@ const MessageCode invalidAugmentSuper = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String label),
+  Message Function({required String label})
 >
 invalidBreakTarget = const Template(
   "InvalidBreakTarget",
@@ -8248,18 +8252,18 @@ invalidBreakTarget = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidBreakTarget({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsInvalidBreakTarget({required String label}) {
+  var label_0 = conversions.validateAndDemangleName(label);
   return new Message(
     invalidBreakTarget,
-    problemMessage: """Can't break to '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Can't break to '${label_0}'.""",
+    arguments: {'label': label},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidBreakTarget(String name) =>
-    _withArgumentsInvalidBreakTarget(name: name);
+Message _withArgumentsOldInvalidBreakTarget(String label) =>
+    _withArgumentsInvalidBreakTarget(label: label);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8545,8 +8549,8 @@ Message _withArgumentsOldInvalidCastTopLevelFunction(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String label),
+  Message Function({required String label})
 >
 invalidContinueTarget = const Template(
   "InvalidContinueTarget",
@@ -8555,18 +8559,18 @@ invalidContinueTarget = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidContinueTarget({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsInvalidContinueTarget({required String label}) {
+  var label_0 = conversions.validateAndDemangleName(label);
   return new Message(
     invalidContinueTarget,
-    problemMessage: """Can't continue at '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Can't continue at '${label_0}'.""",
+    arguments: {'label': label},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidContinueTarget(String name) =>
-    _withArgumentsInvalidContinueTarget(name: name);
+Message _withArgumentsOldInvalidContinueTarget(String label) =>
+    _withArgumentsInvalidContinueTarget(label: label);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -10791,8 +10795,8 @@ Message _withArgumentsOldJsInteropStaticInteropWithNonStaticSupertype(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String label),
+  Message Function({required String label})
 >
 labelNotFound = const Template(
   "LabelNotFound",
@@ -10801,20 +10805,20 @@ labelNotFound = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLabelNotFound({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsLabelNotFound({required String label}) {
+  var label_0 = conversions.validateAndDemangleName(label);
   return new Message(
     labelNotFound,
-    problemMessage: """Can't find label '${name_0}'.""",
+    problemMessage: """Can't find label '${label_0}'.""",
     correctionMessage:
         """Try defining the label, or correcting the name to match an existing label.""",
-    arguments: {'name': name},
+    arguments: {'label': label},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLabelNotFound(String name) =>
-    _withArgumentsLabelNotFound(name: name);
+Message _withArgumentsOldLabelNotFound(String label) =>
+    _withArgumentsLabelNotFound(label: label);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode languageVersionInvalidInDotPackages = const MessageCode(

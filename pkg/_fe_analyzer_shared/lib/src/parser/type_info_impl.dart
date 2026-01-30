@@ -1599,7 +1599,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     Token next = token.next!;
     parser.reportRecoverableError(
       next,
-      diag.expectedButGot.withArgumentsOld(','),
+      diag.expectedButGot.withArguments(expected: ','),
     );
     return parser.rewriter.insertToken(
       token,
@@ -1616,7 +1616,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (!errorReported) {
         parser.reportRecoverableError(
           token,
-          diag.expectedAfterButGot.withArgumentsOld('>'),
+          diag.expectedAfterButGot.withArguments(expected: '>'),
         );
         errorReported = true;
       }
@@ -1638,7 +1638,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         if (!errorReported) {
           parser.reportRecoverableError(
             token,
-            diag.expectedAfterButGot.withArgumentsOld('>'),
+            diag.expectedAfterButGot.withArguments(expected: '>'),
           );
           errorReported = true;
         }
@@ -1665,7 +1665,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (!errorReported) {
         parser.reportRecoverableError(
           token,
-          diag.expectedAfterButGot.withArgumentsOld('>'),
+          diag.expectedAfterButGot.withArguments(expected: '>'),
         );
         errorReported = true;
       }
@@ -1690,7 +1690,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         // Only report an error if one has not already been reported.
         parser.reportRecoverableError(
           token,
-          diag.expectedAfterButGot.withArgumentsOld('>'),
+          diag.expectedAfterButGot.withArguments(expected: '>'),
         );
         errorReported = true;
       }
@@ -1706,7 +1706,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       // Only report an error if one has not already been reported.
       parser.reportRecoverableError(
         token,
-        diag.expectedAfterButGot.withArgumentsOld('>'),
+        diag.expectedAfterButGot.withArguments(expected: '>'),
       );
     }
     if (parseCloser(next)) {

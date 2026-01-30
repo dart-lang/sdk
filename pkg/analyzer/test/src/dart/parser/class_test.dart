@@ -2201,6 +2201,23 @@ PrimaryConstructorBody
 ''');
   }
 
+  test_primaryConstructorBody_modifier_const() {
+    var parseResult = parseStringWithErrors(r'''
+class A() {
+  const this;
+}
+''');
+    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
+
+    var node = parseResult.findNode.singlePrimaryConstructorBody;
+    assertParsedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_setter_formalParameters_absent() {
     var parseResult = parseStringWithErrors(r'''
 class A {

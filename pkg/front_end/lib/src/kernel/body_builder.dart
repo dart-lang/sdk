@@ -828,7 +828,7 @@ class BodyBuilderImpl extends StackListenerImpl
               statement,
               wrapInProblemStatement(
                 statement,
-                diag.labelNotFound.withArgumentsOld(name),
+                diag.labelNotFound.withArguments(label: name),
               ),
             );
           }
@@ -2445,7 +2445,7 @@ class BodyBuilderImpl extends StackListenerImpl
       length = 1;
     }
     Message message = isSuper
-        ? diag.superclassHasNoMethod.withArgumentsOld(name.text)
+        ? diag.superclassHasNoMethod.withArguments(name: name.text)
         : diag.methodNotFound.withArgumentsOld(name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
@@ -3364,8 +3364,8 @@ class BodyBuilderImpl extends StackListenerImpl
         // If [token] is synthetic it is created from error recovery.
         if (isConst) {
           initializer = buildProblem(
-            message: diag.constFieldWithoutInitializer.withArgumentsOld(
-              token.lexeme,
+            message: diag.constFieldWithoutInitializer.withArguments(
+              name: token.lexeme,
             ),
             fileUri: uri,
             fileOffset: token.charOffset,
@@ -4338,7 +4338,7 @@ class BodyBuilderImpl extends StackListenerImpl
               length: element.name.length,
               context: [
                 diag.duplicatedRecordLiteralFieldNameContext
-                    .withArgumentsOld(element.name)
+                    .withArguments(fieldName: element.name)
                     .withLocation(
                       uri,
                       existingExpression.fileOffset,
@@ -4443,7 +4443,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (entry is MapLiteralEntry) {
           // TODO(danrubel): report the error on the colon
           addProblem(
-            diag.expectedButGot.withArgumentsOld(','),
+            diag.expectedButGot.withArguments(expected: ','),
             entry.fileOffset,
             1,
           );
@@ -7347,7 +7347,7 @@ class BodyBuilderImpl extends StackListenerImpl
               offsetForToken(ifToken);
         node = new MapLiteralEntry(
           buildProblem(
-            message: diag.expectedAfterButGot.withArgumentsOld(':'),
+            message: diag.expectedAfterButGot.withArguments(expected: ':'),
             fileUri: uri,
             fileOffset: offset,
             length: 1,
@@ -7399,7 +7399,7 @@ class BodyBuilderImpl extends StackListenerImpl
               offsetForToken(ifToken);
         node = new MapLiteralEntry(
           buildProblem(
-            message: diag.expectedAfterButGot.withArgumentsOld(':'),
+            message: diag.expectedAfterButGot.withArguments(expected: ':'),
             fileUri: uri,
             fileOffset: offset,
             length: 1,
@@ -9435,7 +9435,7 @@ class BodyBuilderImpl extends StackListenerImpl
       Token labelToken = breakKeyword.next!;
       push(
         problemInLoopOrSwitch = buildProblemStatement(
-          diag.invalidBreakTarget.withArgumentsOld(name!),
+          diag.invalidBreakTarget.withArguments(label: name!),
           labelToken.charOffset,
           length: labelToken.length,
         ),
@@ -9500,7 +9500,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (_switchScope == null) {
           push(
             buildProblemStatement(
-              diag.labelNotFound.withArgumentsOld(name),
+              diag.labelNotFound.withArguments(label: name),
               continueKeyword.next!.charOffset,
             ),
           );
@@ -9533,7 +9533,7 @@ class BodyBuilderImpl extends StackListenerImpl
       Token labelToken = continueKeyword.next!;
       push(
         problemInLoopOrSwitch = buildProblemStatement(
-          diag.invalidContinueTarget.withArgumentsOld(name!),
+          diag.invalidContinueTarget.withArguments(label: name!),
           labelToken.charOffset,
           length: labelToken.length,
         ),
@@ -9976,7 +9976,9 @@ class BodyBuilderImpl extends StackListenerImpl
       return <Initializer>[
         createInvalidInitializer(
           buildProblem(
-            message: diag.initializerForStaticField.withArgumentsOld(name),
+            message: diag.initializerForStaticField.withArguments(
+              fieldName: name,
+            ),
             fileUri: uri,
             fileOffset: fieldNameOffset,
             length: name.length,

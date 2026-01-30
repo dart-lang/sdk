@@ -4820,6 +4820,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   ConstructorFragmentImpl? declaredFragment;
 
+  /// The fields that are not initialized by the constructor.
+  List<FieldElement>? notInitializedFields;
+
   @generated
   ConstructorDeclarationImpl({
     required super.comment,
@@ -19842,6 +19845,9 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @override
   ConstructorFragmentImpl? declaredFragment;
+
+  /// The fields that are not initialized by the constructor.
+  List<FieldElement>? notInitializedFields;
 
   @generated
   PrimaryConstructorDeclarationImpl({

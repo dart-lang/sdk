@@ -51,7 +51,6 @@ import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -1448,6 +1447,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _withEnclosingExecutable(
       element,
       () {
+        _checkForConflictingPrimaryConstructorInitializers(node);
         super.visitPrimaryConstructorBody(node);
       },
       isAsynchronous: fragment.isAsynchronous,
@@ -1477,6 +1477,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             constructorElement: element,
             errorRange: node.errorRange,
           );
+          _checkForConstConstructorWithBodyPrimary(node);
         }
 
         _checkForUndefinedConstructorInInitializerImplicit(
@@ -2854,18 +2855,70 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         superInitializer != declaration.initializers.last) {
       var superType = enclosingClass.supertype;
       if (superType != null) {
-        var superNamedType = superType.element.displayName;
-        var constructorStrName = superNamedType;
-        var constructorName = superInitializer.constructorName;
-        if (constructorName != null) {
-          constructorStrName += '.${constructorName.name}';
-        }
         diagnosticReporter.report(
-          diag.superInvocationNotLast
-              .withArguments(superConstructorName: constructorStrName)
-              .at(superInitializer.superKeyword),
+          diag.superInvocationNotLast.at(superInitializer.superKeyword),
         );
       }
+    }
+  }
+
+  /// Check that the given primary constructor [body] has a valid combination of
+  /// redirecting constructor invocation(s) and super constructor invocation(s).
+  void _checkForConflictingPrimaryConstructorInitializers(
+    PrimaryConstructorBodyImpl body,
+  ) {
+    var redirectingConstructorInvocations = body.initializers
+        .whereType<RedirectingConstructorInvocationImpl>()
+        .toList();
+    if (redirectingConstructorInvocations.isNotEmpty) {
+      for (var invocation in redirectingConstructorInvocations) {
+        diagnosticReporter.report(
+          diag.primaryConstructorCannotRedirect.at(invocation.thisKeyword),
+        );
+      }
+      return;
+    }
+
+    var superConstructorInvocations = body.initializers
+        .whereType<SuperConstructorInvocationImpl>()
+        .toList();
+    if (_enclosingClass is ClassElementImpl) {
+      if (superConstructorInvocations case [_, var second, ...]) {
+        diagnosticReporter.report(
+          diag.multipleSuperInitializers.at(second.superKeyword),
+        );
+        return;
+      }
+    } else if (_enclosingClass is EnumElementImpl) {
+      if (superConstructorInvocations case [var first, ...]) {
+        diagnosticReporter.report(
+          diag.superInEnumConstructor.at(first.superKeyword),
+        );
+        return;
+      }
+    }
+
+    var superConstructorInvocation = superConstructorInvocations.lastOrNull;
+    if (superConstructorInvocation != null &&
+        body.initializers.last != superConstructorInvocation) {
+      diagnosticReporter.report(
+        diag.superInvocationNotLast.at(superConstructorInvocation.superKeyword),
+      );
+    }
+  }
+
+  void _checkForConstConstructorWithBodyPrimary(
+    PrimaryConstructorDeclaration node,
+  ) {
+    var element = node.declaredFragment!.element;
+    if (!element.isConst) {
+      return;
+    }
+
+    if (node.body?.body case BlockFunctionBody blockBody) {
+      diagnosticReporter.report(
+        diag.constConstructorWithBody.at(blockBody.block.leftBracket),
+      );
     }
   }
 
@@ -4546,6 +4599,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var element = node.declaredFragment?.element;
     if (element is ClassElementImpl && element.isMixinClass) {
+      var className = element.name;
+      if (className == null) {
+        return;
+      }
+
       // Check that the class does not have a constructor.
       for (ClassMember member in members) {
         if (member case ConstructorDeclarationImpl constructor) {
@@ -4553,7 +4611,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (!constructor.isTrivial) {
               diagnosticReporter.report(
                 diag.mixinClassDeclaresConstructor
-                    .withArguments(className: element.name!)
+                    .withArguments(className: className)
                     .atSourceRange(constructor.errorRange),
               );
             }
@@ -4563,12 +4621,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (node is ClassDeclarationImpl) {
         if (node.namePart
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
-          if (!primaryConstructor.isTrivial) {
+          if (primaryConstructor.formalParameters.parameters.isNotEmpty) {
             diagnosticReporter.report(
               diag.mixinClassDeclaresConstructor
-                  .withArguments(className: element.name!)
+                  .withArguments(className: className)
                   .atSourceRange(primaryConstructor.errorRange),
             );
+          } else if (primaryConstructor.body case var body?) {
+            if (body.initializers.isNotEmpty) {
+              diagnosticReporter.report(
+                diag.mixinClassDeclaresConstructor
+                    .withArguments(className: className)
+                    .at(body.colon!),
+              );
+            } else if (body.body case BlockFunctionBody blockBody) {
+              diagnosticReporter.report(
+                diag.mixinClassDeclaresConstructor
+                    .withArguments(className: className)
+                    .at(blockBody.block.leftBracket),
+              );
+            }
           }
         }
       }
@@ -4576,14 +4648,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superclass != null && !superclass.typeOrThrow.isDartCoreObject) {
         diagnosticReporter.report(
           diag.mixinClassDeclarationExtendsNotObject
-              .withArguments(name: element.name!)
+              .withArguments(name: className)
               .at(superclass),
         );
       } else if (withClause != null &&
           !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
         diagnosticReporter.report(
           diag.mixinClassDeclarationExtendsNotObject
-              .withArguments(name: element.name!)
+              .withArguments(name: className)
               .at(withClause),
         );
       }
@@ -6733,44 +6805,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     } finally {
       _hiddenElements = _hiddenElements!.outerElements;
     }
-  }
-
-  /// Return [FieldElement]s that are declared as siblings of [constructor],
-  /// but are not initialized.
-  static List<FieldElement> computeNotInitializedFields(
-    ConstructorDeclaration constructor,
-  ) {
-    var fields = <FieldElement>{};
-
-    var membersList = constructor.parent.classMembers;
-    for (ClassMember fieldDeclaration in membersList) {
-      if (fieldDeclaration is FieldDeclaration) {
-        for (VariableDeclaration field in fieldDeclaration.fields.variables) {
-          if (field.initializer == null) {
-            fields.add((field.declaredFragment as FieldFragment).element);
-          }
-        }
-      }
-    }
-
-    List<FormalParameter> parameters = constructor.parameters.parameters;
-    for (FormalParameter parameter in parameters) {
-      parameter = parameter.notDefault;
-      if (parameter is FieldFormalParameter) {
-        var element =
-            (parameter.declaredFragment as FieldFormalParameterFragment)
-                .element;
-        fields.remove(element.field);
-      }
-    }
-
-    for (ConstructorInitializer initializer in constructor.initializers) {
-      if (initializer is ConstructorFieldInitializer) {
-        fields.remove(initializer.fieldName.element);
-      }
-    }
-
-    return fields.toList();
   }
 
   /// Checks whether the given [expression] is a reference to a class. If it is

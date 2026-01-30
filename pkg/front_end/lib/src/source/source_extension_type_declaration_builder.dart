@@ -732,9 +732,9 @@ class SourceExtensionTypeDeclarationBuilder
         for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
             in duplicationProblems.entries) {
           libraryBuilder.addProblem(
-            diag.implementsRepeated.withArgumentsOld(
-              typeDeclaration.name,
-              count,
+            diag.implementsRepeated.withArguments(
+              name: typeDeclaration.name,
+              extraCount: count,
             ),
             offset,
             noLength,

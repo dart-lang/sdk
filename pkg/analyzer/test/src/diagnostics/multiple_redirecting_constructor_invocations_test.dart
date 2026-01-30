@@ -16,20 +16,57 @@ main() {
 @reflectiveTest
 class MultipleRedirectingConstructorInvocationsTest
     extends PubPackageResolutionTest {
-  test_class_twoNamed() async {
+  test_class_primary() async {
     await assertErrorsInCode(
       r'''
-class A {
-  A() : this.a(), this.b();
-  A.a() {}
-  A.b() {}
+class A {}
+
+class B() extends A {
+  B.foo() : this();
+  B.bar() : this();
+  this : this.foo(), this.bar();
 }
 ''',
-      [error(diag.multipleRedirectingConstructorInvocations, 28, 8)],
+      [
+        error(diag.primaryConstructorCannotRedirect, 83, 4),
+        error(diag.primaryConstructorCannotRedirect, 95, 4),
+      ],
     );
   }
 
-  test_enum_twoNamed() async {
+  test_class_typeName_twoNamed() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A() : this.foo(), this.bar();
+  A.foo() {}
+  A.bar() {}
+}
+''',
+      [error(diag.multipleRedirectingConstructorInvocations, 30, 10)],
+    );
+  }
+
+  test_enum_primary() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  const E.foo() : this();
+  const E.bar() : this();
+  this : this.foo(), this.bar();
+}
+''',
+      [
+        error(diag.recursiveConstantConstructor, 24, 5),
+        error(diag.recursiveConstantConstructor, 50, 5),
+        error(diag.primaryConstructorCannotRedirect, 77, 4),
+        error(diag.primaryConstructorCannotRedirect, 89, 4),
+      ],
+    );
+  }
+
+  test_enum_typeName_twoNamed() async {
     await assertErrorsInCode(
       r'''
 enum E {

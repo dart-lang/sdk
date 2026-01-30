@@ -8515,7 +8515,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // encountered in top level inference.
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.expectedButGot.withArgumentsOld(','),
+      message: diag.expectedButGot.withArguments(expected: ','),
       fileUri: fileUri,
       fileOffset: entry.fileOffset,
       length: 1,

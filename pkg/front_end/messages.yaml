@@ -788,8 +788,8 @@ duplicatedRecordLiteralFieldName:
 
 duplicatedRecordLiteralFieldNameContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the existing record literal field named '#name'."
+    Name fieldName: The name of the duplicated field.
+  problemMessage: "This is the existing record literal field named '#fieldName'."
   severity: CONTEXT
 
 emptyOptionalParameterList:
@@ -822,8 +822,8 @@ expectedButGot:
   # Also see ExpectedButGot2, ExpectedAfterButGot, and ExpectedInstead
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-  problemMessage: "Expected '#string' before this."
+    String expected: The text that was expected.
+  problemMessage: "Expected '#expected' before this."
   # Consider the second example below: the parser expects a ')' before 'y', but
   # a ',' would also have worked. We don't have enough information to give a
   # good suggestion.
@@ -836,9 +836,9 @@ expectedButGot2:
   # Also see ExpectedButGot, ExpectedAfterButGot, and ExpectedInstead
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Expected '#string' or '#string2' before this."
+    String expected: The first possible text that was expected.
+    String expected2: The second possible text that was expected.
+  problemMessage: "Expected '#expected' or '#expected2' before this."
   # TODO(eernst): Enable this example when the feature is enabled.
   # exampleAllowOtherCodes: true
   # experiments: anonymous-methods
@@ -849,8 +849,8 @@ expectedAfterButGot:
   # Also see ExpectedButGot, ExpectedButGot2, and ExpectedInstead
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-  problemMessage: "Expected '#string' after this."
+    String expected: The text that was expected.
+  problemMessage: "Expected '#expected' after this."
   # This is an alternative to ExpectedButGot when it's better for the error to be
   # associated with the last consumed token rather than the token being parsed.
   # Doing so can make it cognitively easier for the user to understand and fix.
@@ -874,10 +874,10 @@ expectedAfterButGot:
 
 implementsRepeated:
   parameters:
-    Name name: undocumented
-    int count: undocumented
+    Name name: The interface that was implemented more than once.
+    int extraCount: The number of occurrences to suggest removing.
   problemMessage: "'#name' can only be implemented once."
-  correctionMessage: "Try removing #count of the occurrences."
+  correctionMessage: "Try removing #extraCount of the occurrences."
   script:
     - >-
       abstract class I {}
@@ -886,7 +886,7 @@ implementsRepeated:
 
 implementsSuperClass:
   parameters:
-    Name name: undocumented
+    Name name: The interface that was mentioned in both `extends` and `implements` clauses.
   problemMessage: "'#name' can't be used in both 'extends' and 'implements' clauses."
   correctionMessage: "Try removing one of the occurrences."
   script:
@@ -984,8 +984,8 @@ expectedString:
 expectedToken:
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-  problemMessage: "Expected to find '#string'."
+    String expected: The token that was expected.
+  problemMessage: "Expected to find '#expected'."
   script: |
     void foo() {
       switch (1) {
@@ -1088,8 +1088,8 @@ externalFieldConstructorInitializer:
 
 initializerForStaticField:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' isn't an instance field of this class."
+    Name fieldName: The field name mentioned in the initializer.
+  problemMessage: "'#fieldName' isn't an instance field of this class."
   script: |
     class Foo {
       Foo() : initializer = true { }
@@ -1132,8 +1132,8 @@ superInitializerNotLast:
 
 invalidBreakTarget:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't break to '#name'."
+    Name label: The label targeted by the `break`.
+  problemMessage: "Can't break to '#label'."
   script: |
     void foo() {
       switch (1) {
@@ -1176,8 +1176,8 @@ continueLabelInvalid:
 
 invalidContinueTarget:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't continue at '#name'."
+    Name label: The label targeted by the `continue`.
+  problemMessage: "Can't continue at '#label'."
   script: |
     void foo() {
       switch (1) {
@@ -1215,8 +1215,8 @@ anonymousContinueTargetOutsideFunction:
 
 labelNotFound:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't find label '#name'."
+    Name label: The label that could not be found.
+  problemMessage: "Can't find label '#label'."
   correctionMessage: "Try defining the label, or correcting the name to match an existing label."
   statement:
     - "switch (0) {case 0: continue L;}"
@@ -1239,8 +1239,8 @@ invalidVoid:
 
 finalFieldNotInitialized:
   parameters:
-    Name name: undocumented
-  problemMessage: "Final field '#name' is not initialized."
+    Name fieldName: The name of the uninitialized field.
+  problemMessage: "Final field '#fieldName' is not initialized."
   correctionMessage: "Try to initialize the field in the declaration or in every constructor."
   script: |
     class C {
@@ -1249,8 +1249,8 @@ finalFieldNotInitialized:
 
 finalFieldNotInitializedByConstructor:
   parameters:
-    Name name: undocumented
-  problemMessage: "Final field '#name' is not initialized by this constructor."
+    Name fieldName: The name of the uninitialized field.
+  problemMessage: "Final field '#fieldName' is not initialized by this constructor."
   correctionMessage: "Try to initialize the field using an initializing formal or a field initializer."
   script: |
     class C {
@@ -1343,9 +1343,9 @@ unexpectedToken:
 unmatchedToken:
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-    Token lexeme: undocumented
-  problemMessage: "Can't find '#string' to match '#lexeme'."
+    String expected: The token that was expected.
+    Token lexeme: The opening brace token that was unmatched.
+  problemMessage: "Can't find '#expected' to match '#lexeme'."
   script:
     - "main("
     - "main(){"
@@ -1355,8 +1355,8 @@ unmatchedToken:
 unsupportedOperator:
   pseudoSharedCode: UNSUPPORTED_OPERATOR
   parameters:
-    Token lexeme: undocumented
-  problemMessage: "The '#lexeme' operator is not supported."
+    Token operator: The unsupported operator.
+  problemMessage: "The '#operator' operator is not supported."
   script:
     - "class C { void operator ===(x) {} }"
     - "class C { void operator !==(x) {} }"
@@ -1380,9 +1380,9 @@ unterminatedComment:
 unterminatedString:
   pseudoSharedCode: UNTERMINATED_STRING_LITERAL
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "String starting with #string must end with #string2."
+    String openQuote: The quote sequence that opened the string.
+    String expectedCloseQuote: The quote sequence that was expected to close the string.
+  problemMessage: "String starting with #openQuote must end with #expectedCloseQuote."
   script:
     - >
       main() {
@@ -1425,8 +1425,8 @@ unterminatedToken:
 unspecified:
   pseudoSharedCode: UNSPECIFIED
   parameters:
-    String string: undocumented
-  problemMessage: "#string"
+    String message: The error message.
+  problemMessage: "#message"
 
 abstractNotSync:
   pseudoSharedCode: NON_SYNC_ABSTRACT_METHOD
@@ -1631,7 +1631,7 @@ setterWithWrongNumberOfFormals:
 constFieldWithoutInitializer:
   pseudoSharedCode: CONST_NOT_INITIALIZED
   parameters:
-    Name name: undocumented
+    Name name: The name of the uninitialized variable.
   problemMessage: "The const variable '#name' must be initialized."
   correctionMessage: "Try adding an initializer ('= expression') to the declaration."
   script:
@@ -1641,7 +1641,7 @@ constFieldWithoutInitializer:
 finalFieldWithoutInitializer:
   pseudoSharedCode: FINAL_NOT_INITIALIZED
   parameters:
-    Name name: undocumented
+    Name name: The name of the uninitialized field.
   problemMessage: "The final variable '#name' must be initialized."
   correctionMessage: "Try adding an initializer ('= expression') to the declaration."
   script:
@@ -3658,7 +3658,7 @@ superclassHasNoSetter:
 
 superclassHasNoMethod:
   parameters:
-    Name name: undocumented
+    Name name: The name of the method that was not found.
   problemMessage: "Superclass has no method named '#name'."
   script: |
     class Super {}
@@ -4560,14 +4560,14 @@ untranslatableUri:
 
 unavailableDartLibrary:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI of the library that is not available.
   problemMessage: "Dart library '#uri' is not available on this platform."
   script: |
     import "dart:non_existing_library";
 
 unsupportedPlatformDartLibraryImport:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI of the library that is unsupported.
   problemMessage: |
     Using stub implementations for APIs in platform-specific Dart library
     '#uri', which will throw 'UnsupportedError' if invoked.
