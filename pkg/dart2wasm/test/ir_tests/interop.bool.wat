@@ -35,8 +35,9 @@
   (func $"testBoolValueNullable <noInline>"
     (local $var0 (ref null $#Top))
     global.get $"boolValueNullable initialized"
-    i32.eqz
-    if
+    if (result (ref null $#Top))
+      global.get $boolValueNullable
+    else
       call $"ktrue implicit getter"
       if (result (ref null $#Top))
         global.get $"C40 true"
@@ -46,11 +47,12 @@
       else
         ref.null none
       end
+      local.tee $var0
       global.set $boolValueNullable
       i32.const 1
       global.set $"boolValueNullable initialized"
+      local.get $var0
     end
-    global.get $boolValueNullable
     local.tee $var0
     ref.is_null
     if (result externref)

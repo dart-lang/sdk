@@ -35,26 +35,29 @@
   )
   (func $"testStringValueNullable <noInline>"
     (local $var0 (ref null $JSStringImpl))
+    (local $var1 (ref null $JSStringImpl))
     global.get $"stringValueNullable initialized"
-    i32.eqz
-    if
+    if (result (ref null $JSStringImpl))
+      global.get $stringValueNullable
+    else
       call $"ktrue implicit getter"
       if (result (ref null $JSStringImpl))
         call $"stringValue implicit getter"
       else
         ref.null none
       end
+      local.tee $var0
       global.set $stringValueNullable
       i32.const 1
       global.set $"stringValueNullable initialized"
+      local.get $var0
     end
-    global.get $stringValueNullable
-    local.tee $var0
+    local.tee $var1
     ref.is_null
     if (result externref)
       ref.null noextern
     else
-      local.get $var0
+      local.get $var1
       call $jsifyRaw
     end
     call $"dart2wasm._299 (import)"

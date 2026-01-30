@@ -94,9 +94,9 @@
       global.get $"C515 FooConst5"
       array.new_fixed $Array<Object?> 6
       call $GrowableList._withData
+      local.tee $var1
       global.set $allFooConstants
-      global.get $allFooConstants
-      ref.as_non_null
+      local.get $var1
     end $label0
     local.tee $var1
     struct.get $WasmListBase $_length

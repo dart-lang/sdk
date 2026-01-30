@@ -93,7 +93,7 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
-    -O0 | --optimization-level=0)
+    -O0 | --optimization-level=0 | --extra-compiler-option=-O0 )
       DART2WASM_ARGS+=("-O0")
       RUN_BINARYEN=0
       shift

@@ -13,6 +13,7 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'dispatch_table.dart';
 import 'dynamic_forwarders.dart';
+import 'globals.dart';
 import 'intrinsics.dart';
 import 'param_info.dart';
 import 'records.dart';
@@ -4050,16 +4051,21 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     // Static field initializer function
     closures = translator.getClosures(field);
 
-    w.Global global = translator.globals.getGlobalForStaticField(field);
-    w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
-    translateExpression(field.initializer!, global.type.type);
-    translator.globals.writeGlobal(b, global);
+    final globalDefinition =
+        translator.dartGlobals.getDefinitionForStaticField(field);
+    final flag = globalDefinition.initializedFlag;
+
+    final local = b.addLocal(globalDefinition.type);
+    globalDefinition.write(translator, b, (b) {
+      translateExpression(field.initializer!, local.type);
+      b.local_tee(local);
+    });
+    b.local_get(local);
+    translator.convertType(b, local.type, outputs.single);
     if (flag != null) {
       b.i32_const(1);
       translator.globals.writeGlobal(b, flag);
     }
-    translator.globals.readGlobal(b, global);
-    translator.convertType(b, global.type.type, outputs.single);
     b.end();
   }
 }
@@ -4094,36 +4100,39 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
 
   @override
   void generateInternal() {
-    final global = translator.globals.getGlobalForStaticField(field);
-    final flag = translator.globals.getGlobalInitializedFlag(field);
+    final globalDefinition =
+        translator.dartGlobals.getDefinitionForStaticField(field);
     if (isImplicitGetter) {
       final initFunction =
           translator.functions.getExistingFunction(field.fieldReference);
-      _generateGetter(global, flag, initFunction);
+      _generateGetter(globalDefinition, initFunction);
     } else {
-      _generateSetter(global, flag);
+      _generateSetter(globalDefinition);
     }
     b.end();
   }
 
   void _generateGetter(
-      w.Global global, w.Global? flag, w.BaseFunction? initFunction) {
+      DartGlobalDefinition definition, w.BaseFunction? initFunction) {
+    final flag = definition.initializedFlag;
+
     if (initFunction == null) {
       // Statically initialized
-      translator.globals.readGlobal(b, global);
+      definition.read(translator, b);
+      // b.ref_cast(functionType.outputs.single as w.RefType);
     } else {
       if (flag != null) {
         // Explicit initialization flag
         translator.globals.readGlobal(b, flag);
-        b.if_(const [], [global.type.type]);
-        translator.globals.readGlobal(b, global);
+        b.if_(const [], [definition.type]);
+        definition.read(translator, b);
         b.else_();
         translator.callFunction(initFunction, b);
         b.end();
       } else {
         // Null signals uninitialized
         w.Label block = b.block(const [], [initFunction.type.outputs.single]);
-        translator.globals.readGlobal(b, global);
+        definition.read(translator, b);
         b.br_on_non_null(block);
         translator.callFunction(initFunction, b);
         b.end();
@@ -4131,9 +4140,11 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
     }
   }
 
-  void _generateSetter(w.Global global, w.Global? flag) {
-    b.local_get(paramLocals.single);
-    translator.globals.writeGlobal(b, global);
+  void _generateSetter(DartGlobalDefinition definition) {
+    definition.write(translator, b, (b) {
+      b.local_get(paramLocals.single);
+    });
+    final flag = definition.initializedFlag;
     if (flag != null) {
       b.i32_const(1); // true
       translator.globals.writeGlobal(b, flag);

@@ -43,19 +43,21 @@
   (func $"testNumValueNullable <noInline>"
     (local $var0 (ref null $#Top))
     global.get $"numValueNullable initialized"
-    i32.eqz
-    if
+    if (result (ref null $#Top))
+      global.get $numValueNullable
+    else
       call $"ktrue implicit getter"
       if (result (ref null $#Top))
         call $"numValue implicit getter"
       else
         ref.null none
       end
+      local.tee $var0
       global.set $numValueNullable
       i32.const 1
       global.set $"numValueNullable initialized"
+      local.get $var0
     end
-    global.get $numValueNullable
     local.tee $var0
     ref.is_null
     if (result externref)

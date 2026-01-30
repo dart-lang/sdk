@@ -37,6 +37,7 @@ import 'reference_extensions.dart';
 import 'serialization.dart';
 import 'static_dispatch_table.dart';
 import 'symbols.dart';
+import 'table_based_globals.dart';
 import 'tags.dart';
 import 'types.dart';
 import 'util.dart' as util;
@@ -194,9 +195,11 @@ class Translator with KernelNodes {
   late final ClosureLayouter closureLayouter;
   late final ClassInfoCollector classInfoCollector;
   late final CrossModuleFunctionTable crossModuleFunctionTable;
+  late final TableBasedGlobals tableBasedGlobals;
   late final DispatchTable dispatchTable;
   DispatchTable? dynamicMainModuleDispatchTable;
   late final Globals globals;
+  late final DartGlobals dartGlobals;
   late final Constants constants;
   late final Types types;
   late final ExceptionTags _exceptionTags;
@@ -521,6 +524,7 @@ class Translator with KernelNodes {
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
     crossModuleFunctionTable = CrossModuleFunctionTable(this);
+    tableBasedGlobals = TableBasedGlobals(this);
     dispatchTable = DispatchTable(isDynamicSubmoduleTable: isDynamicSubmodule)
       ..translator = this;
     if (isDynamicSubmodule) {
@@ -595,6 +599,7 @@ class Translator with KernelNodes {
     classInfoCollector.collect();
 
     globals = Globals(this);
+    dartGlobals = DartGlobals(this);
     constants = Constants(this);
 
     dispatchTable.build();
@@ -616,6 +621,7 @@ class Translator with KernelNodes {
     constructorClosures.clear();
     dispatchTable.output();
     crossModuleFunctionTable.output();
+    tableBasedGlobals.outputTables();
 
     for (ConstantInfo info in constants.constantInfo.values) {
       info.printInitializer((function) {
@@ -1970,7 +1976,7 @@ class Translator with KernelNodes {
       if (target == member.setterReference) return true;
 
       // Implicit getter for static fields may invoke lazy static initializer.
-      if (globals.getConstantInitializer(member) != null) {
+      if (dartGlobals.getConstantInitializer(member) != null) {
         // This global will get it's initializer eagerly set, so no lazy init
         // function to be called.
         return true;
