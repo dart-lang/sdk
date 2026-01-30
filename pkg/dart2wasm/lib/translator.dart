@@ -47,6 +47,7 @@ import 'wasm_annotations.dart';
 class TranslatorOptions {
   bool enableAsserts = false;
   bool importSharedMemory = false;
+  bool uniqueConstantNames = true;
   int optimizationLevel = 1;
   bool? inliningOverride;
   bool jsCompatibility = false;

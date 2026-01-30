@@ -1946,41 +1946,42 @@ class _ConstantAccessor {
   static int _nextGlobalId = 0;
   String _constantName(Constant constant) {
     final id = _nextGlobalId++;
+    final prefix = translator.options.uniqueConstantNames ? 'C$id ' : '';
     if (constant is StringConstant) {
       var value = constant.value;
       final newline = value.indexOf('\n');
       if (newline != -1) value = value.substring(0, newline);
       if (value.length > 30) value = '${value.substring(0, 30)}<...>';
-      return 'C$id "$value"';
+      return '$prefix"$value"';
     }
     if (constant is BoolConstant) {
-      return 'C$id ${constant.value}';
+      return '$prefix${constant.value}';
     }
     if (constant is IntConstant) {
-      return 'C$id ${constant.value}';
+      return '$prefix${constant.value}';
     }
     if (constant is DoubleConstant) {
-      return 'C$id ${constant.value}';
+      return '$prefix${constant.value}';
     }
     if (constant is InstanceConstant) {
       final klass = constant.classNode;
       final name = klass.name;
       if (constant.typeArguments.isEmpty) {
-        return 'C$id $name';
+        return '$prefix$name';
       }
       final typeArguments = constant.typeArguments.map(_nameType).join(', ');
       if (klass == translator.wasmArrayClass ||
           klass == translator.immutableWasmArrayClass) {
         final entries =
             (constant.fieldValues.values.single as ListConstant).entries;
-        return 'C$id $name<$typeArguments>[${entries.length}]';
+        return '$prefix$name<$typeArguments>[${entries.length}]';
       }
-      return 'C$id $name<$typeArguments>';
+      return '$prefix$name<$typeArguments>';
     }
     if (constant is TearOffConstant) {
-      return 'C$id ${constant.target.name} tear-off';
+      return '$prefix${constant.target.name} tear-off';
     }
-    return 'C$id $constant';
+    return '$prefix$constant';
   }
 
   String _nameType(DartType type) {

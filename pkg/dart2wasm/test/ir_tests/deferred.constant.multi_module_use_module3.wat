@@ -14,7 +14,7 @@
     (field $field1 (mut i32)))))
   (global $.h1-nonshared-const (import "" "h1-nonshared-const") (ref extern))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 3 funcref)
-  (global $"C504 MyConstClass" (ref $MyConstClass)
+  (global $MyConstClass (ref $MyConstClass)
     (i32.const 121)
     (i32.const 0)
     (i32.const 4)
@@ -27,7 +27,7 @@
   (func $"modH1Use <noInline>" (param $var0 i32) (result (ref $MyConstClass))
     local.get $var0
     if (result (ref $MyConstClass))
-      global.get $"C504 MyConstClass"
+      global.get $MyConstClass
     else
       i32.const 2
       call_indirect (result (ref $MyConstClass))

@@ -13,7 +13,7 @@
     (field $field0 i32)
     (field $field1 (mut i32)))))
   (global $.shared-const (import "" "shared-const") (ref extern))
-  (global $"C506 MyConstClass" (ref $MyConstClass)
+  (global $MyConstClass (ref $MyConstClass)
     (i32.const 121)
     (i32.const 0)
     (i32.const 4)

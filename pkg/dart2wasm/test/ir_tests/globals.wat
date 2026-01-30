@@ -5,23 +5,23 @@
   (type $JSStringImpl <...>)
   (table $dtable0 10 (ref null $Bar))
   (table $dtable2 9 (ref null $Foo))
-  (global $"C348 \"baz1\"" (ref $JSStringImpl) <...>)
-  (global $"C352 \"bar1\"" (ref $JSStringImpl) <...>)
-  (global $"C355 \"foo9\"" (ref $JSStringImpl) <...>)
-  (global $"C356 \"foo8\"" (ref $JSStringImpl) <...>)
-  (global $"C357 \"foo7\"" (ref $JSStringImpl) <...>)
-  (global $"C358 \"foo6\"" (ref $JSStringImpl) <...>)
-  (global $"C359 \"foo5\"" (ref $JSStringImpl) <...>)
-  (global $"C360 \"foo4\"" (ref $JSStringImpl) <...>)
-  (global $"C361 \"foo3\"" (ref $JSStringImpl) <...>)
-  (global $"C362 \"foo1\"" (ref $JSStringImpl) <...>)
-  (global $"C366 \"baz2\"" (ref $JSStringImpl) <...>)
-  (global $"C367 \"bar2\"" (ref $JSStringImpl) <...>)
-  (global $"C368 \"foo2\"" (ref $JSStringImpl) <...>)
   (global $"DartGlobals.bar1_newInit initialized" (mut i32) <...>)
   (global $"DartGlobals.bar2_newInit_final initialized" (mut i32) <...>)
   (global $"DartGlobals.baz1_newInit initialized" (mut i32) <...>)
   (global $"DartGlobals.baz2_newInit_final initialized" (mut i32) <...>)
+  (global $"\"bar1\"" (ref $JSStringImpl) <...>)
+  (global $"\"bar2\"" (ref $JSStringImpl) <...>)
+  (global $"\"baz1\"" (ref $JSStringImpl) <...>)
+  (global $"\"baz2\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo1\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo2\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo3\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo4\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo5\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo6\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo7\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo8\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo9\"" (ref $JSStringImpl) <...>)
   (global $DartGlobals.baz0_constInit (mut (ref null $Baz)) <...>)
   (global $DartGlobals.baz1_newInit (mut (ref null $Baz)) <...>)
   (global $DartGlobals.baz2_newInit_final (mut (ref null $Baz)) <...>)
@@ -40,7 +40,7 @@
   (func $"DartGlobals.bar1_newInit field initializer" (result (ref null $Bar))
     (local $var0 (ref null $Bar))
     i32.const 7
-    global.get $"C352 \"bar1\""
+    global.get $"\"bar1\""
     call $Bar
     local.tee $var0
     table.set $dtable0
@@ -67,7 +67,7 @@
   (func $"DartGlobals.bar2_newInit_final field initializer" (result (ref null $Bar))
     (local $var0 (ref null $Bar))
     i32.const 9
-    global.get $"C367 \"bar2\""
+    global.get $"\"bar2\""
     call $Bar
     local.tee $var0
     table.set $dtable0
@@ -156,7 +156,7 @@
   )
   (func $"DartGlobals.baz1_newInit field initializer" (result (ref null $Baz))
     (local $var0 (ref null $Baz))
-    global.get $"C348 \"baz1\""
+    global.get $"\"baz1\""
     call $Baz
     local.tee $var0
     global.set $DartGlobals.baz1_newInit
@@ -180,7 +180,7 @@
   )
   (func $"DartGlobals.baz2_newInit_final field initializer" (result (ref null $Baz))
     (local $var0 (ref null $Baz))
-    global.get $"C366 \"baz2\""
+    global.get $"\"baz2\""
     call $Baz
     local.tee $var0
     global.set $DartGlobals.baz2_newInit_final
@@ -213,7 +213,7 @@
   (func $"DartGlobals.foo1_newInit field initializer" (result (ref $Foo))
     (local $var0 (ref null $Foo))
     i32.const 7
-    global.get $"C362 \"foo1\""
+    global.get $"\"foo1\""
     call $Foo
     local.tee $var0
     table.set $dtable2
@@ -236,7 +236,7 @@
   (func $"DartGlobals.foo2_newInit_final field initializer" (result (ref $Foo))
     (local $var0 (ref null $Foo))
     i32.const 8
-    global.get $"C368 \"foo2\""
+    global.get $"\"foo2\""
     call $Foo
     local.tee $var0
     table.set $dtable2
@@ -254,7 +254,7 @@
   (func $"DartGlobals.foo3_newInit field initializer" (result (ref $Foo))
     (local $var0 (ref null $Foo))
     i32.const 6
-    global.get $"C361 \"foo3\""
+    global.get $"\"foo3\""
     call $Foo
     local.tee $var0
     table.set $dtable2
@@ -277,7 +277,7 @@
   (func $"DartGlobals.foo4_newInit field initializer" (result (ref $Foo))
     (local $var0 (ref null $Foo))
     i32.const 5
-    global.get $"C360 \"foo4\""
+    global.get $"\"foo4\""
     call $Foo
     local.tee $var0
     table.set $dtable2
@@ -300,7 +300,7 @@
   (func $"DartGlobals.foo5_newInit field initializer" (result (ref $Foo))
     (local $var0 (ref null $Foo))
     i32.const 4
-    global.get $"C359 \"foo5\""
+    global.get $"\"foo5\""
     call $Foo
     local.tee $var0
     table.set $dtable2
@@ -323,7 +323,7 @@
   (func $"DartGlobals.foo6_newInit field initializer" (result (ref $Foo))
     (local $var0 (ref null $Foo))
     i32.const 3
-    global.get $"C358 \"foo6\""
+    global.get $"\"foo6\""
     call $Foo
     local.tee $var0
     table.set $dtable2
@@ -346,7 +346,7 @@
   (func $"DartGlobals.foo7_newInit field initializer" (result (ref $Foo))
     (local $var0 (ref null $Foo))
     i32.const 2
-    global.get $"C357 \"foo7\""
+    global.get $"\"foo7\""
     call $Foo
     local.tee $var0
     table.set $dtable2
@@ -369,7 +369,7 @@
   (func $"DartGlobals.foo8_newInit field initializer" (result (ref $Foo))
     (local $var0 (ref null $Foo))
     i32.const 1
-    global.get $"C356 \"foo8\""
+    global.get $"\"foo8\""
     call $Foo
     local.tee $var0
     table.set $dtable2
@@ -392,7 +392,7 @@
   (func $"DartGlobals.foo9_newInit field initializer" (result (ref $Foo))
     (local $var0 (ref null $Foo))
     i32.const 0
-    global.get $"C355 \"foo9\""
+    global.get $"\"foo9\""
     call $Foo
     local.tee $var0
     table.set $dtable2

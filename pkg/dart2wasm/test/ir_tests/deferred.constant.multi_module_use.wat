@@ -13,7 +13,7 @@
     (field $field0 i32)
     (field $field1 (mut i32)))))
   (table $cross-module-funcs-0 (export "cross-module-funcs-0") 3 funcref)
-  (global $"C386 \"bad\"" (ref $JSStringImpl) <...>)
+  (global $"\"bad\"" (ref $JSStringImpl) <...>)
   (func $"mainImpl <noInline>" (param $var0 i32)
     (local $var1 (ref $MyConstClass))
     i64.const 0
@@ -29,7 +29,7 @@
     ref.eq
     i32.eqz
     if
-      global.get $"C386 \"bad\""
+      global.get $"\"bad\""
       call $Error._throwWithCurrentStackTrace
       unreachable
     end

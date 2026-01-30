@@ -9,23 +9,23 @@
   (type $_InterfaceType <...>)
   (type $_Type <...>)
   (global $".FooConst5(" (import "" "FooConst5(") (ref extern))
-  (global $"C318 \"[]\"" (import "module0" "global6") (ref $JSStringImpl))
-  (global $"C394 5" (import "module0" "global5") (ref $BoxedInt))
-  (global $"C396 FooConst0" (import "module0" "global7") (ref $Object))
-  (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
+  (global $"\")\"" (import "module0" "global4") (ref $JSStringImpl))
+  (global $"\"[]\"" (import "module0" "global6") (ref $JSStringImpl))
+  (global $5 (import "module0" "global5") (ref $BoxedInt))
+  (global $FooConst0 (import "module0" "global7") (ref $Object))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 34 funcref)
   (table $module0.dispatch0 (import "module0" "dispatch0") 824 funcref)
-  (global $"C515 FooConst5" (ref $Object)
-    (i32.const 126)
-    (i32.const 0)
-    (struct.new $Object))
-  (global $"C516 \"foo5Code(\"" (ref $JSStringImpl) <...>)
-  (global $"C517 \"FooConst5(\"" (ref $JSStringImpl)
+  (global $"\"FooConst5(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".FooConst5(")
     (struct.new $JSStringImpl))
-  (global $"C518 _InterfaceType" (ref $_InterfaceType) <...>)
+  (global $"\"foo5Code(\"" (ref $JSStringImpl) <...>)
+  (global $FooConst5 (ref $Object)
+    (i32.const 126)
+    (i32.const 0)
+    (struct.new $Object))
+  (global $_InterfaceType (ref $_InterfaceType) <...>)
   (global $allFooConstants (mut (ref null $WasmListBase))
     (ref.null none))
   (global $fooGlobal5 (mut (ref null $#Top))
@@ -37,19 +37,19 @@
     (local $var1 (ref $WasmListBase))
     (local $var2 (ref $Object))
     (local $var3 i64)
-    global.get $"C515 FooConst5"
+    global.get $FooConst5
     i32.const 18
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
-    global.get $"C516 \"foo5Code(\""
+    global.get $"\"foo5Code(\""
     local.get $var0
-    global.get $"C8 \")\""
+    global.get $"\")\""
     i32.const 19
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
     i32.const 18
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
-    global.get $"C394 5"
+    global.get $5
     global.set $fooGlobal5
     i32.const 20
     call_indirect $module0.cross-module-funcs-0 (result (ref $#Top))
@@ -79,8 +79,8 @@
     block $label0 (result (ref $WasmListBase))
       global.get $allFooConstants
       br_on_non_null $label0
-      global.get $"C518 _InterfaceType"
-      global.get $"C396 FooConst0"
+      global.get $_InterfaceType
+      global.get $FooConst0
       i32.const 30
       call_indirect $module0.cross-module-funcs-0 (result (ref $Object))
       i32.const 31
@@ -89,7 +89,7 @@
       call_indirect $module0.cross-module-funcs-0 (result (ref $Object))
       i32.const 33
       call_indirect $module0.cross-module-funcs-0 (result (ref $Object))
-      global.get $"C515 FooConst5"
+      global.get $FooConst5
       array.new_fixed $Array<Object?> 6
       i32.const 28
       call_indirect $module0.cross-module-funcs-0 (param (ref $_Type) (ref $Array<Object?>)) (result (ref $WasmListBase))
@@ -104,7 +104,7 @@
     if
       i64.const 0
       local.get $var3
-      global.get $"C318 \"[]\""
+      global.get $"\"[]\""
       i32.const 26
       call_indirect $module0.cross-module-funcs-0 (param i64 i64 (ref null $JSStringImpl)) (result (ref none))
       unreachable
@@ -125,9 +125,9 @@
   )
   (func $fooGlobal5 implicit getter (result (ref $#Top)) <...>)
   (func $FooConst5.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C517 \"FooConst5(\""
+    global.get $"\"FooConst5(\""
     local.get $var1
-    global.get $"C8 \")\""
+    global.get $"\")\""
     i32.const 19
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
     i32.const 18
