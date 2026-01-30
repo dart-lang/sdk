@@ -4583,6 +4583,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var element = node.declaredFragment?.element;
     if (element is ClassElementImpl && element.isMixinClass) {
+      var className = element.name;
+      if (className == null) {
+        return;
+      }
+
       // Check that the class does not have a constructor.
       for (ClassMember member in members) {
         if (member case ConstructorDeclarationImpl constructor) {
@@ -4590,7 +4595,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (!constructor.isTrivial) {
               diagnosticReporter.report(
                 diag.mixinClassDeclaresConstructor
-                    .withArguments(className: element.name!)
+                    .withArguments(className: className)
                     .atSourceRange(constructor.errorRange),
               );
             }
@@ -4600,12 +4605,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (node is ClassDeclarationImpl) {
         if (node.namePart
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
-          if (!primaryConstructor.isTrivial) {
+          if (primaryConstructor.formalParameters.parameters.isNotEmpty) {
             diagnosticReporter.report(
               diag.mixinClassDeclaresConstructor
-                  .withArguments(className: element.name!)
+                  .withArguments(className: className)
                   .atSourceRange(primaryConstructor.errorRange),
             );
+          } else if (primaryConstructor.body case var body?) {
+            if (body.initializers.isNotEmpty) {
+              diagnosticReporter.report(
+                diag.mixinClassDeclaresConstructor
+                    .withArguments(className: className)
+                    .at(body.colon!),
+              );
+            } else if (body.body case BlockFunctionBody blockBody) {
+              diagnosticReporter.report(
+                diag.mixinClassDeclaresConstructor
+                    .withArguments(className: className)
+                    .at(blockBody.block.leftBracket),
+              );
+            }
           }
         }
       }
@@ -4613,14 +4632,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superclass != null && !superclass.typeOrThrow.isDartCoreObject) {
         diagnosticReporter.report(
           diag.mixinClassDeclarationExtendsNotObject
-              .withArguments(name: element.name!)
+              .withArguments(name: className)
               .at(superclass),
         );
       } else if (withClause != null &&
           !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
         diagnosticReporter.report(
           diag.mixinClassDeclarationExtendsNotObject
-              .withArguments(name: element.name!)
+              .withArguments(name: className)
               .at(withClause),
         );
       }
