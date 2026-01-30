@@ -842,12 +842,11 @@ class BodyBuilderImpl extends StackListenerImpl
 
   void wrapVariableInitializerInError(
     ExpressionVariable variable,
-    Template<Message Function(String name), Function> template,
     List<LocatedMessage> context,
   ) {
     String name = variable.cosmeticName!;
     int offset = variable.fileOffset;
-    Message message = template.withArgumentsOld(name);
+    Message message = diag.duplicatedDeclaration.withArgumentsOld(name);
     if (variable.initializer == null) {
       variable.initializer = buildProblem(
         message: message,
@@ -872,15 +871,11 @@ class BodyBuilderImpl extends StackListenerImpl
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
-      wrapVariableInitializerInError(
-        variable,
-        diag.duplicatedDeclaration,
-        <LocatedMessage>[
-          diag.duplicatedDeclarationCause
-              .withArgumentsOld(name)
-              .withLocation(uri, existing.fileOffset, name.length),
-        ],
-      );
+      wrapVariableInitializerInError(variable, <LocatedMessage>[
+        diag.duplicatedDeclarationCause
+            .withArgumentsOld(name)
+            .withLocation(uri, existing.fileOffset, name.length),
+      ]);
       return;
     }
     if (isGuardScope(scope)) {
