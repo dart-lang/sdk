@@ -30,11 +30,11 @@ class A(int x) {
     await assertErrorsInCode(
       r'''
 class A() {
-  int x = 0;
+  int x;
   this : super(), x = 0;
 }
 ''',
-      [error(diag.superInvocationNotLast, 34, 5)],
+      [error(diag.superInvocationNotLast, 30, 5)],
     );
   }
 

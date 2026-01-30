@@ -44,7 +44,31 @@ augment class A {
     ]);
   }
 
-  test_class_both() async {
+  test_class_primaryConstructor_final() async {
+    await assertErrorsInCode(
+      '''
+class A() {
+  final int x = 0;
+  this : x = 1;
+}
+''',
+      [error(diag.fieldInitializedInInitializerAndDeclaration, 40, 1)],
+    );
+  }
+
+  test_class_primaryConstructor_notFinal() async {
+    await assertErrorsInCode(
+      '''
+class A() {
+  int x = 0;
+  this : x = 1;
+}
+''',
+      [error(diag.fieldInitializedInInitializerAndDeclaration, 34, 1)],
+    );
+  }
+
+  test_class_secondaryConstructor_final() async {
     await assertErrorsInCode(
       '''
 class A {
@@ -56,7 +80,16 @@ class A {
     );
   }
 
-  test_enum_both() async {
+  test_class_secondaryConstructor_notFinal() async {
+    await assertNoErrorsInCode('''
+class A {
+  int x = 0;
+  A() : x = 1;
+}
+''');
+  }
+
+  test_enum_secondaryConstructor_final() async {
     await assertErrorsInCode(
       '''
 enum E {
@@ -66,6 +99,19 @@ enum E {
 }
 ''',
       [error(diag.fieldInitializedInInitializerAndDeclaration, 47, 1)],
+    );
+  }
+
+  test_enum_secondaryConstructor_notFinal() async {
+    await assertErrorsInCode(
+      '''
+enum E {
+  v;
+  int x = 0;
+  const E() : x = 1;
+}
+''',
+      [error(diag.nonFinalFieldInEnum, 20, 1)],
     );
   }
 }
