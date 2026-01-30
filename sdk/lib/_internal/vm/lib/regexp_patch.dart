@@ -304,30 +304,37 @@ class _RegExp implements RegExp {
   external List<int>? _ExecuteMatchSticky(String str, int start_index);
 
   static Int32List _getRegisters(int registers_count) {
-    var registers = _registers;
+    var registers = _registers.hasValue ? _registers.value : null;
     if (registers == null || registers.length < registers_count) {
-      _registers = registers = Int32List(registers_count);
+      _registers.value = registers = Int32List(registers_count);
     }
     return registers;
+  }
+
+  static Int32List _getBacktrackingStack() {
+    if (!_backtrackingStack.hasValue) {
+      _backtrackingStack.value = Int32List(_initialBacktrackingStackSize);
+    }
+    return _backtrackingStack.value;
   }
 
   // TODO: Should we bound this to the same limit used by the irregexp interpreter
   // for consistency?
   static Int32List _growBacktrackingStack() {
-    final stack = _backtrackingStack;
+    final stack = _backtrackingStack.value;
     final newStack = Int32List(stack.length * 2);
     for (int i = 0; i < stack.length; i++) {
       newStack[i] = stack[i];
     }
-    _backtrackingStack = newStack;
+    _backtrackingStack.value = newStack;
     return newStack;
   }
 
-  static Int32List? _registers;
+  @pragma("vm:shared")
+  static ThreadLocal<Int32List?> _registers = ThreadLocal<Int32List?>();
 
-  static Int32List _backtrackingStack = Int32List(
-    _initialBacktrackingStackSize,
-  );
+  @pragma("vm:shared")
+  static ThreadLocal<Int32List> _backtrackingStack = ThreadLocal<Int32List>();
 }
 
 class _AllMatchesIterable extends Iterable<RegExpMatch> {

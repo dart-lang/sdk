@@ -195,11 +195,11 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
                                            Bind(num_registers_constant_instr),
                                            ICData::kStatic)));
 
-    const Field& backtracking_stack_field =
-        Field::ZoneHandle(Z, regexp_class.LookupStaticFieldAllowPrivate(
-                                 Symbols::_backtrackingStack()));
-    StoreLocal(stack_, Bind(LoadStaticField(backtracking_stack_field,
-                                            /*calls_initializer=*/true)));
+    const Function& get_backtracking_stack_function =
+        Function::ZoneHandle(Z, regexp_class.LookupFunctionAllowPrivate(
+                                    Symbols::_getBacktrackingStack()));
+    StoreLocal(stack_, Bind(StaticCall(get_backtracking_stack_function,
+                                       ICData::kStatic)));
   }
   ClearRegisters(0, saved_registers_count_ - 1);
 

@@ -38,7 +38,6 @@
 #include "vm/thread_pool.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
-#include "vm/virtual_memory.h"
 
 namespace dart {
 
@@ -1503,14 +1502,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
 
-  std::unique_ptr<VirtualMemory> TakeRegexpBacktrackStack() {
-    return std::move(regexp_backtracking_stack_cache_);
-  }
-
-  void CacheRegexpBacktrackStack(std::unique_ptr<VirtualMemory> stack) {
-    regexp_backtracking_stack_cache_ = std::move(stack);
-  }
-
   void init_loaded_prefixes_set_storage();
   bool IsPrefixLoaded(const LibraryPrefix& prefix) const;
   void SetPrefixIsLoaded(const LibraryPrefix& prefix);
@@ -1707,8 +1698,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // send a kill message).
   // This is protected by [isolate_creation_monitor_].
   bool accepts_messages_ = false;
-
-  std::unique_ptr<VirtualMemory> regexp_backtracking_stack_cache_ = nullptr;
 
   intptr_t wake_pause_event_handler_count_;
 
