@@ -33,6 +33,7 @@ class TightenTypeOfInitializingFormals extends AnalysisRule {
   ) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -44,7 +45,36 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    for (var initializer in node.initializers) {
+    _checkConstructor(
+      parameters: node.parameters.parameters,
+      initializers: node.initializers,
+    );
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.body?.initializers case var initializers?) {
+      _checkConstructor(
+        parameters: node.formalParameters.parameters,
+        initializers: initializers,
+      );
+    }
+  }
+
+  void _check(Element? element, List<FormalParameter> parameters) {
+    if (element is FieldFormalParameterElement ||
+        element is SuperFormalParameterElement) {
+      rule.reportAtNode(
+        parameters.firstWhere((p) => p.declaredFragment?.element == element),
+      );
+    }
+  }
+
+  void _checkConstructor({
+    required List<FormalParameter> parameters,
+    required List<ConstructorInitializer> initializers,
+  }) {
+    for (var initializer in initializers) {
       if (initializer is! AssertInitializer) continue;
 
       var condition = initializer.condition;
@@ -57,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             var staticType = leftOperand.staticType;
             if (staticType != null &&
                 context.typeSystem.isNullable(staticType)) {
-              _check(leftOperand.element, node);
+              _check(leftOperand.element, parameters);
             }
           }
         } else if (condition.leftOperand is NullLiteral) {
@@ -66,22 +96,11 @@ class _Visitor extends SimpleAstVisitor<void> {
             var staticType = rightOperand.staticType;
             if (staticType != null &&
                 context.typeSystem.isNullable(staticType)) {
-              _check(rightOperand.element, node);
+              _check(rightOperand.element, parameters);
             }
           }
         }
       }
-    }
-  }
-
-  void _check(Element? element, ConstructorDeclaration node) {
-    if (element is FieldFormalParameterElement ||
-        element is SuperFormalParameterElement) {
-      rule.reportAtNode(
-        node.parameters.parameters.firstWhere(
-          (p) => p.declaredFragment?.element == element,
-        ),
-      );
     }
   }
 }
