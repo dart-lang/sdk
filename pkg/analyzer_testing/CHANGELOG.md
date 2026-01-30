@@ -1,4 +1,13 @@
-## 0.1.9-dev
+## 0.1.10
+
+- A stub Flutter package can be added in tests by overriding the
+  `addFlutterPackageDep` getter to return `true`. This API existed before but is
+  now functional; same with `addFixnumPackageDep`, `addMetaPackageDep`, and
+  `addTestReflectiveLoaderPackageDep`.
+- Require version `10.0.2` of the `analyzer` package.
+
+## 0.1.9
+
 - Deprecate `MockPackagesMixin.addUI`; This is replaced by `addSkyEngine`.
 - Deprecate `MockPackagesMixin.addFlutterTest`. A mock `flutter_test` package
   can still be written with `PubPackageResolutionTest.newPackage`.
