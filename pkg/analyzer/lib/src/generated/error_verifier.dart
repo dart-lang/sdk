@@ -51,7 +51,6 @@ import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -6733,44 +6732,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     } finally {
       _hiddenElements = _hiddenElements!.outerElements;
     }
-  }
-
-  /// Return [FieldElement]s that are declared as siblings of [constructor],
-  /// but are not initialized.
-  static List<FieldElement> computeNotInitializedFields(
-    ConstructorDeclaration constructor,
-  ) {
-    var fields = <FieldElement>{};
-
-    var membersList = constructor.parent.classMembers;
-    for (ClassMember fieldDeclaration in membersList) {
-      if (fieldDeclaration is FieldDeclaration) {
-        for (VariableDeclaration field in fieldDeclaration.fields.variables) {
-          if (field.initializer == null) {
-            fields.add((field.declaredFragment as FieldFragment).element);
-          }
-        }
-      }
-    }
-
-    List<FormalParameter> parameters = constructor.parameters.parameters;
-    for (FormalParameter parameter in parameters) {
-      parameter = parameter.notDefault;
-      if (parameter is FieldFormalParameter) {
-        var element =
-            (parameter.declaredFragment as FieldFormalParameterFragment)
-                .element;
-        fields.remove(element.field);
-      }
-    }
-
-    for (ConstructorInitializer initializer in constructor.initializers) {
-      if (initializer is ConstructorFieldInitializer) {
-        fields.remove(initializer.fieldName.element);
-      }
-    }
-
-    return fields.toList();
   }
 
   /// Checks whether the given [expression] is a reference to a class. If it is

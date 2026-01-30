@@ -66,6 +66,7 @@ class ConstructorFieldsVerifier {
       element: fragment.element,
       errorRange: node.errorRange,
     );
+    constructorState.secondaryConstructors.add(node);
 
     if (!fragment.isAugmentation) {
       constructorState.updateWithParameters(node.parameters.parameters);
@@ -88,6 +89,7 @@ class ConstructorFieldsVerifier {
       element: fragment.element,
       errorRange: primaryConstructor.errorRange,
     );
+    constructorState.primaryConstructors.add(primaryConstructor);
 
     constructorState.updateWithParameters(
       primaryConstructor.formalParameters.parameters,
@@ -143,6 +145,8 @@ class _Constructor {
   final SourceRange errorRange;
   final Map<FieldElement, _InitState> fields;
   final Set<String> duplicateFieldNames;
+  final List<PrimaryConstructorDeclarationImpl> primaryConstructors = [];
+  final List<ConstructorDeclarationImpl> secondaryConstructors = [];
 
   /// Set to `true` if the constructor redirects.
   bool hasRedirectingConstructorInvocation = false;
@@ -179,6 +183,17 @@ class _Constructor {
         notInitNonNullableFields.add(_Field(field, name));
       }
     });
+
+    var allNotInitialized = <FieldElement>[
+      for (var f in notInitFinalFields) f.element,
+      for (var f in notInitNonNullableFields) f.element,
+    ];
+    for (var node in primaryConstructors) {
+      node.notInitializedFields = allNotInitialized;
+    }
+    for (var node in secondaryConstructors) {
+      node.notInitializedFields = allNotInitialized;
+    }
 
     reportNotInitializedFinal(notInitFinalFields);
     reportNotInitializedNonNullable(notInitNonNullableFields);
