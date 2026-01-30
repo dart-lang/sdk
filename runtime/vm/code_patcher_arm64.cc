@@ -25,7 +25,8 @@ class PoolPointerCall : public ValueObject {
   intptr_t pp_index() const { return index_; }
 
   CodePtr Target() const {
-    return static_cast<CodePtr>(object_pool_.ObjectAt(pp_index()));
+    return static_cast<CodePtr>(
+        object_pool_.ObjectAt<std::memory_order_acquire>(pp_index()));
   }
 
   void SetTarget(const Code& target) const {

@@ -15,6 +15,7 @@
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
@@ -67,6 +68,8 @@ main(List<String> args) {
   testRandom();
   testEncoding();
   testRecursiveToString();
+
+  testBytesBuilder();
 
   print("All tests completed :)");
 }
@@ -522,4 +525,13 @@ void testRecursiveToString() {
       return l.toString();
     }),
   );
+}
+
+///
+void testBytesBuilder() {
+  BytesBuilder builder = new BytesBuilder();
+  builder.add([1, 2, 3]);
+  Expect.listEquals([1, 2, 3], builder.toBytes());
+  builder.clear();
+  Expect.isTrue(builder.isEmpty);
 }

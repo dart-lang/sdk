@@ -6,14 +6,18 @@
 
 **Released on:** Unreleased
 
+### Language
+
+There are no language changes in this release.
+
 ### Libraries
 
 #### `dart:io`
 
 - Added support for Unix domain sockets (`AF_UNIX`) on Windows. Support is
-  restricted to subset of features supported by the OS. Windows currently does
-  not support the following features for `AF_UNIX` sockets: datagram sockets,
-  ancillary data or abstract socket addresses. Unix domain sockets are
+  restricted to the subset of features supported by the OS. Windows currently
+  does not support the following features for `AF_UNIX` sockets: datagram
+  sockets, ancillary data or abstract socket addresses. Unix domain sockets are
   represented in the file-system using _reparse points_ which leads to some
   discrepancies in the behavior of `dart:io` APIs: for example
   `File(socketPath).existsSync()` will return `true` on POSIX operating systems,
@@ -68,6 +72,7 @@
 - The `use_if_null_to_convert_nulls_to_bools` lint rule is now deprecated.
 
 #### Dart Development Compiler (dartdevc)
+
 - The async timing of the `Future` returned by `deferred_prefix.loadLibrary()`
   is now consistent regardless if proper deferred imports are supported in the
   runtime environment or not. This makes the timing more consistent with dart2js
@@ -90,13 +95,146 @@
 - New commmand `dart pub cache gc` for reclaiming disk space from your pub
   cache.
 
-  It works by removing  packages from your pub cache that are not referenced by
+  It works by removing packages from your pub cache that are not referenced by
   any of your current projects.
 
 - New flag `dart pub publish --dry-run --ignore-warnings`
 
   Given this flag, `dart pub publish --dry-run` will only exit non-zero if your
   project validation has errors.
+
+## 3.10.8
+
+**Released on:** 2026-01-27
+
+This is a patch release that:
+
+- Removes code completion of private declarations in other libraries for dot
+  shorthands. (issue [dart-lang/sdk#62416])
+
+[dart-lang/sdk#62416]: https://github.com/dart-lang/sdk/issues/62416
+
+## 3.10.7
+
+**Released on:** 2025-12-23
+
+This is a patch release that:
+
+- Fixes a bug in OS error reporting on Windows. (issue [dart-lang/sdk#62252])
+
+[dart-lang/sdk#62252]: https://github.com/dart-lang/sdk/issues/62252
+
+## 3.10.6
+
+**Released on:** 2025-12-16
+
+This is a patch release that:
+
+- Fixes a bug in JS typed data `sublist()` implementation on dart2wasm backend.
+  (issue [flutter/flutter#179853])
+
+[flutter/flutter#179853]: https://github.com/flutter/flutter/issues/179853
+
+## 3.10.5
+
+**Released on:** 2025-12-16
+
+This is a patch release that:
+
+- Fixes several issues with elements that are deprecated with one of the new
+  "deprecated functionality" annotations, like `@Deprecated.implement`. This
+  fix directs IDEs to not display such elements (like the `RegExp` class) as
+  fully deprecated (for example, with struck-through text). (issue
+  [dart-lang/sdk#62013])
+- Fixes code completion for dot shorthands in enum constant arguments. (issue
+  [dart-lang/sdk#62168])
+- Fixes code completion for dot shorthands and the `!=` operator. (issue
+  [dart-lang/sdk#62216])
+
+[dart-lang/sdk#62013]: https://github.com/dart-lang/sdk/issues/62013
+[dart-lang/sdk#62168]: https://github.com/dart-lang/sdk/issues/62168
+[dart-lang/sdk#62216]: https://github.com/dart-lang/sdk/issues/62216
+
+## 3.10.4
+
+**Released on:** 2025-12-09
+
+This is a patch release that:
+
+- Fixes an issue with `dart run` not working and simply exiting with
+  `Process::Exec - (null)` under GitBash on Windows.
+  (issue [dart-lang/sdk#61981])
+
+[dart-lang/sdk#61981]: https://github.com/dart-lang/sdk/issues/61981
+
+## 3.10.3
+
+**Released on:** 2025-12-02
+
+This is a patch release that:
+
+- Fixes an issue with the color picker not working with dot shorthands. (issue
+   [Dart-Code/Dart-Code#61978])
+- Enables hiding `Running build hooks` in `dart run` with `--verbosity=error`.
+  (issue [dart-lang/sdk#61996])
+- Fixes an issue with test_with_coverage and build hooks in dev depencencies.
+  (issue [dart-lang/tools#2237])
+- Fixes an issue where a crash could occur when evaluating expressions
+  after a recompilation (issue [flutter/flutter#178740]).
+- Fixes watching of directory moves on MacOS [dart-lang/sdk#62136].
+- Fixes an issue with the analyzer not emitting an error when using a dot
+  shorthand with type arguments on a factory constructor in an abstract class.
+  (issue [dart-lang/sdk#61978])
+
+[Dart-Code/Dart-Code#61978]: https://github.com/Dart-Code/Dart-Code/issues/5810
+[dart-lang/sdk#61996]: https://github.com/dart-lang/sdk/issues/61996
+[dart-lang/tools#2237]: https://github.com/dart-lang/tools/issues/2237
+[flutter/flutter#178740]: https://github.com/flutter/flutter/issues/178740
+[dart-lang/sdk#62136]: https://github.com/dart-lang/sdk/issues/62136
+[dart-lang/sdk#61978]: https://github.com/dart-lang/sdk/issues/61978
+
+## 3.10.2
+
+**Released on:** 2025-11-25
+
+This is a patch release that:
+
+- Fixes an issue with code completion for argument lists in a dot shorthand
+  invocation, as well as an issue with renaming dot shorthands.
+  (issue [dart-lang/sdk#61969])
+- Fixes an issue in dart2wasm that causes the compiler to crash for switch
+  statements that contain int cases and a null case.
+  (issue [dart-lang/sdk#62022])
+- Fixes an issue with renaming fields/parameters on dot shorthand
+  constructor invocations.
+  (issue [dart-lang/sdk#62036])
+
+[dart-lang/sdk#61969]: https://github.com/dart-lang/sdk/issues/61969
+[dart-lang/sdk#62022]: https://github.com/dart-lang/sdk/issues/62022
+[dart-lang/sdk#62036]: https://github.com/dart-lang/sdk/issues/62036
+
+## 3.10.1
+
+**Released on:** 2025-11-18
+
+This is a patch release that:
+
+- Fixes an issue with dot shorthand code completion for the `==` operator,
+  `FutureOr` types, switch expressions, and switch statements.
+  (issue [dart-lang/sdk#61872][]).
+- Fixes an issue with the analyzer not reporting an error when invoking an
+  instance method with a dot shorthand. (issue [dart-lang/sdk#61954][]).
+- Fixes a crash with the `ExitDetector` in the analyzer missing a few visitor
+  methods for dot shorthand AST nodes. (issue [dart-lang/sdk#61963])
+- Fixes an analyzer crash that would sometimes occur when the
+  `prefer_const_constructors` lint was enabled (issue [dart-lang/sdk#61953][]).
+- Updates dartdoc dependency to dartdoc 9.0.0 which fixes dartdoc rendering of
+  `@Deprecated.extend()` and the other new deprecated annotations.
+
+[dart-lang/sdk#61872]: https://github.com/dart-lang/sdk/issues/61872
+[dart-lang/sdk#61954]: https://github.com/dart-lang/sdk/issues/61954
+[dart-lang/sdk#61963]: https://github.com/dart-lang/sdk/issues/61963
+[dart-lang/sdk#61953]: https://github.com/dart-lang/sdk/issues/61953
 
 ## 3.10.0
 
