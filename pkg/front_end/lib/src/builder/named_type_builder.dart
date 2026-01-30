@@ -284,18 +284,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     if (member is TypeDeclarationBuilder) {
       bind(problemReporting, member);
     } else {
-      Template<Message Function(String name), Function> template =
-          member == null ? diag.typeNotFound : diag.notAType;
       String nameText = typeName.fullName;
       int nameOffset = typeName.fullNameOffset;
       int nameLength = typeName.fullNameLength;
       Message message;
       List<LocatedMessage>? context;
       if (member == null) {
-        template = diag.typeNotFound;
-        message = template.withArgumentsOld(nameText);
+        message = diag.typeNotFound.withArgumentsOld(nameText);
       } else {
-        template = diag.notAType;
         context = <LocatedMessage>[
           diag.notATypeContext.withLocation(
             member.fileUri!,
@@ -303,7 +299,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             nameLength,
           ),
         ];
-        message = template.withArgumentsOld(nameText);
+        message = diag.notAType.withArgumentsOld(nameText);
       }
       problemReporting.addProblem(
         message,
