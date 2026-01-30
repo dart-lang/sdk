@@ -15310,6 +15310,10 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
 
 /// Additional information about local variables within a function or method
 /// produced at resolution time.
+///
+/// The owner of this data structure is a [FunctionBodyImpl]. The set of local
+/// variables for which extra information is stored is the set of local
+/// variables declared in that function body or any enclosing function body.
 class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
