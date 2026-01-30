@@ -189,7 +189,7 @@ extension CheckHelper on ProblemReporting {
         // A wrong (non-zero) amount of type arguments given. That's an error.
         // TODO(jensj): Position should be on type arguments instead.
         return diag.typeArgumentMismatch
-            .withArgumentsOld(typeParameterCount)
+            .withArguments(expectedCount: typeParameterCount)
             .withLocation(fileUri, fileOffset, noLength);
       }
     }
@@ -266,7 +266,7 @@ extension CheckHelper on ProblemReporting {
       // A wrong (non-zero) amount of type arguments given. That's an error.
       // TODO(jensj): Position should be on type arguments instead.
       return diag.typeArgumentMismatch
-          .withArgumentsOld(typeParameters.length)
+          .withArguments(expectedCount: typeParameters.length)
           .withLocation(fileUri, fileOffset, noLength);
     }
 

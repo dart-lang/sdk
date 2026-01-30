@@ -270,7 +270,9 @@ severity: $severity
     if (!seenMessages.add(trace)) return null;
     if (message.code.severity == CfeSeverity.context) {
       internalProblem(
-        diag.internalProblemContextSeverity.withArgumentsOld(message.code.name),
+        diag.internalProblemContextSeverity.withArguments(
+          messageCode: message.code.name,
+        ),
         charOffset,
         fileUri,
       );

@@ -2028,9 +2028,9 @@ class BodyBuilderImpl extends StackListenerImpl
       // Coverage-ignore(suite): Not run.
       default:
         internalProblem(
-          diag.internalProblemUnhandled.withArgumentsOld(
-            operator,
-            'endBinaryPattern',
+          diag.internalProblemUnhandled.withArguments(
+            what: operator,
+            where: 'endBinaryPattern',
           ),
           token.charOffset,
           uri,
@@ -4853,7 +4853,7 @@ class BodyBuilderImpl extends StackListenerImpl
     void errorCase(String name, Token suffix) {
       String displayName = debugName(name, suffix.lexeme);
       int offset = offsetForToken(beginToken);
-      Message message = diag.notAType.withArgumentsOld(displayName);
+      Message message = diag.notAType.withArguments(name: displayName);
       libraryBuilder.addProblem(
         message,
         offset,
@@ -6598,8 +6598,8 @@ class BodyBuilderImpl extends StackListenerImpl
           errorExpression: evaluateArgumentsBefore(
             arguments,
             buildProblem(
-              message: diag.typeArgumentMismatch.withArgumentsOld(
-                numberOfTypeParameters,
+              message: diag.typeArgumentMismatch.withArguments(
+                expectedCount: numberOfTypeParameters,
               ),
               fileUri: uri,
               fileOffset: charOffset,
@@ -6776,8 +6776,8 @@ class BodyBuilderImpl extends StackListenerImpl
                   errorExpression: evaluateArgumentsBefore(
                     arguments,
                     buildProblem(
-                      message: diag.typeArgumentMismatch.withArgumentsOld(
-                        numberOfTypeParameters,
+                      message: diag.typeArgumentMismatch.withArguments(
+                        expectedCount: numberOfTypeParameters,
                       ),
                       fileUri: uri,
                       fileOffset: nameToken.charOffset,
@@ -6853,8 +6853,8 @@ class BodyBuilderImpl extends StackListenerImpl
                 errorExpression: evaluateArgumentsBefore(
                   arguments,
                   buildProblem(
-                    message: diag.typeArgumentMismatch.withArgumentsOld(
-                      numberOfTypeParameters,
+                    message: diag.typeArgumentMismatch.withArguments(
+                      expectedCount: numberOfTypeParameters,
                     ),
                     fileUri: uri,
                     fileOffset: nameToken.charOffset,
@@ -6873,8 +6873,8 @@ class BodyBuilderImpl extends StackListenerImpl
                 errorExpression: evaluateArgumentsBefore(
                   arguments,
                   buildProblem(
-                    message: diag.typeArgumentMismatch.withArgumentsOld(
-                      numberOfTypeParameters,
+                    message: diag.typeArgumentMismatch.withArguments(
+                      expectedCount: numberOfTypeParameters,
                     ),
                     fileUri: uri,
                     fileOffset: nameToken.charOffset,
@@ -10727,9 +10727,9 @@ class BodyBuilderImpl extends StackListenerImpl
       // Coverage-ignore(suite): Not run.
       default:
         internalProblem(
-          diag.internalProblemUnhandled.withArgumentsOld(
-            operator,
-            'handleRelationalPattern',
+          diag.internalProblemUnhandled.withArguments(
+            what: operator,
+            where: 'handleRelationalPattern',
           ),
           token.charOffset,
           uri,

@@ -1452,8 +1452,8 @@ const MessageCode factoryTopLevelDeclaration = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String argumentName),
+  Message Function({required String argumentName})
 >
 fastaCLIArgumentRequired = const Template(
   "FastaCLIArgumentRequired",
@@ -1463,18 +1463,18 @@ fastaCLIArgumentRequired = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFastaCLIArgumentRequired({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFastaCLIArgumentRequired({required String argumentName}) {
+  var argumentName_0 = conversions.validateAndDemangleName(argumentName);
   return new Message(
     fastaCLIArgumentRequired,
-    problemMessage: """Expected value after '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Expected value after '${argumentName_0}'.""",
+    arguments: {'argumentName': argumentName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFastaCLIArgumentRequired(String name) =>
-    _withArgumentsFastaCLIArgumentRequired(name: name);
+Message _withArgumentsOldFastaCLIArgumentRequired(String argumentName) =>
+    _withArgumentsFastaCLIArgumentRequired(argumentName: argumentName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode fieldInitializedOutsideDeclaringClass = const MessageCode(
@@ -1779,8 +1779,8 @@ const MessageCode interfaceMixinClass = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String typeName, String stackContents),
+  Message Function({required String typeName, required String stackContents})
 >
 internalProblemStackNotEmpty = const Template(
   "InternalProblemStackNotEmpty",
@@ -1792,29 +1792,32 @@ internalProblemStackNotEmpty = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemStackNotEmpty({
-  required String name,
-  required String string,
+  required String typeName,
+  required String stackContents,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
+  var stackContents_0 = conversions.validateString(stackContents);
   return new Message(
     internalProblemStackNotEmpty,
-    problemMessage: """${name_0}.stack isn't empty:
-  ${string_0}""",
-    arguments: {'name': name, 'string': string},
+    problemMessage: """${typeName_0}.stack isn't empty:
+  ${stackContents_0}""",
+    arguments: {'typeName': typeName, 'stackContents': stackContents},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInternalProblemStackNotEmpty(
-  String name,
-  String string,
-) => _withArgumentsInternalProblemStackNotEmpty(name: name, string: string);
+  String typeName,
+  String stackContents,
+) => _withArgumentsInternalProblemStackNotEmpty(
+  typeName: typeName,
+  stackContents: stackContents,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String what, String where),
+  Message Function({required String what, required String where})
 >
 internalProblemUnhandled = const Template(
   "InternalProblemUnhandled",
@@ -1826,28 +1829,26 @@ internalProblemUnhandled = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnhandled({
-  required String string,
-  required String string2,
+  required String what,
+  required String where,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var what_0 = conversions.validateString(what);
+  var where_0 = conversions.validateString(where);
   return new Message(
     internalProblemUnhandled,
-    problemMessage: """Unhandled ${string_0} in ${string2_0}.""",
-    arguments: {'string': string, 'string2': string2},
+    problemMessage: """Unhandled ${what_0} in ${where_0}.""",
+    arguments: {'what': what, 'where': where},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnhandled(
-  String string,
-  String string2,
-) => _withArgumentsInternalProblemUnhandled(string: string, string2: string2);
+Message _withArgumentsOldInternalProblemUnhandled(String what, String where) =>
+    _withArgumentsInternalProblemUnhandled(what: what, where: where);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operation),
+  Message Function({required String operation})
 >
 internalProblemUnsupported = const Template(
   "InternalProblemUnsupported",
@@ -1858,18 +1859,18 @@ internalProblemUnsupported = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnsupported({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsInternalProblemUnsupported({required String operation}) {
+  var operation_0 = conversions.validateAndDemangleName(operation);
   return new Message(
     internalProblemUnsupported,
-    problemMessage: """Unsupported operation: '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Unsupported operation: '${operation_0}'.""",
+    arguments: {'operation': operation},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnsupported(String name) =>
-    _withArgumentsInternalProblemUnsupported(name: name);
+Message _withArgumentsOldInternalProblemUnsupported(String operation) =>
+    _withArgumentsInternalProblemUnsupported(operation: operation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode interpolationInUri = const MessageCode(

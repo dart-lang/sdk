@@ -49,8 +49,8 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
     required TreeNode? context,
     required TreeNode? origin,
   }) {
-    Message message = diag.internalProblemVerificationError.withArgumentsOld(
-      details,
+    Message message = diag.internalProblemVerificationError.withArguments(
+      details: details,
     );
     LocatedMessage locatedMessage = problemUri != null
         ? message.withLocation(

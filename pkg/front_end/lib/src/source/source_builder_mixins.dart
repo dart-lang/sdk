@@ -142,7 +142,7 @@ mixin SourceDeclarationBuilderBaseMixin
       );
       return unhandled(
         diag.typeArgumentMismatch
-            .withArgumentsOld(typeParametersCount)
+            .withArguments(expectedCount: typeParametersCount)
             .problemMessage,
         "buildTypeArguments",
         -1,

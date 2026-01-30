@@ -2091,7 +2091,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
 
         lastGoodKernelTarget.loader.addProblem(
-          diag.incrementalCompilerIllegalParameter.withArgumentsOld(name),
+          diag.incrementalCompilerIllegalParameter.withArguments(
+            parameterName: name,
+          ),
           // TODO: pass variable declarations instead of
           // parameter names for proper location detection.
           // https://github.com/dart-lang/sdk/issues/44158

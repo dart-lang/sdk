@@ -2364,10 +2364,10 @@ class SourceClassBuilder extends ClassBuilderImpl
           String mixinName = cls.mixedInClass!.name;
           int classNameLength = cls.nameAsMixinApplicationSubclass.length;
           libraryBuilder.addProblem(
-            diag.implicitMixinOverride.withArgumentsOld(
-              mixinName,
-              baseName,
-              declaredMember.name.text,
+            diag.implicitMixinOverride.withArguments(
+              mixinName: mixinName,
+              baseName: baseName,
+              erroneousMember: declaredMember.name.text,
             ),
             cls.fileOffset,
             classNameLength,

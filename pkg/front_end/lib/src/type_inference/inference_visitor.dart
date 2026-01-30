@@ -12416,7 +12416,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       return wrapExpressionInferenceResultInProblem(
         new ExpressionInferenceResult(const InvalidType(), node),
-        diag.internalProblemUnsupported.withArgumentsOld("RecordIndexGet"),
+        diag.internalProblemUnsupported.withArguments(
+          operation: "RecordIndexGet",
+        ),
         node.fileOffset,
         noLength,
       );
@@ -12464,7 +12466,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       return wrapExpressionInferenceResultInProblem(
         new ExpressionInferenceResult(const InvalidType(), node),
-        diag.internalProblemUnsupported.withArgumentsOld("RecordIndexGet"),
+        diag.internalProblemUnsupported.withArguments(
+          operation: "RecordIndexGet",
+        ),
         node.fileOffset,
         noLength,
       );

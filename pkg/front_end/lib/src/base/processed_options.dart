@@ -824,8 +824,8 @@ class ProcessedOptions {
     Uri dir = scriptUri.resolve('.');
     if (!dir.isAbsolute) {
       reportWithoutLocation(
-        diag.internalProblemUnsupported.withArgumentsOld(
-          "Expected input Uri to be absolute: $scriptUri.",
+        diag.internalProblemUnsupported.withArguments(
+          operation: "Expected input Uri to be absolute: $scriptUri.",
         ),
         CfeSeverity.internalProblem,
       );

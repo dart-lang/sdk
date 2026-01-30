@@ -1014,7 +1014,9 @@ severity: $severity
     }
     if (message.code.severity == CfeSeverity.context) {
       internalProblem(
-        diag.internalProblemContextSeverity.withArgumentsOld(message.code.name),
+        diag.internalProblemContextSeverity.withArguments(
+          messageCode: message.code.name,
+        ),
         charOffset,
         fileUri,
       );
@@ -1144,7 +1146,7 @@ severity: $severity
         // Coverage-ignore-block(suite): Not run.
         target.benchmarker?.endSubdivide();
         return internalProblem(
-          diag.internalProblemUriMissingScheme.withArgumentsOld(fileUri),
+          diag.internalProblemUriMissingScheme.withArguments(uri: fileUri),
           -1,
           compilationUnit.importUri,
         );

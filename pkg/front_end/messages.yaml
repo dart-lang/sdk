@@ -1881,10 +1881,10 @@ namedMixinOverride:
 
 implicitMixinOverride:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    Name name3: undocumented
-  problemMessage: "Applying the mixin '#name' to '#name2' introduces an erroneous override of '#name3'."
+    Name mixinName: The name of the problematic mixin.
+    Name baseName: The name of the type the mixin is applied to.
+    Name erroneousMember: The name of the member that is erroneously overridden.
+  problemMessage: "Applying the mixin '#mixinName' to '#baseName' introduces an erroneous override of '#erroneousMember'."
   script: |
     abstract class Super {
       String get extendedGetterMixedInField => '';
@@ -1924,8 +1924,8 @@ loadLibraryTakesNoArguments:
 
 typeArgumentMismatch:
   parameters:
-    int count: undocumented
-  problemMessage: "Expected #count type arguments."
+    int expectedCount: The number of type arguments that were expected.
+  problemMessage: "Expected #expectedCount type arguments."
   script: |
     void foo() {
       new List<int, int>.filled(0, 42);
@@ -1933,7 +1933,7 @@ typeArgumentMismatch:
 
 notAType:
   parameters:
-    Name name: undocumented
+    Name name: The invalid type name.
   problemMessage: "'#name' isn't a type."
   script:
     main.dart: |
@@ -1951,9 +1951,9 @@ notATypeContext:
 
 notAPrefixInTypeAnnotation:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix."
+    Name prefix: The purported import prefix.
+    Name typeName: The erroneous type name (the identifier after the prefix).
+  problemMessage: "'#prefix.#typeName' can't be used as a type because '#prefix' doesn't refer to an import prefix."
   declaration:
     - |
         class C<T> {
@@ -2065,8 +2065,8 @@ fastaUsageLong:
 fastaCLIArgumentRequired:
   pseudoSharedCode: FASTA_CLI_ARGUMENT_REQUIRED
   parameters:
-    Name name: undocumented
-  problemMessage: "Expected value after '#name'."
+    Name argumentName: The name of the argument that requires a value.
+  problemMessage: "Expected value after '#argumentName'."
 
 namedFunctionExpression:
   pseudoSharedCode: NAMED_FUNCTION_EXPRESSION
@@ -2078,54 +2078,54 @@ namedFunctionExpression:
 internalProblemUnhandled:
   pseudoSharedCode: INTERNAL_PROBLEM_UNHANDLED
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Unhandled #string in #string2."
+    String what: The thing that was unhandled.
+    String where: The context in which it was unhandled.
+  problemMessage: "Unhandled #what in #where."
   severity: INTERNAL_PROBLEM
 
 internalProblemUnimplemented:
   parameters:
-    String string: undocumented
-  problemMessage: "Unimplemented #string."
+    String what: The thing that was unimplemented.
+  problemMessage: "Unimplemented #what."
   severity: INTERNAL_PROBLEM
 
 internalProblemUnexpected:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Expected '#string', but got '#string2'."
+    String expected: The thing that was expected.
+    String actual: The thing that was found.
+  problemMessage: "Expected '#expected', but got '#actual'."
   severity: INTERNAL_PROBLEM
 
 internalProblemUnsupported:
   pseudoSharedCode: INTERNAL_PROBLEM_UNSUPPORTED
   parameters:
-    Name name: undocumented
-  problemMessage: "Unsupported operation: '#name'."
+    Name operation: The operation that is unsupported.
+  problemMessage: "Unsupported operation: '#operation'."
   severity: INTERNAL_PROBLEM
 
 internalProblemNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the thing that couldn't be found.
   problemMessage: "Couldn't find '#name'."
   severity: INTERNAL_PROBLEM
 
 internalProblemNotFoundIn:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Couldn't find '#name' in '#name2'."
+    Name name: The name of the thing that couldn't be found.
+    Name within: The thing it was sought within.
+  problemMessage: "Couldn't find '#name' in '#within'."
   severity: INTERNAL_PROBLEM
 
 internalProblemPrivateConstructorAccess:
   parameters:
-    Name name: undocumented
+    Name name: The name of the inaccessible private constructor.
   problemMessage: "Can't access private constructor '#name'."
   severity: INTERNAL_PROBLEM
 
 internalProblemConstructorNotFound:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
+    Name name: The name of the constructor that was not found.
+    Uri uri: The URI of the library in which the constructor was sought.
   problemMessage: "No constructor named '#name' in '#uri'."
   severity: INTERNAL_PROBLEM
 
@@ -2142,9 +2142,9 @@ internalProblemPreviousTokenNotFound:
 internalProblemStackNotEmpty:
   pseudoSharedCode: INTERNAL_PROBLEM_STACK_NOT_EMPTY
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "#name.stack isn't empty:\n  #string"
+    Name typeName: The name of the type whose stack isn't empty.
+    String stackContents: The contents of the stack.
+  problemMessage: "#typeName.stack isn't empty:\n  #stackContents"
   severity: INTERNAL_PROBLEM
 
 internalProblemAlreadyInitialized:
@@ -2170,22 +2170,22 @@ internalProblemProvidedBothCompileSdkAndSdkSummary:
 
 internalProblemUriMissingScheme:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI that has no scheme.
   problemMessage: "The URI '#uri' has no scheme."
   severity: INTERNAL_PROBLEM
 
 internalProblemContextSeverity:
   parameters:
-    String string: undocumented
-  problemMessage: "Non-context message has context severity: #string"
+    String messageCode: The message's diagnostic code.
+  problemMessage: "Non-context message has context severity: #messageCode"
   severity: INTERNAL_PROBLEM
 
 internalProblemVerificationError:
   parameters:
-    String string: undocumented
+    String details: The details of the verification error.
   problemMessage: |
     Verification of the generated program failed:
-    #string
+    #details
   severity: INTERNAL_PROBLEM
 
 verificationErrorOriginContext:
@@ -2195,9 +2195,9 @@ verificationErrorOriginContext:
 
 internalProblemDebugAbort:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "Compilation aborted due to fatal '#name' at:\n#string"
+    Name severityName: The name of the severity.
+    String stackTrace: The stack trace where the abort occurred.
+  problemMessage: "Compilation aborted due to fatal '#severityName' at:\n#stackTrace"
   severity: INTERNAL_PROBLEM
 
 internalProblemLabelUsageInVariablesDeclaration:
@@ -2207,9 +2207,9 @@ internalProblemLabelUsageInVariablesDeclaration:
 
 internalProblemUnsupportedNullability:
   parameters:
-    String string: undocumented
-    Type type: undocumented
-  problemMessage: "Unsupported nullability value '#string' on type '#type'."
+    String nullability: The unsupported nullability value.
+    Type type: The type containing the unsupported nullability.
+  problemMessage: "Unsupported nullability value '#nullability' on type '#type'."
   severity: INTERNAL_PROBLEM
 
 internalProblemOmittedTypeNameInConstructorReference:
@@ -2219,8 +2219,8 @@ internalProblemOmittedTypeNameInConstructorReference:
 
 incrementalCompilerIllegalParameter:
   parameters:
-    String string: undocumented
-  problemMessage: "Illegal parameter name '#string' found during expression compilation."
+    String parameterName: The illegal parameter name.
+  problemMessage: "Illegal parameter name '#parameterName' found during expression compilation."
 
 incrementalCompilerIllegalTypeParameter:
   parameters:

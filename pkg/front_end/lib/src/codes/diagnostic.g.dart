@@ -6510,11 +6510,11 @@ Message _withArgumentsOldImplicitCallOfNonMethod(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String name3),
+  Message Function(String mixinName, String baseName, String erroneousMember),
   Message Function({
-    required String name,
-    required String name2,
-    required String name3,
+    required String mixinName,
+    required String baseName,
+    required String erroneousMember,
   })
 >
 implicitMixinOverride = const Template(
@@ -6525,28 +6525,35 @@ implicitMixinOverride = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplicitMixinOverride({
-  required String name,
-  required String name2,
-  required String name3,
+  required String mixinName,
+  required String baseName,
+  required String erroneousMember,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var mixinName_0 = conversions.validateAndDemangleName(mixinName);
+  var baseName_0 = conversions.validateAndDemangleName(baseName);
+  var erroneousMember_0 = conversions.validateAndDemangleName(erroneousMember);
   return new Message(
     implicitMixinOverride,
     problemMessage:
-        """Applying the mixin '${name_0}' to '${name2_0}' introduces an erroneous override of '${name3_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
+        """Applying the mixin '${mixinName_0}' to '${baseName_0}' introduces an erroneous override of '${erroneousMember_0}'.""",
+    arguments: {
+      'mixinName': mixinName,
+      'baseName': baseName,
+      'erroneousMember': erroneousMember,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldImplicitMixinOverride(
-  String name,
-  String name2,
-  String name3,
-) =>
-    _withArgumentsImplicitMixinOverride(name: name, name2: name2, name3: name3);
+  String mixinName,
+  String baseName,
+  String erroneousMember,
+) => _withArgumentsImplicitMixinOverride(
+  mixinName: mixinName,
+  baseName: baseName,
+  erroneousMember: erroneousMember,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7088,8 +7095,8 @@ const MessageCode incorrectTypeArgumentVariable = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String parameterName),
+  Message Function({required String parameterName})
 >
 incrementalCompilerIllegalParameter = const Template(
   "IncrementalCompilerIllegalParameter",
@@ -7099,20 +7106,23 @@ incrementalCompilerIllegalParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncrementalCompilerIllegalParameter({
-  required String string,
+  required String parameterName,
 }) {
-  var string_0 = conversions.validateString(string);
+  var parameterName_0 = conversions.validateString(parameterName);
   return new Message(
     incrementalCompilerIllegalParameter,
     problemMessage:
-        """Illegal parameter name '${string_0}' found during expression compilation.""",
-    arguments: {'string': string},
+        """Illegal parameter name '${parameterName_0}' found during expression compilation.""",
+    arguments: {'parameterName': parameterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncrementalCompilerIllegalParameter(String string) =>
-    _withArgumentsIncrementalCompilerIllegalParameter(string: string);
+Message _withArgumentsOldIncrementalCompilerIllegalParameter(
+  String parameterName,
+) => _withArgumentsIncrementalCompilerIllegalParameter(
+  parameterName: parameterName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7860,8 +7870,8 @@ Message _withArgumentsOldInternalProblemConstructorNotFound(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String messageCode),
+  Message Function({required String messageCode})
 >
 internalProblemContextSeverity = const Template(
   "InternalProblemContextSeverity",
@@ -7871,23 +7881,26 @@ internalProblemContextSeverity = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemContextSeverity({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsInternalProblemContextSeverity({
+  required String messageCode,
+}) {
+  var messageCode_0 = conversions.validateString(messageCode);
   return new Message(
     internalProblemContextSeverity,
-    problemMessage: """Non-context message has context severity: ${string_0}""",
-    arguments: {'string': string},
+    problemMessage:
+        """Non-context message has context severity: ${messageCode_0}""",
+    arguments: {'messageCode': messageCode},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemContextSeverity(String string) =>
-    _withArgumentsInternalProblemContextSeverity(string: string);
+Message _withArgumentsOldInternalProblemContextSeverity(String messageCode) =>
+    _withArgumentsInternalProblemContextSeverity(messageCode: messageCode);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String severityName, String stackTrace),
+  Message Function({required String severityName, required String stackTrace})
 >
 internalProblemDebugAbort = const Template(
   "InternalProblemDebugAbort",
@@ -7898,24 +7911,27 @@ internalProblemDebugAbort = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemDebugAbort({
-  required String name,
-  required String string,
+  required String severityName,
+  required String stackTrace,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var severityName_0 = conversions.validateAndDemangleName(severityName);
+  var stackTrace_0 = conversions.validateString(stackTrace);
   return new Message(
     internalProblemDebugAbort,
-    problemMessage: """Compilation aborted due to fatal '${name_0}' at:
-${string_0}""",
-    arguments: {'name': name, 'string': string},
+    problemMessage: """Compilation aborted due to fatal '${severityName_0}' at:
+${stackTrace_0}""",
+    arguments: {'severityName': severityName, 'stackTrace': stackTrace},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInternalProblemDebugAbort(
-  String name,
-  String string,
-) => _withArgumentsInternalProblemDebugAbort(name: name, string: string);
+  String severityName,
+  String stackTrace,
+) => _withArgumentsInternalProblemDebugAbort(
+  severityName: severityName,
+  stackTrace: stackTrace,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode internalProblemExtendingUnmodifiableScope = const MessageCode(
@@ -7970,8 +7986,8 @@ Message _withArgumentsOldInternalProblemNotFound(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String name, String within),
+  Message Function({required String name, required String within})
 >
 internalProblemNotFoundIn = const Template(
   "InternalProblemNotFoundIn",
@@ -7983,20 +7999,22 @@ internalProblemNotFoundIn = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemNotFoundIn({
   required String name,
-  required String name2,
+  required String within,
 }) {
   var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var within_0 = conversions.validateAndDemangleName(within);
   return new Message(
     internalProblemNotFoundIn,
-    problemMessage: """Couldn't find '${name_0}' in '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+    problemMessage: """Couldn't find '${name_0}' in '${within_0}'.""",
+    arguments: {'name': name, 'within': within},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemNotFoundIn(String name, String name2) =>
-    _withArgumentsInternalProblemNotFoundIn(name: name, name2: name2);
+Message _withArgumentsOldInternalProblemNotFoundIn(
+  String name,
+  String within,
+) => _withArgumentsInternalProblemNotFoundIn(name: name, within: within);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -8053,8 +8071,8 @@ const MessageCode internalProblemProvidedBothCompileSdkAndSdkSummary =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String expected, String actual),
+  Message Function({required String expected, required String actual})
 >
 internalProblemUnexpected = const Template(
   "InternalProblemUnexpected",
@@ -8065,28 +8083,29 @@ internalProblemUnexpected = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnexpected({
-  required String string,
-  required String string2,
+  required String expected,
+  required String actual,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var expected_0 = conversions.validateString(expected);
+  var actual_0 = conversions.validateString(actual);
   return new Message(
     internalProblemUnexpected,
-    problemMessage: """Expected '${string_0}', but got '${string2_0}'.""",
-    arguments: {'string': string, 'string2': string2},
+    problemMessage: """Expected '${expected_0}', but got '${actual_0}'.""",
+    arguments: {'expected': expected, 'actual': actual},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInternalProblemUnexpected(
-  String string,
-  String string2,
-) => _withArgumentsInternalProblemUnexpected(string: string, string2: string2);
+  String expected,
+  String actual,
+) =>
+    _withArgumentsInternalProblemUnexpected(expected: expected, actual: actual);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String what),
+  Message Function({required String what})
 >
 internalProblemUnimplemented = const Template(
   "InternalProblemUnimplemented",
@@ -8096,23 +8115,23 @@ internalProblemUnimplemented = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnimplemented({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsInternalProblemUnimplemented({required String what}) {
+  var what_0 = conversions.validateString(what);
   return new Message(
     internalProblemUnimplemented,
-    problemMessage: """Unimplemented ${string_0}.""",
-    arguments: {'string': string},
+    problemMessage: """Unimplemented ${what_0}.""",
+    arguments: {'what': what},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnimplemented(String string) =>
-    _withArgumentsInternalProblemUnimplemented(string: string);
+Message _withArgumentsOldInternalProblemUnimplemented(String what) =>
+    _withArgumentsInternalProblemUnimplemented(what: what);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, DartType type),
-  Message Function({required String string, required DartType type})
+  Message Function(String nullability, DartType type),
+  Message Function({required String nullability, required DartType type})
 >
 internalProblemUnsupportedNullability = const Template(
   "InternalProblemUnsupportedNullability",
@@ -8123,27 +8142,27 @@ internalProblemUnsupportedNullability = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnsupportedNullability({
-  required String string,
+  required String nullability,
   required DartType type,
 }) {
-  var string_0 = conversions.validateString(string);
+  var nullability_0 = conversions.validateString(nullability);
   TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     internalProblemUnsupportedNullability,
     problemMessage:
-        """Unsupported nullability value '${string_0}' on type '${type_0}'.""" +
+        """Unsupported nullability value '${nullability_0}' on type '${type_0}'.""" +
         labeler.originMessages,
-    arguments: {'string': string, 'type': type},
+    arguments: {'nullability': nullability, 'type': type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInternalProblemUnsupportedNullability(
-  String string,
+  String nullability,
   DartType type,
 ) => _withArgumentsInternalProblemUnsupportedNullability(
-  string: string,
+  nullability: nullability,
   type: type,
 );
 
@@ -8172,8 +8191,8 @@ Message _withArgumentsOldInternalProblemUriMissingScheme(Uri uri) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String details),
+  Message Function({required String details})
 >
 internalProblemVerificationError = const Template(
   "InternalProblemVerificationError",
@@ -8184,20 +8203,20 @@ internalProblemVerificationError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemVerificationError({
-  required String string,
+  required String details,
 }) {
-  var string_0 = conversions.validateString(string);
+  var details_0 = conversions.validateString(details);
   return new Message(
     internalProblemVerificationError,
     problemMessage: """Verification of the generated program failed:
-${string_0}""",
-    arguments: {'string': string},
+${details_0}""",
+    arguments: {'details': details},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemVerificationError(String string) =>
-    _withArgumentsInternalProblemVerificationError(string: string);
+Message _withArgumentsOldInternalProblemVerificationError(String details) =>
+    _withArgumentsInternalProblemVerificationError(details: details);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -12466,8 +12485,8 @@ const MessageCode notAConstantExpression = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String prefix, String typeName),
+  Message Function({required String prefix, required String typeName})
 >
 notAPrefixInTypeAnnotation = const Template(
   "NotAPrefixInTypeAnnotation",
@@ -12477,24 +12496,27 @@ notAPrefixInTypeAnnotation = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNotAPrefixInTypeAnnotation({
-  required String name,
-  required String name2,
+  required String prefix,
+  required String typeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var prefix_0 = conversions.validateAndDemangleName(prefix);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     notAPrefixInTypeAnnotation,
     problemMessage:
-        """'${name_0}.${name2_0}' can't be used as a type because '${name_0}' doesn't refer to an import prefix.""",
-    arguments: {'name': name, 'name2': name2},
+        """'${prefix_0}.${typeName_0}' can't be used as a type because '${prefix_0}' doesn't refer to an import prefix.""",
+    arguments: {'prefix': prefix, 'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldNotAPrefixInTypeAnnotation(
-  String name,
-  String name2,
-) => _withArgumentsNotAPrefixInTypeAnnotation(name: name, name2: name2);
+  String prefix,
+  String typeName,
+) => _withArgumentsNotAPrefixInTypeAnnotation(
+  prefix: prefix,
+  typeName: typeName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -15520,8 +15542,8 @@ Message _withArgumentsOldTooManyArguments(int count, int count2) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count),
-  Message Function({required int count})
+  Message Function(int expectedCount),
+  Message Function({required int expectedCount})
 >
 typeArgumentMismatch = const Template(
   "TypeArgumentMismatch",
@@ -15530,17 +15552,17 @@ typeArgumentMismatch = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeArgumentMismatch({required int count}) {
+Message _withArgumentsTypeArgumentMismatch({required int expectedCount}) {
   return new Message(
     typeArgumentMismatch,
-    problemMessage: """Expected ${count} type arguments.""",
-    arguments: {'count': count},
+    problemMessage: """Expected ${expectedCount} type arguments.""",
+    arguments: {'expectedCount': expectedCount},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeArgumentMismatch(int count) =>
-    _withArgumentsTypeArgumentMismatch(count: count);
+Message _withArgumentsOldTypeArgumentMismatch(int expectedCount) =>
+    _withArgumentsTypeArgumentMismatch(expectedCount: expectedCount);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

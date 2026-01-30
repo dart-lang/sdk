@@ -694,8 +694,8 @@ class FactoryEncoding implements InferredTypeListener {
         targetFunctionType.typeParameters.length != typeArguments.length) {
       _addProblemForRedirectingFactory(
         libraryBuilder: libraryBuilder,
-        message: diag.typeArgumentMismatch.withArgumentsOld(
-          targetFunctionType.typeParameters.length,
+        message: diag.typeArgumentMismatch.withArguments(
+          expectedCount: targetFunctionType.typeParameters.length,
         ),
         fileOffset: redirectionTarget.charOffset,
         length: noLength,
