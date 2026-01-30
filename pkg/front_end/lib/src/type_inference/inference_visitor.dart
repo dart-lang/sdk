@@ -16675,8 +16675,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             const DynamicType(),
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: diag.abstractClassInstantiation.withArgumentsOld(
-                typeDeclaration.name,
+              message: diag.abstractClassInstantiation.withArguments(
+                name: typeDeclaration.name,
               ),
               fileUri: fileUri,
               fileOffset: node.nameOffset,

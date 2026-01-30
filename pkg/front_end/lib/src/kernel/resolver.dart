@@ -1036,7 +1036,7 @@ class Resolver {
       length -= periodIndex + 1;
     }
     LocatedMessage message = diag.constructorNotFound
-        .withArgumentsOld(name)
+        .withArguments(name: name)
         .withLocation(fileUri, fileOffset, length);
     return problemReporting.buildProblem(
       compilerContext: compilerContext,

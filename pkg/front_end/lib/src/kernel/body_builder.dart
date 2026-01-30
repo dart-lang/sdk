@@ -2297,7 +2297,7 @@ class BodyBuilderImpl extends StackListenerImpl
       case UnresolvedKind.Unknown:
         assert(!isSuper);
         message = diag.nameNotFound
-            .withArgumentsOld(name)
+            .withArguments(name: name)
             .withLocation(uri, charOffset, length);
         break;
       case UnresolvedKind.Member:
@@ -2368,7 +2368,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ?
           // Coverage-ignore(suite): Not run.
           diag.superclassHasNoMember.withArgumentsOld(name.text)
-        : diag.memberNotFound.withArgumentsOld(name.text);
+        : diag.memberNotFound.withArguments(name: name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(
@@ -2390,7 +2390,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }) {
     Message message = isSuper
         ? diag.superclassHasNoGetter.withArgumentsOld(name.text)
-        : diag.getterNotFound.withArgumentsOld(name.text);
+        : diag.getterNotFound.withArguments(name: name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(
@@ -2412,7 +2412,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }) {
     Message message = isSuper
         ? diag.superclassHasNoSetter.withArgumentsOld(name.text)
-        : diag.setterNotFound.withArgumentsOld(name.text);
+        : diag.setterNotFound.withArguments(name: name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(
@@ -2446,7 +2446,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     Message message = isSuper
         ? diag.superclassHasNoMethod.withArguments(name: name.text)
-        : diag.methodNotFound.withArgumentsOld(name.text);
+        : diag.methodNotFound.withArguments(name: name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
       addProblemErrorIfConst(message, charOffset, length, context: context);
@@ -2459,7 +2459,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ?
           // Coverage-ignore(suite): Not run.
           diag.superclassHasNoConstructor.withArgumentsOld(name.text)
-        : diag.constructorNotFound.withArgumentsOld(name.text);
+        : diag.constructorNotFound.withArguments(name: name.text);
     return message;
   }
 
@@ -6646,8 +6646,8 @@ class BodyBuilderImpl extends StackListenerImpl
                       errorExpression: evaluateArgumentsBefore(
                         arguments,
                         buildAbstractClassInstantiationError(
-                          diag.abstractClassInstantiation.withArgumentsOld(
-                            typeDeclarationBuilder.name,
+                          diag.abstractClassInstantiation.withArguments(
+                            name: typeDeclarationBuilder.name,
                           ),
                           typeDeclarationBuilder.name,
                           nameToken.charOffset,
@@ -6978,8 +6978,8 @@ class BodyBuilderImpl extends StackListenerImpl
               errorExpression: evaluateArgumentsBefore(
                 arguments,
                 buildAbstractClassInstantiationError(
-                  diag.abstractClassInstantiation.withArgumentsOld(
-                    typeDeclarationBuilder.name,
+                  diag.abstractClassInstantiation.withArguments(
+                    name: typeDeclarationBuilder.name,
                   ),
                   typeDeclarationBuilder.name,
                   nameToken.charOffset,
@@ -10025,7 +10025,7 @@ class BodyBuilderImpl extends StackListenerImpl
       String fullName = constructorNameForDiagnostics(name.text);
       return createInvalidInitializer(
         buildProblem(
-          message: diag.constructorNotFound.withArgumentsOld(fullName),
+          message: diag.constructorNotFound.withArguments(name: fullName),
           fileUri: uri,
           fileOffset: fileOffset,
           length: length,

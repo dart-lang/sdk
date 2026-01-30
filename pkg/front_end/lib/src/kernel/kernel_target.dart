@@ -1675,7 +1675,7 @@ class KernelTarget {
                 constructorBuilder.fileUri,
                 context: [
                   diag.missingImplementationCause
-                      .withArgumentsOld(fieldBuilder.name)
+                      .withArguments(name: fieldBuilder.name)
                       .withLocation(
                         fieldBuilder.fileUri,
                         fieldBuilder.fileOffset,
@@ -1696,7 +1696,7 @@ class KernelTarget {
               constructorBuilder.fileUri,
               context: [
                 diag.missingImplementationCause
-                    .withArgumentsOld(fieldBuilder.name)
+                    .withArguments(name: fieldBuilder.name)
                     .withLocation(
                       fieldBuilder.fileUri,
                       fieldBuilder.fileOffset,

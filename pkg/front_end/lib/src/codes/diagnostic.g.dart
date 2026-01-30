@@ -7771,8 +7771,8 @@ Message _withArgumentsOldIntegerLiteralIsOutOfRange(String string) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String memberName, String className),
+  Message Function({required String memberName, required String className})
 >
 interfaceCheck = const Template(
   "InterfaceCheck",
@@ -7782,22 +7782,22 @@ interfaceCheck = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInterfaceCheck({
-  required String name,
-  required String name2,
+  required String memberName,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     interfaceCheck,
     problemMessage:
-        """The implementation of '${name_0}' in the non-abstract class '${name2_0}' does not conform to its interface.""",
-    arguments: {'name': name, 'name2': name2},
+        """The implementation of '${memberName_0}' in the non-abstract class '${className_0}' does not conform to its interface.""",
+    arguments: {'memberName': memberName, 'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInterfaceCheck(String name, String name2) =>
-    _withArgumentsInterfaceCheck(name: name, name2: name2);
+Message _withArgumentsOldInterfaceCheck(String memberName, String className) =>
+    _withArgumentsInterfaceCheck(memberName: memberName, className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11594,8 +11594,11 @@ Message _withArgumentsOldMissingImplementationCause(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, List<String> names),
-  Message Function({required String name, required List<String> names})
+  Message Function(String className, List<String> memberNames),
+  Message Function({
+    required String className,
+    required List<String> memberNames,
+  })
 >
 missingImplementationNotAbstract = const Template(
   "MissingImplementationNotAbstract",
@@ -11605,30 +11608,33 @@ missingImplementationNotAbstract = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingImplementationNotAbstract({
-  required String name,
-  required List<String> names,
+  required String className,
+  required List<String> memberNames,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var names_0 = conversions.validateAndItemizeNames(names);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var memberNames_0 = conversions.validateAndItemizeNames(memberNames);
   return new Message(
     missingImplementationNotAbstract,
     problemMessage:
-        """The non-abstract class '${name_0}' is missing implementations for these members:
-${names_0}""",
+        """The non-abstract class '${className_0}' is missing implementations for these members:
+${memberNames_0}""",
     correctionMessage: """Try to either
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
  - mark the class as abstract, or
  - provide a 'noSuchMethod' implementation.""",
-    arguments: {'name': name, 'names': names},
+    arguments: {'className': className, 'memberNames': memberNames},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMissingImplementationNotAbstract(
-  String name,
-  List<String> names,
-) => _withArgumentsMissingImplementationNotAbstract(name: name, names: names);
+  String className,
+  List<String> memberNames,
+) => _withArgumentsMissingImplementationNotAbstract(
+  className: className,
+  memberNames: memberNames,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode missingInput = const MessageCode(
@@ -12073,8 +12079,11 @@ namedFieldClashesWithPositionalFieldInRecord = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String overriddenMemberName),
+  Message Function({
+    required String className,
+    required String overriddenMemberName,
+  })
 >
 namedMixinOverride = const Template(
   "NamedMixinOverride",
@@ -12084,22 +12093,32 @@ namedMixinOverride = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNamedMixinOverride({
-  required String name,
-  required String name2,
+  required String className,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     namedMixinOverride,
     problemMessage:
-        """The mixin application class '${name_0}' introduces an erroneous override of '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """The mixin application class '${className_0}' introduces an erroneous override of '${overriddenMemberName_0}'.""",
+    arguments: {
+      'className': className,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNamedMixinOverride(String name, String name2) =>
-    _withArgumentsNamedMixinOverride(name: name, name2: name2);
+Message _withArgumentsOldNamedMixinOverride(
+  String className,
+  String overriddenMemberName,
+) => _withArgumentsNamedMixinOverride(
+  className: className,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode namedParametersInExtensionTypeDeclaration = const MessageCode(
@@ -15496,8 +15515,11 @@ Message _withArgumentsOldThrowingNotAssignableToObjectError(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2),
-  Message Function({required int count, required int count2})
+  Message Function(int requiredParameterCount, int actualArgumentCount),
+  Message Function({
+    required int requiredParameterCount,
+    required int actualArgumentCount,
+  })
 >
 tooFewArguments = const Template(
   "TooFewArguments",
@@ -15507,25 +15529,36 @@ tooFewArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooFewArguments({
-  required int count,
-  required int count2,
+  required int requiredParameterCount,
+  required int actualArgumentCount,
 }) {
   return new Message(
     tooFewArguments,
     problemMessage:
-        """Too few positional arguments: ${count} required, ${count2} given.""",
-    arguments: {'count': count, 'count2': count2},
+        """Too few positional arguments: ${requiredParameterCount} required, ${actualArgumentCount} given.""",
+    arguments: {
+      'requiredParameterCount': requiredParameterCount,
+      'actualArgumentCount': actualArgumentCount,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTooFewArguments(int count, int count2) =>
-    _withArgumentsTooFewArguments(count: count, count2: count2);
+Message _withArgumentsOldTooFewArguments(
+  int requiredParameterCount,
+  int actualArgumentCount,
+) => _withArgumentsTooFewArguments(
+  requiredParameterCount: requiredParameterCount,
+  actualArgumentCount: actualArgumentCount,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2),
-  Message Function({required int count, required int count2})
+  Message Function(int allowedParameterCount, int actualArgumentCount),
+  Message Function({
+    required int allowedParameterCount,
+    required int actualArgumentCount,
+  })
 >
 tooManyArguments = const Template(
   "TooManyArguments",
@@ -15535,21 +15568,29 @@ tooManyArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooManyArguments({
-  required int count,
-  required int count2,
+  required int allowedParameterCount,
+  required int actualArgumentCount,
 }) {
   return new Message(
     tooManyArguments,
     problemMessage:
-        """Too many positional arguments: ${count} allowed, but ${count2} found.""",
+        """Too many positional arguments: ${allowedParameterCount} allowed, but ${actualArgumentCount} found.""",
     correctionMessage: """Try removing the extra positional arguments.""",
-    arguments: {'count': count, 'count2': count2},
+    arguments: {
+      'allowedParameterCount': allowedParameterCount,
+      'actualArgumentCount': actualArgumentCount,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTooManyArguments(int count, int count2) =>
-    _withArgumentsTooManyArguments(count: count, count2: count2);
+Message _withArgumentsOldTooManyArguments(
+  int allowedParameterCount,
+  int actualArgumentCount,
+) => _withArgumentsTooManyArguments(
+  allowedParameterCount: allowedParameterCount,
+  actualArgumentCount: actualArgumentCount,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

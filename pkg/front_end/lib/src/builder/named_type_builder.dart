@@ -290,7 +290,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       Message message;
       List<LocatedMessage>? context;
       if (member == null) {
-        message = diag.typeNotFound.withArgumentsOld(nameText);
+        message = diag.typeNotFound.withArguments(name: nameText);
       } else {
         context = <LocatedMessage>[
           diag.notATypeContext.withLocation(

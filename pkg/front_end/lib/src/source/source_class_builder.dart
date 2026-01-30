@@ -2348,9 +2348,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (isInterfaceCheck) {
         // Interface check
         libraryBuilder.addProblem(
-          diag.interfaceCheck.withArgumentsOld(
-            declaredMember.name.text,
-            cls.name,
+          diag.interfaceCheck.withArguments(
+            memberName: declaredMember.name.text,
+            className: cls.name,
           ),
           cls.fileOffset,
           cls.name.length,
@@ -2377,9 +2377,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         } else {
           // Named mixin application class
           libraryBuilder.addProblem(
-            diag.namedMixinOverride.withArgumentsOld(
-              cls.name,
-              declaredMember.name.text,
+            diag.namedMixinOverride.withArguments(
+              className: cls.name,
+              overriddenMemberName: declaredMember.name.text,
             ),
             cls.fileOffset,
             cls.name.length,

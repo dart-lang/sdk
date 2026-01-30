@@ -374,7 +374,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // Coverage-ignore-block(suite): Not run.
         // Cyclic type alias.
         currentAliasBuilder.libraryBuilder.addProblem(
-          diag.cyclicTypedef.withArgumentsOld(this.name),
+          diag.cyclicTypedef.withArguments(name: this.name),
           fileOffset,
           noLength,
           fileUri,

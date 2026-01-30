@@ -3401,7 +3401,7 @@ class ConstantEvaluator
       // Coverage-ignore: Probably unreachable.
       return createExpressionErrorConstant(
         node,
-        diag.abstractClassInstantiation.withArgumentsOld(klass.name),
+        diag.abstractClassInstantiation.withArguments(name: klass.name),
       );
     }
 

@@ -1650,7 +1650,7 @@ finalFieldWithoutInitializer:
 
 constructorNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the constructor that was not found.
   problemMessage: "Couldn't find constructor '#name'."
   script: |
     class Foo {
@@ -1662,7 +1662,7 @@ constructorNotFound:
 
 constructorWithWrongNameContext:
   parameters:
-    Name name: undocumented
+    Name name: The name of the enclosing class.
   problemMessage: "The name of the enclosing class is '#name'."
   severity: CONTEXT
 
@@ -1689,7 +1689,7 @@ superParameterInitializerOutsideConstructor:
 
 redirectionTargetNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the constructor target that was sought.
   problemMessage: "Redirection constructor target not found: '#name'"
   script: |
     class Class {
@@ -1698,14 +1698,14 @@ redirectionTargetNotFound:
 
 cyclicTypedef:
   parameters:
-    Name name: undocumented
+    Name name: The name of the cyclic typedef.
   problemMessage: "The typedef '#name' has a reference to itself."
   script: |
     typedef Foo = Foo;
 
 typeNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the type that was not found.
   problemMessage: "Type '#name' not found."
   script: |
     Bar? foo() {
@@ -1714,14 +1714,14 @@ typeNotFound:
 
 nameNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name that was undefined.
   problemMessage: "Undefined name '#name'."
   script: |
     void foo() => bar;
 
 memberNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the member that was not found.
   problemMessage: "Member not found: '#name'."
   script: |
     class Foo {}
@@ -1729,7 +1729,7 @@ memberNotFound:
 
 getterNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the getter that was not found.
   problemMessage: "Getter not found: '#name'."
   script:
     void set onlySetter(value) {}
@@ -1737,7 +1737,7 @@ getterNotFound:
 
 setterNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the setter that was not found.
   problemMessage: "Setter not found: '#name'."
   script: |
     void x() {
@@ -1746,7 +1746,7 @@ setterNotFound:
 
 methodNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the method that was not found.
   problemMessage: "Method not found: '#name'."
   script: |
     void foo() => z("Hello, World!");
@@ -1758,15 +1758,15 @@ candidateFound:
 
 candidateFoundIsDefaultConstructor:
   parameters:
-    Name name: undocumented
+    Name name: The name of the class with a candidate default constructor.
   problemMessage: "The class '#name' has a constructor that takes no arguments."
   severity: CONTEXT
 
 tooFewArguments:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-  problemMessage: "Too few positional arguments: #count required, #count2 given."
+    int requiredParameterCount: The number of parameters required.
+    int actualArgumentCount: The number of arguments given.
+  problemMessage: "Too few positional arguments: #requiredParameterCount required, #actualArgumentCount given."
   script: |
     void foo(int i) {}
     void bar() {
@@ -1775,9 +1775,9 @@ tooFewArguments:
 
 tooManyArguments:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-  problemMessage: "Too many positional arguments: #count allowed, but #count2 found."
+    int allowedParameterCount: The number of parameters allowed.
+    int actualArgumentCount: The number of arguments given.
+  problemMessage: "Too many positional arguments: #allowedParameterCount allowed, but #actualArgumentCount found."
   correctionMessage: "Try removing the extra positional arguments."
   script: |
     void foo(int i) {}
@@ -1787,14 +1787,14 @@ tooManyArguments:
 
 noSuchNamedParameter:
   parameters:
-    Name name: undocumented
+    Name name: The name of the parameter that was not found.
   problemMessage: "No named parameter with the name '#name'."
   script: |
     void foo(int i) => i.toString(hello: 42);
 
 abstractClassInstantiation:
   parameters:
-    Name name: undocumented
+    Name name: The name of the abstract class.
   problemMessage: "The class '#name' is abstract and can't be instantiated."
   script: |
     abstract class Foo {}
@@ -1813,7 +1813,7 @@ enumInstantiation:
 
 abstractRedirectedClassInstantiation:
   parameters:
-    Name name: undocumented
+    Name name: The name of the class that was redirected to.
   problemMessage: "Factory redirects to class '#name', which is abstract and can't be instantiated."
   script: |
     abstract class A {
@@ -1827,11 +1827,11 @@ abstractRedirectedClassInstantiation:
 
 missingImplementationNotAbstract:
   parameters:
-    Name name: undocumented
-    Names names: undocumented
+    Name className: The name of the class that is missing implementations.
+    Names memberNames: The names of the missing members.
   problemMessage: |
-    The non-abstract class '#name' is missing implementations for these members:
-    #names
+    The non-abstract class '#className' is missing implementations for these members:
+    #memberNames
   correctionMessage: |
     Try to either
      - provide an implementation,
@@ -1843,15 +1843,15 @@ missingImplementationNotAbstract:
 
 missingImplementationCause:
   parameters:
-    Name name: undocumented
+    Name name: The name of the definition.
   problemMessage: "'#name' is defined here."
   severity: CONTEXT
 
 interfaceCheck:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The implementation of '#name' in the non-abstract class '#name2' does not conform to its interface."
+    Name memberName: The name of the problematic member.
+    Name className: The name of the non-abstract class.
+  problemMessage: "The implementation of '#memberName' in the non-abstract class '#className' does not conform to its interface."
   script: |
     class A {
       void foo() {}
@@ -1865,9 +1865,9 @@ interfaceCheck:
 
 namedMixinOverride:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The mixin application class '#name' introduces an erroneous override of '#name2'."
+    Name className: The name of the mixin application class.
+    Name overriddenMemberName: The name of the erroneously overridden member.
+  problemMessage: "The mixin application class '#className' introduces an erroneous override of '#overriddenMemberName'."
   script: |
     class Super {
       void extendedConcreteMixedInConcreteMethod() {}

@@ -6075,8 +6075,11 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     required Constness constness,
     required bool inImplicitCreationContext,
   }) {
-    Message message = diag.constructorNotFound.withArgumentsOld(
-      _helper.constructorNameForDiagnostics(name, className: _plainNameForRead),
+    Message message = diag.constructorNotFound.withArguments(
+      name: _helper.constructorNameForDiagnostics(
+        name,
+        className: _plainNameForRead,
+      ),
     );
     return _helper.buildProblem(
       message: message,

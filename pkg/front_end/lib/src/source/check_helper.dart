@@ -77,8 +77,9 @@ extension CheckHelper on ProblemReporting {
       int length = noLength;
       if (member is Constructor && member.isSynthetic) {
         offset = member.enclosingClass.fileOffset;
-        contextMessage = diag.candidateFoundIsDefaultConstructor
-            .withArgumentsOld(member.enclosingClass.name);
+        contextMessage = diag.candidateFoundIsDefaultConstructor.withArguments(
+          name: member.enclosingClass.name,
+        );
       } else {
         if (member is Constructor) {
           if (member.name.text == '') {
@@ -140,12 +141,18 @@ extension CheckHelper on ProblemReporting {
     }
     if (positionalArgumentsCount < requiredParameterCount) {
       return diag.tooFewArguments
-          .withArgumentsOld(requiredParameterCount, positionalArgumentsCount)
+          .withArguments(
+            requiredParameterCount: requiredParameterCount,
+            actualArgumentCount: positionalArgumentsCount,
+          )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
     if (positionalArgumentsCount > positionalParameterCount) {
       return diag.tooManyArguments
-          .withArgumentsOld(positionalParameterCount, positionalArgumentsCount)
+          .withArguments(
+            allowedParameterCount: positionalParameterCount,
+            actualArgumentCount: positionalArgumentsCount,
+          )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
     Set<String> argumentNames = {};
@@ -161,7 +168,7 @@ extension CheckHelper on ProblemReporting {
             argumentNames.add(name);
             if (!parameterNames.contains(name)) {
               return diag.noSuchNamedParameter
-                  .withArgumentsOld(name)
+                  .withArguments(name: name)
                   .withLocation(
                     fileUri,
                     namedExpression.fileOffset,
@@ -210,18 +217,18 @@ extension CheckHelper on ProblemReporting {
     int positionalArgumentCountToReport = arguments.positionalCount;
     if (positionalArgumentCountToReport < function.requiredParameterCount) {
       return diag.tooFewArguments
-          .withArgumentsOld(
-            requiredPositionalParameterCountToReport,
-            positionalArgumentCountToReport,
+          .withArguments(
+            requiredParameterCount: requiredPositionalParameterCountToReport,
+            actualArgumentCount: positionalArgumentCountToReport,
           )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
     if (positionalArgumentCountToReport >
         function.positionalParameters.length) {
       return diag.tooManyArguments
-          .withArgumentsOld(
-            positionalParameterCountToReport,
-            positionalArgumentCountToReport,
+          .withArguments(
+            allowedParameterCount: positionalParameterCountToReport,
+            actualArgumentCount: positionalArgumentCountToReport,
           )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
@@ -238,7 +245,7 @@ extension CheckHelper on ProblemReporting {
             argumentNames.add(name);
             if (!names.contains(name)) {
               return diag.noSuchNamedParameter
-                  .withArgumentsOld(name)
+                  .withArguments(name: name)
                   .withLocation(
                     fileUri,
                     namedExpression.fileOffset,
