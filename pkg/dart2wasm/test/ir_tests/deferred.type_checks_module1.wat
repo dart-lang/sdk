@@ -7,20 +7,13 @@
   (type $_Environment <...>)
   (type $_InterfaceType <...>)
   (type $_Type <...>)
-  (func $"_throwErrorWithoutDetails <noInline>" (import "$" "'") (result (ref none)))
-  (func $JSStringImpl._interpolate (import "$" "<") (param (ref $Array<Object?>)) (result (ref $JSStringImpl)))
-  (func $_BottomType._checkInstance (import "$" "*") (param (ref $_Type) (ref $#Top)) (result i32))
-  (func $_FunctionType._checkInstance (import "$" "-") (param (ref $_Type) (ref $#Top)) (result i32))
-  (func $_InterfaceType._checkInstance (import "$" ",") (param (ref $_Type) (ref $#Top)) (result i32))
-  (func $_RecordType._checkInstance (import "$" ".") (param (ref $_Type) (ref $#Top)) (result i32))
-  (func $_TopType._checkInstance (import "$" "+") (param (ref $_Type) (ref $#Top)) (result i32))
-  (func $_TypeUniverse.isSubtype (import "$" "E") (param (ref $_Type) (ref null $_Environment) (ref $_Type) (ref null $_Environment)) (result i32))
-  (func $print (import "$" "D") (param (ref null $#Top)) (result (ref null $#Top)))
-  (global $"C15 _InterfaceType" (import "$" "A") (ref $_InterfaceType))
-  (global $"C8 \")\"" (import "$" "C") (ref $JSStringImpl))
+  (global $"C15 _InterfaceType" (import "$" "/") (ref $_InterfaceType))
+  (global $"C8 \")\"" (import "$" "1") (ref $JSStringImpl))
   (table $$.$ (import "$" "$") 903 funcref)
+  (table $$.& (import "$" "&") 22 funcref)
   (global $"C285 \"Foo<\"" (ref $JSStringImpl) <...>)
   (global $"C286 \">.takeT(\"" (ref $JSStringImpl) <...>)
+  (elem $$.& <...>)
   (elem $$.$ <...>)
   (func $"Foo.takeT (body) <noInline>" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
     (local $var2 (ref $_InterfaceType))
@@ -32,8 +25,10 @@
     local.get $var1
     global.get $"C8 \")\""
     array.new_fixed $Array<Object?> 5
-    call $JSStringImpl._interpolate
-    call $print
+    i32.const 16
+    call_indirect $$.& (param (ref $Array<Object?>)) (result (ref $JSStringImpl))
+    i32.const 20
+    call_indirect $$.& (param (ref null $#Top)) (result (ref null $#Top))
     drop
     global.get $"C15 _InterfaceType"
     local.set $var2
@@ -58,7 +53,8 @@
       ref.null none
       local.get $var2
       ref.null none
-      call $_TypeUniverse.isSubtype
+      i32.const 21
+      call_indirect $$.& (param (ref $_Type) (ref null $_Environment) (ref $_Type) (ref null $_Environment)) (result i32)
       i32.const 1
       i32.ne
       br_if $label0
@@ -67,12 +63,14 @@
     end $label0
     i32.eqz
     if
-      call $"_throwErrorWithoutDetails <noInline>"
+      i32.const 2
+      call_indirect $$.& (result (ref none))
       unreachable
     end
     local.get $var0
     ref.as_non_null
-    call $print
+    i32.const 20
+    call_indirect $$.& (param (ref null $#Top)) (result (ref null $#Top))
     drop
   )
   (func $"Foo.takeT (checked entry)" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
@@ -103,7 +101,8 @@
                 local.get $var2
                 ref.as_non_null
                 local.get $var1
-                call $_BottomType._checkInstance
+                i32.const 4
+                call_indirect $$.& (param (ref $_Type) (ref $#Top)) (result i32)
                 br $label0
               end
               br $label1
@@ -111,7 +110,8 @@
             local.get $var2
             ref.as_non_null
             local.get $var1
-            call $_TopType._checkInstance
+            i32.const 5
+            call_indirect $$.& (param (ref $_Type) (ref $#Top)) (result i32)
             br $label0
           end
           local.get $var3
@@ -121,7 +121,8 @@
             local.get $var2
             ref.as_non_null
             local.get $var1
-            call $_InterfaceType._checkInstance
+            i32.const 6
+            call_indirect $$.& (param (ref $_Type) (ref $#Top)) (result i32)
             br $label0
           end
           br $label1
@@ -137,7 +138,8 @@
             local.get $var2
             ref.as_non_null
             local.get $var1
-            call $_FunctionType._checkInstance
+            i32.const 7
+            call_indirect $$.& (param (ref $_Type) (ref $#Top)) (result i32)
             br $label0
           end
           br $label1
@@ -149,7 +151,8 @@
           local.get $var2
           ref.as_non_null
           local.get $var1
-          call $_RecordType._checkInstance
+          i32.const 8
+          call_indirect $$.& (param (ref $_Type) (ref $#Top)) (result i32)
           br $label0
         end
       end $label1
@@ -164,7 +167,8 @@
     end $label0
     i32.eqz
     if
-      call $"_throwErrorWithoutDetails <noInline>"
+      i32.const 2
+      call_indirect $$.& (result (ref none))
       unreachable
     end
     local.get $var0

@@ -21,8 +21,6 @@
   (type $_TopType <...>)
   (type $_Type <...>)
   (type $type0 <...>)
-  (func $JSStringImpl._interpolate (import "module0" "func4") (param (ref $Array<Object?>)) (result (ref $JSStringImpl)))
-  (func $print (import "module0" "func3") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $"C1 WasmArray<_Type>[0]" (import "module0" "global1") (ref $Array<_Type>))
   (global $"C21 \")\"" (import "module0" "global0") (ref $JSStringImpl))
   (global $"C28 _InterfaceType" (import "module0" "global7") (ref $_InterfaceType))
@@ -31,6 +29,7 @@
   (global $"C64 WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
   (global $.globalH1Bar< (import "" "globalH1Bar<") (ref extern))
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
+  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 9 funcref)
   (global $"C475 _FunctionType" (ref $_FunctionType) <...>)
   (global $"C476 globalH1Foo tear-off" (mut (ref null $#Closure-1-1))
     (ref.null none))
@@ -46,6 +45,8 @@
   (global $"C480 \">(\"" (ref $JSStringImpl) <...>)
   (global $global0 (ref $#DummyStruct) <...>)
   (global $global2 (ref $#Vtable-1-1) <...>)
+  (elem $module0.cross-module-funcs-0
+    (set 0 (ref.func $"modH1UseH1 <noInline>")))
   (func $#dummy function (ref struct) -> (ref null #Top) (param $var0 (ref struct)) (result (ref null $#Top)) <...>)
   (func $"C478 H1 (lazy initializer)}" (result (ref $H1))
     (local $var0 (ref $#Closure-1-1))
@@ -114,8 +115,10 @@
     local.get $var2
     global.get $"C21 \")\""
     array.new_fixed $Array<Object?> 5
-    call $JSStringImpl._interpolate
-    call $print
+    i32.const 5
+    call_indirect $module0.cross-module-funcs-0 (param (ref $Array<Object?>)) (result (ref $JSStringImpl))
+    i32.const 4
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
   )
   (func $instantiation constant trampoline (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $"modH1UseH1 <noInline>" (result (ref null $#Top))
@@ -125,7 +128,8 @@
       br_on_non_null $label0
       call $"C478 H1 (lazy initializer)}"
     end $label0
-    call $print
+    i32.const 4
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
     block $label1 (result (ref $H1))
       global.get $"C478 H1"

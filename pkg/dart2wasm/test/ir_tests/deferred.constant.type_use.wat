@@ -1,10 +1,14 @@
 (module $module0
   (type $#Top <...>)
   (type $DeferredLoadIdNotLoadedError <...>)
+  (type $JSStringImpl <...>)
   (type $_DefaultSet&_HashFieldBase&SetMixin <...>)
   (type $_InterfaceType <...>)
-  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 1 funcref)
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 3 funcref)
   (global $"C422 _InterfaceType" (ref $_InterfaceType) <...>)
+  (elem $cross-module-funcs-0
+    (set 1 (ref.func $JSStringImpl._interpolate2))
+    (set 2 (ref.func $print)))
   (func $_loaded implicit getter (result (ref $_DefaultSet&_HashFieldBase&SetMixin)) <...>)
   (func $"useFoo <noInline>"
     call $"useFooAsType <noInline>"
@@ -30,6 +34,7 @@
     drop
   )
   (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
+  (func $JSStringImpl._interpolate2 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (result (ref $JSStringImpl)) <...>)
   (func $_DefaultSet&_HashFieldBase&SetMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashSetMixin.contains (param $var0 (ref $_DefaultSet&_HashFieldBase&SetMixin)) (result i32) <...>)
   (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
 )

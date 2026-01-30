@@ -5,6 +5,7 @@
   (type $#Vtable-0-1 <...>)
   (type $Array<_NamedParameter> <...>)
   (type $Array<_Type> <...>)
+  (type $BoxedInt <...>)
   (type $H0 (sub final $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
@@ -13,13 +14,13 @@
   (type $Object <...>)
   (type $_FunctionType <...>)
   (type $_TopType <...>)
-  (func $print (import "module0" "func3") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $"C1 WasmArray<_Type>[0]" (import "module0" "global1") (ref $Array<_Type>))
   (global $"C322 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
   (global $"C347 _TopType" (import "module0" "global2") (ref $_TopType))
   (global $"C64 WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
   (global $.globalH0Foo (import "" "globalH0Foo") (ref extern))
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
+  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 9 funcref)
   (global $"C481 globalH0Foo tear-off" (mut (ref null $#Closure-0-1))
     (ref.null none))
   (global $"C482 H0" (mut (ref null $H0))
@@ -31,6 +32,10 @@
     (struct.new $JSStringImpl))
   (global $global0 (ref $#DummyStruct) <...>)
   (global $global2 (ref $#Vtable-0-1) <...>)
+  (elem $module0.cross-module-funcs-0
+    (set 6 (ref.func $globalH0Foo))
+    (set 7 (ref.func $0))
+    (set 8 (ref.func $"C482 H0 (lazy initializer)}")))
   (func $"C482 H0 (lazy initializer)}" (result (ref $H0))
     (local $var0 (ref $_FunctionType))
     (local $var1 (ref $#Closure-0-1))
@@ -75,11 +80,15 @@
     local.get $var2
   )
   (func $"globalH0Foo tear-off trampoline" (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C483 \"globalH0Foo\""
-    call $print
+    local.get $var1
+    ref.cast $BoxedInt
+    struct.get $BoxedInt $value
+    call $globalH0Foo
   )
+  (func $null (result (ref null $H0)) <...>)
   (func $globalH0Foo (param $var0 i64) (result (ref null $#Top))
     global.get $"C483 \"globalH0Foo\""
-    call $print
+    i32.const 4
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
   )
 )

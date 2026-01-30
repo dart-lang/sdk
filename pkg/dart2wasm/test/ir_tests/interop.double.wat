@@ -33,8 +33,9 @@
   (func $"testDoubleValueNullable <noInline>"
     (local $var0 (ref null $BoxedDouble))
     global.get $"doubleValueNullable initialized"
-    i32.eqz
-    if
+    if (result (ref null $BoxedDouble))
+      global.get $doubleValueNullable
+    else
       call $"ktrue implicit getter"
       if (result (ref null $BoxedDouble))
         i32.const 90
@@ -43,11 +44,12 @@
       else
         ref.null none
       end
+      local.tee $var0
       global.set $doubleValueNullable
       i32.const 1
       global.set $"doubleValueNullable initialized"
+      local.get $var0
     end
-    global.get $doubleValueNullable
     local.tee $var0
     ref.is_null
     if (result externref)

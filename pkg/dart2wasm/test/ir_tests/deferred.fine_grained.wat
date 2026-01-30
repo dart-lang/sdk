@@ -1,11 +1,20 @@
 (module $module0
   (type $#Top <...>)
+  (type $Array<Object?> <...>)
   (type $BoxedInt <...>)
   (type $JSStringImpl <...>)
   (type $Object <...>)
+  (type $WasmListBase <...>)
+  (type $_Future <...>)
+  (type $_JavaScriptError <...>)
+  (type $_Type <...>)
+  (rec
+    (type $type0 <...>)
+    (type $_AsyncSuspendState <...>)
+  )
   (global $".FooConst0(" (import "" "FooConst0(") (ref extern))
   (global $".FooConstBase(" (import "" "FooConstBase(") (ref extern))
-  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 17 funcref)
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 34 funcref)
   (global $"C12 0" (ref $BoxedInt) <...>)
   (global $"C395 \"FooConstBase(\"" (ref $JSStringImpl)
     (i32.const 4)
@@ -25,7 +34,26 @@
   (global $"C8 \")\"" (ref $JSStringImpl) <...>)
   (global $fooGlobal0 (mut (ref null $#Top))
     (ref.null none))
-  (func $"foo0Code <noInline>" (export "func12") (param $var0 (ref null $#Top)) (result (ref null $#Top))
+  (elem $cross-module-funcs-0
+    (set 1 (ref.func $_makeFuture))
+    (set 2 (ref.func $_newAsyncSuspendState))
+    (set 4 (ref.func $loadLibraryFromLoadId))
+    (set 5 (ref.func $_awaitHelper))
+    (set 6 (ref.func $checkLibraryIsLoadedFromLoadId))
+    (set 8 (ref.func $_AsyncSuspendState._complete))
+    (set 9 (ref.func $_AsyncSuspendState._completeError))
+    (set 10 (ref.func $"new _JavaScriptError._"))
+    (set 11 (ref.func $_JavaScriptError.stackTrace))
+    (set 18 (ref.func $print))
+    (set 19 (ref.func $JSStringImpl._interpolate3))
+    (set 20 (ref.func $"fooGlobal0 implicit getter"))
+    (set 21 (ref.func $"foo0Code <noInline>"))
+    (set 26 (ref.func $"_throwIndexError <noInline>"))
+    (set 27 (ref.func $FooConstBase.doit))
+    (set 28 (ref.func $GrowableList._withData))
+    (set 29 (ref.func $int.parse)))
+  (func $_throwIndexError <noInline> (param $var0 i64) (param $var1 i64) (param $var2 (ref null $JSStringImpl)) (result (ref none)) <...>)
+  (func $"foo0Code <noInline>" (param $var0 (ref null $#Top)) (result (ref null $#Top))
     global.get $"C396 FooConst0"
     call $print
     drop
@@ -39,6 +67,8 @@
     global.set $fooGlobal0
     ref.null none
   )
+  (func $fooGlobal0 implicit getter (result (ref $#Top)) <...>)
+  (func $new _JavaScriptError._ (param $var0 externref) (result (ref $_JavaScriptError)) <...>)
   (func $FooConst0.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     global.get $"C397 \"FooConst0(\""
     local.get $var1
@@ -52,7 +82,7 @@
     drop
     ref.null none
   )
-  (func $FooConstBase.doit (export "func14") (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
+  (func $FooConstBase.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     global.get $"C395 \"FooConstBase(\""
     local.get $var1
     global.get $"C8 \")\""
@@ -61,6 +91,16 @@
     drop
     ref.null none
   )
+  (func $GrowableList._withData (param $var0 (ref $_Type)) (param $var1 (ref $Array<Object?>)) (result (ref $WasmListBase)) <...>)
   (func $JSStringImpl._interpolate3 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (param $var2 (ref null $#Top)) (result (ref $JSStringImpl)) <...>)
+  (func $_AsyncSuspendState._complete (param $var0 (ref $_AsyncSuspendState)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $_AsyncSuspendState._completeError (param $var0 (ref $_AsyncSuspendState)) (param $var1 (ref $#Top)) (param $var2 (ref $Object)) (result (ref null $#Top)) <...>)
+  (func $_JavaScriptError.stackTrace (param $var0 (ref $Object)) (result (ref null $Object)) <...>)
+  (func $_awaitHelper (param $var0 (ref $_AsyncSuspendState)) (param $var1 (ref $_Future)) (result (ref null $#Top)) <...>)
+  (func $_makeFuture (param $var0 (ref $_Type)) (result (ref $_Future)) <...>)
+  (func $_newAsyncSuspendState (param $var0 (ref $type0)) (param $var1 structref) (param $var2 (ref $_Future)) (result (ref $_AsyncSuspendState)) <...>)
+  (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) (result i32) <...>)
+  (func $int.parse (param $var0 (ref $JSStringImpl)) (result i64) <...>)
+  (func $loadLibraryFromLoadId (param $var0 i64) (result (ref $_Future)) <...>)
   (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
 )
