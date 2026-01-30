@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 
 import '../utilities/git.dart';
@@ -52,12 +51,12 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
     ], originalRepo);
     if (isSdkRepo) {
       await _setUpSdk(projectDir);
-    } else {
-      await runPubGet(projectDir);
     }
-    var packageConfig = (await findPackageConfig(projectDir))!;
     return Workspace(
-      contextRoots: [ContextRoot(projectDir, packageConfig)],
+      contextRoots: await initializeContextRoots(
+        projectDir.path,
+        isSdk: isSdkRepo,
+      ).toList(),
       workspaceDirectories: [
         if (openSubdirs case var openSubdirs?) ...[
           for (var subdir in openSubdirs)

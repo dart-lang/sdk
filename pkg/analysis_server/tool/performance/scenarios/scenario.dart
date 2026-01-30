@@ -66,6 +66,7 @@ class Scenario {
             .path
             .replaceAll(r'\', r'\\'),
       '{{dartSdkRoot}}': sdkPath.replaceAll(r'\', r'\\'),
+      // TODO(somebody): replace {{flutterSdkRoot}} with the flutter SDK path
       for (var package in workspace.contextRoots.single.packageConfig.packages)
         '{{package-root:${package.name}}}': package.root.toString().replaceAll(
           r'\',
