@@ -1687,17 +1687,19 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
         isInterfaceCheck,
         declaredMember,
-        diag.overrideTypeParametersMismatch.withArgumentsOld(
-          "${declaredMember.enclosingClass!.name}."
+        diag.overrideTypeParametersMismatch.withArguments(
+          declaredMemberName:
+              "${declaredMember.enclosingClass!.name}."
               "${declaredMember.name.text}",
-          "${interfaceMemberOrigin.enclosingClass!.name}."
+          overriddenMemberName:
+              "${interfaceMemberOrigin.enclosingClass!.name}."
               "${interfaceMemberOrigin.name.text}",
         ),
         declaredMember.fileOffset,
         noLength,
         context: [
           diag.overriddenMethodCause
-              .withArgumentsOld(interfaceMemberOrigin.name.text)
+              .withArguments(methodName: interfaceMemberOrigin.name.text)
               .withLocation(
                 _getMemberUri(interfaceMemberOrigin),
                 interfaceMemberOrigin.fileOffset,
@@ -1768,20 +1770,22 @@ class SourceClassBuilder extends ClassBuilderImpl
             reportInvalidOverride(
               isInterfaceCheck,
               declaredMember,
-              diag.overrideTypeParametersBoundMismatch.withArgumentsOld(
-                declaredBound,
-                declaredParameter.name!,
-                "${declaredMember.enclosingClass!.name}."
+              diag.overrideTypeParametersBoundMismatch.withArguments(
+                declaredBoundType: declaredBound,
+                typeVariableName: declaredParameter.name!,
+                declaredMemberName:
+                    "${declaredMember.enclosingClass!.name}."
                     "${declaredMember.name.text}",
-                computedBound,
-                "${interfaceMemberOrigin.enclosingClass!.name}."
+                overriddenBoundType: computedBound,
+                overriddenMemberName:
+                    "${interfaceMemberOrigin.enclosingClass!.name}."
                     "${interfaceMemberOrigin.name.text}",
               ),
               declaredMember.fileOffset,
               noLength,
               context: [
                 diag.overriddenMethodCause
-                    .withArgumentsOld(interfaceMemberOrigin.name.text)
+                    .withArguments(methodName: interfaceMemberOrigin.name.text)
                     .withLocation(
                       _getMemberUri(interfaceMemberOrigin),
                       interfaceMemberOrigin.fileOffset,
@@ -1871,28 +1875,28 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (declaredParameter == null) {
         if (asIfDeclaredParameter) {
           // Setter overridden by field
-          message = diag.overrideTypeMismatchSetter.withArgumentsOld(
-            declaredMemberName,
-            declaredType,
-            interfaceType,
-            interfaceMemberName,
+          message = diag.overrideTypeMismatchSetter.withArguments(
+            declaredMemberName: declaredMemberName,
+            declaredType: declaredType,
+            overriddenType: interfaceType,
+            overriddenMemberName: interfaceMemberName,
           );
         } else {
-          message = diag.overrideTypeMismatchReturnType.withArgumentsOld(
-            declaredMemberName,
-            declaredType,
-            interfaceType,
-            interfaceMemberName,
+          message = diag.overrideTypeMismatchReturnType.withArguments(
+            declaredMemberName: declaredMemberName,
+            declaredType: declaredType,
+            overriddenType: interfaceType,
+            overriddenMemberName: interfaceMemberName,
           );
         }
         fileOffset = declaredMember.fileOffset;
       } else {
-        message = diag.overrideTypeMismatchParameter.withArgumentsOld(
-          declaredParameter.name!,
-          declaredMemberName,
-          declaredType,
-          interfaceType,
-          interfaceMemberName,
+        message = diag.overrideTypeMismatchParameter.withArguments(
+          parameterName: declaredParameter.name!,
+          declaredMemberName: declaredMemberName,
+          declaredType: declaredType,
+          overriddenType: interfaceType,
+          overriddenMemberName: interfaceMemberName,
         );
         fileOffset = declaredParameter.fileOffset;
       }
@@ -1904,7 +1908,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         noLength,
         context: [
           diag.overriddenMethodCause
-              .withArgumentsOld(interfaceMemberOrigin.name.text)
+              .withArguments(methodName: interfaceMemberOrigin.name.text)
               .withLocation(
                 _getMemberUri(interfaceMemberOrigin),
                 interfaceMemberOrigin.fileOffset,
@@ -1978,17 +1982,19 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
         isInterfaceCheck,
         declaredMember,
-        diag.overrideFewerPositionalArguments.withArgumentsOld(
-          "${declaredMember.enclosingClass!.name}."
+        diag.overrideFewerPositionalArguments.withArguments(
+          declaredMemberName:
+              "${declaredMember.enclosingClass!.name}."
               "${declaredMember.name.text}",
-          "${interfaceMemberOrigin.enclosingClass!.name}."
+          overriddenMemberName:
+              "${interfaceMemberOrigin.enclosingClass!.name}."
               "${interfaceMemberOrigin.name.text}",
         ),
         declaredMember.fileOffset,
         noLength,
         context: [
           diag.overriddenMethodCause
-              .withArgumentsOld(interfaceMemberOrigin.name.text)
+              .withArguments(methodName: interfaceMemberOrigin.name.text)
               .withLocation(
                 interfaceMemberOrigin.fileUri,
                 interfaceMemberOrigin.fileOffset,
@@ -2003,17 +2009,19 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
         isInterfaceCheck,
         declaredMember,
-        diag.overrideMoreRequiredArguments.withArgumentsOld(
-          "${declaredMember.enclosingClass!.name}."
+        diag.overrideMoreRequiredArguments.withArguments(
+          declaredMemberName:
+              "${declaredMember.enclosingClass!.name}."
               "${declaredMember.name.text}",
-          "${interfaceMemberOrigin.enclosingClass!.name}."
+          overriddenMemberName:
+              "${interfaceMemberOrigin.enclosingClass!.name}."
               "${interfaceMemberOrigin.name.text}",
         ),
         declaredMember.fileOffset,
         noLength,
         context: [
           diag.overriddenMethodCause
-              .withArgumentsOld(interfaceMemberOrigin.name.text)
+              .withArguments(methodName: interfaceMemberOrigin.name.text)
               .withLocation(
                 interfaceMemberOrigin.fileUri,
                 interfaceMemberOrigin.fileOffset,
@@ -2078,17 +2086,19 @@ class SourceClassBuilder extends ClassBuilderImpl
       reportInvalidOverride(
         isInterfaceCheck,
         declaredMember,
-        diag.overrideFewerNamedArguments.withArgumentsOld(
-          "${declaredMember.enclosingClass!.name}."
+        diag.overrideFewerNamedArguments.withArguments(
+          declaredMemberName:
+              "${declaredMember.enclosingClass!.name}."
               "${declaredMember.name.text}",
-          "${interfaceMemberOrigin.enclosingClass!.name}."
+          overriddenMemberName:
+              "${interfaceMemberOrigin.enclosingClass!.name}."
               "${interfaceMemberOrigin.name.text}",
         ),
         declaredMember.fileOffset,
         noLength,
         context: [
           diag.overriddenMethodCause
-              .withArgumentsOld(interfaceMemberOrigin.name.text)
+              .withArguments(methodName: interfaceMemberOrigin.name.text)
               .withLocation(
                 interfaceMemberOrigin.fileUri,
                 interfaceMemberOrigin.fileOffset,
@@ -2122,18 +2132,20 @@ class SourceClassBuilder extends ClassBuilderImpl
           reportInvalidOverride(
             isInterfaceCheck,
             declaredMember,
-            diag.overrideMismatchNamedParameter.withArgumentsOld(
-              "${declaredMember.enclosingClass!.name}."
+            diag.overrideMismatchNamedParameter.withArguments(
+              declaredMemberName:
+                  "${declaredMember.enclosingClass!.name}."
                   "${declaredMember.name.text}",
-              interfaceNamedParameters.current.name!,
-              "${interfaceMember.enclosingClass!.name}."
+              parameterName: interfaceNamedParameters.current.name!,
+              overriddenMemberName:
+                  "${interfaceMember.enclosingClass!.name}."
                   "${interfaceMember.name.text}",
             ),
             declaredMember.fileOffset,
             noLength,
             context: [
               diag.overriddenMethodCause
-                  .withArgumentsOld(interfaceMember.name.text)
+                  .withArguments(methodName: interfaceMember.name.text)
                   .withLocation(
                     interfaceMember.fileUri,
                     interfaceMember.fileOffset,
@@ -2165,18 +2177,20 @@ class SourceClassBuilder extends ClassBuilderImpl
         reportInvalidOverride(
           isInterfaceCheck,
           declaredMember,
-          diag.overrideMismatchRequiredNamedParameter.withArgumentsOld(
-            declaredParameter.name!,
-            "${declaredMember.enclosingClass!.name}."
+          diag.overrideMismatchRequiredNamedParameter.withArguments(
+            parameterName: declaredParameter.name!,
+            declaredMemberName:
+                "${declaredMember.enclosingClass!.name}."
                 "${declaredMember.name.text}",
-            "${interfaceMember.enclosingClass!.name}."
+            overriddenMemberName:
+                "${interfaceMember.enclosingClass!.name}."
                 "${interfaceMember.name.text}",
           ),
           declaredParameter.fileOffset,
           noLength,
           context: [
             diag.overriddenMethodCause
-                .withArgumentsOld(interfaceMemberOrigin.name.text)
+                .withArguments(methodName: interfaceMemberOrigin.name.text)
                 .withLocation(
                   _getMemberUri(interfaceMemberOrigin),
                   interfaceMemberOrigin.fileOffset,

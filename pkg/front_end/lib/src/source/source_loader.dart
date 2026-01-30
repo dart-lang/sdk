@@ -2128,8 +2128,8 @@ severity: $severity
           // TODO(ahe): Either we need to check this for superclass and
           // interfaces, or this shouldn't be necessary (or handled elsewhere).
           classBuilder.libraryBuilder.addProblem(
-            diag.illegalMixin.withArgumentsOld(
-              mixedInTypeBuilder.fullNameForErrors,
+            diag.illegalMixin.withArguments(
+              typeName: mixedInTypeBuilder.fullNameForErrors,
             ),
             classBuilder.fileOffset,
             noLength,
@@ -2148,8 +2148,8 @@ severity: $severity
           if (!unaliasedDeclaration.errorHasBeenReported) {
             // Coverage-ignore-block(suite): Not run.
             classBuilder.libraryBuilder.addProblem(
-              diag.illegalMixin.withArgumentsOld(
-                mixedInTypeBuilder.fullNameForErrors,
+              diag.illegalMixin.withArguments(
+                typeName: mixedInTypeBuilder.fullNameForErrors,
               ),
               classBuilder.fileOffset,
               noLength,

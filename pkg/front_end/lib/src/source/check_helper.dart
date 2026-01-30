@@ -705,11 +705,11 @@ extension CheckHelper on ProblemReporting {
       bool isValid = typeEnvironment.isSubtypeOf(getterType, setterType);
       if (!isValid) {
         addProblem2(
-          diag.invalidGetterSetterType.withArgumentsOld(
-            getterType,
-            getterName,
-            setterType,
-            setterName,
+          diag.invalidGetterSetterType.withArguments(
+            getterType: getterType,
+            getterName: getterName,
+            setterType: setterType,
+            setterName: setterName,
           ),
           getterUriOffset,
           context: [

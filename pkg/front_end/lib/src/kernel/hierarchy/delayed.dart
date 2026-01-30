@@ -128,11 +128,11 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
       if (!isValid) {
         if (getterIsDeclared && setterIsDeclared) {
           libraryBuilder.addProblem(
-            diag.invalidGetterSetterType.withArgumentsOld(
-              getterType,
-              getterFullName,
-              setterType,
-              setterFullName,
+            diag.invalidGetterSetterType.withArguments(
+              getterType: getterType,
+              getterName: getterFullName,
+              setterType: setterType,
+              setterName: setterFullName,
             ),
             getterOffset,
             name.text.length,

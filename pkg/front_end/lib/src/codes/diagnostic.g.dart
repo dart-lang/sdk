@@ -1137,8 +1137,8 @@ Message _withArgumentsOldConflictsWithImplicitSetterCause(String fieldName) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeVariableName),
+  Message Function({required String typeVariableName})
 >
 conflictsWithTypeParameter = const Template(
   "ConflictsWithTypeParameter",
@@ -1147,18 +1147,24 @@ conflictsWithTypeParameter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithTypeParameter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsConflictsWithTypeParameter({
+  required String typeVariableName,
+}) {
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
   return new Message(
     conflictsWithTypeParameter,
-    problemMessage: """Conflicts with type variable '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicts with type variable '${typeVariableName_0}'.""",
+    arguments: {'typeVariableName': typeVariableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithTypeParameter(String name) =>
-    _withArgumentsConflictsWithTypeParameter(name: name);
+Message _withArgumentsOldConflictsWithTypeParameter(String typeVariableName) =>
+    _withArgumentsConflictsWithTypeParameter(
+      typeVariableName: typeVariableName,
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode conflictsWithTypeParameterCause = const MessageCode(
@@ -4236,8 +4242,8 @@ const MessageCode extendsNever = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 extensionMemberConflictsWithObjectMember = const Template(
   "ExtensionMemberConflictsWithObjectMember",
@@ -4247,21 +4253,23 @@ extensionMemberConflictsWithObjectMember = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtensionMemberConflictsWithObjectMember({
-  required String name,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     extensionMemberConflictsWithObjectMember,
     problemMessage:
-        """This extension member conflicts with Object member '${name_0}'.""",
-    arguments: {'name': name},
+        """This extension member conflicts with Object member '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExtensionMemberConflictsWithObjectMember(
-  String name,
-) => _withArgumentsExtensionMemberConflictsWithObjectMember(name: name);
+  String memberName,
+) => _withArgumentsExtensionMemberConflictsWithObjectMember(
+  memberName: memberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6254,8 +6262,8 @@ const MessageCode illegalAsyncReturnType = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 illegalMixin = const Template(
   "IllegalMixin",
@@ -6264,18 +6272,18 @@ illegalMixin = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalMixin({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsIllegalMixin({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     illegalMixin,
-    problemMessage: """The type '${name_0}' can't be mixed in.""",
-    arguments: {'name': name},
+    problemMessage: """The type '${typeName_0}' can't be mixed in.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixin(String name) =>
-    _withArgumentsIllegalMixin(name: name);
+Message _withArgumentsOldIllegalMixin(String typeName) =>
+    _withArgumentsIllegalMixin(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8713,12 +8721,17 @@ Message _withArgumentsOldInvalidExtensionTypeSuperInterface(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function(
+    DartType getterType,
+    String getterName,
+    DartType setterType,
+    String setterName,
+  ),
   Message Function({
-    required DartType type,
-    required String name,
-    required DartType type2,
-    required String name2,
+    required DartType getterType,
+    required String getterName,
+    required DartType setterType,
+    required String setterName,
   })
 >
 invalidGetterSetterType = const Template(
@@ -8729,36 +8742,41 @@ invalidGetterSetterType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterType({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
+  required DartType getterType,
+  required String getterName,
+  required DartType setterType,
+  required String setterName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var getterType_0 = labeler.labelType(getterType);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
+  var setterType_0 = labeler.labelType(setterType);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     invalidGetterSetterType,
     problemMessage:
-        """The type '${type_0}' of the getter '${name_0}' is not a subtype of the type '${type2_0}' of the setter '${name2_0}'.""" +
+        """The type '${getterType_0}' of the getter '${getterName_0}' is not a subtype of the type '${setterType_0}' of the setter '${setterName_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
+    arguments: {
+      'getterType': getterType,
+      'getterName': getterName,
+      'setterType': setterType,
+      'setterName': setterName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterType(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
+  DartType getterType,
+  String getterName,
+  DartType setterType,
+  String setterName,
 ) => _withArgumentsInvalidGetterSetterType(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
+  getterType: getterType,
+  getterName: getterName,
+  setterType: setterType,
+  setterName: setterName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13131,8 +13149,8 @@ Message _withArgumentsOldOptionalSuperParameterWithoutInitializer(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String methodName),
+  Message Function({required String methodName})
 >
 overriddenMethodCause = const Template(
   "OverriddenMethodCause",
@@ -13142,23 +13160,26 @@ overriddenMethodCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverriddenMethodCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOverriddenMethodCause({required String methodName}) {
+  var methodName_0 = conversions.validateAndDemangleName(methodName);
   return new Message(
     overriddenMethodCause,
-    problemMessage: """This is the overridden method ('${name_0}').""",
-    arguments: {'name': name},
+    problemMessage: """This is the overridden method ('${methodName_0}').""",
+    arguments: {'methodName': methodName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverriddenMethodCause(String name) =>
-    _withArgumentsOverriddenMethodCause(name: name);
+Message _withArgumentsOldOverriddenMethodCause(String methodName) =>
+    _withArgumentsOverriddenMethodCause(methodName: methodName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String declaredMemberName, String overriddenMemberName),
+  Message Function({
+    required String declaredMemberName,
+    required String overriddenMemberName,
+  })
 >
 overrideFewerNamedArguments = const Template(
   "OverrideFewerNamedArguments",
@@ -13168,29 +13189,42 @@ overrideFewerNamedArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerNamedArguments({
-  required String name,
-  required String name2,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideFewerNamedArguments,
     problemMessage:
-        """The method '${name_0}' has fewer named arguments than those of overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """The method '${declaredMemberName_0}' has fewer named arguments than those of overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideFewerNamedArguments(
-  String name,
-  String name2,
-) => _withArgumentsOverrideFewerNamedArguments(name: name, name2: name2);
+  String declaredMemberName,
+  String overriddenMemberName,
+) => _withArgumentsOverrideFewerNamedArguments(
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String declaredMemberName, String overriddenMemberName),
+  Message Function({
+    required String declaredMemberName,
+    required String overriddenMemberName,
+  })
 >
 overrideFewerPositionalArguments = const Template(
   "OverrideFewerPositionalArguments",
@@ -13200,32 +13234,46 @@ overrideFewerPositionalArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerPositionalArguments({
-  required String name,
-  required String name2,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideFewerPositionalArguments,
     problemMessage:
-        """The method '${name_0}' has fewer positional arguments than those of overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """The method '${declaredMemberName_0}' has fewer positional arguments than those of overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideFewerPositionalArguments(
-  String name,
-  String name2,
-) => _withArgumentsOverrideFewerPositionalArguments(name: name, name2: name2);
+  String declaredMemberName,
+  String overriddenMemberName,
+) => _withArgumentsOverrideFewerPositionalArguments(
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String name3),
+  Message Function(
+    String declaredMemberName,
+    String parameterName,
+    String overriddenMemberName,
+  ),
   Message Function({
-    required String name,
-    required String name2,
-    required String name3,
+    required String declaredMemberName,
+    required String parameterName,
+    required String overriddenMemberName,
   })
 >
 overrideMismatchNamedParameter = const Template(
@@ -13236,39 +13284,51 @@ overrideMismatchNamedParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMismatchNamedParameter({
-  required String name,
-  required String name2,
-  required String name3,
+  required String declaredMemberName,
+  required String parameterName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideMismatchNamedParameter,
     problemMessage:
-        """The method '${name_0}' doesn't have the named parameter '${name2_0}' of overridden method '${name3_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
+        """The method '${declaredMemberName_0}' doesn't have the named parameter '${parameterName_0}' of overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'parameterName': parameterName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideMismatchNamedParameter(
-  String name,
-  String name2,
-  String name3,
+  String declaredMemberName,
+  String parameterName,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideMismatchNamedParameter(
-  name: name,
-  name2: name2,
-  name3: name3,
+  declaredMemberName: declaredMemberName,
+  parameterName: parameterName,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String name3),
+  Message Function(
+    String parameterName,
+    String declaredMemberName,
+    String overriddenMemberName,
+  ),
   Message Function({
-    required String name,
-    required String name2,
-    required String name3,
+    required String parameterName,
+    required String declaredMemberName,
+    required String overriddenMemberName,
   })
 >
 overrideMismatchRequiredNamedParameter = const Template(
@@ -13279,36 +13339,47 @@ overrideMismatchRequiredNamedParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMismatchRequiredNamedParameter({
-  required String name,
-  required String name2,
-  required String name3,
+  required String parameterName,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideMismatchRequiredNamedParameter,
     problemMessage:
-        """The required named parameter '${name_0}' in method '${name2_0}' is not required in overridden method '${name3_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
+        """The required named parameter '${parameterName_0}' in method '${declaredMemberName_0}' is not required in overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'parameterName': parameterName,
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideMismatchRequiredNamedParameter(
-  String name,
-  String name2,
-  String name3,
+  String parameterName,
+  String declaredMemberName,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideMismatchRequiredNamedParameter(
-  name: name,
-  name2: name2,
-  name3: name3,
+  parameterName: parameterName,
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String declaredMemberName, String overriddenMemberName),
+  Message Function({
+    required String declaredMemberName,
+    required String overriddenMemberName,
+  })
 >
 overrideMoreRequiredArguments = const Template(
   "OverrideMoreRequiredArguments",
@@ -13318,40 +13389,50 @@ overrideMoreRequiredArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMoreRequiredArguments({
-  required String name,
-  required String name2,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideMoreRequiredArguments,
     problemMessage:
-        """The method '${name_0}' has more required arguments than those of overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """The method '${declaredMemberName_0}' has more required arguments than those of overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideMoreRequiredArguments(
-  String name,
-  String name2,
-) => _withArgumentsOverrideMoreRequiredArguments(name: name, name2: name2);
+  String declaredMemberName,
+  String overriddenMemberName,
+) => _withArgumentsOverrideMoreRequiredArguments(
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    String name,
-    String name2,
-    DartType type,
-    DartType type2,
-    String name3,
+    String parameterName,
+    String declaredMemberName,
+    DartType declaredType,
+    DartType overriddenType,
+    String overriddenMemberName,
   ),
   Message Function({
-    required String name,
-    required String name2,
-    required DartType type,
-    required DartType type2,
-    required String name3,
+    required String parameterName,
+    required String declaredMemberName,
+    required DartType declaredType,
+    required DartType overriddenType,
+    required String overriddenMemberName,
   })
 >
 overrideTypeMismatchParameter = const Template(
@@ -13362,58 +13443,67 @@ overrideTypeMismatchParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchParameter({
-  required String name,
-  required String name2,
-  required DartType type,
-  required DartType type2,
-  required String name3,
+  required String parameterName,
+  required String declaredMemberName,
+  required DartType declaredType,
+  required DartType overriddenType,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var declaredType_0 = labeler.labelType(declaredType);
+  var overriddenType_0 = labeler.labelType(overriddenType);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeMismatchParameter,
     problemMessage:
-        """The parameter '${name_0}' of the method '${name2_0}' has type '${type_0}', which does not match the corresponding type, '${type2_0}', in the overridden method, '${name3_0}'.""" +
+        """The parameter '${parameterName_0}' of the method '${declaredMemberName_0}' has type '${declaredType_0}', which does not match the corresponding type, '${overriddenType_0}', in the overridden method, '${overriddenMemberName_0}'.""" +
         labeler.originMessages,
     correctionMessage:
-        """Change to a supertype of '${type2_0}', or, for a covariant parameter, a subtype.""",
+        """Change to a supertype of '${overriddenType_0}', or, for a covariant parameter, a subtype.""",
     arguments: {
-      'name': name,
-      'name2': name2,
-      'type': type,
-      'type2': type2,
-      'name3': name3,
+      'parameterName': parameterName,
+      'declaredMemberName': declaredMemberName,
+      'declaredType': declaredType,
+      'overriddenType': overriddenType,
+      'overriddenMemberName': overriddenMemberName,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeMismatchParameter(
-  String name,
-  String name2,
-  DartType type,
-  DartType type2,
-  String name3,
+  String parameterName,
+  String declaredMemberName,
+  DartType declaredType,
+  DartType overriddenType,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideTypeMismatchParameter(
-  name: name,
-  name2: name2,
-  type: type,
-  type2: type2,
-  name3: name3,
+  parameterName: parameterName,
+  declaredMemberName: declaredMemberName,
+  declaredType: declaredType,
+  overriddenType: overriddenType,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type, DartType type2, String name2),
+  Message Function(
+    String declaredMemberName,
+    DartType declaredType,
+    DartType overriddenType,
+    String overriddenMemberName,
+  ),
   Message Function({
-    required String name,
-    required DartType type,
-    required DartType type2,
-    required String name2,
+    required String declaredMemberName,
+    required DartType declaredType,
+    required DartType overriddenType,
+    required String overriddenMemberName,
   })
 >
 overrideTypeMismatchReturnType = const Template(
@@ -13424,47 +13514,61 @@ overrideTypeMismatchReturnType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchReturnType({
-  required String name,
-  required DartType type,
-  required DartType type2,
-  required String name2,
+  required String declaredMemberName,
+  required DartType declaredType,
+  required DartType overriddenType,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredType_0 = labeler.labelType(declaredType);
+  var overriddenType_0 = labeler.labelType(overriddenType);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeMismatchReturnType,
     problemMessage:
-        """The return type of the method '${name_0}' is '${type_0}', which does not match the return type, '${type2_0}', of the overridden method, '${name2_0}'.""" +
+        """The return type of the method '${declaredMemberName_0}' is '${declaredType_0}', which does not match the return type, '${overriddenType_0}', of the overridden method, '${overriddenMemberName_0}'.""" +
         labeler.originMessages,
-    correctionMessage: """Change to a subtype of '${type2_0}'.""",
-    arguments: {'name': name, 'type': type, 'type2': type2, 'name2': name2},
+    correctionMessage: """Change to a subtype of '${overriddenType_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'declaredType': declaredType,
+      'overriddenType': overriddenType,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeMismatchReturnType(
-  String name,
-  DartType type,
-  DartType type2,
-  String name2,
+  String declaredMemberName,
+  DartType declaredType,
+  DartType overriddenType,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideTypeMismatchReturnType(
-  name: name,
-  type: type,
-  type2: type2,
-  name2: name2,
+  declaredMemberName: declaredMemberName,
+  declaredType: declaredType,
+  overriddenType: overriddenType,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type, DartType type2, String name2),
+  Message Function(
+    String declaredMemberName,
+    DartType declaredType,
+    DartType overriddenType,
+    String overriddenMemberName,
+  ),
   Message Function({
-    required String name,
-    required DartType type,
-    required DartType type2,
-    required String name2,
+    required String declaredMemberName,
+    required DartType declaredType,
+    required DartType overriddenType,
+    required String overriddenMemberName,
   })
 >
 overrideTypeMismatchSetter = const Template(
@@ -13475,53 +13579,62 @@ overrideTypeMismatchSetter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchSetter({
-  required String name,
-  required DartType type,
-  required DartType type2,
-  required String name2,
+  required String declaredMemberName,
+  required DartType declaredType,
+  required DartType overriddenType,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredType_0 = labeler.labelType(declaredType);
+  var overriddenType_0 = labeler.labelType(overriddenType);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeMismatchSetter,
     problemMessage:
-        """The field '${name_0}' has type '${type_0}', which does not match the corresponding type, '${type2_0}', in the overridden setter, '${name2_0}'.""" +
+        """The field '${declaredMemberName_0}' has type '${declaredType_0}', which does not match the corresponding type, '${overriddenType_0}', in the overridden setter, '${overriddenMemberName_0}'.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type, 'type2': type2, 'name2': name2},
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'declaredType': declaredType,
+      'overriddenType': overriddenType,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeMismatchSetter(
-  String name,
-  DartType type,
-  DartType type2,
-  String name2,
+  String declaredMemberName,
+  DartType declaredType,
+  DartType overriddenType,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideTypeMismatchSetter(
-  name: name,
-  type: type,
-  type2: type2,
-  name2: name2,
+  declaredMemberName: declaredMemberName,
+  declaredType: declaredType,
+  overriddenType: overriddenType,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    DartType type,
-    String name,
-    String name2,
-    DartType type2,
-    String name3,
+    DartType declaredBoundType,
+    String typeVariableName,
+    String declaredMemberName,
+    DartType overriddenBoundType,
+    String overriddenMemberName,
   ),
   Message Function({
-    required DartType type,
-    required String name,
-    required String name2,
-    required DartType type2,
-    required String name3,
+    required DartType declaredBoundType,
+    required String typeVariableName,
+    required String declaredMemberName,
+    required DartType overriddenBoundType,
+    required String overriddenMemberName,
   })
 >
 overrideTypeParametersBoundMismatch = const Template(
@@ -13532,52 +13645,61 @@ overrideTypeParametersBoundMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeParametersBoundMismatch({
-  required DartType type,
-  required String name,
-  required String name2,
-  required DartType type2,
-  required String name3,
+  required DartType declaredBoundType,
+  required String typeVariableName,
+  required String declaredMemberName,
+  required DartType overriddenBoundType,
+  required String overriddenMemberName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var type2_0 = labeler.labelType(type2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var declaredBoundType_0 = labeler.labelType(declaredBoundType);
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenBoundType_0 = labeler.labelType(overriddenBoundType);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeParametersBoundMismatch,
     problemMessage:
-        """Declared bound '${type_0}' of type variable '${name_0}' of '${name2_0}' doesn't match the bound '${type2_0}' on overridden method '${name3_0}'.""" +
+        """Declared bound '${declaredBoundType_0}' of type variable '${typeVariableName_0}' of '${declaredMemberName_0}' doesn't match the bound '${overriddenBoundType_0}' on overridden method '${overriddenMemberName_0}'.""" +
         labeler.originMessages,
     arguments: {
-      'type': type,
-      'name': name,
-      'name2': name2,
-      'type2': type2,
-      'name3': name3,
+      'declaredBoundType': declaredBoundType,
+      'typeVariableName': typeVariableName,
+      'declaredMemberName': declaredMemberName,
+      'overriddenBoundType': overriddenBoundType,
+      'overriddenMemberName': overriddenMemberName,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeParametersBoundMismatch(
-  DartType type,
-  String name,
-  String name2,
-  DartType type2,
-  String name3,
+  DartType declaredBoundType,
+  String typeVariableName,
+  String declaredMemberName,
+  DartType overriddenBoundType,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideTypeParametersBoundMismatch(
-  type: type,
-  name: name,
-  name2: name2,
-  type2: type2,
-  name3: name3,
+  declaredBoundType: declaredBoundType,
+  typeVariableName: typeVariableName,
+  declaredMemberName: declaredMemberName,
+  overriddenBoundType: overriddenBoundType,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String declaredMemberName, String overriddenMemberName),
+  Message Function({
+    required String declaredMemberName,
+    required String overriddenMemberName,
+  })
 >
 overrideTypeParametersMismatch = const Template(
   "OverrideTypeParametersMismatch",
@@ -13587,24 +13709,34 @@ overrideTypeParametersMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeParametersMismatch({
-  required String name,
-  required String name2,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeParametersMismatch,
     problemMessage:
-        """Declared type variables of '${name_0}' doesn't match those on overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """Declared type variables of '${declaredMemberName_0}' doesn't match those on overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeParametersMismatch(
-  String name,
-  String name2,
-) => _withArgumentsOverrideTypeParametersMismatch(name: name, name2: name2);
+  String declaredMemberName,
+  String overriddenMemberName,
+) => _withArgumentsOverrideTypeParametersMismatch(
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

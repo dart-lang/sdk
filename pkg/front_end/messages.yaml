@@ -2536,8 +2536,8 @@ conflictsWithImplicitSetterCause:
 
 conflictsWithTypeParameter:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicts with type variable '#name'."
+    Name typeVariableName: The name of the conflicting type variable.
+  problemMessage: "Conflicts with type variable '#typeVariableName'."
   script: |
     enum E2<values> {
       element;
@@ -2550,8 +2550,8 @@ conflictsWithTypeParameterCause:
 
 extensionMemberConflictsWithObjectMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "This extension member conflicts with Object member '#name'."
+    Name memberName: The name of the conflicting object member.
+  problemMessage: "This extension member conflicts with Object member '#memberName'."
   script:
     extension Extension on String {
       int get noSuchMethod => 42;
@@ -2646,8 +2646,8 @@ inheritedMembersConflictCause2:
 
 illegalMixin:
   parameters:
-    Name name: undocumented
-  problemMessage: "The type '#name' can't be mixed in."
+    Name typeName: The name of the type that can't be mixed in.
+  problemMessage: "The type '#typeName' can't be mixed in."
   script: |
     class SuperClass {}
     mixin Mixin<T> {}
@@ -2656,9 +2656,9 @@ illegalMixin:
 
 overrideTypeParametersMismatch:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "Declared type variables of '#declaredMemberName' doesn't match those on overridden method '#overriddenMemberName'."
   script: |
     class Super {
       void foo<X>() {}
@@ -2670,12 +2670,12 @@ overrideTypeParametersMismatch:
 
 overrideTypeParametersBoundMismatch:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Name name2: undocumented
-    Type type2: undocumented
-    Name name3: undocumented
-  problemMessage: "Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'."
+    Type declaredBoundType: The bound type in the erroneous member.
+    Name typeVariableName: The name of the type variable whose bound doesn't match.
+    Name declaredMemberName: The name of the erroneous member.
+    Type overriddenBoundType: The bound type in the overridden member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "Declared bound '#declaredBoundType' of type variable '#typeVariableName' of '#declaredMemberName' doesn't match the bound '#overriddenBoundType' on overridden method '#overriddenMemberName'."
   script: |
     class Super {
       void foo<X extends String>() {}
@@ -2687,16 +2687,16 @@ overrideTypeParametersBoundMismatch:
 
 overriddenMethodCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the overridden method ('#name')."
+    Name methodName: The name of the overridden method.
+  problemMessage: "This is the overridden method ('#methodName')."
   severity: CONTEXT
 
 overrideMismatchNamedParameter:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    Name name3: undocumented
-  problemMessage: "The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name parameterName: The name of the parameter that is missing.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The method '#declaredMemberName' doesn't have the named parameter '#parameterName' of overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       int foo({int x = 0}) => x + 42;
@@ -2708,9 +2708,9 @@ overrideMismatchNamedParameter:
 
 overrideFewerNamedArguments:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The method '#name' has fewer named arguments than those of overridden method '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The method '#declaredMemberName' has fewer named arguments than those of overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       int foo({int x = 0, int y = 0}) => x + y + 42;
@@ -2722,9 +2722,9 @@ overrideFewerNamedArguments:
 
 overrideFewerPositionalArguments:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The method '#declaredMemberName' has fewer positional arguments than those of overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       int foo(int x, int y) => x + y + 42;
@@ -2736,9 +2736,9 @@ overrideFewerPositionalArguments:
 
 overrideMoreRequiredArguments:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The method '#name' has more required arguments than those of overridden method '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The method '#declaredMemberName' has more required arguments than those of overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       int foo(int x) => x + 42;
@@ -2750,13 +2750,13 @@ overrideMoreRequiredArguments:
 
 overrideTypeMismatchParameter:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-    Name name3: undocumented
-  problemMessage: "The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'."
-  correctionMessage: "Change to a supertype of '#type2', or, for a covariant parameter, a subtype."
+    Name parameterName: The name of the parameter with a type mismatch.
+    Name declaredMemberName: The name of the erroneous member.
+    Type declaredType: The type of the parameter in the erroneous member.
+    Type overriddenType: The type of the corresponding parameter in the overridden member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The parameter '#parameterName' of the method '#declaredMemberName' has type '#declaredType', which does not match the corresponding type, '#overriddenType', in the overridden method, '#overriddenMemberName'."
+  correctionMessage: "Change to a supertype of '#overriddenType', or, for a covariant parameter, a subtype."
   script: |
     abstract class A {
       int foo(int x) => x + 42;
@@ -2768,12 +2768,12 @@ overrideTypeMismatchParameter:
 
 overrideTypeMismatchReturnType:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'."
-  correctionMessage: "Change to a subtype of '#type2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Type declaredType: The return type of the erroneous member.
+    Type overriddenType: The return type of the overridden member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The return type of the method '#declaredMemberName' is '#declaredType', which does not match the return type, '#overriddenType', of the overridden method, '#overriddenMemberName'."
+  correctionMessage: "Change to a subtype of '#overriddenType'."
   script: |
     abstract class A {
       int foo() => 42;
@@ -2785,11 +2785,11 @@ overrideTypeMismatchReturnType:
 
 overrideTypeMismatchSetter:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Type declaredType: The type of the erroneous member.
+    Type overriddenType: The type of the overridden member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The field '#declaredMemberName' has type '#declaredType', which does not match the corresponding type, '#overriddenType', in the overridden setter, '#overriddenMemberName'."
   script: |
     abstract class A {
       void set x(Object? y);
@@ -2801,10 +2801,10 @@ overrideTypeMismatchSetter:
 
 overrideMismatchRequiredNamedParameter:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    Name name3: undocumented
-  problemMessage: "The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'."
+    Name parameterName: The name of the mismatched parameter.
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The required named parameter '#parameterName' in method '#declaredMemberName' is not required in overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       method({int? a});
@@ -2815,11 +2815,11 @@ overrideMismatchRequiredNamedParameter:
 
 invalidGetterSetterType:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+    Type getterType: The type of the getter.
+    Name getterName: The name of the getter.
+    Type setterType: The type of the setter.
+    Name setterName: The name of the setter.
+  problemMessage: "The type '#getterType' of the getter '#getterName' is not a subtype of the type '#setterType' of the setter '#setterName'."
   script: |
     //@dart=3.5
     abstract class A {

@@ -201,8 +201,8 @@ mixin SourceDeclarationBuilderMixin
           libraryBuilder.addProblem(
             // TODO(johnniwinther): Use a different error message for
             //  extension type declarations.
-            diag.extensionMemberConflictsWithObjectMember.withArgumentsOld(
-              name,
+            diag.extensionMemberConflictsWithObjectMember.withArguments(
+              memberName: name,
             ),
             declaration.fileOffset,
             name.length,
