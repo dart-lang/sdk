@@ -1244,8 +1244,8 @@ class Resolver {
       // body.
       problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: diag.illegalMixinDueToConstructors.withArgumentsOld(
-          bodyBuilderContext.className,
+        message: diag.illegalMixinDueToConstructors.withArguments(
+          className: bodyBuilderContext.className,
         ),
         fileUri: fileUri,
         fileOffset: bodyBuilderContext.memberNameOffset,

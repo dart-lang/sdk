@@ -2028,7 +2028,9 @@ abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
   ) {
     if (isStatic) {
       problemReporting.addProblem2(
-        diag.instanceConflictsWithStatic.withArgumentsOld(displayName),
+        diag.instanceConflictsWithStatic.withArguments(
+          propertyName: displayName,
+        ),
         declaration.uriOffset,
         context: [
           diag.instanceConflictsWithStaticCause
@@ -2038,11 +2040,13 @@ abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
       );
     } else {
       problemReporting.addProblem2(
-        diag.staticConflictsWithInstance.withArgumentsOld(displayName),
+        diag.staticConflictsWithInstance.withArguments(
+          propertyName: displayName,
+        ),
         declaration.uriOffset,
         context: [
           diag.staticConflictsWithInstanceCause
-              .withArgumentsOld(displayName)
+              .withArguments(propertyName: displayName)
               .withLocation2(uriOffset),
         ],
       );

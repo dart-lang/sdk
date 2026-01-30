@@ -660,7 +660,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           // Coverage-ignore-block(suite): Not run.
           if (!library.mayImplementRestrictedTypes) {
             library.addProblem(
-              diag.extendingRestricted.withArgumentsOld(declaration.name),
+              diag.extendingRestricted.withArguments(
+                restrictedName: declaration.name,
+              ),
               charOffset!,
               noLength,
               fileUri,

@@ -2224,22 +2224,22 @@ incrementalCompilerIllegalParameter:
 
 incrementalCompilerIllegalTypeParameter:
   parameters:
-    String string: undocumented
-  problemMessage: "Illegal type parameter name '#string' found during expression compilation."
+    String typeParameterName: The illegal type parameter name.
+  problemMessage: "Illegal type parameter name '#typeParameterName' found during expression compilation."
 
 debugTrace:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "Fatal '#name' at:\n#string"
+    Name severity: The severity of the trace.
+    String stackTrace: The stack trace.
+  problemMessage: "Fatal '#severity' at:\n#stackTrace"
   severity: IGNORED
 
 deferredTypeAnnotation:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-  problemMessage: "The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation."
-  correctionMessage: "Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred."
+    Type type: The type that is deferred loaded.
+    Name prefix: The prefix by which the type is deferred loaded.
+  problemMessage: "The type '#type' is deferred loaded via prefix '#prefix' and can't be used as a type annotation."
+  correctionMessage: "Try removing 'deferred' from the import of '#prefix' or use a supertype of '#type' that isn't deferred."
   script:
     main.dart: |
       import 'lib.dart' deferred as lib;
@@ -2251,9 +2251,9 @@ deferredTypeAnnotation:
 
 duplicatedExport:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
-    Uri uri2: undocumented
+    Name name: The name that is exported from multiple URIs.
+    Uri uri: The first URI the name is exported from.
+    Uri uri2: The second URI the name is exported from.
   problemMessage: "'#name' is exported from both '#uri' and '#uri2'."
   script:
     lib1.dart: "class A {}"
@@ -2262,9 +2262,9 @@ duplicatedExport:
 
 duplicatedImport:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
-    Uri uri2: undocumented
+    Name name: The name that is imported from multiple URIs.
+    Uri uri: The first URI the name is imported from.
+    Uri uri2: The second URI the name is imported from.
   problemMessage: "'#name' is imported from both '#uri' and '#uri2'."
   script:
     lib1.dart: "class A {}"
@@ -2273,8 +2273,8 @@ duplicatedImport:
 
 cyclicClassHierarchy:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' is a supertype of itself."
+    Name typeName: The name of the type that is a supertype of itself.
+  problemMessage: "'#typeName' is a supertype of itself."
   script:
     - |
       class A extends B {}
@@ -2289,8 +2289,8 @@ cyclicClassHierarchy:
 
 extendingEnum:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' is an enum and can't be extended or implemented."
+    Name enumName: The name of the enum that is being erroneously extended or implemented.
+  problemMessage: "'#enumName' is an enum and can't be extended or implemented."
   script: |
     enum Foo { a, b, c; }
     abstract class Bar extends Foo {}
@@ -2298,8 +2298,8 @@ extendingEnum:
 
 extendingRestricted:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' is restricted and can't be extended or implemented."
+    Name restrictedName: The name of the restricted type that is being erroneously extended or implemented.
+  problemMessage: "'#restrictedName' is restricted and can't be extended or implemented."
   script: |
     abstract class Foo extends String {}
   exampleAllowOtherCodes: true
@@ -2354,16 +2354,16 @@ illegalSyncGeneratorVoidReturnType:
 illegalMixinDueToConstructors:
   # a class with a constructor is used as a mixin
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't use '#name' as a mixin because it has constructors."
+    Name className: The name of the class that can't be used as a mixin.
+  problemMessage: "Can't use '#className' as a mixin because it has constructors."
   script: |
     // @dart=2.19
     class B with Error {}
 
 illegalMixinDueToConstructorsCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "This constructor prevents using '#name' as a mixin."
+    Name className: The name of the class that can't be used as a mixin.
+  problemMessage: "This constructor prevents using '#className' as a mixin."
   severity: CONTEXT
 
 extensionTypeDeclaresAbstractMember:
@@ -2398,8 +2398,8 @@ extensionTypeDeclaresInstanceField:
 
 staticConflictsWithInstance:
   parameters:
-    Name name: undocumented
-  problemMessage: "Static property '#name' conflicts with instance property of the same name."
+    Name propertyName: The name of the static property that has a conflict.
+  problemMessage: "Static property '#propertyName' conflicts with instance property of the same name."
   script: |
     class A {
       void set foo(_) {}
@@ -2408,14 +2408,14 @@ staticConflictsWithInstance:
 
 staticConflictsWithInstanceCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting instance property '#name'."
+    Name propertyName: The name of the static property that has a conflict.
+  problemMessage: "Conflicting instance property '#propertyName'."
   severity: CONTEXT
 
 instanceConflictsWithStatic:
   parameters:
-    Name name: undocumented
-  problemMessage: "Instance property '#name' conflicts with static property of the same name."
+    Name propertyName: The name of the instance property that has a conflict.
+  problemMessage: "Instance property '#propertyName' conflicts with static property of the same name."
   script: |
     class A {
       static void set foo(_) {}

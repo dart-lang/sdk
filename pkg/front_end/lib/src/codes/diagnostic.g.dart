@@ -2531,8 +2531,8 @@ Message _withArgumentsOldCycleInTypeParameters(String name, String string) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 cyclicClassHierarchy = const Template(
   "CyclicClassHierarchy",
@@ -2541,18 +2541,18 @@ cyclicClassHierarchy = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCyclicClassHierarchy({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsCyclicClassHierarchy({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     cyclicClassHierarchy,
-    problemMessage: """'${name_0}' is a supertype of itself.""",
-    arguments: {'name': name},
+    problemMessage: """'${typeName_0}' is a supertype of itself.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicClassHierarchy(String name) =>
-    _withArgumentsCyclicClassHierarchy(name: name);
+Message _withArgumentsOldCyclicClassHierarchy(String typeName) =>
+    _withArgumentsCyclicClassHierarchy(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2621,8 +2621,8 @@ const MessageCode dartFfiLibraryInDart2Wasm = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String severity, String stackTrace),
+  Message Function({required String severity, required String stackTrace})
 >
 debugTrace = const Template(
   "DebugTrace",
@@ -2633,22 +2633,22 @@ debugTrace = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDebugTrace({
-  required String name,
-  required String string,
+  required String severity,
+  required String stackTrace,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var severity_0 = conversions.validateAndDemangleName(severity);
+  var stackTrace_0 = conversions.validateString(stackTrace);
   return new Message(
     debugTrace,
-    problemMessage: """Fatal '${name_0}' at:
-${string_0}""",
-    arguments: {'name': name, 'string': string},
+    problemMessage: """Fatal '${severity_0}' at:
+${stackTrace_0}""",
+    arguments: {'severity': severity, 'stackTrace': stackTrace},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDebugTrace(String name, String string) =>
-    _withArgumentsDebugTrace(name: name, string: string);
+Message _withArgumentsOldDebugTrace(String severity, String stackTrace) =>
+    _withArgumentsDebugTrace(severity: severity, stackTrace: stackTrace);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2847,8 +2847,8 @@ Message _withArgumentsOldDeferredPrefixDuplicatedCause(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name),
-  Message Function({required DartType type, required String name})
+  Message Function(DartType type, String prefix),
+  Message Function({required DartType type, required String prefix})
 >
 deferredTypeAnnotation = const Template(
   "DeferredTypeAnnotation",
@@ -2859,25 +2859,25 @@ deferredTypeAnnotation = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredTypeAnnotation({
   required DartType type,
-  required String name,
+  required String prefix,
 }) {
   TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
+  var prefix_0 = conversions.validateAndDemangleName(prefix);
   return new Message(
     deferredTypeAnnotation,
     problemMessage:
-        """The type '${type_0}' is deferred loaded via prefix '${name_0}' and can't be used as a type annotation.""" +
+        """The type '${type_0}' is deferred loaded via prefix '${prefix_0}' and can't be used as a type annotation.""" +
         labeler.originMessages,
     correctionMessage:
-        """Try removing 'deferred' from the import of '${name_0}' or use a supertype of '${type_0}' that isn't deferred.""",
-    arguments: {'type': type, 'name': name},
+        """Try removing 'deferred' from the import of '${prefix_0}' or use a supertype of '${type_0}' that isn't deferred.""",
+    arguments: {'type': type, 'prefix': prefix},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredTypeAnnotation(DartType type, String name) =>
-    _withArgumentsDeferredTypeAnnotation(type: type, name: name);
+Message _withArgumentsOldDeferredTypeAnnotation(DartType type, String prefix) =>
+    _withArgumentsDeferredTypeAnnotation(type: type, prefix: prefix);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4160,8 +4160,8 @@ const MessageCode expressionNotMetadata = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String enumName),
+  Message Function({required String enumName})
 >
 extendingEnum = const Template(
   "ExtendingEnum",
@@ -4170,24 +4170,24 @@ extendingEnum = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtendingEnum({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsExtendingEnum({required String enumName}) {
+  var enumName_0 = conversions.validateAndDemangleName(enumName);
   return new Message(
     extendingEnum,
     problemMessage:
-        """'${name_0}' is an enum and can't be extended or implemented.""",
-    arguments: {'name': name},
+        """'${enumName_0}' is an enum and can't be extended or implemented.""",
+    arguments: {'enumName': enumName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtendingEnum(String name) =>
-    _withArgumentsExtendingEnum(name: name);
+Message _withArgumentsOldExtendingEnum(String enumName) =>
+    _withArgumentsExtendingEnum(enumName: enumName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String restrictedName),
+  Message Function({required String restrictedName})
 >
 extendingRestricted = const Template(
   "ExtendingRestricted",
@@ -4196,19 +4196,19 @@ extendingRestricted = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtendingRestricted({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsExtendingRestricted({required String restrictedName}) {
+  var restrictedName_0 = conversions.validateAndDemangleName(restrictedName);
   return new Message(
     extendingRestricted,
     problemMessage:
-        """'${name_0}' is restricted and can't be extended or implemented.""",
-    arguments: {'name': name},
+        """'${restrictedName_0}' is restricted and can't be extended or implemented.""",
+    arguments: {'restrictedName': restrictedName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtendingRestricted(String name) =>
-    _withArgumentsExtendingRestricted(name: name);
+Message _withArgumentsOldExtendingRestricted(String restrictedName) =>
+    _withArgumentsExtendingRestricted(restrictedName: restrictedName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extendsDeferredClass = const MessageCode(
@@ -6267,8 +6267,8 @@ Message _withArgumentsOldIllegalMixin(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 illegalMixinDueToConstructors = const Template(
   "IllegalMixinDueToConstructors",
@@ -6277,24 +6277,26 @@ illegalMixinDueToConstructors = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalMixinDueToConstructors({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsIllegalMixinDueToConstructors({
+  required String className,
+}) {
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     illegalMixinDueToConstructors,
     problemMessage:
-        """Can't use '${name_0}' as a mixin because it has constructors.""",
-    arguments: {'name': name},
+        """Can't use '${className_0}' as a mixin because it has constructors.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixinDueToConstructors(String name) =>
-    _withArgumentsIllegalMixinDueToConstructors(name: name);
+Message _withArgumentsOldIllegalMixinDueToConstructors(String className) =>
+    _withArgumentsIllegalMixinDueToConstructors(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 illegalMixinDueToConstructorsCause = const Template(
   "IllegalMixinDueToConstructorsCause",
@@ -6305,20 +6307,20 @@ illegalMixinDueToConstructorsCause = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalMixinDueToConstructorsCause({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     illegalMixinDueToConstructorsCause,
     problemMessage:
-        """This constructor prevents using '${name_0}' as a mixin.""",
-    arguments: {'name': name},
+        """This constructor prevents using '${className_0}' as a mixin.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixinDueToConstructorsCause(String name) =>
-    _withArgumentsIllegalMixinDueToConstructorsCause(name: name);
+Message _withArgumentsOldIllegalMixinDueToConstructorsCause(String className) =>
+    _withArgumentsIllegalMixinDueToConstructorsCause(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode illegalSyncGeneratorReturnType = const MessageCode(
@@ -7126,8 +7128,8 @@ Message _withArgumentsOldIncrementalCompilerIllegalParameter(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String typeParameterName),
+  Message Function({required String typeParameterName})
 >
 incrementalCompilerIllegalTypeParameter = const Template(
   "IncrementalCompilerIllegalTypeParameter",
@@ -7137,21 +7139,23 @@ incrementalCompilerIllegalTypeParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncrementalCompilerIllegalTypeParameter({
-  required String string,
+  required String typeParameterName,
 }) {
-  var string_0 = conversions.validateString(string);
+  var typeParameterName_0 = conversions.validateString(typeParameterName);
   return new Message(
     incrementalCompilerIllegalTypeParameter,
     problemMessage:
-        """Illegal type parameter name '${string_0}' found during expression compilation.""",
-    arguments: {'string': string},
+        """Illegal type parameter name '${typeParameterName_0}' found during expression compilation.""",
+    arguments: {'typeParameterName': typeParameterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIncrementalCompilerIllegalTypeParameter(
-  String string,
-) => _withArgumentsIncrementalCompilerIllegalTypeParameter(string: string);
+  String typeParameterName,
+) => _withArgumentsIncrementalCompilerIllegalTypeParameter(
+  typeParameterName: typeParameterName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7562,8 +7566,8 @@ Message _withArgumentsOldInstanceAndSynthesizedStaticConflict(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String propertyName),
+  Message Function({required String propertyName})
 >
 instanceConflictsWithStatic = const Template(
   "InstanceConflictsWithStatic",
@@ -7572,19 +7576,21 @@ instanceConflictsWithStatic = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstanceConflictsWithStatic({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsInstanceConflictsWithStatic({
+  required String propertyName,
+}) {
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
   return new Message(
     instanceConflictsWithStatic,
     problemMessage:
-        """Instance property '${name_0}' conflicts with static property of the same name.""",
-    arguments: {'name': name},
+        """Instance property '${propertyName_0}' conflicts with static property of the same name.""",
+    arguments: {'propertyName': propertyName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstanceConflictsWithStatic(String name) =>
-    _withArgumentsInstanceConflictsWithStatic(name: name);
+Message _withArgumentsOldInstanceConflictsWithStatic(String propertyName) =>
+    _withArgumentsInstanceConflictsWithStatic(propertyName: propertyName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -14715,8 +14721,8 @@ Message _withArgumentsOldSpreadTypeMismatch(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String propertyName),
+  Message Function({required String propertyName})
 >
 staticConflictsWithInstance = const Template(
   "StaticConflictsWithInstance",
@@ -14725,24 +14731,26 @@ staticConflictsWithInstance = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsStaticConflictsWithInstance({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsStaticConflictsWithInstance({
+  required String propertyName,
+}) {
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
   return new Message(
     staticConflictsWithInstance,
     problemMessage:
-        """Static property '${name_0}' conflicts with instance property of the same name.""",
-    arguments: {'name': name},
+        """Static property '${propertyName_0}' conflicts with instance property of the same name.""",
+    arguments: {'propertyName': propertyName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldStaticConflictsWithInstance(String name) =>
-    _withArgumentsStaticConflictsWithInstance(name: name);
+Message _withArgumentsOldStaticConflictsWithInstance(String propertyName) =>
+    _withArgumentsStaticConflictsWithInstance(propertyName: propertyName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String propertyName),
+  Message Function({required String propertyName})
 >
 staticConflictsWithInstanceCause = const Template(
   "StaticConflictsWithInstanceCause",
@@ -14752,18 +14760,21 @@ staticConflictsWithInstanceCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsStaticConflictsWithInstanceCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsStaticConflictsWithInstanceCause({
+  required String propertyName,
+}) {
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
   return new Message(
     staticConflictsWithInstanceCause,
-    problemMessage: """Conflicting instance property '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicting instance property '${propertyName_0}'.""",
+    arguments: {'propertyName': propertyName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldStaticConflictsWithInstanceCause(String name) =>
-    _withArgumentsStaticConflictsWithInstanceCause(name: name);
+Message _withArgumentsOldStaticConflictsWithInstanceCause(
+  String propertyName,
+) => _withArgumentsStaticConflictsWithInstanceCause(propertyName: propertyName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode staticTearOffFromInstantiatedClass = const MessageCode(

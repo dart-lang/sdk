@@ -235,8 +235,8 @@ class _InitializerBuilder {
         // initializer.
         _problemReporting.buildProblem(
           compilerContext: _compilerContext,
-          message: diag.illegalMixinDueToConstructors.withArgumentsOld(
-            _bodyBuilderContext.className,
+          message: diag.illegalMixinDueToConstructors.withArguments(
+            className: _bodyBuilderContext.className,
           ),
           fileUri: _fileUri,
           fileOffset: _bodyBuilderContext.memberNameOffset,

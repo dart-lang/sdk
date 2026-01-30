@@ -4004,13 +4004,13 @@ class DeferredAccessGenerator extends Generator {
     } else {
       int charOffset = offsetForToken(prefixGenerator.token);
       message = diag.deferredTypeAnnotation
-          .withArgumentsOld(
-            _helper.buildDartType(
+          .withArguments(
+            type: _helper.buildDartType(
               type,
               TypeUse.deferredTypeError,
               allowPotentiallyConstantType: allowPotentiallyConstantType,
             ),
-            prefixGenerator._plainNameForRead,
+            prefix: prefixGenerator._plainNameForRead,
           )
           .withLocation(
             _fileUri,

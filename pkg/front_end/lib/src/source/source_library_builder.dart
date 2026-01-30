@@ -482,10 +482,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // TODO(ahe): We should probably use a context object here
     // instead of including URIs in this message.
-    Message message = diag.duplicatedExport.withArgumentsOld(
-      name,
-      firstUri,
-      secondUri,
+    Message message = diag.duplicatedExport.withArguments(
+      name: name,
+      uri: firstUri,
+      uri2: secondUri,
     );
     addProblem(message, uriOffset.fileOffset, noLength, uriOffset.fileUri);
     // We report the error lazily (setting errorHasBeenReported to false)

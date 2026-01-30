@@ -2071,8 +2071,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (TypeParameter typeParam in typeDefinitions) {
         if (!isLegalIdentifier(typeParam.name!)) {
           lastGoodKernelTarget.loader.addProblem(
-            diag.incrementalCompilerIllegalTypeParameter.withArgumentsOld(
-              '$typeParam',
+            diag.incrementalCompilerIllegalTypeParameter.withArguments(
+              typeParameterName: '$typeParam',
             ),
             typeParam.fileOffset,
             0,

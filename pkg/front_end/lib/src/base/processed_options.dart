@@ -299,7 +299,10 @@ class ProcessedOptions {
       if (_raw.skipForDebugging < 0) {
         print(
           diag.debugTrace
-              .withArgumentsOld("$severity", "${StackTrace.current}")
+              .withArguments(
+                severity: "$severity",
+                stackTrace: "${StackTrace.current}",
+              )
               .problemMessage,
         );
       } else {

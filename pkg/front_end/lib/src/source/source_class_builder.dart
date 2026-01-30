@@ -369,7 +369,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(johnniwinther): Update the message for when a class depends on
     // a cycle but does not depend on itself.
     libraryBuilder.addProblem(
-      diag.cyclicClassHierarchy.withArgumentsOld(fullNameForErrors),
+      diag.cyclicClassHierarchy.withArguments(typeName: fullNameForErrors),
       fileOffset,
       noLength,
       fileUri,
@@ -968,8 +968,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               constructor.hasParameters ||
               constructor.isEffectivelyExternal) {
             libraryBuilder.addProblem(
-              diag.illegalMixinDueToConstructors.withArgumentsOld(
-                fullNameForErrors,
+              diag.illegalMixinDueToConstructors.withArguments(
+                className: fullNameForErrors,
               ),
               constructor.fileOffset,
               noLength,
