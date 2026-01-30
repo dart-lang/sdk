@@ -16,7 +16,33 @@ main() {
 @reflectiveTest
 class FieldInitializerRedirectingConstructorTest
     extends PubPackageResolutionTest {
-  test_class_afterRedirection() async {
+  test_class_primary_afterRedirection() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  int x;
+  A.named() : this();
+  this : this.named(), x = 0;
+}
+''',
+      [error(diag.primaryConstructorCannotRedirect, 52, 4)],
+    );
+  }
+
+  test_class_primary_beforeRedirection() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  int x;
+  A.named() : this();
+  this : x = 0, this.named();
+}
+''',
+      [error(diag.primaryConstructorCannotRedirect, 59, 4)],
+    );
+  }
+
+  test_class_typeName_afterRedirection() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -29,7 +55,7 @@ class A {
     );
   }
 
-  test_class_beforeRedirection() async {
+  test_class_typeName_beforeRedirection() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -42,7 +68,7 @@ class A {
     );
   }
 
-  test_class_redirectionOnly() async {
+  test_class_typeName_redirectionOnly() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -55,7 +81,41 @@ class A {
     );
   }
 
-  test_enum_afterRedirection() async {
+  test_enum_primary_afterRedirection() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  final int x;
+  const E.named() : this();
+  this : this.named(), x = 0;
+}
+''',
+      [
+        error(diag.recursiveConstantConstructor, 39, 7),
+        error(diag.primaryConstructorCannotRedirect, 68, 4),
+      ],
+    );
+  }
+
+  test_enum_primary_beforeRedirection() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  final int x;
+  const E.named() : this();
+  this : x = 0, this.named();
+}
+''',
+      [
+        error(diag.recursiveConstantConstructor, 39, 7),
+        error(diag.primaryConstructorCannotRedirect, 75, 4),
+      ],
+    );
+  }
+
+  test_enum_typeName_afterRedirection() async {
     await assertErrorsInCode(
       r'''
 enum E {
@@ -69,7 +129,7 @@ enum E {
     );
   }
 
-  test_enum_beforeRedirection() async {
+  test_enum_typeName_beforeRedirection() async {
     await assertErrorsInCode(
       r'''
 enum E {
@@ -83,7 +143,7 @@ enum E {
     );
   }
 
-  test_enum_redirectionOnly() async {
+  test_enum_typeName_redirectionOnly() async {
     await assertErrorsInCode(
       r'''
 enum E {

@@ -1447,6 +1447,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _withEnclosingExecutable(
       element,
       () {
+        _checkForConflictingPrimaryConstructorInitializers(node);
         super.visitPrimaryConstructorBody(node);
       },
       isAsynchronous: fragment.isAsynchronous,
@@ -2853,18 +2854,55 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         superInitializer != declaration.initializers.last) {
       var superType = enclosingClass.supertype;
       if (superType != null) {
-        var superNamedType = superType.element.displayName;
-        var constructorStrName = superNamedType;
-        var constructorName = superInitializer.constructorName;
-        if (constructorName != null) {
-          constructorStrName += '.${constructorName.name}';
-        }
         diagnosticReporter.report(
-          diag.superInvocationNotLast
-              .withArguments(superConstructorName: constructorStrName)
-              .at(superInitializer.superKeyword),
+          diag.superInvocationNotLast.at(superInitializer.superKeyword),
         );
       }
+    }
+  }
+
+  /// Check that the given primary constructor [body] has a valid combination of
+  /// redirecting constructor invocation(s) and super constructor invocation(s).
+  void _checkForConflictingPrimaryConstructorInitializers(
+    PrimaryConstructorBodyImpl body,
+  ) {
+    var redirectingConstructorInvocations = body.initializers
+        .whereType<RedirectingConstructorInvocationImpl>()
+        .toList();
+    if (redirectingConstructorInvocations.isNotEmpty) {
+      for (var invocation in redirectingConstructorInvocations) {
+        diagnosticReporter.report(
+          diag.primaryConstructorCannotRedirect.at(invocation.thisKeyword),
+        );
+      }
+      return;
+    }
+
+    var superConstructorInvocations = body.initializers
+        .whereType<SuperConstructorInvocationImpl>()
+        .toList();
+    if (_enclosingClass is ClassElementImpl) {
+      if (superConstructorInvocations case [_, var second, ...]) {
+        diagnosticReporter.report(
+          diag.multipleSuperInitializers.at(second.superKeyword),
+        );
+        return;
+      }
+    } else if (_enclosingClass is EnumElementImpl) {
+      if (superConstructorInvocations case [var first, ...]) {
+        diagnosticReporter.report(
+          diag.superInEnumConstructor.at(first.superKeyword),
+        );
+        return;
+      }
+    }
+
+    var superConstructorInvocation = superConstructorInvocations.lastOrNull;
+    if (superConstructorInvocation != null &&
+        body.initializers.last != superConstructorInvocation) {
+      diagnosticReporter.report(
+        diag.superInvocationNotLast.at(superConstructorInvocation.superKeyword),
+      );
     }
   }
 

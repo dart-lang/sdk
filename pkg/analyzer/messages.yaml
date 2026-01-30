@@ -14910,6 +14910,12 @@ CompileTimeErrorCode:
     problemMessage: "A primary constructor body requires a primary constructor declaration."
     correctionMessage: "Try adding the primary constructor declaration."
     hasPublishedDocs: false
+  primaryConstructorCannotRedirect:
+    type: compileTimeError
+    parameters: none
+    problemMessage: "A primary constructor can't be a redirecting constructor."
+    correctionMessage: "Try removing the redirect."
+    hasPublishedDocs: false
   privateCollisionInMixinApplication:
     type: compileTimeError
     parameters:
@@ -16978,10 +16984,9 @@ CompileTimeErrorCode:
       includes a superinitializer.
   superInvocationNotLast:
     type: compileTimeError
-    parameters:
-      String superConstructorName: the superinitializer
+    parameters: none
     previousName: INVALID_SUPER_INVOCATION
-    problemMessage: "The superconstructor call must be last in an initializer list: '#superConstructorName'."
+    problemMessage: "The superconstructor call must be last in an initializer list."
     hasPublishedDocs: true
     documentation: |-
       #### Description
