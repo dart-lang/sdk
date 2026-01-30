@@ -228,6 +228,8 @@ class UnmatchedToken extends ErrorToken {
   String toString() => "UnmatchedToken(${begin.lexeme})";
 
   @override
-  Message get assertionMessage =>
-      diag.unmatchedToken.withArgumentsOld(closeBraceFor(begin.lexeme), begin);
+  Message get assertionMessage => diag.unmatchedToken.withArguments(
+    expected: closeBraceFor(begin.lexeme),
+    lexeme: begin,
+  );
 }

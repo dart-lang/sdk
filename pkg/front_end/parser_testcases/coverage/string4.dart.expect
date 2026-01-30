@@ -48,7 +48,7 @@ beginCompilationUnit(void)
           beginLiteralString(r"""
 æbler""")
           endLiteralString(0, })
-          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], r"""
+          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], r"""
 æbler""", r"""
 æbler""")
         endReturnStatement(true, return, ;)
@@ -58,5 +58,5 @@ beginCompilationUnit(void)
   handleErrorToken(UnterminatedString(r"""))
   handleRecoverableError(Message[Template(UnterminatedString), String starting with r""" must end with """., null, {openQuote: r""", expectedCloseQuote: """}], UnterminatedString(r"""), UnterminatedString(r"""))
   handleErrorToken(UnmatchedToken({))
-  handleRecoverableError(Message[Template(UnmatchedToken), Can't find '}' to match '{'., null, {string: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
+  handleRecoverableError(Message[Template(UnmatchedToken), Can't find '}' to match '{'., null, {expected: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
 endCompilationUnit(2, )

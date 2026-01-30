@@ -791,8 +791,8 @@ List<Test> extractTestsFromComment(
                   identical(")", nextSeparator.next!.stringValue)))) {
         int position =
             commentsData.charOffset + scanOffset + nextSeparator.charOffset;
-        Message message = diag.expectedButGot.withArgumentsOld(
-          i < expressionCount ? "," : ")",
+        Message message = diag.expectedButGot.withArguments(
+          expected: i < expressionCount ? "," : ")",
         );
         return new TestParseError(
           _createParseErrorMessage(

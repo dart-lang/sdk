@@ -822,8 +822,8 @@ expectedButGot:
   # Also see ExpectedButGot2, ExpectedAfterButGot, and ExpectedInstead
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-  problemMessage: "Expected '#string' before this."
+    String expected: The text that was expected.
+  problemMessage: "Expected '#expected' before this."
   # Consider the second example below: the parser expects a ')' before 'y', but
   # a ',' would also have worked. We don't have enough information to give a
   # good suggestion.
@@ -836,9 +836,9 @@ expectedButGot2:
   # Also see ExpectedButGot, ExpectedAfterButGot, and ExpectedInstead
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Expected '#string' or '#string2' before this."
+    String expected: The first possible text that was expected.
+    String expected2: The second possible text that was expected.
+  problemMessage: "Expected '#expected' or '#expected2' before this."
   # TODO(eernst): Enable this example when the feature is enabled.
   # exampleAllowOtherCodes: true
   # experiments: anonymous-methods
@@ -849,8 +849,8 @@ expectedAfterButGot:
   # Also see ExpectedButGot, ExpectedButGot2, and ExpectedInstead
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-  problemMessage: "Expected '#string' after this."
+    String expected: The text that was expected.
+  problemMessage: "Expected '#expected' after this."
   # This is an alternative to ExpectedButGot when it's better for the error to be
   # associated with the last consumed token rather than the token being parsed.
   # Doing so can make it cognitively easier for the user to understand and fix.
@@ -984,8 +984,8 @@ expectedString:
 expectedToken:
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-  problemMessage: "Expected to find '#string'."
+    String expected: The token that was expected.
+  problemMessage: "Expected to find '#expected'."
   script: |
     void foo() {
       switch (1) {
@@ -1343,9 +1343,9 @@ unexpectedToken:
 unmatchedToken:
   pseudoSharedCode: EXPECTED_TOKEN
   parameters:
-    String string: undocumented
-    Token lexeme: undocumented
-  problemMessage: "Can't find '#string' to match '#lexeme'."
+    String expected: The token that was expected.
+    Token lexeme: The opening brace token that was unmatched.
+  problemMessage: "Can't find '#expected' to match '#lexeme'."
   script:
     - "main("
     - "main(){"
@@ -1631,7 +1631,7 @@ setterWithWrongNumberOfFormals:
 constFieldWithoutInitializer:
   pseudoSharedCode: CONST_NOT_INITIALIZED
   parameters:
-    Name name: undocumented
+    Name name: The name of the uninitialized variable.
   problemMessage: "The const variable '#name' must be initialized."
   correctionMessage: "Try adding an initializer ('= expression') to the declaration."
   script:
@@ -1641,7 +1641,7 @@ constFieldWithoutInitializer:
 finalFieldWithoutInitializer:
   pseudoSharedCode: FINAL_NOT_INITIALIZED
   parameters:
-    Name name: undocumented
+    Name name: The name of the uninitialized field.
   problemMessage: "The final variable '#name' must be initialized."
   correctionMessage: "Try adding an initializer ('= expression') to the declaration."
   script:
@@ -3658,7 +3658,7 @@ superclassHasNoSetter:
 
 superclassHasNoMethod:
   parameters:
-    Name name: undocumented
+    Name name: The name of the method that was not found.
   problemMessage: "Superclass has no method named '#name'."
   script: |
     class Super {}
@@ -4560,14 +4560,14 @@ untranslatableUri:
 
 unavailableDartLibrary:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI of the library that is not available.
   problemMessage: "Dart library '#uri' is not available on this platform."
   script: |
     import "dart:non_existing_library";
 
 unsupportedPlatformDartLibraryImport:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI of the library that is unsupported.
   problemMessage: |
     Using stub implementations for APIs in platform-specific Dart library
     '#uri', which will throw 'UnsupportedError' if invoked.

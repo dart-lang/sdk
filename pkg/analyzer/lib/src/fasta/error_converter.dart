@@ -98,7 +98,7 @@ class FastaErrorReporter {
       case PseudoSharedCode.expectedToken:
         diagnosticReporter?.report(
           diag.expectedToken
-              .withArguments(token: arguments['string'] as String)
+              .withArguments(token: arguments['expected'] as String)
               .atOffset(offset: offset, length: length),
         );
         return;

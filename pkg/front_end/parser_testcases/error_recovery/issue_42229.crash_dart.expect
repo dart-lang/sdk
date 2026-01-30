@@ -43,7 +43,7 @@ beginCompilationUnit(Stream)
       // WARNING: Reporting at eof for .
       handleIdentifier(, topLevelVariableDeclaration)
       handleNoFieldInitializer()
-      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], >, >)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], >, >)
     endTopLevelFields(null, null, null, null, null, null, 1, Stream, ;)
   endTopLevelDeclaration(;)
 endCompilationUnit(1, )

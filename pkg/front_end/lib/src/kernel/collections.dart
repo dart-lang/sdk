@@ -1434,7 +1434,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
   return new MapLiteralEntry(
     problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.expectedAfterButGot.withArgumentsOld(':'),
+      message: diag.expectedAfterButGot.withArguments(expected: ':'),
       fileUri: fileUri,
       fileOffset: element.fileOffset,
       // TODO(danrubel): what is the length of the expression?

@@ -2445,7 +2445,7 @@ class BodyBuilderImpl extends StackListenerImpl
       length = 1;
     }
     Message message = isSuper
-        ? diag.superclassHasNoMethod.withArgumentsOld(name.text)
+        ? diag.superclassHasNoMethod.withArguments(name: name.text)
         : diag.methodNotFound.withArgumentsOld(name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
@@ -3364,8 +3364,8 @@ class BodyBuilderImpl extends StackListenerImpl
         // If [token] is synthetic it is created from error recovery.
         if (isConst) {
           initializer = buildProblem(
-            message: diag.constFieldWithoutInitializer.withArgumentsOld(
-              token.lexeme,
+            message: diag.constFieldWithoutInitializer.withArguments(
+              name: token.lexeme,
             ),
             fileUri: uri,
             fileOffset: token.charOffset,
@@ -4443,7 +4443,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (entry is MapLiteralEntry) {
           // TODO(danrubel): report the error on the colon
           addProblem(
-            diag.expectedButGot.withArgumentsOld(','),
+            diag.expectedButGot.withArguments(expected: ','),
             entry.fileOffset,
             1,
           );
@@ -7347,7 +7347,7 @@ class BodyBuilderImpl extends StackListenerImpl
               offsetForToken(ifToken);
         node = new MapLiteralEntry(
           buildProblem(
-            message: diag.expectedAfterButGot.withArgumentsOld(':'),
+            message: diag.expectedAfterButGot.withArguments(expected: ':'),
             fileUri: uri,
             fileOffset: offset,
             length: 1,
@@ -7399,7 +7399,7 @@ class BodyBuilderImpl extends StackListenerImpl
               offsetForToken(ifToken);
         node = new MapLiteralEntry(
           buildProblem(
-            message: diag.expectedAfterButGot.withArgumentsOld(':'),
+            message: diag.expectedAfterButGot.withArguments(expected: ':'),
             fileUri: uri,
             fileOffset: offset,
             length: 1,

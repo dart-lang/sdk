@@ -1133,7 +1133,7 @@ class Parser {
     if (!leftParen.isA(TokenType.OPEN_PAREN)) {
       reportRecoverableError(
         leftParen,
-        diag.expectedButGot.withArgumentsOld('('),
+        diag.expectedButGot.withArguments(expected: '('),
       );
       leftParen = rewriter.insertParens(token, /* includeIdentifier = */ true);
     }
@@ -1540,7 +1540,7 @@ class Parser {
             );
             reportRecoverableError(
               functionToken,
-              diag.expectedButGot.withArgumentsOld('Function'),
+              diag.expectedButGot.withArguments(expected: 'Function'),
             );
             type = computeType(equals, /* required = */ true);
           } else if (type is NoType &&
@@ -1577,7 +1577,7 @@ class Parser {
               );
               reportRecoverableError(
                 functionToken,
-                diag.expectedButGot.withArgumentsOld('Function'),
+                diag.expectedButGot.withArguments(expected: 'Function'),
               );
               type = computeType(equals, /* required = */ true);
             }
@@ -1627,7 +1627,7 @@ class Parser {
       // Recovery: Report an error and insert synthetic `with` clause.
       reportRecoverableError(
         withKeyword,
-        diag.expectedButGot.withArgumentsOld('with'),
+        diag.expectedButGot.withArguments(expected: 'with'),
       );
       withKeyword = rewriter.insertSyntheticKeyword(token, Keyword.WITH);
       if (!isValidNonRecordTypeReference(withKeyword.next!)) {
@@ -1789,7 +1789,7 @@ class Parser {
             // Looks like a missing comma
             token = rewriteAndRecover(
               token,
-              diag.expectedButGot.withArgumentsOld(','),
+              diag.expectedButGot.withArguments(expected: ','),
               new SyntheticToken(TokenType.COMMA, next.charOffset),
             );
             continue;
@@ -1875,7 +1875,7 @@ class Parser {
           // Recovery
           reportRecoverableError(
             next,
-            diag.expectedButGot.withArgumentsOld('}'),
+            diag.expectedButGot.withArguments(expected: '}'),
           );
           // Scanner guarantees a closing bracket.
           next = begin.endGroup!;
@@ -1970,7 +1970,7 @@ class Parser {
             // Looks like a missing comma
             token = rewriteAndRecover(
               token,
-              diag.expectedButGot.withArgumentsOld(','),
+              diag.expectedButGot.withArguments(expected: ','),
               new SyntheticToken(TokenType.COMMA, next.charOffset),
             );
             continue;
@@ -2182,7 +2182,7 @@ class Parser {
           // Recover from a missing period by inserting one.
           next = rewriteAndRecover(
             token,
-            diag.expectedButGot.withArgumentsOld('.'),
+            diag.expectedButGot.withArguments(expected: '.'),
             new SyntheticToken(TokenType.PERIOD, next.charOffset),
           );
           // These 3 lines are duplicated here and below.
@@ -2410,7 +2410,7 @@ class Parser {
           // Recovery
           reportRecoverableError(
             next,
-            diag.expectedButGot.withArgumentsOld(']'),
+            diag.expectedButGot.withArguments(expected: ']'),
           );
           // Scanner guarantees a closing bracket.
           next = begin.endGroup!;
@@ -2474,7 +2474,7 @@ class Parser {
           // Recovery
           reportRecoverableError(
             next,
-            diag.expectedButGot.withArgumentsOld('}'),
+            diag.expectedButGot.withArguments(expected: '}'),
           );
           // Scanner guarantees a closing bracket.
           next = begin.endGroup!;
@@ -2647,13 +2647,13 @@ class Parser {
             // for situations such as `enum Letter {a, b   Letter e;`.
             reportRecoverableError(
               next,
-              diag.expectedButGot.withArgumentsOld(','),
+              diag.expectedButGot.withArguments(expected: ','),
             );
           } else {
             // Otherwise assume a missing `}` and exit the loop
             reportRecoverableError(
               next,
-              diag.expectedButGot.withArgumentsOld('}'),
+              diag.expectedButGot.withArguments(expected: '}'),
             );
             token = leftBrace.endGroup!;
             break;
@@ -3599,7 +3599,7 @@ class Parser {
         } else {
           reportRecoverableError(
             token,
-            diag.expectedAfterButGot.withArgumentsOld('on'),
+            diag.expectedAfterButGot.withArguments(expected: 'on'),
           );
           onKeyword = rewriter.insertSyntheticKeyword(token, Keyword.ON);
         }
@@ -4463,7 +4463,7 @@ class Parser {
         if (varFinalOrConst.isA(Keyword.CONST)) {
           reportRecoverableError(
             name,
-            diag.constFieldWithoutInitializer.withArgumentsOld(name.lexeme),
+            diag.constFieldWithoutInitializer.withArguments(name: name.lexeme),
           );
         } else if (kind == DeclarationKind.TopLevel &&
             varFinalOrConst.isA(Keyword.FINAL) &&
@@ -4472,7 +4472,7 @@ class Parser {
             externalToken == null) {
           reportRecoverableError(
             name,
-            diag.finalFieldWithoutInitializer.withArgumentsOld(name.lexeme),
+            diag.finalFieldWithoutInitializer.withArguments(name: name.lexeme),
           );
         }
       }
@@ -4550,7 +4550,7 @@ class Parser {
         // expecting one of `,` or `;` or `{`
         reportRecoverableError(
           token,
-          diag.expectedAfterButGot.withArgumentsOld(','),
+          diag.expectedAfterButGot.withArguments(expected: ','),
         );
         next = rewriter.insertSyntheticToken(token, TokenType.COMMA);
       }
@@ -4619,7 +4619,10 @@ class Parser {
       if (token.isA(Keyword.THIS)) {
         // TODO(danrubel): Consider a better error message indicating that
         // `this.<fieldname>=` is expected.
-        reportRecoverableError(next, diag.expectedButGot.withArgumentsOld('.'));
+        reportRecoverableError(
+          next,
+          diag.expectedButGot.withArguments(expected: '.'),
+        );
         rewriter.insertSyntheticToken(token, TokenType.PERIOD);
         token = rewriter.insertSyntheticIdentifier(token.next!);
         next = token.next!;
@@ -4719,7 +4722,7 @@ class Parser {
       } else if (!next.isA(TokenType.OPEN_PAREN)) {
         reportRecoverableError(
           next,
-          diag.expectedAfterButGot.withArgumentsOld('('),
+          diag.expectedAfterButGot.withArguments(expected: '('),
         );
         rewriter.insertParens(token, /* includeIdentifier = */ false);
       }
@@ -4746,7 +4749,10 @@ class Parser {
       codes.Message? message = missingBlockKind?.message;
       if (message == null) {
         // TODO(danrubel): rename ExpectedButGot to ExpectedBefore
-        reportRecoverableError(next, diag.expectedButGot.withArgumentsOld('{'));
+        reportRecoverableError(
+          next,
+          diag.expectedButGot.withArguments(expected: '{'),
+        );
       } else {
         reportRecoverableError(token, message);
       }
@@ -4790,7 +4796,10 @@ class Parser {
     }
 
     // TODO(danrubel): Pass in context for better error message.
-    reportRecoverableError(next, diag.expectedButGot.withArgumentsOld(')'));
+    reportRecoverableError(
+      next,
+      diag.expectedButGot.withArguments(expected: ')'),
+    );
 
     // Scanner guarantees a closing parenthesis
     // TODO(danrubel): Improve recovery by having callers parse tokens
@@ -4803,7 +4812,7 @@ class Parser {
   Token ensureColon(Token token) {
     Token next = token.next!;
     if (next.isA(TokenType.COLON)) return next;
-    codes.Message message = diag.expectedButGot.withArgumentsOld(':');
+    codes.Message message = diag.expectedButGot.withArguments(expected: ':');
     Token newToken = new SyntheticToken(TokenType.COLON, next.charOffset);
     return rewriteAndRecover(token, message, newToken);
   }
@@ -4814,7 +4823,7 @@ class Parser {
   Token ensureFunctionArrow(Token token) {
     Token next = token.next!;
     if (next.isA(TokenType.FUNCTION)) return next;
-    codes.Message message = diag.expectedButGot.withArgumentsOld('=>');
+    codes.Message message = diag.expectedButGot.withArguments(expected: '=>');
     Token newToken = new SyntheticToken(TokenType.FUNCTION, next.charOffset);
     return rewriteAndRecover(token, message, newToken);
   }
@@ -4852,7 +4861,7 @@ class Parser {
     // for users to understand and fix the error.
     reportRecoverableError(
       findPreviousNonZeroLengthToken(token),
-      diag.expectedAfterButGot.withArgumentsOld(';'),
+      diag.expectedAfterButGot.withArguments(expected: ';'),
     );
     return rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
   }
@@ -7226,7 +7235,7 @@ class Parser {
     } else {
       reportRecoverableError(
         afterParameters,
-        diag.expectedButGot2.withArgumentsOld("{", "=>"),
+        diag.expectedButGot2.withArguments(expected: "{", expected2: "=>"),
       );
       functionDefinition = rewriter.insertSyntheticToken(
         currentToken,
@@ -7663,7 +7672,7 @@ class Parser {
           // Recovery
           reportRecoverableError(
             next,
-            diag.expectedButGot.withArgumentsOld(']'),
+            diag.expectedButGot.withArguments(expected: ']'),
           );
           // Scanner ensures a closing ']'
           Token endGroup = openSquareBracket.endGroup!;
@@ -7918,7 +7927,7 @@ class Parser {
       // Recover
       reportRecoverableError(
         openParen,
-        diag.expectedToken.withArgumentsOld('('),
+        diag.expectedToken.withArguments(expected: '('),
       );
       openParen = rewriter.insertParens(token, /* includeIdentifier = */ false);
     }
@@ -8182,7 +8191,7 @@ class Parser {
             // Report an error and jump to the end of the list.
             reportRecoverableError(
               next,
-              diag.expectedButGot.withArgumentsOld(']'),
+              diag.expectedButGot.withArguments(expected: ']'),
             );
             token = beginToken.endGroup!;
           }
@@ -8193,7 +8202,7 @@ class Parser {
         SyntheticToken comma = new SyntheticToken(TokenType.COMMA, next.offset);
         codes.Message message = ifCount > 0
             ? diag.expectedElseOrComma
-            : diag.expectedButGot.withArgumentsOld(',');
+            : diag.expectedButGot.withArguments(expected: ',');
         next = rewriteAndRecover(token, message, comma);
       }
       token = next;
@@ -8333,12 +8342,12 @@ class Parser {
           );
           codes.Message message = ifCount > 0
               ? diag.expectedElseOrComma
-              : diag.expectedButGot.withArgumentsOld(',');
+              : diag.expectedButGot.withArguments(expected: ',');
           token = rewriteAndRecover(token, message, comma);
         } else {
           reportRecoverableError(
             next,
-            diag.expectedButGot.withArgumentsOld('}'),
+            diag.expectedButGot.withArguments(expected: '}'),
           );
           // Scanner guarantees a closing curly bracket
           next = leftBrace.endGroup!;
@@ -8442,7 +8451,10 @@ class Parser {
     if (!next.isA(TokenType.OPEN_SQUARE_BRACKET) &&
         !next.isA(TokenType.INDEX)) {
       // TODO(danrubel): Improve this error message.
-      reportRecoverableError(next, diag.expectedButGot.withArgumentsOld('['));
+      reportRecoverableError(
+        next,
+        diag.expectedButGot.withArguments(expected: '['),
+      );
       rewriter.insertSyntheticToken(token, TokenType.INDEX);
     }
     return parseLiteralListSuffix(token, constKeyword);
@@ -8514,7 +8526,7 @@ class Parser {
     if (!next.isA(TokenType.OPEN_PAREN)) {
       reportRecoverableError(
         token,
-        diag.expectedAfterButGot.withArgumentsOld('('),
+        diag.expectedAfterButGot.withArguments(expected: '('),
       );
       next = rewriter.insertParens(token, /* includeIdentifier = */ false);
     }
@@ -8529,7 +8541,7 @@ class Parser {
       if (typeArg == noTypeParamOrArg) {
         reportRecoverableError(
           token,
-          diag.expectedAfterButGot.withArgumentsOld('('),
+          diag.expectedAfterButGot.withArguments(expected: '('),
         );
       } else {
         reportRecoverableError(token, diag.constructorWithTypeArguments);
@@ -8939,7 +8951,7 @@ class Parser {
         if (!token.isA(TokenType.CLOSE_CURLY_BRACKET)) {
           reportRecoverableError(
             token,
-            diag.expectedButGot.withArgumentsOld('}'),
+            diag.expectedButGot.withArguments(expected: '}'),
           );
           token = next.endGroup!;
         }
@@ -9273,7 +9285,7 @@ class Parser {
           // then report an error, insert the comma, and continue parsing.
           next = rewriteAndRecover(
             token,
-            diag.expectedButGot.withArgumentsOld(','),
+            diag.expectedButGot.withArguments(expected: ','),
             new SyntheticToken(TokenType.COMMA, next.offset),
           );
         } else {
@@ -9881,7 +9893,7 @@ class Parser {
       // Recovery
       reportRecoverableError(
         leftParenthesis,
-        diag.expectedButGot.withArgumentsOld('('),
+        diag.expectedButGot.withArguments(expected: '('),
       );
 
       BeginToken openParen =
@@ -9962,7 +9974,7 @@ class Parser {
       } else if (awaitToken != null) {
         reportRecoverableError(
           next,
-          diag.expectedButGot.withArgumentsOld('in'),
+          diag.expectedButGot.withArguments(expected: 'in'),
         );
         token.setNext(
           new SyntheticKeywordToken(Keyword.IN, next.offset)..setNext(next),
@@ -10159,7 +10171,7 @@ class Parser {
     if (!whileToken.isA(Keyword.WHILE)) {
       reportRecoverableError(
         whileToken,
-        diag.expectedButGot.withArgumentsOld('while'),
+        diag.expectedButGot.withArguments(expected: 'while'),
       );
       whileToken = rewriter.insertSyntheticKeyword(token, Keyword.WHILE);
     }
@@ -10621,7 +10633,7 @@ class Parser {
           // Recovery
           reportRecoverableError(
             peek,
-            diag.expectedToken.withArgumentsOld("case"),
+            diag.expectedToken.withArguments(expected: "case"),
           );
           Token endGroup = beginSwitch.endGroup!;
           while (token.next != endGroup) {
@@ -10742,7 +10754,7 @@ class Parser {
       // Recovery
       reportRecoverableError(
         leftParenthesis,
-        diag.expectedButGot.withArgumentsOld('('),
+        diag.expectedButGot.withArguments(expected: '('),
       );
       leftParenthesis = rewriter.insertParens(
         token,
@@ -11706,7 +11718,7 @@ class Parser {
             // Report an error and jump to the end of the list.
             reportRecoverableError(
               next,
-              diag.expectedButGot.withArgumentsOld(']'),
+              diag.expectedButGot.withArguments(expected: ']'),
             );
             token = beginToken.endGroup!;
           }
@@ -11715,7 +11727,9 @@ class Parser {
         // This looks like the start of an expression.
         // Report an error, insert the comma, and continue parsing.
         SyntheticToken comma = new SyntheticToken(TokenType.COMMA, next.offset);
-        codes.Message message = diag.expectedButGot.withArgumentsOld(',');
+        codes.Message message = diag.expectedButGot.withArguments(
+          expected: ',',
+        );
         next = rewriteAndRecover(token, message, comma);
       }
       token = next;
@@ -11760,7 +11774,7 @@ class Parser {
           // Recover from a missing colon by inserting one.
           colon = rewriteAndRecover(
             token,
-            diag.expectedButGot.withArgumentsOld(':'),
+            diag.expectedButGot.withArguments(expected: ':'),
             new SyntheticToken(TokenType.COLON, next.charOffset),
           );
         }
@@ -11794,12 +11808,14 @@ class Parser {
             TokenType.COMMA,
             next.offset,
           );
-          codes.Message message = diag.expectedButGot.withArgumentsOld(',');
+          codes.Message message = diag.expectedButGot.withArguments(
+            expected: ',',
+          );
           token = rewriteAndRecover(token, message, comma);
         } else {
           reportRecoverableError(
             next,
-            diag.expectedButGot.withArgumentsOld('}'),
+            diag.expectedButGot.withArguments(expected: '}'),
           );
           // Scanner guarantees a closing curly bracket
           next = leftBrace.endGroup!;
@@ -11939,7 +11955,7 @@ class Parser {
           // then report an error, insert the comma, and continue parsing.
           next = rewriteAndRecover(
             token,
-            diag.expectedButGot.withArgumentsOld(','),
+            diag.expectedButGot.withArguments(expected: ','),
             new SyntheticToken(TokenType.COMMA, next.offset),
           );
         } else {
@@ -12106,7 +12122,7 @@ class Parser {
           arrow = next;
           reportRecoverableError(
             arrow,
-            diag.expectedButGot.withArgumentsOld('=>'),
+            diag.expectedButGot.withArguments(expected: '=>'),
           );
         } else {
           arrow = ensureFunctionArrow(token);
@@ -12127,7 +12143,7 @@ class Parser {
           // User accidentally used `;` instead of `,`
           reportRecoverableError(
             next,
-            diag.expectedButGot.withArgumentsOld(','),
+            diag.expectedButGot.withArguments(expected: ','),
           );
           comma = token = next;
           next = token.next!;
@@ -12145,7 +12161,9 @@ class Parser {
               TokenType.COMMA,
               next.offset,
             );
-            codes.Message message = diag.expectedButGot.withArgumentsOld(',');
+            codes.Message message = diag.expectedButGot.withArguments(
+              expected: ',',
+            );
             token = rewriteAndRecover(token, message, comma);
           } else {
             // Scanner guarantees a closing curly bracket
@@ -12154,7 +12172,7 @@ class Parser {
             if (comma == null) {
               reportRecoverableError(
                 next,
-                diag.expectedButGot.withArgumentsOld('}'),
+                diag.expectedButGot.withArguments(expected: '}'),
               );
               next = closingBracket;
               break;
@@ -12164,7 +12182,7 @@ class Parser {
               // error.
               reportRecoverableError(
                 next,
-                diag.expectedButGot.withArgumentsOld(','),
+                diag.expectedButGot.withArguments(expected: ','),
               );
               token = comma;
               next = token.next!;
