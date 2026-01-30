@@ -469,7 +469,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         assert(name == 'Never', "Unexpected export name for 'Never': '$name'");
         declaration = loader.coreLibrary.exportNameSpace.lookup(name)!.getable!;
       } else {
-        Message message = diag.unspecified.withArgumentsOld(messageText);
+        Message message = diag.unspecified.withArguments(message: messageText);
         if (!suppressFinalizationErrors) {
           addProblem(message, -1, noLength, null);
         }
@@ -530,7 +530,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         LibraryBuilder? library = loader.lookupLibraryBuilder(libraryUri);
         if (library == null) {
           internalProblem(
-            diag.unspecified.withArgumentsOld("No builder for '$libraryUri'."),
+            diag.unspecified.withArguments(
+              message: "No builder for '$libraryUri'.",
+            ),
             -1,
             fileUri,
           );

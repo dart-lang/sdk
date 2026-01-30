@@ -163,7 +163,7 @@ class UnsupportedOperator extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      diag.unsupportedOperator.withArgumentsOld(token);
+      diag.unsupportedOperator.withArguments(operator: token);
 
   @override
   String toString() => "UnsupportedOperator(${token.lexeme})";
@@ -189,8 +189,10 @@ class UnterminatedString extends ErrorToken {
   int get length => charCount;
 
   @override
-  Message get assertionMessage =>
-      diag.unterminatedString.withArgumentsOld(start, closeQuoteFor(start));
+  Message get assertionMessage => diag.unterminatedString.withArguments(
+    openQuote: start,
+    expectedCloseQuote: closeQuoteFor(start),
+  );
 }
 
 /// Represents an unterminated token.

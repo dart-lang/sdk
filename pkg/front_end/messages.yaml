@@ -788,8 +788,8 @@ duplicatedRecordLiteralFieldName:
 
 duplicatedRecordLiteralFieldNameContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the existing record literal field named '#name'."
+    Name fieldName: The name of the duplicated field.
+  problemMessage: "This is the existing record literal field named '#fieldName'."
   severity: CONTEXT
 
 emptyOptionalParameterList:
@@ -874,10 +874,10 @@ expectedAfterButGot:
 
 implementsRepeated:
   parameters:
-    Name name: undocumented
-    int count: undocumented
+    Name name: The interface that was implemented more than once.
+    int extraCount: The number of occurrences to suggest removing.
   problemMessage: "'#name' can only be implemented once."
-  correctionMessage: "Try removing #count of the occurrences."
+  correctionMessage: "Try removing #extraCount of the occurrences."
   script:
     - >-
       abstract class I {}
@@ -886,7 +886,7 @@ implementsRepeated:
 
 implementsSuperClass:
   parameters:
-    Name name: undocumented
+    Name name: The interface that was mentioned in both `extends` and `implements` clauses.
   problemMessage: "'#name' can't be used in both 'extends' and 'implements' clauses."
   correctionMessage: "Try removing one of the occurrences."
   script:
@@ -1088,8 +1088,8 @@ externalFieldConstructorInitializer:
 
 initializerForStaticField:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' isn't an instance field of this class."
+    Name fieldName: The field name mentioned in the initializer.
+  problemMessage: "'#fieldName' isn't an instance field of this class."
   script: |
     class Foo {
       Foo() : initializer = true { }
@@ -1132,8 +1132,8 @@ superInitializerNotLast:
 
 invalidBreakTarget:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't break to '#name'."
+    Name label: The label targeted by the `break`.
+  problemMessage: "Can't break to '#label'."
   script: |
     void foo() {
       switch (1) {
@@ -1176,8 +1176,8 @@ continueLabelInvalid:
 
 invalidContinueTarget:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't continue at '#name'."
+    Name label: The label targeted by the `continue`.
+  problemMessage: "Can't continue at '#label'."
   script: |
     void foo() {
       switch (1) {
@@ -1215,8 +1215,8 @@ anonymousContinueTargetOutsideFunction:
 
 labelNotFound:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't find label '#name'."
+    Name label: The label that could not be found.
+  problemMessage: "Can't find label '#label'."
   correctionMessage: "Try defining the label, or correcting the name to match an existing label."
   statement:
     - "switch (0) {case 0: continue L;}"
@@ -1239,8 +1239,8 @@ invalidVoid:
 
 finalFieldNotInitialized:
   parameters:
-    Name name: undocumented
-  problemMessage: "Final field '#name' is not initialized."
+    Name fieldName: The name of the uninitialized field.
+  problemMessage: "Final field '#fieldName' is not initialized."
   correctionMessage: "Try to initialize the field in the declaration or in every constructor."
   script: |
     class C {
@@ -1249,8 +1249,8 @@ finalFieldNotInitialized:
 
 finalFieldNotInitializedByConstructor:
   parameters:
-    Name name: undocumented
-  problemMessage: "Final field '#name' is not initialized by this constructor."
+    Name fieldName: The name of the uninitialized field.
+  problemMessage: "Final field '#fieldName' is not initialized by this constructor."
   correctionMessage: "Try to initialize the field using an initializing formal or a field initializer."
   script: |
     class C {
@@ -1355,8 +1355,8 @@ unmatchedToken:
 unsupportedOperator:
   pseudoSharedCode: UNSUPPORTED_OPERATOR
   parameters:
-    Token lexeme: undocumented
-  problemMessage: "The '#lexeme' operator is not supported."
+    Token operator: The unsupported operator.
+  problemMessage: "The '#operator' operator is not supported."
   script:
     - "class C { void operator ===(x) {} }"
     - "class C { void operator !==(x) {} }"
@@ -1380,9 +1380,9 @@ unterminatedComment:
 unterminatedString:
   pseudoSharedCode: UNTERMINATED_STRING_LITERAL
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "String starting with #string must end with #string2."
+    String openQuote: The quote sequence that opened the string.
+    String expectedCloseQuote: The quote sequence that was expected to close the string.
+  problemMessage: "String starting with #openQuote must end with #expectedCloseQuote."
   script:
     - >
       main() {
@@ -1425,8 +1425,8 @@ unterminatedToken:
 unspecified:
   pseudoSharedCode: UNSPECIFIED
   parameters:
-    String string: undocumented
-  problemMessage: "#string"
+    String message: The error message.
+  problemMessage: "#message"
 
 abstractNotSync:
   pseudoSharedCode: NON_SYNC_ABSTRACT_METHOD

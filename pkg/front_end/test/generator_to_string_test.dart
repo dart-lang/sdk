@@ -162,7 +162,7 @@ Future<void> main() async {
       new FunctionNode(null),
       fileUri: uri,
     );
-    Message message = diag.unspecified.withArgumentsOld("My Message.");
+    Message message = diag.unspecified.withArguments(message: "My Message.");
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
     PrefixBuilder prefixBuilder = new PrefixBuilder(

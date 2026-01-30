@@ -3077,8 +3077,8 @@ Message _withArgumentsOldUnmatchedToken(String string, Token lexeme) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String message),
+  Message Function({required String message})
 >
 unspecified = const Template(
   "Unspecified",
@@ -3088,23 +3088,23 @@ unspecified = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnspecified({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsUnspecified({required String message}) {
+  var message_0 = conversions.validateString(message);
   return new Message(
     unspecified,
-    problemMessage: """${string_0}""",
-    arguments: {'string': string},
+    problemMessage: """${message_0}""",
+    arguments: {'message': message},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnspecified(String string) =>
-    _withArgumentsUnspecified(string: string);
+Message _withArgumentsOldUnspecified(String message) =>
+    _withArgumentsUnspecified(message: message);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token operator),
+  Message Function({required Token operator})
 >
 unsupportedOperator = const Template(
   "UnsupportedOperator",
@@ -3114,18 +3114,18 @@ unsupportedOperator = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnsupportedOperator({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+Message _withArgumentsUnsupportedOperator({required Token operator}) {
+  var operator_0 = conversions.tokenToLexeme(operator);
   return new Message(
     unsupportedOperator,
-    problemMessage: """The '${lexeme_0}' operator is not supported.""",
-    arguments: {'lexeme': lexeme},
+    problemMessage: """The '${operator_0}' operator is not supported.""",
+    arguments: {'operator': operator},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnsupportedOperator(Token lexeme) =>
-    _withArgumentsUnsupportedOperator(lexeme: lexeme);
+Message _withArgumentsOldUnsupportedOperator(Token operator) =>
+    _withArgumentsUnsupportedOperator(operator: operator);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode unsupportedPrefixPlus = const MessageCode(
@@ -3144,8 +3144,11 @@ const MessageCode unterminatedComment = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String openQuote, String expectedCloseQuote),
+  Message Function({
+    required String openQuote,
+    required String expectedCloseQuote,
+  })
 >
 unterminatedString = const Template(
   "UnterminatedString",
@@ -3156,22 +3159,30 @@ unterminatedString = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnterminatedString({
-  required String string,
-  required String string2,
+  required String openQuote,
+  required String expectedCloseQuote,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var openQuote_0 = conversions.validateString(openQuote);
+  var expectedCloseQuote_0 = conversions.validateString(expectedCloseQuote);
   return new Message(
     unterminatedString,
     problemMessage:
-        """String starting with ${string_0} must end with ${string2_0}.""",
-    arguments: {'string': string, 'string2': string2},
+        """String starting with ${openQuote_0} must end with ${expectedCloseQuote_0}.""",
+    arguments: {
+      'openQuote': openQuote,
+      'expectedCloseQuote': expectedCloseQuote,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnterminatedString(String string, String string2) =>
-    _withArgumentsUnterminatedString(string: string, string2: string2);
+Message _withArgumentsOldUnterminatedString(
+  String openQuote,
+  String expectedCloseQuote,
+) => _withArgumentsUnterminatedString(
+  openQuote: openQuote,
+  expectedCloseQuote: expectedCloseQuote,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode varAsTypeName = const MessageCode(

@@ -13,7 +13,7 @@ class CommandLineProblem {
   CommandLineProblem(this.message);
 
   CommandLineProblem.deprecated(String message)
-    : this(diag.unspecified.withArgumentsOld(message));
+    : this(diag.unspecified.withArguments(message: message));
 
   @override
   String toString() => message.problemMessage;

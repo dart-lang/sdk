@@ -828,7 +828,7 @@ class BodyBuilderImpl extends StackListenerImpl
               statement,
               wrapInProblemStatement(
                 statement,
-                diag.labelNotFound.withArgumentsOld(name),
+                diag.labelNotFound.withArguments(label: name),
               ),
             );
           }
@@ -4338,7 +4338,7 @@ class BodyBuilderImpl extends StackListenerImpl
               length: element.name.length,
               context: [
                 diag.duplicatedRecordLiteralFieldNameContext
-                    .withArgumentsOld(element.name)
+                    .withArguments(fieldName: element.name)
                     .withLocation(
                       uri,
                       existingExpression.fileOffset,
@@ -9435,7 +9435,7 @@ class BodyBuilderImpl extends StackListenerImpl
       Token labelToken = breakKeyword.next!;
       push(
         problemInLoopOrSwitch = buildProblemStatement(
-          diag.invalidBreakTarget.withArgumentsOld(name!),
+          diag.invalidBreakTarget.withArguments(label: name!),
           labelToken.charOffset,
           length: labelToken.length,
         ),
@@ -9500,7 +9500,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (_switchScope == null) {
           push(
             buildProblemStatement(
-              diag.labelNotFound.withArgumentsOld(name),
+              diag.labelNotFound.withArguments(label: name),
               continueKeyword.next!.charOffset,
             ),
           );
@@ -9533,7 +9533,7 @@ class BodyBuilderImpl extends StackListenerImpl
       Token labelToken = continueKeyword.next!;
       push(
         problemInLoopOrSwitch = buildProblemStatement(
-          diag.invalidContinueTarget.withArgumentsOld(name!),
+          diag.invalidContinueTarget.withArguments(label: name!),
           labelToken.charOffset,
           length: labelToken.length,
         ),
@@ -9976,7 +9976,9 @@ class BodyBuilderImpl extends StackListenerImpl
       return <Initializer>[
         createInvalidInitializer(
           buildProblem(
-            message: diag.initializerForStaticField.withArgumentsOld(name),
+            message: diag.initializerForStaticField.withArguments(
+              fieldName: name,
+            ),
             fileUri: uri,
             fileOffset: fieldNameOffset,
             length: name.length,

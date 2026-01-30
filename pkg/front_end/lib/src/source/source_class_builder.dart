@@ -1028,7 +1028,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         ClassBuilder interface = unaliasedDeclaration;
         if (superClass == interface) {
           libraryBuilder.addProblem(
-            diag.implementsSuperClass.withArgumentsOld(interface.name),
+            diag.implementsSuperClass.withArguments(name: interface.name),
             this.fileOffset,
             noLength,
             this.fileUri,
@@ -1063,7 +1063,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (problems != null) {
       problems.forEach((ClassBuilder interface, int repetitions) {
         libraryBuilder.addProblem(
-          diag.implementsRepeated.withArgumentsOld(interface.name, repetitions),
+          diag.implementsRepeated.withArguments(
+            name: interface.name,
+            extraCount: repetitions,
+          ),
           problemsOffsets![interface]!,
           noLength,
           fileUri,

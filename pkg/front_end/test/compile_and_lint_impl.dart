@@ -291,7 +291,7 @@ mixin BodyBuilderTestMixin on BodyBuilderImpl {
     }
     if (doReport) {
       addProblem(
-        diag.unspecified.withArgumentsOld("Should use new or const"),
+        diag.unspecified.withArguments(message: "Should use new or const"),
         nameToken.charOffset,
         nameToken.length,
       );

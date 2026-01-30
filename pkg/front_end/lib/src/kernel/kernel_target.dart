@@ -1623,8 +1623,8 @@ class KernelTarget {
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
               libraryBuilder.addProblem(
-                diag.finalFieldNotInitialized.withArgumentsOld(
-                  fieldBuilder.name,
+                diag.finalFieldNotInitialized.withArguments(
+                  fieldName: fieldBuilder.name,
                 ),
                 fieldBuilder.fileOffset,
                 fieldBuilder.name.length,
@@ -1667,8 +1667,8 @@ class KernelTarget {
             // properly.
             if (!constructorBuilder.invokeTarget.isErroneous) {
               libraryBuilder.addProblem(
-                diag.finalFieldNotInitializedByConstructor.withArgumentsOld(
-                  fieldBuilder.name,
+                diag.finalFieldNotInitializedByConstructor.withArguments(
+                  fieldName: fieldBuilder.name,
                 ),
                 constructorBuilder.fileOffset,
                 constructorBuilder.name.length,
