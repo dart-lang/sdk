@@ -5316,6 +5316,34 @@ class Parser {
               next,
             );
           }
+
+          if (varFinalOrConst != null) {
+            reportRecoverableErrorWithToken(
+              varFinalOrConst,
+              diag.extraneousModifier,
+            );
+          }
+          if (externalToken != null) {
+            reportRecoverableErrorWithToken(
+              externalToken,
+              diag.extraneousModifier,
+            );
+          }
+          if (staticToken != null) {
+            reportRecoverableErrorWithToken(
+              staticToken,
+              diag.extraneousModifier,
+            );
+          }
+          if (covariantToken != null) {
+            reportRecoverableErrorWithToken(
+              covariantToken,
+              diag.extraneousModifier,
+            );
+          }
+          if (lateToken != null) {
+            reportRecoverableErrorWithToken(lateToken, diag.extraneousModifier);
+          }
           token = parsePrimaryConstructorBody(next);
           listener.endMember();
           return token;
