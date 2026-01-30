@@ -5,7 +5,7 @@
   (global $".Foo0.doitDispatch(" (import "" "Foo0.doitDispatch(") (ref extern))
   (global $".Foo1.doitDispatch(" (import "" "Foo1.doitDispatch(") (ref extern))
   (global $".FooBase(" (import "" "FooBase(") (ref extern))
-  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 1 funcref)
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 5 funcref)
   (global $"C388 \"FooBase(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
@@ -24,6 +24,12 @@
   (global $"C8 \")\"" (ref $JSStringImpl) <...>)
   (global $baseObj (mut (ref null $Object)) <...>)
   (global $foo1Obj (mut (ref null $Object)) <...>)
+  (elem $cross-module-funcs-0
+    (set 1 (ref.func $"_TypeError._throwNullCheckErrorWithCurrentStack <noInline>"))
+    (set 2 (ref.func $Foo1.doitDispatch))
+    (set 3 (ref.func $JSStringImpl._interpolate3))
+    (set 4 (ref.func $print)))
+  (func $_TypeError._throwNullCheckErrorWithCurrentStack <noInline> (result (ref none)) <...>)
   (func $"foo0 <noInline>"
     call $"runtimeTrue implicit getter"
     if (result (ref $Object))
@@ -56,7 +62,7 @@
     ref.null none
   )
   (func $Foo1 (result (ref $Object)) <...>)
-  (func $Foo1.doitDispatch (export "func1") (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
+  (func $Foo1.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
     global.get $"C389 \"Foo1.doitDispatch(\""
     local.get $var1
     global.get $"C8 \")\""

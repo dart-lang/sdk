@@ -3,10 +3,6 @@
   (type $BoxedInt <...>)
   (type $JSStringImpl <...>)
   (type $Object <...>)
-  (func $"_TypeError._throwNullCheckErrorWithCurrentStack <noInline>" (import "module0" "func0") (result (ref none)))
-  (func $Foo1.doitDispatch (import "module0" "func1") (param (ref $Object) (ref null $#Top)) (result (ref null $#Top)))
-  (func $JSStringImpl._interpolate3 (import "module0" "func2") (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl)))
-  (func $print (import "module0" "func3") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $".Foo1.doitDevirt(" (import "" "Foo1.doitDevirt(") (ref extern))
   (global $"C320 1" (import "module0" "global1") (ref $BoxedInt))
   (global $"C349 2" (import "module0" "global3") (ref $BoxedInt))
@@ -14,12 +10,15 @@
   (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
   (global $baseObj (import "module0" "global0") (ref null $Object))
   (global $foo1Obj (import "module0" "global2") (ref null $Object))
+  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 5 funcref)
   (table $module0.dispatch0 (import "module0" "dispatch0") 808 funcref)
   (global $"C507 \"Foo1.doitDevirt(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".Foo1.doitDevirt(")
     (struct.new $JSStringImpl))
+  (elem $module0.cross-module-funcs-0
+    (set 0 (ref.func $"foo1 <noInline>")))
   (func $"foo1 <noInline>" (result (ref null $#Top))
     (local $var0 (ref $Object))
     block $label0
@@ -42,7 +41,8 @@
         br $label0
       end $label2
       global.get $"C349 2"
-      call $Foo1.doitDispatch
+      i32.const 2
+      call_indirect $module0.cross-module-funcs-0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
       drop
       block $label3 (result (ref $Object))
         global.get $foo1Obj
@@ -59,21 +59,26 @@
       ref.null none
       return
     end $label0
-    call $"_TypeError._throwNullCheckErrorWithCurrentStack <noInline>"
+    i32.const 1
+    call_indirect $module0.cross-module-funcs-0 (result (ref none))
     unreachable
   )
   (func $Foo1.doitDevirt (param $var0 (ref $Object))
     global.get $"C507 \"Foo1.doitDevirt(\""
     global.get $"C320 1"
     global.get $"C8 \")\""
-    call $JSStringImpl._interpolate3
-    call $print
+    i32.const 3
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    i32.const 4
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
     global.get $"C388 \"FooBase(\""
     global.get $"C320 1"
     global.get $"C8 \")\""
-    call $JSStringImpl._interpolate3
-    call $print
+    i32.const 3
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    i32.const 4
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
   )
 )

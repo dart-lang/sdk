@@ -805,10 +805,6 @@ class Translator with KernelNodes {
     final targetModuleBuilder = moduleToBuilder[function.enclosingModule]!;
     if (targetModuleBuilder == b.moduleBuilder) {
       b.call(function);
-    } else if (isMainModule(targetModuleBuilder)) {
-      final importedFunction =
-          _importedFunctions.get(function, b.moduleBuilder);
-      b.call(importedFunction);
     } else {
       b.i32_const(crossModuleFunctionTable.indexForFunction(function));
       b.call_indirect(function.type,
