@@ -6412,8 +6412,8 @@ class ThisAccessGenerator extends Generator {
   ) {
     String keyword = isSuper ? "super" : "this";
     return _helper.buildProblem(
-      message: diag.thisOrSuperAccessInFieldInitializer.withArgumentsOld(
-        keyword,
+      message: diag.thisOrSuperAccessInFieldInitializer.withArguments(
+        string: keyword,
       ),
       fileUri: _helper.uri,
       fileOffset: fileOffset,
@@ -6637,7 +6637,9 @@ class ThisAccessGenerator extends Generator {
         String fullName = _helper.superConstructorNameForDiagnostics(name.text);
         return createInvalidInitializer(
           _helper.buildProblem(
-            message: diag.superclassHasNoConstructor.withArgumentsOld(fullName),
+            message: diag.superclassHasNoConstructor.withArguments(
+              constructorName: fullName,
+            ),
             fileUri: _fileUri,
             fileOffset: fileOffset,
             length: lengthForToken(token),

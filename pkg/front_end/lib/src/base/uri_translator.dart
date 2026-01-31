@@ -81,7 +81,10 @@ class UriTranslator {
       // https://github.com/dart-lang/package_config/issues/40 is fixed.
       if (reportMessage) {
         options.reportWithoutLocation(
-          diag.invalidPackageUri.withArgumentsOld(uri, "${e.message}"),
+          diag.invalidPackageUri.withArguments(
+            uri: uri,
+            details: "${e.message}",
+          ),
           CfeSeverity.error,
         );
       }
@@ -92,7 +95,7 @@ class UriTranslator {
   Uri? _packageUriNotFound(Uri uri) {
     String name = uri.pathSegments.first;
     options.reportWithoutLocation(
-      diag.packageNotFound.withArgumentsOld(name, uri),
+      diag.packageNotFound.withArguments(packageName: name, uri: uri),
       CfeSeverity.error,
     );
     // TODO(sigmund, ahe): ensure we only report an error once,

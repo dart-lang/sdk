@@ -777,7 +777,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       // or to the initial quote if no position is given.
       // (Assumes the directive is using a single-line string.)
       _problemReporting.addProblem(
-        diag.couldNotParseUri.withArgumentsOld(uri, e.message),
+        diag.couldNotParseUri.withArguments(uri: uri, details: e.message),
         uriOffset +
             1 +
             (e.offset ?? // Coverage-ignore(suite): Not run.

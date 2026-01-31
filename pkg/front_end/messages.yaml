@@ -3473,7 +3473,7 @@ thisAccessInFieldInitializer:
 
 thisOrSuperAccessInFieldInitializer:
   parameters:
-    String string: undocumented
+    String string: The keyword (`this` or `super`) that could not be used.
   problemMessage: "Can't access '#string' in a field initializer."
   script: |
     class C {
@@ -3522,9 +3522,9 @@ switchExpressionNotAssignableCause:
 
 switchExpressionNotSubtype:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression."
+    Type caseExpressionType: The type of the case expression.
+    Type scrutineeType: The type of the scrutinee.
+  problemMessage: "Type '#caseExpressionType' of the case expression is not a subtype of type '#scrutineeType' of this switch expression."
   script:
     - |
       // @dart=2.19
@@ -3548,21 +3548,21 @@ switchCaseFallThrough:
 
 fieldAlreadyInitializedAtDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' is a final instance variable that was initialized at the declaration."
+    Name fieldName: The name of the already-initialized field.
+  problemMessage: "'#fieldName' is a final instance variable that was initialized at the declaration."
   script:
     - "class C { final int x = 2; C(): this.x = 3 {} }"
 
 fieldAlreadyInitializedAtDeclarationCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' was initialized here."
+    Name fieldName: The name of the already-initialized field.
+  problemMessage: "'#fieldName' was initialized here."
   severity: CONTEXT
 
 constructorInitializeSameInstanceVariableSeveralTimes:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' was already initialized by this constructor."
+    Name fieldName: The name of the already-initialized field.
+  problemMessage: "'#fieldName' was already initialized by this constructor."
   script:
     - "class C { final int x; C(): this.x = 1, this.x = 2 {} }"
     - "class C { int x; C(): this.x = 1, this.x = 2 {} }"
@@ -3627,13 +3627,13 @@ typeVariableInConstantContext:
 
 superclassHasNoMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Superclass has no member named '#name'."
+    Name memberName: The name of the member that was sought.
+  problemMessage: "Superclass has no member named '#memberName'."
 
 superclassHasNoGetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "Superclass has no getter named '#name'."
+    Name getterName: The name of the getter that was sought.
+  problemMessage: "Superclass has no getter named '#getterName'."
   script: |
     class Super {}
 
@@ -3645,8 +3645,8 @@ superclassHasNoGetter:
 
 superclassHasNoSetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "Superclass has no setter named '#name'."
+    Name setterName: The name of the setter that was sought.
+  problemMessage: "Superclass has no setter named '#setterName'."
   script: |
     class Super {}
 
@@ -3671,8 +3671,8 @@ superclassHasNoMethod:
 
 superclassHasNoConstructor:
   parameters:
-    Name name: undocumented
-  problemMessage: "Superclass has no constructor named '#name'."
+    Name constructorName: The name of the constructor that was not found.
+  problemMessage: "Superclass has no constructor named '#constructorName'."
   script:
     - |
       class Super {
@@ -3693,8 +3693,8 @@ superclassHasNoConstructor:
 
 superclassHasNoDefaultConstructor:
   parameters:
-    Name name: undocumented
-  problemMessage: "The superclass, '#name', has no unnamed constructor that takes no arguments."
+    Name className: The name of the class that in which a default constructor was sought.
+  problemMessage: "The superclass, '#className', has no unnamed constructor that takes no arguments."
   script: |
     class Foo {
       Foo(int x);
@@ -3784,8 +3784,8 @@ cannotAssignToSuper:
 
 cannotReadSdkSpecification:
   parameters:
-    String string: undocumented
-  problemMessage: "Unable to read the 'libraries.json' specification file:\n  #string."
+    String details: Detailed error message.
+  problemMessage: "Unable to read the 'libraries.json' specification file:\n  #details."
 
 cantInferPackagesFromManyInputs:
   parameters: none
@@ -3799,27 +3799,27 @@ cantInferPackagesFromPackageUri:
 
 packageNotFound:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
-  problemMessage: "Couldn't resolve the package '#name' in '#uri'."
+    Name packageName: The name of the package that could not be resolved.
+    Uri uri: The URI in which the resolution was attempted.
+  problemMessage: "Couldn't resolve the package '#packageName' in '#uri'."
   script: |
     import 'package:foo/foo.dart';
   exampleAllowOtherCodes: true
 
 invalidPackageUri:
   parameters:
-    Uri uri: undocumented
-    String string: undocumented
-  problemMessage: "Invalid package URI '#uri':\n  #string."
+    Uri uri: The invalid package URI.
+    String details: Detailed error message.
+  problemMessage: "Invalid package URI '#uri':\n  #details."
   script: |
     import 'package:foo';
   exampleAllowOtherCodes: true
 
 couldNotParseUri:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Couldn't parse URI '#string':\n  #string2."
+    String uri: The URI that could not be parsed.
+    String details: Detailed error message.
+  problemMessage: "Couldn't parse URI '#uri':\n  #details."
   script: |
     import ' dart:async';
   exampleAllowOtherCodes: true
@@ -3841,8 +3841,8 @@ interpolationInUri:
 
 integerLiteralIsOutOfRange:
   parameters:
-    String string: undocumented
-  problemMessage: "The integer literal #string can't be represented in 64 bits."
+    String literal: The integer literal.
+  problemMessage: "The integer literal #literal can't be represented in 64 bits."
   correctionMessage: "Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."
   script: |
     void foo() {

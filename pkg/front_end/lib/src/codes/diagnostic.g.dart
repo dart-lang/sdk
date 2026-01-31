@@ -628,8 +628,8 @@ const MessageCode cannotAssignToTypeLiteral = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String details),
+  Message Function({required String details})
 >
 cannotReadSdkSpecification = const Template(
   "CannotReadSdkSpecification",
@@ -638,19 +638,19 @@ cannotReadSdkSpecification = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCannotReadSdkSpecification({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsCannotReadSdkSpecification({required String details}) {
+  var details_0 = conversions.validateString(details);
   return new Message(
     cannotReadSdkSpecification,
     problemMessage: """Unable to read the 'libraries.json' specification file:
-  ${string_0}.""",
-    arguments: {'string': string},
+  ${details_0}.""",
+    arguments: {'details': details},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCannotReadSdkSpecification(String string) =>
-    _withArgumentsCannotReadSdkSpecification(string: string);
+Message _withArgumentsOldCannotReadSdkSpecification(String details) =>
+    _withArgumentsCannotReadSdkSpecification(details: details);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cantDisambiguateAmbiguousInformation = const MessageCode(
@@ -2313,8 +2313,8 @@ const MessageCode constructorCyclic = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 constructorInitializeSameInstanceVariableSeveralTimes = const Template(
   "ConstructorInitializeSameInstanceVariableSeveralTimes",
@@ -2326,22 +2326,22 @@ constructorInitializeSameInstanceVariableSeveralTimes = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstructorInitializeSameInstanceVariableSeveralTimes({
-  required String name,
+  required String fieldName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     constructorInitializeSameInstanceVariableSeveralTimes,
     problemMessage:
-        """'${name_0}' was already initialized by this constructor.""",
-    arguments: {'name': name},
+        """'${fieldName_0}' was already initialized by this constructor.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldConstructorInitializeSameInstanceVariableSeveralTimes(
-  String name,
+  String fieldName,
 ) => _withArgumentsConstructorInitializeSameInstanceVariableSeveralTimes(
-  name: name,
+  fieldName: fieldName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2481,8 +2481,8 @@ Message _withArgumentsOldContinueTargetOutsideFunction(String label) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String uri, String details),
+  Message Function({required String uri, required String details})
 >
 couldNotParseUri = const Template(
   "CouldNotParseUri",
@@ -2492,22 +2492,22 @@ couldNotParseUri = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCouldNotParseUri({
-  required String string,
-  required String string2,
+  required String uri,
+  required String details,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var uri_0 = conversions.validateString(uri);
+  var details_0 = conversions.validateString(details);
   return new Message(
     couldNotParseUri,
-    problemMessage: """Couldn't parse URI '${string_0}':
-  ${string2_0}.""",
-    arguments: {'string': string, 'string2': string2},
+    problemMessage: """Couldn't parse URI '${uri_0}':
+  ${details_0}.""",
+    arguments: {'uri': uri, 'details': details},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCouldNotParseUri(String string, String string2) =>
-    _withArgumentsCouldNotParseUri(string: string, string2: string2);
+Message _withArgumentsOldCouldNotParseUri(String uri, String details) =>
+    _withArgumentsCouldNotParseUri(uri: uri, details: details);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5411,8 +5411,8 @@ const MessageCode ffiVariableLengthArrayNotLast = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 fieldAlreadyInitializedAtDeclaration = const Template(
   "FieldAlreadyInitializedAtDeclaration",
@@ -5422,25 +5422,26 @@ fieldAlreadyInitializedAtDeclaration = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldAlreadyInitializedAtDeclaration({
-  required String name,
+  required String fieldName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     fieldAlreadyInitializedAtDeclaration,
     problemMessage:
-        """'${name_0}' is a final instance variable that was initialized at the declaration.""",
-    arguments: {'name': name},
+        """'${fieldName_0}' is a final instance variable that was initialized at the declaration.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFieldAlreadyInitializedAtDeclaration(String name) =>
-    _withArgumentsFieldAlreadyInitializedAtDeclaration(name: name);
+Message _withArgumentsOldFieldAlreadyInitializedAtDeclaration(
+  String fieldName,
+) => _withArgumentsFieldAlreadyInitializedAtDeclaration(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 fieldAlreadyInitializedAtDeclarationCause = const Template(
   "FieldAlreadyInitializedAtDeclarationCause",
@@ -5451,20 +5452,22 @@ fieldAlreadyInitializedAtDeclarationCause = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldAlreadyInitializedAtDeclarationCause({
-  required String name,
+  required String fieldName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     fieldAlreadyInitializedAtDeclarationCause,
-    problemMessage: """'${name_0}' was initialized here.""",
-    arguments: {'name': name},
+    problemMessage: """'${fieldName_0}' was initialized here.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldAlreadyInitializedAtDeclarationCause(
-  String name,
-) => _withArgumentsFieldAlreadyInitializedAtDeclarationCause(name: name);
+  String fieldName,
+) => _withArgumentsFieldAlreadyInitializedAtDeclarationCause(
+  fieldName: fieldName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7768,8 +7771,8 @@ Message _withArgumentsOldInstantiationTooManyArguments(int count, int count2) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String literal),
+  Message Function({required String literal})
 >
 integerLiteralIsOutOfRange = const Template(
   "IntegerLiteralIsOutOfRange",
@@ -7778,21 +7781,21 @@ integerLiteralIsOutOfRange = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIntegerLiteralIsOutOfRange({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsIntegerLiteralIsOutOfRange({required String literal}) {
+  var literal_0 = conversions.validateString(literal);
   return new Message(
     integerLiteralIsOutOfRange,
     problemMessage:
-        """The integer literal ${string_0} can't be represented in 64 bits.""",
+        """The integer literal ${literal_0} can't be represented in 64 bits.""",
     correctionMessage:
         """Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
-    arguments: {'string': string},
+    arguments: {'literal': literal},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIntegerLiteralIsOutOfRange(String string) =>
-    _withArgumentsIntegerLiteralIsOutOfRange(string: string);
+Message _withArgumentsOldIntegerLiteralIsOutOfRange(String literal) =>
+    _withArgumentsIntegerLiteralIsOutOfRange(literal: literal);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9235,8 +9238,8 @@ Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Uri uri, String string),
-  Message Function({required Uri uri, required String string})
+  Message Function(Uri uri, String details),
+  Message Function({required Uri uri, required String details})
 >
 invalidPackageUri = const Template(
   "InvalidPackageUri",
@@ -9247,21 +9250,21 @@ invalidPackageUri = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidPackageUri({
   required Uri uri,
-  required String string,
+  required String details,
 }) {
   var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
+  var details_0 = conversions.validateString(details);
   return new Message(
     invalidPackageUri,
     problemMessage: """Invalid package URI '${uri_0}':
-  ${string_0}.""",
-    arguments: {'uri': uri, 'string': string},
+  ${details_0}.""",
+    arguments: {'uri': uri, 'details': details},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidPackageUri(Uri uri, String string) =>
-    _withArgumentsInvalidPackageUri(uri: uri, string: string);
+Message _withArgumentsOldInvalidPackageUri(Uri uri, String details) =>
+    _withArgumentsInvalidPackageUri(uri: uri, details: details);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13817,8 +13820,8 @@ Message _withArgumentsOldOverrideTypeParametersMismatch(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, Uri uri),
-  Message Function({required String name, required Uri uri})
+  Message Function(String packageName, Uri uri),
+  Message Function({required String packageName, required Uri uri})
 >
 packageNotFound = const Template(
   "PackageNotFound",
@@ -13828,22 +13831,22 @@ packageNotFound = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPackageNotFound({
-  required String name,
+  required String packageName,
   required Uri uri,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var packageName_0 = conversions.validateAndDemangleName(packageName);
   var uri_0 = conversions.relativizeUri(uri);
   return new Message(
     packageNotFound,
     problemMessage:
-        """Couldn't resolve the package '${name_0}' in '${uri_0}'.""",
-    arguments: {'name': name, 'uri': uri},
+        """Couldn't resolve the package '${packageName_0}' in '${uri_0}'.""",
+    arguments: {'packageName': packageName, 'uri': uri},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPackageNotFound(String name, Uri uri) =>
-    _withArgumentsPackageNotFound(name: name, uri: uri);
+Message _withArgumentsOldPackageNotFound(String packageName, Uri uri) =>
+    _withArgumentsPackageNotFound(packageName: packageName, uri: uri);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -15353,8 +15356,8 @@ superParameterInitializerOutsideConstructor = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String constructorName),
+  Message Function({required String constructorName})
 >
 superclassHasNoConstructor = const Template(
   "SuperclassHasNoConstructor",
@@ -15363,23 +15366,26 @@ superclassHasNoConstructor = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoConstructor({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSuperclassHasNoConstructor({
+  required String constructorName,
+}) {
+  var constructorName_0 = conversions.validateAndDemangleName(constructorName);
   return new Message(
     superclassHasNoConstructor,
-    problemMessage: """Superclass has no constructor named '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """Superclass has no constructor named '${constructorName_0}'.""",
+    arguments: {'constructorName': constructorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoConstructor(String name) =>
-    _withArgumentsSuperclassHasNoConstructor(name: name);
+Message _withArgumentsOldSuperclassHasNoConstructor(String constructorName) =>
+    _withArgumentsSuperclassHasNoConstructor(constructorName: constructorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 superclassHasNoDefaultConstructor = const Template(
   "SuperclassHasNoDefaultConstructor",
@@ -15389,25 +15395,25 @@ superclassHasNoDefaultConstructor = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoDefaultConstructor({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     superclassHasNoDefaultConstructor,
     problemMessage:
-        """The superclass, '${name_0}', has no unnamed constructor that takes no arguments.""",
-    arguments: {'name': name},
+        """The superclass, '${className_0}', has no unnamed constructor that takes no arguments.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoDefaultConstructor(String name) =>
-    _withArgumentsSuperclassHasNoDefaultConstructor(name: name);
+Message _withArgumentsOldSuperclassHasNoDefaultConstructor(String className) =>
+    _withArgumentsSuperclassHasNoDefaultConstructor(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String getterName),
+  Message Function({required String getterName})
 >
 superclassHasNoGetter = const Template(
   "SuperclassHasNoGetter",
@@ -15416,23 +15422,23 @@ superclassHasNoGetter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoGetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSuperclassHasNoGetter({required String getterName}) {
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
   return new Message(
     superclassHasNoGetter,
-    problemMessage: """Superclass has no getter named '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Superclass has no getter named '${getterName_0}'.""",
+    arguments: {'getterName': getterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoGetter(String name) =>
-    _withArgumentsSuperclassHasNoGetter(name: name);
+Message _withArgumentsOldSuperclassHasNoGetter(String getterName) =>
+    _withArgumentsSuperclassHasNoGetter(getterName: getterName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 superclassHasNoMember = const Template(
   "SuperclassHasNoMember",
@@ -15441,18 +15447,18 @@ superclassHasNoMember = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSuperclassHasNoMember({required String memberName}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     superclassHasNoMember,
-    problemMessage: """Superclass has no member named '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Superclass has no member named '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoMember(String name) =>
-    _withArgumentsSuperclassHasNoMember(name: name);
+Message _withArgumentsOldSuperclassHasNoMember(String memberName) =>
+    _withArgumentsSuperclassHasNoMember(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -15481,8 +15487,8 @@ Message _withArgumentsOldSuperclassHasNoMethod(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String setterName),
+  Message Function({required String setterName})
 >
 superclassHasNoSetter = const Template(
   "SuperclassHasNoSetter",
@@ -15491,18 +15497,18 @@ superclassHasNoSetter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperclassHasNoSetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSuperclassHasNoSetter({required String setterName}) {
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     superclassHasNoSetter,
-    problemMessage: """Superclass has no setter named '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Superclass has no setter named '${setterName_0}'.""",
+    arguments: {'setterName': setterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperclassHasNoSetter(String name) =>
-    _withArgumentsSuperclassHasNoSetter(name: name);
+Message _withArgumentsOldSuperclassHasNoSetter(String setterName) =>
+    _withArgumentsSuperclassHasNoSetter(setterName: setterName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode supertypeIsFunction = const MessageCode(
@@ -15650,8 +15656,11 @@ const MessageCode switchExpressionNotAssignableCause = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType caseExpressionType, DartType scrutineeType),
+  Message Function({
+    required DartType caseExpressionType,
+    required DartType scrutineeType,
+  })
 >
 switchExpressionNotSubtype = const Template(
   "SwitchExpressionNotSubtype",
@@ -15661,26 +15670,32 @@ switchExpressionNotSubtype = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSwitchExpressionNotSubtype({
-  required DartType type,
-  required DartType type2,
+  required DartType caseExpressionType,
+  required DartType scrutineeType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var caseExpressionType_0 = labeler.labelType(caseExpressionType);
+  var scrutineeType_0 = labeler.labelType(scrutineeType);
   return new Message(
     switchExpressionNotSubtype,
     problemMessage:
-        """Type '${type_0}' of the case expression is not a subtype of type '${type2_0}' of this switch expression.""" +
+        """Type '${caseExpressionType_0}' of the case expression is not a subtype of type '${scrutineeType_0}' of this switch expression.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {
+      'caseExpressionType': caseExpressionType,
+      'scrutineeType': scrutineeType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSwitchExpressionNotSubtype(
-  DartType type,
-  DartType type2,
-) => _withArgumentsSwitchExpressionNotSubtype(type: type, type2: type2);
+  DartType caseExpressionType,
+  DartType scrutineeType,
+) => _withArgumentsSwitchExpressionNotSubtype(
+  caseExpressionType: caseExpressionType,
+  scrutineeType: scrutineeType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode syntheticToken = const MessageCode(
