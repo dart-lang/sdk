@@ -8783,12 +8783,17 @@ Message _withArgumentsOldInvalidGetterSetterType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function(
+    DartType getterType,
+    String getterName,
+    DartType setterType,
+    String setterName,
+  ),
   Message Function({
-    required DartType type,
-    required String name,
-    required DartType type2,
-    required String name2,
+    required DartType getterType,
+    required String getterName,
+    required DartType setterType,
+    required String setterName,
   })
 >
 invalidGetterSetterTypeBothInheritedField = const Template(
@@ -8799,46 +8804,56 @@ invalidGetterSetterTypeBothInheritedField = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeBothInheritedField({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
+  required DartType getterType,
+  required String getterName,
+  required DartType setterType,
+  required String setterName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var getterType_0 = labeler.labelType(getterType);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
+  var setterType_0 = labeler.labelType(setterType);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     invalidGetterSetterTypeBothInheritedField,
     problemMessage:
-        """The type '${type_0}' of the inherited field '${name_0}' is not a subtype of the type '${type2_0}' of the inherited setter '${name2_0}'.""" +
+        """The type '${getterType_0}' of the inherited field '${getterName_0}' is not a subtype of the type '${setterType_0}' of the inherited setter '${setterName_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
+    arguments: {
+      'getterType': getterType,
+      'getterName': getterName,
+      'setterType': setterType,
+      'setterName': setterName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedField(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
+  DartType getterType,
+  String getterName,
+  DartType setterType,
+  String setterName,
 ) => _withArgumentsInvalidGetterSetterTypeBothInheritedField(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
+  getterType: getterType,
+  getterName: getterName,
+  setterType: setterType,
+  setterName: setterName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function(
+    DartType getterType,
+    String getterName,
+    DartType setterType,
+    String setterName,
+  ),
   Message Function({
-    required DartType type,
-    required String name,
-    required DartType type2,
-    required String name2,
+    required DartType getterType,
+    required String getterName,
+    required DartType setterType,
+    required String setterName,
   })
 >
 invalidGetterSetterTypeBothInheritedGetter = const Template(
@@ -8849,42 +8864,47 @@ invalidGetterSetterTypeBothInheritedGetter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeBothInheritedGetter({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
+  required DartType getterType,
+  required String getterName,
+  required DartType setterType,
+  required String setterName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var getterType_0 = labeler.labelType(getterType);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
+  var setterType_0 = labeler.labelType(setterType);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     invalidGetterSetterTypeBothInheritedGetter,
     problemMessage:
-        """The type '${type_0}' of the inherited getter '${name_0}' is not a subtype of the type '${type2_0}' of the inherited setter '${name2_0}'.""" +
+        """The type '${getterType_0}' of the inherited getter '${getterName_0}' is not a subtype of the type '${setterType_0}' of the inherited setter '${setterName_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
+    arguments: {
+      'getterType': getterType,
+      'getterName': getterName,
+      'setterType': setterType,
+      'setterName': setterName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeBothInheritedGetter(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
+  DartType getterType,
+  String getterName,
+  DartType setterType,
+  String setterName,
 ) => _withArgumentsInvalidGetterSetterTypeBothInheritedGetter(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
+  getterType: getterType,
+  getterName: getterName,
+  setterType: setterType,
+  setterName: setterName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String getterName),
+  Message Function({required String getterName})
 >
 invalidGetterSetterTypeFieldContext = const Template(
   "InvalidGetterSetterTypeFieldContext",
@@ -8895,28 +8915,35 @@ invalidGetterSetterTypeFieldContext = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeFieldContext({
-  required String name,
+  required String getterName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
   return new Message(
     invalidGetterSetterTypeFieldContext,
-    problemMessage: """This is the declaration of the field '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """This is the declaration of the field '${getterName_0}'.""",
+    arguments: {'getterName': getterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeFieldContext(String name) =>
-    _withArgumentsInvalidGetterSetterTypeFieldContext(name: name);
+Message _withArgumentsOldInvalidGetterSetterTypeFieldContext(
+  String getterName,
+) => _withArgumentsInvalidGetterSetterTypeFieldContext(getterName: getterName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function(
+    DartType getterType,
+    String getterName,
+    DartType setterType,
+    String setterName,
+  ),
   Message Function({
-    required DartType type,
-    required String name,
-    required DartType type2,
-    required String name2,
+    required DartType getterType,
+    required String getterName,
+    required DartType setterType,
+    required String setterName,
   })
 >
 invalidGetterSetterTypeFieldInherited = const Template(
@@ -8927,42 +8954,47 @@ invalidGetterSetterTypeFieldInherited = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeFieldInherited({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
+  required DartType getterType,
+  required String getterName,
+  required DartType setterType,
+  required String setterName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var getterType_0 = labeler.labelType(getterType);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
+  var setterType_0 = labeler.labelType(setterType);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     invalidGetterSetterTypeFieldInherited,
     problemMessage:
-        """The type '${type_0}' of the inherited field '${name_0}' is not a subtype of the type '${type2_0}' of the setter '${name2_0}'.""" +
+        """The type '${getterType_0}' of the inherited field '${getterName_0}' is not a subtype of the type '${setterType_0}' of the setter '${setterName_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
+    arguments: {
+      'getterType': getterType,
+      'getterName': getterName,
+      'setterType': setterType,
+      'setterName': setterName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeFieldInherited(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
+  DartType getterType,
+  String getterName,
+  DartType setterType,
+  String setterName,
 ) => _withArgumentsInvalidGetterSetterTypeFieldInherited(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
+  getterType: getterType,
+  getterName: getterName,
+  setterType: setterType,
+  setterName: setterName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String getterName),
+  Message Function({required String getterName})
 >
 invalidGetterSetterTypeGetterContext = const Template(
   "InvalidGetterSetterTypeGetterContext",
@@ -8973,28 +9005,35 @@ invalidGetterSetterTypeGetterContext = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeGetterContext({
-  required String name,
+  required String getterName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
   return new Message(
     invalidGetterSetterTypeGetterContext,
-    problemMessage: """This is the declaration of the getter '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """This is the declaration of the getter '${getterName_0}'.""",
+    arguments: {'getterName': getterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeGetterContext(String name) =>
-    _withArgumentsInvalidGetterSetterTypeGetterContext(name: name);
+Message _withArgumentsOldInvalidGetterSetterTypeGetterContext(
+  String getterName,
+) => _withArgumentsInvalidGetterSetterTypeGetterContext(getterName: getterName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function(
+    DartType getterType,
+    String getterName,
+    DartType setterType,
+    String setterName,
+  ),
   Message Function({
-    required DartType type,
-    required String name,
-    required DartType type2,
-    required String name2,
+    required DartType getterType,
+    required String getterName,
+    required DartType setterType,
+    required String setterName,
   })
 >
 invalidGetterSetterTypeGetterInherited = const Template(
@@ -9005,36 +9044,41 @@ invalidGetterSetterTypeGetterInherited = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeGetterInherited({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
+  required DartType getterType,
+  required String getterName,
+  required DartType setterType,
+  required String setterName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var getterType_0 = labeler.labelType(getterType);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
+  var setterType_0 = labeler.labelType(setterType);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     invalidGetterSetterTypeGetterInherited,
     problemMessage:
-        """The type '${type_0}' of the inherited getter '${name_0}' is not a subtype of the type '${type2_0}' of the setter '${name2_0}'.""" +
+        """The type '${getterType_0}' of the inherited getter '${getterName_0}' is not a subtype of the type '${setterType_0}' of the setter '${setterName_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
+    arguments: {
+      'getterType': getterType,
+      'getterName': getterName,
+      'setterType': setterType,
+      'setterName': setterName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeGetterInherited(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
+  DartType getterType,
+  String getterName,
+  DartType setterType,
+  String setterName,
 ) => _withArgumentsInvalidGetterSetterTypeGetterInherited(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
+  getterType: getterType,
+  getterName: getterName,
+  setterType: setterType,
+  setterName: setterName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9069,12 +9113,17 @@ Message _withArgumentsOldInvalidGetterSetterTypeSetterContext(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function(
+    DartType getterType,
+    String getterName,
+    DartType setterType,
+    String setterName,
+  ),
   Message Function({
-    required DartType type,
-    required String name,
-    required DartType type2,
-    required String name2,
+    required DartType getterType,
+    required String getterName,
+    required DartType setterType,
+    required String setterName,
   })
 >
 invalidGetterSetterTypeSetterInheritedField = const Template(
@@ -9086,46 +9135,56 @@ invalidGetterSetterTypeSetterInheritedField = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeSetterInheritedField({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
+  required DartType getterType,
+  required String getterName,
+  required DartType setterType,
+  required String setterName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var getterType_0 = labeler.labelType(getterType);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
+  var setterType_0 = labeler.labelType(setterType);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     invalidGetterSetterTypeSetterInheritedField,
     problemMessage:
-        """The type '${type_0}' of the field '${name_0}' is not a subtype of the type '${type2_0}' of the inherited setter '${name2_0}'.""" +
+        """The type '${getterType_0}' of the field '${getterName_0}' is not a subtype of the type '${setterType_0}' of the inherited setter '${setterName_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
+    arguments: {
+      'getterType': getterType,
+      'getterName': getterName,
+      'setterType': setterType,
+      'setterName': setterName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedField(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
+  DartType getterType,
+  String getterName,
+  DartType setterType,
+  String setterName,
 ) => _withArgumentsInvalidGetterSetterTypeSetterInheritedField(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
+  getterType: getterType,
+  getterName: getterName,
+  setterType: setterType,
+  setterName: setterName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function(
+    DartType getterType,
+    String getterName,
+    DartType setterType,
+    String setterName,
+  ),
   Message Function({
-    required DartType type,
-    required String name,
-    required DartType type2,
-    required String name2,
+    required DartType getterType,
+    required String getterName,
+    required DartType setterType,
+    required String setterName,
   })
 >
 invalidGetterSetterTypeSetterInheritedGetter = const Template(
@@ -9137,36 +9196,41 @@ invalidGetterSetterTypeSetterInheritedGetter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
+  required DartType getterType,
+  required String getterName,
+  required DartType setterType,
+  required String setterName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var getterType_0 = labeler.labelType(getterType);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
+  var setterType_0 = labeler.labelType(setterType);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     invalidGetterSetterTypeSetterInheritedGetter,
     problemMessage:
-        """The type '${type_0}' of the getter '${name_0}' is not a subtype of the type '${type2_0}' of the inherited setter '${name2_0}'.""" +
+        """The type '${getterType_0}' of the getter '${getterName_0}' is not a subtype of the type '${setterType_0}' of the inherited setter '${setterName_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
+    arguments: {
+      'getterType': getterType,
+      'getterName': getterName,
+      'setterType': setterType,
+      'setterName': setterName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterTypeSetterInheritedGetter(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
+  DartType getterType,
+  String getterName,
+  DartType setterType,
+  String setterName,
 ) => _withArgumentsInvalidGetterSetterTypeSetterInheritedGetter(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
+  getterType: getterType,
+  getterName: getterName,
+  setterType: setterType,
+  setterName: setterName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

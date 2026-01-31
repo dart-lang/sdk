@@ -2829,11 +2829,11 @@ invalidGetterSetterType:
 
 invalidGetterSetterTypeGetterInherited:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+    Type getterType: The type of the getter.
+    Name getterName: The name of the getter.
+    Type setterType: The type of the setter.
+    Name setterName: The name of the setter.
+  problemMessage: "The type '#getterType' of the inherited getter '#getterName' is not a subtype of the type '#setterType' of the setter '#setterName'."
   script: |
     //@dart=3.5
     abstract class A {
@@ -2845,11 +2845,11 @@ invalidGetterSetterTypeGetterInherited:
 
 invalidGetterSetterTypeFieldInherited:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+    Type getterType: The type of the getter.
+    Name getterName: The name of the getter.
+    Type setterType: The type of the setter.
+    Name setterName: The name of the setter.
+  problemMessage: "The type '#getterType' of the inherited field '#getterName' is not a subtype of the type '#setterType' of the setter '#setterName'."
   script: |
     //@dart=3.5
     abstract class A {
@@ -2862,11 +2862,11 @@ invalidGetterSetterTypeFieldInherited:
 
 invalidGetterSetterTypeSetterInheritedGetter:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+    Type getterType: The type of the getter.
+    Name getterName: The name of the getter.
+    Type setterType: The type of the setter.
+    Name setterName: The name of the setter.
+  problemMessage: "The type '#getterType' of the getter '#getterName' is not a subtype of the type '#setterType' of the inherited setter '#setterName'."
   script: |
     //@dart=3.5
     abstract class A {
@@ -2878,11 +2878,11 @@ invalidGetterSetterTypeSetterInheritedGetter:
 
 invalidGetterSetterTypeSetterInheritedField:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+    Type getterType: The type of the getter.
+    Name getterName: The name of the getter.
+    Type setterType: The type of the setter.
+    Name setterName: The name of the setter.
+  problemMessage: "The type '#getterType' of the field '#getterName' is not a subtype of the type '#setterType' of the inherited setter '#setterName'."
   script: |
     //@dart=3.5
     abstract class A {
@@ -2895,11 +2895,11 @@ invalidGetterSetterTypeSetterInheritedField:
 
 invalidGetterSetterTypeBothInheritedField:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+    Type getterType: The type of the getter.
+    Name getterName: The name of the getter.
+    Type setterType: The type of the setter.
+    Name setterName: The name of the setter.
+  problemMessage: "The type '#getterType' of the inherited field '#getterName' is not a subtype of the type '#setterType' of the inherited setter '#setterName'."
   script: |
     //@dart=3.5
     abstract class A {
@@ -2913,11 +2913,11 @@ invalidGetterSetterTypeBothInheritedField:
 
 invalidGetterSetterTypeBothInheritedGetter:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+    Type getterType: The type of the getter.
+    Name getterName: The name of the getter.
+    Type setterType: The type of the setter.
+    Name setterName: The name of the setter.
+  problemMessage: "The type '#getterType' of the inherited getter '#getterName' is not a subtype of the type '#setterType' of the inherited setter '#setterName'."
   script: |
     //@dart=3.5
     abstract class A {
@@ -2930,14 +2930,14 @@ invalidGetterSetterTypeBothInheritedGetter:
 
 invalidGetterSetterTypeFieldContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the declaration of the field '#name'."
+    Name getterName: The name of the getter.
+  problemMessage: "This is the declaration of the field '#getterName'."
   severity: CONTEXT
 
 invalidGetterSetterTypeGetterContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the declaration of the getter '#name'."
+    Name getterName: The name of the getter.
+  problemMessage: "This is the declaration of the getter '#getterName'."
   severity: CONTEXT
 
 invalidGetterSetterTypeSetterContext:

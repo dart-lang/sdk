@@ -145,19 +145,24 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
           );
         } else if (getterIsDeclared) {
           Template<
-            Message Function(DartType, String, DartType, String),
-            Function
+            Function,
+            Message Function({
+              required DartType getterType,
+              required String getterName,
+              required DartType setterType,
+              required String setterName,
+            })
           >
           template = diag.invalidGetterSetterTypeSetterInheritedGetter;
           if (getterIsField) {
             template = diag.invalidGetterSetterTypeSetterInheritedField;
           }
           libraryBuilder.addProblem(
-            template.withArgumentsOld(
-              getterType,
-              getterFullName,
-              setterType,
-              setterFullName,
+            template.withArguments(
+              getterType: getterType,
+              getterName: getterFullName,
+              setterType: setterType,
+              setterName: setterFullName,
             ),
             getterOffset,
             name.text.length,
@@ -170,57 +175,67 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
           );
         } else if (setterIsDeclared) {
           Template<
-            Message Function(DartType, String, DartType, String),
-            Function
+            Function,
+            Message Function({
+              required DartType getterType,
+              required String getterName,
+              required DartType setterType,
+              required String setterName,
+            })
           >
           template = diag.invalidGetterSetterTypeGetterInherited;
-          Template<Message Function(String), Function> context =
-              diag.invalidGetterSetterTypeGetterContext;
+          Template<Function, Message Function({required String getterName})>
+          context = diag.invalidGetterSetterTypeGetterContext;
           if (getterIsField) {
             template = diag.invalidGetterSetterTypeFieldInherited;
             context = diag.invalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-            template.withArgumentsOld(
-              getterType,
-              getterFullName,
-              setterType,
-              setterFullName,
+            template.withArguments(
+              getterType: getterType,
+              getterName: getterFullName,
+              setterType: setterType,
+              setterName: setterFullName,
             ),
             setterOffset,
             name.text.length,
             setterUri,
             context: [
               context
-                  .withArgumentsOld(getterFullName)
+                  .withArguments(getterName: getterFullName)
                   .withLocation(getterUri, getterOffset, name.text.length),
             ],
           );
         } else {
           Template<
-            Message Function(DartType, String, DartType, String),
-            Function
+            Function,
+            Message Function({
+              required DartType getterType,
+              required String getterName,
+              required DartType setterType,
+              required String setterName,
+            })
           >
           template = diag.invalidGetterSetterTypeBothInheritedGetter;
-          Template<Message Function(String), Function> context =
-              diag.invalidGetterSetterTypeGetterContext;
+          Template<Function, Message Function({required String getterName})>
+          context = diag.invalidGetterSetterTypeGetterContext;
           if (getterIsField) {
             template = diag.invalidGetterSetterTypeBothInheritedField;
             context = diag.invalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-            template.withArgumentsOld(
-              getterType,
-              getterFullName,
-              setterType,
-              setterFullName,
+            template.withArguments(
+              getterType: getterType,
+              getterName: getterFullName,
+              setterType: setterType,
+              setterName: setterFullName,
             ),
             declarationOffset,
             noLength,
             declarationUri,
             context: [
               context
-                  .withArgumentsOld(getterFullName)
+                  .withArguments(getterName: getterFullName)
                   .withLocation(getterUri, getterOffset, name.text.length),
               diag.invalidGetterSetterTypeSetterContext
                   .withArguments(setterName: setterFullName)
