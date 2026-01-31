@@ -2050,7 +2050,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 prevNamedExpression.value,
                 namedExpression.value,
               ),
-              message: diag.duplicatedNamedArgument.withArgumentsOld(name),
+              message: diag.duplicatedNamedArgument.withArguments(name: name),
               fileUri: fileUri,
               fileOffset: namedExpression.fileOffset,
               length: name.length,

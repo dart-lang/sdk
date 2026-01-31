@@ -2403,7 +2403,8 @@ class OutlineBuilder extends StackListenerImpl {
       procedureKind = ProcedureKind.Operator;
       int requiredArgumentCount = operator.requiredArgumentCount;
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        Template<Message Function(String name), Function> template;
+        Template<Function, Message Function({required String operatorName})>
+        template;
         switch (requiredArgumentCount) {
           case 0:
             template = diag.operatorParameterMismatch0;
@@ -2430,7 +2431,11 @@ class OutlineBuilder extends StackListenerImpl {
               uri,
             );
         }
-        addProblem(template.withArgumentsOld(name), nameOffset, name.length);
+        addProblem(
+          template.withArguments(operatorName: name),
+          nameOffset,
+          name.length,
+        );
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
@@ -3131,12 +3136,12 @@ class OutlineBuilder extends StackListenerImpl {
             formals[0].name == formals[1].name &&
             !formals[0].isWildcard) {
           addProblem(
-            diag.duplicatedParameterName.withArgumentsOld(formals[1].name),
+            diag.duplicatedParameterName.withArguments(name: formals[1].name),
             formals[1].fileOffset,
             formals[1].name.length,
             context: [
               diag.duplicatedParameterNameCause
-                  .withArgumentsOld(formals[1].name)
+                  .withArguments(name: formals[1].name)
                   .withLocation(
                     uri,
                     formals[0].fileOffset,
@@ -3175,12 +3180,12 @@ class OutlineBuilder extends StackListenerImpl {
           if (formal.name == FormalParameterBuilder.noNameSentinel) continue;
           if (seenNames.containsKey(formal.name)) {
             addProblem(
-              diag.duplicatedParameterName.withArgumentsOld(formal.name),
+              diag.duplicatedParameterName.withArguments(name: formal.name),
               formal.fileOffset,
               formal.name.length,
               context: [
                 diag.duplicatedParameterNameCause
-                    .withArgumentsOld(formal.name)
+                    .withArguments(name: formal.name)
                     .withLocation(
                       uri,
                       seenNames[formal.name]!.fileOffset,
@@ -3252,7 +3257,7 @@ class OutlineBuilder extends StackListenerImpl {
       formal.name.length,
       context: [
         diag.duplicatedParameterNameCause
-            .withArgumentsOld(publicName)
+            .withArguments(name: publicName)
             .withLocation(uri, previous.fileOffset, previous.name.length),
       ],
     );

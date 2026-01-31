@@ -36,7 +36,7 @@ class NominalParameterNameSpace {
             tv.fileUri,
             context: [
               diag.typeParameterDuplicatedNameCause
-                  .withArgumentsOld(tv.name)
+                  .withArguments(typeVariableName: tv.name)
                   .withLocation(
                     existing.fileUri,
                     existing.fileOffset,

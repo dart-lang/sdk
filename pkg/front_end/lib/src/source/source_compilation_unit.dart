@@ -868,7 +868,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         }
       } else {
         addProblem(
-          diag.partTwice.withArgumentsOld(part.compilationUnit.fileUri),
+          diag.partTwice.withArguments(uri: part.compilationUnit.fileUri),
           part.fileOffset,
           noLength,
           part.fileUri,
@@ -918,10 +918,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             if (isNotMalformedUriScheme(partOfUri) &&
                 partOfUri != parentCompilationUnit.importUri) {
               parentCompilationUnit.addProblem(
-                diag.partOfUriMismatch.withArgumentsOld(
-                  part.fileUri,
-                  parentCompilationUnit.importUri,
-                  partOfUri,
+                diag.partOfUriMismatch.withArguments(
+                  partUri: part.fileUri,
+                  libraryUri: parentCompilationUnit.importUri,
+                  partOfUri: partOfUri,
                 ),
                 partOffset,
                 noLength,
@@ -935,10 +935,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             if (libraryName != null) {
               if (partOfName != libraryName) {
                 parentCompilationUnit.addProblem(
-                  diag.partOfLibraryNameMismatch.withArgumentsOld(
-                    part.fileUri,
-                    libraryName,
-                    partOfName,
+                  diag.partOfLibraryNameMismatch.withArguments(
+                    uri: part.fileUri,
+                    libraryName: libraryName,
+                    partOfName: partOfName,
                   ),
                   partOffset,
                   noLength,
@@ -948,10 +948,10 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
               }
             } else {
               parentCompilationUnit.addProblem(
-                diag.partOfUseUri.withArgumentsOld(
-                  part.fileUri,
-                  parentCompilationUnit.fileUri,
-                  partOfName,
+                diag.partOfUseUri.withArguments(
+                  partFileUri: part.fileUri,
+                  libraryUri: parentCompilationUnit.fileUri,
+                  partOfName: partOfName,
                 ),
                 partOffset,
                 noLength,
@@ -973,7 +973,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           assert(!part.isPart);
           if (isNotMalformedUriScheme(part.fileUri)) {
             parentCompilationUnit.addProblem(
-              diag.missingPartOf.withArgumentsOld(part.fileUri),
+              diag.missingPartOf.withArguments(uri: part.fileUri),
               partOffset,
               noLength,
               parentCompilationUnit.fileUri,
@@ -1003,7 +1003,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // "part of" declaration).
         if (isNotMalformedUriScheme(part.fileUri)) {
           parentCompilationUnit.addProblem(
-            diag.missingPartOf.withArgumentsOld(part.fileUri),
+            diag.missingPartOf.withArguments(uri: part.fileUri),
             partOffset,
             noLength,
             parentCompilationUnit.fileUri,
@@ -1263,8 +1263,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     for (Import import in _compilationUnitData.imports) {
       if (import.importedCompilationUnit?.isPart ?? false) {
         addProblem(
-          diag.partOfInLibrary.withArgumentsOld(
-            import.importedCompilationUnit!.fileUri,
+          diag.partOfInLibrary.withArguments(
+            uri: import.importedCompilationUnit!.fileUri,
           ),
           import.importOffset,
           noLength,
@@ -1525,13 +1525,13 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
       if (deferredFileOffset != null) {
         _problemReporting.addProblem(
-          diag.deferredPrefixDuplicated.withArgumentsOld(name),
+          diag.deferredPrefixDuplicated.withArguments(prefixName: name),
           deferredFileOffset,
           noLength,
           fileUri,
           context: [
             diag.deferredPrefixDuplicatedCause
-                .withArgumentsOld(name)
+                .withArguments(prefixName: name)
                 .withLocation(fileUri, otherFileOffset!, noLength),
           ],
         );
@@ -1545,13 +1545,13 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       NamedBuilder existing = result.getable ?? result.setable!;
       String fullName = name;
       _problemReporting.addProblem(
-        diag.duplicatedDeclaration.withArgumentsOld(fullName),
+        diag.duplicatedDeclaration.withArguments(name: fullName),
         charOffset,
         fullName.length,
         prefixFragment.fileUri,
         context: <LocatedMessage>[
           diag.duplicatedDeclarationCause
-              .withArgumentsOld(fullName)
+              .withArguments(name: fullName)
               .withLocation(
                 existing.fileUri!,
                 existing.fileOffset,

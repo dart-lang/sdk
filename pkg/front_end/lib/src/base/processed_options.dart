@@ -405,7 +405,7 @@ class ProcessedOptions {
         !await fileSystem.entityForUri(sdkRoot!).exists()) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-        diag.sdkRootNotFound.withArgumentsOld(sdkRoot!),
+        diag.sdkRootNotFound.withArguments(uri: sdkRoot!),
         CfeSeverity.error,
       );
       return false;
@@ -415,7 +415,7 @@ class ProcessedOptions {
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-        diag.sdkSummaryNotFound.withArgumentsOld(summary),
+        diag.sdkSummaryNotFound.withArguments(uri: summary),
         CfeSeverity.error,
       );
       return false;
@@ -436,7 +436,7 @@ class ProcessedOptions {
       // recover from this.
       if (!await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
-          diag.inputFileNotFound.withArgumentsOld(source),
+          diag.inputFileNotFound.withArguments(uri: source),
           CfeSeverity.error,
         );
         return false;
@@ -622,8 +622,8 @@ class ProcessedOptions {
       if (compileSdk) {
         // Coverage-ignore-block(suite): Not run.
         reportWithoutLocation(
-          diag.sdkSpecificationNotFound.withArgumentsOld(
-            librariesSpecificationUri!,
+          diag.sdkSpecificationNotFound.withArguments(
+            uri: librariesSpecificationUri!,
           ),
           CfeSeverity.error,
         );

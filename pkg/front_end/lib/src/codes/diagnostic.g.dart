@@ -2811,8 +2811,8 @@ Message _withArgumentsOldDeferredExtensionImport(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String prefixName),
+  Message Function({required String prefixName})
 >
 deferredPrefixDuplicated = const Template(
   "DeferredPrefixDuplicated",
@@ -2821,24 +2821,24 @@ deferredPrefixDuplicated = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeferredPrefixDuplicated({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDeferredPrefixDuplicated({required String prefixName}) {
+  var prefixName_0 = conversions.validateAndDemangleName(prefixName);
   return new Message(
     deferredPrefixDuplicated,
     problemMessage:
-        """Can't use the name '${name_0}' for a deferred library, as the name is used elsewhere.""",
-    arguments: {'name': name},
+        """Can't use the name '${prefixName_0}' for a deferred library, as the name is used elsewhere.""",
+    arguments: {'prefixName': prefixName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredPrefixDuplicated(String name) =>
-    _withArgumentsDeferredPrefixDuplicated(name: name);
+Message _withArgumentsOldDeferredPrefixDuplicated(String prefixName) =>
+    _withArgumentsDeferredPrefixDuplicated(prefixName: prefixName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String prefixName),
+  Message Function({required String prefixName})
 >
 deferredPrefixDuplicatedCause = const Template(
   "DeferredPrefixDuplicatedCause",
@@ -2848,18 +2848,20 @@ deferredPrefixDuplicatedCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeferredPrefixDuplicatedCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDeferredPrefixDuplicatedCause({
+  required String prefixName,
+}) {
+  var prefixName_0 = conversions.validateAndDemangleName(prefixName);
   return new Message(
     deferredPrefixDuplicatedCause,
-    problemMessage: """'${name_0}' is used here.""",
-    arguments: {'name': name},
+    problemMessage: """'${prefixName_0}' is used here.""",
+    arguments: {'prefixName': prefixName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredPrefixDuplicatedCause(String name) =>
-    _withArgumentsDeferredPrefixDuplicatedCause(name: name);
+Message _withArgumentsOldDeferredPrefixDuplicatedCause(String prefixName) =>
+    _withArgumentsDeferredPrefixDuplicatedCause(prefixName: prefixName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9037,8 +9039,8 @@ Message _withArgumentsOldInvalidGetterSetterTypeGetterInherited(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String setterName),
+  Message Function({required String setterName})
 >
 invalidGetterSetterTypeSetterContext = const Template(
   "InvalidGetterSetterTypeSetterContext",
@@ -9049,19 +9051,21 @@ invalidGetterSetterTypeSetterContext = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterTypeSetterContext({
-  required String name,
+  required String setterName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     invalidGetterSetterTypeSetterContext,
-    problemMessage: """This is the declaration of the setter '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """This is the declaration of the setter '${setterName_0}'.""",
+    arguments: {'setterName': setterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidGetterSetterTypeSetterContext(String name) =>
-    _withArgumentsInvalidGetterSetterTypeSetterContext(name: name);
+Message _withArgumentsOldInvalidGetterSetterTypeSetterContext(
+  String setterName,
+) => _withArgumentsInvalidGetterSetterTypeSetterContext(setterName: setterName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -12629,8 +12633,8 @@ const MessageCode notAnLvalue = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token token),
+  Message Function({required Token token})
 >
 notBinaryOperator = const Template(
   "NotBinaryOperator",
@@ -12639,18 +12643,18 @@ notBinaryOperator = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNotBinaryOperator({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+Message _withArgumentsNotBinaryOperator({required Token token}) {
+  var token_0 = conversions.tokenToLexeme(token);
   return new Message(
     notBinaryOperator,
-    problemMessage: """'${lexeme_0}' isn't a binary operator.""",
-    arguments: {'lexeme': lexeme},
+    problemMessage: """'${token_0}' isn't a binary operator.""",
+    arguments: {'token': token},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNotBinaryOperator(Token lexeme) =>
-    _withArgumentsNotBinaryOperator(lexeme: lexeme);
+Message _withArgumentsOldNotBinaryOperator(Token token) =>
+    _withArgumentsNotBinaryOperator(token: token);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -12954,8 +12958,8 @@ const MessageCode obsoleteColonForDefaultValue = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 operatorMinusParameterMismatch = const Template(
   "OperatorMinusParameterMismatch",
@@ -12964,26 +12968,28 @@ operatorMinusParameterMismatch = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorMinusParameterMismatch({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOperatorMinusParameterMismatch({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     operatorMinusParameterMismatch,
     problemMessage:
-        """Operator '${name_0}' should have zero or one parameter.""",
+        """Operator '${operatorName_0}' should have zero or one parameter.""",
     correctionMessage:
         """With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
-    arguments: {'name': name},
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorMinusParameterMismatch(String name) =>
-    _withArgumentsOperatorMinusParameterMismatch(name: name);
+Message _withArgumentsOldOperatorMinusParameterMismatch(String operatorName) =>
+    _withArgumentsOperatorMinusParameterMismatch(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 operatorParameterMismatch0 = const Template(
   "OperatorParameterMismatch0",
@@ -12992,23 +12998,26 @@ operatorParameterMismatch0 = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch0({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOperatorParameterMismatch0({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     operatorParameterMismatch0,
-    problemMessage: """Operator '${name_0}' shouldn't have any parameters.""",
-    arguments: {'name': name},
+    problemMessage:
+        """Operator '${operatorName_0}' shouldn't have any parameters.""",
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch0(String name) =>
-    _withArgumentsOperatorParameterMismatch0(name: name);
+Message _withArgumentsOldOperatorParameterMismatch0(String operatorName) =>
+    _withArgumentsOperatorParameterMismatch0(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 operatorParameterMismatch1 = const Template(
   "OperatorParameterMismatch1",
@@ -13017,24 +13026,26 @@ operatorParameterMismatch1 = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch1({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOperatorParameterMismatch1({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     operatorParameterMismatch1,
     problemMessage:
-        """Operator '${name_0}' should have exactly one parameter.""",
-    arguments: {'name': name},
+        """Operator '${operatorName_0}' should have exactly one parameter.""",
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch1(String name) =>
-    _withArgumentsOperatorParameterMismatch1(name: name);
+Message _withArgumentsOldOperatorParameterMismatch1(String operatorName) =>
+    _withArgumentsOperatorParameterMismatch1(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 operatorParameterMismatch2 = const Template(
   "OperatorParameterMismatch2",
@@ -13043,19 +13054,21 @@ operatorParameterMismatch2 = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch2({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOperatorParameterMismatch2({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     operatorParameterMismatch2,
     problemMessage:
-        """Operator '${name_0}' should have exactly two parameters.""",
-    arguments: {'name': name},
+        """Operator '${operatorName_0}' should have exactly two parameters.""",
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch2(String name) =>
-    _withArgumentsOperatorParameterMismatch2(name: name);
+Message _withArgumentsOldOperatorParameterMismatch2(String operatorName) =>
+    _withArgumentsOperatorParameterMismatch2(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode operatorWithOptionalFormals = const MessageCode(
@@ -13850,11 +13863,11 @@ Message _withArgumentsOldPartOfInLibrary(Uri uri) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Uri uri, String name, String name2),
+  Message Function(Uri uri, String libraryName, String partOfName),
   Message Function({
     required Uri uri,
-    required String name,
-    required String name2,
+    required String libraryName,
+    required String partOfName,
   })
 >
 partOfLibraryNameMismatch = const Template(
@@ -13866,27 +13879,34 @@ partOfLibraryNameMismatch = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfLibraryNameMismatch({
   required Uri uri,
-  required String name,
-  required String name2,
+  required String libraryName,
+  required String partOfName,
 }) {
   var uri_0 = conversions.relativizeUri(uri);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var libraryName_0 = conversions.validateAndDemangleName(libraryName);
+  var partOfName_0 = conversions.validateAndDemangleName(partOfName);
   return new Message(
     partOfLibraryNameMismatch,
     problemMessage:
-        """Using '${uri_0}' as part of '${name_0}' but its 'part of' declaration says '${name2_0}'.""",
-    arguments: {'uri': uri, 'name': name, 'name2': name2},
+        """Using '${uri_0}' as part of '${libraryName_0}' but its 'part of' declaration says '${partOfName_0}'.""",
+    arguments: {
+      'uri': uri,
+      'libraryName': libraryName,
+      'partOfName': partOfName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldPartOfLibraryNameMismatch(
   Uri uri,
-  String name,
-  String name2,
-) =>
-    _withArgumentsPartOfLibraryNameMismatch(uri: uri, name: name, name2: name2);
+  String libraryName,
+  String partOfName,
+) => _withArgumentsPartOfLibraryNameMismatch(
+  uri: uri,
+  libraryName: libraryName,
+  partOfName: partOfName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode partOfName = const MessageCode(
@@ -13919,8 +13939,12 @@ const MessageCode partOfTwoLibrariesContext = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Uri uri, Uri uri2, Uri uri3),
-  Message Function({required Uri uri, required Uri uri2, required Uri uri3})
+  Message Function(Uri partUri, Uri libraryUri, Uri partOfUri),
+  Message Function({
+    required Uri partUri,
+    required Uri libraryUri,
+    required Uri partOfUri,
+  })
 >
 partOfUriMismatch = const Template(
   "PartOfUriMismatch",
@@ -13930,29 +13954,44 @@ partOfUriMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfUriMismatch({
-  required Uri uri,
-  required Uri uri2,
-  required Uri uri3,
+  required Uri partUri,
+  required Uri libraryUri,
+  required Uri partOfUri,
 }) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var uri2_0 = conversions.relativizeUri(uri2);
-  var uri3_0 = conversions.relativizeUri(uri3);
+  var partUri_0 = conversions.relativizeUri(partUri);
+  var libraryUri_0 = conversions.relativizeUri(libraryUri);
+  var partOfUri_0 = conversions.relativizeUri(partOfUri);
   return new Message(
     partOfUriMismatch,
     problemMessage:
-        """Using '${uri_0}' as part of '${uri2_0}' but its 'part of' declaration says '${uri3_0}'.""",
-    arguments: {'uri': uri, 'uri2': uri2, 'uri3': uri3},
+        """Using '${partUri_0}' as part of '${libraryUri_0}' but its 'part of' declaration says '${partOfUri_0}'.""",
+    arguments: {
+      'partUri': partUri,
+      'libraryUri': libraryUri,
+      'partOfUri': partOfUri,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPartOfUriMismatch(Uri uri, Uri uri2, Uri uri3) =>
-    _withArgumentsPartOfUriMismatch(uri: uri, uri2: uri2, uri3: uri3);
+Message _withArgumentsOldPartOfUriMismatch(
+  Uri partUri,
+  Uri libraryUri,
+  Uri partOfUri,
+) => _withArgumentsPartOfUriMismatch(
+  partUri: partUri,
+  libraryUri: libraryUri,
+  partOfUri: partOfUri,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Uri uri, Uri uri2, String name),
-  Message Function({required Uri uri, required Uri uri2, required String name})
+  Message Function(Uri partFileUri, Uri libraryUri, String partOfName),
+  Message Function({
+    required Uri partFileUri,
+    required Uri libraryUri,
+    required String partOfName,
+  })
 >
 partOfUseUri = const Template(
   "PartOfUseUri",
@@ -13962,26 +14001,37 @@ partOfUseUri = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfUseUri({
-  required Uri uri,
-  required Uri uri2,
-  required String name,
+  required Uri partFileUri,
+  required Uri libraryUri,
+  required String partOfName,
 }) {
-  var uri_0 = conversions.relativizeUri(uri);
-  var uri2_0 = conversions.relativizeUri(uri2);
-  var name_0 = conversions.validateAndDemangleName(name);
+  var partFileUri_0 = conversions.relativizeUri(partFileUri);
+  var libraryUri_0 = conversions.relativizeUri(libraryUri);
+  var partOfName_0 = conversions.validateAndDemangleName(partOfName);
   return new Message(
     partOfUseUri,
     problemMessage:
-        """Using '${uri_0}' as part of '${uri2_0}' but its 'part of' declaration says '${name_0}'.""",
+        """Using '${partFileUri_0}' as part of '${libraryUri_0}' but its 'part of' declaration says '${partOfName_0}'.""",
     correctionMessage:
         """Try changing the 'part of' declaration to use a relative file name.""",
-    arguments: {'uri': uri, 'uri2': uri2, 'name': name},
+    arguments: {
+      'partFileUri': partFileUri,
+      'libraryUri': libraryUri,
+      'partOfName': partOfName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPartOfUseUri(Uri uri, Uri uri2, String name) =>
-    _withArgumentsPartOfUseUri(uri: uri, uri2: uri2, name: name);
+Message _withArgumentsOldPartOfUseUri(
+  Uri partFileUri,
+  Uri libraryUri,
+  String partOfName,
+) => _withArgumentsPartOfUseUri(
+  partFileUri: partFileUri,
+  libraryUri: libraryUri,
+  partOfName: partOfName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode partOrphan = const MessageCode(
@@ -15089,8 +15139,8 @@ Message _withArgumentsOldSuperBoundedHint(DartType type, DartType type2) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 superExtensionTypeIsIllegal = const Template(
   "SuperExtensionTypeIsIllegal",
@@ -15099,24 +15149,24 @@ superExtensionTypeIsIllegal = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSuperExtensionTypeIsIllegal({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSuperExtensionTypeIsIllegal({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     superExtensionTypeIsIllegal,
     problemMessage:
-        """The type '${name_0}' can't be implemented by an extension type.""",
-    arguments: {'name': name},
+        """The type '${typeName_0}' can't be implemented by an extension type.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperExtensionTypeIsIllegal(String name) =>
-    _withArgumentsSuperExtensionTypeIsIllegal(name: name);
+Message _withArgumentsOldSuperExtensionTypeIsIllegal(String typeName) =>
+    _withArgumentsSuperExtensionTypeIsIllegal(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String typeName, DartType aliasedType),
+  Message Function({required String typeName, required DartType aliasedType})
 >
 superExtensionTypeIsIllegalAliased = const Template(
   "SuperExtensionTypeIsIllegalAliased",
@@ -15126,31 +15176,34 @@ superExtensionTypeIsIllegalAliased = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperExtensionTypeIsIllegalAliased({
-  required String name,
-  required DartType type,
+  required String typeName,
+  required DartType aliasedType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var aliasedType_0 = labeler.labelType(aliasedType);
   return new Message(
     superExtensionTypeIsIllegalAliased,
     problemMessage:
-        """The type '${name_0}' which is an alias of '${type_0}' can't be implemented by an extension type.""" +
+        """The type '${typeName_0}' which is an alias of '${aliasedType_0}' can't be implemented by an extension type.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type},
+    arguments: {'typeName': typeName, 'aliasedType': aliasedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSuperExtensionTypeIsIllegalAliased(
-  String name,
-  DartType type,
-) => _withArgumentsSuperExtensionTypeIsIllegalAliased(name: name, type: type);
+  String typeName,
+  DartType aliasedType,
+) => _withArgumentsSuperExtensionTypeIsIllegalAliased(
+  typeName: typeName,
+  aliasedType: aliasedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String typeName, DartType aliasedType),
+  Message Function({required String typeName, required DartType aliasedType})
 >
 superExtensionTypeIsNullableAliased = const Template(
   "SuperExtensionTypeIsNullableAliased",
@@ -15160,31 +15213,34 @@ superExtensionTypeIsNullableAliased = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperExtensionTypeIsNullableAliased({
-  required String name,
-  required DartType type,
+  required String typeName,
+  required DartType aliasedType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var aliasedType_0 = labeler.labelType(aliasedType);
   return new Message(
     superExtensionTypeIsNullableAliased,
     problemMessage:
-        """The type '${name_0}' which is an alias of '${type_0}' can't be implemented by an extension type because it is nullable.""" +
+        """The type '${typeName_0}' which is an alias of '${aliasedType_0}' can't be implemented by an extension type because it is nullable.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type},
+    arguments: {'typeName': typeName, 'aliasedType': aliasedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSuperExtensionTypeIsNullableAliased(
-  String name,
-  DartType type,
-) => _withArgumentsSuperExtensionTypeIsNullableAliased(name: name, type: type);
+  String typeName,
+  DartType aliasedType,
+) => _withArgumentsSuperExtensionTypeIsNullableAliased(
+  typeName: typeName,
+  aliasedType: aliasedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 superExtensionTypeIsTypeParameter = const Template(
   "SuperExtensionTypeIsTypeParameter",
@@ -15194,20 +15250,20 @@ superExtensionTypeIsTypeParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperExtensionTypeIsTypeParameter({
-  required String name,
+  required String typeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     superExtensionTypeIsTypeParameter,
     problemMessage:
-        """The type variable '${name_0}' can't be implemented by an extension type.""",
-    arguments: {'name': name},
+        """The type variable '${typeName_0}' can't be implemented by an extension type.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperExtensionTypeIsTypeParameter(String name) =>
-    _withArgumentsSuperExtensionTypeIsTypeParameter(name: name);
+Message _withArgumentsOldSuperExtensionTypeIsTypeParameter(String typeName) =>
+    _withArgumentsSuperExtensionTypeIsTypeParameter(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode superInitializerNotLast = const MessageCode(
@@ -15392,8 +15448,8 @@ const MessageCode supertypeIsFunction = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 supertypeIsIllegal = const Template(
   "SupertypeIsIllegal",
@@ -15402,23 +15458,23 @@ supertypeIsIllegal = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsIllegal({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSupertypeIsIllegal({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     supertypeIsIllegal,
-    problemMessage: """The type '${name_0}' can't be used as supertype.""",
-    arguments: {'name': name},
+    problemMessage: """The type '${typeName_0}' can't be used as supertype.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsIllegal(String name) =>
-    _withArgumentsSupertypeIsIllegal(name: name);
+Message _withArgumentsOldSupertypeIsIllegal(String typeName) =>
+    _withArgumentsSupertypeIsIllegal(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String typeName, DartType aliasedType),
+  Message Function({required String typeName, required DartType aliasedType})
 >
 supertypeIsIllegalAliased = const Template(
   "SupertypeIsIllegalAliased",
@@ -15428,31 +15484,34 @@ supertypeIsIllegalAliased = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsIllegalAliased({
-  required String name,
-  required DartType type,
+  required String typeName,
+  required DartType aliasedType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var aliasedType_0 = labeler.labelType(aliasedType);
   return new Message(
     supertypeIsIllegalAliased,
     problemMessage:
-        """The type '${name_0}' which is an alias of '${type_0}' can't be used as supertype.""" +
+        """The type '${typeName_0}' which is an alias of '${aliasedType_0}' can't be used as supertype.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type},
+    arguments: {'typeName': typeName, 'aliasedType': aliasedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSupertypeIsIllegalAliased(
-  String name,
-  DartType type,
-) => _withArgumentsSupertypeIsIllegalAliased(name: name, type: type);
+  String typeName,
+  DartType aliasedType,
+) => _withArgumentsSupertypeIsIllegalAliased(
+  typeName: typeName,
+  aliasedType: aliasedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String typeName, DartType aliasedType),
+  Message Function({required String typeName, required DartType aliasedType})
 >
 supertypeIsNullableAliased = const Template(
   "SupertypeIsNullableAliased",
@@ -15462,31 +15521,34 @@ supertypeIsNullableAliased = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSupertypeIsNullableAliased({
-  required String name,
-  required DartType type,
+  required String typeName,
+  required DartType aliasedType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var aliasedType_0 = labeler.labelType(aliasedType);
   return new Message(
     supertypeIsNullableAliased,
     problemMessage:
-        """The type '${name_0}' which is an alias of '${type_0}' can't be used as supertype because it is nullable.""" +
+        """The type '${typeName_0}' which is an alias of '${aliasedType_0}' can't be used as supertype because it is nullable.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type},
+    arguments: {'typeName': typeName, 'aliasedType': aliasedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSupertypeIsNullableAliased(
-  String name,
-  DartType type,
-) => _withArgumentsSupertypeIsNullableAliased(name: name, type: type);
+  String typeName,
+  DartType aliasedType,
+) => _withArgumentsSupertypeIsNullableAliased(
+  typeName: typeName,
+  aliasedType: aliasedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 supertypeIsTypeParameter = const Template(
   "SupertypeIsTypeParameter",
@@ -15495,19 +15557,19 @@ supertypeIsTypeParameter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsTypeParameter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSupertypeIsTypeParameter({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     supertypeIsTypeParameter,
     problemMessage:
-        """The type variable '${name_0}' can't be used as supertype.""",
-    arguments: {'name': name},
+        """The type variable '${typeName_0}' can't be used as supertype.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsTypeParameter(String name) =>
-    _withArgumentsSupertypeIsTypeParameter(name: name);
+Message _withArgumentsOldSupertypeIsTypeParameter(String typeName) =>
+    _withArgumentsSupertypeIsTypeParameter(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode switchCaseFallThrough = const MessageCode(
@@ -15873,8 +15935,8 @@ const MessageCode typeParameterDuplicatedName = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeVariableName),
+  Message Function({required String typeVariableName})
 >
 typeParameterDuplicatedNameCause = const Template(
   "TypeParameterDuplicatedNameCause",
@@ -15884,18 +15946,26 @@ typeParameterDuplicatedNameCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeParameterDuplicatedNameCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsTypeParameterDuplicatedNameCause({
+  required String typeVariableName,
+}) {
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
   return new Message(
     typeParameterDuplicatedNameCause,
-    problemMessage: """The other type variable named '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """The other type variable named '${typeVariableName_0}'.""",
+    arguments: {'typeVariableName': typeVariableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeParameterDuplicatedNameCause(String name) =>
-    _withArgumentsTypeParameterDuplicatedNameCause(name: name);
+Message _withArgumentsOldTypeParameterDuplicatedNameCause(
+  String typeVariableName,
+) => _withArgumentsTypeParameterDuplicatedNameCause(
+  typeVariableName: typeVariableName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode typeParameterSameNameAsEnclosing = const MessageCode(

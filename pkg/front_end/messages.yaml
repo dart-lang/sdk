@@ -2942,8 +2942,8 @@ invalidGetterSetterTypeGetterContext:
 
 invalidGetterSetterTypeSetterContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the declaration of the setter '#name'."
+    Name setterName: The name of the setter.
+  problemMessage: "This is the declaration of the setter '#setterName'."
   severity: CONTEXT
 
 partOfSelf:
@@ -2960,8 +2960,8 @@ typeParameterDuplicatedName:
 
 typeParameterDuplicatedNameCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "The other type variable named '#name'."
+    Name typeVariableName: The name of the duplicated type variable.
+  problemMessage: "The other type variable named '#typeVariableName'."
   severity: CONTEXT
 
 typeParameterSameNameAsEnclosing:
@@ -3061,7 +3061,7 @@ nonPartOfDirectiveInPart:
 
 partTwice:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI that is used as a part more than once.
   problemMessage: "Can't use '#uri' as a part more than once."
   script:
     part.dart: "part of 'main.dart';"
@@ -3107,7 +3107,7 @@ missingTypedefParameters:
 
 missingPartOf:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI of the erroneous part.
   problemMessage: "Can't use '#uri' as a part, because it has no 'part of' declaration."
   script:
     part.dart: ""
@@ -3115,7 +3115,7 @@ missingPartOf:
 
 partOfInLibrary:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI of the invalid library.
   problemMessage: "Can't import '#uri', because it has a 'part of' declaration."
   correctionMessage: "Try removing the 'part of' declaration, or using '#uri' as a part."
   script:
@@ -3185,8 +3185,8 @@ supertypeIsFunction:
 
 deferredPrefixDuplicated:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't use the name '#name' for a deferred library, as the name is used elsewhere."
+    Name prefixName: The prefix used to import the deferred library.
+  problemMessage: "Can't use the name '#prefixName' for a deferred library, as the name is used elsewhere."
   script:
     main.dart: |
       import 'lib1.dart' deferred as foo;
@@ -3196,13 +3196,13 @@ deferredPrefixDuplicated:
 
 deferredPrefixDuplicatedCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' is used here."
+    Name prefixName: The prefix used to import the deferred library.
+  problemMessage: "'#prefixName' is used here."
   severity: CONTEXT
 
 duplicatedDeclaration:
   parameters:
-    Name name: undocumented
+    Name name: The name of the duplicated declaration.
   problemMessage: "'#name' is already declared in this scope."
   script: |
     class C {} // First declaration (related information points here).
@@ -3215,7 +3215,7 @@ duplicatedDeclaration:
 
 duplicatedDeclarationCause:
   parameters:
-    Name name: undocumented
+    Name name: The name of the duplicated declaration.
   problemMessage: "Previous declaration of '#name'."
   severity: CONTEXT
 
@@ -3228,7 +3228,7 @@ duplicatedDeclarationSyntheticCause:
 # Use this message when a duplicated declaration is used.
 duplicatedDeclarationUse:
   parameters:
-    Name name: undocumented
+    Name name: The name of the duplicated declaration.
   problemMessage: "Can't use '#name' because it is declared more than once."
   script:
     - main.dart: |
@@ -3252,7 +3252,7 @@ duplicatedDeclarationUse:
 
 duplicatedNamedArgument:
   parameters:
-    Name name: undocumented
+    Name name: The name of the duplicated named argument.
   problemMessage: "Duplicated named argument '#name'."
   script: |
     foo({required int named}) {}
@@ -3263,21 +3263,21 @@ duplicatedNamedArgument:
 
 duplicatedParameterName:
   parameters:
-    Name name: undocumented
+    Name name: The name of the duplicated parameter.
   problemMessage: "Duplicated parameter name '#name'."
   script: |
     foo({required int named, required int named}) {}
 
 duplicatedParameterNameCause:
   parameters:
-    Name name: undocumented
+    Name name: The name of the duplicated parameter.
   problemMessage: "Other parameter named '#name'."
   severity: CONTEXT
 
 notBinaryOperator:
   parameters:
-    Token lexeme: undocumented
-  problemMessage: "'#lexeme' isn't a binary operator."
+    Token token: The token that isn't a binary operator.
+  problemMessage: "'#token' isn't a binary operator."
   script: |
     class C { operator~() { return null; } }
 
@@ -3288,8 +3288,8 @@ notBinaryOperator:
 
 operatorParameterMismatch0:
   parameters:
-    Name name: undocumented
-  problemMessage: "Operator '#name' shouldn't have any parameters."
+    Name operatorName: The name of the operator that shouldn't have any parameters.
+  problemMessage: "Operator '#operatorName' shouldn't have any parameters."
   script: |
     class Foo {
       operator ~(a) => true;
@@ -3297,8 +3297,8 @@ operatorParameterMismatch0:
 
 operatorParameterMismatch1:
   parameters:
-    Name name: undocumented
-  problemMessage: "Operator '#name' should have exactly one parameter."
+    Name operatorName: The name of the operator that should have exactly one parameter.
+  problemMessage: "Operator '#operatorName' should have exactly one parameter."
   script: |
     class Foo {
       operator ==() => true;
@@ -3307,8 +3307,8 @@ operatorParameterMismatch1:
 
 operatorParameterMismatch2:
   parameters:
-    Name name: undocumented
-  problemMessage: "Operator '#name' should have exactly two parameters."
+    Name operatorName: The name of the operator that should have exactly two parameters.
+  problemMessage: "Operator '#operatorName' should have exactly two parameters."
   script: |
     class Foo {
       operator []=(a, b, c) => true;
@@ -3316,8 +3316,8 @@ operatorParameterMismatch2:
 
 operatorMinusParameterMismatch:
   parameters:
-    Name name: undocumented
-  problemMessage: "Operator '#name' should have zero or one parameter."
+    Name operatorName: The name of the operator that should have zero or one parameter.
+  problemMessage: "Operator '#operatorName' should have zero or one parameter."
   correctionMessage: >-
     With zero parameters, it has the syntactic form '-a', formally known as 'unary-'.
     With one parameter, it has the syntactic form 'a - b', formally known as '-'.
@@ -3328,25 +3328,25 @@ operatorMinusParameterMismatch:
 
 supertypeIsIllegal:
   parameters:
-    Name name: undocumented
-  problemMessage: "The type '#name' can't be used as supertype."
+    Name typeName: The name of the type that can't be used as a supertype.
+  problemMessage: "The type '#typeName' can't be used as supertype."
   script: |
     class C extends dynamic {}
 
 supertypeIsIllegalAliased:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "The type '#name' which is an alias of '#type' can't be used as supertype."
+    Name typeName: The name of the type alias that can't be used as a supertype.
+    Type aliasedType: The type that the alias resolves to.
+  problemMessage: "The type '#typeName' which is an alias of '#aliasedType' can't be used as supertype."
   script: |
     typedef F = void Function();
     class C extends F {}
 
 supertypeIsNullableAliased:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable."
+    Name typeName: The name of the type alias that can't be used as a supertype.
+    Type aliasedType: The type that the alias resolves to.
+  problemMessage: "The type '#typeName' which is an alias of '#aliasedType' can't be used as supertype because it is nullable."
   script: |
     class A {}
     typedef B = A?;
@@ -3354,32 +3354,32 @@ supertypeIsNullableAliased:
 
 supertypeIsTypeParameter:
   parameters:
-    Name name: undocumented
-  problemMessage: "The type variable '#name' can't be used as supertype."
+    Name typeName: The name of the type variable that can't be used as a supertype.
+  problemMessage: "The type variable '#typeName' can't be used as supertype."
   script: |
     class C<T> extends T {}
 
 superExtensionTypeIsIllegal:
   parameters:
-    Name name: undocumented
-  problemMessage: "The type '#name' can't be implemented by an extension type."
+    Name typeName: The name of the type that can't be implemented by an extension type.
+  problemMessage: "The type '#typeName' can't be implemented by an extension type."
   script: |
     extension type E(dynamic it) implements dynamic {}
 
 superExtensionTypeIsIllegalAliased:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type."
+    Name typeName: The name of the type alias that can't be implemented by an extension type.
+    Type aliasedType: The type that the alias resolves to.
+  problemMessage: "The type '#typeName' which is an alias of '#aliasedType' can't be implemented by an extension type."
   script: |
     typedef F = void Function();
     extension type E(F it) implements F {}
 
 superExtensionTypeIsNullableAliased:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable."
+    Name typeName: The name of the type alias that can't be implemented by an extension type.
+    Type aliasedType: The type that the alias resolves to.
+  problemMessage: "The type '#typeName' which is an alias of '#aliasedType' can't be implemented by an extension type because it is nullable."
   script: |
     class A {}
     typedef B = A?;
@@ -3387,17 +3387,17 @@ superExtensionTypeIsNullableAliased:
 
 superExtensionTypeIsTypeParameter:
   parameters:
-    Name name: undocumented
-  problemMessage: "The type variable '#name' can't be implemented by an extension type."
+    Name typeName: The name of the type variable that can't be implemented by an extension type.
+  problemMessage: "The type variable '#typeName' can't be implemented by an extension type."
   script: |
     extension type E<T>(T it) implements T {}
 
 partOfLibraryNameMismatch:
   parameters:
-    Uri uri: undocumented
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
+    Uri uri: The URI of the part file.
+    Name libraryName: The name of the library containing the problematic `part` directive.
+    Name partOfName: The name in the `part of` directive.
+  problemMessage: "Using '#uri' as part of '#libraryName' but its 'part of' declaration says '#partOfName'."
   script:
     main.dart: |
       library foo;
@@ -3407,10 +3407,10 @@ partOfLibraryNameMismatch:
 
 partOfUseUri:
   parameters:
-    Uri uri: undocumented
-    Uri uri2: undocumented
-    Name name: undocumented
-  problemMessage: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'."
+    Uri partFileUri: The URI of the part file.
+    Uri libraryUri: The URI of the library containing the `part` directive.
+    Name partOfName: The name in the `part of` directive.
+  problemMessage: "Using '#partFileUri' as part of '#libraryUri' but its 'part of' declaration says '#partOfName'."
   correctionMessage: "Try changing the 'part of' declaration to use a relative file name."
   script:
     main.dart: |
@@ -3420,10 +3420,10 @@ partOfUseUri:
 
 partOfUriMismatch:
   parameters:
-    Uri uri: undocumented
-    Uri uri2: undocumented
-    Uri uri3: undocumented
-  problemMessage: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'."
+    Uri partUri: The URI of the part file.
+    Uri libraryUri: The URI of the library containing the `part` directive.
+    Uri partOfUri: The URI in the `part of` directive.
+  problemMessage: "Using '#partUri' as part of '#libraryUri' but its 'part of' declaration says '#partOfUri'."
   script:
     main.dart: |
       part 'lib.dart';
@@ -3442,28 +3442,28 @@ missingInput:
 
 inputFileNotFound:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI of the input file that was sought.
   problemMessage: "Input file not found: #uri."
 
 sdkRootNotFound:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The purported URI of the SDK root directory.
   problemMessage: "SDK root directory not found: #uri."
 
 sdkSummaryNotFound:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The purported URI of the SDK summary.
   problemMessage: "SDK summary not found: #uri."
 
 sdkSpecificationNotFound:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The purported URI of the SDK libraries specification.
   problemMessage: "SDK libraries specification not found: #uri."
   correctionMessage: "Normally, the specification is a file named 'libraries.json' in the Dart SDK install location."
 
 thisAccessInFieldInitializer:
   parameters:
-    Name name: undocumented
+    Name name: The name of the instance member that could not be used.
   problemMessage: "Can't access 'this' in a field initializer to read '#name'."
   script: |
     class Foo {

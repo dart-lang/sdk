@@ -247,7 +247,10 @@ class SourceExtensionTypeDeclarationBuilder
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
             errorMessage = diag.superExtensionTypeIsIllegalAliased
-                .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
+                .withArguments(
+                  typeName: typeBuilder.fullNameForErrors,
+                  aliasedType: interface,
+                );
             errorContext = [
               diag.typedefCause.withLocation(
                 aliasBuilder.fileUri,
@@ -256,8 +259,8 @@ class SourceExtensionTypeDeclarationBuilder
               ),
             ];
           } else {
-            errorMessage = diag.superExtensionTypeIsIllegal.withArgumentsOld(
-              typeBuilder.fullNameForErrors,
+            errorMessage = diag.superExtensionTypeIsIllegal.withArguments(
+              typeName: typeBuilder.fullNameForErrors,
             );
           }
           libraryBuilder.addProblem(
@@ -306,7 +309,10 @@ class SourceExtensionTypeDeclarationBuilder
         if (interface is ExtensionType) {
           if (interface.nullability == Nullability.nullable) {
             Message? errorMessage = diag.superExtensionTypeIsNullableAliased
-                .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
+                .withArguments(
+                  typeName: typeBuilder.fullNameForErrors,
+                  aliasedType: interface,
+                );
             List<LocatedMessage>? errorContext;
             if (aliasBuilder != null) {
               errorContext = [
@@ -337,7 +343,10 @@ class SourceExtensionTypeDeclarationBuilder
               );
             } else {
               errorMessage = diag.superExtensionTypeIsNullableAliased
-                  .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
+                  .withArguments(
+                    typeName: typeBuilder.fullNameForErrors,
+                    aliasedType: interface,
+                  );
               if (aliasBuilder != null) {
                 errorContext = [
                   diag.typedefCause.withLocation(
@@ -360,7 +369,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
         } else if (interface is TypeParameterType) {
           Message? errorMessage = diag.superExtensionTypeIsTypeParameter
-              .withArgumentsOld(typeBuilder.fullNameForErrors);
+              .withArguments(typeName: typeBuilder.fullNameForErrors);
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
@@ -384,7 +393,10 @@ class SourceExtensionTypeDeclarationBuilder
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             errorMessage = diag.superExtensionTypeIsIllegalAliased
-                .withArgumentsOld(typeBuilder.fullNameForErrors, interface);
+                .withArguments(
+                  typeName: typeBuilder.fullNameForErrors,
+                  aliasedType: interface,
+                );
             errorContext = [
               diag.typedefCause.withLocation(
                 aliasBuilder.fileUri,
@@ -393,8 +405,8 @@ class SourceExtensionTypeDeclarationBuilder
               ),
             ];
           } else {
-            errorMessage = diag.superExtensionTypeIsIllegal.withArgumentsOld(
-              typeBuilder.fullNameForErrors,
+            errorMessage = diag.superExtensionTypeIsIllegal.withArguments(
+              typeName: typeBuilder.fullNameForErrors,
             );
           }
           libraryBuilder.addProblem(

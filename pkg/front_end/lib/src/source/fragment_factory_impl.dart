@@ -2346,7 +2346,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           _compilationUnit.fileUri,
           context: [
             diag.typeParameterDuplicatedNameCause
-                .withArgumentsOld(tv.name)
+                .withArguments(typeVariableName: tv.name)
                 .withLocation(
                   _compilationUnit.fileUri,
                   existing.fileOffset,
