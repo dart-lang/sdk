@@ -279,7 +279,7 @@ class PluginServer {
     // the SDK path is configured...
     _sdkPath = parameters.sdkPath;
     return protocol.PluginVersionCheckResult(true, 'Plugin Server', '0.0.1', [
-      '**.dart',
+      '*.dart',
     ]);
   }
 
