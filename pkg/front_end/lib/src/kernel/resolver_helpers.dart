@@ -639,8 +639,8 @@ class _InitializerBuilder {
         initializer = createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
-            message: diag.superclassHasNoDefaultConstructor.withArgumentsOld(
-              superclass,
+            message: diag.superclassHasNoDefaultConstructor.withArguments(
+              className: superclass,
             ),
             fileUri: _fileUri,
             fileOffset: _bodyBuilderContext.memberNameOffset,

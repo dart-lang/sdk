@@ -903,6 +903,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo

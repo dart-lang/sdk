@@ -2362,7 +2362,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Message message = isSuper
         ?
           // Coverage-ignore(suite): Not run.
-          diag.superclassHasNoMember.withArgumentsOld(name.text)
+          diag.superclassHasNoMember.withArguments(memberName: name.text)
         : diag.memberNotFound.withArguments(name: name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
@@ -2384,7 +2384,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<LocatedMessage>? context,
   }) {
     Message message = isSuper
-        ? diag.superclassHasNoGetter.withArgumentsOld(name.text)
+        ? diag.superclassHasNoGetter.withArguments(getterName: name.text)
         : diag.getterNotFound.withArguments(name: name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
@@ -2406,7 +2406,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<LocatedMessage>? context,
   }) {
     Message message = isSuper
-        ? diag.superclassHasNoSetter.withArgumentsOld(name.text)
+        ? diag.superclassHasNoSetter.withArguments(setterName: name.text)
         : diag.setterNotFound.withArguments(name: name.text);
     if (reportWarning) {
       // Coverage-ignore-block(suite): Not run.
@@ -2453,7 +2453,9 @@ class BodyBuilderImpl extends StackListenerImpl
     Message message = isSuper
         ?
           // Coverage-ignore(suite): Not run.
-          diag.superclassHasNoConstructor.withArgumentsOld(name.text)
+          diag.superclassHasNoConstructor.withArguments(
+            constructorName: name.text,
+          )
         : diag.constructorNotFound.withArguments(name: name.text);
     return message;
   }
@@ -9807,7 +9809,7 @@ class BodyBuilderImpl extends StackListenerImpl
     return createInvalidInitializer(
       buildProblem(
         message: diag.constructorInitializeSameInstanceVariableSeveralTimes
-            .withArgumentsOld(name),
+            .withArguments(fieldName: name),
         fileUri: uri,
         fileOffset: offset,
         length: noLength,
@@ -9919,14 +9921,15 @@ class BodyBuilderImpl extends StackListenerImpl
         return <Initializer>[
           createInvalidInitializer(
             buildProblem(
-              message: diag.fieldAlreadyInitializedAtDeclaration
-                  .withArgumentsOld(name),
+              message: diag.fieldAlreadyInitializedAtDeclaration.withArguments(
+                fieldName: name,
+              ),
               fileUri: uri,
               fileOffset: assignmentOffset,
               length: noLength,
               context: [
                 diag.fieldAlreadyInitializedAtDeclarationCause
-                    .withArgumentsOld(name)
+                    .withArguments(fieldName: name)
                     .withLocation(uri, builder.fileOffset, name.length),
               ],
             ),

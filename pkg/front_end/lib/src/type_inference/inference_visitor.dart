@@ -4057,7 +4057,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (intValue == null) {
       Expression replacement = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: diag.integerLiteralIsOutOfRange.withArgumentsOld(node.literal),
+        message: diag.integerLiteralIsOutOfRange.withArguments(
+          literal: node.literal,
+        ),
         fileUri: fileUri,
         fileOffset: node.fileOffset,
         length: node.literal.length,
@@ -13957,8 +13959,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (intValue == null) {
             Expression error = problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: diag.integerLiteralIsOutOfRange.withArgumentsOld(
-                receiver.literal,
+              message: diag.integerLiteralIsOutOfRange.withArguments(
+                literal: receiver.literal,
               ),
               fileUri: fileUri,
               fileOffset: receiver.fileOffset,

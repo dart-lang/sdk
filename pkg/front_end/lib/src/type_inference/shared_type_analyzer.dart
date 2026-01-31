@@ -55,9 +55,9 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.switchExpressionNotSubtype.withArgumentsOld(
-        caseExpressionType.unwrapTypeView(),
-        scrutineeType.unwrapTypeView(),
+      message: diag.switchExpressionNotSubtype.withArguments(
+        caseExpressionType: caseExpressionType.unwrapTypeView(),
+        scrutineeType: scrutineeType.unwrapTypeView(),
       ),
       fileUri: uri,
       fileOffset: caseExpression.fileOffset,

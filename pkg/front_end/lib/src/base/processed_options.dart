@@ -641,7 +641,7 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on LibrariesSpecificationException catch (e) {
       reportWithoutLocation(
-        diag.cannotReadSdkSpecification.withArgumentsOld('${e.error}'),
+        diag.cannotReadSdkSpecification.withArguments(details: '${e.error}'),
         CfeSeverity.error,
       );
       return new TargetLibrariesSpecification(name);

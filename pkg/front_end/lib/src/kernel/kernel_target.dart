@@ -1466,7 +1466,7 @@ class KernelTarget {
               fileUri = cls.fileUri;
             }
             Message message = diag.superclassHasNoDefaultConstructor
-                .withArgumentsOld(cls.superclass!.name);
+                .withArguments(className: cls.superclass!.name);
             classBuilder.libraryBuilder.addProblem(
               message,
               offset,

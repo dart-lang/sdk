@@ -1621,7 +1621,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitSuperFormalParameter(SuperFormalParameter node) {
+  void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     _checkPrivateOptionalParameter(node);
     super.visitSuperFormalParameter(node);
 
@@ -1639,9 +1639,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var constructor = node.parentFormalParameterList.parent;
-    if (constructor is ConstructorDeclaration &&
+    if (constructor is ConstructorDeclarationImpl &&
         constructor.isNonRedirectingGenerative) {
-    } else if (constructor is PrimaryConstructorDeclaration) {
+      var constructorElement = constructor.declaredFragment!.element;
+      if (constructorElement.superConstructor == null) {
+        return;
+      }
+    } else if (constructor is PrimaryConstructorDeclarationImpl) {
+      var constructorElement = constructor.declaredFragment!.element;
+      if (constructorElement.superConstructor == null) {
+        return;
+      }
     } else {
       diagnosticReporter.report(
         diag.invalidSuperFormalParameterLocation.at(node.superKeyword),
@@ -1649,8 +1657,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    var element =
-        node.declaredFragment?.element as SuperFormalParameterElementImpl;
+    var element = node.declaredFragment!.element;
     var superParameter = element.superConstructorParameter;
 
     if (superParameter == null) {
