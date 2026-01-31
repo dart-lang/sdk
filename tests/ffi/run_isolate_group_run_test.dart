@@ -71,6 +71,8 @@ main(List<String> args) {
 
   testBytesBuilder();
 
+  testRegExp();
+
   print("All tests completed :)");
 }
 
@@ -529,9 +531,20 @@ void testRecursiveToString() {
 
 ///
 void testBytesBuilder() {
-  BytesBuilder builder = new BytesBuilder();
-  builder.add([1, 2, 3]);
-  Expect.listEquals([1, 2, 3], builder.toBytes());
-  builder.clear();
-  Expect.isTrue(builder.isEmpty);
+  IsolateGroup.runSync(() {
+    BytesBuilder builder = new BytesBuilder();
+    builder.add([1, 2, 3]);
+    Expect.listEquals([1, 2, 3], builder.toBytes());
+    builder.clear();
+    Expect.isTrue(builder.isEmpty);
+  });
+}
+
+///
+void testRegExp() {
+  IsolateGroup.runSync(() {
+    RegExp re = new RegExp("abc", multiLine: false, caseSensitive: true);
+    Match? m = re.firstMatch("defabcghi");
+    Expect.equals("abc", m?[0]);
+  });
 }

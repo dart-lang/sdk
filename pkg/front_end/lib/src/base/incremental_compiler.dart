@@ -2071,8 +2071,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (TypeParameter typeParam in typeDefinitions) {
         if (!isLegalIdentifier(typeParam.name!)) {
           lastGoodKernelTarget.loader.addProblem(
-            diag.incrementalCompilerIllegalTypeParameter.withArgumentsOld(
-              '$typeParam',
+            diag.incrementalCompilerIllegalTypeParameter.withArguments(
+              typeParameterName: '$typeParam',
             ),
             typeParam.fileOffset,
             0,
@@ -2091,7 +2091,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
 
         lastGoodKernelTarget.loader.addProblem(
-          diag.incrementalCompilerIllegalParameter.withArgumentsOld(name),
+          diag.incrementalCompilerIllegalParameter.withArguments(
+            parameterName: name,
+          ),
           // TODO: pass variable declarations instead of
           // parameter names for proper location detection.
           // https://github.com/dart-lang/sdk/issues/44158

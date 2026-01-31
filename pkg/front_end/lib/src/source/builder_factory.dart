@@ -1668,11 +1668,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
       case _ExistingKind.Getable:
         if (newIsSetter) {
           problemReporting.addProblem2(
-            diag.setterConflictsWithDeclaration.withArgumentsOld(name),
+            diag.setterConflictsWithDeclaration.withArguments(setterName: name),
             newUriOffset,
             context: [
               diag.setterConflictsWithDeclarationCause
-                  .withArgumentsOld(name)
+                  .withArguments(setterName: name)
                   .withLocation2(existingUriOffset),
             ],
           );
@@ -1682,11 +1682,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
       case _ExistingKind.ExplicitSetter:
         if (!newIsSetter) {
           problemReporting.addProblem2(
-            diag.declarationConflictsWithSetter.withArgumentsOld(name),
+            diag.declarationConflictsWithSetter.withArguments(setterName: name),
             newUriOffset,
             context: <LocatedMessage>[
               diag.declarationConflictsWithSetterCause
-                  .withArgumentsOld(name)
+                  .withArguments(setterName: name)
                   .withLocation2(existingUriOffset),
             ],
           );
@@ -1695,11 +1695,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
         break;
       case _ExistingKind.ImplicitSetter:
         problemReporting.addProblem2(
-          diag.conflictsWithImplicitSetter.withArgumentsOld(name),
+          diag.conflictsWithImplicitSetter.withArguments(fieldName: name),
           newUriOffset,
           context: [
             diag.conflictsWithImplicitSetterCause
-                .withArgumentsOld(name)
+                .withArguments(fieldName: name)
                 .withLocation2(existingUriOffset),
           ],
         );
@@ -1750,11 +1750,11 @@ class _FactoryConstructorDeclaration extends _ConstructorDeclaration
     //    }
     //
     problemReporting.addProblem2(
-      diag.memberConflictsWithFactory.withArgumentsOld(displayName),
+      diag.memberConflictsWithFactory.withArguments(factoryName: displayName),
       nonConstructorDeclaration.uriOffset,
       context: [
         diag.memberConflictsWithFactoryCause
-            .withArgumentsOld(displayName)
+            .withArguments(factoryName: displayName)
             .withLocation2(uriOffset),
       ],
     );
@@ -1849,11 +1849,13 @@ class _GenerativeConstructorDeclaration extends _ConstructorDeclaration
     //    }
     //
     problemReporting.addProblem2(
-      diag.memberConflictsWithConstructor.withArgumentsOld(displayName),
+      diag.memberConflictsWithConstructor.withArguments(
+        constructorName: displayName,
+      ),
       nonConstructorDeclaration.uriOffset,
       context: [
         diag.memberConflictsWithConstructorCause
-            .withArgumentsOld(displayName)
+            .withArguments(constructorName: displayName)
             .withLocation2(uriOffset),
       ],
     );
@@ -1937,11 +1939,13 @@ abstract class _NonConstructorDeclaration extends _Declaration {
       //    }
       //
       problemReporting.addProblem2(
-        diag.constructorConflictsWithMember.withArgumentsOld(displayName),
+        diag.constructorConflictsWithMember.withArguments(
+          memberName: displayName,
+        ),
         constructorDeclaration.uriOffset,
         context: [
           diag.constructorConflictsWithMemberCause
-              .withArgumentsOld(displayName)
+              .withArguments(memberName: displayName)
               .withLocation2(uriOffset),
         ],
       );
@@ -1958,11 +1962,11 @@ abstract class _NonConstructorDeclaration extends _Declaration {
       //    }
       //
       problemReporting.addProblem2(
-        diag.factoryConflictsWithMember.withArgumentsOld(displayName),
+        diag.factoryConflictsWithMember.withArguments(memberName: displayName),
         constructorDeclaration.uriOffset,
         context: [
           diag.factoryConflictsWithMemberCause
-              .withArgumentsOld(displayName)
+              .withArguments(memberName: displayName)
               .withLocation2(uriOffset),
         ],
       );
@@ -2028,21 +2032,25 @@ abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
   ) {
     if (isStatic) {
       problemReporting.addProblem2(
-        diag.instanceConflictsWithStatic.withArgumentsOld(displayName),
+        diag.instanceConflictsWithStatic.withArguments(
+          propertyName: displayName,
+        ),
         declaration.uriOffset,
         context: [
           diag.instanceConflictsWithStaticCause
-              .withArgumentsOld(displayName)
+              .withArguments(propertyName: displayName)
               .withLocation2(uriOffset),
         ],
       );
     } else {
       problemReporting.addProblem2(
-        diag.staticConflictsWithInstance.withArgumentsOld(displayName),
+        diag.staticConflictsWithInstance.withArguments(
+          propertyName: displayName,
+        ),
         declaration.uriOffset,
         context: [
           diag.staticConflictsWithInstanceCause
-              .withArgumentsOld(displayName)
+              .withArguments(propertyName: displayName)
               .withLocation2(uriOffset),
         ],
       );

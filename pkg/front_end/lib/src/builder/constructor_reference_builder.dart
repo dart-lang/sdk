@@ -79,7 +79,7 @@ class ConstructorReferenceBuilder {
     }
     if (target == null) {
       accessingLibrary.addProblem(
-        diag.constructorNotFound.withArgumentsOld(fullNameForErrors),
+        diag.constructorNotFound.withArguments(name: fullNameForErrors),
         charOffset,
         noLength,
         fileUri,

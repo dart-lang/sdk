@@ -4,29 +4,73 @@
 
 import 'dart:io';
 
+import 'package:glob/glob.dart';
+import 'package:glob/list_local_fs.dart';
 import 'package:package_config/package_config.dart';
-import 'package:path/path.dart' as p;
+import 'package:yaml/yaml.dart';
 
-/// Runs `dart pub get` in [projectDir] if it contains a pubspec.
-//
-// TODO(jakemac): Support flutter projects and workspaces.
-Future<void> runPubGet(Directory projectDir) async {
-  var pubspec = File(p.join(p.normalize(projectDir.path), 'pubspec.yaml'));
-  if (pubspec.existsSync()) {
-    print('Fetching dependencies with pub in ${projectDir.path}');
-    var pubGetResult = await Process.run('dart', [
-      'pub',
-      'get',
-    ], workingDirectory: projectDir.path);
-    if (pubGetResult.exitCode != 0) {
-      throw StateError(
-        'Failed to run `dart pub get`:\n'
-        'StdOut:\n${pubGetResult.stdout}\n'
-        'StdErr:\n${pubGetResult.stderr}',
+final _pubspecGlob = Glob('**/pubspec.yaml');
+
+/// Searches for all pubspecs under [rootDir] that are a context root (don't
+/// have `resolution: workspace`), and initializes them as needed.
+///
+/// Returns the initialized [ContextRoot]s.
+Stream<ContextRoot> initializeContextRoots(
+  String rootDir, {
+  bool isSdk = false,
+}) async* {
+  await for (var pubspecFile in _pubspecGlob.list(root: rootDir)) {
+    // Skip hidden dirs.
+    if (pubspecFile.uri.pathSegments.any((path) => path.startsWith('.'))) {
+      continue;
+    }
+    try {
+      var pubspec =
+          loadYaml(await File(pubspecFile.path).readAsString()) as YamlMap;
+      if (pubspec['resolution'] == 'workspace') continue;
+      var contextRootDir = pubspecFile.parent;
+      if (!isSdk) {
+        await runPubGet(contextRootDir, pubspec);
+      }
+      var packageConfig = await findPackageConfig(contextRootDir);
+      if (packageConfig == null) {
+        throw StateError(
+          'Unable to find package config file in ${contextRootDir.path}',
+        );
+      }
+      yield ContextRoot(contextRootDir, packageConfig);
+    } catch (e) {
+      stderr.writeln(
+        'Error initializing context root for pubspec at ${pubspecFile.path}:\n'
+        '$e',
       );
     }
-  } else {
-    print('No pubspec.yaml found in ${projectDir.path}, skipping `pub get`');
+  }
+}
+
+/// Runs `dart|flutter pub get` in [projectDir]
+///
+/// Checks various parts of the [pubspec] for `flutter` dependencies to
+/// determine the type of package.
+Future<void> runPubGet(Directory projectDir, YamlMap pubspec) async {
+  var isFlutter =
+      pubspec['environment']?['flutter'] != null ||
+      pubspec['dependencies']?['flutter'] != null ||
+      pubspec['dev_dependencies']?['flutter'] != null ||
+      pubspec['dev_dependencies']?['flutter_test'] != null;
+  var sdk = isFlutter ? 'flutter' : 'dart';
+  print('Fetching dependencies with `$sdk pub get` in ${projectDir.path}');
+  var pubGetResult = await Process.run(sdk, [
+    'pub',
+    'get',
+    '--no-example',
+  ], workingDirectory: projectDir.path);
+  if (pubGetResult.exitCode != 0) {
+    throw StateError(
+      'Failed to run `$sdk pub get`:\n'
+      'StdOut:\n${pubGetResult.stdout}\n'
+      'StdErr:\n${pubGetResult.stderr}',
+    );
   }
 }
 

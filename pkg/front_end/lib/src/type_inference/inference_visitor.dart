@@ -12416,7 +12416,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       return wrapExpressionInferenceResultInProblem(
         new ExpressionInferenceResult(const InvalidType(), node),
-        diag.internalProblemUnsupported.withArgumentsOld("RecordIndexGet"),
+        diag.internalProblemUnsupported.withArguments(
+          operation: "RecordIndexGet",
+        ),
         node.fileOffset,
         noLength,
       );
@@ -12464,7 +12466,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       return wrapExpressionInferenceResultInProblem(
         new ExpressionInferenceResult(const InvalidType(), node),
-        diag.internalProblemUnsupported.withArgumentsOld("RecordIndexGet"),
+        diag.internalProblemUnsupported.withArguments(
+          operation: "RecordIndexGet",
+        ),
         node.fileOffset,
         noLength,
       );
@@ -16671,8 +16675,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             const DynamicType(),
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: diag.abstractClassInstantiation.withArgumentsOld(
-                typeDeclaration.name,
+              message: diag.abstractClassInstantiation.withArguments(
+                name: typeDeclaration.name,
               ),
               fileUri: fileUri,
               fileOffset: node.nameOffset,

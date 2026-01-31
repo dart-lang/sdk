@@ -142,7 +142,7 @@ mixin SourceDeclarationBuilderBaseMixin
       );
       return unhandled(
         diag.typeArgumentMismatch
-            .withArgumentsOld(typeParametersCount)
+            .withArguments(expectedCount: typeParametersCount)
             .problemMessage,
         "buildTypeArguments",
         -1,
@@ -201,8 +201,8 @@ mixin SourceDeclarationBuilderMixin
           libraryBuilder.addProblem(
             // TODO(johnniwinther): Use a different error message for
             //  extension type declarations.
-            diag.extensionMemberConflictsWithObjectMember.withArgumentsOld(
-              name,
+            diag.extensionMemberConflictsWithObjectMember.withArguments(
+              memberName: name,
             ),
             declaration.fileOffset,
             name.length,

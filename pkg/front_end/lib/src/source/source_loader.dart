@@ -1014,7 +1014,9 @@ severity: $severity
     }
     if (message.code.severity == CfeSeverity.context) {
       internalProblem(
-        diag.internalProblemContextSeverity.withArgumentsOld(message.code.name),
+        diag.internalProblemContextSeverity.withArguments(
+          messageCode: message.code.name,
+        ),
         charOffset,
         fileUri,
       );
@@ -1144,7 +1146,7 @@ severity: $severity
         // Coverage-ignore-block(suite): Not run.
         target.benchmarker?.endSubdivide();
         return internalProblem(
-          diag.internalProblemUriMissingScheme.withArgumentsOld(fileUri),
+          diag.internalProblemUriMissingScheme.withArguments(uri: fileUri),
           -1,
           compilationUnit.importUri,
         );
@@ -1969,8 +1971,8 @@ severity: $severity
         // TODO(johnniwinther): Update the message for when an extension type
         //  depends on a cycle but does not depend on itself.
         extensionTypeBuilder.libraryBuilder.addProblem(
-          diag.cyclicClassHierarchy.withArgumentsOld(
-            extensionTypeBuilder.fullNameForErrors,
+          diag.cyclicClassHierarchy.withArguments(
+            typeName: extensionTypeBuilder.fullNameForErrors,
           ),
           extensionTypeBuilder.fileOffset,
           noLength,
@@ -1993,15 +1995,15 @@ severity: $severity
       ConstructorBuilder constructorBuilder = iterator.current;
       if (!constructorBuilder.isSynthetic) {
         classBuilder.libraryBuilder.addProblem(
-          diag.illegalMixinDueToConstructors.withArgumentsOld(
-            mixinClassBuilder.fullNameForErrors,
+          diag.illegalMixinDueToConstructors.withArguments(
+            className: mixinClassBuilder.fullNameForErrors,
           ),
           classBuilder.fileOffset,
           noLength,
           classBuilder.fileUri,
           context: [
             diag.illegalMixinDueToConstructorsCause
-                .withArgumentsOld(mixinClassBuilder.fullNameForErrors)
+                .withArguments(className: mixinClassBuilder.fullNameForErrors)
                 .withLocation(
                   constructorBuilder.fileUri!,
                   constructorBuilder.fileOffset,
@@ -2042,7 +2044,7 @@ severity: $severity
       TypeDeclarationBuilder? supertype = directSupertypes[i];
       if (supertype is SourceEnumBuilder) {
         classBuilder.libraryBuilder.addProblem(
-          diag.extendingEnum.withArgumentsOld(supertype.name),
+          diag.extendingEnum.withArguments(enumName: supertype.name),
           classBuilder.fileOffset,
           noLength,
           classBuilder.fileUri,
@@ -2054,8 +2056,8 @@ severity: $severity
         TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           classBuilder.libraryBuilder.addProblem(
-            diag.extendingRestricted.withArgumentsOld(
-              supertype!.fullNameForErrors,
+            diag.extendingRestricted.withArguments(
+              restrictedName: supertype!.fullNameForErrors,
             ),
             classBuilder.fileOffset,
             noLength,
@@ -2070,8 +2072,8 @@ severity: $severity
           );
         } else {
           classBuilder.libraryBuilder.addProblem(
-            diag.extendingRestricted.withArgumentsOld(
-              supertype!.fullNameForErrors,
+            diag.extendingRestricted.withArguments(
+              restrictedName: supertype!.fullNameForErrors,
             ),
             classBuilder.fileOffset,
             noLength,
@@ -2093,8 +2095,8 @@ severity: $severity
           if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
               denyListedClasses.contains(unaliasedDeclaration)) {
             classBuilder.libraryBuilder.addProblem(
-              diag.extendingRestricted.withArgumentsOld(
-                mixedInTypeBuilder.fullNameForErrors,
+              diag.extendingRestricted.withArguments(
+                restrictedName: mixedInTypeBuilder.fullNameForErrors,
               ),
               classBuilder.fileOffset,
               noLength,
@@ -2126,8 +2128,8 @@ severity: $severity
           // TODO(ahe): Either we need to check this for superclass and
           // interfaces, or this shouldn't be necessary (or handled elsewhere).
           classBuilder.libraryBuilder.addProblem(
-            diag.illegalMixin.withArgumentsOld(
-              mixedInTypeBuilder.fullNameForErrors,
+            diag.illegalMixin.withArguments(
+              typeName: mixedInTypeBuilder.fullNameForErrors,
             ),
             classBuilder.fileOffset,
             noLength,
@@ -2146,8 +2148,8 @@ severity: $severity
           if (!unaliasedDeclaration.errorHasBeenReported) {
             // Coverage-ignore-block(suite): Not run.
             classBuilder.libraryBuilder.addProblem(
-              diag.illegalMixin.withArgumentsOld(
-                mixedInTypeBuilder.fullNameForErrors,
+              diag.illegalMixin.withArguments(
+                typeName: mixedInTypeBuilder.fullNameForErrors,
               ),
               classBuilder.fileOffset,
               noLength,

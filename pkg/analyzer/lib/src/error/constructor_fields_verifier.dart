@@ -65,6 +65,7 @@ class ConstructorFieldsVerifier {
       diagnosticReporter: diagnosticReporter,
       element: fragment.element,
       errorRange: node.errorRange,
+      isPrimary: false,
     );
     constructorState.secondaryConstructors.add(node);
 
@@ -88,6 +89,7 @@ class ConstructorFieldsVerifier {
       diagnosticReporter: diagnosticReporter,
       element: fragment.element,
       errorRange: primaryConstructor.errorRange,
+      isPrimary: true,
     );
     constructorState.primaryConstructors.add(primaryConstructor);
 
@@ -145,6 +147,7 @@ class _Constructor {
   final SourceRange errorRange;
   final Map<FieldElement, _InitState> fields;
   final Set<String> duplicateFieldNames;
+  final bool isPrimary;
   final List<PrimaryConstructorDeclarationImpl> primaryConstructors = [];
   final List<ConstructorDeclarationImpl> secondaryConstructors = [];
 
@@ -157,6 +160,7 @@ class _Constructor {
     required this.errorRange,
     required this.fields,
     required this.duplicateFieldNames,
+    required this.isPrimary,
   });
 
   void report() {
@@ -263,7 +267,7 @@ class _Constructor {
           if (state == _InitState.notInit) {
             fields[fieldElement] = _InitState.initInInitializer;
           } else if (state == _InitState.initInDeclaration) {
-            if (fieldElement.isFinal || fieldElement.isConst) {
+            if (isPrimary || fieldElement.isFinal || fieldElement.isConst) {
               diagnosticReporter.report(
                 diag.fieldInitializedInInitializerAndDeclaration.at(fieldName),
               );
@@ -368,6 +372,7 @@ class _Interface {
     required DiagnosticReporter diagnosticReporter,
     required SourceRange errorRange,
     required ConstructorElement element,
+    required bool isPrimary,
   }) {
     return constructors[element] ??= _Constructor(
       typeSystem: typeSystem,
@@ -375,6 +380,7 @@ class _Interface {
       errorRange: errorRange,
       fields: {...fields},
       duplicateFieldNames: duplicateFieldNames,
+      isPrimary: isPrimary,
     );
   }
 }

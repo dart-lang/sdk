@@ -249,9 +249,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         // Attempt to use a member or type parameter as a prefix.
         int nameOffset = typeName.fullNameOffset;
         int nameLength = typeName.fullNameLength;
-        Message message = diag.notAPrefixInTypeAnnotation.withArgumentsOld(
-          qualifier,
-          typeName.name,
+        Message message = diag.notAPrefixInTypeAnnotation.withArguments(
+          prefix: qualifier,
+          typeName: typeName.name,
         );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         bind(
@@ -290,7 +290,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       Message message;
       List<LocatedMessage>? context;
       if (member == null) {
-        message = diag.typeNotFound.withArgumentsOld(nameText);
+        message = diag.typeNotFound.withArguments(name: nameText);
       } else {
         context = <LocatedMessage>[
           diag.notATypeContext.withLocation(
@@ -299,7 +299,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             nameLength,
           ),
         ];
-        message = diag.notAType.withArgumentsOld(nameText);
+        message = diag.notAType.withArguments(name: nameText);
       }
       problemReporting.addProblem(
         message,
@@ -337,8 +337,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       } else if (typeArguments!.length != declaration.typeParametersCount) {
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message = diag.typeArgumentMismatch.withArgumentsOld(
-          declaration.typeParametersCount,
+        Message message = diag.typeArgumentMismatch.withArguments(
+          expectedCount: declaration.typeParametersCount,
         );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         _declaration = buildInvalidTypeDeclarationBuilder(
@@ -353,7 +353,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       int nameOffset = typeName.nameOffset;
       int nameLength = typeName.nameLength;
       // TODO(johnniwinther): Create a custom message.
-      Message message = diag.notAType.withArgumentsOld(nameText);
+      Message message = diag.notAType.withArguments(name: nameText);
       problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
         message.withLocation(fileUri!, nameOffset, nameLength),
@@ -660,7 +660,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           // Coverage-ignore-block(suite): Not run.
           if (!library.mayImplementRestrictedTypes) {
             library.addProblem(
-              diag.extendingRestricted.withArgumentsOld(declaration.name),
+              diag.extendingRestricted.withArguments(
+                restrictedName: declaration.name,
+              ),
               charOffset!,
               noLength,
               fileUri,

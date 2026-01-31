@@ -1806,7 +1806,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           _compilationUnit.fileUri,
           context: [
             diag.constructorWithWrongNameContext
-                .withArgumentsOld(enclosingDeclaration.name)
+                .withArguments(name: enclosingDeclaration.name)
                 .withLocation2(enclosingDeclaration.uriOffset),
           ],
         );
@@ -1851,7 +1851,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           _compilationUnit.fileUri,
           context: [
             diag.constructorWithWrongNameContext
-                .withArgumentsOld(enclosingDeclaration.name)
+                .withArguments(name: enclosingDeclaration.name)
                 .withLocation2(enclosingDeclaration.uriOffset),
           ],
         );

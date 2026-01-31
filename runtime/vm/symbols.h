@@ -443,13 +443,13 @@ class ObjectPointerVisitor;
   V(_WeakReference, "_WeakReference")                                          \
   V(_await, "_await")                                                          \
   V(_awaitWithTypeCheck, "_awaitWithTypeCheck")                                \
-  V(_backtrackingStack, "_backtrackingStack")                                  \
   V(_checkSetRangeArguments, "_checkSetRangeArguments")                        \
   V(_current, "_current")                                                      \
   V(_ffi_resolver_function, "_ffi_resolver_function")                          \
   V(future, "future")                                                          \
   V(_future, "_future")                                                        \
   V(_getRegisters, "_getRegisters")                                            \
+  V(_getBacktrackingStack, "_getBacktrackingStack")                            \
   V(_growBacktrackingStack, "_growBacktrackingStack")                          \
   V(_handleException, "_handleException")                                      \
   V(_handleFinalizerMessage, "_handleFinalizerMessage")                        \

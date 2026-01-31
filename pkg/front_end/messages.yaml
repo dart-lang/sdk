@@ -1650,7 +1650,7 @@ finalFieldWithoutInitializer:
 
 constructorNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the constructor that was not found.
   problemMessage: "Couldn't find constructor '#name'."
   script: |
     class Foo {
@@ -1662,7 +1662,7 @@ constructorNotFound:
 
 constructorWithWrongNameContext:
   parameters:
-    Name name: undocumented
+    Name name: The name of the enclosing class.
   problemMessage: "The name of the enclosing class is '#name'."
   severity: CONTEXT
 
@@ -1689,7 +1689,7 @@ superParameterInitializerOutsideConstructor:
 
 redirectionTargetNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the constructor target that was sought.
   problemMessage: "Redirection constructor target not found: '#name'"
   script: |
     class Class {
@@ -1698,14 +1698,14 @@ redirectionTargetNotFound:
 
 cyclicTypedef:
   parameters:
-    Name name: undocumented
+    Name name: The name of the cyclic typedef.
   problemMessage: "The typedef '#name' has a reference to itself."
   script: |
     typedef Foo = Foo;
 
 typeNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the type that was not found.
   problemMessage: "Type '#name' not found."
   script: |
     Bar? foo() {
@@ -1714,14 +1714,14 @@ typeNotFound:
 
 nameNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name that was undefined.
   problemMessage: "Undefined name '#name'."
   script: |
     void foo() => bar;
 
 memberNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the member that was not found.
   problemMessage: "Member not found: '#name'."
   script: |
     class Foo {}
@@ -1729,7 +1729,7 @@ memberNotFound:
 
 getterNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the getter that was not found.
   problemMessage: "Getter not found: '#name'."
   script:
     void set onlySetter(value) {}
@@ -1737,7 +1737,7 @@ getterNotFound:
 
 setterNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the setter that was not found.
   problemMessage: "Setter not found: '#name'."
   script: |
     void x() {
@@ -1746,7 +1746,7 @@ setterNotFound:
 
 methodNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the method that was not found.
   problemMessage: "Method not found: '#name'."
   script: |
     void foo() => z("Hello, World!");
@@ -1758,15 +1758,15 @@ candidateFound:
 
 candidateFoundIsDefaultConstructor:
   parameters:
-    Name name: undocumented
+    Name name: The name of the class with a candidate default constructor.
   problemMessage: "The class '#name' has a constructor that takes no arguments."
   severity: CONTEXT
 
 tooFewArguments:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-  problemMessage: "Too few positional arguments: #count required, #count2 given."
+    int requiredParameterCount: The number of parameters required.
+    int actualArgumentCount: The number of arguments given.
+  problemMessage: "Too few positional arguments: #requiredParameterCount required, #actualArgumentCount given."
   script: |
     void foo(int i) {}
     void bar() {
@@ -1775,9 +1775,9 @@ tooFewArguments:
 
 tooManyArguments:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-  problemMessage: "Too many positional arguments: #count allowed, but #count2 found."
+    int allowedParameterCount: The number of parameters allowed.
+    int actualArgumentCount: The number of arguments given.
+  problemMessage: "Too many positional arguments: #allowedParameterCount allowed, but #actualArgumentCount found."
   correctionMessage: "Try removing the extra positional arguments."
   script: |
     void foo(int i) {}
@@ -1787,14 +1787,14 @@ tooManyArguments:
 
 noSuchNamedParameter:
   parameters:
-    Name name: undocumented
+    Name name: The name of the parameter that was not found.
   problemMessage: "No named parameter with the name '#name'."
   script: |
     void foo(int i) => i.toString(hello: 42);
 
 abstractClassInstantiation:
   parameters:
-    Name name: undocumented
+    Name name: The name of the abstract class.
   problemMessage: "The class '#name' is abstract and can't be instantiated."
   script: |
     abstract class Foo {}
@@ -1813,7 +1813,7 @@ enumInstantiation:
 
 abstractRedirectedClassInstantiation:
   parameters:
-    Name name: undocumented
+    Name name: The name of the class that was redirected to.
   problemMessage: "Factory redirects to class '#name', which is abstract and can't be instantiated."
   script: |
     abstract class A {
@@ -1827,11 +1827,11 @@ abstractRedirectedClassInstantiation:
 
 missingImplementationNotAbstract:
   parameters:
-    Name name: undocumented
-    Names names: undocumented
+    Name className: The name of the class that is missing implementations.
+    Names memberNames: The names of the missing members.
   problemMessage: |
-    The non-abstract class '#name' is missing implementations for these members:
-    #names
+    The non-abstract class '#className' is missing implementations for these members:
+    #memberNames
   correctionMessage: |
     Try to either
      - provide an implementation,
@@ -1843,15 +1843,15 @@ missingImplementationNotAbstract:
 
 missingImplementationCause:
   parameters:
-    Name name: undocumented
+    Name name: The name of the definition.
   problemMessage: "'#name' is defined here."
   severity: CONTEXT
 
 interfaceCheck:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The implementation of '#name' in the non-abstract class '#name2' does not conform to its interface."
+    Name memberName: The name of the problematic member.
+    Name className: The name of the non-abstract class.
+  problemMessage: "The implementation of '#memberName' in the non-abstract class '#className' does not conform to its interface."
   script: |
     class A {
       void foo() {}
@@ -1865,9 +1865,9 @@ interfaceCheck:
 
 namedMixinOverride:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The mixin application class '#name' introduces an erroneous override of '#name2'."
+    Name className: The name of the mixin application class.
+    Name overriddenMemberName: The name of the erroneously overridden member.
+  problemMessage: "The mixin application class '#className' introduces an erroneous override of '#overriddenMemberName'."
   script: |
     class Super {
       void extendedConcreteMixedInConcreteMethod() {}
@@ -1881,10 +1881,10 @@ namedMixinOverride:
 
 implicitMixinOverride:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    Name name3: undocumented
-  problemMessage: "Applying the mixin '#name' to '#name2' introduces an erroneous override of '#name3'."
+    Name mixinName: The name of the problematic mixin.
+    Name baseName: The name of the type the mixin is applied to.
+    Name erroneousMember: The name of the member that is erroneously overridden.
+  problemMessage: "Applying the mixin '#mixinName' to '#baseName' introduces an erroneous override of '#erroneousMember'."
   script: |
     abstract class Super {
       String get extendedGetterMixedInField => '';
@@ -1924,8 +1924,8 @@ loadLibraryTakesNoArguments:
 
 typeArgumentMismatch:
   parameters:
-    int count: undocumented
-  problemMessage: "Expected #count type arguments."
+    int expectedCount: The number of type arguments that were expected.
+  problemMessage: "Expected #expectedCount type arguments."
   script: |
     void foo() {
       new List<int, int>.filled(0, 42);
@@ -1933,7 +1933,7 @@ typeArgumentMismatch:
 
 notAType:
   parameters:
-    Name name: undocumented
+    Name name: The invalid type name.
   problemMessage: "'#name' isn't a type."
   script:
     main.dart: |
@@ -1951,9 +1951,9 @@ notATypeContext:
 
 notAPrefixInTypeAnnotation:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix."
+    Name prefix: The purported import prefix.
+    Name typeName: The erroneous type name (the identifier after the prefix).
+  problemMessage: "'#prefix.#typeName' can't be used as a type because '#prefix' doesn't refer to an import prefix."
   declaration:
     - |
         class C<T> {
@@ -2065,8 +2065,8 @@ fastaUsageLong:
 fastaCLIArgumentRequired:
   pseudoSharedCode: FASTA_CLI_ARGUMENT_REQUIRED
   parameters:
-    Name name: undocumented
-  problemMessage: "Expected value after '#name'."
+    Name argumentName: The name of the argument that requires a value.
+  problemMessage: "Expected value after '#argumentName'."
 
 namedFunctionExpression:
   pseudoSharedCode: NAMED_FUNCTION_EXPRESSION
@@ -2078,54 +2078,54 @@ namedFunctionExpression:
 internalProblemUnhandled:
   pseudoSharedCode: INTERNAL_PROBLEM_UNHANDLED
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Unhandled #string in #string2."
+    String what: The thing that was unhandled.
+    String where: The context in which it was unhandled.
+  problemMessage: "Unhandled #what in #where."
   severity: INTERNAL_PROBLEM
 
 internalProblemUnimplemented:
   parameters:
-    String string: undocumented
-  problemMessage: "Unimplemented #string."
+    String what: The thing that was unimplemented.
+  problemMessage: "Unimplemented #what."
   severity: INTERNAL_PROBLEM
 
 internalProblemUnexpected:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Expected '#string', but got '#string2'."
+    String expected: The thing that was expected.
+    String actual: The thing that was found.
+  problemMessage: "Expected '#expected', but got '#actual'."
   severity: INTERNAL_PROBLEM
 
 internalProblemUnsupported:
   pseudoSharedCode: INTERNAL_PROBLEM_UNSUPPORTED
   parameters:
-    Name name: undocumented
-  problemMessage: "Unsupported operation: '#name'."
+    Name operation: The operation that is unsupported.
+  problemMessage: "Unsupported operation: '#operation'."
   severity: INTERNAL_PROBLEM
 
 internalProblemNotFound:
   parameters:
-    Name name: undocumented
+    Name name: The name of the thing that couldn't be found.
   problemMessage: "Couldn't find '#name'."
   severity: INTERNAL_PROBLEM
 
 internalProblemNotFoundIn:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Couldn't find '#name' in '#name2'."
+    Name name: The name of the thing that couldn't be found.
+    Name within: The thing it was sought within.
+  problemMessage: "Couldn't find '#name' in '#within'."
   severity: INTERNAL_PROBLEM
 
 internalProblemPrivateConstructorAccess:
   parameters:
-    Name name: undocumented
+    Name name: The name of the inaccessible private constructor.
   problemMessage: "Can't access private constructor '#name'."
   severity: INTERNAL_PROBLEM
 
 internalProblemConstructorNotFound:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
+    Name name: The name of the constructor that was not found.
+    Uri uri: The URI of the library in which the constructor was sought.
   problemMessage: "No constructor named '#name' in '#uri'."
   severity: INTERNAL_PROBLEM
 
@@ -2142,9 +2142,9 @@ internalProblemPreviousTokenNotFound:
 internalProblemStackNotEmpty:
   pseudoSharedCode: INTERNAL_PROBLEM_STACK_NOT_EMPTY
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "#name.stack isn't empty:\n  #string"
+    Name typeName: The name of the type whose stack isn't empty.
+    String stackContents: The contents of the stack.
+  problemMessage: "#typeName.stack isn't empty:\n  #stackContents"
   severity: INTERNAL_PROBLEM
 
 internalProblemAlreadyInitialized:
@@ -2170,22 +2170,22 @@ internalProblemProvidedBothCompileSdkAndSdkSummary:
 
 internalProblemUriMissingScheme:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI that has no scheme.
   problemMessage: "The URI '#uri' has no scheme."
   severity: INTERNAL_PROBLEM
 
 internalProblemContextSeverity:
   parameters:
-    String string: undocumented
-  problemMessage: "Non-context message has context severity: #string"
+    String messageCode: The message's diagnostic code.
+  problemMessage: "Non-context message has context severity: #messageCode"
   severity: INTERNAL_PROBLEM
 
 internalProblemVerificationError:
   parameters:
-    String string: undocumented
+    String details: The details of the verification error.
   problemMessage: |
     Verification of the generated program failed:
-    #string
+    #details
   severity: INTERNAL_PROBLEM
 
 verificationErrorOriginContext:
@@ -2195,9 +2195,9 @@ verificationErrorOriginContext:
 
 internalProblemDebugAbort:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "Compilation aborted due to fatal '#name' at:\n#string"
+    Name severityName: The name of the severity.
+    String stackTrace: The stack trace where the abort occurred.
+  problemMessage: "Compilation aborted due to fatal '#severityName' at:\n#stackTrace"
   severity: INTERNAL_PROBLEM
 
 internalProblemLabelUsageInVariablesDeclaration:
@@ -2207,9 +2207,9 @@ internalProblemLabelUsageInVariablesDeclaration:
 
 internalProblemUnsupportedNullability:
   parameters:
-    String string: undocumented
-    Type type: undocumented
-  problemMessage: "Unsupported nullability value '#string' on type '#type'."
+    String nullability: The unsupported nullability value.
+    Type type: The type containing the unsupported nullability.
+  problemMessage: "Unsupported nullability value '#nullability' on type '#type'."
   severity: INTERNAL_PROBLEM
 
 internalProblemOmittedTypeNameInConstructorReference:
@@ -2219,27 +2219,27 @@ internalProblemOmittedTypeNameInConstructorReference:
 
 incrementalCompilerIllegalParameter:
   parameters:
-    String string: undocumented
-  problemMessage: "Illegal parameter name '#string' found during expression compilation."
+    String parameterName: The illegal parameter name.
+  problemMessage: "Illegal parameter name '#parameterName' found during expression compilation."
 
 incrementalCompilerIllegalTypeParameter:
   parameters:
-    String string: undocumented
-  problemMessage: "Illegal type parameter name '#string' found during expression compilation."
+    String typeParameterName: The illegal type parameter name.
+  problemMessage: "Illegal type parameter name '#typeParameterName' found during expression compilation."
 
 debugTrace:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "Fatal '#name' at:\n#string"
+    Name severity: The severity of the trace.
+    String stackTrace: The stack trace.
+  problemMessage: "Fatal '#severity' at:\n#stackTrace"
   severity: IGNORED
 
 deferredTypeAnnotation:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-  problemMessage: "The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation."
-  correctionMessage: "Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred."
+    Type type: The type that is deferred loaded.
+    Name prefix: The prefix by which the type is deferred loaded.
+  problemMessage: "The type '#type' is deferred loaded via prefix '#prefix' and can't be used as a type annotation."
+  correctionMessage: "Try removing 'deferred' from the import of '#prefix' or use a supertype of '#type' that isn't deferred."
   script:
     main.dart: |
       import 'lib.dart' deferred as lib;
@@ -2251,9 +2251,9 @@ deferredTypeAnnotation:
 
 duplicatedExport:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
-    Uri uri2: undocumented
+    Name name: The name that is exported from multiple URIs.
+    Uri uri: The first URI the name is exported from.
+    Uri uri2: The second URI the name is exported from.
   problemMessage: "'#name' is exported from both '#uri' and '#uri2'."
   script:
     lib1.dart: "class A {}"
@@ -2262,9 +2262,9 @@ duplicatedExport:
 
 duplicatedImport:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
-    Uri uri2: undocumented
+    Name name: The name that is imported from multiple URIs.
+    Uri uri: The first URI the name is imported from.
+    Uri uri2: The second URI the name is imported from.
   problemMessage: "'#name' is imported from both '#uri' and '#uri2'."
   script:
     lib1.dart: "class A {}"
@@ -2273,8 +2273,8 @@ duplicatedImport:
 
 cyclicClassHierarchy:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' is a supertype of itself."
+    Name typeName: The name of the type that is a supertype of itself.
+  problemMessage: "'#typeName' is a supertype of itself."
   script:
     - |
       class A extends B {}
@@ -2289,8 +2289,8 @@ cyclicClassHierarchy:
 
 extendingEnum:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' is an enum and can't be extended or implemented."
+    Name enumName: The name of the enum that is being erroneously extended or implemented.
+  problemMessage: "'#enumName' is an enum and can't be extended or implemented."
   script: |
     enum Foo { a, b, c; }
     abstract class Bar extends Foo {}
@@ -2298,8 +2298,8 @@ extendingEnum:
 
 extendingRestricted:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' is restricted and can't be extended or implemented."
+    Name restrictedName: The name of the restricted type that is being erroneously extended or implemented.
+  problemMessage: "'#restrictedName' is restricted and can't be extended or implemented."
   script: |
     abstract class Foo extends String {}
   exampleAllowOtherCodes: true
@@ -2354,16 +2354,16 @@ illegalSyncGeneratorVoidReturnType:
 illegalMixinDueToConstructors:
   # a class with a constructor is used as a mixin
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't use '#name' as a mixin because it has constructors."
+    Name className: The name of the class that can't be used as a mixin.
+  problemMessage: "Can't use '#className' as a mixin because it has constructors."
   script: |
     // @dart=2.19
     class B with Error {}
 
 illegalMixinDueToConstructorsCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "This constructor prevents using '#name' as a mixin."
+    Name className: The name of the class that can't be used as a mixin.
+  problemMessage: "This constructor prevents using '#className' as a mixin."
   severity: CONTEXT
 
 extensionTypeDeclaresAbstractMember:
@@ -2398,8 +2398,8 @@ extensionTypeDeclaresInstanceField:
 
 staticConflictsWithInstance:
   parameters:
-    Name name: undocumented
-  problemMessage: "Static property '#name' conflicts with instance property of the same name."
+    Name propertyName: The name of the static property that has a conflict.
+  problemMessage: "Static property '#propertyName' conflicts with instance property of the same name."
   script: |
     class A {
       void set foo(_) {}
@@ -2408,14 +2408,14 @@ staticConflictsWithInstance:
 
 staticConflictsWithInstanceCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting instance property '#name'."
+    Name propertyName: The name of the static property that has a conflict.
+  problemMessage: "Conflicting instance property '#propertyName'."
   severity: CONTEXT
 
 instanceConflictsWithStatic:
   parameters:
-    Name name: undocumented
-  problemMessage: "Instance property '#name' conflicts with static property of the same name."
+    Name propertyName: The name of the instance property that has a conflict.
+  problemMessage: "Instance property '#propertyName' conflicts with static property of the same name."
   script: |
     class A {
       static void set foo(_) {}
@@ -2424,28 +2424,28 @@ instanceConflictsWithStatic:
 
 instanceConflictsWithStaticCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting static property '#name'."
+    Name propertyName: The name of the instance property that has a conflict.
+  problemMessage: "Conflicting static property '#propertyName'."
   severity: CONTEXT
 
 setterConflictsWithDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "The setter conflicts with declaration '#name'."
+    Name setterName: The name of the setter that has a conflict.
+  problemMessage: "The setter conflicts with declaration '#setterName'."
   script: |
     class Foo {}
     set Foo(_) {}
 
 setterConflictsWithDeclarationCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting declaration '#name'."
+    Name setterName: The name of the setter that has a conflict.
+  problemMessage: "Conflicting declaration '#setterName'."
   severity: CONTEXT
 
 constructorConflictsWithMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "The constructor conflicts with member '#name'."
+    Name memberName: The name of the member that the constructor conflicts with.
+  problemMessage: "The constructor conflicts with member '#memberName'."
   script: |
     class A {
       static int get foo => 42;
@@ -2454,14 +2454,14 @@ constructorConflictsWithMember:
 
 constructorConflictsWithMemberCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting member '#name'."
+    Name memberName: The name of the member that the constructor conflicts with.
+  problemMessage: "Conflicting member '#memberName'."
   severity: CONTEXT
 
 factoryConflictsWithMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "The factory conflicts with member '#name'."
+    Name memberName: The name of the member that the factory conflicts with.
+  problemMessage: "The factory conflicts with member '#memberName'."
   script: |
     class A {
       static int get foo => 42;
@@ -2470,14 +2470,14 @@ factoryConflictsWithMember:
 
 factoryConflictsWithMemberCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting member '#name'."
+    Name memberName: The name of the member that the factory conflicts with.
+  problemMessage: "Conflicting member '#memberName'."
   severity: CONTEXT
 
 memberConflictsWithConstructor:
   parameters:
-    Name name: undocumented
-  problemMessage: "The member conflicts with constructor '#name'."
+    Name constructorName: The name of the constructor that the member conflicts with.
+  problemMessage: "The member conflicts with constructor '#constructorName'."
   script: |
     class A {
       A.foo();
@@ -2486,14 +2486,14 @@ memberConflictsWithConstructor:
 
 memberConflictsWithConstructorCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting constructor '#name'."
+    Name constructorName: The name of the constructor that the member conflicts with.
+  problemMessage: "Conflicting constructor '#constructorName'."
   severity: CONTEXT
 
 memberConflictsWithFactory:
   parameters:
-    Name name: undocumented
-  problemMessage: "The member conflicts with factory '#name'."
+    Name factoryName: The name of the factory that the member conflicts with.
+  problemMessage: "The member conflicts with factory '#factoryName'."
   script: |
     class A {
       factory A.foo() => throw '';
@@ -2502,42 +2502,42 @@ memberConflictsWithFactory:
 
 memberConflictsWithFactoryCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting factory '#name'."
+    Name factoryName: The name of the factory that the member conflicts with.
+  problemMessage: "Conflicting factory '#factoryName'."
   severity: CONTEXT
 
 declarationConflictsWithSetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "The declaration conflicts with setter '#name'."
+    Name setterName: The name of the setter that the declaration conflicts with.
+  problemMessage: "The declaration conflicts with setter '#setterName'."
   script: |
     void set foo(_) {}
     void foo() {}
 
 declarationConflictsWithSetterCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicting setter '#name'."
+    Name setterName: The name of the setter that the declaration conflicts with.
+  problemMessage: "Conflicting setter '#setterName'."
   severity: CONTEXT
 
 conflictsWithImplicitSetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicts with the implicit setter of the field '#name'."
+    Name fieldName: The name of the field whose implicit setter has a conflict.
+  problemMessage: "Conflicts with the implicit setter of the field '#fieldName'."
   script: |
     int? foo;
     void set foo(_) {}
 
 conflictsWithImplicitSetterCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "Field '#name' with the implicit setter."
+    Name fieldName: The name of the field whose implicit setter has a conflict.
+  problemMessage: "Field '#fieldName' with the implicit setter."
   severity: CONTEXT
 
 conflictsWithTypeParameter:
   parameters:
-    Name name: undocumented
-  problemMessage: "Conflicts with type variable '#name'."
+    Name typeVariableName: The name of the conflicting type variable.
+  problemMessage: "Conflicts with type variable '#typeVariableName'."
   script: |
     enum E2<values> {
       element;
@@ -2550,8 +2550,8 @@ conflictsWithTypeParameterCause:
 
 extensionMemberConflictsWithObjectMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "This extension member conflicts with Object member '#name'."
+    Name memberName: The name of the conflicting object member.
+  problemMessage: "This extension member conflicts with Object member '#memberName'."
   script:
     extension Extension on String {
       int get noSuchMethod => 42;
@@ -2646,8 +2646,8 @@ inheritedMembersConflictCause2:
 
 illegalMixin:
   parameters:
-    Name name: undocumented
-  problemMessage: "The type '#name' can't be mixed in."
+    Name typeName: The name of the type that can't be mixed in.
+  problemMessage: "The type '#typeName' can't be mixed in."
   script: |
     class SuperClass {}
     mixin Mixin<T> {}
@@ -2656,9 +2656,9 @@ illegalMixin:
 
 overrideTypeParametersMismatch:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "Declared type variables of '#declaredMemberName' doesn't match those on overridden method '#overriddenMemberName'."
   script: |
     class Super {
       void foo<X>() {}
@@ -2670,12 +2670,12 @@ overrideTypeParametersMismatch:
 
 overrideTypeParametersBoundMismatch:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Name name2: undocumented
-    Type type2: undocumented
-    Name name3: undocumented
-  problemMessage: "Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'."
+    Type declaredBoundType: The bound type in the erroneous member.
+    Name typeVariableName: The name of the type variable whose bound doesn't match.
+    Name declaredMemberName: The name of the erroneous member.
+    Type overriddenBoundType: The bound type in the overridden member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "Declared bound '#declaredBoundType' of type variable '#typeVariableName' of '#declaredMemberName' doesn't match the bound '#overriddenBoundType' on overridden method '#overriddenMemberName'."
   script: |
     class Super {
       void foo<X extends String>() {}
@@ -2687,16 +2687,16 @@ overrideTypeParametersBoundMismatch:
 
 overriddenMethodCause:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the overridden method ('#name')."
+    Name methodName: The name of the overridden method.
+  problemMessage: "This is the overridden method ('#methodName')."
   severity: CONTEXT
 
 overrideMismatchNamedParameter:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    Name name3: undocumented
-  problemMessage: "The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name parameterName: The name of the parameter that is missing.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The method '#declaredMemberName' doesn't have the named parameter '#parameterName' of overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       int foo({int x = 0}) => x + 42;
@@ -2708,9 +2708,9 @@ overrideMismatchNamedParameter:
 
 overrideFewerNamedArguments:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The method '#name' has fewer named arguments than those of overridden method '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The method '#declaredMemberName' has fewer named arguments than those of overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       int foo({int x = 0, int y = 0}) => x + y + 42;
@@ -2722,9 +2722,9 @@ overrideFewerNamedArguments:
 
 overrideFewerPositionalArguments:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The method '#declaredMemberName' has fewer positional arguments than those of overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       int foo(int x, int y) => x + y + 42;
@@ -2736,9 +2736,9 @@ overrideFewerPositionalArguments:
 
 overrideMoreRequiredArguments:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The method '#name' has more required arguments than those of overridden method '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The method '#declaredMemberName' has more required arguments than those of overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       int foo(int x) => x + 42;
@@ -2750,13 +2750,13 @@ overrideMoreRequiredArguments:
 
 overrideTypeMismatchParameter:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-    Name name3: undocumented
-  problemMessage: "The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'."
-  correctionMessage: "Change to a supertype of '#type2', or, for a covariant parameter, a subtype."
+    Name parameterName: The name of the parameter with a type mismatch.
+    Name declaredMemberName: The name of the erroneous member.
+    Type declaredType: The type of the parameter in the erroneous member.
+    Type overriddenType: The type of the corresponding parameter in the overridden member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The parameter '#parameterName' of the method '#declaredMemberName' has type '#declaredType', which does not match the corresponding type, '#overriddenType', in the overridden method, '#overriddenMemberName'."
+  correctionMessage: "Change to a supertype of '#overriddenType', or, for a covariant parameter, a subtype."
   script: |
     abstract class A {
       int foo(int x) => x + 42;
@@ -2768,12 +2768,12 @@ overrideTypeMismatchParameter:
 
 overrideTypeMismatchReturnType:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'."
-  correctionMessage: "Change to a subtype of '#type2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Type declaredType: The return type of the erroneous member.
+    Type overriddenType: The return type of the overridden member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The return type of the method '#declaredMemberName' is '#declaredType', which does not match the return type, '#overriddenType', of the overridden method, '#overriddenMemberName'."
+  correctionMessage: "Change to a subtype of '#overriddenType'."
   script: |
     abstract class A {
       int foo() => 42;
@@ -2785,11 +2785,11 @@ overrideTypeMismatchReturnType:
 
 overrideTypeMismatchSetter:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
+    Name declaredMemberName: The name of the erroneous member.
+    Type declaredType: The type of the erroneous member.
+    Type overriddenType: The type of the overridden member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The field '#declaredMemberName' has type '#declaredType', which does not match the corresponding type, '#overriddenType', in the overridden setter, '#overriddenMemberName'."
   script: |
     abstract class A {
       void set x(Object? y);
@@ -2801,10 +2801,10 @@ overrideTypeMismatchSetter:
 
 overrideMismatchRequiredNamedParameter:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    Name name3: undocumented
-  problemMessage: "The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'."
+    Name parameterName: The name of the mismatched parameter.
+    Name declaredMemberName: The name of the erroneous member.
+    Name overriddenMemberName: The name of the overridden member.
+  problemMessage: "The required named parameter '#parameterName' in method '#declaredMemberName' is not required in overridden method '#overriddenMemberName'."
   script: |
     abstract class A {
       method({int? a});
@@ -2815,11 +2815,11 @@ overrideMismatchRequiredNamedParameter:
 
 invalidGetterSetterType:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+    Type getterType: The type of the getter.
+    Name getterName: The name of the getter.
+    Type setterType: The type of the setter.
+    Name setterName: The name of the setter.
+  problemMessage: "The type '#getterType' of the getter '#getterName' is not a subtype of the type '#setterType' of the setter '#setterName'."
   script: |
     //@dart=3.5
     abstract class A {

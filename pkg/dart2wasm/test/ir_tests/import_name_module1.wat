@@ -10,7 +10,7 @@
     (field $field1 (mut i32)))))
   (global $".hello world" (import "" "hello world") (ref extern))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 2 funcref)
-  (global $"C468 \"hello world\"" (ref $JSStringImpl)
+  (global $"\"hello world\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".hello world")
@@ -22,7 +22,7 @@
     ref.null none
   )
   (func $"mainFoo <noInline>"
-    global.get $"C468 \"hello world\""
+    global.get $"\"hello world\""
     i32.const 1
     call_indirect (param (ref null $#Top)) (result (ref null $#Top))
     drop

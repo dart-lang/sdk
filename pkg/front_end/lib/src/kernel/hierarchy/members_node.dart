@@ -1147,7 +1147,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             ? "$className.$name="
             : "$className.$name";
         contextMap[displayName] = diag.missingImplementationCause
-            .withArgumentsOld(displayName)
+            .withArguments(name: displayName)
             .withLocation2(declaration.uriOffset);
       }
     }
@@ -1158,9 +1158,9 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       context.add(contextMap[names[i]]!);
     }
     classBuilder.libraryBuilder.addProblem(
-      diag.missingImplementationNotAbstract.withArgumentsOld(
-        classBuilder.fullNameForErrors,
-        names,
+      diag.missingImplementationNotAbstract.withArguments(
+        className: classBuilder.fullNameForErrors,
+        memberNames: names,
       ),
       classBuilder.fileOffset,
       classBuilder.fullNameForErrors.length,

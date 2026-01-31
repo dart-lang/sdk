@@ -6069,9 +6069,9 @@ class _ObjectAccessDescriptor {
         // Coverage-ignore(suite): Not run.
         case Nullability.undetermined:
           return internalProblem(
-            diag.internalProblemUnsupportedNullability.withArgumentsOld(
-              "${receiverBound.nullability}",
-              receiverBound,
+            diag.internalProblemUnsupportedNullability.withArguments(
+              nullability: "${receiverBound.nullability}",
+              type: receiverBound,
             ),
             fileOffset,
             visitor.libraryBuilder.fileUri,

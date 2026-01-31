@@ -126,7 +126,9 @@ class ParsedOptions {
         if (requiresValue && value == null) {
           if (!iterator.moveNext()) {
             throw new CommandLineProblem(
-              diag.fastaCLIArgumentRequired.withArgumentsOld(argument),
+              diag.fastaCLIArgumentRequired.withArguments(
+                argumentName: argument,
+              ),
             );
           }
           value = iterator.current;

@@ -139,7 +139,7 @@ class DeclarationNameSpaceBuilder {
       );
       if (tv != null) {
         _problemReporting.addProblem(
-          diag.conflictsWithTypeParameter.withArgumentsOld(name),
+          diag.conflictsWithTypeParameter.withArguments(typeVariableName: name),
           memberBuilder.fileOffset,
           name.length,
           fileUri,

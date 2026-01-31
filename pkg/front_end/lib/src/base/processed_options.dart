@@ -299,7 +299,10 @@ class ProcessedOptions {
       if (_raw.skipForDebugging < 0) {
         print(
           diag.debugTrace
-              .withArgumentsOld("$severity", "${StackTrace.current}")
+              .withArguments(
+                severity: "$severity",
+                stackTrace: "${StackTrace.current}",
+              )
               .problemMessage,
         );
       } else {
@@ -824,8 +827,8 @@ class ProcessedOptions {
     Uri dir = scriptUri.resolve('.');
     if (!dir.isAbsolute) {
       reportWithoutLocation(
-        diag.internalProblemUnsupported.withArgumentsOld(
-          "Expected input Uri to be absolute: $scriptUri.",
+        diag.internalProblemUnsupported.withArguments(
+          operation: "Expected input Uri to be absolute: $scriptUri.",
         ),
         CfeSeverity.internalProblem,
       );

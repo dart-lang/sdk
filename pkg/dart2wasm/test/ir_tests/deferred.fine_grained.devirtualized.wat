@@ -6,22 +6,22 @@
   (global $".Foo1.doitDispatch(" (import "" "Foo1.doitDispatch(") (ref extern))
   (global $".FooBase(" (import "" "FooBase(") (ref extern))
   (table $cross-module-funcs-0 (export "cross-module-funcs-0") 5 funcref)
-  (global $"C388 \"FooBase(\"" (ref $JSStringImpl)
-    (i32.const 4)
-    (i32.const 0)
-    (global.get $".FooBase(")
-    (struct.new $JSStringImpl))
-  (global $"C389 \"Foo1.doitDispatch(\"" (ref $JSStringImpl)
-    (i32.const 4)
-    (i32.const 0)
-    (global.get $".Foo1.doitDispatch(")
-    (struct.new $JSStringImpl))
-  (global $"C390 \"Foo0.doitDispatch(\"" (ref $JSStringImpl)
+  (global $"\")\"" (ref $JSStringImpl) <...>)
+  (global $"\"Foo0.doitDispatch(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".Foo0.doitDispatch(")
     (struct.new $JSStringImpl))
-  (global $"C8 \")\"" (ref $JSStringImpl) <...>)
+  (global $"\"Foo1.doitDispatch(\"" (ref $JSStringImpl)
+    (i32.const 4)
+    (i32.const 0)
+    (global.get $".Foo1.doitDispatch(")
+    (struct.new $JSStringImpl))
+  (global $"\"FooBase(\"" (ref $JSStringImpl)
+    (i32.const 4)
+    (i32.const 0)
+    (global.get $".FooBase(")
+    (struct.new $JSStringImpl))
   (global $baseObj (mut (ref null $Object)) <...>)
   (global $foo1Obj (mut (ref null $Object)) <...>)
   (elem $cross-module-funcs-0
@@ -51,9 +51,9 @@
   )
   (func $runtimeTrue implicit getter (result i32) <...>)
   (func $Foo0.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C390 \"Foo0.doitDispatch(\""
+    global.get $"\"Foo0.doitDispatch(\""
     local.get $var1
-    global.get $"C8 \")\""
+    global.get $"\")\""
     call $JSStringImpl._interpolate3
     call $print
     drop
@@ -63,9 +63,9 @@
   )
   (func $Foo1 (result (ref $Object)) <...>)
   (func $Foo1.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C389 \"Foo1.doitDispatch(\""
+    global.get $"\"Foo1.doitDispatch(\""
     local.get $var1
-    global.get $"C8 \")\""
+    global.get $"\")\""
     call $JSStringImpl._interpolate3
     call $print
     drop
@@ -74,9 +74,9 @@
     ref.null none
   )
   (func $FooBase.doitDispatch (param $var0 (ref null $#Top))
-    global.get $"C388 \"FooBase(\""
+    global.get $"\"FooBase(\""
     local.get $var0
-    global.get $"C8 \")\""
+    global.get $"\")\""
     call $JSStringImpl._interpolate3
     call $print
     drop

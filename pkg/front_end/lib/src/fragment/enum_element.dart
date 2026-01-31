@@ -391,7 +391,7 @@ class EnumElementDeclaration
         String text = libraryBuilder.loader.target.context
             .format(
               diag.constructorNotFound
-                  .withArgumentsOld(fullConstructorNameForErrors)
+                  .withArguments(name: fullConstructorNameForErrors)
                   .withLocation(fileUri, fileOffset, noLength),
               CfeSeverity.error,
             )

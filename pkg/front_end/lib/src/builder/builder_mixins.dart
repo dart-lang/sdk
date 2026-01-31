@@ -66,9 +66,9 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     MemberLookupResult? result = nameSpace.lookup(name);
     if (required && result == null) {
       internalProblem(
-        diag.internalProblemNotFoundIn.withArgumentsOld(
-          name,
-          fullNameForErrors,
+        diag.internalProblemNotFoundIn.withArguments(
+          name: name,
+          within: fullNameForErrors,
         ),
         -1,
         null,

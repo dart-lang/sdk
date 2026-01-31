@@ -204,8 +204,8 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     constructorName ??= "";
     if (constructorName.startsWith("_")) {
       return internalProblem(
-        diag.internalProblemPrivateConstructorAccess.withArgumentsOld(
-          constructorName,
+        diag.internalProblemPrivateConstructorAccess.withArguments(
+          name: constructorName,
         ),
         -1,
         null,
@@ -244,9 +244,9 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     }
     // Coverage-ignore-block(suite): Not run.
     throw internalProblem(
-      diag.internalProblemConstructorNotFound.withArgumentsOld(
-        "$className.$constructorName",
-        importUri,
+      diag.internalProblemConstructorNotFound.withArguments(
+        name: "$className.$constructorName",
+        uri: importUri,
       ),
       -1,
       null,
@@ -263,9 +263,9 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
     if (builder == null) {
       internalProblem(
-        diag.internalProblemNotFoundIn.withArgumentsOld(
-          name,
-          fullNameForErrors,
+        diag.internalProblemNotFoundIn.withArguments(
+          name: name,
+          within: fullNameForErrors,
         ),
         -1,
         null,

@@ -218,12 +218,12 @@ NamedBuilder computeAmbiguousDeclarationForImport(
     firstUri = secondUri;
     secondUri = uri;
   }
-  Message message = diag.duplicatedImport.withArgumentsOld(
-    name,
+  Message message = diag.duplicatedImport.withArguments(
+    name: name,
     // TODO(ahe): We should probably use a context object here
     // instead of including URIs in this message.
-    firstUri,
-    secondUri,
+    uri: firstUri,
+    uri2: secondUri,
   );
   // We report the error lazily (setting errorHasBeenReported to false) because
   // the spec 18.1 states that 'It is not an error if N is introduced by two or

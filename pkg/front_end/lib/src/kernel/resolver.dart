@@ -1036,7 +1036,7 @@ class Resolver {
       length -= periodIndex + 1;
     }
     LocatedMessage message = diag.constructorNotFound
-        .withArgumentsOld(name)
+        .withArguments(name: name)
         .withLocation(fileUri, fileOffset, length);
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
@@ -1244,8 +1244,8 @@ class Resolver {
       // body.
       problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: diag.illegalMixinDueToConstructors.withArgumentsOld(
-          bodyBuilderContext.className,
+        message: diag.illegalMixinDueToConstructors.withArguments(
+          className: bodyBuilderContext.className,
         ),
         fileUri: fileUri,
         fileOffset: bodyBuilderContext.memberNameOffset,

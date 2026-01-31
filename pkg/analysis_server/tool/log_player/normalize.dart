@@ -89,6 +89,9 @@ final argParser = ArgParser()
 /// Returns the new file contents after normalization.
 //
 // TODO(somebody): Support legacy protocol.
+//
+// TODO(somebody): Don't take a package config, instead infer them from the
+// workspace directories.
 String normalizeLog(File input, PackageConfig packageCofig) {
   var content = input.readAsStringSync();
 
@@ -111,8 +114,14 @@ String normalizeLog(File input, PackageConfig packageCofig) {
   // Next, replace the dart sdk path
   content = content.replaceAll(sdkPath, '{{dartSdkRoot}}');
 
+  // TODO(somebody): Replace the flutter SDK path with {{flutterSdkRoot}}.
+
   // Finally, replace the package roots
   for (var package in packageCofig.packages) {
+    // TODO(somebody): Add an identifier (query string?) to this placeholder
+    // for the package config that it came from. This should correspond to the
+    // roots returned by `initializeContextRoots` which will perform the
+    // inverse operation.
     content = content.replaceAll(
       package.root.toString(),
       '{{package-root:${package.name}}}',

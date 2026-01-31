@@ -335,7 +335,7 @@ abstract class Generator {
     required bool allowPotentiallyConstantType,
     required bool performTypeCanonicalization,
   }) {
-    Message message = diag.notAType.withArgumentsOld(token.lexeme);
+    Message message = diag.notAType.withArguments(name: token.lexeme);
     _helper.libraryBuilder.addProblem(
       message,
       fileOffset,
@@ -4004,13 +4004,13 @@ class DeferredAccessGenerator extends Generator {
     } else {
       int charOffset = offsetForToken(prefixGenerator.token);
       message = diag.deferredTypeAnnotation
-          .withArgumentsOld(
-            _helper.buildDartType(
+          .withArguments(
+            type: _helper.buildDartType(
               type,
               TypeUse.deferredTypeError,
               allowPotentiallyConstantType: allowPotentiallyConstantType,
             ),
-            prefixGenerator._plainNameForRead,
+            prefix: prefixGenerator._plainNameForRead,
           )
           .withLocation(
             _fileUri,
@@ -4326,8 +4326,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           aliasedTypeArguments.length != aliasBuilder.typeParametersCount) {
         // Coverage-ignore-block(suite): Not run.
         _helper.libraryBuilder.addProblem(
-          diag.typeArgumentMismatch.withArgumentsOld(
-            aliasBuilder.typeParametersCount,
+          diag.typeArgumentMismatch.withArguments(
+            expectedCount: aliasBuilder.typeParametersCount,
           ),
           fileOffset,
           noLength,
@@ -6041,9 +6041,9 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     required bool allowPotentiallyConstantType,
     required bool performTypeCanonicalization,
   }) {
-    Message message = diag.notAPrefixInTypeAnnotation.withArgumentsOld(
-      prefixGenerator.token.lexeme,
-      token.lexeme,
+    Message message = diag.notAPrefixInTypeAnnotation.withArguments(
+      prefix: prefixGenerator.token.lexeme,
+      typeName: token.lexeme,
     );
     if (!errorHasBeenReported) {
       _helper.libraryBuilder.addProblem(
@@ -6075,8 +6075,11 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     required Constness constness,
     required bool inImplicitCreationContext,
   }) {
-    Message message = diag.constructorNotFound.withArgumentsOld(
-      _helper.constructorNameForDiagnostics(name, className: _plainNameForRead),
+    Message message = diag.constructorNotFound.withArguments(
+      name: _helper.constructorNameForDiagnostics(
+        name,
+        className: _plainNameForRead,
+      ),
     );
     return _helper.buildProblem(
       message: message,

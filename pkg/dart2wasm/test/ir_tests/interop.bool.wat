@@ -4,10 +4,10 @@
   (func $"dart2wasm._174 (import)" (import "dart2wasm" "_174") (param i32) (result externref))
   (func $"dart2wasm._298 (import)" (import "dart2wasm" "_298") (param externref) (result externref))
   (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param externref) (result externref))
-  (global $"C2 false" (ref $#Top) <...>)
-  (global $"C40 true" (ref $#Top) <...>)
   (global $"boolValueNullable initialized" (mut i32) <...>)
   (global $boolValueNullable (mut (ref null $#Top)) <...>)
+  (global $false (ref $#Top) <...>)
+  (global $true (ref $#Top) <...>)
   (func $boolValue implicit getter (result i32) <...>)
   (func $ktrue implicit getter (result i32) <...>)
   (func $sinkBool <noInline> (param $var0 i32) <...>)
@@ -40,8 +40,8 @@
     else
       call $"ktrue implicit getter"
       if (result (ref null $#Top))
-        global.get $"C40 true"
-        global.get $"C2 false"
+        global.get $true
+        global.get $false
         call $"boolValue implicit getter"
         select (ref $#Top)
       else

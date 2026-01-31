@@ -140,7 +140,7 @@ static int32_t Load16Aligned(const uint8_t* pc) {
 class BacktrackStack {
  public:
   BacktrackStack() {
-    memory_ = Isolate::Current()->TakeRegexpBacktrackStack();
+    memory_ = Thread::Current()->TakeRegexpBacktrackStack();
     // Note: using malloc here has a potential of triggering jemalloc/tcmalloc
     // bugs which cause application to leak memory and eventually OOM.
     // See https://github.com/dart-lang/sdk/issues/38820 and
@@ -158,7 +158,7 @@ class BacktrackStack {
 
   ~BacktrackStack() {
     if (memory_ != nullptr) {
-      Isolate::Current()->CacheRegexpBacktrackStack(std::move(memory_));
+      Thread::Current()->CacheRegexpBacktrackStack(std::move(memory_));
     }
   }
 

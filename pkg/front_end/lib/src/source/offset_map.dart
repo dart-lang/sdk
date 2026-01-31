@@ -226,7 +226,7 @@ class OffsetMap {
   T _checkDirective<T>(T? directive, String name, int charOffset) {
     if (directive == null) {
       internalProblem(
-        diag.internalProblemNotFound.withArgumentsOld(name),
+        diag.internalProblemNotFound.withArguments(name: name),
         charOffset,
         uri,
       );
@@ -237,7 +237,7 @@ class OffsetMap {
   T _checkFragment<T>(T? fragment, String name, int fileOffset) {
     if (fragment == null) {
       internalProblem(
-        diag.internalProblemNotFound.withArgumentsOld(name),
+        diag.internalProblemNotFound.withArguments(name: name),
         fileOffset,
         uri,
       );

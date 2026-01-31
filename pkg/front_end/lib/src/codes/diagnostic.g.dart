@@ -1083,8 +1083,8 @@ Message _withArgumentsOldCombinedMemberSignatureFailed(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 conflictsWithImplicitSetter = const Template(
   "ConflictsWithImplicitSetter",
@@ -1093,24 +1093,24 @@ conflictsWithImplicitSetter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithImplicitSetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsConflictsWithImplicitSetter({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     conflictsWithImplicitSetter,
     problemMessage:
-        """Conflicts with the implicit setter of the field '${name_0}'.""",
-    arguments: {'name': name},
+        """Conflicts with the implicit setter of the field '${fieldName_0}'.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithImplicitSetter(String name) =>
-    _withArgumentsConflictsWithImplicitSetter(name: name);
+Message _withArgumentsOldConflictsWithImplicitSetter(String fieldName) =>
+    _withArgumentsConflictsWithImplicitSetter(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 conflictsWithImplicitSetterCause = const Template(
   "ConflictsWithImplicitSetterCause",
@@ -1120,23 +1120,25 @@ conflictsWithImplicitSetterCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithImplicitSetterCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsConflictsWithImplicitSetterCause({
+  required String fieldName,
+}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     conflictsWithImplicitSetterCause,
-    problemMessage: """Field '${name_0}' with the implicit setter.""",
-    arguments: {'name': name},
+    problemMessage: """Field '${fieldName_0}' with the implicit setter.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithImplicitSetterCause(String name) =>
-    _withArgumentsConflictsWithImplicitSetterCause(name: name);
+Message _withArgumentsOldConflictsWithImplicitSetterCause(String fieldName) =>
+    _withArgumentsConflictsWithImplicitSetterCause(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeVariableName),
+  Message Function({required String typeVariableName})
 >
 conflictsWithTypeParameter = const Template(
   "ConflictsWithTypeParameter",
@@ -1145,18 +1147,24 @@ conflictsWithTypeParameter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithTypeParameter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsConflictsWithTypeParameter({
+  required String typeVariableName,
+}) {
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
   return new Message(
     conflictsWithTypeParameter,
-    problemMessage: """Conflicts with type variable '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicts with type variable '${typeVariableName_0}'.""",
+    arguments: {'typeVariableName': typeVariableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictsWithTypeParameter(String name) =>
-    _withArgumentsConflictsWithTypeParameter(name: name);
+Message _withArgumentsOldConflictsWithTypeParameter(String typeVariableName) =>
+    _withArgumentsConflictsWithTypeParameter(
+      typeVariableName: typeVariableName,
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode conflictsWithTypeParameterCause = const MessageCode(
@@ -2240,8 +2248,8 @@ const MessageCode constInstanceField = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 constructorConflictsWithMember = const Template(
   "ConstructorConflictsWithMember",
@@ -2250,23 +2258,26 @@ constructorConflictsWithMember = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstructorConflictsWithMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsConstructorConflictsWithMember({
+  required String memberName,
+}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     constructorConflictsWithMember,
-    problemMessage: """The constructor conflicts with member '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """The constructor conflicts with member '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorConflictsWithMember(String name) =>
-    _withArgumentsConstructorConflictsWithMember(name: name);
+Message _withArgumentsOldConstructorConflictsWithMember(String memberName) =>
+    _withArgumentsConstructorConflictsWithMember(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 constructorConflictsWithMemberCause = const Template(
   "ConstructorConflictsWithMemberCause",
@@ -2277,19 +2288,20 @@ constructorConflictsWithMemberCause = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstructorConflictsWithMemberCause({
-  required String name,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     constructorConflictsWithMemberCause,
-    problemMessage: """Conflicting member '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicting member '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstructorConflictsWithMemberCause(String name) =>
-    _withArgumentsConstructorConflictsWithMemberCause(name: name);
+Message _withArgumentsOldConstructorConflictsWithMemberCause(
+  String memberName,
+) => _withArgumentsConstructorConflictsWithMemberCause(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constructorCyclic = const MessageCode(
@@ -2531,8 +2543,8 @@ Message _withArgumentsOldCycleInTypeParameters(String name, String string) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 cyclicClassHierarchy = const Template(
   "CyclicClassHierarchy",
@@ -2541,18 +2553,18 @@ cyclicClassHierarchy = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCyclicClassHierarchy({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsCyclicClassHierarchy({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     cyclicClassHierarchy,
-    problemMessage: """'${name_0}' is a supertype of itself.""",
-    arguments: {'name': name},
+    problemMessage: """'${typeName_0}' is a supertype of itself.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicClassHierarchy(String name) =>
-    _withArgumentsCyclicClassHierarchy(name: name);
+Message _withArgumentsOldCyclicClassHierarchy(String typeName) =>
+    _withArgumentsCyclicClassHierarchy(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2621,8 +2633,8 @@ const MessageCode dartFfiLibraryInDart2Wasm = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String severity, String stackTrace),
+  Message Function({required String severity, required String stackTrace})
 >
 debugTrace = const Template(
   "DebugTrace",
@@ -2633,27 +2645,27 @@ debugTrace = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDebugTrace({
-  required String name,
-  required String string,
+  required String severity,
+  required String stackTrace,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var severity_0 = conversions.validateAndDemangleName(severity);
+  var stackTrace_0 = conversions.validateString(stackTrace);
   return new Message(
     debugTrace,
-    problemMessage: """Fatal '${name_0}' at:
-${string_0}""",
-    arguments: {'name': name, 'string': string},
+    problemMessage: """Fatal '${severity_0}' at:
+${stackTrace_0}""",
+    arguments: {'severity': severity, 'stackTrace': stackTrace},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDebugTrace(String name, String string) =>
-    _withArgumentsDebugTrace(name: name, string: string);
+Message _withArgumentsOldDebugTrace(String severity, String stackTrace) =>
+    _withArgumentsDebugTrace(severity: severity, stackTrace: stackTrace);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String setterName),
+  Message Function({required String setterName})
 >
 declarationConflictsWithSetter = const Template(
   "DeclarationConflictsWithSetter",
@@ -2662,23 +2674,26 @@ declarationConflictsWithSetter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeclarationConflictsWithSetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDeclarationConflictsWithSetter({
+  required String setterName,
+}) {
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     declarationConflictsWithSetter,
-    problemMessage: """The declaration conflicts with setter '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """The declaration conflicts with setter '${setterName_0}'.""",
+    arguments: {'setterName': setterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeclarationConflictsWithSetter(String name) =>
-    _withArgumentsDeclarationConflictsWithSetter(name: name);
+Message _withArgumentsOldDeclarationConflictsWithSetter(String setterName) =>
+    _withArgumentsDeclarationConflictsWithSetter(setterName: setterName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String setterName),
+  Message Function({required String setterName})
 >
 declarationConflictsWithSetterCause = const Template(
   "DeclarationConflictsWithSetterCause",
@@ -2689,19 +2704,20 @@ declarationConflictsWithSetterCause = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeclarationConflictsWithSetterCause({
-  required String name,
+  required String setterName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     declarationConflictsWithSetterCause,
-    problemMessage: """Conflicting setter '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicting setter '${setterName_0}'.""",
+    arguments: {'setterName': setterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeclarationConflictsWithSetterCause(String name) =>
-    _withArgumentsDeclarationConflictsWithSetterCause(name: name);
+Message _withArgumentsOldDeclarationConflictsWithSetterCause(
+  String setterName,
+) => _withArgumentsDeclarationConflictsWithSetterCause(setterName: setterName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode declaredMemberConflictsWithInheritedMember =
@@ -2847,8 +2863,8 @@ Message _withArgumentsOldDeferredPrefixDuplicatedCause(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name),
-  Message Function({required DartType type, required String name})
+  Message Function(DartType type, String prefix),
+  Message Function({required DartType type, required String prefix})
 >
 deferredTypeAnnotation = const Template(
   "DeferredTypeAnnotation",
@@ -2859,25 +2875,25 @@ deferredTypeAnnotation = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredTypeAnnotation({
   required DartType type,
-  required String name,
+  required String prefix,
 }) {
   TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
+  var prefix_0 = conversions.validateAndDemangleName(prefix);
   return new Message(
     deferredTypeAnnotation,
     problemMessage:
-        """The type '${type_0}' is deferred loaded via prefix '${name_0}' and can't be used as a type annotation.""" +
+        """The type '${type_0}' is deferred loaded via prefix '${prefix_0}' and can't be used as a type annotation.""" +
         labeler.originMessages,
     correctionMessage:
-        """Try removing 'deferred' from the import of '${name_0}' or use a supertype of '${type_0}' that isn't deferred.""",
-    arguments: {'type': type, 'name': name},
+        """Try removing 'deferred' from the import of '${prefix_0}' or use a supertype of '${type_0}' that isn't deferred.""",
+    arguments: {'type': type, 'prefix': prefix},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredTypeAnnotation(DartType type, String name) =>
-    _withArgumentsDeferredTypeAnnotation(type: type, name: name);
+Message _withArgumentsOldDeferredTypeAnnotation(DartType type, String prefix) =>
+    _withArgumentsDeferredTypeAnnotation(type: type, prefix: prefix);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4160,8 +4176,8 @@ const MessageCode expressionNotMetadata = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String enumName),
+  Message Function({required String enumName})
 >
 extendingEnum = const Template(
   "ExtendingEnum",
@@ -4170,24 +4186,24 @@ extendingEnum = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtendingEnum({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsExtendingEnum({required String enumName}) {
+  var enumName_0 = conversions.validateAndDemangleName(enumName);
   return new Message(
     extendingEnum,
     problemMessage:
-        """'${name_0}' is an enum and can't be extended or implemented.""",
-    arguments: {'name': name},
+        """'${enumName_0}' is an enum and can't be extended or implemented.""",
+    arguments: {'enumName': enumName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtendingEnum(String name) =>
-    _withArgumentsExtendingEnum(name: name);
+Message _withArgumentsOldExtendingEnum(String enumName) =>
+    _withArgumentsExtendingEnum(enumName: enumName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String restrictedName),
+  Message Function({required String restrictedName})
 >
 extendingRestricted = const Template(
   "ExtendingRestricted",
@@ -4196,19 +4212,19 @@ extendingRestricted = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtendingRestricted({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsExtendingRestricted({required String restrictedName}) {
+  var restrictedName_0 = conversions.validateAndDemangleName(restrictedName);
   return new Message(
     extendingRestricted,
     problemMessage:
-        """'${name_0}' is restricted and can't be extended or implemented.""",
-    arguments: {'name': name},
+        """'${restrictedName_0}' is restricted and can't be extended or implemented.""",
+    arguments: {'restrictedName': restrictedName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExtendingRestricted(String name) =>
-    _withArgumentsExtendingRestricted(name: name);
+Message _withArgumentsOldExtendingRestricted(String restrictedName) =>
+    _withArgumentsExtendingRestricted(restrictedName: restrictedName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extendsDeferredClass = const MessageCode(
@@ -4226,8 +4242,8 @@ const MessageCode extendsNever = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 extensionMemberConflictsWithObjectMember = const Template(
   "ExtensionMemberConflictsWithObjectMember",
@@ -4237,21 +4253,23 @@ extensionMemberConflictsWithObjectMember = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtensionMemberConflictsWithObjectMember({
-  required String name,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     extensionMemberConflictsWithObjectMember,
     problemMessage:
-        """This extension member conflicts with Object member '${name_0}'.""",
-    arguments: {'name': name},
+        """This extension member conflicts with Object member '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExtensionMemberConflictsWithObjectMember(
-  String name,
-) => _withArgumentsExtensionMemberConflictsWithObjectMember(name: name);
+  String memberName,
+) => _withArgumentsExtensionMemberConflictsWithObjectMember(
+  memberName: memberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4406,8 +4424,8 @@ const MessageCode externalFieldInitializer = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 factoryConflictsWithMember = const Template(
   "FactoryConflictsWithMember",
@@ -4416,23 +4434,23 @@ factoryConflictsWithMember = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryConflictsWithMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFactoryConflictsWithMember({required String memberName}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     factoryConflictsWithMember,
-    problemMessage: """The factory conflicts with member '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """The factory conflicts with member '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFactoryConflictsWithMember(String name) =>
-    _withArgumentsFactoryConflictsWithMember(name: name);
+Message _withArgumentsOldFactoryConflictsWithMember(String memberName) =>
+    _withArgumentsFactoryConflictsWithMember(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 factoryConflictsWithMemberCause = const Template(
   "FactoryConflictsWithMemberCause",
@@ -4442,18 +4460,20 @@ factoryConflictsWithMemberCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFactoryConflictsWithMemberCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFactoryConflictsWithMemberCause({
+  required String memberName,
+}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     factoryConflictsWithMemberCause,
-    problemMessage: """Conflicting member '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicting member '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFactoryConflictsWithMemberCause(String name) =>
-    _withArgumentsFactoryConflictsWithMemberCause(name: name);
+Message _withArgumentsOldFactoryConflictsWithMemberCause(String memberName) =>
+    _withArgumentsFactoryConflictsWithMemberCause(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode fastaUsageLong = const MessageCode(
@@ -6242,8 +6262,8 @@ const MessageCode illegalAsyncReturnType = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 illegalMixin = const Template(
   "IllegalMixin",
@@ -6252,23 +6272,23 @@ illegalMixin = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalMixin({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsIllegalMixin({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     illegalMixin,
-    problemMessage: """The type '${name_0}' can't be mixed in.""",
-    arguments: {'name': name},
+    problemMessage: """The type '${typeName_0}' can't be mixed in.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixin(String name) =>
-    _withArgumentsIllegalMixin(name: name);
+Message _withArgumentsOldIllegalMixin(String typeName) =>
+    _withArgumentsIllegalMixin(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 illegalMixinDueToConstructors = const Template(
   "IllegalMixinDueToConstructors",
@@ -6277,24 +6297,26 @@ illegalMixinDueToConstructors = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalMixinDueToConstructors({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsIllegalMixinDueToConstructors({
+  required String className,
+}) {
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     illegalMixinDueToConstructors,
     problemMessage:
-        """Can't use '${name_0}' as a mixin because it has constructors.""",
-    arguments: {'name': name},
+        """Can't use '${className_0}' as a mixin because it has constructors.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixinDueToConstructors(String name) =>
-    _withArgumentsIllegalMixinDueToConstructors(name: name);
+Message _withArgumentsOldIllegalMixinDueToConstructors(String className) =>
+    _withArgumentsIllegalMixinDueToConstructors(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 illegalMixinDueToConstructorsCause = const Template(
   "IllegalMixinDueToConstructorsCause",
@@ -6305,20 +6327,20 @@ illegalMixinDueToConstructorsCause = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalMixinDueToConstructorsCause({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     illegalMixinDueToConstructorsCause,
     problemMessage:
-        """This constructor prevents using '${name_0}' as a mixin.""",
-    arguments: {'name': name},
+        """This constructor prevents using '${className_0}' as a mixin.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalMixinDueToConstructorsCause(String name) =>
-    _withArgumentsIllegalMixinDueToConstructorsCause(name: name);
+Message _withArgumentsOldIllegalMixinDueToConstructorsCause(String className) =>
+    _withArgumentsIllegalMixinDueToConstructorsCause(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode illegalSyncGeneratorReturnType = const MessageCode(
@@ -6510,11 +6532,11 @@ Message _withArgumentsOldImplicitCallOfNonMethod(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String name3),
+  Message Function(String mixinName, String baseName, String erroneousMember),
   Message Function({
-    required String name,
-    required String name2,
-    required String name3,
+    required String mixinName,
+    required String baseName,
+    required String erroneousMember,
   })
 >
 implicitMixinOverride = const Template(
@@ -6525,28 +6547,35 @@ implicitMixinOverride = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplicitMixinOverride({
-  required String name,
-  required String name2,
-  required String name3,
+  required String mixinName,
+  required String baseName,
+  required String erroneousMember,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var mixinName_0 = conversions.validateAndDemangleName(mixinName);
+  var baseName_0 = conversions.validateAndDemangleName(baseName);
+  var erroneousMember_0 = conversions.validateAndDemangleName(erroneousMember);
   return new Message(
     implicitMixinOverride,
     problemMessage:
-        """Applying the mixin '${name_0}' to '${name2_0}' introduces an erroneous override of '${name3_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
+        """Applying the mixin '${mixinName_0}' to '${baseName_0}' introduces an erroneous override of '${erroneousMember_0}'.""",
+    arguments: {
+      'mixinName': mixinName,
+      'baseName': baseName,
+      'erroneousMember': erroneousMember,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldImplicitMixinOverride(
-  String name,
-  String name2,
-  String name3,
-) =>
-    _withArgumentsImplicitMixinOverride(name: name, name2: name2, name3: name3);
+  String mixinName,
+  String baseName,
+  String erroneousMember,
+) => _withArgumentsImplicitMixinOverride(
+  mixinName: mixinName,
+  baseName: baseName,
+  erroneousMember: erroneousMember,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7088,8 +7117,8 @@ const MessageCode incorrectTypeArgumentVariable = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String parameterName),
+  Message Function({required String parameterName})
 >
 incrementalCompilerIllegalParameter = const Template(
   "IncrementalCompilerIllegalParameter",
@@ -7099,25 +7128,28 @@ incrementalCompilerIllegalParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncrementalCompilerIllegalParameter({
-  required String string,
+  required String parameterName,
 }) {
-  var string_0 = conversions.validateString(string);
+  var parameterName_0 = conversions.validateString(parameterName);
   return new Message(
     incrementalCompilerIllegalParameter,
     problemMessage:
-        """Illegal parameter name '${string_0}' found during expression compilation.""",
-    arguments: {'string': string},
+        """Illegal parameter name '${parameterName_0}' found during expression compilation.""",
+    arguments: {'parameterName': parameterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIncrementalCompilerIllegalParameter(String string) =>
-    _withArgumentsIncrementalCompilerIllegalParameter(string: string);
+Message _withArgumentsOldIncrementalCompilerIllegalParameter(
+  String parameterName,
+) => _withArgumentsIncrementalCompilerIllegalParameter(
+  parameterName: parameterName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String typeParameterName),
+  Message Function({required String typeParameterName})
 >
 incrementalCompilerIllegalTypeParameter = const Template(
   "IncrementalCompilerIllegalTypeParameter",
@@ -7127,21 +7159,23 @@ incrementalCompilerIllegalTypeParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncrementalCompilerIllegalTypeParameter({
-  required String string,
+  required String typeParameterName,
 }) {
-  var string_0 = conversions.validateString(string);
+  var typeParameterName_0 = conversions.validateString(typeParameterName);
   return new Message(
     incrementalCompilerIllegalTypeParameter,
     problemMessage:
-        """Illegal type parameter name '${string_0}' found during expression compilation.""",
-    arguments: {'string': string},
+        """Illegal type parameter name '${typeParameterName_0}' found during expression compilation.""",
+    arguments: {'typeParameterName': typeParameterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIncrementalCompilerIllegalTypeParameter(
-  String string,
-) => _withArgumentsIncrementalCompilerIllegalTypeParameter(string: string);
+  String typeParameterName,
+) => _withArgumentsIncrementalCompilerIllegalTypeParameter(
+  typeParameterName: typeParameterName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7552,8 +7586,8 @@ Message _withArgumentsOldInstanceAndSynthesizedStaticConflict(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String propertyName),
+  Message Function({required String propertyName})
 >
 instanceConflictsWithStatic = const Template(
   "InstanceConflictsWithStatic",
@@ -7562,24 +7596,26 @@ instanceConflictsWithStatic = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstanceConflictsWithStatic({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsInstanceConflictsWithStatic({
+  required String propertyName,
+}) {
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
   return new Message(
     instanceConflictsWithStatic,
     problemMessage:
-        """Instance property '${name_0}' conflicts with static property of the same name.""",
-    arguments: {'name': name},
+        """Instance property '${propertyName_0}' conflicts with static property of the same name.""",
+    arguments: {'propertyName': propertyName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstanceConflictsWithStatic(String name) =>
-    _withArgumentsInstanceConflictsWithStatic(name: name);
+Message _withArgumentsOldInstanceConflictsWithStatic(String propertyName) =>
+    _withArgumentsInstanceConflictsWithStatic(propertyName: propertyName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String propertyName),
+  Message Function({required String propertyName})
 >
 instanceConflictsWithStaticCause = const Template(
   "InstanceConflictsWithStaticCause",
@@ -7589,18 +7625,21 @@ instanceConflictsWithStaticCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInstanceConflictsWithStaticCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsInstanceConflictsWithStaticCause({
+  required String propertyName,
+}) {
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
   return new Message(
     instanceConflictsWithStaticCause,
-    problemMessage: """Conflicting static property '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicting static property '${propertyName_0}'.""",
+    arguments: {'propertyName': propertyName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstanceConflictsWithStaticCause(String name) =>
-    _withArgumentsInstanceConflictsWithStaticCause(name: name);
+Message _withArgumentsOldInstanceConflictsWithStaticCause(
+  String propertyName,
+) => _withArgumentsInstanceConflictsWithStaticCause(propertyName: propertyName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7755,8 +7794,8 @@ Message _withArgumentsOldIntegerLiteralIsOutOfRange(String string) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String memberName, String className),
+  Message Function({required String memberName, required String className})
 >
 interfaceCheck = const Template(
   "InterfaceCheck",
@@ -7766,22 +7805,22 @@ interfaceCheck = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInterfaceCheck({
-  required String name,
-  required String name2,
+  required String memberName,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     interfaceCheck,
     problemMessage:
-        """The implementation of '${name_0}' in the non-abstract class '${name2_0}' does not conform to its interface.""",
-    arguments: {'name': name, 'name2': name2},
+        """The implementation of '${memberName_0}' in the non-abstract class '${className_0}' does not conform to its interface.""",
+    arguments: {'memberName': memberName, 'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInterfaceCheck(String name, String name2) =>
-    _withArgumentsInterfaceCheck(name: name, name2: name2);
+Message _withArgumentsOldInterfaceCheck(String memberName, String className) =>
+    _withArgumentsInterfaceCheck(memberName: memberName, className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7860,8 +7899,8 @@ Message _withArgumentsOldInternalProblemConstructorNotFound(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String messageCode),
+  Message Function({required String messageCode})
 >
 internalProblemContextSeverity = const Template(
   "InternalProblemContextSeverity",
@@ -7871,23 +7910,26 @@ internalProblemContextSeverity = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemContextSeverity({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsInternalProblemContextSeverity({
+  required String messageCode,
+}) {
+  var messageCode_0 = conversions.validateString(messageCode);
   return new Message(
     internalProblemContextSeverity,
-    problemMessage: """Non-context message has context severity: ${string_0}""",
-    arguments: {'string': string},
+    problemMessage:
+        """Non-context message has context severity: ${messageCode_0}""",
+    arguments: {'messageCode': messageCode},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemContextSeverity(String string) =>
-    _withArgumentsInternalProblemContextSeverity(string: string);
+Message _withArgumentsOldInternalProblemContextSeverity(String messageCode) =>
+    _withArgumentsInternalProblemContextSeverity(messageCode: messageCode);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String severityName, String stackTrace),
+  Message Function({required String severityName, required String stackTrace})
 >
 internalProblemDebugAbort = const Template(
   "InternalProblemDebugAbort",
@@ -7898,24 +7940,27 @@ internalProblemDebugAbort = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemDebugAbort({
-  required String name,
-  required String string,
+  required String severityName,
+  required String stackTrace,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var severityName_0 = conversions.validateAndDemangleName(severityName);
+  var stackTrace_0 = conversions.validateString(stackTrace);
   return new Message(
     internalProblemDebugAbort,
-    problemMessage: """Compilation aborted due to fatal '${name_0}' at:
-${string_0}""",
-    arguments: {'name': name, 'string': string},
+    problemMessage: """Compilation aborted due to fatal '${severityName_0}' at:
+${stackTrace_0}""",
+    arguments: {'severityName': severityName, 'stackTrace': stackTrace},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInternalProblemDebugAbort(
-  String name,
-  String string,
-) => _withArgumentsInternalProblemDebugAbort(name: name, string: string);
+  String severityName,
+  String stackTrace,
+) => _withArgumentsInternalProblemDebugAbort(
+  severityName: severityName,
+  stackTrace: stackTrace,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode internalProblemExtendingUnmodifiableScope = const MessageCode(
@@ -7970,8 +8015,8 @@ Message _withArgumentsOldInternalProblemNotFound(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String name, String within),
+  Message Function({required String name, required String within})
 >
 internalProblemNotFoundIn = const Template(
   "InternalProblemNotFoundIn",
@@ -7983,20 +8028,22 @@ internalProblemNotFoundIn = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemNotFoundIn({
   required String name,
-  required String name2,
+  required String within,
 }) {
   var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var within_0 = conversions.validateAndDemangleName(within);
   return new Message(
     internalProblemNotFoundIn,
-    problemMessage: """Couldn't find '${name_0}' in '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+    problemMessage: """Couldn't find '${name_0}' in '${within_0}'.""",
+    arguments: {'name': name, 'within': within},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemNotFoundIn(String name, String name2) =>
-    _withArgumentsInternalProblemNotFoundIn(name: name, name2: name2);
+Message _withArgumentsOldInternalProblemNotFoundIn(
+  String name,
+  String within,
+) => _withArgumentsInternalProblemNotFoundIn(name: name, within: within);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -8053,8 +8100,8 @@ const MessageCode internalProblemProvidedBothCompileSdkAndSdkSummary =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String expected, String actual),
+  Message Function({required String expected, required String actual})
 >
 internalProblemUnexpected = const Template(
   "InternalProblemUnexpected",
@@ -8065,28 +8112,29 @@ internalProblemUnexpected = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnexpected({
-  required String string,
-  required String string2,
+  required String expected,
+  required String actual,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var expected_0 = conversions.validateString(expected);
+  var actual_0 = conversions.validateString(actual);
   return new Message(
     internalProblemUnexpected,
-    problemMessage: """Expected '${string_0}', but got '${string2_0}'.""",
-    arguments: {'string': string, 'string2': string2},
+    problemMessage: """Expected '${expected_0}', but got '${actual_0}'.""",
+    arguments: {'expected': expected, 'actual': actual},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInternalProblemUnexpected(
-  String string,
-  String string2,
-) => _withArgumentsInternalProblemUnexpected(string: string, string2: string2);
+  String expected,
+  String actual,
+) =>
+    _withArgumentsInternalProblemUnexpected(expected: expected, actual: actual);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String what),
+  Message Function({required String what})
 >
 internalProblemUnimplemented = const Template(
   "InternalProblemUnimplemented",
@@ -8096,23 +8144,23 @@ internalProblemUnimplemented = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemUnimplemented({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsInternalProblemUnimplemented({required String what}) {
+  var what_0 = conversions.validateString(what);
   return new Message(
     internalProblemUnimplemented,
-    problemMessage: """Unimplemented ${string_0}.""",
-    arguments: {'string': string},
+    problemMessage: """Unimplemented ${what_0}.""",
+    arguments: {'what': what},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemUnimplemented(String string) =>
-    _withArgumentsInternalProblemUnimplemented(string: string);
+Message _withArgumentsOldInternalProblemUnimplemented(String what) =>
+    _withArgumentsInternalProblemUnimplemented(what: what);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, DartType type),
-  Message Function({required String string, required DartType type})
+  Message Function(String nullability, DartType type),
+  Message Function({required String nullability, required DartType type})
 >
 internalProblemUnsupportedNullability = const Template(
   "InternalProblemUnsupportedNullability",
@@ -8123,27 +8171,27 @@ internalProblemUnsupportedNullability = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemUnsupportedNullability({
-  required String string,
+  required String nullability,
   required DartType type,
 }) {
-  var string_0 = conversions.validateString(string);
+  var nullability_0 = conversions.validateString(nullability);
   TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     internalProblemUnsupportedNullability,
     problemMessage:
-        """Unsupported nullability value '${string_0}' on type '${type_0}'.""" +
+        """Unsupported nullability value '${nullability_0}' on type '${type_0}'.""" +
         labeler.originMessages,
-    arguments: {'string': string, 'type': type},
+    arguments: {'nullability': nullability, 'type': type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInternalProblemUnsupportedNullability(
-  String string,
+  String nullability,
   DartType type,
 ) => _withArgumentsInternalProblemUnsupportedNullability(
-  string: string,
+  nullability: nullability,
   type: type,
 );
 
@@ -8172,8 +8220,8 @@ Message _withArgumentsOldInternalProblemUriMissingScheme(Uri uri) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String details),
+  Message Function({required String details})
 >
 internalProblemVerificationError = const Template(
   "InternalProblemVerificationError",
@@ -8184,20 +8232,20 @@ internalProblemVerificationError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInternalProblemVerificationError({
-  required String string,
+  required String details,
 }) {
-  var string_0 = conversions.validateString(string);
+  var details_0 = conversions.validateString(details);
   return new Message(
     internalProblemVerificationError,
     problemMessage: """Verification of the generated program failed:
-${string_0}""",
-    arguments: {'string': string},
+${details_0}""",
+    arguments: {'details': details},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInternalProblemVerificationError(String string) =>
-    _withArgumentsInternalProblemVerificationError(string: string);
+Message _withArgumentsOldInternalProblemVerificationError(String details) =>
+    _withArgumentsInternalProblemVerificationError(details: details);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8673,12 +8721,17 @@ Message _withArgumentsOldInvalidExtensionTypeSuperInterface(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, String name2),
+  Message Function(
+    DartType getterType,
+    String getterName,
+    DartType setterType,
+    String setterName,
+  ),
   Message Function({
-    required DartType type,
-    required String name,
-    required DartType type2,
-    required String name2,
+    required DartType getterType,
+    required String getterName,
+    required DartType setterType,
+    required String setterName,
   })
 >
 invalidGetterSetterType = const Template(
@@ -8689,36 +8742,41 @@ invalidGetterSetterType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidGetterSetterType({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required String name2,
+  required DartType getterType,
+  required String getterName,
+  required DartType setterType,
+  required String setterName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var getterType_0 = labeler.labelType(getterType);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
+  var setterType_0 = labeler.labelType(setterType);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     invalidGetterSetterType,
     problemMessage:
-        """The type '${type_0}' of the getter '${name_0}' is not a subtype of the type '${type2_0}' of the setter '${name2_0}'.""" +
+        """The type '${getterType_0}' of the getter '${getterName_0}' is not a subtype of the type '${setterType_0}' of the setter '${setterName_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'name': name, 'type2': type2, 'name2': name2},
+    arguments: {
+      'getterType': getterType,
+      'getterName': getterName,
+      'setterType': setterType,
+      'setterName': setterName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidGetterSetterType(
-  DartType type,
-  String name,
-  DartType type2,
-  String name2,
+  DartType getterType,
+  String getterName,
+  DartType setterType,
+  String setterName,
 ) => _withArgumentsInvalidGetterSetterType(
-  type: type,
-  name: name,
-  type2: type2,
-  name2: name2,
+  getterType: getterType,
+  getterName: getterName,
+  setterType: setterType,
+  setterName: setterName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11310,8 +11368,8 @@ const MessageCode mapPatternTypeArgumentMismatch = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String constructorName),
+  Message Function({required String constructorName})
 >
 memberConflictsWithConstructor = const Template(
   "MemberConflictsWithConstructor",
@@ -11320,23 +11378,29 @@ memberConflictsWithConstructor = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberConflictsWithConstructor({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsMemberConflictsWithConstructor({
+  required String constructorName,
+}) {
+  var constructorName_0 = conversions.validateAndDemangleName(constructorName);
   return new Message(
     memberConflictsWithConstructor,
-    problemMessage: """The member conflicts with constructor '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """The member conflicts with constructor '${constructorName_0}'.""",
+    arguments: {'constructorName': constructorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithConstructor(String name) =>
-    _withArgumentsMemberConflictsWithConstructor(name: name);
+Message _withArgumentsOldMemberConflictsWithConstructor(
+  String constructorName,
+) => _withArgumentsMemberConflictsWithConstructor(
+  constructorName: constructorName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String constructorName),
+  Message Function({required String constructorName})
 >
 memberConflictsWithConstructorCause = const Template(
   "MemberConflictsWithConstructorCause",
@@ -11347,24 +11411,27 @@ memberConflictsWithConstructorCause = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMemberConflictsWithConstructorCause({
-  required String name,
+  required String constructorName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var constructorName_0 = conversions.validateAndDemangleName(constructorName);
   return new Message(
     memberConflictsWithConstructorCause,
-    problemMessage: """Conflicting constructor '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicting constructor '${constructorName_0}'.""",
+    arguments: {'constructorName': constructorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithConstructorCause(String name) =>
-    _withArgumentsMemberConflictsWithConstructorCause(name: name);
+Message _withArgumentsOldMemberConflictsWithConstructorCause(
+  String constructorName,
+) => _withArgumentsMemberConflictsWithConstructorCause(
+  constructorName: constructorName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String factoryName),
+  Message Function({required String factoryName})
 >
 memberConflictsWithFactory = const Template(
   "MemberConflictsWithFactory",
@@ -11373,23 +11440,25 @@ memberConflictsWithFactory = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberConflictsWithFactory({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsMemberConflictsWithFactory({
+  required String factoryName,
+}) {
+  var factoryName_0 = conversions.validateAndDemangleName(factoryName);
   return new Message(
     memberConflictsWithFactory,
-    problemMessage: """The member conflicts with factory '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """The member conflicts with factory '${factoryName_0}'.""",
+    arguments: {'factoryName': factoryName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithFactory(String name) =>
-    _withArgumentsMemberConflictsWithFactory(name: name);
+Message _withArgumentsOldMemberConflictsWithFactory(String factoryName) =>
+    _withArgumentsMemberConflictsWithFactory(factoryName: factoryName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String factoryName),
+  Message Function({required String factoryName})
 >
 memberConflictsWithFactoryCause = const Template(
   "MemberConflictsWithFactoryCause",
@@ -11399,18 +11468,20 @@ memberConflictsWithFactoryCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMemberConflictsWithFactoryCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsMemberConflictsWithFactoryCause({
+  required String factoryName,
+}) {
+  var factoryName_0 = conversions.validateAndDemangleName(factoryName);
   return new Message(
     memberConflictsWithFactoryCause,
-    problemMessage: """Conflicting factory '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicting factory '${factoryName_0}'.""",
+    arguments: {'factoryName': factoryName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMemberConflictsWithFactoryCause(String name) =>
-    _withArgumentsMemberConflictsWithFactoryCause(name: name);
+Message _withArgumentsOldMemberConflictsWithFactoryCause(String factoryName) =>
+    _withArgumentsMemberConflictsWithFactoryCause(factoryName: factoryName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11569,8 +11640,11 @@ Message _withArgumentsOldMissingImplementationCause(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, List<String> names),
-  Message Function({required String name, required List<String> names})
+  Message Function(String className, List<String> memberNames),
+  Message Function({
+    required String className,
+    required List<String> memberNames,
+  })
 >
 missingImplementationNotAbstract = const Template(
   "MissingImplementationNotAbstract",
@@ -11580,30 +11654,33 @@ missingImplementationNotAbstract = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMissingImplementationNotAbstract({
-  required String name,
-  required List<String> names,
+  required String className,
+  required List<String> memberNames,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var names_0 = conversions.validateAndItemizeNames(names);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var memberNames_0 = conversions.validateAndItemizeNames(memberNames);
   return new Message(
     missingImplementationNotAbstract,
     problemMessage:
-        """The non-abstract class '${name_0}' is missing implementations for these members:
-${names_0}""",
+        """The non-abstract class '${className_0}' is missing implementations for these members:
+${memberNames_0}""",
     correctionMessage: """Try to either
  - provide an implementation,
  - inherit an implementation from a superclass or mixin,
  - mark the class as abstract, or
  - provide a 'noSuchMethod' implementation.""",
-    arguments: {'name': name, 'names': names},
+    arguments: {'className': className, 'memberNames': memberNames},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMissingImplementationNotAbstract(
-  String name,
-  List<String> names,
-) => _withArgumentsMissingImplementationNotAbstract(name: name, names: names);
+  String className,
+  List<String> memberNames,
+) => _withArgumentsMissingImplementationNotAbstract(
+  className: className,
+  memberNames: memberNames,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode missingInput = const MessageCode(
@@ -12048,8 +12125,11 @@ namedFieldClashesWithPositionalFieldInRecord = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String overriddenMemberName),
+  Message Function({
+    required String className,
+    required String overriddenMemberName,
+  })
 >
 namedMixinOverride = const Template(
   "NamedMixinOverride",
@@ -12059,22 +12139,32 @@ namedMixinOverride = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNamedMixinOverride({
-  required String name,
-  required String name2,
+  required String className,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     namedMixinOverride,
     problemMessage:
-        """The mixin application class '${name_0}' introduces an erroneous override of '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """The mixin application class '${className_0}' introduces an erroneous override of '${overriddenMemberName_0}'.""",
+    arguments: {
+      'className': className,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNamedMixinOverride(String name, String name2) =>
-    _withArgumentsNamedMixinOverride(name: name, name2: name2);
+Message _withArgumentsOldNamedMixinOverride(
+  String className,
+  String overriddenMemberName,
+) => _withArgumentsNamedMixinOverride(
+  className: className,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode namedParametersInExtensionTypeDeclaration = const MessageCode(
@@ -12466,8 +12556,8 @@ const MessageCode notAConstantExpression = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String prefix, String typeName),
+  Message Function({required String prefix, required String typeName})
 >
 notAPrefixInTypeAnnotation = const Template(
   "NotAPrefixInTypeAnnotation",
@@ -12477,24 +12567,27 @@ notAPrefixInTypeAnnotation = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNotAPrefixInTypeAnnotation({
-  required String name,
-  required String name2,
+  required String prefix,
+  required String typeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var prefix_0 = conversions.validateAndDemangleName(prefix);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     notAPrefixInTypeAnnotation,
     problemMessage:
-        """'${name_0}.${name2_0}' can't be used as a type because '${name_0}' doesn't refer to an import prefix.""",
-    arguments: {'name': name, 'name2': name2},
+        """'${prefix_0}.${typeName_0}' can't be used as a type because '${prefix_0}' doesn't refer to an import prefix.""",
+    arguments: {'prefix': prefix, 'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldNotAPrefixInTypeAnnotation(
-  String name,
-  String name2,
-) => _withArgumentsNotAPrefixInTypeAnnotation(name: name, name2: name2);
+  String prefix,
+  String typeName,
+) => _withArgumentsNotAPrefixInTypeAnnotation(
+  prefix: prefix,
+  typeName: typeName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13056,8 +13149,8 @@ Message _withArgumentsOldOptionalSuperParameterWithoutInitializer(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String methodName),
+  Message Function({required String methodName})
 >
 overriddenMethodCause = const Template(
   "OverriddenMethodCause",
@@ -13067,23 +13160,26 @@ overriddenMethodCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOverriddenMethodCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOverriddenMethodCause({required String methodName}) {
+  var methodName_0 = conversions.validateAndDemangleName(methodName);
   return new Message(
     overriddenMethodCause,
-    problemMessage: """This is the overridden method ('${name_0}').""",
-    arguments: {'name': name},
+    problemMessage: """This is the overridden method ('${methodName_0}').""",
+    arguments: {'methodName': methodName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOverriddenMethodCause(String name) =>
-    _withArgumentsOverriddenMethodCause(name: name);
+Message _withArgumentsOldOverriddenMethodCause(String methodName) =>
+    _withArgumentsOverriddenMethodCause(methodName: methodName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String declaredMemberName, String overriddenMemberName),
+  Message Function({
+    required String declaredMemberName,
+    required String overriddenMemberName,
+  })
 >
 overrideFewerNamedArguments = const Template(
   "OverrideFewerNamedArguments",
@@ -13093,29 +13189,42 @@ overrideFewerNamedArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerNamedArguments({
-  required String name,
-  required String name2,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideFewerNamedArguments,
     problemMessage:
-        """The method '${name_0}' has fewer named arguments than those of overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """The method '${declaredMemberName_0}' has fewer named arguments than those of overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideFewerNamedArguments(
-  String name,
-  String name2,
-) => _withArgumentsOverrideFewerNamedArguments(name: name, name2: name2);
+  String declaredMemberName,
+  String overriddenMemberName,
+) => _withArgumentsOverrideFewerNamedArguments(
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String declaredMemberName, String overriddenMemberName),
+  Message Function({
+    required String declaredMemberName,
+    required String overriddenMemberName,
+  })
 >
 overrideFewerPositionalArguments = const Template(
   "OverrideFewerPositionalArguments",
@@ -13125,32 +13234,46 @@ overrideFewerPositionalArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerPositionalArguments({
-  required String name,
-  required String name2,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideFewerPositionalArguments,
     problemMessage:
-        """The method '${name_0}' has fewer positional arguments than those of overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """The method '${declaredMemberName_0}' has fewer positional arguments than those of overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideFewerPositionalArguments(
-  String name,
-  String name2,
-) => _withArgumentsOverrideFewerPositionalArguments(name: name, name2: name2);
+  String declaredMemberName,
+  String overriddenMemberName,
+) => _withArgumentsOverrideFewerPositionalArguments(
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String name3),
+  Message Function(
+    String declaredMemberName,
+    String parameterName,
+    String overriddenMemberName,
+  ),
   Message Function({
-    required String name,
-    required String name2,
-    required String name3,
+    required String declaredMemberName,
+    required String parameterName,
+    required String overriddenMemberName,
   })
 >
 overrideMismatchNamedParameter = const Template(
@@ -13161,39 +13284,51 @@ overrideMismatchNamedParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMismatchNamedParameter({
-  required String name,
-  required String name2,
-  required String name3,
+  required String declaredMemberName,
+  required String parameterName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideMismatchNamedParameter,
     problemMessage:
-        """The method '${name_0}' doesn't have the named parameter '${name2_0}' of overridden method '${name3_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
+        """The method '${declaredMemberName_0}' doesn't have the named parameter '${parameterName_0}' of overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'parameterName': parameterName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideMismatchNamedParameter(
-  String name,
-  String name2,
-  String name3,
+  String declaredMemberName,
+  String parameterName,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideMismatchNamedParameter(
-  name: name,
-  name2: name2,
-  name3: name3,
+  declaredMemberName: declaredMemberName,
+  parameterName: parameterName,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String name3),
+  Message Function(
+    String parameterName,
+    String declaredMemberName,
+    String overriddenMemberName,
+  ),
   Message Function({
-    required String name,
-    required String name2,
-    required String name3,
+    required String parameterName,
+    required String declaredMemberName,
+    required String overriddenMemberName,
   })
 >
 overrideMismatchRequiredNamedParameter = const Template(
@@ -13204,36 +13339,47 @@ overrideMismatchRequiredNamedParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMismatchRequiredNamedParameter({
-  required String name,
-  required String name2,
-  required String name3,
+  required String parameterName,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideMismatchRequiredNamedParameter,
     problemMessage:
-        """The required named parameter '${name_0}' in method '${name2_0}' is not required in overridden method '${name3_0}'.""",
-    arguments: {'name': name, 'name2': name2, 'name3': name3},
+        """The required named parameter '${parameterName_0}' in method '${declaredMemberName_0}' is not required in overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'parameterName': parameterName,
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideMismatchRequiredNamedParameter(
-  String name,
-  String name2,
-  String name3,
+  String parameterName,
+  String declaredMemberName,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideMismatchRequiredNamedParameter(
-  name: name,
-  name2: name2,
-  name3: name3,
+  parameterName: parameterName,
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String declaredMemberName, String overriddenMemberName),
+  Message Function({
+    required String declaredMemberName,
+    required String overriddenMemberName,
+  })
 >
 overrideMoreRequiredArguments = const Template(
   "OverrideMoreRequiredArguments",
@@ -13243,40 +13389,50 @@ overrideMoreRequiredArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMoreRequiredArguments({
-  required String name,
-  required String name2,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideMoreRequiredArguments,
     problemMessage:
-        """The method '${name_0}' has more required arguments than those of overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """The method '${declaredMemberName_0}' has more required arguments than those of overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideMoreRequiredArguments(
-  String name,
-  String name2,
-) => _withArgumentsOverrideMoreRequiredArguments(name: name, name2: name2);
+  String declaredMemberName,
+  String overriddenMemberName,
+) => _withArgumentsOverrideMoreRequiredArguments(
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    String name,
-    String name2,
-    DartType type,
-    DartType type2,
-    String name3,
+    String parameterName,
+    String declaredMemberName,
+    DartType declaredType,
+    DartType overriddenType,
+    String overriddenMemberName,
   ),
   Message Function({
-    required String name,
-    required String name2,
-    required DartType type,
-    required DartType type2,
-    required String name3,
+    required String parameterName,
+    required String declaredMemberName,
+    required DartType declaredType,
+    required DartType overriddenType,
+    required String overriddenMemberName,
   })
 >
 overrideTypeMismatchParameter = const Template(
@@ -13287,58 +13443,67 @@ overrideTypeMismatchParameter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchParameter({
-  required String name,
-  required String name2,
-  required DartType type,
-  required DartType type2,
-  required String name3,
+  required String parameterName,
+  required String declaredMemberName,
+  required DartType declaredType,
+  required DartType overriddenType,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var declaredType_0 = labeler.labelType(declaredType);
+  var overriddenType_0 = labeler.labelType(overriddenType);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeMismatchParameter,
     problemMessage:
-        """The parameter '${name_0}' of the method '${name2_0}' has type '${type_0}', which does not match the corresponding type, '${type2_0}', in the overridden method, '${name3_0}'.""" +
+        """The parameter '${parameterName_0}' of the method '${declaredMemberName_0}' has type '${declaredType_0}', which does not match the corresponding type, '${overriddenType_0}', in the overridden method, '${overriddenMemberName_0}'.""" +
         labeler.originMessages,
     correctionMessage:
-        """Change to a supertype of '${type2_0}', or, for a covariant parameter, a subtype.""",
+        """Change to a supertype of '${overriddenType_0}', or, for a covariant parameter, a subtype.""",
     arguments: {
-      'name': name,
-      'name2': name2,
-      'type': type,
-      'type2': type2,
-      'name3': name3,
+      'parameterName': parameterName,
+      'declaredMemberName': declaredMemberName,
+      'declaredType': declaredType,
+      'overriddenType': overriddenType,
+      'overriddenMemberName': overriddenMemberName,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeMismatchParameter(
-  String name,
-  String name2,
-  DartType type,
-  DartType type2,
-  String name3,
+  String parameterName,
+  String declaredMemberName,
+  DartType declaredType,
+  DartType overriddenType,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideTypeMismatchParameter(
-  name: name,
-  name2: name2,
-  type: type,
-  type2: type2,
-  name3: name3,
+  parameterName: parameterName,
+  declaredMemberName: declaredMemberName,
+  declaredType: declaredType,
+  overriddenType: overriddenType,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type, DartType type2, String name2),
+  Message Function(
+    String declaredMemberName,
+    DartType declaredType,
+    DartType overriddenType,
+    String overriddenMemberName,
+  ),
   Message Function({
-    required String name,
-    required DartType type,
-    required DartType type2,
-    required String name2,
+    required String declaredMemberName,
+    required DartType declaredType,
+    required DartType overriddenType,
+    required String overriddenMemberName,
   })
 >
 overrideTypeMismatchReturnType = const Template(
@@ -13349,47 +13514,61 @@ overrideTypeMismatchReturnType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchReturnType({
-  required String name,
-  required DartType type,
-  required DartType type2,
-  required String name2,
+  required String declaredMemberName,
+  required DartType declaredType,
+  required DartType overriddenType,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredType_0 = labeler.labelType(declaredType);
+  var overriddenType_0 = labeler.labelType(overriddenType);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeMismatchReturnType,
     problemMessage:
-        """The return type of the method '${name_0}' is '${type_0}', which does not match the return type, '${type2_0}', of the overridden method, '${name2_0}'.""" +
+        """The return type of the method '${declaredMemberName_0}' is '${declaredType_0}', which does not match the return type, '${overriddenType_0}', of the overridden method, '${overriddenMemberName_0}'.""" +
         labeler.originMessages,
-    correctionMessage: """Change to a subtype of '${type2_0}'.""",
-    arguments: {'name': name, 'type': type, 'type2': type2, 'name2': name2},
+    correctionMessage: """Change to a subtype of '${overriddenType_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'declaredType': declaredType,
+      'overriddenType': overriddenType,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeMismatchReturnType(
-  String name,
-  DartType type,
-  DartType type2,
-  String name2,
+  String declaredMemberName,
+  DartType declaredType,
+  DartType overriddenType,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideTypeMismatchReturnType(
-  name: name,
-  type: type,
-  type2: type2,
-  name2: name2,
+  declaredMemberName: declaredMemberName,
+  declaredType: declaredType,
+  overriddenType: overriddenType,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type, DartType type2, String name2),
+  Message Function(
+    String declaredMemberName,
+    DartType declaredType,
+    DartType overriddenType,
+    String overriddenMemberName,
+  ),
   Message Function({
-    required String name,
-    required DartType type,
-    required DartType type2,
-    required String name2,
+    required String declaredMemberName,
+    required DartType declaredType,
+    required DartType overriddenType,
+    required String overriddenMemberName,
   })
 >
 overrideTypeMismatchSetter = const Template(
@@ -13400,53 +13579,62 @@ overrideTypeMismatchSetter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeMismatchSetter({
-  required String name,
-  required DartType type,
-  required DartType type2,
-  required String name2,
+  required String declaredMemberName,
+  required DartType declaredType,
+  required DartType overriddenType,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredType_0 = labeler.labelType(declaredType);
+  var overriddenType_0 = labeler.labelType(overriddenType);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeMismatchSetter,
     problemMessage:
-        """The field '${name_0}' has type '${type_0}', which does not match the corresponding type, '${type2_0}', in the overridden setter, '${name2_0}'.""" +
+        """The field '${declaredMemberName_0}' has type '${declaredType_0}', which does not match the corresponding type, '${overriddenType_0}', in the overridden setter, '${overriddenMemberName_0}'.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type, 'type2': type2, 'name2': name2},
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'declaredType': declaredType,
+      'overriddenType': overriddenType,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeMismatchSetter(
-  String name,
-  DartType type,
-  DartType type2,
-  String name2,
+  String declaredMemberName,
+  DartType declaredType,
+  DartType overriddenType,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideTypeMismatchSetter(
-  name: name,
-  type: type,
-  type2: type2,
-  name2: name2,
+  declaredMemberName: declaredMemberName,
+  declaredType: declaredType,
+  overriddenType: overriddenType,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    DartType type,
-    String name,
-    String name2,
-    DartType type2,
-    String name3,
+    DartType declaredBoundType,
+    String typeVariableName,
+    String declaredMemberName,
+    DartType overriddenBoundType,
+    String overriddenMemberName,
   ),
   Message Function({
-    required DartType type,
-    required String name,
-    required String name2,
-    required DartType type2,
-    required String name3,
+    required DartType declaredBoundType,
+    required String typeVariableName,
+    required String declaredMemberName,
+    required DartType overriddenBoundType,
+    required String overriddenMemberName,
   })
 >
 overrideTypeParametersBoundMismatch = const Template(
@@ -13457,52 +13645,61 @@ overrideTypeParametersBoundMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeParametersBoundMismatch({
-  required DartType type,
-  required String name,
-  required String name2,
-  required DartType type2,
-  required String name3,
+  required DartType declaredBoundType,
+  required String typeVariableName,
+  required String declaredMemberName,
+  required DartType overriddenBoundType,
+  required String overriddenMemberName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var type2_0 = labeler.labelType(type2);
-  var name3_0 = conversions.validateAndDemangleName(name3);
+  var declaredBoundType_0 = labeler.labelType(declaredBoundType);
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenBoundType_0 = labeler.labelType(overriddenBoundType);
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeParametersBoundMismatch,
     problemMessage:
-        """Declared bound '${type_0}' of type variable '${name_0}' of '${name2_0}' doesn't match the bound '${type2_0}' on overridden method '${name3_0}'.""" +
+        """Declared bound '${declaredBoundType_0}' of type variable '${typeVariableName_0}' of '${declaredMemberName_0}' doesn't match the bound '${overriddenBoundType_0}' on overridden method '${overriddenMemberName_0}'.""" +
         labeler.originMessages,
     arguments: {
-      'type': type,
-      'name': name,
-      'name2': name2,
-      'type2': type2,
-      'name3': name3,
+      'declaredBoundType': declaredBoundType,
+      'typeVariableName': typeVariableName,
+      'declaredMemberName': declaredMemberName,
+      'overriddenBoundType': overriddenBoundType,
+      'overriddenMemberName': overriddenMemberName,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeParametersBoundMismatch(
-  DartType type,
-  String name,
-  String name2,
-  DartType type2,
-  String name3,
+  DartType declaredBoundType,
+  String typeVariableName,
+  String declaredMemberName,
+  DartType overriddenBoundType,
+  String overriddenMemberName,
 ) => _withArgumentsOverrideTypeParametersBoundMismatch(
-  type: type,
-  name: name,
-  name2: name2,
-  type2: type2,
-  name3: name3,
+  declaredBoundType: declaredBoundType,
+  typeVariableName: typeVariableName,
+  declaredMemberName: declaredMemberName,
+  overriddenBoundType: overriddenBoundType,
+  overriddenMemberName: overriddenMemberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String declaredMemberName, String overriddenMemberName),
+  Message Function({
+    required String declaredMemberName,
+    required String overriddenMemberName,
+  })
 >
 overrideTypeParametersMismatch = const Template(
   "OverrideTypeParametersMismatch",
@@ -13512,24 +13709,34 @@ overrideTypeParametersMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeParametersMismatch({
-  required String name,
-  required String name2,
+  required String declaredMemberName,
+  required String overriddenMemberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var declaredMemberName_0 = conversions.validateAndDemangleName(
+    declaredMemberName,
+  );
+  var overriddenMemberName_0 = conversions.validateAndDemangleName(
+    overriddenMemberName,
+  );
   return new Message(
     overrideTypeParametersMismatch,
     problemMessage:
-        """Declared type variables of '${name_0}' doesn't match those on overridden method '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """Declared type variables of '${declaredMemberName_0}' doesn't match those on overridden method '${overriddenMemberName_0}'.""",
+    arguments: {
+      'declaredMemberName': declaredMemberName,
+      'overriddenMemberName': overriddenMemberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOverrideTypeParametersMismatch(
-  String name,
-  String name2,
-) => _withArgumentsOverrideTypeParametersMismatch(name: name, name2: name2);
+  String declaredMemberName,
+  String overriddenMemberName,
+) => _withArgumentsOverrideTypeParametersMismatch(
+  declaredMemberName: declaredMemberName,
+  overriddenMemberName: overriddenMemberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -14283,8 +14490,8 @@ Message _withArgumentsOldSealedClassSubtypeOutsideOfLibrary(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String setterName),
+  Message Function({required String setterName})
 >
 setterConflictsWithDeclaration = const Template(
   "SetterConflictsWithDeclaration",
@@ -14293,23 +14500,26 @@ setterConflictsWithDeclaration = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSetterConflictsWithDeclaration({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSetterConflictsWithDeclaration({
+  required String setterName,
+}) {
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     setterConflictsWithDeclaration,
-    problemMessage: """The setter conflicts with declaration '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """The setter conflicts with declaration '${setterName_0}'.""",
+    arguments: {'setterName': setterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSetterConflictsWithDeclaration(String name) =>
-    _withArgumentsSetterConflictsWithDeclaration(name: name);
+Message _withArgumentsOldSetterConflictsWithDeclaration(String setterName) =>
+    _withArgumentsSetterConflictsWithDeclaration(setterName: setterName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String setterName),
+  Message Function({required String setterName})
 >
 setterConflictsWithDeclarationCause = const Template(
   "SetterConflictsWithDeclarationCause",
@@ -14320,19 +14530,20 @@ setterConflictsWithDeclarationCause = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSetterConflictsWithDeclarationCause({
-  required String name,
+  required String setterName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var setterName_0 = conversions.validateAndDemangleName(setterName);
   return new Message(
     setterConflictsWithDeclarationCause,
-    problemMessage: """Conflicting declaration '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicting declaration '${setterName_0}'.""",
+    arguments: {'setterName': setterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSetterConflictsWithDeclarationCause(String name) =>
-    _withArgumentsSetterConflictsWithDeclarationCause(name: name);
+Message _withArgumentsOldSetterConflictsWithDeclarationCause(
+  String setterName,
+) => _withArgumentsSetterConflictsWithDeclarationCause(setterName: setterName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -14693,8 +14904,8 @@ Message _withArgumentsOldSpreadTypeMismatch(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String propertyName),
+  Message Function({required String propertyName})
 >
 staticConflictsWithInstance = const Template(
   "StaticConflictsWithInstance",
@@ -14703,24 +14914,26 @@ staticConflictsWithInstance = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsStaticConflictsWithInstance({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsStaticConflictsWithInstance({
+  required String propertyName,
+}) {
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
   return new Message(
     staticConflictsWithInstance,
     problemMessage:
-        """Static property '${name_0}' conflicts with instance property of the same name.""",
-    arguments: {'name': name},
+        """Static property '${propertyName_0}' conflicts with instance property of the same name.""",
+    arguments: {'propertyName': propertyName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldStaticConflictsWithInstance(String name) =>
-    _withArgumentsStaticConflictsWithInstance(name: name);
+Message _withArgumentsOldStaticConflictsWithInstance(String propertyName) =>
+    _withArgumentsStaticConflictsWithInstance(propertyName: propertyName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String propertyName),
+  Message Function({required String propertyName})
 >
 staticConflictsWithInstanceCause = const Template(
   "StaticConflictsWithInstanceCause",
@@ -14730,18 +14943,21 @@ staticConflictsWithInstanceCause = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsStaticConflictsWithInstanceCause({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsStaticConflictsWithInstanceCause({
+  required String propertyName,
+}) {
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
   return new Message(
     staticConflictsWithInstanceCause,
-    problemMessage: """Conflicting instance property '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Conflicting instance property '${propertyName_0}'.""",
+    arguments: {'propertyName': propertyName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldStaticConflictsWithInstanceCause(String name) =>
-    _withArgumentsStaticConflictsWithInstanceCause(name: name);
+Message _withArgumentsOldStaticConflictsWithInstanceCause(
+  String propertyName,
+) => _withArgumentsStaticConflictsWithInstanceCause(propertyName: propertyName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode staticTearOffFromInstantiatedClass = const MessageCode(
@@ -15463,8 +15679,11 @@ Message _withArgumentsOldThrowingNotAssignableToObjectError(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2),
-  Message Function({required int count, required int count2})
+  Message Function(int requiredParameterCount, int actualArgumentCount),
+  Message Function({
+    required int requiredParameterCount,
+    required int actualArgumentCount,
+  })
 >
 tooFewArguments = const Template(
   "TooFewArguments",
@@ -15474,25 +15693,36 @@ tooFewArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooFewArguments({
-  required int count,
-  required int count2,
+  required int requiredParameterCount,
+  required int actualArgumentCount,
 }) {
   return new Message(
     tooFewArguments,
     problemMessage:
-        """Too few positional arguments: ${count} required, ${count2} given.""",
-    arguments: {'count': count, 'count2': count2},
+        """Too few positional arguments: ${requiredParameterCount} required, ${actualArgumentCount} given.""",
+    arguments: {
+      'requiredParameterCount': requiredParameterCount,
+      'actualArgumentCount': actualArgumentCount,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTooFewArguments(int count, int count2) =>
-    _withArgumentsTooFewArguments(count: count, count2: count2);
+Message _withArgumentsOldTooFewArguments(
+  int requiredParameterCount,
+  int actualArgumentCount,
+) => _withArgumentsTooFewArguments(
+  requiredParameterCount: requiredParameterCount,
+  actualArgumentCount: actualArgumentCount,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2),
-  Message Function({required int count, required int count2})
+  Message Function(int allowedParameterCount, int actualArgumentCount),
+  Message Function({
+    required int allowedParameterCount,
+    required int actualArgumentCount,
+  })
 >
 tooManyArguments = const Template(
   "TooManyArguments",
@@ -15502,26 +15732,34 @@ tooManyArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooManyArguments({
-  required int count,
-  required int count2,
+  required int allowedParameterCount,
+  required int actualArgumentCount,
 }) {
   return new Message(
     tooManyArguments,
     problemMessage:
-        """Too many positional arguments: ${count} allowed, but ${count2} found.""",
+        """Too many positional arguments: ${allowedParameterCount} allowed, but ${actualArgumentCount} found.""",
     correctionMessage: """Try removing the extra positional arguments.""",
-    arguments: {'count': count, 'count2': count2},
+    arguments: {
+      'allowedParameterCount': allowedParameterCount,
+      'actualArgumentCount': actualArgumentCount,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTooManyArguments(int count, int count2) =>
-    _withArgumentsTooManyArguments(count: count, count2: count2);
+Message _withArgumentsOldTooManyArguments(
+  int allowedParameterCount,
+  int actualArgumentCount,
+) => _withArgumentsTooManyArguments(
+  allowedParameterCount: allowedParameterCount,
+  actualArgumentCount: actualArgumentCount,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count),
-  Message Function({required int count})
+  Message Function(int expectedCount),
+  Message Function({required int expectedCount})
 >
 typeArgumentMismatch = const Template(
   "TypeArgumentMismatch",
@@ -15530,17 +15768,17 @@ typeArgumentMismatch = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeArgumentMismatch({required int count}) {
+Message _withArgumentsTypeArgumentMismatch({required int expectedCount}) {
   return new Message(
     typeArgumentMismatch,
-    problemMessage: """Expected ${count} type arguments.""",
-    arguments: {'count': count},
+    problemMessage: """Expected ${expectedCount} type arguments.""",
+    arguments: {'expectedCount': expectedCount},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeArgumentMismatch(int count) =>
-    _withArgumentsTypeArgumentMismatch(count: count);
+Message _withArgumentsOldTypeArgumentMismatch(int expectedCount) =>
+    _withArgumentsTypeArgumentMismatch(expectedCount: expectedCount);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

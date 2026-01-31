@@ -4,8 +4,6 @@
 
 import 'dart:io';
 
-import 'package:package_config/package_config.dart';
-
 import '../utilities/git.dart';
 import 'project_generator.dart';
 
@@ -29,11 +27,8 @@ class GitCloneProjectGenerator implements ProjectGenerator {
     await runGitCommand(['clone', repo, '.'], outputDir);
     await runGitCommand(['fetch', 'origin', ref], outputDir);
     await runGitCommand(['checkout', ref], outputDir);
-    await runPubGet(outputDir);
     return Workspace(
-      contextRoots: [
-        ContextRoot(outputDir, (await findPackageConfig(outputDir))!),
-      ],
+      contextRoots: await initializeContextRoots(outputDir.path).toList(),
       workspaceDirectories: [outputDir],
     );
   }

@@ -412,8 +412,8 @@ class FactoryEncoding implements InferredTypeListener {
       } else {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: diag.redirectionTargetNotFound.withArgumentsOld(
-            redirectionTarget.fullNameForErrors,
+          message: diag.redirectionTargetNotFound.withArguments(
+            name: redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
           length: noLength,
@@ -425,8 +425,8 @@ class FactoryEncoding implements InferredTypeListener {
           targetNode.enclosingClass.isAbstract) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: diag.abstractRedirectedClassInstantiation.withArgumentsOld(
-            redirectionTarget.fullNameForErrors,
+          message: diag.abstractRedirectedClassInstantiation.withArguments(
+            name: redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
           length: noLength,
@@ -694,8 +694,8 @@ class FactoryEncoding implements InferredTypeListener {
         targetFunctionType.typeParameters.length != typeArguments.length) {
       _addProblemForRedirectingFactory(
         libraryBuilder: libraryBuilder,
-        message: diag.typeArgumentMismatch.withArgumentsOld(
-          targetFunctionType.typeParameters.length,
+        message: diag.typeArgumentMismatch.withArguments(
+          expectedCount: targetFunctionType.typeParameters.length,
         ),
         fileOffset: redirectionTarget.charOffset,
         length: noLength,

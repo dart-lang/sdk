@@ -17,10 +17,16 @@ class DebugAbort {
   DebugAbort(Uri? uri, int charOffset, CfeSeverity severity, StackTrace trace)
     : message = uri != null
           ? diag.internalProblemDebugAbort
-                .withArgumentsOld(severityTexts[severity]!, "$trace")
+                .withArguments(
+                  severityName: severityTexts[severity]!,
+                  stackTrace: "$trace",
+                )
                 .withLocation(uri, charOffset, noLength)
           : diag.internalProblemDebugAbort
-                .withArgumentsOld(severityTexts[severity]!, "$trace")
+                .withArguments(
+                  severityName: severityTexts[severity]!,
+                  stackTrace: "$trace",
+                )
                 .withoutLocation();
 
   @override
@@ -58,7 +64,7 @@ Never internalProblem(Message message, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unimplemented(String what, int charOffset, Uri? uri) {
   return internalProblem(
-    diag.internalProblemUnimplemented.withArgumentsOld(what),
+    diag.internalProblemUnimplemented.withArguments(what: what),
     charOffset,
     uri,
   );
@@ -67,7 +73,7 @@ Never unimplemented(String what, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unhandled(String what, String where, int charOffset, Uri? uri) {
   return internalProblem(
-    diag.internalProblemUnhandled.withArgumentsOld(what, where),
+    diag.internalProblemUnhandled.withArguments(what: what, where: where),
     charOffset,
     uri,
   );
@@ -76,7 +82,10 @@ Never unhandled(String what, String where, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unexpected(String expected, String actual, int charOffset, Uri? uri) {
   return internalProblem(
-    diag.internalProblemUnexpected.withArgumentsOld(expected, actual),
+    diag.internalProblemUnexpected.withArguments(
+      expected: expected,
+      actual: actual,
+    ),
     charOffset,
     uri,
   );
@@ -85,7 +94,7 @@ Never unexpected(String expected, String actual, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unsupported(String operation, int charOffset, Uri? uri) {
   return internalProblem(
-    diag.internalProblemUnsupported.withArgumentsOld(operation),
+    diag.internalProblemUnsupported.withArguments(operation: operation),
     charOffset,
     uri,
   );

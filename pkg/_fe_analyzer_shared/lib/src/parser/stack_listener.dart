@@ -162,7 +162,10 @@ abstract class StackListener extends Listener with StackChecker {
   void push(Object? node) {
     if (node == null) {
       internalProblem(
-        diag.internalProblemUnhandled.withArgumentsOld("null", "push"),
+        diag.internalProblemUnhandled.withArguments(
+          what: "null",
+          where: "push",
+        ),
         /* charOffset = */ -1,
         uri,
       );
@@ -205,7 +208,10 @@ abstract class StackListener extends Listener with StackChecker {
   void logEvent(String name) {
     printEvent(name);
     internalProblem(
-      diag.internalProblemUnhandled.withArgumentsOld(name, "$runtimeType"),
+      diag.internalProblemUnhandled.withArguments(
+        what: name,
+        where: "$runtimeType",
+      ),
       /* charOffset = */ -1,
       uri,
     );
@@ -225,9 +231,9 @@ abstract class StackListener extends Listener with StackChecker {
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
       internalProblem(
-        diag.internalProblemStackNotEmpty.withArgumentsOld(
-          "${runtimeType}",
-          stack.values.join("\n  "),
+        diag.internalProblemStackNotEmpty.withArguments(
+          typeName: "${runtimeType}",
+          stackContents: stack.values.join("\n  "),
         ),
         charOffset,
         uri,
@@ -395,9 +401,9 @@ abstract class StackListener extends Listener with StackChecker {
       push(unescapeString(token.lexeme, token, this));
     } else {
       internalProblem(
-        diag.internalProblemUnhandled.withArgumentsOld(
-          "string interpolation",
-          "endLiteralString",
+        diag.internalProblemUnhandled.withArguments(
+          what: "string interpolation",
+          where: "endLiteralString",
         ),
         endToken.charOffset,
         uri,

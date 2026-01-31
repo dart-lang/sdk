@@ -7,30 +7,30 @@
   (type $_Environment <...>)
   (type $_InterfaceType <...>)
   (type $_Type <...>)
-  (global $"C15 _InterfaceType" (import "$" "/") (ref $_InterfaceType))
-  (global $"C8 \")\"" (import "$" "1") (ref $JSStringImpl))
+  (global $"\")\"_11" (import "$" "1") (ref $JSStringImpl))
+  (global $_InterfaceType (import "$" "/") (ref $_InterfaceType))
   (table $$.$ (import "$" "$") 903 funcref)
   (table $$.& (import "$" "&") 22 funcref)
-  (global $"C285 \"Foo<\"" (ref $JSStringImpl) <...>)
-  (global $"C286 \">.takeT(\"" (ref $JSStringImpl) <...>)
+  (global $"\">.takeT(\"" (ref $JSStringImpl) <...>)
+  (global $"\"Foo<\"" (ref $JSStringImpl) <...>)
   (elem $$.& <...>)
   (elem $$.$ <...>)
   (func $"Foo.takeT (body) <noInline>" (param $var0 (ref $Foo)) (param $var1 (ref $#Top))
     (local $var2 (ref $_InterfaceType))
     (local $var3 (ref null $Foo))
-    global.get $"C285 \"Foo<\""
+    global.get $"\"Foo<\""
     local.get $var0
     struct.get $Foo $field2
-    global.get $"C286 \">.takeT(\""
+    global.get $"\">.takeT(\""
     local.get $var1
-    global.get $"C8 \")\""
+    global.get $"\")\"_11"
     array.new_fixed $Array<Object?> 5
     i32.const 16
     call_indirect $$.& (param (ref $Array<Object?>)) (result (ref $JSStringImpl))
     i32.const 20
     call_indirect $$.& (param (ref null $#Top)) (result (ref null $#Top))
     drop
-    global.get $"C15 _InterfaceType"
+    global.get $_InterfaceType
     local.set $var2
     block $label0 (result i32)
       i32.const 0

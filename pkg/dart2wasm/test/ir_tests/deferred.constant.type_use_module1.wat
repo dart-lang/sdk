@@ -7,7 +7,7 @@
   (type $JSStringImpl <...>)
   (type $Object <...>)
   (global $".Foo called " (import "" "Foo called ") (ref extern))
-  (global $"C470 \"Foo called \"" (ref $JSStringImpl)
+  (global $"\"Foo called \"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".Foo called ")
