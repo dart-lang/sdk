@@ -90,14 +90,11 @@ class A(this.p) {
   }
 
   test_thisInit_asserts_primaryConstructor_declaring() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 class A(final String? p) {
   this : assert(p != null);
 }
-''',
-      [lint(8, 15)],
-    );
+''');
   }
 
   test_thisInit_noAssert() async {
