@@ -199,6 +199,25 @@ C a = C.named();
     );
   }
 
+  test_outsidePackage_constructor_primary() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+class C() {
+  @internal
+  this;
+}
+''');
+
+    await assertErrorsInCode(
+      '''
+import 'package:foo/src/a.dart';
+
+C a = C();
+''',
+      [error(diag.invalidUseOfInternalMember, 40, 1)],
+    );
+  }
+
   test_outsidePackage_constructor_unnamed() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
@@ -287,6 +306,25 @@ E e = E(1);
     );
   }
 
+  test_outsidePackage_field() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+class A {
+  @internal
+  int a = 42;
+}
+''');
+
+    await assertErrorsInCode(
+      '''
+import 'package:foo/src/a.dart';
+
+var a = A().a;
+''',
+      [error(diag.invalidUseOfInternalMember, 46, 1)],
+    );
+  }
+
   test_outsidePackage_field_inObjectPattern() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
@@ -307,6 +345,22 @@ void f(Object o) {
 }
 ''',
       [error(diag.invalidUseOfInternalMember, 79, 1)],
+    );
+  }
+
+  test_outsidePackage_field_originPrimaryConstructor() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+class A(@internal final int a);
+''');
+
+    await assertErrorsInCode(
+      '''
+import 'package:foo/src/a.dart';
+
+var a = A(7).a;
+''',
+      [error(diag.invalidUseOfInternalMember, 47, 1)],
     );
   }
 
@@ -594,6 +648,22 @@ class D extends C {
 }
 ''',
       [error(diag.invalidUseOfInternalMember, 68, 1)],
+    );
+  }
+
+  test_outsidePackage_parameter_inPrimaryConstructor() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', '''
+import 'package:meta/meta.dart';
+class C({@internal final int a = 0});
+''');
+
+    await assertErrorsInCode(
+      '''
+import 'package:foo/src/a.dart';
+
+var a = C(a: 7);
+''',
+      [error(diag.invalidUseOfInternalMember, 44, 1)],
     );
   }
 
