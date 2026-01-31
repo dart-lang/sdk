@@ -846,7 +846,7 @@ class BodyBuilderImpl extends StackListenerImpl
   ) {
     String name = variable.cosmeticName!;
     int offset = variable.fileOffset;
-    Message message = diag.duplicatedDeclaration.withArgumentsOld(name);
+    Message message = diag.duplicatedDeclaration.withArguments(name: name);
     if (variable.initializer == null) {
       variable.initializer = buildProblem(
         message: message,
@@ -873,7 +873,7 @@ class BodyBuilderImpl extends StackListenerImpl
       // `{ var x; var x; }`
       wrapVariableInitializerInError(variable, <LocatedMessage>[
         diag.duplicatedDeclarationCause
-            .withArgumentsOld(name)
+            .withArguments(name: name)
             .withLocation(uri, existing.fileOffset, name.length),
       ]);
       return;
@@ -2065,7 +2065,7 @@ class BodyBuilderImpl extends StackListenerImpl
         if (isUserDefinableOperator(operator)) {
           push(
             buildProblem(
-              message: diag.notBinaryOperator.withArgumentsOld(token),
+              message: diag.notBinaryOperator.withArguments(token: token),
               fileUri: uri,
               fileOffset: token.charOffset,
               length: token.length,
@@ -2734,7 +2734,7 @@ class BodyBuilderImpl extends StackListenerImpl
             return new IncompleteErrorGenerator(
               this,
               nameToken,
-              diag.thisAccessInFieldInitializer.withArgumentsOld(name),
+              diag.thisAccessInFieldInitializer.withArguments(name: name),
             );
           }
         }
@@ -10450,7 +10450,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ? null
         : <LocatedMessage>[
             diag.duplicatedDeclarationCause
-                .withArgumentsOld(name)
+                .withArguments(name: name)
                 .withLocation(
                   existing.fileUri!,
                   existing.fileOffset,
@@ -10458,7 +10458,7 @@ class BodyBuilderImpl extends StackListenerImpl
                 ),
           ];
     addProblem(
-      diag.duplicatedDeclaration.withArgumentsOld(name),
+      diag.duplicatedDeclaration.withArguments(name: name),
       charOffset,
       name.length,
       context: context,

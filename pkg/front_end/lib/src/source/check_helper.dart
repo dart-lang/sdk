@@ -714,7 +714,7 @@ extension CheckHelper on ProblemReporting {
           getterUriOffset,
           context: [
             diag.invalidGetterSetterTypeSetterContext
-                .withArgumentsOld(setterName)
+                .withArguments(setterName: setterName)
                 .withLocation2(setterUriOffset),
           ],
         );

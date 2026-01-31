@@ -139,7 +139,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             getterUri,
             context: [
               diag.invalidGetterSetterTypeSetterContext
-                  .withArgumentsOld(setterFullName)
+                  .withArguments(setterName: setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
           );
@@ -164,7 +164,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
             getterUri,
             context: [
               diag.invalidGetterSetterTypeSetterContext
-                  .withArgumentsOld(setterFullName)
+                  .withArguments(setterName: setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
           );
@@ -223,7 +223,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                   .withArgumentsOld(getterFullName)
                   .withLocation(getterUri, getterOffset, name.text.length),
               diag.invalidGetterSetterTypeSetterContext
-                  .withArgumentsOld(setterFullName)
+                  .withArguments(setterName: setterFullName)
                   .withLocation(setterUri, setterOffset, name.text.length),
             ],
           );

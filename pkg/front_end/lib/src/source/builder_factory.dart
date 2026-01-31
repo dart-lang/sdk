@@ -1707,11 +1707,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
     }
 
     problemReporting.addProblem2(
-      diag.duplicatedDeclaration.withArgumentsOld(name),
+      diag.duplicatedDeclaration.withArguments(name: name),
       newUriOffset,
       context: <LocatedMessage>[
         diag.duplicatedDeclarationCause
-            .withArgumentsOld(name)
+            .withArguments(name: name)
             .withLocation2(existingUriOffset),
       ],
     );

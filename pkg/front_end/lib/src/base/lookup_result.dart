@@ -40,7 +40,7 @@ abstract class LookupResult {
       }
       length = noLength;
     }
-    Message message = diag.duplicatedDeclarationUse.withArgumentsOld(name);
+    Message message = diag.duplicatedDeclarationUse.withArguments(name: name);
     return message.withLocation(fileUri, fileOffset, length);
   }
 

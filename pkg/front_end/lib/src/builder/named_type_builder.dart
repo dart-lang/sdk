@@ -464,14 +464,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         fullNameForErrors,
       );
     } else if (type.nullability == Nullability.nullable) {
-      message = diag.supertypeIsNullableAliased.withArgumentsOld(
-        fullNameForErrors,
-        type,
+      message = diag.supertypeIsNullableAliased.withArguments(
+        typeName: fullNameForErrors,
+        aliasedType: type,
       );
     } else {
-      message = diag.supertypeIsIllegalAliased.withArgumentsOld(
-        fullNameForErrors,
-        type,
+      message = diag.supertypeIsIllegalAliased.withArguments(
+        typeName: fullNameForErrors,
+        aliasedType: type,
       );
     }
     library.addProblem(

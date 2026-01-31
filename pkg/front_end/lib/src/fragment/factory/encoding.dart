@@ -397,8 +397,8 @@ class FactoryEncoding implements InferredTypeListener {
       if (result != null && result.isInvalidLookup) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: diag.duplicatedDeclarationUse.withArgumentsOld(
-            redirectionTarget.fullNameForErrors,
+          message: diag.duplicatedDeclarationUse.withArguments(
+            name: redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
           length: noLength,
