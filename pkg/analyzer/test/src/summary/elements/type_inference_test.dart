@@ -5779,6 +5779,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -6002,6 +6003,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F19
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -6222,6 +6224,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -6455,6 +6458,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -6676,6 +6680,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -7049,6 +7054,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
