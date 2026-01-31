@@ -2403,7 +2403,8 @@ class OutlineBuilder extends StackListenerImpl {
       procedureKind = ProcedureKind.Operator;
       int requiredArgumentCount = operator.requiredArgumentCount;
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        Template<Message Function(String name), Function> template;
+        Template<Function, Message Function({required String operatorName})>
+        template;
         switch (requiredArgumentCount) {
           case 0:
             template = diag.operatorParameterMismatch0;
@@ -2430,7 +2431,11 @@ class OutlineBuilder extends StackListenerImpl {
               uri,
             );
         }
-        addProblem(template.withArgumentsOld(name), nameOffset, name.length);
+        addProblem(
+          template.withArguments(operatorName: name),
+          nameOffset,
+          name.length,
+        );
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {

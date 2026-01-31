@@ -3288,8 +3288,8 @@ notBinaryOperator:
 
 operatorParameterMismatch0:
   parameters:
-    Name name: undocumented
-  problemMessage: "Operator '#name' shouldn't have any parameters."
+    Name operatorName: The name of the operator that shouldn't have any parameters.
+  problemMessage: "Operator '#operatorName' shouldn't have any parameters."
   script: |
     class Foo {
       operator ~(a) => true;
@@ -3297,8 +3297,8 @@ operatorParameterMismatch0:
 
 operatorParameterMismatch1:
   parameters:
-    Name name: undocumented
-  problemMessage: "Operator '#name' should have exactly one parameter."
+    Name operatorName: The name of the operator that should have exactly one parameter.
+  problemMessage: "Operator '#operatorName' should have exactly one parameter."
   script: |
     class Foo {
       operator ==() => true;
@@ -3307,8 +3307,8 @@ operatorParameterMismatch1:
 
 operatorParameterMismatch2:
   parameters:
-    Name name: undocumented
-  problemMessage: "Operator '#name' should have exactly two parameters."
+    Name operatorName: The name of the operator that should have exactly two parameters.
+  problemMessage: "Operator '#operatorName' should have exactly two parameters."
   script: |
     class Foo {
       operator []=(a, b, c) => true;
@@ -3316,8 +3316,8 @@ operatorParameterMismatch2:
 
 operatorMinusParameterMismatch:
   parameters:
-    Name name: undocumented
-  problemMessage: "Operator '#name' should have zero or one parameter."
+    Name operatorName: The name of the operator that should have zero or one parameter.
+  problemMessage: "Operator '#operatorName' should have zero or one parameter."
   correctionMessage: >-
     With zero parameters, it has the syntactic form '-a', formally known as 'unary-'.
     With one parameter, it has the syntactic form 'a - b', formally known as '-'.

@@ -12958,8 +12958,8 @@ const MessageCode obsoleteColonForDefaultValue = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 operatorMinusParameterMismatch = const Template(
   "OperatorMinusParameterMismatch",
@@ -12968,26 +12968,28 @@ operatorMinusParameterMismatch = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorMinusParameterMismatch({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOperatorMinusParameterMismatch({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     operatorMinusParameterMismatch,
     problemMessage:
-        """Operator '${name_0}' should have zero or one parameter.""",
+        """Operator '${operatorName_0}' should have zero or one parameter.""",
     correctionMessage:
         """With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
-    arguments: {'name': name},
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorMinusParameterMismatch(String name) =>
-    _withArgumentsOperatorMinusParameterMismatch(name: name);
+Message _withArgumentsOldOperatorMinusParameterMismatch(String operatorName) =>
+    _withArgumentsOperatorMinusParameterMismatch(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 operatorParameterMismatch0 = const Template(
   "OperatorParameterMismatch0",
@@ -12996,23 +12998,26 @@ operatorParameterMismatch0 = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch0({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOperatorParameterMismatch0({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     operatorParameterMismatch0,
-    problemMessage: """Operator '${name_0}' shouldn't have any parameters.""",
-    arguments: {'name': name},
+    problemMessage:
+        """Operator '${operatorName_0}' shouldn't have any parameters.""",
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch0(String name) =>
-    _withArgumentsOperatorParameterMismatch0(name: name);
+Message _withArgumentsOldOperatorParameterMismatch0(String operatorName) =>
+    _withArgumentsOperatorParameterMismatch0(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 operatorParameterMismatch1 = const Template(
   "OperatorParameterMismatch1",
@@ -13021,24 +13026,26 @@ operatorParameterMismatch1 = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch1({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOperatorParameterMismatch1({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     operatorParameterMismatch1,
     problemMessage:
-        """Operator '${name_0}' should have exactly one parameter.""",
-    arguments: {'name': name},
+        """Operator '${operatorName_0}' should have exactly one parameter.""",
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch1(String name) =>
-    _withArgumentsOperatorParameterMismatch1(name: name);
+Message _withArgumentsOldOperatorParameterMismatch1(String operatorName) =>
+    _withArgumentsOperatorParameterMismatch1(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 operatorParameterMismatch2 = const Template(
   "OperatorParameterMismatch2",
@@ -13047,19 +13054,21 @@ operatorParameterMismatch2 = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOperatorParameterMismatch2({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsOperatorParameterMismatch2({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     operatorParameterMismatch2,
     problemMessage:
-        """Operator '${name_0}' should have exactly two parameters.""",
-    arguments: {'name': name},
+        """Operator '${operatorName_0}' should have exactly two parameters.""",
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOperatorParameterMismatch2(String name) =>
-    _withArgumentsOperatorParameterMismatch2(name: name);
+Message _withArgumentsOldOperatorParameterMismatch2(String operatorName) =>
+    _withArgumentsOperatorParameterMismatch2(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode operatorWithOptionalFormals = const MessageCode(
