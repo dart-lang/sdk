@@ -482,7 +482,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       // superclass constraint is encoded with the constraint as the supertype,
       // and that is allowed to be a mixin's interface.
       libraryBuilder.addProblem(
-        diag.supertypeIsIllegal.withArgumentsOld(cls.superclass!.name),
+        diag.supertypeIsIllegal.withArguments(typeName: cls.superclass!.name),
         fileOffset,
         noLength,
         fileUri,

@@ -15439,8 +15439,8 @@ const MessageCode supertypeIsFunction = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 supertypeIsIllegal = const Template(
   "SupertypeIsIllegal",
@@ -15449,18 +15449,18 @@ supertypeIsIllegal = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsIllegal({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSupertypeIsIllegal({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     supertypeIsIllegal,
-    problemMessage: """The type '${name_0}' can't be used as supertype.""",
-    arguments: {'name': name},
+    problemMessage: """The type '${typeName_0}' can't be used as supertype.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsIllegal(String name) =>
-    _withArgumentsSupertypeIsIllegal(name: name);
+Message _withArgumentsOldSupertypeIsIllegal(String typeName) =>
+    _withArgumentsSupertypeIsIllegal(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -15538,8 +15538,8 @@ Message _withArgumentsOldSupertypeIsNullableAliased(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 supertypeIsTypeParameter = const Template(
   "SupertypeIsTypeParameter",
@@ -15548,19 +15548,19 @@ supertypeIsTypeParameter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSupertypeIsTypeParameter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsSupertypeIsTypeParameter({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     supertypeIsTypeParameter,
     problemMessage:
-        """The type variable '${name_0}' can't be used as supertype.""",
-    arguments: {'name': name},
+        """The type variable '${typeName_0}' can't be used as supertype.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSupertypeIsTypeParameter(String name) =>
-    _withArgumentsSupertypeIsTypeParameter(name: name);
+Message _withArgumentsOldSupertypeIsTypeParameter(String typeName) =>
+    _withArgumentsSupertypeIsTypeParameter(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode switchCaseFallThrough = const MessageCode(

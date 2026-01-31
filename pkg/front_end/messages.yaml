@@ -3328,8 +3328,8 @@ operatorMinusParameterMismatch:
 
 supertypeIsIllegal:
   parameters:
-    Name name: undocumented
-  problemMessage: "The type '#name' can't be used as supertype."
+    Name typeName: The name of the type that can't be used as a supertype.
+  problemMessage: "The type '#typeName' can't be used as supertype."
   script: |
     class C extends dynamic {}
 
@@ -3354,8 +3354,8 @@ supertypeIsNullableAliased:
 
 supertypeIsTypeParameter:
   parameters:
-    Name name: undocumented
-  problemMessage: "The type variable '#name' can't be used as supertype."
+    Name typeName: The name of the type variable that can't be used as a supertype.
+  problemMessage: "The type variable '#typeName' can't be used as supertype."
   script: |
     class C<T> extends T {}
 

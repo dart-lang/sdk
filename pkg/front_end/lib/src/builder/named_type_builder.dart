@@ -435,12 +435,12 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
-    Template<Message Function(String name), Function> template =
+    Template<Function, Message Function({required String typeName})> template =
         declaration.isTypeParameter
         ? diag.supertypeIsTypeParameter
         : diag.supertypeIsIllegal;
     library.addProblem(
-      template.withArgumentsOld(fullNameForErrors),
+      template.withArguments(typeName: fullNameForErrors),
       charOffset!,
       noLength,
       fileUri,
@@ -460,8 +460,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Message message;
     if (declaration.isTypeParameter) {
       // Coverage-ignore-block(suite): Not run.
-      message = diag.supertypeIsTypeParameter.withArgumentsOld(
-        fullNameForErrors,
+      message = diag.supertypeIsTypeParameter.withArguments(
+        typeName: fullNameForErrors,
       );
     } else if (type.nullability == Nullability.nullable) {
       message = diag.supertypeIsNullableAliased.withArguments(
