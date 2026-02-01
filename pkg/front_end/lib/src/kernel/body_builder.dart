@@ -9944,10 +9944,10 @@ class BodyBuilderImpl extends StackListenerImpl
             return [
               createInvalidInitializer(
                 buildProblem(
-                  message: diag.initializingFormalTypeMismatch.withArgumentsOld(
-                    name,
-                    formalType,
-                    builder.fieldType,
+                  message: diag.initializingFormalTypeMismatch.withArguments(
+                    parameterName: name,
+                    parameterType: formalType,
+                    fieldType: builder.fieldType,
                   ),
                   fileOffset: assignmentOffset,
                   length: noLength,

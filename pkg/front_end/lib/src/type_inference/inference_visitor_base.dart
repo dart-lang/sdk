@@ -3270,7 +3270,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (isExpressionInvocation) {
       Expression error = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: diag.implicitCallOfNonMethod.withArgumentsOld(receiverType),
+        message: diag.implicitCallOfNonMethod.withArguments(type: receiverType),
         fileUri: fileUri,
         fileOffset: fileOffset,
         length: noLength,
@@ -3502,7 +3502,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (isExpressionInvocation) {
       Expression error = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: diag.implicitCallOfNonMethod.withArgumentsOld(receiverType),
+        message: diag.implicitCallOfNonMethod.withArguments(type: receiverType),
         fileUri: fileUri,
         fileOffset: fileOffset,
         length: noLength,
@@ -5537,9 +5537,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     int length = literal?.length ?? noLength;
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.webLiteralCannotBeRepresentedExactly.withArgumentsOld(
-        text,
-        nearest,
+      message: diag.webLiteralCannotBeRepresentedExactly.withArguments(
+        integerLiteral: text,
+        nearestJsValue: nearest,
       ),
       fileUri: fileUri,
       fileOffset: charOffset,

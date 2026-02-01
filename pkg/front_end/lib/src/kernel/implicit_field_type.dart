@@ -160,7 +160,7 @@ class _ImplicitType extends InferredType {
   (DartType, Expression?) computeType(ClassHierarchyBase hierarchy) {
     if (isStarted) {
       _libraryBuilder.addProblem(
-        diag.cantInferTypeDueToCircularity.withArgumentsOld(_name),
+        diag.cantInferTypeDueToCircularity.withArguments(name: _name),
         _nameOffset,
         _nameLength,
         _fileUri,

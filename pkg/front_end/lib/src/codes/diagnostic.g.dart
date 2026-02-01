@@ -202,10 +202,10 @@ Message _withArgumentsOldAmbiguousExtensionProperty(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type, DartType type2),
+  Message Function(String name, DartType type1, DartType type2),
   Message Function({
     required String name,
-    required DartType type,
+    required DartType type1,
     required DartType type2,
   })
 >
@@ -218,28 +218,28 @@ ambiguousSupertypes = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAmbiguousSupertypes({
   required String name,
-  required DartType type,
+  required DartType type1,
   required DartType type2,
 }) {
   var name_0 = conversions.validateAndDemangleName(name);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var type1_0 = labeler.labelType(type1);
   var type2_0 = labeler.labelType(type2);
   return new Message(
     ambiguousSupertypes,
     problemMessage:
-        """'${name_0}' can't implement both '${type_0}' and '${type2_0}'""" +
+        """'${name_0}' can't implement both '${type1_0}' and '${type2_0}'""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type, 'type2': type2},
+    arguments: {'name': name, 'type1': type1, 'type2': type2},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldAmbiguousSupertypes(
   String name,
-  DartType type,
+  DartType type1,
   DartType type2,
-) => _withArgumentsAmbiguousSupertypes(name: name, type: type, type2: type2);
+) => _withArgumentsAmbiguousSupertypes(name: name, type1: type1, type2: type2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode annotationOnFunctionTypeTypeParameter = const MessageCode(
@@ -464,8 +464,8 @@ Message _withArgumentsOldBoundIssueViaLoopNonSimplicity(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 boundIssueViaRawTypeWithNonSimpleBounds = const Template(
   "BoundIssueViaRawTypeWithNonSimpleBounds",
@@ -475,21 +475,23 @@ boundIssueViaRawTypeWithNonSimpleBounds = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds({
-  required String name,
+  required String typeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     boundIssueViaRawTypeWithNonSimpleBounds,
     problemMessage:
-        """Generic type '${name_0}' can't be used without type arguments in a type variable bound.""",
-    correctionMessage: """Try providing type arguments to '${name_0}' here.""",
-    arguments: {'name': name},
+        """Generic type '${typeName_0}' can't be used without type arguments in a type variable bound.""",
+    correctionMessage:
+        """Try providing type arguments to '${typeName_0}' here.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBoundIssueViaRawTypeWithNonSimpleBounds(String name) =>
-    _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds(name: name);
+Message _withArgumentsOldBoundIssueViaRawTypeWithNonSimpleBounds(
+  String typeName,
+) => _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -770,8 +772,8 @@ Message _withArgumentsOldCantInferReturnTypeDueToNoCombinedSignature(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String name),
+  Message Function({required String name})
 >
 cantInferTypeDueToCircularity = const Template(
   "CantInferTypeDueToCircularity",
@@ -780,20 +782,20 @@ cantInferTypeDueToCircularity = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantInferTypeDueToCircularity({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsCantInferTypeDueToCircularity({required String name}) {
+  var name_0 = conversions.validateString(name);
   return new Message(
     cantInferTypeDueToCircularity,
     problemMessage:
-        """Can't infer the type of '${string_0}': circularity found during type inference.""",
+        """Can't infer the type of '${name_0}': circularity found during type inference.""",
     correctionMessage: """Specify the type explicitly.""",
-    arguments: {'string': string},
+    arguments: {'name': name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantInferTypeDueToCircularity(String string) =>
-    _withArgumentsCantInferTypeDueToCircularity(string: string);
+Message _withArgumentsOldCantInferTypeDueToCircularity(String name) =>
+    _withArgumentsCantInferTypeDueToCircularity(name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7288,8 +7290,11 @@ Message _withArgumentsOldInheritedRestrictedMemberOfEnumImplementer(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, Uri uri),
-  Message Function({required String string, required Uri uri})
+  Message Function(String previousCompilationUri, Uri gzFileUri),
+  Message Function({
+    required String previousCompilationUri,
+    required Uri gzFileUri,
+  })
 >
 initializeFromDillNotSelfContained = const Template(
   "InitializeFromDillNotSelfContained",
@@ -7300,33 +7305,41 @@ initializeFromDillNotSelfContained = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillNotSelfContained({
-  required String string,
-  required Uri uri,
+  required String previousCompilationUri,
+  required Uri gzFileUri,
 }) {
-  var string_0 = conversions.validateString(string);
-  var uri_0 = conversions.relativizeUri(uri);
+  var previousCompilationUri_0 = conversions.validateString(
+    previousCompilationUri,
+  );
+  var gzFileUri_0 = conversions.relativizeUri(gzFileUri);
   return new Message(
     initializeFromDillNotSelfContained,
     problemMessage:
-        """Tried to initialize from a previous compilation (${string_0}), but the file was not self-contained. This might be a bug.
+        """Tried to initialize from a previous compilation (${previousCompilationUri_0}), but the file was not self-contained. This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
-If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${uri_0} in your error report, but be aware that this file includes your source code.
+If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${gzFileUri_0} in your error report, but be aware that this file includes your source code.
 Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
-    arguments: {'string': string, 'uri': uri},
+    arguments: {
+      'previousCompilationUri': previousCompilationUri,
+      'gzFileUri': gzFileUri,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInitializeFromDillNotSelfContained(
-  String string,
-  Uri uri,
-) => _withArgumentsInitializeFromDillNotSelfContained(string: string, uri: uri);
+  String previousCompilationUri,
+  Uri gzFileUri,
+) => _withArgumentsInitializeFromDillNotSelfContained(
+  previousCompilationUri: previousCompilationUri,
+  gzFileUri: gzFileUri,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String previousCompilationUri),
+  Message Function({required String previousCompilationUri})
 >
 initializeFromDillNotSelfContainedNoDump = const Template(
   "InitializeFromDillNotSelfContainedNoDump",
@@ -7337,32 +7350,41 @@ initializeFromDillNotSelfContainedNoDump = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillNotSelfContainedNoDump({
-  required String string,
+  required String previousCompilationUri,
 }) {
-  var string_0 = conversions.validateString(string);
+  var previousCompilationUri_0 = conversions.validateString(
+    previousCompilationUri,
+  );
   return new Message(
     initializeFromDillNotSelfContainedNoDump,
     problemMessage:
-        """Tried to initialize from a previous compilation (${string_0}), but the file was not self-contained. This might be a bug.
+        """Tried to initialize from a previous compilation (${previousCompilationUri_0}), but the file was not self-contained. This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
-    arguments: {'string': string},
+    arguments: {'previousCompilationUri': previousCompilationUri},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInitializeFromDillNotSelfContainedNoDump(
-  String string,
-) => _withArgumentsInitializeFromDillNotSelfContainedNoDump(string: string);
+  String previousCompilationUri,
+) => _withArgumentsInitializeFromDillNotSelfContainedNoDump(
+  previousCompilationUri: previousCompilationUri,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2, String string3, Uri uri),
+  Message Function(
+    String previousCompilationUri,
+    String exception,
+    String stackTrace,
+    Uri gzFileUri,
+  ),
   Message Function({
-    required String string,
-    required String string2,
-    required String string3,
-    required Uri uri,
+    required String previousCompilationUri,
+    required String exception,
+    required String stackTrace,
+    required Uri gzFileUri,
   })
 >
 initializeFromDillUnknownProblem = const Template(
@@ -7374,55 +7396,61 @@ initializeFromDillUnknownProblem = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillUnknownProblem({
-  required String string,
-  required String string2,
-  required String string3,
-  required Uri uri,
+  required String previousCompilationUri,
+  required String exception,
+  required String stackTrace,
+  required Uri gzFileUri,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  var string3_0 = conversions.validateString(string3);
-  var uri_0 = conversions.relativizeUri(uri);
+  var previousCompilationUri_0 = conversions.validateString(
+    previousCompilationUri,
+  );
+  var exception_0 = conversions.validateString(exception);
+  var stackTrace_0 = conversions.validateString(stackTrace);
+  var gzFileUri_0 = conversions.relativizeUri(gzFileUri);
   return new Message(
     initializeFromDillUnknownProblem,
     problemMessage:
-        """Tried to initialize from a previous compilation (${string_0}), but couldn't.
-Error message was '${string2_0}'.
-Stacktrace included '${string3_0}'.
+        """Tried to initialize from a previous compilation (${previousCompilationUri_0}), but couldn't.
+Error message was '${exception_0}'.
+Stacktrace included '${stackTrace_0}'.
 This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
-If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${uri_0} in your error report, but be aware that this file includes your source code.
+If you are comfortable with it, it would improve the chances of fixing any bug if you included the file ${gzFileUri_0} in your error report, but be aware that this file includes your source code.
 Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
     arguments: {
-      'string': string,
-      'string2': string2,
-      'string3': string3,
-      'uri': uri,
+      'previousCompilationUri': previousCompilationUri,
+      'exception': exception,
+      'stackTrace': stackTrace,
+      'gzFileUri': gzFileUri,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInitializeFromDillUnknownProblem(
-  String string,
-  String string2,
-  String string3,
-  Uri uri,
+  String previousCompilationUri,
+  String exception,
+  String stackTrace,
+  Uri gzFileUri,
 ) => _withArgumentsInitializeFromDillUnknownProblem(
-  string: string,
-  string2: string2,
-  string3: string3,
-  uri: uri,
+  previousCompilationUri: previousCompilationUri,
+  exception: exception,
+  stackTrace: stackTrace,
+  gzFileUri: gzFileUri,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2, String string3),
+  Message Function(
+    String previousCompilationUri,
+    String exception,
+    String stackTrace,
+  ),
   Message Function({
-    required String string,
-    required String string2,
-    required String string3,
+    required String previousCompilationUri,
+    required String exception,
+    required String stackTrace,
   })
 >
 initializeFromDillUnknownProblemNoDump = const Template(
@@ -7434,35 +7462,41 @@ initializeFromDillUnknownProblemNoDump = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializeFromDillUnknownProblemNoDump({
-  required String string,
-  required String string2,
-  required String string3,
+  required String previousCompilationUri,
+  required String exception,
+  required String stackTrace,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
-  var string3_0 = conversions.validateString(string3);
+  var previousCompilationUri_0 = conversions.validateString(
+    previousCompilationUri,
+  );
+  var exception_0 = conversions.validateString(exception);
+  var stackTrace_0 = conversions.validateString(stackTrace);
   return new Message(
     initializeFromDillUnknownProblemNoDump,
     problemMessage:
-        """Tried to initialize from a previous compilation (${string_0}), but couldn't.
-Error message was '${string2_0}'.
-Stacktrace included '${string3_0}'.
+        """Tried to initialize from a previous compilation (${previousCompilationUri_0}), but couldn't.
+Error message was '${exception_0}'.
+Stacktrace included '${stackTrace_0}'.
 This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
-    arguments: {'string': string, 'string2': string2, 'string3': string3},
+    arguments: {
+      'previousCompilationUri': previousCompilationUri,
+      'exception': exception,
+      'stackTrace': stackTrace,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInitializeFromDillUnknownProblemNoDump(
-  String string,
-  String string2,
-  String string3,
+  String previousCompilationUri,
+  String exception,
+  String stackTrace,
 ) => _withArgumentsInitializeFromDillUnknownProblemNoDump(
-  string: string,
-  string2: string2,
-  string3: string3,
+  previousCompilationUri: previousCompilationUri,
+  exception: exception,
+  stackTrace: stackTrace,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7493,11 +7527,15 @@ Message _withArgumentsOldInitializerForStaticField(String fieldName) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type, DartType type2),
+  Message Function(
+    String parameterName,
+    DartType parameterType,
+    DartType fieldType,
+  ),
   Message Function({
-    required String name,
-    required DartType type,
-    required DartType type2,
+    required String parameterName,
+    required DartType parameterType,
+    required DartType fieldType,
   })
 >
 initializingFormalTypeMismatch = const Template(
@@ -7508,34 +7546,38 @@ initializingFormalTypeMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializingFormalTypeMismatch({
-  required String name,
-  required DartType type,
-  required DartType type2,
+  required String parameterName,
+  required DartType parameterType,
+  required DartType fieldType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var parameterType_0 = labeler.labelType(parameterType);
+  var fieldType_0 = labeler.labelType(fieldType);
   return new Message(
     initializingFormalTypeMismatch,
     problemMessage:
-        """The type of parameter '${name_0}', '${type_0}' is not a subtype of the corresponding field's type, '${type2_0}'.""" +
+        """The type of parameter '${parameterName_0}', '${parameterType_0}' is not a subtype of the corresponding field's type, '${fieldType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
-        """Try changing the type of parameter '${name_0}' to a subtype of '${type2_0}'.""",
-    arguments: {'name': name, 'type': type, 'type2': type2},
+        """Try changing the type of parameter '${parameterName_0}' to a subtype of '${fieldType_0}'.""",
+    arguments: {
+      'parameterName': parameterName,
+      'parameterType': parameterType,
+      'fieldType': fieldType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInitializingFormalTypeMismatch(
-  String name,
-  DartType type,
-  DartType type2,
+  String parameterName,
+  DartType parameterType,
+  DartType fieldType,
 ) => _withArgumentsInitializingFormalTypeMismatch(
-  name: name,
-  type: type,
-  type2: type2,
+  parameterName: parameterName,
+  parameterType: parameterType,
+  fieldType: fieldType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11977,11 +12019,15 @@ const MessageCode mixinDeferredMixin = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, DartType type),
+  Message Function(
+    String mixinName,
+    String baseTypeName,
+    DartType supertypeConstraint,
+  ),
   Message Function({
-    required String name,
-    required String name2,
-    required DartType type,
+    required String mixinName,
+    required String baseTypeName,
+    required DartType supertypeConstraint,
   })
 >
 mixinInferenceNoMatchingClass = const Template(
@@ -11992,32 +12038,36 @@ mixinInferenceNoMatchingClass = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinInferenceNoMatchingClass({
-  required String name,
-  required String name2,
-  required DartType type,
+  required String mixinName,
+  required String baseTypeName,
+  required DartType supertypeConstraint,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var mixinName_0 = conversions.validateAndDemangleName(mixinName);
+  var baseTypeName_0 = conversions.validateAndDemangleName(baseTypeName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var supertypeConstraint_0 = labeler.labelType(supertypeConstraint);
   return new Message(
     mixinInferenceNoMatchingClass,
     problemMessage:
-        """Type parameters couldn't be inferred for the mixin '${name_0}' because '${name2_0}' does not implement the mixin's supertype constraint '${type_0}'.""" +
+        """Type parameters couldn't be inferred for the mixin '${mixinName_0}' because '${baseTypeName_0}' does not implement the mixin's supertype constraint '${supertypeConstraint_0}'.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'name2': name2, 'type': type},
+    arguments: {
+      'mixinName': mixinName,
+      'baseTypeName': baseTypeName,
+      'supertypeConstraint': supertypeConstraint,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMixinInferenceNoMatchingClass(
-  String name,
-  String name2,
-  DartType type,
+  String mixinName,
+  String baseTypeName,
+  DartType supertypeConstraint,
 ) => _withArgumentsMixinInferenceNoMatchingClass(
-  name: name,
-  name2: name2,
-  type: type,
+  mixinName: mixinName,
+  baseTypeName: baseTypeName,
+  supertypeConstraint: supertypeConstraint,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12585,8 +12635,8 @@ Message _withArgumentsOldNonSimpleBoundViaReference(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 nonSimpleBoundViaVariable = const Template(
   "NonSimpleBoundViaVariable",
@@ -12596,19 +12646,19 @@ nonSimpleBoundViaVariable = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonSimpleBoundViaVariable({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsNonSimpleBoundViaVariable({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     nonSimpleBoundViaVariable,
     problemMessage:
-        """Bound of this variable references variable '${name_0}' from the same declaration.""",
-    arguments: {'name': name},
+        """Bound of this variable references variable '${typeName_0}' from the same declaration.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonSimpleBoundViaVariable(String name) =>
-    _withArgumentsNonSimpleBoundViaVariable(name: name);
+Message _withArgumentsOldNonSimpleBoundViaVariable(String typeName) =>
+    _withArgumentsNonSimpleBoundViaVariable(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nonVoidReturnOperator = const MessageCode(
@@ -16796,8 +16846,11 @@ const MessageCode weakReferenceTargetNotStaticTearoff = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String integerLiteral, String nearestJsValue),
+  Message Function({
+    required String integerLiteral,
+    required String nearestJsValue,
+  })
 >
 webLiteralCannotBeRepresentedExactly = const Template(
   "WebLiteralCannotBeRepresentedExactly",
@@ -16807,28 +16860,31 @@ webLiteralCannotBeRepresentedExactly = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsWebLiteralCannotBeRepresentedExactly({
-  required String string,
-  required String string2,
+  required String integerLiteral,
+  required String nearestJsValue,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var integerLiteral_0 = conversions.validateString(integerLiteral);
+  var nearestJsValue_0 = conversions.validateString(nearestJsValue);
   return new Message(
     webLiteralCannotBeRepresentedExactly,
     problemMessage:
-        """The integer literal ${string_0} can't be represented exactly in JavaScript.""",
+        """The integer literal ${integerLiteral_0} can't be represented exactly in JavaScript.""",
     correctionMessage:
-        """Try changing the literal to something that can be represented in JavaScript. In JavaScript ${string2_0} is the nearest value that can be represented exactly.""",
-    arguments: {'string': string, 'string2': string2},
+        """Try changing the literal to something that can be represented in JavaScript. In JavaScript ${nearestJsValue_0} is the nearest value that can be represented exactly.""",
+    arguments: {
+      'integerLiteral': integerLiteral,
+      'nearestJsValue': nearestJsValue,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldWebLiteralCannotBeRepresentedExactly(
-  String string,
-  String string2,
+  String integerLiteral,
+  String nearestJsValue,
 ) => _withArgumentsWebLiteralCannotBeRepresentedExactly(
-  string: string,
-  string2: string2,
+  integerLiteral: integerLiteral,
+  nearestJsValue: nearestJsValue,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

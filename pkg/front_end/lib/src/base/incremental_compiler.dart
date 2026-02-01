@@ -3010,27 +3010,27 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
         }
         if (e is CanonicalNameError) {
           Message message = gzInitializedFrom != null
-              ? diag.initializeFromDillNotSelfContained.withArgumentsOld(
-                  initializeFromDillUri.toString(),
-                  gzInitializedFrom,
+              ? diag.initializeFromDillNotSelfContained.withArguments(
+                  previousCompilationUri: initializeFromDillUri.toString(),
+                  gzFileUri: gzInitializedFrom,
                 )
-              : diag.initializeFromDillNotSelfContainedNoDump.withArgumentsOld(
-                  initializeFromDillUri.toString(),
+              : diag.initializeFromDillNotSelfContainedNoDump.withArguments(
+                  previousCompilationUri: initializeFromDillUri.toString(),
                 );
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         } else {
           // Unknown error: Report problem as such.
           Message message = gzInitializedFrom != null
-              ? diag.initializeFromDillUnknownProblem.withArgumentsOld(
-                  initializeFromDillUri.toString(),
-                  "$e",
-                  "$st",
-                  gzInitializedFrom,
+              ? diag.initializeFromDillUnknownProblem.withArguments(
+                  previousCompilationUri: initializeFromDillUri.toString(),
+                  exception: "$e",
+                  stackTrace: "$st",
+                  gzFileUri: gzInitializedFrom,
                 )
-              : diag.initializeFromDillUnknownProblemNoDump.withArgumentsOld(
-                  initializeFromDillUri.toString(),
-                  "$e",
-                  "$st",
+              : diag.initializeFromDillUnknownProblemNoDump.withArguments(
+                  previousCompilationUri: initializeFromDillUri.toString(),
+                  exception: "$e",
+                  stackTrace: "$st",
                 );
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         }

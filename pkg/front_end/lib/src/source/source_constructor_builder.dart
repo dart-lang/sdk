@@ -481,7 +481,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       constructorName += ".${name}";
     }
     libraryBuilder.addProblem(
-      diag.cantInferTypeDueToCircularity.withArgumentsOld(name),
+      diag.cantInferTypeDueToCircularity.withArguments(name: name),
       fileOffset,
       constructorName.length,
       fileUri,

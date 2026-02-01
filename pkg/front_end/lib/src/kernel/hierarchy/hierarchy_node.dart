@@ -45,10 +45,10 @@ abstract class HierarchyNodeBuilder {
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
       libraryBuilder.addProblem(
-        diag.ambiguousSupertypes.withArgumentsOld(
-          _name,
-          superclass.asInterfaceType,
-          type.asInterfaceType,
+        diag.ambiguousSupertypes.withArguments(
+          name: _name,
+          type1: superclass.asInterfaceType,
+          type2: type.asInterfaceType,
         ),
         _fileOffset,
         noLength,
@@ -560,7 +560,11 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
       libraryBuilder.addProblem(
-        diag.ambiguousSupertypes.withArgumentsOld(_name, superclass, type),
+        diag.ambiguousSupertypes.withArguments(
+          name: _name,
+          type1: superclass,
+          type2: type,
+        ),
         _fileOffset,
         noLength,
         _fileUri,

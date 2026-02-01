@@ -112,10 +112,10 @@ class BuilderMixinInferrer {
       );
       if (supertype == null) {
         reportProblem(
-          diag.mixinInferenceNoMatchingClass.withArgumentsOld(
-            mixinClass.name,
-            baseType.classNode.name,
-            mixinSupertype.asInterfaceType,
+          diag.mixinInferenceNoMatchingClass.withArguments(
+            mixinName: mixinClass.name,
+            baseTypeName: baseType.classNode.name,
+            supertypeConstraint: mixinSupertype.asInterfaceType,
           ),
           mixinClass,
         );
@@ -151,10 +151,10 @@ class BuilderMixinInferrer {
     if (_mixinInferenceSolution.isUnsolvable) {
       // Coverage-ignore-block(suite): Not run.
       reportProblem(
-        diag.mixinInferenceNoMatchingClass.withArgumentsOld(
-          mixinClass.name,
-          baseType.classNode.name,
-          mixinSupertype.asInterfaceType,
+        diag.mixinInferenceNoMatchingClass.withArguments(
+          mixinName: mixinClass.name,
+          baseTypeName: baseType.classNode.name,
+          supertypeConstraint: mixinSupertype.asInterfaceType,
         ),
         mixinClass,
       );

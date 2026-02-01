@@ -301,12 +301,12 @@ List<NonSimplicityIssue> _getInboundReferenceIssues(
             issues.add(
               new NonSimplicityIssue(
                 parameter,
-                diag.boundIssueViaRawTypeWithNonSimpleBounds.withArgumentsOld(
-                  type.declaration!.name,
+                diag.boundIssueViaRawTypeWithNonSimpleBounds.withArguments(
+                  typeName: type.declaration!.name,
                 ),
                 <LocatedMessage>[
                   diag.nonSimpleBoundViaVariable
-                      .withArgumentsOld(dependency.declaration!.name)
+                      .withArguments(typeName: dependency.declaration!.name)
                       .withLocation(
                         dependent.fileUri!,
                         dependent.fileOffset,
@@ -322,8 +322,8 @@ List<NonSimplicityIssue> _getInboundReferenceIssues(
           issues.add(
             new NonSimplicityIssue(
               parameter,
-              diag.boundIssueViaRawTypeWithNonSimpleBounds.withArgumentsOld(
-                type.declaration!.name,
+              diag.boundIssueViaRawTypeWithNonSimpleBounds.withArguments(
+                typeName: type.declaration!.name,
               ),
               const <LocatedMessage>[],
             ),
