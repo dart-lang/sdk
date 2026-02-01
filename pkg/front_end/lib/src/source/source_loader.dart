@@ -922,7 +922,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     logSummary(diag.sourceBodySummary);
   }
 
-  void logSummary(Template<SummaryTemplate, Function> template) {
+  void logSummary(Template<Function, SummaryTemplate> template) {
     ticker.log(
       // Coverage-ignore(suite): Not run.
       (Duration elapsed, Duration sinceStart) {
@@ -934,12 +934,12 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
         }
         double ms =
             elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
-        Message message = template.withArgumentsOld(
-          libraryCount,
-          byteCount,
-          ms,
-          byteCount / ms,
-          ms / libraryCount,
+        Message message = template.withArguments(
+          count: libraryCount,
+          bytes: byteCount,
+          timeMs: ms,
+          rateBytesPerMs: byteCount / ms,
+          averageTimeMs: ms / libraryCount,
         );
         print("$sinceStart: ${message.problemMessage}");
       },
@@ -1105,7 +1105,7 @@ severity: $severity
 
   ClassMembersBuilder get membersBuilder => _membersBuilder!;
 
-  Template<SummaryTemplate, Function> get outlineSummaryTemplate =>
+  Template<Function, SummaryTemplate> get outlineSummaryTemplate =>
       diag.sourceOutlineSummary;
 
   /// The [SourceCompilationUnit]s for the `dart:` libraries that are not

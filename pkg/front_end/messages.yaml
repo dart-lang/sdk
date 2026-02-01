@@ -4071,39 +4071,39 @@ ambiguousExtensionCause:
 
 sourceOutlineSummary:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    num num1: undocumented
-    num num2: undocumented
-    num num3: undocumented
+    int count: The number of compilation units for which outlines were built.
+    int bytes: The number of bytes in the compilation units for which outlines were built.
+    num timeMs: The time it took to build outlines for the compilation units, in ms.
+    num rateBytesPerMs: The outline building speed, in bytes/ms.
+    num averageTimeMs: The average time it took to build outlines for each compilation unit, in ms.
   problemMessage: |
-    Built outlines for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
-    #num2%12.3 bytes/ms, and
-    #num3%12.3 ms/compilation unit.
+    Built outlines for #count compilation units (#bytes bytes) in #timeMs%.3ms, that is,
+    #rateBytesPerMs%12.3 bytes/ms, and
+    #averageTimeMs%12.3 ms/compilation unit.
 
 sourceBodySummary:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    num num1: undocumented
-    num num2: undocumented
-    num num3: undocumented
+    int count: The number of compilation units for which bodies were built.
+    int bytes: The number of bytes in the compilation units for which bodies were built.
+    num timeMs: The time it took to build bodies for the compilation units, in ms.
+    num rateBytesPerMs: The body building speed, in bytes/ms.
+    num averageTimeMs: The average time it took to build bodies for each compilation unit, in ms.
   problemMessage: |
-    Built bodies for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
-    #num2%12.3 bytes/ms, and
-    #num3%12.3 ms/compilation unit.
+    Built bodies for #count compilation units (#bytes bytes) in #timeMs%.3ms, that is,
+    #rateBytesPerMs%12.3 bytes/ms, and
+    #averageTimeMs%12.3 ms/compilation unit.
 
 dillOutlineSummary:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    num num1: undocumented
-    num num2: undocumented
-    num num3: undocumented
+    int count: The number of libraries that were indexed.
+    int bytes: The number of bytes in the libraries that were indexed.
+    num timeMs: The time it took to index the libraries, in ms.
+    num rateBytesPerMs: The indexing speed, in bytes/ms.
+    num averageTimeMs: The average time it took to index each library, in ms.
   problemMessage: |
-    Indexed #count libraries (#count2 bytes) in #num1%.3ms, that is,
-    #num2%12.3 bytes/ms, and
-    #num3%12.3 ms/libraries.
+    Indexed #count libraries (#bytes bytes) in #timeMs%.3ms, that is,
+    #rateBytesPerMs%12.3 bytes/ms, and
+    #averageTimeMs%12.3 ms/libraries.
 
 cantInferTypesDueToNoCombinedSignature:
   parameters:

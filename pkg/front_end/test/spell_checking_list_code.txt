@@ -1469,6 +1469,7 @@ ranges
 ranked
 rapid
 rarely
+rate
 ratio
 rb
 rc

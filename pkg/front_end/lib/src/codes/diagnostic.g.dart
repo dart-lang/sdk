@@ -2899,13 +2899,19 @@ Message _withArgumentsOldDeferredTypeAnnotation(DartType type, String prefix) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, num num1, num num2, num num3),
+  Message Function(
+    int count,
+    int bytes,
+    num timeMs,
+    num rateBytesPerMs,
+    num averageTimeMs,
+  ),
   Message Function({
     required int count,
-    required int count2,
-    required num num1,
-    required num num2,
-    required num num3,
+    required int bytes,
+    required num timeMs,
+    required num rateBytesPerMs,
+    required num averageTimeMs,
   })
 >
 dillOutlineSummary = const Template(
@@ -2917,25 +2923,25 @@ dillOutlineSummary = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDillOutlineSummary({
   required int count,
-  required int count2,
-  required num num1,
-  required num num2,
-  required num num3,
+  required int bytes,
+  required num timeMs,
+  required num rateBytesPerMs,
+  required num averageTimeMs,
 }) {
-  var num1_0 = conversions.formatNumber(
-    num1,
+  var timeMs_0 = conversions.formatNumber(
+    timeMs,
     fractionDigits: 3,
     padWidth: 0,
     padWithZeros: false,
   );
-  var num2_0 = conversions.formatNumber(
-    num2,
+  var rateBytesPerMs_0 = conversions.formatNumber(
+    rateBytesPerMs,
     fractionDigits: 3,
     padWidth: 12,
     padWithZeros: false,
   );
-  var num3_0 = conversions.formatNumber(
-    num3,
+  var averageTimeMs_0 = conversions.formatNumber(
+    averageTimeMs,
     fractionDigits: 3,
     padWidth: 12,
     padWithZeros: false,
@@ -2943,15 +2949,15 @@ Message _withArgumentsDillOutlineSummary({
   return new Message(
     dillOutlineSummary,
     problemMessage:
-        """Indexed ${count} libraries (${count2} bytes) in ${num1_0}ms, that is,
-${num2_0} bytes/ms, and
-${num3_0} ms/libraries.""",
+        """Indexed ${count} libraries (${bytes} bytes) in ${timeMs_0}ms, that is,
+${rateBytesPerMs_0} bytes/ms, and
+${averageTimeMs_0} ms/libraries.""",
     arguments: {
       'count': count,
-      'count2': count2,
-      'num1': num1,
-      'num2': num2,
-      'num3': num3,
+      'bytes': bytes,
+      'timeMs': timeMs,
+      'rateBytesPerMs': rateBytesPerMs,
+      'averageTimeMs': averageTimeMs,
     },
   );
 }
@@ -2959,16 +2965,16 @@ ${num3_0} ms/libraries.""",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldDillOutlineSummary(
   int count,
-  int count2,
-  num num1,
-  num num2,
-  num num3,
+  int bytes,
+  num timeMs,
+  num rateBytesPerMs,
+  num averageTimeMs,
 ) => _withArgumentsDillOutlineSummary(
   count: count,
-  count2: count2,
-  num1: num1,
-  num2: num2,
-  num3: num3,
+  bytes: bytes,
+  timeMs: timeMs,
+  rateBytesPerMs: rateBytesPerMs,
+  averageTimeMs: averageTimeMs,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14695,13 +14701,19 @@ const MessageCode setterWithWrongNumberOfFormals = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, num num1, num num2, num num3),
+  Message Function(
+    int count,
+    int bytes,
+    num timeMs,
+    num rateBytesPerMs,
+    num averageTimeMs,
+  ),
   Message Function({
     required int count,
-    required int count2,
-    required num num1,
-    required num num2,
-    required num num3,
+    required int bytes,
+    required num timeMs,
+    required num rateBytesPerMs,
+    required num averageTimeMs,
   })
 >
 sourceBodySummary = const Template(
@@ -14713,25 +14725,25 @@ sourceBodySummary = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSourceBodySummary({
   required int count,
-  required int count2,
-  required num num1,
-  required num num2,
-  required num num3,
+  required int bytes,
+  required num timeMs,
+  required num rateBytesPerMs,
+  required num averageTimeMs,
 }) {
-  var num1_0 = conversions.formatNumber(
-    num1,
+  var timeMs_0 = conversions.formatNumber(
+    timeMs,
     fractionDigits: 3,
     padWidth: 0,
     padWithZeros: false,
   );
-  var num2_0 = conversions.formatNumber(
-    num2,
+  var rateBytesPerMs_0 = conversions.formatNumber(
+    rateBytesPerMs,
     fractionDigits: 3,
     padWidth: 12,
     padWithZeros: false,
   );
-  var num3_0 = conversions.formatNumber(
-    num3,
+  var averageTimeMs_0 = conversions.formatNumber(
+    averageTimeMs,
     fractionDigits: 3,
     padWidth: 12,
     padWithZeros: false,
@@ -14739,15 +14751,15 @@ Message _withArgumentsSourceBodySummary({
   return new Message(
     sourceBodySummary,
     problemMessage:
-        """Built bodies for ${count} compilation units (${count2} bytes) in ${num1_0}ms, that is,
-${num2_0} bytes/ms, and
-${num3_0} ms/compilation unit.""",
+        """Built bodies for ${count} compilation units (${bytes} bytes) in ${timeMs_0}ms, that is,
+${rateBytesPerMs_0} bytes/ms, and
+${averageTimeMs_0} ms/compilation unit.""",
     arguments: {
       'count': count,
-      'count2': count2,
-      'num1': num1,
-      'num2': num2,
-      'num3': num3,
+      'bytes': bytes,
+      'timeMs': timeMs,
+      'rateBytesPerMs': rateBytesPerMs,
+      'averageTimeMs': averageTimeMs,
     },
   );
 }
@@ -14755,27 +14767,33 @@ ${num3_0} ms/compilation unit.""",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSourceBodySummary(
   int count,
-  int count2,
-  num num1,
-  num num2,
-  num num3,
+  int bytes,
+  num timeMs,
+  num rateBytesPerMs,
+  num averageTimeMs,
 ) => _withArgumentsSourceBodySummary(
   count: count,
-  count2: count2,
-  num1: num1,
-  num2: num2,
-  num3: num3,
+  bytes: bytes,
+  timeMs: timeMs,
+  rateBytesPerMs: rateBytesPerMs,
+  averageTimeMs: averageTimeMs,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, num num1, num num2, num num3),
+  Message Function(
+    int count,
+    int bytes,
+    num timeMs,
+    num rateBytesPerMs,
+    num averageTimeMs,
+  ),
   Message Function({
     required int count,
-    required int count2,
-    required num num1,
-    required num num2,
-    required num num3,
+    required int bytes,
+    required num timeMs,
+    required num rateBytesPerMs,
+    required num averageTimeMs,
   })
 >
 sourceOutlineSummary = const Template(
@@ -14787,25 +14805,25 @@ sourceOutlineSummary = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSourceOutlineSummary({
   required int count,
-  required int count2,
-  required num num1,
-  required num num2,
-  required num num3,
+  required int bytes,
+  required num timeMs,
+  required num rateBytesPerMs,
+  required num averageTimeMs,
 }) {
-  var num1_0 = conversions.formatNumber(
-    num1,
+  var timeMs_0 = conversions.formatNumber(
+    timeMs,
     fractionDigits: 3,
     padWidth: 0,
     padWithZeros: false,
   );
-  var num2_0 = conversions.formatNumber(
-    num2,
+  var rateBytesPerMs_0 = conversions.formatNumber(
+    rateBytesPerMs,
     fractionDigits: 3,
     padWidth: 12,
     padWithZeros: false,
   );
-  var num3_0 = conversions.formatNumber(
-    num3,
+  var averageTimeMs_0 = conversions.formatNumber(
+    averageTimeMs,
     fractionDigits: 3,
     padWidth: 12,
     padWithZeros: false,
@@ -14813,15 +14831,15 @@ Message _withArgumentsSourceOutlineSummary({
   return new Message(
     sourceOutlineSummary,
     problemMessage:
-        """Built outlines for ${count} compilation units (${count2} bytes) in ${num1_0}ms, that is,
-${num2_0} bytes/ms, and
-${num3_0} ms/compilation unit.""",
+        """Built outlines for ${count} compilation units (${bytes} bytes) in ${timeMs_0}ms, that is,
+${rateBytesPerMs_0} bytes/ms, and
+${averageTimeMs_0} ms/compilation unit.""",
     arguments: {
       'count': count,
-      'count2': count2,
-      'num1': num1,
-      'num2': num2,
-      'num3': num3,
+      'bytes': bytes,
+      'timeMs': timeMs,
+      'rateBytesPerMs': rateBytesPerMs,
+      'averageTimeMs': averageTimeMs,
     },
   );
 }
@@ -14829,16 +14847,16 @@ ${num3_0} ms/compilation unit.""",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSourceOutlineSummary(
   int count,
-  int count2,
-  num num1,
-  num num2,
-  num num3,
+  int bytes,
+  num timeMs,
+  num rateBytesPerMs,
+  num averageTimeMs,
 ) => _withArgumentsSourceOutlineSummary(
   count: count,
-  count2: count2,
-  num1: num1,
-  num2: num2,
-  num3: num3,
+  bytes: bytes,
+  timeMs: timeMs,
+  rateBytesPerMs: rateBytesPerMs,
+  averageTimeMs: averageTimeMs,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
