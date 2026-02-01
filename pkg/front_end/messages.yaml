@@ -3973,8 +3973,8 @@ invalidUseOfNullAwareAccess:
 
 undefinedGetter:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the undefined getter.
+    Type type: The type in which the getter is undefined.
   problemMessage: "The getter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
   script: |
@@ -3985,8 +3985,8 @@ undefinedGetter:
 
 undefinedSetter:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the undefined setter.
+    Type type: The type in which the setter is undefined.
   problemMessage: "The setter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
   script: |
@@ -3997,8 +3997,8 @@ undefinedSetter:
 
 undefinedMethod:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the undefined method.
+    Type type: The type in which the method is undefined.
   problemMessage: "The method '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#name'."
   script: |
@@ -4009,8 +4009,8 @@ undefinedMethod:
 
 undefinedOperator:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the undefined operator.
+    Type type: The type in which the operator is undefined.
   problemMessage: "The operator '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the operator to an existing operator, or defining a '#name' operator."
   script: |
@@ -4021,8 +4021,8 @@ undefinedOperator:
 
 ambiguousExtensionMethod:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the ambiguous extension method.
+    Type type: The type for which the extension method is ambiguous.
   problemMessage: "The method '#name' is defined in multiple extensions for '#type' and neither is more specific."
   correctionMessage: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
   script: |
@@ -4036,8 +4036,8 @@ ambiguousExtensionMethod:
 
 ambiguousExtensionProperty:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the ambiguous extension property.
+    Type type: The type for which the extension property is ambiguous.
   problemMessage: "The property '#name' is defined in multiple extensions for '#type' and neither is more specific."
   correctionMessage: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
   script: |
@@ -4051,8 +4051,8 @@ ambiguousExtensionProperty:
 
 ambiguousExtensionOperator:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the ambiguous extension operator.
+    Type type: The type for which the extension operator is ambiguous.
   problemMessage: "The operator '#name' is defined in multiple extensions for '#type' and neither is more specific."
   correctionMessage: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
   script: |

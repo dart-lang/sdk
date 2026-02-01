@@ -4994,12 +4994,23 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name name,
     Expression? wrappedExpression,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
-    Template<Message Function(String, DartType), Function> missingTemplate,
-    Template<Message Function(String, DartType), Function> ambiguousTemplate,
+    Template<
+      Function,
+      Message Function({required String name, required DartType type})
+    >
+    missingTemplate,
+    Template<
+      Function,
+      Message Function({required String name, required DartType type})
+    >
+    ambiguousTemplate,
   ) {
     List<LocatedMessage>? context;
-    Template<Message Function(String, DartType), Function> template =
-        missingTemplate;
+    Template<
+      Function,
+      Message Function({required String name, required DartType type})
+    >
+    template = missingTemplate;
     if (extensionAccessCandidates != null) {
       context = extensionAccessCandidates
           .map(
@@ -5017,9 +5028,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       return problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: wrappedExpression,
-        message: template.withArgumentsOld(
-          name.text,
-          receiverType.nonTypeParameterBound,
+        message: template.withArguments(
+          name: name.text,
+          type: receiverType.nonTypeParameterBound,
         ),
         fileUri: fileUri,
         fileOffset: fileOffset,
@@ -5029,9 +5040,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     } else {
       return problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: template.withArgumentsOld(
-          name.text,
-          receiverType.nonTypeParameterBound,
+        message: template.withArguments(
+          name: name.text,
+          type: receiverType.nonTypeParameterBound,
         ),
         fileUri: fileUri,
         fileOffset: fileOffset,
@@ -5341,8 +5352,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression? receiver,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        diag.undefinedGetter;
+    Template<
+      Function,
+      Message Function({required String name, required DartType type})
+    >
+    codeMissing = diag.undefinedGetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       propertyName.text.length,
@@ -5366,8 +5380,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        diag.undefinedSetter;
+    Template<
+      Function,
+      Message Function({required String name, required DartType type})
+    >
+    codeMissing = diag.undefinedSetter;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       propertyName.text.length,
@@ -5387,8 +5404,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression index, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        diag.undefinedOperator;
+    Template<
+      Function,
+      Message Function({required String name, required DartType type})
+    >
+    codeMissing = diag.undefinedOperator;
 
     return _reportMissingOrAmbiguousMember(
       fileOffset,
@@ -5416,8 +5436,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool forEffect,
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        diag.undefinedOperator;
+    Template<
+      Function,
+      Message Function({required String name, required DartType type})
+    >
+    codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       noLength,
@@ -5444,8 +5467,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
     assert(binaryName != equalsName);
-    Template<Message Function(String, DartType), Function> codeMissing =
-        diag.undefinedOperator;
+    Template<
+      Function,
+      Message Function({required String name, required DartType type})
+    >
+    codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       binaryName.text.length,
@@ -5470,8 +5496,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Name unaryName, {
     List<ExtensionAccessCandidate>? extensionAccessCandidates,
   }) {
-    Template<Message Function(String, DartType), Function> codeMissing =
-        diag.undefinedOperator;
+    Template<
+      Function,
+      Message Function({required String name, required DartType type})
+    >
+    codeMissing = diag.undefinedOperator;
     return _reportMissingOrAmbiguousMember(
       fileOffset,
       unaryName == unaryMinusName ? 1 : unaryName.text.length,
