@@ -372,7 +372,7 @@ class InferableRedirectingFactory implements InferableMember {
       name += ".${_builder.name}";
     }
     _builder.libraryBuilder.addProblem(
-      diag.cantInferTypeDueToCircularity.withArgumentsOld(name),
+      diag.cantInferTypeDueToCircularity.withArguments(name: name),
       _builder.fileOffset,
       name.length,
       _builder.fileUri,

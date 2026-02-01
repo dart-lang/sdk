@@ -3082,7 +3082,7 @@ void reportCantInferParameterType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    diag.cantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
+    diag.cantInferTypeDueToNoCombinedSignature.withArguments(name: name),
     parameter.fileOffset,
     name.length,
     parameter.fileUri,
@@ -3109,7 +3109,7 @@ void reportCantInferTypes(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    diag.cantInferTypesDueToNoCombinedSignature.withArgumentsOld(name),
+    diag.cantInferTypesDueToNoCombinedSignature.withArguments(name: name),
     nameOffset,
     nameLength,
     fileUri,
@@ -3136,7 +3136,7 @@ void reportCantInferReturnType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    diag.cantInferReturnTypeDueToNoCombinedSignature.withArgumentsOld(name),
+    diag.cantInferReturnTypeDueToNoCombinedSignature.withArguments(name: name),
     nameOffset,
     nameLength,
     fileUri,
@@ -3163,7 +3163,7 @@ void reportCantInferFieldType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-    diag.cantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
+    diag.cantInferTypeDueToNoCombinedSignature.withArguments(name: name),
     nameOffset,
     nameLength,
     fileUri,

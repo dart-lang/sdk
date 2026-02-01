@@ -257,9 +257,9 @@ class _SyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: statement.expression!,
-          message: diag.invalidReturn.withArgumentsOld(
-            expressionType,
-            _declaredReturnType,
+          message: diag.invalidReturn.withArguments(
+            actualType: expressionType,
+            expectedType: _declaredReturnType,
           ),
           fileUri: inferrer.fileUri,
           fileOffset: statement.expression!.fileOffset,
@@ -537,9 +537,9 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: diag.invalidReturnAsync.withArgumentsOld(
-            expressionType,
-            returnType,
+          message: diag.invalidReturnAsync.withArguments(
+            actualType: expressionType,
+            expectedType: returnType,
           ),
           fileUri: inferrer.fileUri,
           fileOffset: statement.expression!.fileOffset,
@@ -554,9 +554,9 @@ class _AsyncClosureContext implements ClosureContext {
         statement.expression = inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = statement.fileOffset,
-          message: diag.invalidReturnAsync.withArgumentsOld(
-            expressionType,
-            returnType,
+          message: diag.invalidReturnAsync.withArguments(
+            actualType: expressionType,
+            expectedType: returnType,
           ),
           fileUri: inferrer.fileUri,
           fileOffset: statement.expression!.fileOffset,

@@ -270,9 +270,9 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // TODO(johnniwinther): Test adding a no-name constructor in the
       //  patch, either as an injected or duplicated constructor.
       problemReporting.addProblem2(
-        diag.patchInjectionFailed.withArgumentsOld(
-          name,
-          enclosingLibraryBuilder.importUri,
+        diag.patchInjectionFailed.withArguments(
+          name: name,
+          uri: enclosingLibraryBuilder.importUri,
         ),
         uriOffset,
       );
@@ -397,9 +397,9 @@ class _LibraryBuilderRegistry implements BuilderRegistry {
         !name.startsWith('_') &&
         !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
       problemReporting.addProblem2(
-        diag.patchInjectionFailed.withArgumentsOld(
-          name,
-          enclosingLibraryBuilder.importUri,
+        diag.patchInjectionFailed.withArguments(
+          name: name,
+          uri: enclosingLibraryBuilder.importUri,
         ),
         uriOffset,
       );

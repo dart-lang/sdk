@@ -3851,9 +3851,9 @@ integerLiteralIsOutOfRange:
 
 argumentTypeNotAssignable:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The argument type '#type' can't be assigned to the parameter type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "The argument type '#actualType' can't be assigned to the parameter type '#expectedType'."
   script: |
     method(int i) {}
     main() {
@@ -3862,9 +3862,9 @@ argumentTypeNotAssignable:
 
 invalidAssignmentError:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "A value of type '#actualType' can't be assigned to a variable of type '#expectedType'."
   script: |
     main() {
       int i;
@@ -3896,65 +3896,65 @@ patchDeclarationOrigin:
 
 patchInjectionFailed:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
+    Name name: The public name that couldn't be injected.
+    Uri uri: The URI that the public name couldn't be injected into.
   problemMessage: "Can't inject public '#name' into '#uri'."
   correctionMessage: "Make '#name' private, or make sure injected library has \"dart\" scheme and is private (e.g. \"dart:_internal\")."
 
 invalidCastFunctionExpr:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The function expression type '#type' isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The function expression type '#actualType' isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the function expression or the context in which it is used."
 
 invalidCastLiteralList:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The list literal type '#type' isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The list literal type '#actualType' isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the list literal or the context in which it is used."
 
 invalidCastLiteralMap:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The map literal type '#type' isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The map literal type '#actualType' isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the map literal or the context in which it is used."
 
 invalidCastLiteralSet:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The set literal type '#type' isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The set literal type '#actualType' isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the set literal or the context in which it is used."
 
 invalidCastLocalFunction:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The local function has type '#type' that isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The local function has type '#actualType' that isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the function or the context in which it is used."
 
 invalidCastNewExpr:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The constructor returns type '#type' that isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The constructor returns type '#actualType' that isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the object being constructed or the context in which it is used."
 
 invalidCastStaticMethod:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The static method has type '#type' that isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The static method has type '#actualType' that isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the method or the context in which it is used."
 
 invalidCastTopLevelFunction:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The top level function has type '#type' that isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The top level function has type '#actualType' that isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the function or the context in which it is used."
 
 invalidUseOfNullAwareAccess:
@@ -3973,8 +3973,8 @@ invalidUseOfNullAwareAccess:
 
 undefinedGetter:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the undefined getter.
+    Type type: The type in which the getter is undefined.
   problemMessage: "The getter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
   script: |
@@ -3985,8 +3985,8 @@ undefinedGetter:
 
 undefinedSetter:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the undefined setter.
+    Type type: The type in which the setter is undefined.
   problemMessage: "The setter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
   script: |
@@ -3997,8 +3997,8 @@ undefinedSetter:
 
 undefinedMethod:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the undefined method.
+    Type type: The type in which the method is undefined.
   problemMessage: "The method '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#name'."
   script: |
@@ -4009,8 +4009,8 @@ undefinedMethod:
 
 undefinedOperator:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the undefined operator.
+    Type type: The type in which the operator is undefined.
   problemMessage: "The operator '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the operator to an existing operator, or defining a '#name' operator."
   script: |
@@ -4021,8 +4021,8 @@ undefinedOperator:
 
 ambiguousExtensionMethod:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the ambiguous extension method.
+    Type type: The type for which the extension method is ambiguous.
   problemMessage: "The method '#name' is defined in multiple extensions for '#type' and neither is more specific."
   correctionMessage: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
   script: |
@@ -4036,8 +4036,8 @@ ambiguousExtensionMethod:
 
 ambiguousExtensionProperty:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the ambiguous extension property.
+    Type type: The type for which the extension property is ambiguous.
   problemMessage: "The property '#name' is defined in multiple extensions for '#type' and neither is more specific."
   correctionMessage: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
   script: |
@@ -4051,8 +4051,8 @@ ambiguousExtensionProperty:
 
 ambiguousExtensionOperator:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
+    Name name: The name of the ambiguous extension operator.
+    Type type: The type for which the extension operator is ambiguous.
   problemMessage: "The operator '#name' is defined in multiple extensions for '#type' and neither is more specific."
   correctionMessage: "Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope."
   script: |
@@ -4071,43 +4071,43 @@ ambiguousExtensionCause:
 
 sourceOutlineSummary:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    num num1: undocumented
-    num num2: undocumented
-    num num3: undocumented
+    int count: The number of compilation units for which outlines were built.
+    int bytes: The number of bytes in the compilation units for which outlines were built.
+    num timeMs: The time it took to build outlines for the compilation units, in ms.
+    num rateBytesPerMs: The outline building speed, in bytes/ms.
+    num averageTimeMs: The average time it took to build outlines for each compilation unit, in ms.
   problemMessage: |
-    Built outlines for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
-    #num2%12.3 bytes/ms, and
-    #num3%12.3 ms/compilation unit.
+    Built outlines for #count compilation units (#bytes bytes) in #timeMs%.3ms, that is,
+    #rateBytesPerMs%12.3 bytes/ms, and
+    #averageTimeMs%12.3 ms/compilation unit.
 
 sourceBodySummary:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    num num1: undocumented
-    num num2: undocumented
-    num num3: undocumented
+    int count: The number of compilation units for which bodies were built.
+    int bytes: The number of bytes in the compilation units for which bodies were built.
+    num timeMs: The time it took to build bodies for the compilation units, in ms.
+    num rateBytesPerMs: The body building speed, in bytes/ms.
+    num averageTimeMs: The average time it took to build bodies for each compilation unit, in ms.
   problemMessage: |
-    Built bodies for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
-    #num2%12.3 bytes/ms, and
-    #num3%12.3 ms/compilation unit.
+    Built bodies for #count compilation units (#bytes bytes) in #timeMs%.3ms, that is,
+    #rateBytesPerMs%12.3 bytes/ms, and
+    #averageTimeMs%12.3 ms/compilation unit.
 
 dillOutlineSummary:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    num num1: undocumented
-    num num2: undocumented
-    num num3: undocumented
+    int count: The number of libraries that were indexed.
+    int bytes: The number of bytes in the libraries that were indexed.
+    num timeMs: The time it took to index the libraries, in ms.
+    num rateBytesPerMs: The indexing speed, in bytes/ms.
+    num averageTimeMs: The average time it took to index each library, in ms.
   problemMessage: |
-    Indexed #count libraries (#count2 bytes) in #num1%.3ms, that is,
-    #num2%12.3 bytes/ms, and
-    #num3%12.3 ms/libraries.
+    Indexed #count libraries (#bytes bytes) in #timeMs%.3ms, that is,
+    #rateBytesPerMs%12.3 bytes/ms, and
+    #averageTimeMs%12.3 ms/libraries.
 
 cantInferTypesDueToNoCombinedSignature:
   parameters:
-    Name name: undocumented
+    Name name: The name of the element for which types can't be inferred.
   problemMessage: "Can't infer types for '#name' as the overridden members don't have a combined signature."
   correctionMessage: "Try adding explicit types."
   script: |
@@ -4123,7 +4123,7 @@ cantInferTypesDueToNoCombinedSignature:
 
 cantInferTypeDueToNoCombinedSignature:
   parameters:
-    Name name: undocumented
+    Name name: The name of the element for which a type can't be inferred.
   problemMessage: "Can't infer a type for '#name' as the overridden members don't have a combined signature."
   correctionMessage: "Try adding an explicit type."
   script: |
@@ -4139,7 +4139,7 @@ cantInferTypeDueToNoCombinedSignature:
 
 cantInferReturnTypeDueToNoCombinedSignature:
   parameters:
-    Name name: undocumented
+    Name name: The name of the element for which a return type can't be inferred.
   problemMessage: "Can't infer a return type for '#name' as the overridden members don't have a combined signature."
   correctionMessage: "Try adding an explicit type."
   script: |
@@ -4155,8 +4155,8 @@ cantInferReturnTypeDueToNoCombinedSignature:
 
 cantInferTypeDueToCircularity:
   parameters:
-    String string: undocumented
-  problemMessage: "Can't infer the type of '#string': circularity found during type inference."
+    String name: The name of the element for which a type can't be inferred.
+  problemMessage: "Can't infer the type of '#name': circularity found during type inference."
   correctionMessage: "Specify the type explicitly."
   script: |
     enum CyclicReference {
@@ -4170,10 +4170,10 @@ cantInferTypeDueToCircularity:
 
 ambiguousSupertypes:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "'#name' can't implement both '#type' and '#type2'"
+    Name name: The name of the element with ambiguous supertypes.
+    Type type1: The first supertype.
+    Type type2: The second supertype.
+  problemMessage: "'#name' can't implement both '#type1' and '#type2'"
   script: |
     class A<T> {}
     mixin class B<T> implements A<T> {}
@@ -4182,10 +4182,10 @@ ambiguousSupertypes:
 
 mixinInferenceNoMatchingClass:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    Type type: undocumented
-  problemMessage: "Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
+    Name mixinName: The name of the mixin for which type parameters couldn't be inferred.
+    Name baseTypeName: The name of the base type that doesn't implement the mixin's supertype constraint.
+    Type supertypeConstraint: The supertype constraint that is not implemented.
+  problemMessage: "Type parameters couldn't be inferred for the mixin '#mixinName' because '#baseTypeName' does not implement the mixin's supertype constraint '#supertypeConstraint'."
   script: |
     abstract class A<T> {}
     mixin M<T> on A<T> {}
@@ -4194,7 +4194,7 @@ mixinInferenceNoMatchingClass:
 
 implicitCallOfNonMethod:
   parameters:
-    Type type: undocumented
+    Type type: The type which cannot be invoked.
   problemMessage: "Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method."
   correctionMessage: "Try changing 'call' to a method or explicitly invoke 'call'."
   script: |
@@ -4236,9 +4236,9 @@ forInLoopWithConstVariable:
 
 forInLoopElementTypeNotAssignable:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "A value of type '#actualType' can't be assigned to a variable of type '#expectedType'."
   correctionMessage: "Try changing the type of the variable."
   script: |
     method() {
@@ -4248,9 +4248,9 @@ forInLoopElementTypeNotAssignable:
 
 forInLoopTypeNotIterable:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The type '#type' used in the 'for' loop must implement '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "The type '#actualType' used in the 'for' loop must implement '#expectedType'."
   script: |
     method() {
       String list = '';
@@ -4259,11 +4259,11 @@ forInLoopTypeNotIterable:
 
 initializingFormalTypeMismatch:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'."
-  correctionMessage: "Try changing the type of parameter '#name' to a subtype of '#type2'."
+    Name parameterName: The name of the parameter with a type mismatch.
+    Type parameterType: The type of the parameter.
+    Type fieldType: The type of the field.
+  problemMessage: "The type of parameter '#parameterName', '#parameterType' is not a subtype of the corresponding field's type, '#fieldType'."
+  correctionMessage: "Try changing the type of parameter '#parameterName' to a subtype of '#fieldType'."
   script: |
     class C {
       int x;
@@ -4277,13 +4277,13 @@ initializingFormalTypeMismatchField:
 
 initializeFromDillNotSelfContained:
   parameters:
-    String string: undocumented
-    Uri uri: undocumented
+    String previousCompilationUri: The URI of the previous compilation.
+    Uri gzFileUri: The URI of the gzipped data.
   problemMessage: |
-    Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
+    Tried to initialize from a previous compilation (#previousCompilationUri), but the file was not self-contained. This might be a bug.
 
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
-    If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
+    If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #gzFileUri in your error report, but be aware that this file includes your source code.
     Either way, you should probably delete the file so it doesn't use unnecessary disk space.
 
   severity: WARNING
@@ -4291,9 +4291,9 @@ initializeFromDillNotSelfContained:
 
 initializeFromDillNotSelfContainedNoDump:
   parameters:
-    String string: undocumented
+    String previousCompilationUri: The URI of the previous compilation.
   problemMessage: |
-    Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
+    Tried to initialize from a previous compilation (#previousCompilationUri), but the file was not self-contained. This might be a bug.
 
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
 
@@ -4302,18 +4302,18 @@ initializeFromDillNotSelfContainedNoDump:
 
 initializeFromDillUnknownProblem:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-    String string3: undocumented
-    Uri uri: undocumented
+    String previousCompilationUri: The URI of the previous compilation.
+    String exception: The exception string.
+    String stackTrace: The exception stack trace.
+    Uri gzFileUri: The URI of the gzipped data.
   problemMessage: |
-    Tried to initialize from a previous compilation (#string), but couldn't.
-    Error message was '#string2'.
-    Stacktrace included '#string3'.
+    Tried to initialize from a previous compilation (#previousCompilationUri), but couldn't.
+    Error message was '#exception'.
+    Stacktrace included '#stackTrace'.
     This might be a bug.
 
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
-    If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
+    If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #gzFileUri in your error report, but be aware that this file includes your source code.
     Either way, you should probably delete the file so it doesn't use unnecessary disk space.
 
   severity: WARNING
@@ -4321,13 +4321,13 @@ initializeFromDillUnknownProblem:
 
 initializeFromDillUnknownProblemNoDump:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-    String string3: undocumented
+    String previousCompilationUri: The URI of the previous compilation.
+    String exception: The exception string.
+    String stackTrace: The exception stack trace.
   problemMessage: |
-    Tried to initialize from a previous compilation (#string), but couldn't.
-    Error message was '#string2'.
-    Stacktrace included '#string3'.
+    Tried to initialize from a previous compilation (#previousCompilationUri), but couldn't.
+    Error message was '#exception'.
+    Stacktrace included '#stackTrace'.
     This might be a bug.
 
     The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.
@@ -4337,24 +4337,24 @@ initializeFromDillUnknownProblemNoDump:
 
 webLiteralCannotBeRepresentedExactly:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The integer literal #string can't be represented exactly in JavaScript."
-  correctionMessage: "Try changing the literal to something that can be represented in JavaScript. In JavaScript #string2 is the nearest value that can be represented exactly."
+    String integerLiteral: The integer literal that can't be represented exactly in JavaScript.
+    String nearestJsValue: The nearest value that can be represented exactly.
+  problemMessage: "The integer literal #integerLiteral can't be represented exactly in JavaScript."
+  correctionMessage: "Try changing the literal to something that can be represented in JavaScript. In JavaScript #nearestJsValue is the nearest value that can be represented exactly."
 
 boundIssueViaRawTypeWithNonSimpleBounds:
   parameters:
-    Name name: undocumented
-  problemMessage: "Generic type '#name' can't be used without type arguments in a type variable bound."
-  correctionMessage: "Try providing type arguments to '#name' here."
+    Name typeName: The name of the generic type that can't be used without type arguments in a type variable bound.
+  problemMessage: "Generic type '#typeName' can't be used without type arguments in a type variable bound."
+  correctionMessage: "Try providing type arguments to '#typeName' here."
   script: |
     class Hest<X extends Hest<X>> {}
     class Fisk<Y extends Hest> {}
 
 nonSimpleBoundViaVariable:
   parameters:
-    Name name: undocumented
-  problemMessage: "Bound of this variable references variable '#name' from the same declaration."
+    Name typeName: The name of the referenced type.
+  problemMessage: "Bound of this variable references variable '#typeName' from the same declaration."
   severity: CONTEXT
 
 boundIssueViaLoopNonSimplicity:
@@ -4492,16 +4492,16 @@ returnWithoutExpressionAsync:
 
 invalidReturn:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "A value of type '#actualType' can't be returned from a function with return type '#expectedType'."
   declaration: "int foo() { return true; }"
 
 invalidReturnAsync:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "A value of type '#actualType' can't be returned from an async function with return type '#expectedType'."
   declaration: "Future<int> foo() async { return true; }"
 
 implicitReturnNull:

@@ -177,7 +177,7 @@ class DillLoader extends Loader {
     _logSummary(outlineSummaryTemplate);
   }
 
-  void _logSummary(Template<SummaryTemplate, Function> template) {
+  void _logSummary(Template<Function, SummaryTemplate> template) {
     ticker.log(
       // Coverage-ignore(suite): Not run.
       (Duration elapsed, Duration sinceStart) {
@@ -188,12 +188,12 @@ class DillLoader extends Loader {
         }
         double ms =
             elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
-        Message message = template.withArgumentsOld(
-          libraryCount,
-          byteCount,
-          ms,
-          byteCount / ms,
-          ms / libraryCount,
+        Message message = template.withArguments(
+          count: libraryCount,
+          bytes: byteCount,
+          timeMs: ms,
+          rateBytesPerMs: byteCount / ms,
+          averageTimeMs: ms / libraryCount,
         );
         print("$sinceStart: ${message.problemMessage}");
       },
@@ -313,7 +313,7 @@ severity: $severity
     return formattedMessage;
   }
 
-  Template<SummaryTemplate, Function> get outlineSummaryTemplate =>
+  Template<Function, SummaryTemplate> get outlineSummaryTemplate =>
       diag.dillOutlineSummary;
 
   /// Append compiled libraries from the given [component]. If the [filter] is
