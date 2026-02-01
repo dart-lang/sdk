@@ -281,6 +281,13 @@ class PluginManager {
       // it does not need to get watch events, yet.
       if (interestingGlobs == null) continue;
 
+      // Canonicalize the globs. If a glob does not start with '**/', then
+      // prepend '**/' to the glob.
+      interestingGlobs = [
+        for (var g in interestingGlobs)
+          if (g.startsWith('**/')) g else '**/$g',
+      ];
+
       if (!interestingGlobs.any((g) => Glob(separator, g).matches(filePath))) {
         continue;
       }
