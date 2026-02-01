@@ -411,7 +411,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     DartType initialContextType = runtimeCheckedType ?? contextType;
 
-    Template<Message Function(DartType, DartType), Function>?
+    Template<
+      Function,
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
     preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(
       inferenceResult.expression,
     );
@@ -512,7 +518,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     fileOffset ??= inferenceResult.expression.fileOffset;
     contextType = computeGreatestClosure(contextType);
 
-    Template<Message Function(DartType, DartType), Function>?
+    Template<
+      Function,
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
     preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(
       inferenceResult.expression,
     );
@@ -584,9 +596,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         result = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: expression,
-          message: preciseTypeErrorTemplate!.withArgumentsOld(
-            expressionType,
-            contextType,
+          message: preciseTypeErrorTemplate!.withArguments(
+            actualType: expressionType,
+            expectedType: contextType,
           ),
           fileUri: fileUri,
           fileOffset: expression.fileOffset,
@@ -4885,7 +4897,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// If it is, an error message template is returned, which can be used by the
   /// caller to report an invalid cast.  Otherwise, `null` is returned.
-  Template<Message Function(DartType, DartType), Function>?
+  Template<
+    Function,
+    Message Function({
+      required DartType actualType,
+      required DartType expectedType,
+    })
+  >?
   _getPreciseTypeErrorTemplate(Expression expression) {
     if (expression is ListLiteral) {
       return diag.invalidCastLiteralList;

@@ -3903,58 +3903,58 @@ patchInjectionFailed:
 
 invalidCastFunctionExpr:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The function expression type '#type' isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The function expression type '#actualType' isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the function expression or the context in which it is used."
 
 invalidCastLiteralList:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The list literal type '#type' isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The list literal type '#actualType' isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the list literal or the context in which it is used."
 
 invalidCastLiteralMap:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The map literal type '#type' isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The map literal type '#actualType' isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the map literal or the context in which it is used."
 
 invalidCastLiteralSet:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The set literal type '#type' isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The set literal type '#actualType' isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the set literal or the context in which it is used."
 
 invalidCastLocalFunction:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The local function has type '#type' that isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The local function has type '#actualType' that isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the function or the context in which it is used."
 
 invalidCastNewExpr:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The constructor returns type '#type' that isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The constructor returns type '#actualType' that isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the object being constructed or the context in which it is used."
 
 invalidCastStaticMethod:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The static method has type '#type' that isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The static method has type '#actualType' that isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the method or the context in which it is used."
 
 invalidCastTopLevelFunction:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The top level function has type '#type' that isn't of expected type '#type2'."
+    Type actualType: The invalid type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The top level function has type '#actualType' that isn't of expected type '#expectedType'."
   correctionMessage: "Change the type of the function or the context in which it is used."
 
 invalidUseOfNullAwareAccess:

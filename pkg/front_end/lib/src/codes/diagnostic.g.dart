@@ -8392,8 +8392,11 @@ Message _withArgumentsOldInvalidBreakTarget(String label) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidCastFunctionExpr = const Template(
   "InvalidCastFunctionExpr",
@@ -8403,33 +8406,39 @@ invalidCastFunctionExpr = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastFunctionExpr({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidCastFunctionExpr,
     problemMessage:
-        """The function expression type '${type_0}' isn't of expected type '${type2_0}'.""" +
+        """The function expression type '${actualType_0}' isn't of expected type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Change the type of the function expression or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidCastFunctionExpr(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastFunctionExpr(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidCastFunctionExpr(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidCastLiteralList = const Template(
   "InvalidCastLiteralList",
@@ -8439,33 +8448,39 @@ invalidCastLiteralList = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralList({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidCastLiteralList,
     problemMessage:
-        """The list literal type '${type_0}' isn't of expected type '${type2_0}'.""" +
+        """The list literal type '${actualType_0}' isn't of expected type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Change the type of the list literal or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidCastLiteralList(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastLiteralList(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidCastLiteralList(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidCastLiteralMap = const Template(
   "InvalidCastLiteralMap",
@@ -8475,31 +8490,39 @@ invalidCastLiteralMap = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralMap({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidCastLiteralMap,
     problemMessage:
-        """The map literal type '${type_0}' isn't of expected type '${type2_0}'.""" +
+        """The map literal type '${actualType_0}' isn't of expected type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Change the type of the map literal or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastLiteralMap(DartType type, DartType type2) =>
-    _withArgumentsInvalidCastLiteralMap(type: type, type2: type2);
+Message _withArgumentsOldInvalidCastLiteralMap(
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidCastLiteralMap(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidCastLiteralSet = const Template(
   "InvalidCastLiteralSet",
@@ -8509,31 +8532,39 @@ invalidCastLiteralSet = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLiteralSet({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidCastLiteralSet,
     problemMessage:
-        """The set literal type '${type_0}' isn't of expected type '${type2_0}'.""" +
+        """The set literal type '${actualType_0}' isn't of expected type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Change the type of the set literal or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastLiteralSet(DartType type, DartType type2) =>
-    _withArgumentsInvalidCastLiteralSet(type: type, type2: type2);
+Message _withArgumentsOldInvalidCastLiteralSet(
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidCastLiteralSet(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidCastLocalFunction = const Template(
   "InvalidCastLocalFunction",
@@ -8543,33 +8574,39 @@ invalidCastLocalFunction = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastLocalFunction({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidCastLocalFunction,
     problemMessage:
-        """The local function has type '${type_0}' that isn't of expected type '${type2_0}'.""" +
+        """The local function has type '${actualType_0}' that isn't of expected type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Change the type of the function or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidCastLocalFunction(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastLocalFunction(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidCastLocalFunction(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidCastNewExpr = const Template(
   "InvalidCastNewExpr",
@@ -8579,31 +8616,39 @@ invalidCastNewExpr = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastNewExpr({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidCastNewExpr,
     problemMessage:
-        """The constructor returns type '${type_0}' that isn't of expected type '${type2_0}'.""" +
+        """The constructor returns type '${actualType_0}' that isn't of expected type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Change the type of the object being constructed or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidCastNewExpr(DartType type, DartType type2) =>
-    _withArgumentsInvalidCastNewExpr(type: type, type2: type2);
+Message _withArgumentsOldInvalidCastNewExpr(
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidCastNewExpr(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidCastStaticMethod = const Template(
   "InvalidCastStaticMethod",
@@ -8613,33 +8658,39 @@ invalidCastStaticMethod = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastStaticMethod({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidCastStaticMethod,
     problemMessage:
-        """The static method has type '${type_0}' that isn't of expected type '${type2_0}'.""" +
+        """The static method has type '${actualType_0}' that isn't of expected type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Change the type of the method or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidCastStaticMethod(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastStaticMethod(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidCastStaticMethod(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidCastTopLevelFunction = const Template(
   "InvalidCastTopLevelFunction",
@@ -8649,28 +8700,31 @@ invalidCastTopLevelFunction = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidCastTopLevelFunction({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidCastTopLevelFunction,
     problemMessage:
-        """The top level function has type '${type_0}' that isn't of expected type '${type2_0}'.""" +
+        """The top level function has type '${actualType_0}' that isn't of expected type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Change the type of the function or the context in which it is used.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidCastTopLevelFunction(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidCastTopLevelFunction(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidCastTopLevelFunction(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
