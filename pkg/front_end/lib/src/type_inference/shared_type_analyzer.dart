@@ -204,9 +204,9 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.forInLoopTypeNotIterable.withArgumentsOld(
-        expressionType.unwrapTypeView(),
-        coreTypes.iterableNonNullableRawType,
+      message: diag.forInLoopTypeNotIterable.withArguments(
+        actualType: expressionType.unwrapTypeView(),
+        expectedType: coreTypes.iterableNonNullableRawType,
       ),
       fileUri: uri,
       fileOffset: expression.fileOffset,
@@ -255,9 +255,9 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.argumentTypeNotAssignable.withArgumentsOld(
-        operandType.unwrapTypeView(),
-        parameterType.unwrapTypeView(),
+      message: diag.argumentTypeNotAssignable.withArguments(
+        actualType: operandType.unwrapTypeView(),
+        expectedType: parameterType.unwrapTypeView(),
       ),
       fileUri: uri,
       fileOffset: pattern.expression.fileOffset,
@@ -272,9 +272,9 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.invalidAssignmentError.withArgumentsOld(
-        returnType.unwrapTypeView(),
-        coreTypes.boolNonNullableRawType,
+      message: diag.invalidAssignmentError.withArguments(
+        actualType: returnType.unwrapTypeView(),
+        expectedType: coreTypes.boolNonNullableRawType,
       ),
       fileUri: uri,
       fileOffset: pattern.fileOffset,

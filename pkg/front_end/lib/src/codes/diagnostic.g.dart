@@ -262,8 +262,11 @@ const MessageCode anonymousContinueTargetOutsideFunction = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 argumentTypeNotAssignable = const Template(
   "ArgumentTypeNotAssignable",
@@ -273,26 +276,29 @@ argumentTypeNotAssignable = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsArgumentTypeNotAssignable({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     argumentTypeNotAssignable,
     problemMessage:
-        """The argument type '${type_0}' can't be assigned to the parameter type '${type2_0}'.""" +
+        """The argument type '${actualType_0}' can't be assigned to the parameter type '${expectedType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldArgumentTypeNotAssignable(
-  DartType type,
-  DartType type2,
-) => _withArgumentsArgumentTypeNotAssignable(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsArgumentTypeNotAssignable(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitInLateLocalInitializer = const MessageCode(
@@ -6050,8 +6056,11 @@ Message _withArgumentsOldFinalPossiblyAssignedError(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 forInLoopElementTypeNotAssignable = const Template(
   "ForInLoopElementTypeNotAssignable",
@@ -6061,27 +6070,30 @@ forInLoopElementTypeNotAssignable = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsForInLoopElementTypeNotAssignable({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     forInLoopElementTypeNotAssignable,
     problemMessage:
-        """A value of type '${type_0}' can't be assigned to a variable of type '${type2_0}'.""" +
+        """A value of type '${actualType_0}' can't be assigned to a variable of type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage: """Try changing the type of the variable.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldForInLoopElementTypeNotAssignable(
-  DartType type,
-  DartType type2,
-) => _withArgumentsForInLoopElementTypeNotAssignable(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsForInLoopElementTypeNotAssignable(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode forInLoopExactlyOneVariable = const MessageCode(
@@ -6098,8 +6110,11 @@ const MessageCode forInLoopNotAssignable = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 forInLoopTypeNotIterable = const Template(
   "ForInLoopTypeNotIterable",
@@ -6109,26 +6124,29 @@ forInLoopTypeNotIterable = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsForInLoopTypeNotIterable({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     forInLoopTypeNotIterable,
     problemMessage:
-        """The type '${type_0}' used in the 'for' loop must implement '${type2_0}'.""" +
+        """The type '${actualType_0}' used in the 'for' loop must implement '${expectedType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldForInLoopTypeNotIterable(
-  DartType type,
-  DartType type2,
-) => _withArgumentsForInLoopTypeNotIterable(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsForInLoopTypeNotIterable(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode forInLoopWithConstVariable = const MessageCode(
@@ -8302,8 +8320,11 @@ Message _withArgumentsOldInternalProblemVerificationError(String details) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidAssignmentError = const Template(
   "InvalidAssignmentError",
@@ -8313,26 +8334,29 @@ invalidAssignmentError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidAssignmentError({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidAssignmentError,
     problemMessage:
-        """A value of type '${type_0}' can't be assigned to a variable of type '${type2_0}'.""" +
+        """A value of type '${actualType_0}' can't be assigned to a variable of type '${expectedType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidAssignmentError(
-  DartType type,
-  DartType type2,
-) => _withArgumentsInvalidAssignmentError(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidAssignmentError(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode invalidAugmentSuper = const MessageCode(
@@ -9316,8 +9340,11 @@ Message _withArgumentsOldInvalidPackageUri(Uri uri, String details) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidReturn = const Template(
   "InvalidReturn",
@@ -9327,29 +9354,37 @@ invalidReturn = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidReturn({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidReturn,
     problemMessage:
-        """A value of type '${type_0}' can't be returned from a function with return type '${type2_0}'.""" +
+        """A value of type '${actualType_0}' can't be returned from a function with return type '${expectedType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidReturn(DartType type, DartType type2) =>
-    _withArgumentsInvalidReturn(type: type, type2: type2);
+Message _withArgumentsOldInvalidReturn(
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidReturn(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 invalidReturnAsync = const Template(
   "InvalidReturnAsync",
@@ -9359,24 +9394,29 @@ invalidReturnAsync = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidReturnAsync({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     invalidReturnAsync,
     problemMessage:
-        """A value of type '${type_0}' can't be returned from an async function with return type '${type2_0}'.""" +
+        """A value of type '${actualType_0}' can't be returned from an async function with return type '${expectedType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidReturnAsync(DartType type, DartType type2) =>
-    _withArgumentsInvalidReturnAsync(type: type, type2: type2);
+Message _withArgumentsOldInvalidReturnAsync(
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsInvalidReturnAsync(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

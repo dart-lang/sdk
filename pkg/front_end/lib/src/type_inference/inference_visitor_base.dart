@@ -368,7 +368,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? runtimeCheckedType,
     bool isVoidAllowed = false,
     bool coerceExpression = true,
-    Template<Message Function(DartType, DartType), Function>? errorTemplate,
+    Template<
+      Function,
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
+    errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     return ensureAssignableResult(
@@ -490,7 +497,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? runtimeCheckedType,
     bool isVoidAllowed = false,
     bool isCoercionAllowed = true,
-    Template<Message Function(DartType, DartType), Function>? errorTemplate,
+    Template<
+      Function,
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
+    errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     errorTemplate ??= diag.invalidAssignmentError;
@@ -546,9 +560,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           expression,
           expressionType,
           contextType,
-          errorTemplate.withArgumentsOld(
-            expressionType,
-            declaredContextType ?? contextType,
+          errorTemplate.withArguments(
+            actualType: expressionType,
+            expectedType: declaredContextType ?? contextType,
           ),
         );
         break;
@@ -596,9 +610,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             expression,
             expressionType,
             contextType,
-            errorTemplate.withArgumentsOld(
-              expressionType,
-              declaredContextType ?? contextType,
+            errorTemplate.withArguments(
+              actualType: expressionType,
+              expectedType: declaredContextType ?? contextType,
             ),
             context: getWhyNotPromotedContext(
               whyNotPromoted.call(),
@@ -612,9 +626,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             expression,
             expressionType,
             contextType,
-            errorTemplate.withArgumentsOld(
-              expressionType,
-              declaredContextType ?? contextType,
+            errorTemplate.withArguments(
+              actualType: expressionType,
+              expectedType: declaredContextType ?? contextType,
             ),
           );
         }
@@ -644,7 +658,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType? runtimeCheckedType,
     bool isVoidAllowed = false,
     bool coerceExpression = true,
-    Template<Message Function(DartType, DartType), Function>? errorTemplate,
+    Template<
+      Function,
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
+    errorTemplate,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     if (coerceExpression) {

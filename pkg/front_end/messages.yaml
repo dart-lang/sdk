@@ -3851,9 +3851,9 @@ integerLiteralIsOutOfRange:
 
 argumentTypeNotAssignable:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The argument type '#type' can't be assigned to the parameter type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "The argument type '#actualType' can't be assigned to the parameter type '#expectedType'."
   script: |
     method(int i) {}
     main() {
@@ -3862,9 +3862,9 @@ argumentTypeNotAssignable:
 
 invalidAssignmentError:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "A value of type '#actualType' can't be assigned to a variable of type '#expectedType'."
   script: |
     main() {
       int i;
@@ -4236,9 +4236,9 @@ forInLoopWithConstVariable:
 
 forInLoopElementTypeNotAssignable:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "A value of type '#actualType' can't be assigned to a variable of type '#expectedType'."
   correctionMessage: "Try changing the type of the variable."
   script: |
     method() {
@@ -4248,9 +4248,9 @@ forInLoopElementTypeNotAssignable:
 
 forInLoopTypeNotIterable:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The type '#type' used in the 'for' loop must implement '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "The type '#actualType' used in the 'for' loop must implement '#expectedType'."
   script: |
     method() {
       String list = '';
@@ -4492,16 +4492,16 @@ returnWithoutExpressionAsync:
 
 invalidReturn:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "A value of type '#type' can't be returned from a function with return type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "A value of type '#actualType' can't be returned from a function with return type '#expectedType'."
   declaration: "int foo() { return true; }"
 
 invalidReturnAsync:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "A value of type '#type' can't be returned from an async function with return type '#type2'."
+    Type actualType: The type that could not be assigned.
+    Type expectedType: The type that was required.
+  problemMessage: "A value of type '#actualType' can't be returned from an async function with return type '#expectedType'."
   declaration: "Future<int> foo() async { return true; }"
 
 implicitReturnNull:
