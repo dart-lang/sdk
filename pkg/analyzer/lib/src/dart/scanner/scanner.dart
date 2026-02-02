@@ -11,7 +11,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -62,18 +61,11 @@ class Scanner {
 
   late FeatureSet _featureSet;
 
-  /// Initialize a newly created scanner to scan characters from the given
-  /// [source]. The given character [reader] will be used to read the characters
-  /// in the source. The given [diagnosticReporter] will be informed of any
-  /// errors that are found.
-  factory Scanner(
-    CharacterReader reader,
-    DiagnosticReporter diagnosticReporter,
-  ) => Scanner.fasta(
-    diagnosticReporter,
-    contents: reader.getContents(),
-    offset: reader.offset,
-  );
+  /// Initializes a scanner to scan the given [contents].
+  ///
+  /// The [diagnosticReporter] will be informed of any errors that are found.
+  factory Scanner(String contents, DiagnosticReporter diagnosticReporter) =>
+      Scanner.fasta(diagnosticReporter, contents: contents);
 
   factory Scanner.fasta(
     DiagnosticReporter diagnosticReporter, {

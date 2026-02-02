@@ -16,7 +16,6 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -82,10 +81,9 @@ ParseStringResult parseString({
 }) {
   featureSet ??= FeatureSet.latestLanguageVersion();
   var source = StringSource(content, path ?? '');
-  var reader = CharSequenceReader(content);
   var diagnosticCollector = RecordingDiagnosticListener();
   var diagnosticReporter = DiagnosticReporter(diagnosticCollector, source);
-  var scanner = Scanner(reader, diagnosticReporter)
+  var scanner = Scanner(content, diagnosticReporter)
     ..configureFeatures(
       featureSetForOverriding: featureSet,
       featureSet: featureSet,

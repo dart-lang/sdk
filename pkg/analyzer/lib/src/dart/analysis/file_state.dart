@@ -30,7 +30,6 @@ import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/exception/exception.dart';
@@ -581,9 +580,8 @@ class FileState {
     return performance.run('parseCode', (performance) {
       performance.getDataInt('length').add(code.length);
 
-      CharSequenceReader reader = CharSequenceReader(code);
       var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
-      Scanner scanner = Scanner(reader, diagnosticReporter)
+      Scanner scanner = Scanner(code, diagnosticReporter)
         ..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet.restrictToVersion(packageLanguageVersion),

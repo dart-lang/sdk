@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -76,13 +75,11 @@ class LineInfoTest {
     String source = "var\r\ni\n=\n1;\n";
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     Scanner scanner =
-        Scanner(
-          CharSequenceReader(source),
-          DiagnosticReporter(listener, TestSource()),
-        )..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+        Scanner(source, DiagnosticReporter(listener, TestSource()))
+          ..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -96,13 +93,11 @@ class LineInfoTest {
     String source = '<!-- @Component(';
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     Scanner scanner =
-        Scanner(
-          CharSequenceReader(source),
-          DiagnosticReporter(listener, TestSource()),
-        )..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+        Scanner(source, DiagnosticReporter(listener, TestSource()))
+          ..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
     Token token = scanner.tokenize(reportScannerErrors: false);
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next!;
@@ -139,13 +134,11 @@ class LineInfoTest {
 
   Token _scanWithListener(String source, GatheringDiagnosticListener listener) {
     Scanner scanner =
-        Scanner(
-          CharSequenceReader(source),
-          DiagnosticReporter(listener, TestSource()),
-        )..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+        Scanner(source, DiagnosticReporter(listener, TestSource()))
+          ..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
     Token result = scanner.tokenize();
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
     listener.setLineInfo(TestSource(), lineInfo);
@@ -201,9 +194,8 @@ class ScannerTest with ResourceProviderMixin {
   Scanner _createScanner(String content) {
     var path = convertPath('/test/lib/a.dart');
     var source = StringSource(content, path);
-    var reader = CharSequenceReader(content);
     var diagnosticCollector = RecordingDiagnosticListener();
-    return Scanner(reader, DiagnosticReporter(diagnosticCollector, source));
+    return Scanner(content, DiagnosticReporter(diagnosticCollector, source));
   }
 }
 

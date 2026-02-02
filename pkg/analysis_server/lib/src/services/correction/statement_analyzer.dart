@@ -14,7 +14,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -25,7 +24,7 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
     var tokens = <Token>[];
     var scanner =
         Scanner(
-          CharSequenceReader(text),
+          text,
           DiagnosticReporter(
             DiagnosticListener.nullListener,
             _SourceMock.instance,

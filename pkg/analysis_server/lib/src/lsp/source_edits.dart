@@ -15,7 +15,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:dart_style/dart_style.dart' hide TrailingCommas;
@@ -701,7 +700,7 @@ class _MinimalEditComputer {
     try {
       var scanner =
           Scanner(
-            CharSequenceReader(s),
+            s,
             DiagnosticReporter(
               DiagnosticListener.nullListener,
               _SourceMock.instance,
