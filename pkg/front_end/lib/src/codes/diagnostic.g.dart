@@ -5711,8 +5711,11 @@ Message _withArgumentsOldFieldNotPromotedBecauseConflictingNsmForwarder(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String propertyName, String documentationUrl),
+  Message Function({
+    required String propertyName,
+    required String documentationUrl,
+  })
 >
 fieldNotPromotedBecauseExternal = const Template(
   "FieldNotPromotedBecauseExternal",
@@ -5722,25 +5725,31 @@ fieldNotPromotedBecauseExternal = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNotPromotedBecauseExternal({
-  required String name,
-  required String string,
+  required String propertyName,
+  required String documentationUrl,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     fieldNotPromotedBecauseExternal,
     problemMessage:
-        """'${name_0}' refers to an external field so it couldn't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
+        """'${propertyName_0}' refers to an external field so it couldn't be promoted.""",
+    correctionMessage: """See ${documentationUrl_0}""",
+    arguments: {
+      'propertyName': propertyName,
+      'documentationUrl': documentationUrl,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseExternal(
-  String name,
-  String string,
-) => _withArgumentsFieldNotPromotedBecauseExternal(name: name, string: string);
+  String propertyName,
+  String documentationUrl,
+) => _withArgumentsFieldNotPromotedBecauseExternal(
+  propertyName: propertyName,
+  documentationUrl: documentationUrl,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5778,8 +5787,11 @@ Message _withArgumentsOldFieldNotPromotedBecauseNotEnabled(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String propertyName, String documentationUrl),
+  Message Function({
+    required String propertyName,
+    required String documentationUrl,
+  })
 >
 fieldNotPromotedBecauseNotField = const Template(
   "FieldNotPromotedBecauseNotField",
@@ -5789,30 +5801,39 @@ fieldNotPromotedBecauseNotField = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNotPromotedBecauseNotField({
-  required String name,
-  required String string,
+  required String propertyName,
+  required String documentationUrl,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     fieldNotPromotedBecauseNotField,
     problemMessage:
-        """'${name_0}' refers to a getter so it couldn't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
+        """'${propertyName_0}' refers to a getter so it couldn't be promoted.""",
+    correctionMessage: """See ${documentationUrl_0}""",
+    arguments: {
+      'propertyName': propertyName,
+      'documentationUrl': documentationUrl,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseNotField(
-  String name,
-  String string,
-) => _withArgumentsFieldNotPromotedBecauseNotField(name: name, string: string);
+  String propertyName,
+  String documentationUrl,
+) => _withArgumentsFieldNotPromotedBecauseNotField(
+  propertyName: propertyName,
+  documentationUrl: documentationUrl,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String propertyName, String documentationUrl),
+  Message Function({
+    required String propertyName,
+    required String documentationUrl,
+  })
 >
 fieldNotPromotedBecauseNotFinal = const Template(
   "FieldNotPromotedBecauseNotFinal",
@@ -5822,30 +5843,39 @@ fieldNotPromotedBecauseNotFinal = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNotPromotedBecauseNotFinal({
-  required String name,
-  required String string,
+  required String propertyName,
+  required String documentationUrl,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     fieldNotPromotedBecauseNotFinal,
     problemMessage:
-        """'${name_0}' refers to a non-final field so it couldn't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
+        """'${propertyName_0}' refers to a non-final field so it couldn't be promoted.""",
+    correctionMessage: """See ${documentationUrl_0}""",
+    arguments: {
+      'propertyName': propertyName,
+      'documentationUrl': documentationUrl,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseNotFinal(
-  String name,
-  String string,
-) => _withArgumentsFieldNotPromotedBecauseNotFinal(name: name, string: string);
+  String propertyName,
+  String documentationUrl,
+) => _withArgumentsFieldNotPromotedBecauseNotFinal(
+  propertyName: propertyName,
+  documentationUrl: documentationUrl,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String propertyName, String documentationUrl),
+  Message Function({
+    required String propertyName,
+    required String documentationUrl,
+  })
 >
 fieldNotPromotedBecauseNotPrivate = const Template(
   "FieldNotPromotedBecauseNotPrivate",
@@ -5855,26 +5885,31 @@ fieldNotPromotedBecauseNotPrivate = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNotPromotedBecauseNotPrivate({
-  required String name,
-  required String string,
+  required String propertyName,
+  required String documentationUrl,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     fieldNotPromotedBecauseNotPrivate,
     problemMessage:
-        """'${name_0}' refers to a public property so it couldn't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
+        """'${propertyName_0}' refers to a public property so it couldn't be promoted.""",
+    correctionMessage: """See ${documentationUrl_0}""",
+    arguments: {
+      'propertyName': propertyName,
+      'documentationUrl': documentationUrl,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseNotPrivate(
-  String name,
-  String string,
-) =>
-    _withArgumentsFieldNotPromotedBecauseNotPrivate(name: name, string: string);
+  String propertyName,
+  String documentationUrl,
+) => _withArgumentsFieldNotPromotedBecauseNotPrivate(
+  propertyName: propertyName,
+  documentationUrl: documentationUrl,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

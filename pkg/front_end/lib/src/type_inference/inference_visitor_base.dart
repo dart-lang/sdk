@@ -5840,20 +5840,29 @@ class _WhyNotPromotedVisitor
         member = stubTarget;
       }
       propertyReference = member;
-      Template<Message Function(String, String), Function> template =
-          switch (reason.whyNotPromotable) {
-            PropertyNonPromotabilityReason.isNotField =>
-              diag.fieldNotPromotedBecauseNotField,
-            PropertyNonPromotabilityReason.isNotPrivate =>
-              diag.fieldNotPromotedBecauseNotPrivate,
-            PropertyNonPromotabilityReason.isExternal =>
-              diag.fieldNotPromotedBecauseExternal,
-            PropertyNonPromotabilityReason.isNotFinal =>
-              diag.fieldNotPromotedBecauseNotFinal,
-          };
+      Template<
+        Function,
+        Message Function({
+          required String propertyName,
+          required String documentationUrl,
+        })
+      >
+      template = switch (reason.whyNotPromotable) {
+        PropertyNonPromotabilityReason.isNotField =>
+          diag.fieldNotPromotedBecauseNotField,
+        PropertyNonPromotabilityReason.isNotPrivate =>
+          diag.fieldNotPromotedBecauseNotPrivate,
+        PropertyNonPromotabilityReason.isExternal =>
+          diag.fieldNotPromotedBecauseExternal,
+        PropertyNonPromotabilityReason.isNotFinal =>
+          diag.fieldNotPromotedBecauseNotFinal,
+      };
       List<LocatedMessage> messages = [
         template
-            .withArgumentsOld(reason.propertyName, reason.documentationLink.url)
+            .withArguments(
+              propertyName: reason.propertyName,
+              documentationUrl: reason.documentationLink.url,
+            )
             .withLocation(member.fileUri, member.fileOffset, noLength),
       ];
       if (!reason.fieldPromotionEnabled) {

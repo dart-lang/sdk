@@ -5599,10 +5599,10 @@ fieldNotPromotedBecauseNotEnabled:
 
 fieldNotPromotedBecauseNotField:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' refers to a getter so it couldn't be promoted."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' refers to a getter so it couldn't be promoted."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       int? get _i => 0;
@@ -5617,10 +5617,10 @@ fieldNotPromotedBecauseNotField:
 
 fieldNotPromotedBecauseNotPrivate:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' refers to a public property so it couldn't be promoted."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' refers to a public property so it couldn't be promoted."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       final int? i;
@@ -5636,10 +5636,10 @@ fieldNotPromotedBecauseNotPrivate:
 
 fieldNotPromotedBecauseExternal:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' refers to an external field so it couldn't be promoted."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' refers to an external field so it couldn't be promoted."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       external final int? _i;
@@ -5654,10 +5654,10 @@ fieldNotPromotedBecauseExternal:
 
 fieldNotPromotedBecauseNotFinal:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' refers to a non-final field so it couldn't be promoted."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' refers to a non-final field so it couldn't be promoted."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       int? _i;
