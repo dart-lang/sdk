@@ -209,6 +209,12 @@ class StringExtensionTest {
     expect('A'.codeUnitAt(0).isWhitespace, isFalse);
   }
 
+  void test_pluralized() {
+    expect('cat'.pluralized(0), 'cats');
+    expect('cat'.pluralized(1), 'cat');
+    expect('cat'.pluralized(2), 'cats');
+  }
+
   void test_removeSuffix() {
     expect('01234'.removeSuffix(''), '01234');
     expect('01234'.removeSuffix('4'), '0123');
