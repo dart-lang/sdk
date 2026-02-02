@@ -1151,7 +1151,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isStaticFunction = _isStaticFunction(func);
     if (fromFunction && !isStaticFunction) {
       diagnosticReporter.report(
-        diag.ffiNotStatic.withArgumentsOld(fromFunctionMethod.name.text),
+        diag.ffiNotStatic.withArguments(name: fromFunctionMethod.name.text),
         func.fileOffset,
         1,
         func.location?.file,
@@ -1857,7 +1857,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final Class? extended = _extendsOrImplementsSealedClass(klass);
     if (extended != null) {
       diagnosticReporter.report(
-        diag.ffiExtendsOrImplementsSealedClass.withArgumentsOld(extended.name),
+        diag.ffiExtendsOrImplementsSealedClass.withArguments(
+          sealedClassName: extended.name,
+        ),
         klass.fileOffset,
         1,
         klass.location?.file,

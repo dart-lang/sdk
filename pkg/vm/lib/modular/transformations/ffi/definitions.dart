@@ -200,10 +200,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (report) {
         component.forEach((Class e) {
           diagnosticReporter.report(
-            diag.ffiFieldCyclic.withArgumentsOld(
-              e.superclass!.name,
-              e.name,
-              component.map((e) => e.name).toList(),
+            diag.ffiFieldCyclic.withArguments(
+              superclass: e.superclass!.name,
+              name: e.name,
+              cycleElements: component.map((e) => e.name).toList(),
             ),
             e.fileOffset,
             e.name.length,
@@ -387,7 +387,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final packingAnnotations = _getPackedAnnotations(node);
       if (packingAnnotations.length > 1) {
         diagnosticReporter.report(
-          diag.ffiPackedAnnotation.withArgumentsOld(node.name),
+          diag.ffiPackedAnnotation.withArguments(name: node.name),
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -466,7 +466,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (f is Field) {
         if (f.initializer is! NullLiteral) {
           diagnosticReporter.report(
-            diag.ffiFieldInitializer.withArgumentsOld(f.name.text),
+            diag.ffiFieldInitializer.withArguments(fieldName: f.name.text),
             f.fileOffset,
             f.name.text.length,
             f.fileUri,
@@ -482,7 +482,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               type.declaredNullability == Nullability.nullable ||
               type.declaredNullability == Nullability.undetermined)) {
         diagnosticReporter.report(
-          diag.ffiFieldNull.withArgumentsOld(f.name.text),
+          diag.ffiFieldNull.withArguments(fieldName: f.name.text),
           f.fileOffset,
           f.name.text.length,
           f.fileUri,
@@ -494,7 +494,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         // a native type annotation.
         if (nativeTypeAnnos.isNotEmpty) {
           diagnosticReporter.report(
-            diag.ffiFieldNoAnnotation.withArgumentsOld(f.name.text),
+            diag.ffiFieldNoAnnotation.withArguments(fieldName: f.name.text),
             f.fileOffset,
             f.name.text.length,
             f.fileUri,
@@ -516,7 +516,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         }
       } else if (nativeTypeAnnos.length != 1) {
         diagnosticReporter.report(
-          diag.ffiFieldAnnotation.withArgumentsOld(f.name.text),
+          diag.ffiFieldAnnotation.withArguments(fieldName: f.name.text),
           f.fileOffset,
           f.name.text.length,
           f.fileUri,
@@ -540,10 +540,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             !env.isSubtypeOf(shouldBeDartType, type) ||
             !env.isSubtypeOf(type, shouldBeDartType)) {
           diagnosticReporter.report(
-            diag.ffiTypeMismatch.withArgumentsOld(
-              type,
-              shouldBeDartType!,
-              nativeType,
+            diag.ffiTypeMismatch.withArguments(
+              actualType: type,
+              expectedType: shouldBeDartType!,
+              nativeType: nativeType,
             ),
             f.fileOffset,
             1,
@@ -567,7 +567,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (i is FieldInitializer) {
           toRemove.add(i);
           diagnosticReporter.report(
-            diag.ffiFieldInitializer.withArgumentsOld(i.field.name.text),
+            diag.ffiFieldInitializer.withArguments(
+              fieldName: i.field.name.text,
+            ),
             i.fileOffset,
             1,
             i.location!.file,
@@ -797,7 +799,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     );
     if (compoundType.members.isEmpty) {
       diagnosticReporter.report(
-        diag.ffiEmptyStruct.withArgumentsOld(node.superclass!.name, node.name),
+        diag.ffiEmptyStruct.withArguments(
+          superclass: node.superclass!.name,
+          name: node.name,
+        ),
         node.fileOffset,
         node.name.length,
         node.location!.file,
