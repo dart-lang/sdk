@@ -8,6 +8,7 @@ import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -19,12 +20,11 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use super-initializer parameters where possible.';
 
 /// Return a set containing the elements of all of the parameters that are
-/// referenced in the body of the [constructor].
-Set<FormalParameterElement> _referencedParameters(
-  ConstructorDeclaration constructor,
-) {
+/// referenced in the constructor [body].
+Set<FormalParameterElement> _referencedParameters(FunctionBody? body) {
+  if (body == null) return const {};
   var collector = _ReferencedParameterCollector();
-  constructor.body.accept(collector);
+  body.accept(collector);
   return collector.foundParameters;
 }
 
@@ -51,6 +51,7 @@ class UseSuperParameters extends MultiAnalysisRule {
 
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -73,9 +74,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   void check(
-    ConstructorDeclaration node,
+    Token errorToken,
     SuperConstructorInvocation superInvocation,
     FormalParameterList parameters,
+    FunctionBody? body,
   ) {
     var constructorElement = superInvocation.element;
     if (constructorElement == null) return;
@@ -83,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // TODO(pq): consolidate logic shared w/ server
     //  (https://github.com/dart-lang/linter/issues/3263)
 
-    var referencedParameters = _referencedParameters(node);
+    var referencedParameters = _referencedParameters(body);
 
     var identifiers = _checkForConvertiblePositionalParams(
       constructorElement,
@@ -115,15 +117,37 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    _reportLint(node, identifiers);
+    _reportLint(errorToken, identifiers);
   }
 
   @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
     for (var initializer in node.initializers.reversed) {
       if (initializer is SuperConstructorInvocation) {
-        check(node, initializer, node.parameters);
+        check(
+          node.name ?? node.typeName!.token,
+          initializer,
+          node.parameters,
+          node.body,
+        );
         return;
+      }
+    }
+  }
+
+  @override
+  visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.body case var body?) {
+      for (var initializer in body.initializers.reversed) {
+        if (initializer is SuperConstructorInvocation) {
+          check(
+            node.constructorName?.name ?? node.typeName,
+            initializer,
+            node.formalParameters,
+            body.body,
+          );
+          return;
+        }
       }
     }
   }
@@ -253,22 +277,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     return null;
   }
 
-  void _reportLint(ConstructorDeclaration node, List<String> identifiers) {
+  void _reportLint(Token errorToken, List<String> identifiers) {
     if (identifiers.isEmpty) return;
-    // TODO(scheglov): support primary constructors
-    var target = node.name ?? node.typeName!;
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
-      rule.reportAtOffset(
-        target.offset,
-        target.length,
+      rule.reportAtToken(
+        errorToken,
         diagnosticCode: diag.useSuperParametersMultiple,
         arguments: [msg],
       );
     } else {
-      rule.reportAtOffset(
-        target.offset,
-        target.length,
+      rule.reportAtToken(
+        errorToken,
         diagnosticCode: diag.useSuperParametersSingle,
         arguments: [identifiers.first],
       );
