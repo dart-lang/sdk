@@ -4398,8 +4398,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             problemReporting.wrapInProblem(
               compilerContext: compilerContext,
               expression: resultExpression,
-              message: diag.lateDefinitelyUnassignedError.withArgumentsOld(
-                name,
+              message: diag.lateDefinitelyUnassignedError.withArguments(
+                variableName: name,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
@@ -4415,8 +4415,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               problemReporting.wrapInProblem(
                 compilerContext: compilerContext,
                 expression: resultExpression,
-                message: diag.finalNotAssignedError.withArgumentsOld(
-                  node.variable.name!,
+                message: diag.finalNotAssignedError.withArguments(
+                  variableName: node.variable.name!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
@@ -4520,8 +4520,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             problemReporting.wrapInProblem(
               compilerContext: compilerContext,
               expression: resultExpression,
-              message: diag.lateDefinitelyAssignedError.withArgumentsOld(
-                node.variable.name!,
+              message: diag.lateDefinitelyAssignedError.withArguments(
+                variableName: node.variable.name!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
@@ -4536,8 +4536,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             problemReporting.wrapInProblem(
               compilerContext: compilerContext,
               expression: resultExpression,
-              message: diag.finalPossiblyAssignedError.withArgumentsOld(
-                node.variable.name!,
+              message: diag.finalPossiblyAssignedError.withArguments(
+                variableName: node.variable.name!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,

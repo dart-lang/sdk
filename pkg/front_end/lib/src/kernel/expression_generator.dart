@@ -606,8 +606,8 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     InvalidExpression error = _helper.buildProblem(
-      message: diag.cannotAssignToFinalVariable.withArgumentsOld(
-        variable.cosmeticName!,
+      message: diag.cannotAssignToFinalVariable.withArguments(
+        variableName: variable.cosmeticName!,
       ),
       fileUri: _helper.uri,
       fileOffset: fileOffset,
@@ -4888,8 +4888,8 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
     switch (kind) {
       case ReadOnlyAccessKind.ConstVariable:
         return _helper.buildProblem(
-          message: diag.cannotAssignToConstVariable.withArgumentsOld(
-            targetName,
+          message: diag.cannotAssignToConstVariable.withArguments(
+            variableName: targetName,
           ),
           fileUri: _helper.uri,
           fileOffset: fileOffset,
@@ -4898,8 +4898,8 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
         );
       case ReadOnlyAccessKind.FinalVariable:
         return _helper.buildProblem(
-          message: diag.cannotAssignToFinalVariable.withArgumentsOld(
-            targetName,
+          message: diag.cannotAssignToFinalVariable.withArguments(
+            variableName: targetName,
           ),
           fileUri: _helper.uri,
           fileOffset: fileOffset,

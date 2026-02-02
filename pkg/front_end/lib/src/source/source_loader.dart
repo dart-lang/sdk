@@ -2025,8 +2025,8 @@ severity: $severity
     if (!classBuilder.libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
       // Coverage-ignore-block(suite): Not run.
       classBuilder.libraryBuilder.addProblem(
-        diag.enumSupertypeOfNonAbstractClass.withArgumentsOld(
-          classBuilder.name,
+        diag.enumSupertypeOfNonAbstractClass.withArguments(
+          className: classBuilder.name,
         ),
         classBuilder.fileOffset,
         noLength,
@@ -2773,7 +2773,9 @@ severity: $severity
                 member.enclosingClass != classBuilder.cls &&
                 member.isAbstract == false) {
               classBuilder.libraryBuilder.addProblem(
-                diag.enumInheritsRestricted.withArgumentsOld(name.text),
+                diag.enumInheritsRestricted.withArguments(
+                  memberName: name.text,
+                ),
                 classBuilder.fileOffset,
                 classBuilder.name.length,
                 classBuilder.fileUri,
@@ -3132,9 +3134,9 @@ severity: $severity
           if (!typeEnvironment.isSubtypeOf(listOfString, parameterType)) {
             if (mainBuilder.libraryBuilder != libraryBuilder) {
               libraryBuilder.addProblem(
-                diag.mainWrongParameterTypeExported.withArgumentsOld(
-                  parameterType,
-                  listOfString,
+                diag.mainWrongParameterTypeExported.withArguments(
+                  actualType: parameterType,
+                  expectedType: listOfString,
                 ),
                 libraryBuilder.fileOffset,
                 noLength,
@@ -3149,9 +3151,9 @@ severity: $severity
               );
             } else {
               libraryBuilder.addProblem(
-                diag.mainWrongParameterType.withArgumentsOld(
-                  parameterType,
-                  listOfString,
+                diag.mainWrongParameterType.withArguments(
+                  actualType: parameterType,
+                  expectedType: listOfString,
                 ),
                 mainBuilder.fileOffset,
                 mainBuilder.name.length,

@@ -81,8 +81,8 @@ void _checkAugmentation(
                 )
               :
                 // Coverage-ignore(suite): Not run.
-                diag.unmatchedAugmentationClassMember.withArgumentsOld(
-                  declaration.displayName,
+                diag.unmatchedAugmentationClassMember.withArguments(
+                  memberName: declaration.displayName,
                 );
         }
       case _DeclarationKind.Mixin:

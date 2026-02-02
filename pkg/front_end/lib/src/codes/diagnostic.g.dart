@@ -570,8 +570,8 @@ Message _withArgumentsOldCandidateFoundIsDefaultConstructor(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 cannotAssignToConstVariable = const Template(
   "CannotAssignToConstVariable",
@@ -580,18 +580,21 @@ cannotAssignToConstVariable = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCannotAssignToConstVariable({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsCannotAssignToConstVariable({
+  required String variableName,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     cannotAssignToConstVariable,
-    problemMessage: """Can't assign to the const variable '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """Can't assign to the const variable '${variableName_0}'.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCannotAssignToConstVariable(String name) =>
-    _withArgumentsCannotAssignToConstVariable(name: name);
+Message _withArgumentsOldCannotAssignToConstVariable(String variableName) =>
+    _withArgumentsCannotAssignToConstVariable(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cannotAssignToExtensionThis = const MessageCode(
@@ -601,8 +604,8 @@ const MessageCode cannotAssignToExtensionThis = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 cannotAssignToFinalVariable = const Template(
   "CannotAssignToFinalVariable",
@@ -611,18 +614,21 @@ cannotAssignToFinalVariable = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCannotAssignToFinalVariable({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsCannotAssignToFinalVariable({
+  required String variableName,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     cannotAssignToFinalVariable,
-    problemMessage: """Can't assign to the final variable '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """Can't assign to the final variable '${variableName_0}'.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCannotAssignToFinalVariable(String name) =>
-    _withArgumentsCannotAssignToFinalVariable(name: name);
+Message _withArgumentsOldCannotAssignToFinalVariable(String variableName) =>
+    _withArgumentsCannotAssignToFinalVariable(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cannotAssignToParenthesizedExpression = const MessageCode(
@@ -3707,8 +3713,8 @@ Message _withArgumentsOldEnumImplementerContainsRestrictedInstanceDeclaration(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 enumImplementerContainsValuesDeclaration = const Template(
   "EnumImplementerContainsValuesDeclaration",
@@ -3718,26 +3724,28 @@ enumImplementerContainsValuesDeclaration = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsEnumImplementerContainsValuesDeclaration({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     enumImplementerContainsValuesDeclaration,
     problemMessage:
-        """'${name_0}' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
-    arguments: {'name': name},
+        """'${className_0}' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldEnumImplementerContainsValuesDeclaration(
-  String name,
-) => _withArgumentsEnumImplementerContainsValuesDeclaration(name: name);
+  String className,
+) => _withArgumentsEnumImplementerContainsValuesDeclaration(
+  className: className,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 enumInheritsRestricted = const Template(
   "EnumInheritsRestricted",
@@ -3746,18 +3754,19 @@ enumInheritsRestricted = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsEnumInheritsRestricted({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsEnumInheritsRestricted({required String memberName}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     enumInheritsRestricted,
-    problemMessage: """An enum can't inherit a member named '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """An enum can't inherit a member named '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumInheritsRestricted(String name) =>
-    _withArgumentsEnumInheritsRestricted(name: name);
+Message _withArgumentsOldEnumInheritsRestricted(String memberName) =>
+    _withArgumentsEnumInheritsRestricted(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode enumInheritsRestrictedMember = const MessageCode(
@@ -3780,8 +3789,8 @@ const MessageCode enumNonConstConstructor = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 enumSupertypeOfNonAbstractClass = const Template(
   "EnumSupertypeOfNonAbstractClass",
@@ -3790,19 +3799,21 @@ enumSupertypeOfNonAbstractClass = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsEnumSupertypeOfNonAbstractClass({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsEnumSupertypeOfNonAbstractClass({
+  required String className,
+}) {
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     enumSupertypeOfNonAbstractClass,
     problemMessage:
-        """Non-abstract class '${name_0}' has 'Enum' as a superinterface.""",
-    arguments: {'name': name},
+        """Non-abstract class '${className_0}' has 'Enum' as a superinterface.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldEnumSupertypeOfNonAbstractClass(String name) =>
-    _withArgumentsEnumSupertypeOfNonAbstractClass(name: name);
+Message _withArgumentsOldEnumSupertypeOfNonAbstractClass(String className) =>
+    _withArgumentsEnumSupertypeOfNonAbstractClass(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode enumWithNameValues = const MessageCode(
@@ -6129,8 +6140,8 @@ Message _withArgumentsOldFinalFieldNotInitializedByConstructor(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 finalNotAssignedError = const Template(
   "FinalNotAssignedError",
@@ -6139,24 +6150,24 @@ finalNotAssignedError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalNotAssignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFinalNotAssignedError({required String variableName}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     finalNotAssignedError,
     problemMessage:
-        """Final variable '${name_0}' must be assigned before it can be used.""",
-    arguments: {'name': name},
+        """Final variable '${variableName_0}' must be assigned before it can be used.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalNotAssignedError(String name) =>
-    _withArgumentsFinalNotAssignedError(name: name);
+Message _withArgumentsOldFinalNotAssignedError(String variableName) =>
+    _withArgumentsFinalNotAssignedError(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 finalPossiblyAssignedError = const Template(
   "FinalPossiblyAssignedError",
@@ -6165,19 +6176,21 @@ finalPossiblyAssignedError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFinalPossiblyAssignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFinalPossiblyAssignedError({
+  required String variableName,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     finalPossiblyAssignedError,
     problemMessage:
-        """Final variable '${name_0}' might already be assigned at this point.""",
-    arguments: {'name': name},
+        """Final variable '${variableName_0}' might already be assigned at this point.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalPossiblyAssignedError(String name) =>
-    _withArgumentsFinalPossiblyAssignedError(name: name);
+Message _withArgumentsOldFinalPossiblyAssignedError(String variableName) =>
+    _withArgumentsFinalPossiblyAssignedError(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7903,8 +7916,8 @@ Message _withArgumentsOldInstanceConflictsWithStaticCause(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType operandType),
+  Message Function({required DartType operandType})
 >
 instantiationNonGenericFunctionType = const Template(
   "InstantiationNonGenericFunctionType",
@@ -7914,29 +7927,31 @@ instantiationNonGenericFunctionType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInstantiationNonGenericFunctionType({
-  required DartType type,
+  required DartType operandType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var operandType_0 = labeler.labelType(operandType);
   return new Message(
     instantiationNonGenericFunctionType,
     problemMessage:
-        """The static type of the explicit instantiation operand must be a generic function type but is '${type_0}'.""" +
+        """The static type of the explicit instantiation operand must be a generic function type but is '${operandType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try changing the operand or remove the type arguments.""",
-    arguments: {'type': type},
+    arguments: {'operandType': operandType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstantiationNonGenericFunctionType(DartType type) =>
-    _withArgumentsInstantiationNonGenericFunctionType(type: type);
+Message _withArgumentsOldInstantiationNonGenericFunctionType(
+  DartType operandType,
+) =>
+    _withArgumentsInstantiationNonGenericFunctionType(operandType: operandType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType operandType),
+  Message Function({required DartType operandType})
 >
 instantiationNullableGenericFunctionType = const Template(
   "InstantiationNullableGenericFunctionType",
@@ -7946,30 +7961,32 @@ instantiationNullableGenericFunctionType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInstantiationNullableGenericFunctionType({
-  required DartType type,
+  required DartType operandType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var operandType_0 = labeler.labelType(operandType);
   return new Message(
     instantiationNullableGenericFunctionType,
     problemMessage:
-        """The static type of the explicit instantiation operand must be a non-null generic function type but is '${type_0}'.""" +
+        """The static type of the explicit instantiation operand must be a non-null generic function type but is '${operandType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try changing the operand or remove the type arguments.""",
-    arguments: {'type': type},
+    arguments: {'operandType': operandType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInstantiationNullableGenericFunctionType(
-  DartType type,
-) => _withArgumentsInstantiationNullableGenericFunctionType(type: type);
+  DartType operandType,
+) => _withArgumentsInstantiationNullableGenericFunctionType(
+  operandType: operandType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2),
-  Message Function({required int count, required int count2})
+  Message Function(int expectedCount, int actualCount),
+  Message Function({required int expectedCount, required int actualCount})
 >
 instantiationTooFewArguments = const Template(
   "InstantiationTooFewArguments",
@@ -7979,26 +7996,31 @@ instantiationTooFewArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInstantiationTooFewArguments({
-  required int count,
-  required int count2,
+  required int expectedCount,
+  required int actualCount,
 }) {
   return new Message(
     instantiationTooFewArguments,
     problemMessage:
-        """Too few type arguments: ${count} required, ${count2} given.""",
+        """Too few type arguments: ${expectedCount} required, ${actualCount} given.""",
     correctionMessage: """Try adding the missing type arguments.""",
-    arguments: {'count': count, 'count2': count2},
+    arguments: {'expectedCount': expectedCount, 'actualCount': actualCount},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstantiationTooFewArguments(int count, int count2) =>
-    _withArgumentsInstantiationTooFewArguments(count: count, count2: count2);
+Message _withArgumentsOldInstantiationTooFewArguments(
+  int expectedCount,
+  int actualCount,
+) => _withArgumentsInstantiationTooFewArguments(
+  expectedCount: expectedCount,
+  actualCount: actualCount,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2),
-  Message Function({required int count, required int count2})
+  Message Function(int expectedCount, int actualCount),
+  Message Function({required int expectedCount, required int actualCount})
 >
 instantiationTooManyArguments = const Template(
   "InstantiationTooManyArguments",
@@ -8008,21 +8030,26 @@ instantiationTooManyArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInstantiationTooManyArguments({
-  required int count,
-  required int count2,
+  required int expectedCount,
+  required int actualCount,
 }) {
   return new Message(
     instantiationTooManyArguments,
     problemMessage:
-        """Too many type arguments: ${count} allowed, but ${count2} found.""",
+        """Too many type arguments: ${expectedCount} allowed, but ${actualCount} found.""",
     correctionMessage: """Try removing the extra type arguments.""",
-    arguments: {'count': count, 'count2': count2},
+    arguments: {'expectedCount': expectedCount, 'actualCount': actualCount},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInstantiationTooManyArguments(int count, int count2) =>
-    _withArgumentsInstantiationTooManyArguments(count: count, count2: count2);
+Message _withArgumentsOldInstantiationTooManyArguments(
+  int expectedCount,
+  int actualCount,
+) => _withArgumentsInstantiationTooManyArguments(
+  expectedCount: expectedCount,
+  actualCount: actualCount,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11532,8 +11559,8 @@ Message _withArgumentsOldLanguageVersionTooLowPackage(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 lateDefinitelyAssignedError = const Template(
   "LateDefinitelyAssignedError",
@@ -11542,23 +11569,26 @@ lateDefinitelyAssignedError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLateDefinitelyAssignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsLateDefinitelyAssignedError({
+  required String variableName,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     lateDefinitelyAssignedError,
-    problemMessage: """Late final variable '${name_0}' definitely assigned.""",
-    arguments: {'name': name},
+    problemMessage:
+        """Late final variable '${variableName_0}' definitely assigned.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLateDefinitelyAssignedError(String name) =>
-    _withArgumentsLateDefinitelyAssignedError(name: name);
+Message _withArgumentsOldLateDefinitelyAssignedError(String variableName) =>
+    _withArgumentsLateDefinitelyAssignedError(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 lateDefinitelyUnassignedError = const Template(
   "LateDefinitelyUnassignedError",
@@ -11567,19 +11597,21 @@ lateDefinitelyUnassignedError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLateDefinitelyUnassignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsLateDefinitelyUnassignedError({
+  required String variableName,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     lateDefinitelyUnassignedError,
     problemMessage:
-        """Late variable '${name_0}' without initializer is definitely unassigned.""",
-    arguments: {'name': name},
+        """Late variable '${variableName_0}' without initializer is definitely unassigned.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLateDefinitelyUnassignedError(String name) =>
-    _withArgumentsLateDefinitelyUnassignedError(name: name);
+Message _withArgumentsOldLateDefinitelyUnassignedError(String variableName) =>
+    _withArgumentsLateDefinitelyUnassignedError(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode listLiteralTooManyTypeArguments = const MessageCode(
@@ -11696,8 +11728,11 @@ const MessageCode mainTooManyRequiredParametersExported = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 mainWrongParameterType = const Template(
   "MainWrongParameterType",
@@ -11707,31 +11742,37 @@ mainWrongParameterType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMainWrongParameterType({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     mainWrongParameterType,
     problemMessage:
-        """The type '${type_0}' of the first parameter of the 'main' method is not a supertype of '${type2_0}'.""" +
+        """The type '${actualType_0}' of the first parameter of the 'main' method is not a supertype of '${expectedType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMainWrongParameterType(
-  DartType type,
-  DartType type2,
-) => _withArgumentsMainWrongParameterType(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsMainWrongParameterType(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 mainWrongParameterTypeExported = const Template(
   "MainWrongParameterTypeExported",
@@ -11741,26 +11782,29 @@ mainWrongParameterTypeExported = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMainWrongParameterTypeExported({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     mainWrongParameterTypeExported,
     problemMessage:
-        """The type '${type_0}' of the first parameter of the exported 'main' method is not a supertype of '${type2_0}'.""" +
+        """The type '${actualType_0}' of the first parameter of the exported 'main' method is not a supertype of '${expectedType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMainWrongParameterTypeExported(
-  DartType type,
-  DartType type2,
-) => _withArgumentsMainWrongParameterTypeExported(type: type, type2: type2);
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsMainWrongParameterTypeExported(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mapPatternTypeArgumentMismatch = const MessageCode(
@@ -16705,8 +16749,8 @@ Message _withArgumentsOldUnmatchedAugmentationClass(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 unmatchedAugmentationClassMember = const Template(
   "UnmatchedAugmentationClassMember",
@@ -16715,21 +16759,23 @@ unmatchedAugmentationClassMember = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationClassMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsUnmatchedAugmentationClassMember({
+  required String memberName,
+}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     unmatchedAugmentationClassMember,
     problemMessage:
-        """Augmentation member '${name_0}' doesn't match a member in the augmented class.""",
+        """Augmentation member '${memberName_0}' doesn't match a member in the augmented class.""",
     correctionMessage:
         """Try changing the name to an existing member or removing the 'augment' modifier.""",
-    arguments: {'name': name},
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationClassMember(String name) =>
-    _withArgumentsUnmatchedAugmentationClassMember(name: name);
+Message _withArgumentsOldUnmatchedAugmentationClassMember(String memberName) =>
+    _withArgumentsUnmatchedAugmentationClassMember(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

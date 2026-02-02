@@ -808,7 +808,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
         libraryBuilder.addProblem(
-          diag.enumSupertypeOfNonAbstractClass.withArgumentsOld(name),
+          diag.enumSupertypeOfNonAbstractClass.withArguments(className: name),
           fileOffset,
           noLength,
           fileUri,
@@ -837,8 +837,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             length = uriOffset.length;
           }
           libraryBuilder.addProblem(
-            diag.enumImplementerContainsValuesDeclaration.withArgumentsOld(
-              this.name,
+            diag.enumImplementerContainsValuesDeclaration.withArguments(
+              className: this.name,
             ),
             fileOffset,
             length,
@@ -864,8 +864,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             length = uriOffset.length;
           }
           libraryBuilder.addProblem(
-            diag.enumImplementerContainsValuesDeclaration.withArgumentsOld(
-              this.name,
+            diag.enumImplementerContainsValuesDeclaration.withArguments(
+              className: this.name,
             ),
             fileOffset,
             length,

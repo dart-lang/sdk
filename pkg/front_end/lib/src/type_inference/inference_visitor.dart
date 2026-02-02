@@ -976,7 +976,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           result = problemReporting.buildProblem(
             compilerContext: compilerContext,
             message: diag.instantiationNullableGenericFunctionType
-                .withArgumentsOld(operandType),
+                .withArguments(operandType: operandType),
             fileUri: fileUri,
             fileOffset: node.fileOffset,
             length: noLength,
@@ -991,8 +991,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (operandType.typeParameters.isEmpty) {
           result = problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: diag.instantiationNonGenericFunctionType.withArgumentsOld(
-              operandType,
+            message: diag.instantiationNonGenericFunctionType.withArguments(
+              operandType: operandType,
             ),
             fileUri: fileUri,
             fileOffset: node.fileOffset,
@@ -1002,9 +1002,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             node.typeArguments.length) {
           result = problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: diag.instantiationTooFewArguments.withArgumentsOld(
-              operandType.typeParameters.length,
-              node.typeArguments.length,
+            message: diag.instantiationTooFewArguments.withArguments(
+              expectedCount: operandType.typeParameters.length,
+              actualCount: node.typeArguments.length,
             ),
             fileUri: fileUri,
             fileOffset: node.fileOffset,
@@ -1014,9 +1014,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             node.typeArguments.length) {
           result = problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: diag.instantiationTooManyArguments.withArgumentsOld(
-              operandType.typeParameters.length,
-              node.typeArguments.length,
+            message: diag.instantiationTooManyArguments.withArguments(
+              expectedCount: operandType.typeParameters.length,
+              actualCount: node.typeArguments.length,
             ),
             fileUri: fileUri,
             fileOffset: node.fileOffset,
@@ -1027,8 +1027,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (operandType is! InvalidType) {
       result = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: diag.instantiationNonGenericFunctionType.withArgumentsOld(
-          operandType,
+        message: diag.instantiationNonGenericFunctionType.withArguments(
+          operandType: operandType,
         ),
         fileUri: fileUri,
         fileOffset: node.fileOffset,
@@ -16106,8 +16106,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         replacement = new InvalidPattern(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: diag.lateDefinitelyAssignedError.withArgumentsOld(
-              node.variable.name!,
+            message: diag.lateDefinitelyAssignedError.withArguments(
+              variableName: node.variable.name!,
             ),
             fileUri: fileUri,
             fileOffset: node.fileOffset,
@@ -16121,8 +16121,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         replacement = new InvalidPattern(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: diag.finalPossiblyAssignedError.withArgumentsOld(
-              node.variable.name!,
+            message: diag.finalPossiblyAssignedError.withArguments(
+              variableName: node.variable.name!,
             ),
             fileUri: fileUri,
             fileOffset: node.fileOffset,
@@ -16135,8 +16135,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = new InvalidPattern(
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.cannotAssignToFinalVariable.withArgumentsOld(
-            node.variable.name!,
+          message: diag.cannotAssignToFinalVariable.withArguments(
+            variableName: node.variable.name!,
           ),
           fileUri: fileUri,
           fileOffset: node.fileOffset,
