@@ -12410,10 +12410,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         return wrapExpressionInferenceResultInProblem(
           new ExpressionInferenceResult(const InvalidType(), node),
-          diag.indexOutOfBoundInRecordIndexGet.withArgumentsOld(
-            node.index,
-            receiverType.positional.length,
-            receiverType,
+          diag.indexOutOfBoundInRecordIndexGet.withArguments(
+            index: node.index,
+            positionalFieldCount: receiverType.positional.length,
+            recordType: receiverType,
           ),
           node.fileOffset,
           noLength,
@@ -12461,9 +12461,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         return wrapExpressionInferenceResultInProblem(
           new ExpressionInferenceResult(const InvalidType(), node),
-          diag.nameNotFoundInRecordNameGet.withArgumentsOld(
-            node.name,
-            receiverType,
+          diag.nameNotFoundInRecordNameGet.withArguments(
+            fieldName: node.name,
+            recordType: receiverType,
           ),
           node.fileOffset,
           noLength,

@@ -6820,16 +6820,16 @@ noAugmentSuperInvokeTarget:
 
 indexOutOfBoundInRecordIndexGet:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    Type type: undocumented
-  problemMessage: "Index #count is out of range 0..#count2 of positional fields of records #type."
+    int index: The index that was used.
+    int positionalFieldCount: The number of positional fields.
+    Type recordType: The record type in question.
+  problemMessage: "Index #index is out of range 0..#positionalFieldCount of positional fields of records #recordType."
 
 nameNotFoundInRecordNameGet:
   parameters:
-    String string: undocumented
-    Type type: undocumented
-  problemMessage: "Field name #string isn't found in records of type #type."
+    String fieldName: The field name that was not found.
+    Type recordType: The record type in question.
+  problemMessage: "Field name #fieldName isn't found in records of type #recordType."
 
 objectMemberNameUsedForRecordField:
   parameters: none
@@ -6860,17 +6860,17 @@ enumWithNameValues:
 
 inheritedRestrictedMemberOfEnumImplementer:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'."
+    Name memberName: The name of the restricted member.
+    Name superclassName: The name of the superclass the restricted member can't be inherited from.
+  problemMessage: "A concrete instance member named '#memberName' can't be inherited from '#superclassName' in a class that implements 'Enum'."
   script: |
     abstract class A { int get hashCode => 0; }
     abstract class B extends A implements Enum {}
 
 sealedClassSubtypeOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
+    Name sealedClassName: The name of the sealed class.
+  problemMessage: "The class '#sealedClassName' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
   script:
     main.dart:
       import 'lib.dart';
@@ -6880,8 +6880,8 @@ sealedClassSubtypeOutsideOfLibrary:
 
 cantUseClassAsMixin:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin."
+    Name className: The name of the class that can't be used as a mixin.
+  problemMessage: "The class '#className' can't be used as a mixin because it isn't a mixin class nor a mixin."
   script:
     main.dart:
       import 'lib.dart';
@@ -6902,9 +6902,9 @@ baseClassImplementedOutsideOfLibrary:
 
 baseOrFinalClassImplementedOutsideOfLibraryCause:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#name' is a subtype of '#name2', and '#name2' is defined here."
+    Name subtypeName: The name of the subtype.
+    Name causeName: The name of the supertype, which is the cause being identified by this context message.
+  problemMessage: "The type '#subtypeName' is a subtype of '#causeName', and '#causeName' is defined here."
   severity: CONTEXT
 
 baseMixinImplementedOutsideOfLibrary:
@@ -6920,8 +6920,8 @@ baseMixinImplementedOutsideOfLibrary:
 
 interfaceClassExtendedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be extended outside of its library because it's an interface class."
+    Name interfaceClassName: The name of the class that can't be extended outsibe of its library.
+  problemMessage: "The class '#interfaceClassName' can't be extended outside of its library because it's an interface class."
   script:
     main.dart:
       import 'lib.dart';

@@ -874,9 +874,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
         if (superclassDeclaringConcreteValues != null) {
           libraryBuilder.addProblem(
-            diag.inheritedRestrictedMemberOfEnumImplementer.withArgumentsOld(
-              "values",
-              superclassDeclaringConcreteValues.name,
+            diag.inheritedRestrictedMemberOfEnumImplementer.withArguments(
+              memberName: "values",
+              superclassName: superclassDeclaringConcreteValues.name,
             ),
             fileOffset,
             noLength,
@@ -906,9 +906,9 @@ class SourceClassBuilder extends ClassBuilderImpl
             ClassBuilder restrictedNameMemberProvider =
                 restrictedMembersInSuperclasses[restrictedMemberName]!;
             libraryBuilder.addProblem(
-              diag.inheritedRestrictedMemberOfEnumImplementer.withArgumentsOld(
-                restrictedMemberName,
-                restrictedNameMemberProvider.name,
+              diag.inheritedRestrictedMemberOfEnumImplementer.withArguments(
+                memberName: restrictedMemberName,
+                superclassName: restrictedNameMemberProvider.name,
               ),
               fileOffset,
               noLength,

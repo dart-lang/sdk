@@ -2409,8 +2409,8 @@ severity: $severity
               !mayIgnoreClassModifiers(supertypeDeclaration)) {
             if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
               cls.libraryBuilder.addProblem(
-                diag.interfaceClassExtendedOutsideOfLibrary.withArgumentsOld(
-                  supertypeDeclaration.fullNameForErrors,
+                diag.interfaceClassExtendedOutsideOfLibrary.withArguments(
+                  interfaceClassName: supertypeDeclaration.fullNameForErrors,
                 ),
                 supertypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength,
@@ -2449,8 +2449,8 @@ severity: $severity
             supertypeDeclaration.isSealed &&
             cls.libraryBuilder != supertypeDeclaration.libraryBuilder) {
           cls.libraryBuilder.addProblem(
-            diag.sealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
-              supertypeDeclaration.fullNameForErrors,
+            diag.sealedClassSubtypeOutsideOfLibrary.withArguments(
+              sealedClassName: supertypeDeclaration.fullNameForErrors,
             ),
             supertypeBuilder.charOffset ?? TreeNode.noOffset,
             noLength,
@@ -2476,8 +2476,8 @@ severity: $severity
               !mixedInTypeDeclaration.isMixinClass &&
               !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
             cls.libraryBuilder.addProblem(
-              diag.cantUseClassAsMixin.withArgumentsOld(
-                mixedInTypeDeclaration.fullNameForErrors,
+              diag.cantUseClassAsMixin.withArguments(
+                className: mixedInTypeDeclaration.fullNameForErrors,
               ),
               mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
               noLength,
@@ -2492,8 +2492,8 @@ severity: $severity
             mixedInTypeDeclaration.isSealed &&
             cls.libraryBuilder != mixedInTypeDeclaration.libraryBuilder) {
           cls.libraryBuilder.addProblem(
-            diag.sealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
-              mixedInTypeDeclaration.fullNameForErrors,
+            diag.sealedClassSubtypeOutsideOfLibrary.withArguments(
+              sealedClassName: mixedInTypeDeclaration.fullNameForErrors,
             ),
             mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
             noLength,
@@ -2522,9 +2522,9 @@ severity: $severity
               final List<LocatedMessage> context = [
                 if (checkedClass != interfaceDeclaration)
                   diag.baseOrFinalClassImplementedOutsideOfLibraryCause
-                      .withArgumentsOld(
-                        interfaceDeclaration.fullNameForErrors,
-                        checkedClass.fullNameForErrors,
+                      .withArguments(
+                        subtypeName: interfaceDeclaration.fullNameForErrors,
+                        causeName: checkedClass.fullNameForErrors,
                       )
                       .withLocation(
                         checkedClass.fileUri,
@@ -2581,8 +2581,8 @@ severity: $severity
               interfaceDeclaration.isSealed &&
               cls.libraryBuilder != interfaceDeclaration.libraryBuilder) {
             cls.libraryBuilder.addProblem(
-              diag.sealedClassSubtypeOutsideOfLibrary.withArgumentsOld(
-                interfaceDeclaration.fullNameForErrors,
+              diag.sealedClassSubtypeOutsideOfLibrary.withArguments(
+                sealedClassName: interfaceDeclaration.fullNameForErrors,
               ),
               interfaceBuilder.charOffset ?? TreeNode.noOffset,
               noLength,

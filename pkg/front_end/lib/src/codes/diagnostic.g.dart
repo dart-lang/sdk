@@ -372,8 +372,8 @@ Message _withArgumentsOldBaseMixinImplementedOutsideOfLibrary(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String subtypeName, String causeName),
+  Message Function({required String subtypeName, required String causeName})
 >
 baseOrFinalClassImplementedOutsideOfLibraryCause = const Template(
   "BaseOrFinalClassImplementedOutsideOfLibraryCause",
@@ -385,26 +385,26 @@ baseOrFinalClassImplementedOutsideOfLibraryCause = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBaseOrFinalClassImplementedOutsideOfLibraryCause({
-  required String name,
-  required String name2,
+  required String subtypeName,
+  required String causeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var subtypeName_0 = conversions.validateAndDemangleName(subtypeName);
+  var causeName_0 = conversions.validateAndDemangleName(causeName);
   return new Message(
     baseOrFinalClassImplementedOutsideOfLibraryCause,
     problemMessage:
-        """The type '${name_0}' is a subtype of '${name2_0}', and '${name2_0}' is defined here.""",
-    arguments: {'name': name, 'name2': name2},
+        """The type '${subtypeName_0}' is a subtype of '${causeName_0}', and '${causeName_0}' is defined here.""",
+    arguments: {'subtypeName': subtypeName, 'causeName': causeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldBaseOrFinalClassImplementedOutsideOfLibraryCause(
-  String name,
-  String name2,
+  String subtypeName,
+  String causeName,
 ) => _withArgumentsBaseOrFinalClassImplementedOutsideOfLibraryCause(
-  name: name,
-  name2: name2,
+  subtypeName: subtypeName,
+  causeName: causeName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -906,8 +906,8 @@ Message _withArgumentsOldCantReadFile(Uri uri, String details) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 cantUseClassAsMixin = const Template(
   "CantUseClassAsMixin",
@@ -916,19 +916,19 @@ cantUseClassAsMixin = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantUseClassAsMixin({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsCantUseClassAsMixin({required String className}) {
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     cantUseClassAsMixin,
     problemMessage:
-        """The class '${name_0}' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
-    arguments: {'name': name},
+        """The class '${className_0}' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantUseClassAsMixin(String name) =>
-    _withArgumentsCantUseClassAsMixin(name: name);
+Message _withArgumentsOldCantUseClassAsMixin(String className) =>
+    _withArgumentsCantUseClassAsMixin(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -7412,11 +7412,11 @@ Message _withArgumentsOldIncrementalCompilerIllegalTypeParameter(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, DartType type),
+  Message Function(int index, int positionalFieldCount, DartType recordType),
   Message Function({
-    required int count,
-    required int count2,
-    required DartType type,
+    required int index,
+    required int positionalFieldCount,
+    required DartType recordType,
   })
 >
 indexOutOfBoundInRecordIndexGet = const Template(
@@ -7427,30 +7427,34 @@ indexOutOfBoundInRecordIndexGet = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIndexOutOfBoundInRecordIndexGet({
-  required int count,
-  required int count2,
-  required DartType type,
+  required int index,
+  required int positionalFieldCount,
+  required DartType recordType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var recordType_0 = labeler.labelType(recordType);
   return new Message(
     indexOutOfBoundInRecordIndexGet,
     problemMessage:
-        """Index ${count} is out of range 0..${count2} of positional fields of records ${type_0}.""" +
+        """Index ${index} is out of range 0..${positionalFieldCount} of positional fields of records ${recordType_0}.""" +
         labeler.originMessages,
-    arguments: {'count': count, 'count2': count2, 'type': type},
+    arguments: {
+      'index': index,
+      'positionalFieldCount': positionalFieldCount,
+      'recordType': recordType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIndexOutOfBoundInRecordIndexGet(
-  int count,
-  int count2,
-  DartType type,
+  int index,
+  int positionalFieldCount,
+  DartType recordType,
 ) => _withArgumentsIndexOutOfBoundInRecordIndexGet(
-  count: count,
-  count2: count2,
-  type: type,
+  index: index,
+  positionalFieldCount: positionalFieldCount,
+  recordType: recordType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7475,8 +7479,8 @@ const MessageCode inheritedMembersConflictCause2 = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String memberName, String superclassName),
+  Message Function({required String memberName, required String superclassName})
 >
 inheritedRestrictedMemberOfEnumImplementer = const Template(
   "InheritedRestrictedMemberOfEnumImplementer",
@@ -7486,26 +7490,26 @@ inheritedRestrictedMemberOfEnumImplementer = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInheritedRestrictedMemberOfEnumImplementer({
-  required String name,
-  required String name2,
+  required String memberName,
+  required String superclassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
+  var superclassName_0 = conversions.validateAndDemangleName(superclassName);
   return new Message(
     inheritedRestrictedMemberOfEnumImplementer,
     problemMessage:
-        """A concrete instance member named '${name_0}' can't be inherited from '${name2_0}' in a class that implements 'Enum'.""",
-    arguments: {'name': name, 'name2': name2},
+        """A concrete instance member named '${memberName_0}' can't be inherited from '${superclassName_0}' in a class that implements 'Enum'.""",
+    arguments: {'memberName': memberName, 'superclassName': superclassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInheritedRestrictedMemberOfEnumImplementer(
-  String name,
-  String name2,
+  String memberName,
+  String superclassName,
 ) => _withArgumentsInheritedRestrictedMemberOfEnumImplementer(
-  name: name,
-  name2: name2,
+  memberName: memberName,
+  superclassName: superclassName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8111,8 +8115,8 @@ Message _withArgumentsOldInterfaceCheck(String memberName, String className) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String interfaceClassName),
+  Message Function({required String interfaceClassName})
 >
 interfaceClassExtendedOutsideOfLibrary = const Template(
   "InterfaceClassExtendedOutsideOfLibrary",
@@ -8122,20 +8126,25 @@ interfaceClassExtendedOutsideOfLibrary = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary({
-  required String name,
+  required String interfaceClassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var interfaceClassName_0 = conversions.validateAndDemangleName(
+    interfaceClassName,
+  );
   return new Message(
     interfaceClassExtendedOutsideOfLibrary,
     problemMessage:
-        """The class '${name_0}' can't be extended outside of its library because it's an interface class.""",
-    arguments: {'name': name},
+        """The class '${interfaceClassName_0}' can't be extended outside of its library because it's an interface class.""",
+    arguments: {'interfaceClassName': interfaceClassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInterfaceClassExtendedOutsideOfLibrary(String name) =>
-    _withArgumentsInterfaceClassExtendedOutsideOfLibrary(name: name);
+Message _withArgumentsOldInterfaceClassExtendedOutsideOfLibrary(
+  String interfaceClassName,
+) => _withArgumentsInterfaceClassExtendedOutsideOfLibrary(
+  interfaceClassName: interfaceClassName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode internalProblemAlreadyInitialized = const MessageCode(
@@ -12537,8 +12546,8 @@ Message _withArgumentsOldNameNotFound(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, DartType type),
-  Message Function({required String string, required DartType type})
+  Message Function(String fieldName, DartType recordType),
+  Message Function({required String fieldName, required DartType recordType})
 >
 nameNotFoundInRecordNameGet = const Template(
   "NameNotFoundInRecordNameGet",
@@ -12548,26 +12557,29 @@ nameNotFoundInRecordNameGet = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNameNotFoundInRecordNameGet({
-  required String string,
-  required DartType type,
+  required String fieldName,
+  required DartType recordType,
 }) {
-  var string_0 = conversions.validateString(string);
+  var fieldName_0 = conversions.validateString(fieldName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var recordType_0 = labeler.labelType(recordType);
   return new Message(
     nameNotFoundInRecordNameGet,
     problemMessage:
-        """Field name ${string_0} isn't found in records of type ${type_0}.""" +
+        """Field name ${fieldName_0} isn't found in records of type ${recordType_0}.""" +
         labeler.originMessages,
-    arguments: {'string': string, 'type': type},
+    arguments: {'fieldName': fieldName, 'recordType': recordType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldNameNotFoundInRecordNameGet(
-  String string,
-  DartType type,
-) => _withArgumentsNameNotFoundInRecordNameGet(string: string, type: type);
+  String fieldName,
+  DartType recordType,
+) => _withArgumentsNameNotFoundInRecordNameGet(
+  fieldName: fieldName,
+  recordType: recordType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -14987,8 +14999,8 @@ Message _withArgumentsOldSdkSummaryNotFound(Uri uri) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String sealedClassName),
+  Message Function({required String sealedClassName})
 >
 sealedClassSubtypeOutsideOfLibrary = const Template(
   "SealedClassSubtypeOutsideOfLibrary",
@@ -14998,20 +15010,23 @@ sealedClassSubtypeOutsideOfLibrary = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSealedClassSubtypeOutsideOfLibrary({
-  required String name,
+  required String sealedClassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var sealedClassName_0 = conversions.validateAndDemangleName(sealedClassName);
   return new Message(
     sealedClassSubtypeOutsideOfLibrary,
     problemMessage:
-        """The class '${name_0}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
-    arguments: {'name': name},
+        """The class '${sealedClassName_0}' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
+    arguments: {'sealedClassName': sealedClassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSealedClassSubtypeOutsideOfLibrary(String name) =>
-    _withArgumentsSealedClassSubtypeOutsideOfLibrary(name: name);
+Message _withArgumentsOldSealedClassSubtypeOutsideOfLibrary(
+  String sealedClassName,
+) => _withArgumentsSealedClassSubtypeOutsideOfLibrary(
+  sealedClassName: sealedClassName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
