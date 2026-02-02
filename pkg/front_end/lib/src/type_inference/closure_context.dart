@@ -406,7 +406,9 @@ class _SyncClosureContext implements ClosureContext {
         inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = fileOffset,
-          message: diag.implicitReturnNull.withArgumentsOld(returnType),
+          message: diag.implicitReturnNull.withArguments(
+            returnType: returnType,
+          ),
           fileUri: inferrer.fileUri,
           fileOffset: fileOffset,
           length: noLength,
@@ -711,7 +713,9 @@ class _AsyncClosureContext implements ClosureContext {
         inferrer.problemReporting.wrapInProblem(
           compilerContext: inferrer.compilerContext,
           expression: new NullLiteral()..fileOffset = fileOffset,
-          message: diag.implicitReturnNull.withArgumentsOld(returnType),
+          message: diag.implicitReturnNull.withArguments(
+            returnType: returnType,
+          ),
           fileUri: inferrer.fileUri,
           fileOffset: fileOffset,
           length: noLength,

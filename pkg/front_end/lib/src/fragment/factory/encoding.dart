@@ -554,9 +554,10 @@ class FactoryEncoding implements InferredTypeListener {
     if (_isCyclicRedirectingFactory(factoryBuilder)) {
       _addProblemForRedirectingFactory(
         libraryBuilder: libraryBuilder,
-        message: diag.cyclicRedirectingFactoryConstructors.withArgumentsOld(
-          "${factoryBuilder.declarationBuilder.name}"
-          "${_fragment.name == '' ? '' : '.${_fragment.name}'}",
+        message: diag.cyclicRedirectingFactoryConstructors.withArguments(
+          factoryName:
+              "${factoryBuilder.declarationBuilder.name}"
+              "${_fragment.name == '' ? '' : '.${_fragment.name}'}",
         ),
         fileOffset: _fragment.fullNameOffset,
         length: noLength,
@@ -628,9 +629,9 @@ class FactoryEncoding implements InferredTypeListener {
       )) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: diag.incompatibleRedirecteeFunctionType.withArgumentsOld(
-            redirecteeType,
-            factoryTypeWithoutTypeParameters,
+          message: diag.incompatibleRedirecteeFunctionType.withArguments(
+            redirecteeType: redirecteeType,
+            expectedType: factoryTypeWithoutTypeParameters,
           ),
           fileOffset: _redirectionTarget.charOffset,
           length: noLength,
@@ -726,7 +727,10 @@ class FactoryEncoding implements InferredTypeListener {
           _addProblemForRedirectingFactory(
             libraryBuilder: libraryBuilder,
             message: diag.redirectingFactoryIncompatibleTypeArgument
-                .withArgumentsOld(typeArgument, typeParameterBound),
+                .withArguments(
+                  typeArgumentType: typeArgument,
+                  expectedType: typeParameterBound,
+                ),
             fileOffset: redirectionTarget.charOffset,
             length: noLength,
             fileUri: redirectionTarget.fileUri,
@@ -738,7 +742,10 @@ class FactoryEncoding implements InferredTypeListener {
             _addProblemForRedirectingFactory(
               libraryBuilder: libraryBuilder,
               message: diag.redirectingFactoryIncompatibleTypeArgument
-                  .withArgumentsOld(typeArgument, typeParameterBound),
+                  .withArguments(
+                    typeArgumentType: typeArgument,
+                    expectedType: typeParameterBound,
+                  ),
               fileOffset: redirectionTarget.charOffset,
               length: noLength,
               fileUri: redirectionTarget.fileUri,

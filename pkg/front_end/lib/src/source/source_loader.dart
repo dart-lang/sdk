@@ -1138,7 +1138,7 @@ severity: $severity
           _unavailableDartLibraries.add(compilationUnit);
         } else {
           compilationUnit.addProblemAtAccessors(
-            diag.untranslatableUri.withArgumentsOld(importUri),
+            diag.untranslatableUri.withArguments(uri: importUri),
           );
         }
         bytes = synthesizeSourceForMissingFile(importUri, null);
@@ -1166,9 +1166,9 @@ severity: $severity
       try {
         rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
       } on FileSystemException catch (e) {
-        Message message = diag.cantReadFile.withArgumentsOld(
-          fileUri,
-          target.context.options.osErrorMessage(e.message),
+        Message message = diag.cantReadFile.withArguments(
+          uri: fileUri,
+          details: target.context.options.osErrorMessage(e.message),
         );
         compilationUnit.addProblemAtAccessors(message);
         rawBytes = synthesizeSourceForMissingFile(
@@ -1334,19 +1334,25 @@ severity: $severity
             if (importChain.containsAll(verboseImportChain)) {
               context = [
                 diag.importChainContextSimple
-                    .withArgumentsOld(
-                      compilationUnit.importUri,
-                      importChain.map((part) => '    $part\n').join(),
+                    .withArguments(
+                      uri: compilationUnit.importUri,
+                      importChain: importChain
+                          .map((part) => '    $part\n')
+                          .join(),
                     )
                     .withoutLocation(),
               ];
             } else {
               context = [
                 diag.importChainContext
-                    .withArgumentsOld(
-                      compilationUnit.importUri,
-                      importChain.map((part) => '    $part\n').join(),
-                      verboseImportChain.map((part) => '    $part\n').join(),
+                    .withArguments(
+                      uri: compilationUnit.importUri,
+                      importChain: importChain
+                          .map((part) => '    $part\n')
+                          .join(),
+                      verboseImportChain: verboseImportChain
+                          .map((part) => '    $part\n')
+                          .join(),
                     )
                     .withoutLocation(),
               ];

@@ -718,12 +718,18 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FileSystemException catch (e) {
       reportWithoutLocation(
-        diag.cantReadFile.withArgumentsOld(uri, osErrorMessage(e.message)),
+        diag.cantReadFile.withArguments(
+          uri: uri,
+          details: osErrorMessage(e.message),
+        ),
         CfeSeverity.error,
       );
     } catch (e) {
       // Coverage-ignore-block(suite): Not run.
-      Message message = diag.exceptionReadingFile.withArgumentsOld(uri, '$e');
+      Message message = diag.exceptionReadingFile.withArguments(
+        uri: uri,
+        exception: '$e',
+      );
       reportWithoutLocation(message, CfeSeverity.error);
       // We throw a new exception to ensure that the message include the uri
       // that led to the exception. Exceptions in Uri don't include the
@@ -755,7 +761,7 @@ class ProcessedOptions {
         if (error is FormatException) {
           reportNoSourceLine(
             diag.packagesFileFormat
-                .withArgumentsOld(error.message)
+                .withArguments(details: error.message)
                 .withLocation(
                   requestedUri,
                   error.offset ?? // Coverage-ignore(suite): Not run.
@@ -767,9 +773,9 @@ class ProcessedOptions {
         } else {
           // Coverage-ignore-block(suite): Not run.
           reportWithoutLocation(
-            diag.cantReadFile.withArgumentsOld(
-              requestedUri,
-              osErrorMessage(error),
+            diag.cantReadFile.withArguments(
+              uri: requestedUri,
+              details: osErrorMessage(error),
             ),
             CfeSeverity.error,
           );
@@ -784,14 +790,14 @@ class ProcessedOptions {
     on FormatException catch (e) {
       reportNoSourceLine(
         diag.packagesFileFormat
-            .withArgumentsOld(e.message)
+            .withArguments(details: e.message)
             .withLocation(requestedUri, e.offset ?? -1, noLength),
         CfeSeverity.error,
       );
     } catch (e) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-        diag.cantReadFile.withArgumentsOld(requestedUri, "$e"),
+        diag.cantReadFile.withArguments(uri: requestedUri, details: "$e"),
         CfeSeverity.error,
       );
     }
@@ -842,9 +848,9 @@ class ProcessedOptions {
         if (await fileSystem.entityForUri(candidate).exists()) return candidate;
         return null;
       } catch (e) {
-        Message message = diag.exceptionReadingFile.withArgumentsOld(
-          candidate!,
-          '$e',
+        Message message = diag.exceptionReadingFile.withArguments(
+          uri: candidate!,
+          exception: '$e',
         );
         reportWithoutLocation(message, CfeSeverity.error);
         // We throw a new exception to ensure that the message include the uri
@@ -981,9 +987,9 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FileSystemException catch (error) {
       reportWithoutLocation(
-        diag.cantReadFile.withArgumentsOld(
-          error.uri,
-          osErrorMessage(error.message),
+        diag.cantReadFile.withArguments(
+          uri: error.uri,
+          details: osErrorMessage(error.message),
         ),
         CfeSeverity.error,
       );
@@ -998,9 +1004,9 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FileSystemException catch (error) {
       reportWithoutLocation(
-        diag.cantReadFile.withArgumentsOld(
-          error.uri,
-          osErrorMessage(error.message),
+        diag.cantReadFile.withArguments(
+          uri: error.uri,
+          details: osErrorMessage(error.message),
         ),
         CfeSeverity.error,
       );

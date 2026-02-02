@@ -409,8 +409,8 @@ Message _withArgumentsOldBaseOrFinalClassImplementedOutsideOfLibraryCause(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String typeName, String firstTypeInCycle),
+  Message Function({required String typeName, required String firstTypeInCycle})
 >
 boundIssueViaCycleNonSimplicity = const Template(
   "BoundIssueViaCycleNonSimplicity",
@@ -420,31 +420,36 @@ boundIssueViaCycleNonSimplicity = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBoundIssueViaCycleNonSimplicity({
-  required String name,
-  required String name2,
+  required String typeName,
+  required String firstTypeInCycle,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
+  var firstTypeInCycle_0 = conversions.validateAndDemangleName(
+    firstTypeInCycle,
+  );
   return new Message(
     boundIssueViaCycleNonSimplicity,
     problemMessage:
-        """Generic type '${name_0}' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '${name2_0}'.""",
+        """Generic type '${typeName_0}' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '${firstTypeInCycle_0}'.""",
     correctionMessage:
-        """Try providing type arguments to '${name2_0}' here or to some other raw types in the bounds along the reference chain.""",
-    arguments: {'name': name, 'name2': name2},
+        """Try providing type arguments to '${firstTypeInCycle_0}' here or to some other raw types in the bounds along the reference chain.""",
+    arguments: {'typeName': typeName, 'firstTypeInCycle': firstTypeInCycle},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldBoundIssueViaCycleNonSimplicity(
-  String name,
-  String name2,
-) => _withArgumentsBoundIssueViaCycleNonSimplicity(name: name, name2: name2);
+  String typeName,
+  String firstTypeInCycle,
+) => _withArgumentsBoundIssueViaCycleNonSimplicity(
+  typeName: typeName,
+  firstTypeInCycle: firstTypeInCycle,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 boundIssueViaLoopNonSimplicity = const Template(
   "BoundIssueViaLoopNonSimplicity",
@@ -453,20 +458,23 @@ boundIssueViaLoopNonSimplicity = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBoundIssueViaLoopNonSimplicity({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsBoundIssueViaLoopNonSimplicity({
+  required String typeName,
+}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     boundIssueViaLoopNonSimplicity,
     problemMessage:
-        """Generic type '${name_0}' can't be used without type arguments in the bounds of its own type variables.""",
-    correctionMessage: """Try providing type arguments to '${name_0}' here.""",
-    arguments: {'name': name},
+        """Generic type '${typeName_0}' can't be used without type arguments in the bounds of its own type variables.""",
+    correctionMessage:
+        """Try providing type arguments to '${typeName_0}' here.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBoundIssueViaLoopNonSimplicity(String name) =>
-    _withArgumentsBoundIssueViaLoopNonSimplicity(name: name);
+Message _withArgumentsOldBoundIssueViaLoopNonSimplicity(String typeName) =>
+    _withArgumentsBoundIssueViaLoopNonSimplicity(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -863,8 +871,8 @@ Message _withArgumentsOldCantInferTypesDueToNoCombinedSignature(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Uri uri, String string),
-  Message Function({required Uri uri, required String string})
+  Message Function(Uri uri, String details),
+  Message Function({required Uri uri, required String details})
 >
 cantReadFile = const Template(
   "CantReadFile",
@@ -873,19 +881,22 @@ cantReadFile = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantReadFile({required Uri uri, required String string}) {
+Message _withArgumentsCantReadFile({
+  required Uri uri,
+  required String details,
+}) {
   var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
+  var details_0 = conversions.validateString(details);
   return new Message(
     cantReadFile,
-    problemMessage: """Error when reading '${uri_0}': ${string_0}""",
-    arguments: {'uri': uri, 'string': string},
+    problemMessage: """Error when reading '${uri_0}': ${details_0}""",
+    arguments: {'uri': uri, 'details': details},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantReadFile(Uri uri, String string) =>
-    _withArgumentsCantReadFile(uri: uri, string: string);
+Message _withArgumentsOldCantReadFile(Uri uri, String details) =>
+    _withArgumentsCantReadFile(uri: uri, details: details);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -915,8 +926,8 @@ Message _withArgumentsOldCantUseClassAsMixin(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token token),
+  Message Function({required Token token})
 >
 cantUseControlFlowOrSpreadAsConstant = const Template(
   "CantUseControlFlowOrSpreadAsConstant",
@@ -926,25 +937,25 @@ cantUseControlFlowOrSpreadAsConstant = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantUseControlFlowOrSpreadAsConstant({
-  required Token lexeme,
+  required Token token,
 }) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+  var token_0 = conversions.tokenToLexeme(token);
   return new Message(
     cantUseControlFlowOrSpreadAsConstant,
     problemMessage:
-        """'${lexeme_0}' is not supported in constant expressions.""",
-    arguments: {'lexeme': lexeme},
+        """'${token_0}' is not supported in constant expressions.""",
+    arguments: {'token': token},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantUseControlFlowOrSpreadAsConstant(Token lexeme) =>
-    _withArgumentsCantUseControlFlowOrSpreadAsConstant(lexeme: lexeme);
+Message _withArgumentsOldCantUseControlFlowOrSpreadAsConstant(Token token) =>
+    _withArgumentsCantUseControlFlowOrSpreadAsConstant(token: token);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token token),
+  Message Function({required Token token})
 >
 cantUseDeferredPrefixAsConstant = const Template(
   "CantUseDeferredPrefixAsConstant",
@@ -953,21 +964,21 @@ cantUseDeferredPrefixAsConstant = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantUseDeferredPrefixAsConstant({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+Message _withArgumentsCantUseDeferredPrefixAsConstant({required Token token}) {
+  var token_0 = conversions.tokenToLexeme(token);
   return new Message(
     cantUseDeferredPrefixAsConstant,
     problemMessage:
-        """'${lexeme_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+        """'${token_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
     correctionMessage:
         """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
-    arguments: {'lexeme': lexeme},
+    arguments: {'token': token},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantUseDeferredPrefixAsConstant(Token lexeme) =>
-    _withArgumentsCantUseDeferredPrefixAsConstant(lexeme: lexeme);
+Message _withArgumentsOldCantUseDeferredPrefixAsConstant(Token token) =>
+    _withArgumentsCantUseDeferredPrefixAsConstant(token: token);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cantUsePrefixAsExpression = const MessageCode(
@@ -2519,8 +2530,8 @@ Message _withArgumentsOldCouldNotParseUri(String uri, String details) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String typeName, String cycle),
+  Message Function({required String typeName, required String cycle})
 >
 cycleInTypeParameters = const Template(
   "CycleInTypeParameters",
@@ -2530,24 +2541,24 @@ cycleInTypeParameters = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCycleInTypeParameters({
-  required String name,
-  required String string,
+  required String typeName,
+  required String cycle,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
+  var cycle_0 = conversions.validateString(cycle);
   return new Message(
     cycleInTypeParameters,
     problemMessage:
-        """Type '${name_0}' is a bound of itself via '${string_0}'.""",
+        """Type '${typeName_0}' is a bound of itself via '${cycle_0}'.""",
     correctionMessage:
         """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'typeName': typeName, 'cycle': cycle},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCycleInTypeParameters(String name, String string) =>
-    _withArgumentsCycleInTypeParameters(name: name, string: string);
+Message _withArgumentsOldCycleInTypeParameters(String typeName, String cycle) =>
+    _withArgumentsCycleInTypeParameters(typeName: typeName, cycle: cycle);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2576,8 +2587,8 @@ Message _withArgumentsOldCyclicClassHierarchy(String typeName) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String factoryName),
+  Message Function({required String factoryName})
 >
 cyclicRedirectingFactoryConstructors = const Template(
   "CyclicRedirectingFactoryConstructors",
@@ -2587,19 +2598,22 @@ cyclicRedirectingFactoryConstructors = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCyclicRedirectingFactoryConstructors({
-  required String name,
+  required String factoryName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var factoryName_0 = conversions.validateAndDemangleName(factoryName);
   return new Message(
     cyclicRedirectingFactoryConstructors,
-    problemMessage: """Cyclic definition of factory '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Cyclic definition of factory '${factoryName_0}'.""",
+    arguments: {'factoryName': factoryName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicRedirectingFactoryConstructors(String name) =>
-    _withArgumentsCyclicRedirectingFactoryConstructors(name: name);
+Message _withArgumentsOldCyclicRedirectingFactoryConstructors(
+  String factoryName,
+) => _withArgumentsCyclicRedirectingFactoryConstructors(
+  factoryName: factoryName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cyclicRepresentationDependency = const MessageCode(
@@ -2761,8 +2775,8 @@ const MessageCode declaredMemberConflictsWithOverriddenMembersCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String redirectionTarget),
+  Message Function({required String redirectionTarget})
 >
 defaultValueInRedirectingFactoryConstructor = const Template(
   "DefaultValueInRedirectingFactoryConstructor",
@@ -2773,22 +2787,26 @@ defaultValueInRedirectingFactoryConstructor = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDefaultValueInRedirectingFactoryConstructor({
-  required String name,
+  required String redirectionTarget,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var redirectionTarget_0 = conversions.validateAndDemangleName(
+    redirectionTarget,
+  );
   return new Message(
     defaultValueInRedirectingFactoryConstructor,
     problemMessage:
-        """Can't have a default value here because any default values of '${name_0}' would be used instead.""",
+        """Can't have a default value here because any default values of '${redirectionTarget_0}' would be used instead.""",
     correctionMessage: """Try removing the default value.""",
-    arguments: {'name': name},
+    arguments: {'redirectionTarget': redirectionTarget},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldDefaultValueInRedirectingFactoryConstructor(
-  String name,
-) => _withArgumentsDefaultValueInRedirectingFactoryConstructor(name: name);
+  String redirectionTarget,
+) => _withArgumentsDefaultValueInRedirectingFactoryConstructor(
+  redirectionTarget: redirectionTarget,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2987,8 +3005,8 @@ Message _withArgumentsOldDillOutlineSummary(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 directCycleInTypeParameters = const Template(
   "DirectCycleInTypeParameters",
@@ -2997,20 +3015,20 @@ directCycleInTypeParameters = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDirectCycleInTypeParameters({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDirectCycleInTypeParameters({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     directCycleInTypeParameters,
-    problemMessage: """Type '${name_0}' can't use itself as a bound.""",
+    problemMessage: """Type '${typeName_0}' can't use itself as a bound.""",
     correctionMessage:
         """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-    arguments: {'name': name},
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDirectCycleInTypeParameters(String name) =>
-    _withArgumentsDirectCycleInTypeParameters(name: name);
+Message _withArgumentsOldDirectCycleInTypeParameters(String typeName) =>
+    _withArgumentsDirectCycleInTypeParameters(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -3809,8 +3827,8 @@ const MessageCode equalKeysInMapPatternContext = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Uri uri, String string),
-  Message Function({required Uri uri, required String string})
+  Message Function(Uri uri, String exception),
+  Message Function({required Uri uri, required String exception})
 >
 exceptionReadingFile = const Template(
   "ExceptionReadingFile",
@@ -3821,20 +3839,20 @@ exceptionReadingFile = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExceptionReadingFile({
   required Uri uri,
-  required String string,
+  required String exception,
 }) {
   var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
+  var exception_0 = conversions.validateString(exception);
   return new Message(
     exceptionReadingFile,
-    problemMessage: """Exception when reading '${uri_0}': ${string_0}""",
-    arguments: {'uri': uri, 'string': string},
+    problemMessage: """Exception when reading '${uri_0}': ${exception_0}""",
+    arguments: {'uri': uri, 'exception': exception},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExceptionReadingFile(Uri uri, String string) =>
-    _withArgumentsExceptionReadingFile(uri: uri, string: string);
+Message _withArgumentsOldExceptionReadingFile(Uri uri, String exception) =>
+    _withArgumentsExceptionReadingFile(uri: uri, exception: exception);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode expectedBlockToSkip = const MessageCode(
@@ -6610,8 +6628,8 @@ Message _withArgumentsOldImplicitMixinOverride(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType returnType),
+  Message Function({required DartType returnType})
 >
 implicitReturnNull = const Template(
   "ImplicitReturnNull",
@@ -6620,21 +6638,21 @@ implicitReturnNull = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitReturnNull({required DartType type}) {
+Message _withArgumentsImplicitReturnNull({required DartType returnType}) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var returnType_0 = labeler.labelType(returnType);
   return new Message(
     implicitReturnNull,
     problemMessage:
-        """A non-null value must be returned since the return type '${type_0}' doesn't allow null.""" +
+        """A non-null value must be returned since the return type '${returnType_0}' doesn't allow null.""" +
         labeler.originMessages,
-    arguments: {'type': type},
+    arguments: {'returnType': returnType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplicitReturnNull(DartType type) =>
-    _withArgumentsImplicitReturnNull(type: type);
+Message _withArgumentsOldImplicitReturnNull(DartType returnType) =>
+    _withArgumentsImplicitReturnNull(returnType: returnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode implicitSuperCallOfNonMethod = const MessageCode(
@@ -6678,11 +6696,11 @@ Message _withArgumentsOldImplicitSuperInitializerMissingArguments(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Uri uri, String string, String string2),
+  Message Function(Uri uri, String importChain, String verboseImportChain),
   Message Function({
     required Uri uri,
-    required String string,
-    required String string2,
+    required String importChain,
+    required String verboseImportChain,
   })
 >
 importChainContext = const Template(
@@ -6695,40 +6713,44 @@ importChainContext = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImportChainContext({
   required Uri uri,
-  required String string,
-  required String string2,
+  required String importChain,
+  required String verboseImportChain,
 }) {
   var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var importChain_0 = conversions.validateString(importChain);
+  var verboseImportChain_0 = conversions.validateString(verboseImportChain);
   return new Message(
     importChainContext,
     problemMessage:
         """The unavailable library '${uri_0}' is imported through these packages:
 
-${string_0}
+${importChain_0}
 Detailed import paths for (some of) the these imports:
 
-${string2_0}""",
-    arguments: {'uri': uri, 'string': string, 'string2': string2},
+${verboseImportChain_0}""",
+    arguments: {
+      'uri': uri,
+      'importChain': importChain,
+      'verboseImportChain': verboseImportChain,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldImportChainContext(
   Uri uri,
-  String string,
-  String string2,
+  String importChain,
+  String verboseImportChain,
 ) => _withArgumentsImportChainContext(
   uri: uri,
-  string: string,
-  string2: string2,
+  importChain: importChain,
+  verboseImportChain: verboseImportChain,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Uri uri, String string),
-  Message Function({required Uri uri, required String string})
+  Message Function(Uri uri, String importChain),
+  Message Function({required Uri uri, required String importChain})
 >
 importChainContextSimple = const Template(
   "ImportChainContextSimple",
@@ -6740,28 +6762,33 @@ importChainContextSimple = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImportChainContextSimple({
   required Uri uri,
-  required String string,
+  required String importChain,
 }) {
   var uri_0 = conversions.relativizeUri(uri);
-  var string_0 = conversions.validateString(string);
+  var importChain_0 = conversions.validateString(importChain);
   return new Message(
     importChainContextSimple,
     problemMessage:
         """The unavailable library '${uri_0}' is imported through these paths:
 
-${string_0}""",
-    arguments: {'uri': uri, 'string': string},
+${importChain_0}""",
+    arguments: {'uri': uri, 'importChain': importChain},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImportChainContextSimple(Uri uri, String string) =>
-    _withArgumentsImportChainContextSimple(uri: uri, string: string);
+Message _withArgumentsOldImportChainContextSimple(
+  Uri uri,
+  String importChain,
+) => _withArgumentsImportChainContextSimple(uri: uri, importChain: importChain);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType redirecteeType, DartType expectedType),
+  Message Function({
+    required DartType redirecteeType,
+    required DartType expectedType,
+  })
 >
 incompatibleRedirecteeFunctionType = const Template(
   "IncompatibleRedirecteeFunctionType",
@@ -6771,35 +6798,43 @@ incompatibleRedirecteeFunctionType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncompatibleRedirecteeFunctionType({
-  required DartType type,
-  required DartType type2,
+  required DartType redirecteeType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var redirecteeType_0 = labeler.labelType(redirecteeType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     incompatibleRedirecteeFunctionType,
     problemMessage:
-        """The constructor function type '${type_0}' isn't a subtype of '${type2_0}'.""" +
+        """The constructor function type '${redirecteeType_0}' isn't a subtype of '${expectedType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'redirecteeType': redirecteeType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIncompatibleRedirecteeFunctionType(
-  DartType type,
-  DartType type2,
-) => _withArgumentsIncompatibleRedirecteeFunctionType(type: type, type2: type2);
+  DartType redirecteeType,
+  DartType expectedType,
+) => _withArgumentsIncompatibleRedirecteeFunctionType(
+  redirecteeType: redirecteeType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, String name, String name2),
+  Message Function(
+    DartType typeArgument,
+    DartType typeParameterBound,
+    String typeParameterName,
+    String enclosingName,
+  ),
   Message Function({
-    required DartType type,
-    required DartType type2,
-    required String name,
-    required String name2,
+    required DartType typeArgument,
+    required DartType typeParameterBound,
+    required String typeParameterName,
+    required String enclosingName,
   })
 >
 incorrectTypeArgument = const Template(
@@ -6810,48 +6845,60 @@ incorrectTypeArgument = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgument({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required String name2,
+  required DartType typeArgument,
+  required DartType typeParameterBound,
+  required String typeParameterName,
+  required String enclosingName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeArgument_0 = labeler.labelType(typeArgument);
+  var typeParameterBound_0 = labeler.labelType(typeParameterBound);
+  var typeParameterName_0 = conversions.validateAndDemangleName(
+    typeParameterName,
+  );
+  var enclosingName_0 = conversions.validateAndDemangleName(enclosingName);
   return new Message(
     incorrectTypeArgument,
     problemMessage:
-        """Type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${name2_0}'.""" +
+        """Type argument '${typeArgument_0}' doesn't conform to the bound '${typeParameterBound_0}' of the type variable '${typeParameterName_0}' on '${enclosingName_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try changing type arguments so that they conform to the bounds.""",
-    arguments: {'type': type, 'type2': type2, 'name': name, 'name2': name2},
+    arguments: {
+      'typeArgument': typeArgument,
+      'typeParameterBound': typeParameterBound,
+      'typeParameterName': typeParameterName,
+      'enclosingName': enclosingName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIncorrectTypeArgument(
-  DartType type,
-  DartType type2,
-  String name,
-  String name2,
+  DartType typeArgument,
+  DartType typeParameterBound,
+  String typeParameterName,
+  String enclosingName,
 ) => _withArgumentsIncorrectTypeArgument(
-  type: type,
-  type2: type2,
-  name: name,
-  name2: name2,
+  typeArgument: typeArgument,
+  typeParameterBound: typeParameterBound,
+  typeParameterName: typeParameterName,
+  enclosingName: enclosingName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, String name, String name2),
+  Message Function(
+    DartType typeArgument,
+    DartType typeParameterBound,
+    String typeParameterName,
+    String enclosingName,
+  ),
   Message Function({
-    required DartType type,
-    required DartType type2,
-    required String name,
-    required String name2,
+    required DartType typeArgument,
+    required DartType typeParameterBound,
+    required String typeParameterName,
+    required String enclosingName,
   })
 >
 incorrectTypeArgumentInferred = const Template(
@@ -6862,48 +6909,60 @@ incorrectTypeArgumentInferred = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInferred({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required String name2,
+  required DartType typeArgument,
+  required DartType typeParameterBound,
+  required String typeParameterName,
+  required String enclosingName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeArgument_0 = labeler.labelType(typeArgument);
+  var typeParameterBound_0 = labeler.labelType(typeParameterBound);
+  var typeParameterName_0 = conversions.validateAndDemangleName(
+    typeParameterName,
+  );
+  var enclosingName_0 = conversions.validateAndDemangleName(enclosingName);
   return new Message(
     incorrectTypeArgumentInferred,
     problemMessage:
-        """Inferred type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${name2_0}'.""" +
+        """Inferred type argument '${typeArgument_0}' doesn't conform to the bound '${typeParameterBound_0}' of the type variable '${typeParameterName_0}' on '${enclosingName_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try specifying type arguments explicitly so that they conform to the bounds.""",
-    arguments: {'type': type, 'type2': type2, 'name': name, 'name2': name2},
+    arguments: {
+      'typeArgument': typeArgument,
+      'typeParameterBound': typeParameterBound,
+      'typeParameterName': typeParameterName,
+      'enclosingName': enclosingName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIncorrectTypeArgumentInferred(
-  DartType type,
-  DartType type2,
-  String name,
-  String name2,
+  DartType typeArgument,
+  DartType typeParameterBound,
+  String typeParameterName,
+  String enclosingName,
 ) => _withArgumentsIncorrectTypeArgumentInferred(
-  type: type,
-  type2: type2,
-  name: name,
-  name2: name2,
+  typeArgument: typeArgument,
+  typeParameterBound: typeParameterBound,
+  typeParameterName: typeParameterName,
+  enclosingName: enclosingName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, String name, DartType type3),
+  Message Function(
+    DartType typeArgument,
+    DartType typeParameterBound,
+    String typeParameterName,
+    DartType receiverType,
+  ),
   Message Function({
-    required DartType type,
-    required DartType type2,
-    required String name,
-    required DartType type3,
+    required DartType typeArgument,
+    required DartType typeParameterBound,
+    required String typeParameterName,
+    required DartType receiverType,
   })
 >
 incorrectTypeArgumentInstantiation = const Template(
@@ -6914,48 +6973,60 @@ incorrectTypeArgumentInstantiation = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInstantiation({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required DartType type3,
+  required DartType typeArgument,
+  required DartType typeParameterBound,
+  required String typeParameterName,
+  required DartType receiverType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type3_0 = labeler.labelType(type3);
+  var typeArgument_0 = labeler.labelType(typeArgument);
+  var typeParameterBound_0 = labeler.labelType(typeParameterBound);
+  var typeParameterName_0 = conversions.validateAndDemangleName(
+    typeParameterName,
+  );
+  var receiverType_0 = labeler.labelType(receiverType);
   return new Message(
     incorrectTypeArgumentInstantiation,
     problemMessage:
-        """Type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${type3_0}'.""" +
+        """Type argument '${typeArgument_0}' doesn't conform to the bound '${typeParameterBound_0}' of the type variable '${typeParameterName_0}' on '${receiverType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try changing type arguments so that they conform to the bounds.""",
-    arguments: {'type': type, 'type2': type2, 'name': name, 'type3': type3},
+    arguments: {
+      'typeArgument': typeArgument,
+      'typeParameterBound': typeParameterBound,
+      'typeParameterName': typeParameterName,
+      'receiverType': receiverType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIncorrectTypeArgumentInstantiation(
-  DartType type,
-  DartType type2,
-  String name,
-  DartType type3,
+  DartType typeArgument,
+  DartType typeParameterBound,
+  String typeParameterName,
+  DartType receiverType,
 ) => _withArgumentsIncorrectTypeArgumentInstantiation(
-  type: type,
-  type2: type2,
-  name: name,
-  type3: type3,
+  typeArgument: typeArgument,
+  typeParameterBound: typeParameterBound,
+  typeParameterName: typeParameterName,
+  receiverType: receiverType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, String name, DartType type3),
+  Message Function(
+    DartType typeArgument,
+    DartType typeParameterBound,
+    String typeParameterName,
+    DartType receiverType,
+  ),
   Message Function({
-    required DartType type,
-    required DartType type2,
-    required String name,
-    required DartType type3,
+    required DartType typeArgument,
+    required DartType typeParameterBound,
+    required String typeParameterName,
+    required DartType receiverType,
   })
 >
 incorrectTypeArgumentInstantiationInferred = const Template(
@@ -6966,55 +7037,62 @@ incorrectTypeArgumentInstantiationInferred = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentInstantiationInferred({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required DartType type3,
+  required DartType typeArgument,
+  required DartType typeParameterBound,
+  required String typeParameterName,
+  required DartType receiverType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type3_0 = labeler.labelType(type3);
+  var typeArgument_0 = labeler.labelType(typeArgument);
+  var typeParameterBound_0 = labeler.labelType(typeParameterBound);
+  var typeParameterName_0 = conversions.validateAndDemangleName(
+    typeParameterName,
+  );
+  var receiverType_0 = labeler.labelType(receiverType);
   return new Message(
     incorrectTypeArgumentInstantiationInferred,
     problemMessage:
-        """Inferred type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${type3_0}'.""" +
+        """Inferred type argument '${typeArgument_0}' doesn't conform to the bound '${typeParameterBound_0}' of the type variable '${typeParameterName_0}' on '${receiverType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try specifying type arguments explicitly so that they conform to the bounds.""",
-    arguments: {'type': type, 'type2': type2, 'name': name, 'type3': type3},
+    arguments: {
+      'typeArgument': typeArgument,
+      'typeParameterBound': typeParameterBound,
+      'typeParameterName': typeParameterName,
+      'receiverType': receiverType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIncorrectTypeArgumentInstantiationInferred(
-  DartType type,
-  DartType type2,
-  String name,
-  DartType type3,
+  DartType typeArgument,
+  DartType typeParameterBound,
+  String typeParameterName,
+  DartType receiverType,
 ) => _withArgumentsIncorrectTypeArgumentInstantiationInferred(
-  type: type,
-  type2: type2,
-  name: name,
-  type3: type3,
+  typeArgument: typeArgument,
+  typeParameterBound: typeParameterBound,
+  typeParameterName: typeParameterName,
+  receiverType: receiverType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    DartType type,
-    DartType type2,
-    String name,
-    DartType type3,
-    String name2,
+    DartType typeArgument,
+    DartType typeParameterBound,
+    String typeParameterName,
+    DartType receiverType,
+    String targetName,
   ),
   Message Function({
-    required DartType type,
-    required DartType type2,
-    required String name,
-    required DartType type3,
-    required String name2,
+    required DartType typeArgument,
+    required DartType typeParameterBound,
+    required String typeParameterName,
+    required DartType receiverType,
+    required String targetName,
   })
 >
 incorrectTypeArgumentQualified = const Template(
@@ -7025,65 +7103,67 @@ incorrectTypeArgumentQualified = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentQualified({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required DartType type3,
-  required String name2,
+  required DartType typeArgument,
+  required DartType typeParameterBound,
+  required String typeParameterName,
+  required DartType receiverType,
+  required String targetName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type3_0 = labeler.labelType(type3);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeArgument_0 = labeler.labelType(typeArgument);
+  var typeParameterBound_0 = labeler.labelType(typeParameterBound);
+  var typeParameterName_0 = conversions.validateAndDemangleName(
+    typeParameterName,
+  );
+  var receiverType_0 = labeler.labelType(receiverType);
+  var targetName_0 = conversions.validateAndDemangleName(targetName);
   return new Message(
     incorrectTypeArgumentQualified,
     problemMessage:
-        """Type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${type3_0}.${name2_0}'.""" +
+        """Type argument '${typeArgument_0}' doesn't conform to the bound '${typeParameterBound_0}' of the type variable '${typeParameterName_0}' on '${receiverType_0}.${targetName_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try changing type arguments so that they conform to the bounds.""",
     arguments: {
-      'type': type,
-      'type2': type2,
-      'name': name,
-      'type3': type3,
-      'name2': name2,
+      'typeArgument': typeArgument,
+      'typeParameterBound': typeParameterBound,
+      'typeParameterName': typeParameterName,
+      'receiverType': receiverType,
+      'targetName': targetName,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIncorrectTypeArgumentQualified(
-  DartType type,
-  DartType type2,
-  String name,
-  DartType type3,
-  String name2,
+  DartType typeArgument,
+  DartType typeParameterBound,
+  String typeParameterName,
+  DartType receiverType,
+  String targetName,
 ) => _withArgumentsIncorrectTypeArgumentQualified(
-  type: type,
-  type2: type2,
-  name: name,
-  type3: type3,
-  name2: name2,
+  typeArgument: typeArgument,
+  typeParameterBound: typeParameterBound,
+  typeParameterName: typeParameterName,
+  receiverType: receiverType,
+  targetName: targetName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(
-    DartType type,
-    DartType type2,
-    String name,
-    DartType type3,
-    String name2,
+    DartType typeArgument,
+    DartType typeParameterBound,
+    String typeParameterName,
+    DartType receiverType,
+    String targetName,
   ),
   Message Function({
-    required DartType type,
-    required DartType type2,
-    required String name,
-    required DartType type3,
-    required String name2,
+    required DartType typeArgument,
+    required DartType typeParameterBound,
+    required String typeParameterName,
+    required DartType receiverType,
+    required String targetName,
   })
 >
 incorrectTypeArgumentQualifiedInferred = const Template(
@@ -7094,48 +7174,50 @@ incorrectTypeArgumentQualifiedInferred = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIncorrectTypeArgumentQualifiedInferred({
-  required DartType type,
-  required DartType type2,
-  required String name,
-  required DartType type3,
-  required String name2,
+  required DartType typeArgument,
+  required DartType typeParameterBound,
+  required String typeParameterName,
+  required DartType receiverType,
+  required String targetName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type3_0 = labeler.labelType(type3);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeArgument_0 = labeler.labelType(typeArgument);
+  var typeParameterBound_0 = labeler.labelType(typeParameterBound);
+  var typeParameterName_0 = conversions.validateAndDemangleName(
+    typeParameterName,
+  );
+  var receiverType_0 = labeler.labelType(receiverType);
+  var targetName_0 = conversions.validateAndDemangleName(targetName);
   return new Message(
     incorrectTypeArgumentQualifiedInferred,
     problemMessage:
-        """Inferred type argument '${type_0}' doesn't conform to the bound '${type2_0}' of the type variable '${name_0}' on '${type3_0}.${name2_0}'.""" +
+        """Inferred type argument '${typeArgument_0}' doesn't conform to the bound '${typeParameterBound_0}' of the type variable '${typeParameterName_0}' on '${receiverType_0}.${targetName_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try specifying type arguments explicitly so that they conform to the bounds.""",
     arguments: {
-      'type': type,
-      'type2': type2,
-      'name': name,
-      'type3': type3,
-      'name2': name2,
+      'typeArgument': typeArgument,
+      'typeParameterBound': typeParameterBound,
+      'typeParameterName': typeParameterName,
+      'receiverType': receiverType,
+      'targetName': targetName,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldIncorrectTypeArgumentQualifiedInferred(
-  DartType type,
-  DartType type2,
-  String name,
-  DartType type3,
-  String name2,
+  DartType typeArgument,
+  DartType typeParameterBound,
+  String typeParameterName,
+  DartType receiverType,
+  String targetName,
 ) => _withArgumentsIncorrectTypeArgumentQualifiedInferred(
-  type: type,
-  type2: type2,
-  name: name,
-  type3: type3,
-  name2: name2,
+  typeArgument: typeArgument,
+  typeParameterBound: typeParameterBound,
+  typeParameterName: typeParameterName,
+  receiverType: receiverType,
+  targetName: targetName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12702,8 +12784,8 @@ const MessageCode nonPositiveArrayDimensions = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 nonSimpleBoundViaReference = const Template(
   "NonSimpleBoundViaReference",
@@ -12713,19 +12795,19 @@ nonSimpleBoundViaReference = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonSimpleBoundViaReference({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsNonSimpleBoundViaReference({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     nonSimpleBoundViaReference,
     problemMessage:
-        """Bound of this variable references raw type '${name_0}'.""",
-    arguments: {'name': name},
+        """Bound of this variable references raw type '${typeName_0}'.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonSimpleBoundViaReference(String name) =>
-    _withArgumentsNonSimpleBoundViaReference(name: name);
+Message _withArgumentsOldNonSimpleBoundViaReference(String typeName) =>
+    _withArgumentsNonSimpleBoundViaReference(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -14000,8 +14082,8 @@ Message _withArgumentsOldPackageNotFound(String packageName, Uri uri) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String details),
+  Message Function({required String details})
 >
 packagesFileFormat = const Template(
   "PackagesFileFormat",
@@ -14010,18 +14092,18 @@ packagesFileFormat = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPackagesFileFormat({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsPackagesFileFormat({required String details}) {
+  var details_0 = conversions.validateString(details);
   return new Message(
     packagesFileFormat,
-    problemMessage: """Problem in packages configuration file: ${string_0}""",
-    arguments: {'string': string},
+    problemMessage: """Problem in packages configuration file: ${details_0}""",
+    arguments: {'details': details},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPackagesFileFormat(String string) =>
-    _withArgumentsPackagesFileFormat(string: string);
+Message _withArgumentsOldPackagesFileFormat(String details) =>
+    _withArgumentsPackagesFileFormat(details: details);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode partExport = const MessageCode(
@@ -14508,8 +14590,11 @@ const MessageCode redirectingConstructorWithSuperInitializer =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType typeArgumentType, DartType expectedType),
+  Message Function({
+    required DartType typeArgumentType,
+    required DartType expectedType,
+  })
 >
 redirectingFactoryIncompatibleTypeArgument = const Template(
   "RedirectingFactoryIncompatibleTypeArgument",
@@ -14519,29 +14604,32 @@ redirectingFactoryIncompatibleTypeArgument = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectingFactoryIncompatibleTypeArgument({
-  required DartType type,
-  required DartType type2,
+  required DartType typeArgumentType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var typeArgumentType_0 = labeler.labelType(typeArgumentType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     redirectingFactoryIncompatibleTypeArgument,
     problemMessage:
-        """The type '${type_0}' doesn't extend '${type2_0}'.""" +
+        """The type '${typeArgumentType_0}' doesn't extend '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage: """Try using a different type as argument.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {
+      'typeArgumentType': typeArgumentType,
+      'expectedType': expectedType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument(
-  DartType type,
-  DartType type2,
+  DartType typeArgumentType,
+  DartType expectedType,
 ) => _withArgumentsRedirectingFactoryIncompatibleTypeArgument(
-  type: type,
-  type2: type2,
+  typeArgumentType: typeArgumentType,
+  expectedType: expectedType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
