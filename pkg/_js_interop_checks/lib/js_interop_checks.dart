@@ -229,14 +229,16 @@ class JsInteropChecks extends RecursiveVisitor {
     if (_classHasStaticInteropAnnotation) {
       if (!_classHasJSAnnotation) {
         report(
-          diag.jsInteropStaticInteropNoJSAnnotation.withArgumentsOld(node.name),
+          diag.jsInteropStaticInteropNoJSAnnotation.withArguments(
+            className: node.name,
+          ),
         );
       }
       if (superclass != null && !hasStaticInteropAnnotation(superclass)) {
         report(
-          diag.jsInteropStaticInteropWithNonStaticSupertype.withArgumentsOld(
-            node.name,
-            superclass.name,
+          diag.jsInteropStaticInteropWithNonStaticSupertype.withArguments(
+            className: node.name,
+            superclassName: superclass.name,
           ),
         );
       }
@@ -245,9 +247,9 @@ class JsInteropChecks extends RecursiveVisitor {
       for (final supertype in node.implementedTypes) {
         if (!hasStaticInteropAnnotation(supertype.classNode)) {
           report(
-            diag.jsInteropStaticInteropWithNonStaticSupertype.withArgumentsOld(
-              node.name,
-              supertype.classNode.name,
+            diag.jsInteropStaticInteropWithNonStaticSupertype.withArguments(
+              className: node.name,
+              superclassName: supertype.classNode.name,
             ),
           );
         }
@@ -284,15 +286,15 @@ class JsInteropChecks extends RecursiveVisitor {
     if (hasTrustTypesAnnotation(node)) {
       if (!_isAllowedTrustTypesUsage(node)) {
         report(
-          diag.jsInteropStaticInteropTrustTypesUsageNotAllowed.withArgumentsOld(
-            node.name,
+          diag.jsInteropStaticInteropTrustTypesUsageNotAllowed.withArguments(
+            className: node.name,
           ),
         );
       }
       if (!_classHasStaticInteropAnnotation) {
         report(
           diag.jsInteropStaticInteropTrustTypesUsedWithoutStaticInterop
-              .withArgumentsOld(node.name),
+              .withArguments(className: node.name),
         );
       }
     }
@@ -415,8 +417,8 @@ class JsInteropChecks extends RecursiveVisitor {
         !node.isFactory &&
         !node.isSynthetic) {
       report(
-        diag.jsInteropStaticInteropWithInstanceMembers.withArgumentsOld(
-          node.enclosingClass!.name,
+        diag.jsInteropStaticInteropWithInstanceMembers.withArguments(
+          className: node.enclosingClass!.name,
         ),
       );
     }
@@ -444,8 +446,8 @@ class JsInteropChecks extends RecursiveVisitor {
   void visitField(Field node) {
     if (_classHasStaticInteropAnnotation && node.isInstanceMember) {
       _reporter.report(
-        diag.jsInteropStaticInteropWithInstanceMembers.withArgumentsOld(
-          node.enclosingClass!.name,
+        diag.jsInteropStaticInteropWithInstanceMembers.withArguments(
+          className: node.enclosingClass!.name,
         ),
         node.fileOffset,
         node.name.text.length,
@@ -748,9 +750,9 @@ class JsInteropChecks extends RecursiveVisitor {
         memberName = member.name.text;
       }
       _reporter.report(
-        diag.jsInteropStaticInteropTearOffsDisallowed.withArgumentsOld(
-          memberKind,
-          memberName,
+        diag.jsInteropStaticInteropTearOffsDisallowed.withArguments(
+          memberKind: memberKind,
+          memberName: memberName,
         ),
         context.fileOffset,
         1,

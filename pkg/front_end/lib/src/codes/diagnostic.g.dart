@@ -11070,8 +11070,8 @@ Message _withArgumentsOldJsInteropStaticInteropMockTypeParametersNotAllowed(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 jsInteropStaticInteropNoJSAnnotation = const Template(
   "JsInteropStaticInteropNoJSAnnotation",
@@ -11081,21 +11081,22 @@ jsInteropStaticInteropNoJSAnnotation = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropNoJSAnnotation({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     jsInteropStaticInteropNoJSAnnotation,
     problemMessage:
         """`@staticInterop` classes should also have the `@JS` annotation.""",
-    correctionMessage: """Add `@JS` to class '${name_0}'.""",
-    arguments: {'name': name},
+    correctionMessage: """Add `@JS` to class '${className_0}'.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropNoJSAnnotation(String name) =>
-    _withArgumentsJsInteropStaticInteropNoJSAnnotation(name: name);
+Message _withArgumentsOldJsInteropStaticInteropNoJSAnnotation(
+  String className,
+) => _withArgumentsJsInteropStaticInteropNoJSAnnotation(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -11120,8 +11121,8 @@ jsInteropStaticInteropSyntheticConstructor = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name),
-  Message Function({required String string, required String name})
+  Message Function(String memberKind, String memberName),
+  Message Function({required String memberKind, required String memberName})
 >
 jsInteropStaticInteropTearOffsDisallowed = const Template(
   "JsInteropStaticInteropTearOffsDisallowed",
@@ -11131,33 +11132,33 @@ jsInteropStaticInteropTearOffsDisallowed = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropTearOffsDisallowed({
-  required String string,
-  required String name,
+  required String memberKind,
+  required String memberName,
 }) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
+  var memberKind_0 = conversions.validateString(memberKind);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     jsInteropStaticInteropTearOffsDisallowed,
     problemMessage:
-        """Tear-offs of external ${string_0} '${name_0}' are disallowed.""",
+        """Tear-offs of external ${memberKind_0} '${memberName_0}' are disallowed.""",
     correctionMessage: """Declare a closure that calls this member instead.""",
-    arguments: {'string': string, 'name': name},
+    arguments: {'memberKind': memberKind, 'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropTearOffsDisallowed(
-  String string,
-  String name,
+  String memberKind,
+  String memberName,
 ) => _withArgumentsJsInteropStaticInteropTearOffsDisallowed(
-  string: string,
-  name: name,
+  memberKind: memberKind,
+  memberName: memberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 jsInteropStaticInteropTrustTypesUsageNotAllowed = const Template(
   "JsInteropStaticInteropTrustTypesUsageNotAllowed",
@@ -11168,27 +11169,29 @@ jsInteropStaticInteropTrustTypesUsageNotAllowed = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     jsInteropStaticInteropTrustTypesUsageNotAllowed,
     problemMessage:
-        """JS interop class '${name_0}' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
+        """JS interop class '${className_0}' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
     correctionMessage: """Try removing the `@trustTypes` annotation.""",
-    arguments: {'name': name},
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropTrustTypesUsageNotAllowed(
-  String name,
-) => _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed(name: name);
+  String className,
+) => _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed(
+  className: className,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 jsInteropStaticInteropTrustTypesUsedWithoutStaticInterop = const Template(
   "JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop",
@@ -11200,30 +11203,30 @@ jsInteropStaticInteropTrustTypesUsedWithoutStaticInterop = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     jsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
     problemMessage:
-        """JS interop class '${name_0}' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
+        """JS interop class '${className_0}' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
     correctionMessage: """Try marking the class using `@staticInterop`.""",
-    arguments: {'name': name},
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message
 _withArgumentsOldJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop(
-  String name,
+  String className,
 ) => _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop(
-  name: name,
+  className: className,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 jsInteropStaticInteropWithInstanceMembers = const Template(
   "JsInteropStaticInteropWithInstanceMembers",
@@ -11233,28 +11236,30 @@ jsInteropStaticInteropWithInstanceMembers = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropWithInstanceMembers({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     jsInteropStaticInteropWithInstanceMembers,
     problemMessage:
-        """JS interop class '${name_0}' with `@staticInterop` annotation cannot declare instance members.""",
+        """JS interop class '${className_0}' with `@staticInterop` annotation cannot declare instance members.""",
     correctionMessage:
         """Try moving the instance member to a static extension.""",
-    arguments: {'name': name},
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropWithInstanceMembers(
-  String name,
-) => _withArgumentsJsInteropStaticInteropWithInstanceMembers(name: name);
+  String className,
+) => _withArgumentsJsInteropStaticInteropWithInstanceMembers(
+  className: className,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String superclassName),
+  Message Function({required String className, required String superclassName})
 >
 jsInteropStaticInteropWithNonStaticSupertype = const Template(
   "JsInteropStaticInteropWithNonStaticSupertype",
@@ -11265,28 +11270,28 @@ jsInteropStaticInteropWithNonStaticSupertype = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype({
-  required String name,
-  required String name2,
+  required String className,
+  required String superclassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var superclassName_0 = conversions.validateAndDemangleName(superclassName);
   return new Message(
     jsInteropStaticInteropWithNonStaticSupertype,
     problemMessage:
-        """JS interop class '${name_0}' has an `@staticInterop` annotation, but has supertype '${name2_0}', which does not.""",
+        """JS interop class '${className_0}' has an `@staticInterop` annotation, but has supertype '${superclassName_0}', which does not.""",
     correctionMessage:
         """Try marking the supertype as a static interop class using `@staticInterop`.""",
-    arguments: {'name': name, 'name2': name2},
+    arguments: {'className': className, 'superclassName': superclassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropStaticInteropWithNonStaticSupertype(
-  String name,
-  String name2,
+  String className,
+  String superclassName,
 ) => _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
-  name: name,
-  name2: name2,
+  className: className,
+  superclassName: superclassName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12915,8 +12920,8 @@ Message _withArgumentsOldNonNullAwareSpreadIsNull(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 nonNullableNotAssignedError = const Template(
   "NonNullableNotAssignedError",
@@ -12925,19 +12930,21 @@ nonNullableNotAssignedError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableNotAssignedError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsNonNullableNotAssignedError({
+  required String variableName,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     nonNullableNotAssignedError,
     problemMessage:
-        """Non-nullable variable '${name_0}' must be assigned before it can be used.""",
-    arguments: {'name': name},
+        """Non-nullable variable '${variableName_0}' must be assigned before it can be used.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonNullableNotAssignedError(String name) =>
-    _withArgumentsNonNullableNotAssignedError(name: name);
+Message _withArgumentsOldNonNullableNotAssignedError(String variableName) =>
+    _withArgumentsNonNullableNotAssignedError(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nonPositiveArrayDimensions = const MessageCode(

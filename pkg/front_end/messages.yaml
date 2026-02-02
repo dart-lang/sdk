@@ -6189,21 +6189,21 @@ jsInteropStaticInteropMockMissingImplements:
 
 jsInteropStaticInteropMockNotStaticInteropType:
   parameters:
-    Type type: undocumented
+    Type type: The problematic type argument.
   problemMessage: "Type argument '#type' needs to be a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
 
 jsInteropStaticInteropMockTypeParametersNotAllowed:
   parameters:
-    Type type: undocumented
+    Type type: The problematic type argument.
   problemMessage: "Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance."
   correctionMessage: "Remove the type parameter in the type argument or replace it with its bound."
 
 jsInteropStaticInteropNoJSAnnotation:
   parameters:
-    Name name: undocumented
+    Name className: The name of the problematic class.
   problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
-  correctionMessage: "Add `@JS` to class '#name'."
+  correctionMessage: "Add `@JS` to class '#className'."
 
 jsInteropStaticInteropParameterInitializersAreIgnored:
   parameters: none
@@ -6218,40 +6218,40 @@ jsInteropStaticInteropSyntheticConstructor:
 
 jsInteropStaticInteropTearOffsDisallowed:
   parameters:
-    String string: undocumented
-    Name name: undocumented
-  problemMessage: "Tear-offs of external #string '#name' are disallowed."
+    String memberKind: The kind of member that was torn off.
+    Name memberName: The name of the member that was torn off.
+  problemMessage: "Tear-offs of external #memberKind '#memberName' are disallowed."
   correctionMessage: "Declare a closure that calls this member instead."
 
 jsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
   parameters:
-    Name name: undocumented
-  problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation."
+    Name className: The name of the problematic class.
+  problemMessage: "JS interop class '#className' has an `@trustTypes` annotation, but no `@staticInterop` annotation."
   correctionMessage: "Try marking the class using `@staticInterop`."
 
 jsInteropStaticInteropTrustTypesUsageNotAllowed:
   parameters:
-    Name name: undocumented
-  problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
+    Name className: The name of the problematic class.
+  problemMessage: "JS interop class '#className' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
   correctionMessage: "Try removing the `@trustTypes` annotation."
 
 jsInteropStaticInteropWithInstanceMembers:
   parameters:
-    Name name: undocumented
-  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
+    Name className: The name of the problematic class.
+  problemMessage: "JS interop class '#className' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
 
 jsInteropStaticInteropWithNonStaticSupertype:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
+    Name className: The name of the problematic class.
+    Name superclassName: The name of the superclass, which is not annotated.
+  problemMessage: "JS interop class '#className' has an `@staticInterop` annotation, but has supertype '#superclassName', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
 nonNullableNotAssignedError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Non-nullable variable '#name' must be assigned before it can be used."
+    Name variableName: The name of the unassigned variable.
+  problemMessage: "Non-nullable variable '#variableName' must be assigned before it can be used."
   script: |
     method<T>() {
       T t; t;

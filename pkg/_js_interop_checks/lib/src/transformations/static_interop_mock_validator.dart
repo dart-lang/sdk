@@ -40,8 +40,8 @@ class StaticInteropMockValidator {
     if (staticInteropType is! InterfaceType ||
         !js_interop.hasStaticInteropAnnotation(staticInteropType.classNode)) {
       _diagnosticReporter.report(
-        diag.jsInteropStaticInteropMockNotStaticInteropType.withArgumentsOld(
-          staticInteropType,
+        diag.jsInteropStaticInteropMockNotStaticInteropType.withArguments(
+          type: staticInteropType,
         ),
         node.fileOffset,
         node.name.text.length,
@@ -85,7 +85,7 @@ class StaticInteropMockValidator {
         if (arg is! DynamicType && arg != typeParams[i].bound) {
           _diagnosticReporter.report(
             diag.jsInteropStaticInteropMockTypeParametersNotAllowed
-                .withArgumentsOld(type),
+                .withArguments(type: type),
             node.fileOffset,
             node.name.text.length,
             node.location?.file,

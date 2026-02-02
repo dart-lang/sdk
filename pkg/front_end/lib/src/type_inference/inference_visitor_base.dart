@@ -4429,8 +4429,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               problemReporting.wrapInProblem(
                 compilerContext: compilerContext,
                 expression: resultExpression,
-                message: diag.nonNullableNotAssignedError.withArgumentsOld(
-                  node.expressionVariable.cosmeticName!,
+                message: diag.nonNullableNotAssignedError.withArguments(
+                  variableName: node.expressionVariable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
