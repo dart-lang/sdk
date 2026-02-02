@@ -323,10 +323,17 @@ final class AnalysisOptionsBuilder {
     // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
 
     var versionSource = pluginNode.valueAt(AnalysisOptionsFile.version);
-    if (versionSource case YamlScalar(:String value)) {
-      // TODO(srawlins): Handle the 'hosted' key.
-      return VersionedPluginSource(constraint: value);
+    var hostedUrlSource = pluginNode.valueAt(AnalysisOptionsFile.hosted);
+
+    if ((versionSource, hostedUrlSource) case (
+      YamlScalar(value: String version),
+      YamlScalar(value: String hostedUrl),
+    )) {
+      return VersionedPluginSource(constraint: version, hostedUrl: hostedUrl);
+    } else if (versionSource case YamlScalar(value: String version)) {
+      return VersionedPluginSource(constraint: version);
     }
+
     var pathSource = pluginNode.valueAt(AnalysisOptionsFile.path);
     if (pathSource case YamlScalar(value: String pathValue)) {
       var file = this.file;
@@ -617,6 +624,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
             buffer.addString(source._path);
           case VersionedPluginSource source:
             buffer.addString(source._constraint);
+            if (source._hostedUrl case var hostedUrl?) {
+              buffer.addString(hostedUrl);
+            }
         }
         buffer.addInt(pluginConfiguration.diagnosticConfigs.length);
         for (var diagnosticConfig
@@ -811,19 +821,31 @@ sealed class PluginSource {
 
 /// A plugin source using a version constraint, hosted either at pub.dev or
 /// another host.
-// TODO(srawlins): Support a different 'hosted' URL.
 @AnalyzerPublicApi(
   message: 'exported by lib/dart/analysis/analysis_options.dart',
 )
 final class VersionedPluginSource implements PluginSource {
   /// The specified version constraint.
   final String _constraint;
+  final String? _hostedUrl;
 
-  VersionedPluginSource({required String constraint})
-    : _constraint = constraint;
+  VersionedPluginSource({required String constraint, String? hostedUrl})
+    : _constraint = constraint,
+      _hostedUrl = hostedUrl;
 
   @override
-  String toYaml({required String name}) => '  $name: $_constraint\n';
+  String toYaml({required String name}) {
+    if (_hostedUrl == null) {
+      return '  $name: $_constraint\n';
+    }
+
+    var buffer = StringBuffer()
+      ..writeln('  $name:')
+      ..writeln('    version: $_constraint')
+      ..writeln('    hosted: $_hostedUrl');
+
+    return buffer.toString();
+  }
 }
 
 extension on YamlNode? {

@@ -32,6 +32,7 @@ as the key. The value can either be
 
 * a package version constraint, in which case the package is downloaded from
   https://pub.dev,
+* a package version constraint and a `hosted` key specifying pub server URL to download the package from,
 * an absolute path.
 
 For example, while developing a plugin locally, it can be enabled as:

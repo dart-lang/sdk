@@ -161,6 +161,38 @@ environment:
     );
   }
 
+  void test_pubspecContainsVersionedHostedDependencies() {
+    var pluginPackageGenerator = PluginPackageGenerator(
+      configurations: [
+        PluginConfiguration(
+          name: 'no_bools',
+          source: VersionedPluginSource(
+            constraint: '^1.0.0',
+            hostedUrl: 'https://example.com/packages/',
+          ),
+        ),
+        PluginConfiguration(
+          name: 'no_ints',
+          source: VersionedPluginSource(
+            constraint: '^1.2.0',
+            hostedUrl: 'https://example.com/packages/',
+          ),
+        ),
+      ],
+    );
+    expect(
+      pluginPackageGenerator.generatePubspec(),
+      contains('''
+  no_bools:
+    version: ^1.0.0
+    hosted: https://example.com/packages/
+  no_ints:
+    version: ^1.2.0
+    hosted: https://example.com/packages/
+'''),
+    );
+  }
+
   void test_useMapConstructor() {
     var pluginPackageGenerator = PluginPackageGenerator(
       useMapConstructor: true,
