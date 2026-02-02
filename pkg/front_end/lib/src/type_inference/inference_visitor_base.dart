@@ -5116,8 +5116,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             name,
             arguments!,
           ),
-          message: diag.invokeNonFunction.withArgumentsOld(
-            implicitInvocationPropertyName.text,
+          message: diag.invokeNonFunction.withArguments(
+            name: implicitInvocationPropertyName.text,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -5127,8 +5127,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // Coverage-ignore-block(suite): Not run.
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.invokeNonFunction.withArgumentsOld(
-            implicitInvocationPropertyName.text,
+          message: diag.invokeNonFunction.withArguments(
+            name: implicitInvocationPropertyName.text,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,

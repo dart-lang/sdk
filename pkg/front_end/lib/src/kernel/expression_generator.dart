@@ -5814,7 +5814,7 @@ class PrefixUseGenerator extends Generator {
   Generator qualifiedLookup(Token nameToken) {
     if (_helper.constantContext != ConstantContext.none && prefix.deferred) {
       problemReporting.addProblem(
-        diag.cantUseDeferredPrefixAsConstant.withArgumentsOld(token),
+        diag.cantUseDeferredPrefixAsConstant.withArguments(token: token),
         fileOffset,
         lengthForToken(token),
         _fileUri,

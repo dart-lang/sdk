@@ -582,8 +582,8 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       issues.add(
         new NonSimplicityIssue(
           declaration,
-          diag.boundIssueViaLoopNonSimplicity.withArgumentsOld(
-            cycle.single.type.declaration!.name,
+          diag.boundIssueViaLoopNonSimplicity.withArguments(
+            typeName: cycle.single.type.declaration!.name,
           ),
           null,
         ),
@@ -594,7 +594,7 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       for (RawTypeCycleElement cycleElement in cycle) {
         context.add(
           diag.nonSimpleBoundViaReference
-              .withArgumentsOld(cycleElement.type.declaration!.name)
+              .withArguments(typeName: cycleElement.type.declaration!.name)
               .withLocation(
                 cycleElement.typeParameterBuilder!.fileUri!,
                 cycleElement.typeParameterBuilder!.fileOffset,
@@ -606,9 +606,9 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       issues.add(
         new NonSimplicityIssue(
           declaration,
-          diag.boundIssueViaCycleNonSimplicity.withArgumentsOld(
-            declaration.name,
-            cycle.first.type.declaration!.name,
+          diag.boundIssueViaCycleNonSimplicity.withArguments(
+            typeName: declaration.name,
+            firstTypeInCycle: cycle.first.type.declaration!.name,
           ),
           context,
         ),

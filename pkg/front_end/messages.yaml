@@ -4359,41 +4359,41 @@ nonSimpleBoundViaVariable:
 
 boundIssueViaLoopNonSimplicity:
   parameters:
-    Name name: undocumented
-  problemMessage: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables."
-  correctionMessage: "Try providing type arguments to '#name' here."
+    Name typeName: The name of the generic type that can't be used without type arguments in the bounds of its own type variables.
+  problemMessage: "Generic type '#typeName' can't be used without type arguments in the bounds of its own type variables."
+  correctionMessage: "Try providing type arguments to '#typeName' here."
   script: |
     class Hest<X extends Hest> {}
 
 boundIssueViaCycleNonSimplicity:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#name2'."
-  correctionMessage: "Try providing type arguments to '#name2' here or to some other raw types in the bounds along the reference chain."
+    Name typeName: The name of the generic type that can't be used without type arguments in the bounds of its own type variables.
+    Name firstTypeInCycle: The first type in the cycle.
+  problemMessage: "Generic type '#typeName' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#firstTypeInCycle'."
+  correctionMessage: "Try providing type arguments to '#firstTypeInCycle' here or to some other raw types in the bounds along the reference chain."
   script: |
     class Hest<X extends Fisk> {}
     class Fisk<Y extends Hest> {}
 
 nonSimpleBoundViaReference:
   parameters:
-    Name name: undocumented
-  problemMessage: "Bound of this variable references raw type '#name'."
+    Name typeName: The referenced type.
+  problemMessage: "Bound of this variable references raw type '#typeName'."
   severity: CONTEXT
 
 cycleInTypeParameters:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "Type '#name' is a bound of itself via '#string'."
+    Name typeName: The name of the type that is a bound of itself.
+    String cycle: The non-trivial dependency cycle.
+  problemMessage: "Type '#typeName' is a bound of itself via '#cycle'."
   correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   script:
     - "foo<A extends B, B extends A>() {}"
 
 directCycleInTypeParameters:
   parameters:
-    Name name: undocumented
-  problemMessage: "Type '#name' can't use itself as a bound."
+    Name typeName: The name of the type that can't use itself as a bound.
+  problemMessage: "Type '#typeName' can't use itself as a bound."
   correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   script:
     - "foo<A extends A>() {}"
@@ -4421,8 +4421,8 @@ cantUsePrefixWithNullAware:
 
 cantUseControlFlowOrSpreadAsConstant:
   parameters:
-    Token lexeme: undocumented
-  problemMessage: "'#lexeme' is not supported in constant expressions."
+    Token token: The token that can't be used in constant expressions.
+  problemMessage: "'#token' is not supported in constant expressions."
   script: |
     test() {
       const List<int> list1 = const [for (var i = 1; i < 4; i++) i];
@@ -4431,9 +4431,9 @@ cantUseControlFlowOrSpreadAsConstant:
 
 cantUseDeferredPrefixAsConstant:
   parameters:
-    Token lexeme: undocumented
+    Token token: The token that can't be used in a constant expression.
   problemMessage: >
-    '#lexeme' can't be used in a constant expression because it's marked as
+    '#token' can't be used in a constant expression because it's marked as
     'deferred' which means it isn't available until loaded.
   correctionMessage: >
     Try moving the constant from the deferred library, or removing 'deferred'
@@ -4447,8 +4447,8 @@ cantUseDeferredPrefixAsConstant:
 
 cyclicRedirectingFactoryConstructors:
   parameters:
-    Name name: undocumented
-  problemMessage: "Cyclic definition of factory '#name'."
+    Name factoryName: The name of the factory with a cyclic definition.
+  problemMessage: "Cyclic definition of factory '#factoryName'."
   script: |
     class Foo {
       factory Foo.foo() = Foo.bar;
@@ -4506,8 +4506,8 @@ invalidReturnAsync:
 
 implicitReturnNull:
   parameters:
-    Type type: undocumented
-  problemMessage: "A non-null value must be returned since the return type '#type' doesn't allow null."
+    Type returnType: The return type that doesn't allow null.
+  problemMessage: "A non-null value must be returned since the return type '#returnType' doesn't allow null."
   script: |
     String method() {}
 
@@ -4523,7 +4523,7 @@ rethrowNotCatch:
 
 invokeNonFunction:
   parameters:
-    Name name: undocumented
+    Name name: The name that can't be invoked.
   problemMessage: "'#name' isn't a function or method and can't be invoked."
   script: |
     abstract class Foo {
@@ -4540,8 +4540,8 @@ constInstanceField:
 
 defaultValueInRedirectingFactoryConstructor:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't have a default value here because any default values of '#name' would be used instead."
+    Name redirectionTarget: The redirection target whose default values would be used instead.
+  problemMessage: "Can't have a default value here because any default values of '#redirectionTarget' would be used instead."
   correctionMessage: "Try removing the default value."
   script:
     - >-

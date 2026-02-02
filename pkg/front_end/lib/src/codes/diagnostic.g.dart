@@ -409,8 +409,8 @@ Message _withArgumentsOldBaseOrFinalClassImplementedOutsideOfLibraryCause(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String typeName, String firstTypeInCycle),
+  Message Function({required String typeName, required String firstTypeInCycle})
 >
 boundIssueViaCycleNonSimplicity = const Template(
   "BoundIssueViaCycleNonSimplicity",
@@ -420,31 +420,36 @@ boundIssueViaCycleNonSimplicity = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBoundIssueViaCycleNonSimplicity({
-  required String name,
-  required String name2,
+  required String typeName,
+  required String firstTypeInCycle,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
+  var firstTypeInCycle_0 = conversions.validateAndDemangleName(
+    firstTypeInCycle,
+  );
   return new Message(
     boundIssueViaCycleNonSimplicity,
     problemMessage:
-        """Generic type '${name_0}' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '${name2_0}'.""",
+        """Generic type '${typeName_0}' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '${firstTypeInCycle_0}'.""",
     correctionMessage:
-        """Try providing type arguments to '${name2_0}' here or to some other raw types in the bounds along the reference chain.""",
-    arguments: {'name': name, 'name2': name2},
+        """Try providing type arguments to '${firstTypeInCycle_0}' here or to some other raw types in the bounds along the reference chain.""",
+    arguments: {'typeName': typeName, 'firstTypeInCycle': firstTypeInCycle},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldBoundIssueViaCycleNonSimplicity(
-  String name,
-  String name2,
-) => _withArgumentsBoundIssueViaCycleNonSimplicity(name: name, name2: name2);
+  String typeName,
+  String firstTypeInCycle,
+) => _withArgumentsBoundIssueViaCycleNonSimplicity(
+  typeName: typeName,
+  firstTypeInCycle: firstTypeInCycle,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 boundIssueViaLoopNonSimplicity = const Template(
   "BoundIssueViaLoopNonSimplicity",
@@ -453,20 +458,23 @@ boundIssueViaLoopNonSimplicity = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBoundIssueViaLoopNonSimplicity({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsBoundIssueViaLoopNonSimplicity({
+  required String typeName,
+}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     boundIssueViaLoopNonSimplicity,
     problemMessage:
-        """Generic type '${name_0}' can't be used without type arguments in the bounds of its own type variables.""",
-    correctionMessage: """Try providing type arguments to '${name_0}' here.""",
-    arguments: {'name': name},
+        """Generic type '${typeName_0}' can't be used without type arguments in the bounds of its own type variables.""",
+    correctionMessage:
+        """Try providing type arguments to '${typeName_0}' here.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBoundIssueViaLoopNonSimplicity(String name) =>
-    _withArgumentsBoundIssueViaLoopNonSimplicity(name: name);
+Message _withArgumentsOldBoundIssueViaLoopNonSimplicity(String typeName) =>
+    _withArgumentsBoundIssueViaLoopNonSimplicity(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -918,8 +926,8 @@ Message _withArgumentsOldCantUseClassAsMixin(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token token),
+  Message Function({required Token token})
 >
 cantUseControlFlowOrSpreadAsConstant = const Template(
   "CantUseControlFlowOrSpreadAsConstant",
@@ -929,25 +937,25 @@ cantUseControlFlowOrSpreadAsConstant = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantUseControlFlowOrSpreadAsConstant({
-  required Token lexeme,
+  required Token token,
 }) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+  var token_0 = conversions.tokenToLexeme(token);
   return new Message(
     cantUseControlFlowOrSpreadAsConstant,
     problemMessage:
-        """'${lexeme_0}' is not supported in constant expressions.""",
-    arguments: {'lexeme': lexeme},
+        """'${token_0}' is not supported in constant expressions.""",
+    arguments: {'token': token},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantUseControlFlowOrSpreadAsConstant(Token lexeme) =>
-    _withArgumentsCantUseControlFlowOrSpreadAsConstant(lexeme: lexeme);
+Message _withArgumentsOldCantUseControlFlowOrSpreadAsConstant(Token token) =>
+    _withArgumentsCantUseControlFlowOrSpreadAsConstant(token: token);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token token),
+  Message Function({required Token token})
 >
 cantUseDeferredPrefixAsConstant = const Template(
   "CantUseDeferredPrefixAsConstant",
@@ -956,21 +964,21 @@ cantUseDeferredPrefixAsConstant = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsCantUseDeferredPrefixAsConstant({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+Message _withArgumentsCantUseDeferredPrefixAsConstant({required Token token}) {
+  var token_0 = conversions.tokenToLexeme(token);
   return new Message(
     cantUseDeferredPrefixAsConstant,
     problemMessage:
-        """'${lexeme_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+        """'${token_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
     correctionMessage:
         """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
-    arguments: {'lexeme': lexeme},
+    arguments: {'token': token},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCantUseDeferredPrefixAsConstant(Token lexeme) =>
-    _withArgumentsCantUseDeferredPrefixAsConstant(lexeme: lexeme);
+Message _withArgumentsOldCantUseDeferredPrefixAsConstant(Token token) =>
+    _withArgumentsCantUseDeferredPrefixAsConstant(token: token);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cantUsePrefixAsExpression = const MessageCode(
@@ -2522,8 +2530,8 @@ Message _withArgumentsOldCouldNotParseUri(String uri, String details) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String typeName, String cycle),
+  Message Function({required String typeName, required String cycle})
 >
 cycleInTypeParameters = const Template(
   "CycleInTypeParameters",
@@ -2533,24 +2541,24 @@ cycleInTypeParameters = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCycleInTypeParameters({
-  required String name,
-  required String string,
+  required String typeName,
+  required String cycle,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
+  var cycle_0 = conversions.validateString(cycle);
   return new Message(
     cycleInTypeParameters,
     problemMessage:
-        """Type '${name_0}' is a bound of itself via '${string_0}'.""",
+        """Type '${typeName_0}' is a bound of itself via '${cycle_0}'.""",
     correctionMessage:
         """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'typeName': typeName, 'cycle': cycle},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCycleInTypeParameters(String name, String string) =>
-    _withArgumentsCycleInTypeParameters(name: name, string: string);
+Message _withArgumentsOldCycleInTypeParameters(String typeName, String cycle) =>
+    _withArgumentsCycleInTypeParameters(typeName: typeName, cycle: cycle);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2579,8 +2587,8 @@ Message _withArgumentsOldCyclicClassHierarchy(String typeName) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String factoryName),
+  Message Function({required String factoryName})
 >
 cyclicRedirectingFactoryConstructors = const Template(
   "CyclicRedirectingFactoryConstructors",
@@ -2590,19 +2598,22 @@ cyclicRedirectingFactoryConstructors = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCyclicRedirectingFactoryConstructors({
-  required String name,
+  required String factoryName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var factoryName_0 = conversions.validateAndDemangleName(factoryName);
   return new Message(
     cyclicRedirectingFactoryConstructors,
-    problemMessage: """Cyclic definition of factory '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage: """Cyclic definition of factory '${factoryName_0}'.""",
+    arguments: {'factoryName': factoryName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldCyclicRedirectingFactoryConstructors(String name) =>
-    _withArgumentsCyclicRedirectingFactoryConstructors(name: name);
+Message _withArgumentsOldCyclicRedirectingFactoryConstructors(
+  String factoryName,
+) => _withArgumentsCyclicRedirectingFactoryConstructors(
+  factoryName: factoryName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cyclicRepresentationDependency = const MessageCode(
@@ -2764,8 +2775,8 @@ const MessageCode declaredMemberConflictsWithOverriddenMembersCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String redirectionTarget),
+  Message Function({required String redirectionTarget})
 >
 defaultValueInRedirectingFactoryConstructor = const Template(
   "DefaultValueInRedirectingFactoryConstructor",
@@ -2776,22 +2787,26 @@ defaultValueInRedirectingFactoryConstructor = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDefaultValueInRedirectingFactoryConstructor({
-  required String name,
+  required String redirectionTarget,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var redirectionTarget_0 = conversions.validateAndDemangleName(
+    redirectionTarget,
+  );
   return new Message(
     defaultValueInRedirectingFactoryConstructor,
     problemMessage:
-        """Can't have a default value here because any default values of '${name_0}' would be used instead.""",
+        """Can't have a default value here because any default values of '${redirectionTarget_0}' would be used instead.""",
     correctionMessage: """Try removing the default value.""",
-    arguments: {'name': name},
+    arguments: {'redirectionTarget': redirectionTarget},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldDefaultValueInRedirectingFactoryConstructor(
-  String name,
-) => _withArgumentsDefaultValueInRedirectingFactoryConstructor(name: name);
+  String redirectionTarget,
+) => _withArgumentsDefaultValueInRedirectingFactoryConstructor(
+  redirectionTarget: redirectionTarget,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2990,8 +3005,8 @@ Message _withArgumentsOldDillOutlineSummary(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 directCycleInTypeParameters = const Template(
   "DirectCycleInTypeParameters",
@@ -3000,20 +3015,20 @@ directCycleInTypeParameters = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDirectCycleInTypeParameters({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDirectCycleInTypeParameters({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     directCycleInTypeParameters,
-    problemMessage: """Type '${name_0}' can't use itself as a bound.""",
+    problemMessage: """Type '${typeName_0}' can't use itself as a bound.""",
     correctionMessage:
         """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
-    arguments: {'name': name},
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDirectCycleInTypeParameters(String name) =>
-    _withArgumentsDirectCycleInTypeParameters(name: name);
+Message _withArgumentsOldDirectCycleInTypeParameters(String typeName) =>
+    _withArgumentsDirectCycleInTypeParameters(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -6613,8 +6628,8 @@ Message _withArgumentsOldImplicitMixinOverride(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType returnType),
+  Message Function({required DartType returnType})
 >
 implicitReturnNull = const Template(
   "ImplicitReturnNull",
@@ -6623,21 +6638,21 @@ implicitReturnNull = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitReturnNull({required DartType type}) {
+Message _withArgumentsImplicitReturnNull({required DartType returnType}) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var returnType_0 = labeler.labelType(returnType);
   return new Message(
     implicitReturnNull,
     problemMessage:
-        """A non-null value must be returned since the return type '${type_0}' doesn't allow null.""" +
+        """A non-null value must be returned since the return type '${returnType_0}' doesn't allow null.""" +
         labeler.originMessages,
-    arguments: {'type': type},
+    arguments: {'returnType': returnType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldImplicitReturnNull(DartType type) =>
-    _withArgumentsImplicitReturnNull(type: type);
+Message _withArgumentsOldImplicitReturnNull(DartType returnType) =>
+    _withArgumentsImplicitReturnNull(returnType: returnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode implicitSuperCallOfNonMethod = const MessageCode(
@@ -12769,8 +12784,8 @@ const MessageCode nonPositiveArrayDimensions = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 nonSimpleBoundViaReference = const Template(
   "NonSimpleBoundViaReference",
@@ -12780,19 +12795,19 @@ nonSimpleBoundViaReference = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonSimpleBoundViaReference({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsNonSimpleBoundViaReference({required String typeName}) {
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     nonSimpleBoundViaReference,
     problemMessage:
-        """Bound of this variable references raw type '${name_0}'.""",
-    arguments: {'name': name},
+        """Bound of this variable references raw type '${typeName_0}'.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonSimpleBoundViaReference(String name) =>
-    _withArgumentsNonSimpleBoundViaReference(name: name);
+Message _withArgumentsOldNonSimpleBoundViaReference(String typeName) =>
+    _withArgumentsNonSimpleBoundViaReference(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

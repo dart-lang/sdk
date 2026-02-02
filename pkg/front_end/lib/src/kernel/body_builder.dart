@@ -3890,8 +3890,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
       push(
         buildProblem(
-          message: diag.cantUseControlFlowOrSpreadAsConstant.withArgumentsOld(
-            forToken,
+          message: diag.cantUseControlFlowOrSpreadAsConstant.withArguments(
+            token: forToken,
           ),
           fileUri: uri,
           fileOffset: forToken.charOffset,
@@ -5420,8 +5420,8 @@ class BodyBuilderImpl extends StackListenerImpl
     if (initializer != null) {
       if (_context.isRedirectingFactory) {
         addProblem(
-          diag.defaultValueInRedirectingFactoryConstructor.withArgumentsOld(
-            _context.redirectingFactoryTargetName,
+          diag.defaultValueInRedirectingFactoryConstructor.withArguments(
+            redirectionTarget: _context.redirectingFactoryTargetName,
           ),
           initializer.fileOffset,
           noLength,
@@ -8059,8 +8059,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
       push(
         buildProblem(
-          message: diag.cantUseControlFlowOrSpreadAsConstant.withArgumentsOld(
-            forToken,
+          message: diag.cantUseControlFlowOrSpreadAsConstant.withArguments(
+            token: forToken,
           ),
           fileUri: uri,
           fileOffset: forToken.charOffset,

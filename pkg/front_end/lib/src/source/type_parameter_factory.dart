@@ -199,13 +199,15 @@ void checkTypeParameterDependencies(
       if (dependency != null) {
         Message message;
         if (dependency.viaTypeParameters != null) {
-          message = diag.cycleInTypeParameters.withArgumentsOld(
-            dependency.typeParameterBoundOfItself.name,
-            dependency.viaTypeParameters!.map((v) => v.name).join("', '"),
+          message = diag.cycleInTypeParameters.withArguments(
+            typeName: dependency.typeParameterBoundOfItself.name,
+            cycle: dependency.viaTypeParameters!
+                .map((v) => v.name)
+                .join("', '"),
           );
         } else {
-          message = diag.directCycleInTypeParameters.withArgumentsOld(
-            dependency.typeParameterBoundOfItself.name,
+          message = diag.directCycleInTypeParameters.withArguments(
+            typeName: dependency.typeParameterBoundOfItself.name,
           );
         }
         problemReporting.addProblem(
