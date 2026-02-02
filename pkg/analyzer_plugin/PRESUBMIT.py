@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-"""Analyzer specific presubmit script.
+"""Analysis server specific presubmit script.
 
 See http://dev.chromium.org/developers/how-tos/depottools/presubmit-scripts
 for more details about the presubmit API built into gcl.
@@ -11,7 +11,6 @@ for more details about the presubmit API built into gcl.
 import importlib.util
 import importlib.machinery
 import os.path
-import re
 import subprocess
 
 USE_PYTHON3 = True
@@ -57,33 +56,4 @@ def CheckSorted(input_api, output_api):
                 if 'Unsorted file' in line
             ]))
         ]
-    return []
-
-def CheckNodeTextExpectationsCollectorUpdatingIsDisabled(input_api, output_api):
-    local_root = input_api.change.RepositoryRoot()
-    node_text_expectations_file = os.path.join(local_root, 'pkg', 'analyzer',
-                                               'test', 'src', 'dart',
-                                               'resolution',
-                                               'node_text_expectations.dart')
-    for git_file in input_api.AffectedTestableFiles():
-        filename = git_file.AbsoluteLocalPath()
-        if (filename == node_text_expectations_file):
-            isEnabledLine = re.compile('defaultValue: (.*),')
-            for line in git_file.NewContents():
-                m = isEnabledLine.search(line)
-                if (m is not None):
-                    value = m.group(1)
-                    if (value == 'false'):
-                        return []
-                    else:
-                        return [
-                            output_api.PresubmitError(
-                                'NodeTextExpectationsCollector.updatingIsEnabled '
-                                'must default to `false`')
-                        ]
-            return [
-                output_api.PresubmitError(
-                    'Could not validate '
-                    'NodeTextExpectationsCollector.updatingIsEnabled')
-            ]
     return []
