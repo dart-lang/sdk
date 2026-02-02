@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
@@ -30,6 +29,7 @@ import '../base/messages.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
+import '../kernel/assigned_variables_impl.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
@@ -138,8 +138,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       .flags
       .isClosureContextLoweringEnabled;
 
-  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables =>
-      _inferrer.assignedVariables;
+  AssignedVariablesImpl get assignedVariables => _inferrer.assignedVariables;
 
   InterfaceType? get thisType => _inferrer.thisType;
 
@@ -606,11 +605,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         break;
       case AssignabilityKind.unassignableCantTearoff:
-        result = _wrapTearoffErrorExpression(
-          expression,
-          contextType,
-          diag.nullableTearoffError,
-        );
+        result = _wrapTearoffErrorExpression(expression, contextType);
         break;
       case AssignabilityKind.unassignableNullability:
         if (expressionType == assignabilityResult.subtype &&
@@ -714,7 +709,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Expression _wrapTearoffErrorExpression(
     Expression expression,
     DartType contextType,
-    Template<Message Function(String), Function> template,
   ) {
     Expression errorNode =
         new AsExpression(
@@ -734,7 +728,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       errorNode = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: errorNode,
-        message: template.withArgumentsOld(callName.text),
+        message: diag.nullableTearoffError.withArguments(
+          methodName: callName.text,
+        ),
         fileUri: fileUri,
         fileOffset: errorNode.fileOffset,
         length: noLength,
@@ -2344,9 +2340,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           formal.type.isPotentiallyNonNullable &&
           !formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
-          diag.optionalNonNullableWithoutInitializerError.withArgumentsOld(
-            formal.cosmeticName!,
-            formal.type,
+          diag.optionalNonNullableWithoutInitializerError.withArguments(
+            parameterName: formal.cosmeticName!,
+            parameterType: formal.type,
           ),
           formal.fileOffset,
           formal.cosmeticName!.length,
@@ -2414,8 +2410,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Required named parameters shouldn't have initializers.
       if (formal.isRequired && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
-          diag.requiredNamedParameterHasDefaultValueError.withArgumentsOld(
-            formal.cosmeticName!,
+          diag.requiredNamedParameterHasDefaultValueError.withArguments(
+            parameterName: formal.cosmeticName!,
           ),
           formal.fileOffset,
           formal.cosmeticName!.length,
@@ -2736,7 +2732,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         result = wrapExpressionInferenceResultInProblem(
           result,
-          diag.nullableExpressionCallError.withArgumentsOld(receiverType),
+          diag.nullableExpressionCallError.withArguments(type: receiverType),
           fileOffset,
           noLength,
           context: context,
@@ -2800,8 +2796,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           replacement = problemReporting.wrapInProblem(
             compilerContext: compilerContext,
             expression: replacement,
-            message: diag.nullableExpressionCallError.withArgumentsOld(
-              receiverType,
+            message: diag.nullableExpressionCallError.withArguments(
+              type: receiverType,
             ),
             fileUri: fileUri,
             fileOffset: fileOffset,
@@ -2942,8 +2938,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: diag.nullableExpressionCallError.withArgumentsOld(
-            receiverType,
+          message: diag.nullableExpressionCallError.withArguments(
+            type: receiverType,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -3193,8 +3189,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: diag.nullableExpressionCallError.withArgumentsOld(
-            receiverType,
+          message: diag.nullableExpressionCallError.withArguments(
+            type: receiverType,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -3342,7 +3338,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       invocationResult = wrapExpressionInferenceResultInProblem(
         invocationResult,
-        diag.nullableExpressionCallError.withArgumentsOld(receiverType),
+        diag.nullableExpressionCallError.withArguments(type: receiverType),
         fileOffset,
         noLength,
         context: context,
@@ -3577,7 +3573,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       invocationResult = wrapExpressionInferenceResultInProblem(
         invocationResult,
-        diag.nullableExpressionCallError.withArgumentsOld(receiverType),
+        diag.nullableExpressionCallError.withArguments(type: receiverType),
         fileOffset,
         noLength,
         context: context,
@@ -3840,7 +3836,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           );
           readResult = wrapExpressionInferenceResultInProblem(
             readResult,
-            diag.nullableExpressionCallError.withArgumentsOld(receiverType),
+            diag.nullableExpressionCallError.withArguments(type: receiverType),
             fileOffset,
             noLength,
             context: context,
@@ -3891,7 +3887,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           );
           readResult = wrapExpressionInferenceResultInProblem(
             readResult,
-            diag.nullableExpressionCallError.withArgumentsOld(receiverType),
+            diag.nullableExpressionCallError.withArguments(type: receiverType),
             fileOffset,
             noLength,
             context: context,
@@ -3948,7 +3944,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           );
           readResult = wrapExpressionInferenceResultInProblem(
             readResult,
-            diag.nullableExpressionCallError.withArgumentsOld(receiverType),
+            diag.nullableExpressionCallError.withArguments(type: receiverType),
             fileOffset,
             noLength,
             context: context,

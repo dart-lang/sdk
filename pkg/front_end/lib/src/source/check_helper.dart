@@ -185,7 +185,7 @@ extension CheckHelper on ProblemReporting {
         VariableDeclaration parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name!)) {
           return diag.valueForRequiredParameterNotProvidedError
-              .withArgumentsOld(parameter.name!)
+              .withArguments(parameterName: parameter.name!)
               .withLocation(fileUri, arguments.fileOffset, noLength);
         }
       }
@@ -262,7 +262,7 @@ extension CheckHelper on ProblemReporting {
         NamedType parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
           return diag.valueForRequiredParameterNotProvidedError
-              .withArgumentsOld(parameter.name)
+              .withArguments(parameterName: parameter.name)
               .withLocation(fileUri, arguments.fileOffset, noLength);
         }
       }
@@ -740,9 +740,9 @@ extension CheckHelper on ProblemReporting {
             formal.variable!.type.isPotentiallyNonNullable &&
             !formal.hasDeclaredInitializer) {
           addProblem(
-            diag.optionalNonNullableWithoutInitializerError.withArgumentsOld(
-              formal.name,
-              formal.variable!.type,
+            diag.optionalNonNullableWithoutInitializerError.withArguments(
+              parameterName: formal.name,
+              parameterType: formal.variable!.type,
             ),
             formal.fileOffset,
             formal.name.length,

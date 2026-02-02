@@ -50,7 +50,6 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -108,7 +107,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 607;
+  static const int DATA_VERSION = 608;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -2502,8 +2501,7 @@ class AnalysisDriver {
   }) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex)
-      ..addBool(enableDebugResolutionMarkers);
+      ..addBool(enableIndex);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
 
     var workspace = analysisContext?.contextRoot.workspace;

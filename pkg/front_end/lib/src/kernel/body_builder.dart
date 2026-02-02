@@ -98,6 +98,7 @@ import '../source/value_kinds.dart';
 import '../type_inference/external_ast_helper.dart';
 import '../util/helpers.dart';
 import '../util/local_stack.dart';
+import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder_context.dart';
 import 'collections.dart';
@@ -200,7 +201,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   final Uri uri;
 
-  final AssignedVariables assignedVariables;
+  final AssignedVariablesImpl assignedVariables;
 
   @override
   final TypeEnvironment typeEnvironment;
@@ -8573,6 +8574,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void beginAssert(Token assertKeyword, Assert kind) {
     debugEvent("beginAssert");
+    assignedVariables.enterAssert();
     // If in an assert initializer, make sure [inInitializer] is false so we
     // use the formal parameter scope. If this is any other kind of assert,
     // inInitializer should be false anyway.
@@ -8588,6 +8590,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Token endToken,
   ) {
     debugEvent("Assert");
+    assignedVariables.exitAssert();
     Expression? message = popForValueIfNotNull(commaToken);
     Expression condition = popForValue();
     int fileOffset = offsetForToken(assertKeyword);

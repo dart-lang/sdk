@@ -47,6 +47,7 @@ import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart';
+import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder.dart';
 import 'body_builder_context.dart';

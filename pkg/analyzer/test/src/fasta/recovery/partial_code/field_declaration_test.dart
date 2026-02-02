@@ -33,15 +33,13 @@ class MethodTest extends PartialCodeTest {
           [diag.missingIdentifier, diag.expectedToken],
           'const _s_;',
           failing: allExceptAnnotationAndEof,
-          expectedDiagnosticsInValidCode: [diag.constNotInitialized],
         ),
         TestDescriptor(
           'const_name',
           'const f',
-          [diag.expectedToken, diag.constNotInitialized],
+          [diag.expectedToken],
           'const f;',
           failing: ['methodNonVoid', 'getter', 'setter'],
-          expectedDiagnosticsInValidCode: [diag.constNotInitialized],
         ),
         TestDescriptor(
           'const_equals',
@@ -175,15 +173,13 @@ class MethodTest extends PartialCodeTest {
           [diag.missingIdentifier, diag.expectedToken],
           'static const _s_;',
           failing: allExceptAnnotationAndEof,
-          expectedDiagnosticsInValidCode: [diag.constNotInitialized],
         ),
         TestDescriptor(
           'static_const_name',
           'static const f',
-          [diag.expectedToken, diag.constNotInitialized],
+          [diag.expectedToken],
           'static const f;',
           failing: ['methodNonVoid', 'getter', 'setter'],
-          expectedDiagnosticsInValidCode: [diag.constNotInitialized],
         ),
         TestDescriptor(
           'static_const_equals',

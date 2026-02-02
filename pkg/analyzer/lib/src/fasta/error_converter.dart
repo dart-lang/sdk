@@ -65,12 +65,7 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.constNotInitialized:
-        var name = arguments['name'] as String;
-        diagnosticReporter?.report(
-          diag.constNotInitialized
-              .withArguments(name: name)
-              .atOffset(offset: offset, length: length),
-        );
+        // Reported by [ErrorVerifier]
         return;
       case PseudoSharedCode.defaultValueInFunctionType:
         diagnosticReporter?.report(
@@ -108,16 +103,10 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.extensionDeclaresInstanceField:
-        // Reported by
-        // [ErrorVerifier._checkForExtensionDeclaresInstanceField]
+        // Reported by [ErrorVerifier._checkForExtensionDeclaresInstanceField]
         return;
       case PseudoSharedCode.finalNotInitialized:
-        var name = arguments['name'] as String;
-        diagnosticReporter?.report(
-          diag.finalNotInitialized
-              .withArguments(name: name)
-              .atOffset(offset: offset, length: length),
-        );
+        // Reported by [ErrorVerifier]
         return;
       case PseudoSharedCode.getterWithParameters:
         diagnosticReporter?.report(

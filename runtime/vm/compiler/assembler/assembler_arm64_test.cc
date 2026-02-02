@@ -322,6 +322,8 @@ ASSEMBLER_TEST_GENERATE(AddExtReg, assembler) {
   __ movz(R1, Immediate(0xffff), 0);
   __ movk(R1, Immediate(0xffff), 1);     // R1 <- -1 (32-bit)
   __ add(R0, R0, Operand(R1, SXTW, 0));  // R0 <- R0 + (sign extended R1)
+  __ mov(R2, ZR);
+  __ add(CSP, CSP, Operand(R2, UXTX, 0));
   __ ret();
 }
 
@@ -333,6 +335,8 @@ ASSEMBLER_TEST_RUN(AddExtReg, test) {
       "movz r1, #0xffff\n"
       "movk r1, #0xffff lsl 16\n"
       "add r0, r0, r1 sxtw\n"
+      "mov r2, zr\n"
+      "add csp, csp, r2 uxtx 0\n"
       "ret\n");
 }
 

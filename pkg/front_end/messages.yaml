@@ -5776,7 +5776,7 @@ nullableMethodCallError:
 
 nullableExpressionCallError:
   parameters:
-    Type type: undocumented
+    Type type: The type that can't be used as a function.
   problemMessage: "Can't use an expression of type '#type' as a function because it's potentially null."
   correctionMessage: "Try calling using ?.call instead."
   script: |
@@ -5784,16 +5784,16 @@ nullableExpressionCallError:
 
 nullableOperatorCallError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Operator '#name' cannot be called on '#type' because it is potentially null."
+    Name operator: The operator that can't be called.
+    Type receiverType: The receiver type of the operator invocation.
+  problemMessage: "Operator '#operator' cannot be called on '#receiverType' because it is potentially null."
   script: |
     void foo(int? i) => i - 1;
 
 nullableTearoffError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't tear off method '#name' from a potentially null value."
+    Name methodName: The name of the method that can't be torn off.
+  problemMessage: "Can't tear off method '#methodName' from a potentially null value."
   script: |
     class Foo {
       void call() {}
@@ -5810,15 +5810,15 @@ nullableSpreadError:
 
 throwingNotAssignableToObjectError:
   parameters:
-    Type type: undocumented
-  problemMessage: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
+    Type thrownType: The static type of the thrown expression.
+  problemMessage: "Can't throw a value of '#thrownType' since it is neither dynamic nor non-nullable."
   script: |
     void foo(String? s) => throw s;
 
 requiredNamedParameterHasDefaultValueError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Named parameter '#name' is required and can't have a default value."
+    Name parameterName: The name of the problematic parameter.
+  problemMessage: "Named parameter '#parameterName' is required and can't have a default value."
   script: |
     error() {
       void g({required int b = 42}) {}
@@ -5826,17 +5826,17 @@ requiredNamedParameterHasDefaultValueError:
 
 valueForRequiredParameterNotProvidedError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Required named parameter '#name' must be provided."
+    Name parameterName: The name of the problematic parameter.
+  problemMessage: "Required named parameter '#parameterName' must be provided."
   script: |
     void foo({required int i}) {}
     void bar() { foo(); }
 
 optionalNonNullableWithoutInitializerError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'."
+    Name parameterName: The name of the problematic parameter.
+    Type parameterType: The type of the problematic parameter.
+  problemMessage: "The parameter '#parameterName' can't have a value of 'null' because of its type '#parameterType', but the implicit default value is 'null'."
   correctionMessage: "Try adding either an explicit non-'null' default value or the 'required' modifier."
   script:
     - method1({int a}) {}

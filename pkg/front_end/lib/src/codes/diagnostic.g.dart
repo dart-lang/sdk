@@ -13183,8 +13183,8 @@ Message _withArgumentsOldNullableMixinError(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String operator, DartType receiverType),
+  Message Function({required String operator, required DartType receiverType})
 >
 nullableOperatorCallError = const Template(
   "NullableOperatorCallError",
@@ -13194,26 +13194,29 @@ nullableOperatorCallError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNullableOperatorCallError({
-  required String name,
-  required DartType type,
+  required String operator,
+  required DartType receiverType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var operator_0 = conversions.validateAndDemangleName(operator);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var receiverType_0 = labeler.labelType(receiverType);
   return new Message(
     nullableOperatorCallError,
     problemMessage:
-        """Operator '${name_0}' cannot be called on '${type_0}' because it is potentially null.""" +
+        """Operator '${operator_0}' cannot be called on '${receiverType_0}' because it is potentially null.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type},
+    arguments: {'operator': operator, 'receiverType': receiverType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldNullableOperatorCallError(
-  String name,
-  DartType type,
-) => _withArgumentsNullableOperatorCallError(name: name, type: type);
+  String operator,
+  DartType receiverType,
+) => _withArgumentsNullableOperatorCallError(
+  operator: operator,
+  receiverType: receiverType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13291,8 +13294,8 @@ Message _withArgumentsOldNullableSuperclassError(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String methodName),
+  Message Function({required String methodName})
 >
 nullableTearoffError = const Template(
   "NullableTearoffError",
@@ -13301,19 +13304,19 @@ nullableTearoffError = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNullableTearoffError({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsNullableTearoffError({required String methodName}) {
+  var methodName_0 = conversions.validateAndDemangleName(methodName);
   return new Message(
     nullableTearoffError,
     problemMessage:
-        """Can't tear off method '${name_0}' from a potentially null value.""",
-    arguments: {'name': name},
+        """Can't tear off method '${methodName_0}' from a potentially null value.""",
+    arguments: {'methodName': methodName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableTearoffError(String name) =>
-    _withArgumentsNullableTearoffError(name: name);
+Message _withArgumentsOldNullableTearoffError(String methodName) =>
+    _withArgumentsNullableTearoffError(methodName: methodName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode objectExtends = const MessageCode(
@@ -13470,8 +13473,11 @@ const MessageCode operatorWithOptionalFormals = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String parameterName, DartType parameterType),
+  Message Function({
+    required String parameterName,
+    required DartType parameterType,
+  })
 >
 optionalNonNullableWithoutInitializerError = const Template(
   "OptionalNonNullableWithoutInitializerError",
@@ -13481,30 +13487,30 @@ optionalNonNullableWithoutInitializerError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOptionalNonNullableWithoutInitializerError({
-  required String name,
-  required DartType type,
+  required String parameterName,
+  required DartType parameterType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var parameterType_0 = labeler.labelType(parameterType);
   return new Message(
     optionalNonNullableWithoutInitializerError,
     problemMessage:
-        """The parameter '${name_0}' can't have a value of 'null' because of its type '${type_0}', but the implicit default value is 'null'.""" +
+        """The parameter '${parameterName_0}' can't have a value of 'null' because of its type '${parameterType_0}', but the implicit default value is 'null'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try adding either an explicit non-'null' default value or the 'required' modifier.""",
-    arguments: {'name': name, 'type': type},
+    arguments: {'parameterName': parameterName, 'parameterType': parameterType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOptionalNonNullableWithoutInitializerError(
-  String name,
-  DartType type,
+  String parameterName,
+  DartType parameterType,
 ) => _withArgumentsOptionalNonNullableWithoutInitializerError(
-  name: name,
-  type: type,
+  parameterName: parameterName,
+  parameterType: parameterType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14773,8 +14779,8 @@ const MessageCode representationFieldTrailingComma = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String parameterName),
+  Message Function({required String parameterName})
 >
 requiredNamedParameterHasDefaultValueError = const Template(
   "RequiredNamedParameterHasDefaultValueError",
@@ -14784,21 +14790,23 @@ requiredNamedParameterHasDefaultValueError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRequiredNamedParameterHasDefaultValueError({
-  required String name,
+  required String parameterName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
   return new Message(
     requiredNamedParameterHasDefaultValueError,
     problemMessage:
-        """Named parameter '${name_0}' is required and can't have a default value.""",
-    arguments: {'name': name},
+        """Named parameter '${parameterName_0}' is required and can't have a default value.""",
+    arguments: {'parameterName': parameterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldRequiredNamedParameterHasDefaultValueError(
-  String name,
-) => _withArgumentsRequiredNamedParameterHasDefaultValueError(name: name);
+  String parameterName,
+) => _withArgumentsRequiredNamedParameterHasDefaultValueError(
+  parameterName: parameterName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode restPatternInMapPattern = const MessageCode(
@@ -16153,8 +16161,8 @@ Message _withArgumentsOldThisOrSuperAccessInFieldInitializer(String string) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType thrownType),
+  Message Function({required DartType thrownType})
 >
 throwingNotAssignableToObjectError = const Template(
   "ThrowingNotAssignableToObjectError",
@@ -16164,22 +16172,23 @@ throwingNotAssignableToObjectError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsThrowingNotAssignableToObjectError({
-  required DartType type,
+  required DartType thrownType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var thrownType_0 = labeler.labelType(thrownType);
   return new Message(
     throwingNotAssignableToObjectError,
     problemMessage:
-        """Can't throw a value of '${type_0}' since it is neither dynamic nor non-nullable.""" +
+        """Can't throw a value of '${thrownType_0}' since it is neither dynamic nor non-nullable.""" +
         labeler.originMessages,
-    arguments: {'type': type},
+    arguments: {'thrownType': thrownType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldThrowingNotAssignableToObjectError(DartType type) =>
-    _withArgumentsThrowingNotAssignableToObjectError(type: type);
+Message _withArgumentsOldThrowingNotAssignableToObjectError(
+  DartType thrownType,
+) => _withArgumentsThrowingNotAssignableToObjectError(thrownType: thrownType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -16986,8 +16995,8 @@ Message _withArgumentsOldUntranslatableUri(Uri uri) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String parameterName),
+  Message Function({required String parameterName})
 >
 valueForRequiredParameterNotProvidedError = const Template(
   "ValueForRequiredParameterNotProvidedError",
@@ -16997,21 +17006,23 @@ valueForRequiredParameterNotProvidedError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsValueForRequiredParameterNotProvidedError({
-  required String name,
+  required String parameterName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var parameterName_0 = conversions.validateAndDemangleName(parameterName);
   return new Message(
     valueForRequiredParameterNotProvidedError,
     problemMessage:
-        """Required named parameter '${name_0}' must be provided.""",
-    arguments: {'name': name},
+        """Required named parameter '${parameterName_0}' must be provided.""",
+    arguments: {'parameterName': parameterName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldValueForRequiredParameterNotProvidedError(
-  String name,
-) => _withArgumentsValueForRequiredParameterNotProvidedError(name: name);
+  String parameterName,
+) => _withArgumentsValueForRequiredParameterNotProvidedError(
+  parameterName: parameterName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

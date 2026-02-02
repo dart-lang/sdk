@@ -59,6 +59,20 @@ class B extends A {
     );
   }
 
+  void test_named_primaryConstructor() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  const A({int? x, int? y});
+}
+class const B({int? x, int? y}) extends A {
+  this : super(x: x, y: y);
+}
+''',
+      [lint(53, 1)],
+    );
+  }
+
   test_named_someReferencedInBody() async {
     await assertDiagnostics(
       r'''
@@ -81,6 +95,28 @@ class B extends A {
     );
   }
 
+  test_named_someReferencedInBody_primaryConstructor() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A({int? x, int? y});
+}
+class B({int? x, int? y}) extends A {
+  this : super(x: x, y: y) {
+    print(x);
+  }
+}
+''',
+      [
+        lint(
+          41,
+          1,
+          messageContainsAll: ["Parameter 'y' could be a super parameter."],
+        ),
+      ],
+    );
+  }
+
   test_named_thisParameter() async {
     await assertDiagnostics(
       r'''
@@ -89,7 +125,7 @@ class A {
 }
 class B extends A {
   int? x;
-  B({this.x, int? y}) : super(x:x, y:y);
+  B({this.x, int? y}) : super(x: x, y: y);
 }
 ''',
       [
@@ -102,7 +138,7 @@ class B extends A {
     );
   }
 
-  test_no_lint_forwardedOutOfOrder() async {
+  test_noLint_forwardedOutOfOrder() async {
     await assertNoDiagnostics(r'''
 class B {
   final int x;
@@ -115,20 +151,7 @@ class C extends B {
 ''');
   }
 
-  test_no_lint_invalid_fieldFormalParameter() async {
-    await assertNoDiagnostics(r'''
-class A {
-  A(int x);
-}
-class B extends A {
-  B(int x) : super(x) {
-    print(x);
-  }
-}
-''');
-  }
-
-  Future<void> test_no_lint_named_nameChange() async {
+  Future<void> test_noLint_named_nameChange() async {
     await assertNoDiagnostics('''
 class A {
   A({int? x});
@@ -139,7 +162,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_named_noSuperInvocation() async {
+  test_noLint_named_noSuperInvocation() async {
     await assertNoDiagnostics(r'''
 class A {
   A({int x = 0});
@@ -150,7 +173,16 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_named_notGenerative() async {
+  test_noLint_named_noSuperInvocation_primaryConstructor() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int x = 0});
+}
+class B({int x = 1}) extends A;
+''');
+  }
+
+  test_noLint_named_notGenerative() async {
     await assertNoDiagnostics(r'''
 class A {
   A({required int x});
@@ -162,7 +194,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_named_notPassed_unreferenced() async {
+  test_noLint_named_notPassed_unreferenced() async {
     await assertNoDiagnostics(r'''
 class A {
   A({int x = 0});
@@ -173,7 +205,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_named_notPassed_usedInExpression() async {
+  test_noLint_named_notPassed_usedInExpression() async {
     await assertNoDiagnostics(r'''
 class A {
   A({String x = ''});
@@ -184,7 +216,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_named_passedAsPositional() async {
+  test_noLint_named_passedAsPositional() async {
     await assertNoDiagnostics(r'''
 class A {
   A(String x);
@@ -195,7 +227,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_nonSimpleIdentifierArg() async {
+  test_noLint_nonSimpleIdentifierArg() async {
     await assertNoDiagnostics(r'''
 class A {
   A(int x, int y, [int? z]);
@@ -206,7 +238,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_notAllForwarded() async {
+  test_noLint_notAllForwarded() async {
     await assertNoDiagnostics(r'''
 class B {
   final int x;
@@ -219,7 +251,7 @@ class C extends B {
 ''');
   }
 
-  test_no_lint_positionalReferencedInBody() async {
+  test_noLint_positionalReferencedInBody() async {
     await assertNoDiagnostics(r'''
 class A {
   A.a(int x, int? y);
@@ -232,7 +264,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_positionalThisParameter() async {
+  test_noLint_positionalThisParameter() async {
     await assertNoDiagnostics(r'''
 class A {
   A(int x, int y);
@@ -244,7 +276,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_referencedInBody() async {
+  test_noLint_referencedInBody_multiple() async {
     await assertNoDiagnostics(r'''
 class A {
   A.a(int x, {int? y});
@@ -258,7 +290,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_referencedInBody_named() async {
+  test_noLint_referencedInBody_named() async {
     await assertNoDiagnostics(r'''
 class A {
   A({int? x});
@@ -271,7 +303,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_referencedInBody_positional() async {
+  test_noLint_referencedInBody_positional() async {
     await assertNoDiagnostics(r'''
 class A {
   int x;
@@ -284,7 +316,20 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_requiredPositional_namedInSuper() async {
+  test_noLint_referencedInBody_single() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(int x) : super(x) {
+    print(x);
+  }
+}
+''');
+  }
+
+  test_noLint_requiredPositional_namedInSuper() async {
     await assertNoDiagnostics(r'''
 class A {
   A({int? x});
@@ -295,7 +340,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_requiredPositional_noSuperInvocation() async {
+  test_noLint_requiredPositional_noSuperInvocation() async {
     await assertNoDiagnostics(r'''
 class A {
   A();
@@ -306,7 +351,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_requiredPositional_notGenerative() async {
+  test_noLint_requiredPositional_notGenerative() async {
     await assertNoDiagnostics(r'''
 class A {
   A(int x);
@@ -318,7 +363,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_requiredPositional_notPassed_unreferenced() async {
+  test_noLint_requiredPositional_notPassed_unreferenced() async {
     await assertNoDiagnostics(r'''
 class A {
   A(int x);
@@ -329,7 +374,7 @@ class B extends A {
 ''');
   }
 
-  test_no_lint_requiredPositional_notPassed_usedInExpression() async {
+  test_noLint_requiredPositional_notPassed_usedInExpression() async {
     await assertNoDiagnostics(r'''
 class A {
   A(String x);
@@ -382,6 +427,18 @@ class B extends A {
     );
   }
 
+  test_primaryConstructor() async {
+    await assertDiagnostics(
+      r'''
+class A(int x);
+class B(int x) extends A {
+  this : super(x);
+}
+''',
+      [lint(22, 1)],
+    );
+  }
+
   /// https://github.com/dart-lang/linter/issues/3569
   test_repeatedParam() async {
     await assertNoDiagnostics(r'''
@@ -425,6 +482,18 @@ class B extends A {
 }
 ''',
       [lint(56, 1)],
+    );
+  }
+
+  test_requiredPositional_primaryConstructor() async {
+    await assertDiagnostics(
+      r'''
+class B(final int foo, final int bar);
+class C(int foo, int bar) extends B {
+  this : super(foo, bar);
+}
+''',
+      [lint(45, 1)],
     );
   }
 

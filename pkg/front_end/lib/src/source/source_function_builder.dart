@@ -78,8 +78,8 @@ void buildTypeParametersAndFormals(
       // Required named parameters can't have default values.
       if (formal.isRequiredNamed && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
-          diag.requiredNamedParameterHasDefaultValueError.withArgumentsOld(
-            formal.name,
+          diag.requiredNamedParameterHasDefaultValueError.withArguments(
+            parameterName: formal.name,
           ),
           formal.fileOffset,
           formal.name.length,
