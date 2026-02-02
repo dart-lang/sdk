@@ -23,25 +23,32 @@ void main() {
 
 void defineTest(List<Experiment> experiments) {
   test('--help', () async {
-    final p = project(pubspecExtras: {
-      'dev_dependencies': {'test': 'any'}
-    });
+    final p = project(
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'},
+      },
+    );
 
     final result = await p.run(['test', '--help']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, startsWith('''
+    expect(
+      result.stdout,
+      startsWith('''
 Runs tests in this package.
 
 Usage: dart test [files or directories...]
-'''));
+'''),
+    );
     expect(result.stderr, isEmpty);
   });
 
   test('dart help test', () async {
-    final p = project(pubspecExtras: {
-      'dev_dependencies': {'test': 'any'}
-    });
+    final p = project(
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'},
+      },
+    );
 
     final result = await p.run(['help', 'test']);
 
@@ -51,9 +58,11 @@ Usage: dart test [files or directories...]
   });
 
   test('no pubspec.yaml', () async {
-    final p = project(pubspecExtras: {
-      'dev_dependencies': {'test': 'any'}
-    });
+    final p = project(
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'},
+      },
+    );
     var pubspec = File(path.join(p.dirPath, 'pubspec.yaml'));
     pubspec.deleteSync();
 
@@ -74,9 +83,11 @@ No pubspec.yaml file found - run this command in your project folder.
   });
 
   test('runs test', () async {
-    final p = project(pubspecExtras: {
-      'dev_dependencies': {'test': 'any'}
-    });
+    final p = project(
+      pubspecExtras: {
+        'dev_dependencies': {'test': 'any'},
+      },
+    );
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';
 
@@ -88,8 +99,12 @@ void main() {
 ''');
 
     // An implicit `pub get` will happen.
-    final result =
-        await p.run(['test', '--no-color', '--reporter', 'expanded']);
+    final result = await p.run([
+      'test',
+      '--no-color',
+      '--reporter',
+      'expanded',
+    ]);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('All tests passed!'));
     expect(result.exitCode, 0);
@@ -99,7 +114,7 @@ void main() {
     final p = project(
       mainSrc: 'int get foo => 1;\n',
       pubspecExtras: {
-        'dev_dependencies': {'test': 'any'}
+        'dev_dependencies': {'test': 'any'},
       },
     );
     p.file('pubspec.yaml', '''
@@ -129,8 +144,12 @@ void main() {
     final resultPubAdd = await p.run(['pub', 'add', 'test']);
 
     expect(resultPubAdd.exitCode, 0);
-    final result2 =
-        await p.run(['test', '--no-color', '--reporter', 'expanded']);
+    final result2 = await p.run([
+      'test',
+      '--no-color',
+      '--reporter',
+      'expanded',
+    ]);
     expect(result2.stderr, isEmpty);
     expect(result2.stdout, contains('All tests passed!'));
     expect(result2.exitCode, 0);
@@ -140,7 +159,7 @@ void main() {
     final p = project(
       mainSrc: 'int get foo => 1;\n',
       pubspecExtras: {
-        'dev_dependencies': {'test': 'any'}
+        'dev_dependencies': {'test': 'any'},
       },
     );
     p.file('test/foo_test.dart', '''
@@ -153,8 +172,12 @@ void main() {
 }
 ''');
 
-    final result =
-        await p.run(['test', '--no-color', '--reporter', 'expanded']);
+    final result = await p.run([
+      'test',
+      '--no-color',
+      '--reporter',
+      'expanded',
+    ]);
     expect(result.exitCode, 0);
     expect(result.stdout, contains('All tests passed!'));
     expect(result.stderr, isEmpty);
@@ -168,7 +191,7 @@ void main() {
     final p = project(
       mainSrc: 'int get foo => 1;\n',
       pubspecExtras: {
-        'dev_dependencies': {'test': 'any'}
+        'dev_dependencies': {'test': 'any'},
       },
     );
     p.file('test/foo_test.dart', '''
@@ -181,8 +204,9 @@ void main() {
 }
 ''');
 
-    final vmServiceUriRegExp =
-        RegExp(r'(http:\/\/127.0.0.1:\d*\/[\da-zA-Z-_]*=\/)');
+    final vmServiceUriRegExp = RegExp(
+      r'(http:\/\/127.0.0.1:\d*\/[\da-zA-Z-_]*=\/)',
+    );
     final process = await p.start(['test', '--pause-after-load']);
     final completer = Completer<Uri>();
     late final StreamSubscription<String> sub;
@@ -190,16 +214,16 @@ void main() {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((line) async {
-      if (line.contains(vmServiceUriRegExp)) {
-        await sub.cancel();
-        final httpUri = Uri.parse(
-          vmServiceUriRegExp.firstMatch(line)!.group(0)!,
-        );
-        completer.complete(
-          httpUri.replace(scheme: 'ws', path: '${httpUri.path}ws'),
-        );
-      }
-    });
+          if (line.contains(vmServiceUriRegExp)) {
+            await sub.cancel();
+            final httpUri = Uri.parse(
+              vmServiceUriRegExp.firstMatch(line)!.group(0)!,
+            );
+            completer.complete(
+              httpUri.replace(scheme: 'ws', path: '${httpUri.path}ws'),
+            );
+          }
+        });
 
     final vmServiceUri = await completer.future;
     final vmService = await vmServiceConnectUri(vmServiceUri.toString());
@@ -211,9 +235,11 @@ void main() {
   group('properly handles --suppress-analytics', () {
     void suppressAnalyticsTest({required bool beforeCommand}) {
       test('${beforeCommand ? 'before' : 'after'} command', () async {
-        final p = project(pubspecExtras: {
-          'dev_dependencies': {'test': 'any'}
-        });
+        final p = project(
+          pubspecExtras: {
+            'dev_dependencies': {'test': 'any'},
+          },
+        );
         p.file('test/foo_test.dart', '''
           import 'package:test/test.dart';
 
@@ -247,7 +273,7 @@ void main() {
     late TestProject p;
     Future<ProcessResult> runTestWithExperimentFlag(String? flag) async {
       return await p.run([
-        if (flag != null) flag,
+        ?flag,
         'test',
         '--no-color',
         '--reporter',
@@ -257,10 +283,16 @@ void main() {
 
     Future<void> expectSuccess(String? flag) async {
       final result = await runTestWithExperimentFlag(flag);
-      expect(result.stdout, contains('feature enabled'),
-          reason: 'stderr: ${result.stderr}');
-      expect(result.exitCode, 0,
-          reason: 'stdout: ${result.stdout} stderr: ${result.stderr}');
+      expect(
+        result.stdout,
+        contains('feature enabled'),
+        reason: 'stderr: ${result.stderr}',
+      );
+      expect(
+        result.exitCode,
+        0,
+        reason: 'stdout: ${result.stdout} stderr: ${result.stderr}',
+      );
     }
 
     Future<void> expectFailure(String? flag) async {
@@ -275,7 +307,7 @@ void main() {
           mainSrc: experiment.validation,
           sdkConstraint: VersionConstraint.compatibleWith(currentSdk),
           pubspecExtras: {
-            'dev_dependencies': {'test': 'any'}
+            'dev_dependencies': {'test': 'any'},
           },
         );
         p.file('test/experiment_test.dart', '''
@@ -303,10 +335,11 @@ void main() {
 
   test('workspace', () async {
     final p = project(
-        sdkConstraint: VersionConstraint.parse('^3.5.0-0'),
-        pubspecExtras: {
-          'workspace': ['pkgs/a', 'pkgs/b']
-        });
+      sdkConstraint: VersionConstraint.parse('^3.5.0-0'),
+      pubspecExtras: {
+        'workspace': ['pkgs/a', 'pkgs/b'],
+      },
+    );
     p.file('pkgs/a/pubspec.yaml', '''
 name: a
 environment:
@@ -334,10 +367,11 @@ main() {
 main() => throw('Test failure');
 ''');
     expect(
-        await p.run(['test'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
-        isA<ProcessResult>()
-            .having((r) => r.stdout, 'stdout', contains('testing package a\n'))
-            .having((r) => r.stderr, 'stderr', isEmpty)
-            .having((r) => r.exitCode, 'exitCode', 0));
+      await p.run(['test'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+      isA<ProcessResult>()
+          .having((r) => r.stdout, 'stdout', contains('testing package a\n'))
+          .having((r) => r.stderr, 'stderr', isEmpty)
+          .having((r) => r.exitCode, 'exitCode', 0),
+    );
   });
 }

@@ -10,8 +10,9 @@ import 'package:data_assets/data_assets.dart';
 import 'package:hooks/hooks.dart';
 import 'package:hooks_runner/hooks_runner.dart';
 
-final libOutputDirectoryUriFromBin =
-    Uri.file('../').resolveUri(libOutputDirectoryUri);
+final libOutputDirectoryUriFromBin = Uri.file(
+  '../',
+).resolveUri(libOutputDirectoryUri);
 final libOutputDirectoryUri = Uri.file('lib/');
 final dataOutputDirectoryUri = Uri.file('assets/');
 
@@ -64,18 +65,10 @@ Future<void> _copyAssets(
 
       switch (asset) {
         case CodeAsset(:final file!):
-          filesToCopy.add((
-            id: asset.id,
-            src: file,
-            dest: targetUri,
-          ));
+          filesToCopy.add((id: asset.id, src: file, dest: targetUri));
           codeAssetUris.add(targetUri);
         case DataAsset(:final file):
-          filesToCopy.add((
-            id: asset.id,
-            src: file,
-            dest: targetUri,
-          ));
+          filesToCopy.add((id: asset.id, src: file, dest: targetUri));
         default:
           throw UnimplementedError();
       }
@@ -105,21 +98,23 @@ List<({Object asset, KernelAsset target})> _targetMapping(
   Uri outputUri,
   bool relocatable,
 ) {
-  final codeAssets =
-      assets.where((asset) => asset.isCodeAsset).map(CodeAsset.fromEncoded);
-  final dataAssets =
-      assets.where((asset) => asset.isDataAsset).map(DataAsset.fromEncoded);
+  final codeAssets = assets
+      .where((asset) => asset.isCodeAsset)
+      .map(CodeAsset.fromEncoded);
+  final dataAssets = assets
+      .where((asset) => asset.isDataAsset)
+      .map(DataAsset.fromEncoded);
 
   return [
     for (final asset in codeAssets)
       (
         asset: asset,
-        target: asset.targetLocation(target, outputUri, relocatable)
+        target: asset.targetLocation(target, outputUri, relocatable),
       ),
     for (final asset in dataAssets)
       (
         asset: asset,
-        target: asset.targetLocation(target, outputUri, relocatable)
+        target: asset.targetLocation(target, outputUri, relocatable),
       ),
   ];
 }
@@ -131,21 +126,18 @@ extension on CodeAsset {
       LookupInExecutable() => KernelAssetInExecutable(),
       LookupInProcess() => KernelAssetInProcess(),
       DynamicLoadingBundled() => () {
-          final relativeUri =
-              libOutputDirectoryUriFromBin.resolve(file!.pathSegments.last);
-          return relocatable
-              ? KernelAssetRelativePath(relativeUri)
-              : KernelAssetAbsolutePath(outputUri.resolveUri(relativeUri));
-        }(),
+        final relativeUri = libOutputDirectoryUriFromBin.resolve(
+          file!.pathSegments.last,
+        );
+        return relocatable
+            ? KernelAssetRelativePath(relativeUri)
+            : KernelAssetAbsolutePath(outputUri.resolveUri(relativeUri));
+      }(),
       _ => throw UnsupportedError(
-          'Unsupported NativeCodeAsset linkMode ${linkMode.runtimeType} in asset $this',
-        ),
+        'Unsupported NativeCodeAsset linkMode ${linkMode.runtimeType} in asset $this',
+      ),
     };
-    return KernelAsset(
-      id: id,
-      target: target,
-      path: kernelAssetPath,
-    );
+    return KernelAsset(id: id, target: target, path: kernelAssetPath);
   }
 }
 

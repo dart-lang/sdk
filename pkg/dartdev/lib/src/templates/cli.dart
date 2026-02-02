@@ -8,32 +8,28 @@ import 'common.dart' as common;
 /// A generator for a simple command-line application with argument parsing.
 class CliGenerator extends DefaultGenerator {
   CliGenerator()
-      : super(
-          'cli',
-          'CLI Application',
-          'A command-line application with basic argument parsing.',
-          alternateId: 'console-cli',
-          categories: const ['dart', 'cli'],
-        ) {
+    : super(
+        'cli',
+        'CLI Application',
+        'A command-line application with basic argument parsing.',
+        alternateId: 'console-cli',
+        categories: const ['dart', 'cli'],
+      ) {
     addFile('.gitignore', common.gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);
     addFile('pubspec.yaml', _pubspec);
     addFile('README.md', _readme);
-    setEntrypoint(
-      addFile('bin/__projectName__.dart', _mainDart),
-    );
+    setEntrypoint(addFile('bin/__projectName__.dart', _mainDart));
   }
 
   @override
-  String getInstallInstructions(
-    String directory, {
-    String? scriptPath,
-  }) =>
+  String getInstallInstructions(String directory, {String? scriptPath}) =>
       super.getInstallInstructions(directory, scriptPath: 'bin/$scriptPath');
 }
 
-final String _pubspec = '''
+final String _pubspec =
+    '''
 name: __projectName__
 description: A sample command-line application with basic argument parsing.
 version: 0.0.1

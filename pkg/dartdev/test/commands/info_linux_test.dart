@@ -24,8 +24,10 @@ void main() {
         expect(process.elapsedTime, isNotEmpty);
         if (!(process.commandLine.startsWith('dart') ||
             process.commandLine.contains('snapshot'))) {
-          print("Expected ${process.commandLine} to start with 'dart' or"
-              " contain 'snapshot'.");
+          print(
+            "Expected ${process.commandLine} to start with 'dart' or"
+            " contain 'snapshot'.",
+          );
           expect(true, false);
         }
       }

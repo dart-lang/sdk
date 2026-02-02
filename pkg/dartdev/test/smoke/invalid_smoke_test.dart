@@ -17,12 +17,9 @@ void main() {
           if (i % 5 == 0) {
             print('Done [$i/$numRuns]');
           }
-          final result = await Process.run(
-            Platform.executable,
-            [
-              'invalid.dart',
-            ],
-          );
+          final result = await Process.run(Platform.executable, [
+            'invalid.dart',
+          ]);
           expect(result.exitCode, 64);
           expect(result.stdout, isEmpty);
           expect(
@@ -42,13 +39,10 @@ void main() {
           if (i % 5 == 0) {
             print('Done [$i/$numRuns]');
           }
-          final result = await Process.run(
-            Platform.executable,
-            [
-              '--enable-vm-service=0',
-              'invalid.dart',
-            ],
-          );
+          final result = await Process.run(Platform.executable, [
+            '--enable-vm-service=0',
+            'invalid.dart',
+          ]);
           expect(result.exitCode, 64);
           expect(result.stdout, contains('The Dart VM service is listening'));
           expect(
@@ -66,13 +60,10 @@ void main() {
           if (i % 5 == 0) {
             print('Done [$i/$numRuns]');
           }
-          final result = await Process.run(
-            Platform.executable,
-            [
-              'run',
-              'invalid.dart',
-            ],
-          );
+          final result = await Process.run(Platform.executable, [
+            'run',
+            'invalid.dart',
+          ]);
           expect(result.exitCode, 254);
           expect(result.stdout, isEmpty);
           expect(
@@ -91,14 +82,11 @@ void main() {
           if (i % 5 == 0) {
             print('Done [$i/$numRuns]');
           }
-          final result = await Process.run(
-            Platform.executable,
-            [
-              'run',
-              '--enable-vm-service=0',
-              'invalid.dart',
-            ],
-          );
+          final result = await Process.run(Platform.executable, [
+            'run',
+            '--enable-vm-service=0',
+            'invalid.dart',
+          ]);
           expect(result.exitCode, 254);
           expect(result.stdout, contains('The Dart VM service is listening'));
           expect(

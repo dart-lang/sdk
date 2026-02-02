@@ -13,18 +13,17 @@ import 'package:test/test.dart';
 // See https://github.com/dart-lang/sdk/issues/56592 for details.
 
 Future<void> main() async {
-  test('Regression test for https://github.com/dart-lang/sdk/issues/56592',
-      () async {
-    final result = await Process.run(
-      Platform.resolvedExecutable,
-      [
+  test(
+    'Regression test for https://github.com/dart-lang/sdk/issues/56592',
+    () async {
+      final result = await Process.run(Platform.resolvedExecutable, [
         'test',
         '--disable-dart-dev',
-      ],
-    );
-    Expect.contains(
-      'Attempted to use --disable-dart-dev with a Dart CLI command.',
-      result.stderr,
-    );
-  });
+      ]);
+      Expect.contains(
+        'Attempted to use --disable-dart-dev with a Dart CLI command.',
+        result.stderr,
+      );
+    },
+  );
 }

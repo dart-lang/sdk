@@ -131,11 +131,7 @@ void main() async {
 
   final argumentssGit = [
     ['git'],
-    [
-      'git',
-      '--git-path',
-      '--git-ref',
-    ],
+    ['git', '--git-path', '--git-ref'],
   ];
 
   for (final testArguments in argumentssGit) {
@@ -147,19 +143,13 @@ void main() async {
         final gitPath = './';
         final arguments = [
           '--enable-experiment-remote-run',
-          if (testArguments.contains('--git-path')) ...[
-            '--git-path',
-            gitPath,
-          ],
-          if (testArguments.contains('--git-ref')) ...[
-            '--git-ref',
-            gitRef,
-          ],
+          if (testArguments.contains('--git-path')) ...['--git-path', gitPath],
+          if (testArguments.contains('--git-ref')) ...['--git-ref', gitRef],
           '${gitUri.toFilePath()}:$_gitPackageForTest',
           // Make sure to pass arguments that influence stdout.
           'Alice',
           'and',
-          'Bob'
+          'Bob',
         ];
 
         final dartDataHome = tempUri.resolve('dart_home/');
@@ -182,9 +172,7 @@ void main() async {
 
         expect(
           runResult.stdout,
-          stringContainsInOrder([
-            'Hello Alice and Bob',
-          ]),
+          stringContainsInOrder(['Hello Alice and Bob']),
         );
         expect(runResult.exitCode, 0);
       });
@@ -195,7 +183,7 @@ void main() async {
     (
       [
         '--enable-experiment-remote-run',
-        'https://pub.dev/this_package_does_not_exist_12345'
+        'https://pub.dev/this_package_does_not_exist_12345',
       ],
       'could not find package this_package_does_not_exist_12345 at',
       errorExitCode,
@@ -205,7 +193,7 @@ void main() async {
         '--enable-experiment-remote-run',
         '--git-path',
         'foo/',
-        'https://pub.dev/vm_snapshot_analysis'
+        'https://pub.dev/vm_snapshot_analysis',
       ],
       'git-path',
       usageExitCode,
@@ -214,7 +202,7 @@ void main() async {
       [
         '--enable-experiment-remote-run',
         '--enable-asserts',
-        'https://pub.dev/vm_snapshot_analysis'
+        'https://pub.dev/vm_snapshot_analysis',
       ],
       'enable-asserts',
       usageExitCode,
@@ -226,8 +214,7 @@ void main() async {
     ),
   ];
   for (final (errorArguments, error, exitCode) in errorArgumentss) {
-    test('dart run ${errorArguments.join(' ')}', timeout: longTimeout,
-        () async {
+    test('dart run ${errorArguments.join(' ')}', timeout: longTimeout, () async {
       await inTempDir((tempUri) async {
         final dartDataHome = tempUri.resolve('dart_home/');
         await Directory.fromUri(dartDataHome).create();
@@ -247,71 +234,76 @@ void main() async {
           environment,
           expectedExitCode: exitCode,
         );
-        expect(
-          runResult.stderr,
-          contains(error),
-        );
+        expect(runResult.stderr, contains(error));
       });
     });
   }
 
-  test('dart run error from git with build hook failure', timeout: longTimeout,
-      () async {
-    await inTempDir((tempUri) async {
-      final dartDataHome = tempUri.resolve('dart_home/');
-      await Directory.fromUri(dartDataHome).create();
-      final binDir = Directory.fromUri(dartDataHome.resolve('install/bin'));
+  test(
+    'dart run error from git with build hook failure',
+    timeout: longTimeout,
+    () async {
+      await inTempDir((tempUri) async {
+        final dartDataHome = tempUri.resolve('dart_home/');
+        await Directory.fromUri(dartDataHome).create();
+        final binDir = Directory.fromUri(dartDataHome.resolve('install/bin'));
 
-      final environment = {
-        _dartDirectoryEnvKey: dartDataHome.toFilePath(),
-        'PATH':
-            '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
-      };
+        final environment = {
+          _dartDirectoryEnvKey: dartDataHome.toFilePath(),
+          'PATH':
+              '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
+        };
 
-      const packageName = 'test_app_with_failing_hook';
-      final (gitUri, _) = await _setupGitRepo(
-        tempUri,
-        repoName: '$packageName.git',
-        files: {
-          'pubspec.yaml': jsonEncode(PubspecYamlFileSyntax(
-            name: packageName,
-            environment: EnvironmentSyntax(
-              sdk: '^${Platform.version.split(' ').first}',
+        const packageName = 'test_app_with_failing_hook';
+        final (gitUri, _) = await _setupGitRepo(
+          tempUri,
+          repoName: '$packageName.git',
+          files: {
+            'pubspec.yaml': jsonEncode(
+              PubspecYamlFileSyntax(
+                name: packageName,
+                environment: EnvironmentSyntax(
+                  sdk: '^${Platform.version.split(' ').first}',
+                ),
+                executables: {packageName: packageName},
+              ).json,
             ),
-            executables: {
-              packageName: packageName,
-            },
-          ).json),
-          'bin/$packageName.dart': '''
+            'bin/$packageName.dart': '''
 void main(List<String> args) {
   print('This should not be printed.');
 }
 ''',
-          'hook/build.dart': '''
+            'hook/build.dart': '''
 void main(List<String> args) async {
   throw Exception('This build hook is designed to fail.');
 }
 ''',
-        },
-      );
+          },
+        );
 
-      final runResult = await _runDartdev(
-        fromDartdevSource,
-        'run',
-        [
-          '--enable-experiment-remote-run',
-          '${gitUri.toFilePath()}:$packageName'
-        ],
-        null,
-        environment,
-        expectedExitCode: errorExitCode,
-      );
+        final runResult = await _runDartdev(
+          fromDartdevSource,
+          'run',
+          [
+            '--enable-experiment-remote-run',
+            '${gitUri.toFilePath()}:$packageName',
+          ],
+          null,
+          environment,
+          expectedExitCode: errorExitCode,
+        );
 
-      expect(
-          runResult.stderr, contains('This build hook is designed to fail.'));
-      expect(runResult.stdout, isNot(contains('This should not be printed.')));
-    });
-  });
+        expect(
+          runResult.stderr,
+          contains('This build hook is designed to fail.'),
+        );
+        expect(
+          runResult.stdout,
+          isNot(contains('This should not be printed.')),
+        );
+      });
+    },
+  );
 
   test('dart run caches git package', timeout: longTimeout, () async {
     await inTempDir((tempUri) async {
@@ -368,60 +360,63 @@ void main(List<String> args) async {
 
   for (final verbosityError in [true, false]) {
     final testName = verbosityError ? ' --verbosity=error' : '';
-    test('dart run from git with build hook$testName', timeout: longTimeout,
-        () async {
-      await inTempDir((tempUri) async {
-        const packageName = 'test_app_with_hook';
-        final (gitUri, gitRef) = await _setupGitRepoWithHook(
-          tempUri,
-          packageName: packageName,
-        );
+    test(
+      'dart run from git with build hook$testName',
+      timeout: longTimeout,
+      () async {
+        await inTempDir((tempUri) async {
+          const packageName = 'test_app_with_hook';
+          final (gitUri, gitRef) = await _setupGitRepoWithHook(
+            tempUri,
+            packageName: packageName,
+          );
 
-        final arguments = [
-          '--enable-experiment-remote-run',
-          if (verbosityError) '--verbosity=error',
-          '--git-ref',
-          gitRef,
-          '${gitUri.toFilePath()}:$packageName',
-          'ignored',
-          'arguments',
-        ];
+          final arguments = [
+            '--enable-experiment-remote-run',
+            if (verbosityError) '--verbosity=error',
+            '--git-ref',
+            gitRef,
+            '${gitUri.toFilePath()}:$packageName',
+            'ignored',
+            'arguments',
+          ];
 
-        final dartDataHome = tempUri.resolve('dart_home/');
-        await Directory.fromUri(dartDataHome).create();
-        final binDir = Directory.fromUri(dartDataHome.resolve('install/bin'));
+          final dartDataHome = tempUri.resolve('dart_home/');
+          await Directory.fromUri(dartDataHome).create();
+          final binDir = Directory.fromUri(dartDataHome.resolve('install/bin'));
 
-        final environment = {
-          _dartDirectoryEnvKey: dartDataHome.toFilePath(),
-          'PATH':
-              '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
-        };
+          final environment = {
+            _dartDirectoryEnvKey: dartDataHome.toFilePath(),
+            'PATH':
+                '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
+          };
 
-        print(environment);
-        print('dart run ${arguments.join(' ')}');
-        final runResult = await _runDartdev(
-          fromDartdevSource,
-          'run',
-          arguments,
-          null,
-          environment,
-        );
+          print(environment);
+          print('dart run ${arguments.join(' ')}');
+          final runResult = await _runDartdev(
+            fromDartdevSource,
+            'run',
+            arguments,
+            null,
+            environment,
+          );
 
-        expect(runResult.stdout, contains('Hello World'));
-        expect(runResult.exitCode, 0);
-        if (verbosityError) {
-          expect(runResult.stdout, isNot(contains('Running build hooks')));
-          expect(runResult.stdout, isNot(contains('Running link hooks')));
-          expect(runResult.stdout, isNot(contains('Generated: ')));
-          // Should have no other output then the program.
-          expect(runResult.stdout.trim(), equals('Hello World'));
-        } else {
-          expect(runResult.stdout, contains('Running build hooks'));
-          expect(runResult.stdout, contains('Running link hooks'));
-          expect(runResult.stdout, contains('Generated: '));
-        }
-      });
-    });
+          expect(runResult.stdout, contains('Hello World'));
+          expect(runResult.exitCode, 0);
+          if (verbosityError) {
+            expect(runResult.stdout, isNot(contains('Running build hooks')));
+            expect(runResult.stdout, isNot(contains('Running link hooks')));
+            expect(runResult.stdout, isNot(contains('Generated: ')));
+            // Should have no other output then the program.
+            expect(runResult.stdout.trim(), equals('Hello World'));
+          } else {
+            expect(runResult.stdout, contains('Running build hooks'));
+            expect(runResult.stdout, contains('Running link hooks'));
+            expect(runResult.stdout, contains('Generated: '));
+          }
+        });
+      },
+    );
   }
 }
 
@@ -448,20 +443,16 @@ Future<(Uri gitUri, String gitRef)> _setupGitRepo(
       workingDirectory: gitUri.toFilePath(),
     );
     if (gitResult.exitCode != 0) {
-      throw ProcessException(
-        'git',
-        commands,
-        gitResult.stderr,
-      );
+      throw ProcessException('git', commands, gitResult.stderr);
     }
   }
-  final gitRef = ((await Process.run(
-    'git',
-    ['rev-parse', 'HEAD'],
-    workingDirectory: gitUri.toFilePath(),
-  ))
-          .stdout as String)
-      .trim();
+  final gitRef =
+      ((await Process.run('git', [
+                'rev-parse',
+                'HEAD',
+              ], workingDirectory: gitUri.toFilePath())).stdout
+              as String)
+          .trim();
   return (gitUri, gitRef);
 }
 
@@ -473,22 +464,18 @@ Future<(Uri gitUri, String gitRef)> _setupGitRepoWithHook(
     tempUri,
     repoName: '$packageName.git',
     files: {
-      'pubspec.yaml': jsonEncode(PubspecYamlFileSyntax(
-        name: packageName,
-        environment: EnvironmentSyntax(
-          sdk: '^3.8.0',
-        ),
-        executables: {
-          packageName: null,
-        },
-        dependencies: {
-          // Git dependencies can't have path dependencies outside the git repo
-          // so use a published dependency.
-          'hooks': HostedDependencySourceSyntax(
-            version: '^1.0.0',
-          ),
-        },
-      ).json),
+      'pubspec.yaml': jsonEncode(
+        PubspecYamlFileSyntax(
+          name: packageName,
+          environment: EnvironmentSyntax(sdk: '^3.8.0'),
+          executables: {packageName: null},
+          dependencies: {
+            // Git dependencies can't have path dependencies outside the git repo
+            // so use a published dependency.
+            'hooks': HostedDependencySourceSyntax(version: '^1.0.0'),
+          },
+        ).json,
+      ),
       'bin/$packageName.dart': '''
 void main(List<String> args) {
   print('Hello World');
@@ -520,12 +507,12 @@ Future<(Uri gitUri, String gitRef)> _setupSimpleGitRepo(Uri tempUri) async {
   return await _setupGitRepo(
     tempUri,
     files: {
-      'pubspec.yaml':
-          await File.fromUri(_package2Dir.uri.resolve('pubspec.yaml'))
-              .readAsString(),
-      'bin/dart_app.dart':
-          await File.fromUri(_package2Dir.uri.resolve('bin/dart_app.dart'))
-              .readAsString(),
+      'pubspec.yaml': await File.fromUri(
+        _package2Dir.uri.resolve('pubspec.yaml'),
+      ).readAsString(),
+      'bin/dart_app.dart': await File.fromUri(
+        _package2Dir.uri.resolve('bin/dart_app.dart'),
+      ).readAsString(),
     },
   );
 }

@@ -47,16 +47,18 @@ You can specify three different values for the <package> argument:
   CommandCategory get commandCategory => CommandCategory.global;
 
   InstallCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, verbose) {
+    : super(cmdName, cmdDescription, verbose) {
     argParser.addOption(
       gitPathOption,
-      help: 'Path of git package in repository. '
+      help:
+          'Path of git package in repository. '
           'Only applies when using a git url for <package>.',
     );
 
     argParser.addOption(
       gitRefOption,
-      help: 'Git branch or commit to be retrieved. '
+      help:
+          'Git branch or commit to be retrieved. '
           'Only applies when using a git url for <package>.',
     );
 
@@ -69,7 +71,8 @@ You can specify three different values for the <package> argument:
     argParser.addOption(
       'hosted-url',
       abbr: 'u',
-      help: 'A custom pub server URL for the package. '
+      help:
+          'A custom pub server URL for the package. '
           'Only applies when using a package name for <package>.',
     );
   }
@@ -121,9 +124,7 @@ You can specify three different values for the <package> argument:
         versionConstraint = args.isEmpty ? 'any' : readArg();
     }
     if (args.isNotEmpty) {
-      usageException(
-        'Too many arguments, did not expect "${args.join(' ')}"',
-      );
+      usageException('Too many arguments, did not expect "${args.join(' ')}"');
     }
     return InstallCommandParsedArguments(
       source: argument,
@@ -152,7 +153,8 @@ You can specify three different values for the <package> argument:
         return parsedArgs.source;
       case RemoteSourceKind.path:
         final pubspecFile = File.fromUri(
-            Directory(parsedArgs.source).absolute.uri.resolve('pubspec.yaml'));
+          Directory(parsedArgs.source).absolute.uri.resolve('pubspec.yaml'),
+        );
         if (!await pubspecFile.exists()) {
           usageException('No pubspec found in ${pubspecFile.path}.');
         }
@@ -175,8 +177,9 @@ You can specify three different values for the <package> argument:
     required String packageName,
     required Directory helperPackageDir,
   }) {
-    final tempPubspec =
-        File.fromUri(helperPackageDir.uri.resolve('pubspec.yaml'));
+    final tempPubspec = File.fromUri(
+      helperPackageDir.uri.resolve('pubspec.yaml'),
+    );
     final helperPackagePubspec = PubspecYamlFileSyntax(
       name: _helperPackageName,
       environment: EnvironmentSyntax(
@@ -185,23 +188,23 @@ You can specify three different values for the <package> argument:
       dependencies: {
         packageName: switch (parsedArgs.sourceKind) {
           RemoteSourceKind.git => GitDependencySourceSyntax(
-              git: GitSyntax(
-                url: parsedArgs.source,
-                path$: parsedArgs.gitPath,
-                ref: parsedArgs.gitRef,
-              ),
+            git: GitSyntax(
+              url: parsedArgs.source,
+              path$: parsedArgs.gitPath,
+              ref: parsedArgs.gitRef,
             ),
+          ),
           RemoteSourceKind.hosted => HostedDependencySourceSyntax(
-              hosted: parsedArgs.hostedUrl,
-              version: parsedArgs.versionConstraint!,
-            ),
+            hosted: parsedArgs.hostedUrl,
+            version: parsedArgs.versionConstraint!,
+          ),
           RemoteSourceKind.path =>
             // Re-resolve dependencies for path activate, behave like it would work
             // for users of the package if the activate via hosted or git.
             PathDependencySourceSyntax(
               path$: Directory(parsedArgs.source).absolute.path,
             ),
-        }
+        },
       },
     );
     helperPackagePubspec.writeSync(tempPubspec);
@@ -227,10 +230,12 @@ You can specify three different values for the <package> argument:
 
     final errors = pubspecSyntax.validateExecutables();
     if (errors.isNotEmpty) {
-      installException([
-        'The pubspec.yaml contains the following errors:',
-        ...errors
-      ].join('\n'));
+      installException(
+        [
+          'The pubspec.yaml contains the following errors:',
+          ...errors,
+        ].join('\n'),
+      );
     }
     // This is a map of strings to string. Each key is the name of the command
     // that will be placed on the user's PATH. The value is the name of the
@@ -243,16 +248,18 @@ You can specify three different values for the <package> argument:
     }
     if (executablesSyntax.isEmpty) {
       installException(
-          'The pubspec.yaml executables section contained no executables.');
+        'The pubspec.yaml executables section contained no executables.',
+      );
     }
 
     return [
       for (final executable in executablesSyntax.entries)
         (
           name: executable.key,
-          sourceEntryPoint: sourcePackageRootDirectory.uri
-              .resolve('bin/${executable.value ?? executable.key}.dart')
-        )
+          sourceEntryPoint: sourcePackageRootDirectory.uri.resolve(
+            'bin/${executable.value ?? executable.key}.dart',
+          ),
+        ),
     ];
   }
 
@@ -283,8 +290,9 @@ You can specify three different values for the <package> argument:
   }
 
   void _uniinstallAllPackageVersions(String packageName) {
-    final bundles =
-        DartInstallDirectory().allAppBundlesSync(packageName: packageName);
+    final bundles = DartInstallDirectory().allAppBundlesSync(
+      packageName: packageName,
+    );
 
     try {
       for (final bundle in bundles) {
@@ -300,8 +308,10 @@ You can specify three different values for the <package> argument:
     } on PathAccessException {
       installException('Deletion failed. The application might be in use.');
     } on PathNotFoundException {
-      print('Bundle not found when uninstalling. '
-          'Earlier installation may have failed.');
+      print(
+        'Bundle not found when uninstalling. '
+        'Earlier installation may have failed.',
+      );
       // Continue installing
     }
   }
@@ -315,21 +325,23 @@ You can specify three different values for the <package> argument:
     final AppBundleDirectory outputDir;
     switch (parsedArgs.sourceKind) {
       case RemoteSourceKind.git:
-        final resolvedGitRef = parsedArgs.gitRef ??
+        final resolvedGitRef =
+            parsedArgs.gitRef ??
             GitPackageDescriptionSyntax.fromJson(
-              PubspecLockFile.loadSync(helperPackageLockFile)
-                  .packages![packageName]!
-                  .description
-                  .json,
+              PubspecLockFile.loadSync(
+                helperPackageLockFile,
+              ).packages![packageName]!.description.json,
             ).resolvedRef;
         outputDir = DartInstallDirectory().gitAppBundle(
           packageName,
           resolvedGitRef,
         );
       case RemoteSourceKind.hosted:
-        final packageGraphJson = PackageGraphFile.loadSync(File.fromUri(
-          helperPackageDir.uri.resolve('.dart_tool/package_graph.json'),
-        ));
+        final packageGraphJson = PackageGraphFile.loadSync(
+          File.fromUri(
+            helperPackageDir.uri.resolve('.dart_tool/package_graph.json'),
+          ),
+        );
         final resolvedVersion = packageGraphJson.packages
             .firstWhere((e) => e.name == packageName)
             .version;
@@ -344,10 +356,11 @@ You can specify three different values for the <package> argument:
   }
 
   static Future<void> createAppBundleDirectory(
-      AppBundleDirectory appBundleDirectory,
-      Directory buildDirectory,
-      File helperPackageLockFile,
-      File sourcePackagePubspecFile) async {
+    AppBundleDirectory appBundleDirectory,
+    Directory buildDirectory,
+    File helperPackageLockFile,
+    File sourcePackagePubspecFile,
+  ) async {
     if (appBundleDirectory.directory.existsSync()) {
       try {
         appBundleDirectory.directory.deleteSync(recursive: true);
@@ -359,10 +372,13 @@ You can specify three different values for the <package> argument:
       }
     }
     appBundleDirectory.directory.createSync(recursive: true);
-    final bundleDirectory =
-        Directory.fromUri(buildDirectory.uri.resolve('bundle/'));
+    final bundleDirectory = Directory.fromUri(
+      buildDirectory.uri.resolve('bundle/'),
+    );
     await _renameSafe(
-        bundleDirectory, appBundleDirectory.directory.uri.resolve('bundle/'));
+      bundleDirectory,
+      appBundleDirectory.directory.uri.resolve('bundle/'),
+    );
     await helperPackageLockFile.copy(appBundleDirectory.pubspecLock.path);
     await sourcePackagePubspecFile.copy(appBundleDirectory.pubspec.path);
   }
@@ -390,24 +406,27 @@ You can specify three different values for the <package> argument:
       } else if (child is Directory) {
         await _renameSafeCopyAndDelete(child, Uri.parse('$newChildPath/'));
       } else {
-        await Link.fromUri(newChildPath)
-            .create(await (child as Link).resolveSymbolicLinks());
+        await Link.fromUri(
+          newChildPath,
+        ).create(await (child as Link).resolveSymbolicLinks());
       }
       await child.delete(recursive: false);
     }
   }
 
   void _installExecutablesOnPath(
-      DartBuildExecutables executables,
-      AppBundleDirectory appBundleDirectory,
-      String packageName,
-      InstallCommandParsedArguments parsedArgs) {
+    DartBuildExecutables executables,
+    AppBundleDirectory appBundleDirectory,
+    String packageName,
+    InstallCommandParsedArguments parsedArgs,
+  ) {
     final errors = <String>[];
     for (final executable in executables) {
       final executableName = executable.name;
       final executableFile = appBundleDirectory.executable(executableName);
-      final executableOnPath =
-          DartInstallDirectory().bin.executable(executableName);
+      final executableOnPath = DartInstallDirectory().bin.executable(
+        executableName,
+      );
       var createLink = true;
 
       if (executableOnPath.existsSync()) {
@@ -467,14 +486,10 @@ You can specify three different values for the <package> argument:
       //
       // The "command" builtin is more reliable than the "which" executable. See
       // http://unix.stackexchange.com/questions/85249/why-not-use-which-what-to-use-then
-      final result = Process.runSync(
-        'command',
-        [
-          '-v',
-          installed,
-        ],
-        runInShell: true,
-      );
+      final result = Process.runSync('command', [
+        '-v',
+        installed,
+      ], runInShell: true);
       if (result.exitCode == 0) return;
 
       var binDir = binDirPath;
@@ -506,8 +521,9 @@ You can specify three different values for the <package> argument:
     final packageName = await _findPackageName(parsedArgs);
     return await inTempDir((tempDirectory) async {
       try {
-        final helperPackageDirectory =
-            Directory.fromUri(tempDirectory.uri.resolve('helperPackage/'));
+        final helperPackageDirectory = Directory.fromUri(
+          tempDirectory.uri.resolve('helperPackage/'),
+        );
         helperPackageDirectory.createSync();
         createHelperPackagePubspec(
           helperPackageDir: helperPackageDirectory,
@@ -516,29 +532,33 @@ You can specify three different values for the <package> argument:
         );
         await resolveHelperPackage(helperPackageDirectory);
 
-        final helperPackageLockFile =
-            File.fromUri(helperPackageDirectory.uri.resolve('pubspec.lock'));
-        final helperPackageConfigFile = File.fromUri(helperPackageDirectory.uri
-            .resolve('.dart_tool/package_config.json'));
+        final helperPackageLockFile = File.fromUri(
+          helperPackageDirectory.uri.resolve('pubspec.lock'),
+        );
+        final helperPackageConfigFile = File.fromUri(
+          helperPackageDirectory.uri.resolve('.dart_tool/package_config.json'),
+        );
 
-        final sourcePackageRootDirectory = Directory(Uri.parse(
-          PackageConfigFile.loadSync(helperPackageConfigFile)
-              .packages
-              .firstWhere((e) => e.name == packageName)
-              .rootUri,
-        ).toFilePath())
-            .ensureEndWithSeparator;
+        final sourcePackageRootDirectory = Directory(
+          Uri.parse(
+            PackageConfigFile.loadSync(
+              helperPackageConfigFile,
+            ).packages.firstWhere((e) => e.name == packageName).rootUri,
+          ).toFilePath(),
+        ).ensureEndWithSeparator;
 
         final sourcePackagePubspecFile = File.fromUri(
-            sourcePackageRootDirectory.uri.resolve('pubspec.yaml'));
+          sourcePackageRootDirectory.uri.resolve('pubspec.yaml'),
+        );
 
         final executables = loadDeclaredExecutables(
           sourcePackagePubspecFile,
           sourcePackageRootDirectory,
         );
 
-        final buildDirectory =
-            Directory.fromUri(tempDirectory.uri.resolve('build/'));
+        final buildDirectory = Directory.fromUri(
+          tempDirectory.uri.resolve('build/'),
+        );
 
         await doBuild(
           executables,
@@ -587,7 +607,8 @@ You can specify three different values for the <package> argument:
       throw InstallException(message, exitCode: exitCode);
 
   static Future<T> inTempDir<T>(
-      Future<T> Function(Directory tempDirectory) fun) async {
+    Future<T> Function(Directory tempDirectory) fun,
+  ) async {
     final tempDir = await Directory.systemTemp.createTemp();
     // Deal with Windows temp folder aliases.
     final tempDirResolved = Directory.fromUri(
@@ -630,11 +651,7 @@ final class InstallCommandParsedArguments {
   });
 }
 
-enum RemoteSourceKind {
-  git,
-  hosted,
-  path;
-}
+enum RemoteSourceKind { git, hosted, path }
 
 RemoteSourceKind _soureKindFromArgument(String argument) {
   if (_packageNameRegExp.hasMatch(argument)) {
@@ -720,10 +737,7 @@ class InstallException implements Exception {
   final String message;
   final int? exitCode;
 
-  InstallException(
-    this.message, {
-    this.exitCode,
-  });
+  InstallException(this.message, {this.exitCode});
 
   @override
   String toString() => message;

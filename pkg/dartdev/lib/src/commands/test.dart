@@ -23,10 +23,10 @@ class TestCommand extends DartdevCommand {
   final bool nativeAssetsExperimentEnabled;
   final bool dataAssetsExperimentEnabled;
 
-  TestCommand(
-      {this.nativeAssetsExperimentEnabled = false,
-      this.dataAssetsExperimentEnabled = false})
-      : super(cmdName, 'Run tests for a project.', false);
+  TestCommand({
+    this.nativeAssetsExperimentEnabled = false,
+    this.dataAssetsExperimentEnabled = false,
+  }) : super(cmdName, 'Run tests for a project.', false);
 
   // This argument parser is here solely to ensure that VM specific flags are
   // provided before any command and to provide a more consistent help message
@@ -58,8 +58,9 @@ Run "${runner!.executableName} help" to see global options.''');
       Directory.current.uri,
     );
     if (packageConfigUri != null) {
-      final packageConfig =
-          await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
+      final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
+        packageConfigUri,
+      );
       if (packageConfig == null) {
         return DartdevCommand.errorExitCode;
       }
@@ -68,7 +69,8 @@ Run "${runner!.executableName} help" to see global options.''');
       );
       if (runPackageName != null) {
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
-            packageConfigUri);
+          packageConfigUri,
+        );
         final builder = DartNativeAssetsBuilder(
           pubspecUri: pubspecUri,
           packageConfigUri: packageConfigUri,
@@ -94,11 +96,13 @@ Run "${runner!.executableName} help" to see global options.''');
           // TODO(https://github.com/dart-lang/sdk/issues/60489): Add a way to
           // package:test to explicitly provide the native_assets.yaml path
           // instead of copying to the workspace .dart_tool.
-          final expectedPackageTestLocation =
-              packageConfigUri.resolve('native_assets.yaml');
+          final expectedPackageTestLocation = packageConfigUri.resolve(
+            'native_assets.yaml',
+          );
           if (expectedPackageTestLocation != assetsYamlFileUri) {
-            await File.fromUri(assetsYamlFileUri)
-                .copy(expectedPackageTestLocation.toFilePath());
+            await File.fromUri(
+              assetsYamlFileUri,
+            ).copy(expectedPackageTestLocation.toFilePath());
           }
           nativeAssets = expectedPackageTestLocation.toFilePath();
         }
@@ -106,15 +110,20 @@ Run "${runner!.executableName} help" to see global options.''');
     }
 
     try {
-      final testExecutable = await getExecutableForCommand('test:test',
-          nativeAssets: nativeAssets);
+      final testExecutable = await getExecutableForCommand(
+        'test:test',
+        nativeAssets: nativeAssets,
+      );
       final argsRestNoExperimentOrSuppressAnalytics = args.rest
-          .where((e) =>
-              !e.startsWith('--$experimentFlagName=') &&
-              e != '--suppress-analytics')
+          .where(
+            (e) =>
+                !e.startsWith('--$experimentFlagName=') &&
+                e != '--suppress-analytics',
+          )
           .toList();
       log.trace(
-          'dart $testExecutable ${argsRestNoExperimentOrSuppressAnalytics.join(' ')}');
+        'dart $testExecutable ${argsRestNoExperimentOrSuppressAnalytics.join(' ')}',
+      );
       VmInteropHandler.run(
         testExecutable.executable,
         argsRestNoExperimentOrSuppressAnalytics,
@@ -137,7 +146,8 @@ Run "${runner!.executableName} help" to see global options.''');
         }
       } else {
         print(
-            'No pubspec.yaml file found - run this command in your project folder.');
+          'No pubspec.yaml file found - run this command in your project folder.',
+        );
       }
       if (args.rest.contains('-h') || args.rest.contains('--help')) {
         print('');

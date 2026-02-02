@@ -24,7 +24,7 @@ Completely deletes all installed versions of <package> and all executables from
   CommandCategory get commandCategory => CommandCategory.global;
 
   UninstallCommand({bool verbose = false})
-      : super(cmdName, cmdDescription, verbose);
+    : super(cmdName, cmdDescription, verbose);
 
   @override
   Future<int> run() async {
@@ -38,8 +38,9 @@ Completely deletes all installed versions of <package> and all executables from
     }
     final package = args.single;
 
-    final bundles =
-        DartInstallDirectory().allAppBundlesSync(packageName: package);
+    final bundles = DartInstallDirectory().allAppBundlesSync(
+      packageName: package,
+    );
     if (bundles.isEmpty) {
       print('Did not find any packages named "$package".');
       return 255;

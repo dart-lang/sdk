@@ -22,8 +22,10 @@ void format() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Idiomatically format Dart source code.'));
-    expect(result.stdout,
-        contains('Usage: dart format [options...] <files or directories...>'));
+    expect(
+      result.stdout,
+      contains('Usage: dart format [options...] <files or directories...>'),
+    );
 
     // Does not show verbose help.
     expect(result.stdout.contains('--stdin-name'), isFalse);
@@ -35,8 +37,10 @@ void format() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Idiomatically format Dart source code.'));
-    expect(result.stdout,
-        contains('Usage: dart format [options...] <files or directories...>'));
+    expect(
+      result.stdout,
+      contains('Usage: dart format [options...] <files or directories...>'),
+    );
 
     // Shows verbose help.
     expect(result.stdout, contains('--stdin-name'));
@@ -56,9 +60,9 @@ void format() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
-        result.stdout,
-        startsWith(
-            'Formatted lib/main.dart\nFormatted 1 file (1 changed) in '));
+      result.stdout,
+      startsWith('Formatted lib/main.dart\nFormatted 1 file (1 changed) in '),
+    );
   });
 
   test('formatted with exit code set', () async {
@@ -71,9 +75,9 @@ void format() {
     expect(result.exitCode, isNot(0));
     expect(result.stderr, isEmpty);
     expect(
-        result.stdout,
-        startsWith(
-            'Formatted lib/main.dart\nFormatted 1 file (1 changed) in '));
+      result.stdout,
+      startsWith('Formatted lib/main.dart\nFormatted 1 file (1 changed) in '),
+    );
   });
 
   test('not formatted with exit code set', () async {
@@ -93,8 +97,10 @@ void format() {
     var unknownFilePath = '${p.relativeFilePath}-unknown-file.dart';
     ProcessResult result = await p.run(['format', unknownFilePath]);
     expect(result.exitCode, 0);
-    expect(result.stderr,
-        startsWith('No file or directory found at "$unknownFilePath".'));
+    expect(
+      result.stderr,
+      startsWith('No file or directory found at "$unknownFilePath".'),
+    );
     expect(result.stdout, startsWith('Formatted no files in '));
   });
 

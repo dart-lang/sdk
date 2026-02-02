@@ -24,8 +24,11 @@ void main() {
 
 void _dartdevCommand() {
   void assertDartdevCommandProperties(
-      DartdevCommand command, String name, String expectedUsagePath,
-      [int subcommandCount = 0]) {
+    DartdevCommand command,
+    String name,
+    String expectedUsagePath, [
+    int subcommandCount = 0,
+  ]) {
     expect(command, isNotNull);
     expect(command.name, name);
     expect(command.description, isNotEmpty);
@@ -44,51 +47,58 @@ void _dartdevCommand() {
 
   test('compile/js', () {
     assertDartdevCommandProperties(
-        CompileCommand().subcommands['js'] as DartdevCommand,
-        'js',
-        'compile/js');
+      CompileCommand().subcommands['js'] as DartdevCommand,
+      'js',
+      'compile/js',
+    );
   });
 
   test('compile/js-dev', () {
     assertDartdevCommandProperties(
-        CompileCommand().subcommands['js-dev'] as DartdevCommand,
-        'js-dev',
-        'compile/js-dev');
+      CompileCommand().subcommands['js-dev'] as DartdevCommand,
+      'js-dev',
+      'compile/js-dev',
+    );
   });
 
   test('compile/jit-snapshot', () {
     assertDartdevCommandProperties(
-        CompileCommand().subcommands['jit-snapshot'] as DartdevCommand,
-        'jit-snapshot',
-        'compile/jit-snapshot');
+      CompileCommand().subcommands['jit-snapshot'] as DartdevCommand,
+      'jit-snapshot',
+      'compile/jit-snapshot',
+    );
   });
 
   test('compile/kernel', () {
     assertDartdevCommandProperties(
-        CompileCommand().subcommands['kernel'] as DartdevCommand,
-        'kernel',
-        'compile/kernel');
+      CompileCommand().subcommands['kernel'] as DartdevCommand,
+      'kernel',
+      'compile/kernel',
+    );
   });
 
   test('compile/exe', () {
     assertDartdevCommandProperties(
-        CompileCommand().subcommands['exe'] as DartdevCommand,
-        'exe',
-        'compile/exe');
+      CompileCommand().subcommands['exe'] as DartdevCommand,
+      'exe',
+      'compile/exe',
+    );
   });
 
   test('compile/aot-snapshot', () {
     assertDartdevCommandProperties(
-        CompileCommand().subcommands['aot-snapshot'] as DartdevCommand,
-        'aot-snapshot',
-        'compile/aot-snapshot');
+      CompileCommand().subcommands['aot-snapshot'] as DartdevCommand,
+      'aot-snapshot',
+      'compile/aot-snapshot',
+    );
   });
 
   test('compile/wasm', () {
     assertDartdevCommandProperties(
-        CompileCommand().subcommands['wasm'] as DartdevCommand,
-        'wasm',
-        'compile/wasm');
+      CompileCommand().subcommands['wasm'] as DartdevCommand,
+      'wasm',
+      'compile/wasm',
+    );
   });
 
   test('create', () {

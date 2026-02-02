@@ -89,8 +89,13 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
     }
 
     // Specify where dartdoc resources are located.
-    final resourcesPath =
-        path.absolute(sdk.sdkPath, 'bin', 'resources', 'dartdoc', 'resources');
+    final resourcesPath = path.absolute(
+      sdk.sdkPath,
+      'bin',
+      'resources',
+      'dartdoc',
+      'resources',
+    );
 
     // Build remaining options.
     options.addAll([

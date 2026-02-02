@@ -241,8 +241,9 @@ List<ProcessInfo> _getProcessInfoMacOS({bool elideFilePaths = true}) {
       .skip(1)
       .map((line) => line.trim())
       .where((line) => line.isNotEmpty)
-      .map((line) =>
-          ProcessInfo.parseMacos(line, elideFilePaths: elideFilePaths))
+      .map(
+        (line) => ProcessInfo.parseMacos(line, elideFilePaths: elideFilePaths),
+      )
       .where(_isProcessDartRelated)
       .toList();
 }
@@ -258,8 +259,9 @@ List<ProcessInfo> _getProcessInfoLinux({bool elideFilePaths = true}) {
       .skip(1)
       .map((line) => line.trim())
       .where((line) => line.isNotEmpty)
-      .map((line) =>
-          ProcessInfo._parseLinux(line, elideFilePaths: elideFilePaths))
+      .map(
+        (line) => ProcessInfo._parseLinux(line, elideFilePaths: elideFilePaths),
+      )
       .whereType<ProcessInfo>()
       .where(_isProcessDartRelated)
       .toList();
@@ -289,8 +291,10 @@ List<ProcessInfo> _getProcessInfoWindows() {
 }
 
 bool _isProcessDartRelated(ProcessInfo process) {
-  return process.command == 'dart' || process.command == 'dart.exe' ||
-      process.command == 'dartvm' || process.command == 'dartvm.exe';
+  return process.command == 'dart' ||
+      process.command == 'dart.exe' ||
+      process.command == 'dartvm' ||
+      process.command == 'dartvm.exe';
 }
 
 String _getCommandFrom(String commandLine) {
