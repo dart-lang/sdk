@@ -3436,6 +3436,26 @@ class BodyBuilderImpl extends StackListenerImpl
     inFieldInitializer = true;
     constantContext = _context.constantContext;
     inLateFieldInitializer = _context.isLateField;
+    if (_context.isDeclarationInstanceContext && !inLateFieldInitializer) {
+      LocalScope enclosingScope = _localScope;
+      List<FormalParameterBuilder>? parameters =
+          _context.primaryConstructorInitializerScopeParameters;
+      if (parameters != null) {
+        Map<String, VariableBuilder> local = {};
+        for (FormalParameterBuilder formal in parameters) {
+          assignedVariables.declare(formal.variable!);
+          local[formal.name] = formal;
+        }
+        _localScopes.push(
+          enclosingScope.createNestedFixedScope(
+            kind: LocalScopeKind.initializers,
+            local: local,
+          ),
+        );
+      } else {
+        _localScopes.push(enclosingScope);
+      }
+    }
     if (_context.isAbstractField) {
       addProblem(diag.abstractFieldInitializer, token.charOffset, noLength);
     } else if (_context.isExternalField) {
@@ -3446,6 +3466,9 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void endFieldInitializer(Token assignmentOperator, Token endToken) {
     debugEvent("FieldInitializer");
+    if (_context.isDeclarationInstanceContext && !inLateFieldInitializer) {
+      _localScopes.pop();
+    }
     inFieldInitializer = false;
     inLateFieldInitializer = false;
     assert(assignmentOperator.stringValue == "=");

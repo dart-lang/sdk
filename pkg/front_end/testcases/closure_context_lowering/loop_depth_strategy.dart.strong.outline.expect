@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static method foo(positional-parameter functions) → dynamic
+  ;
+static method bar(positional-parameter functions) → dynamic
+  ;

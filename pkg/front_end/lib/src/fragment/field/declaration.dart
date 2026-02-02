@@ -133,6 +133,19 @@ abstract class FieldDeclaration {
     required bool isSynthetic,
   });
 
+  /// Creates an [Initializer] for initializing this field with its declared
+  /// initializer value and removes the initializer expression from the field
+  /// itself.
+  ///
+  /// This is used to support access of primary constructor parameters in the
+  /// field initializers. For instance
+  ///
+  ///     class C(var int a, final int b, int c) {
+  ///       int d = a + b + c;
+  ///     }
+  ///
+  Initializer takePrimaryConstructorFieldInitializer();
+
   /// Ensures that the type of this field declaration has been computed.
   void ensureTypes(
     ClassMembersBuilder membersBuilder,
@@ -763,6 +776,11 @@ class RegularFieldDeclaration
     PropertyReferences references,
   ) {
     return hasSetter ? [references.setterReference] : const [];
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    return _encoding.takePrimaryConstructorFieldInitializer();
   }
 }
 

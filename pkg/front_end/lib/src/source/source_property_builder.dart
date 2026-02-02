@@ -592,6 +592,21 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     );
   }
 
+  /// Creates an [Initializer] for initializing the field declared by this
+  /// property with its declared initializer value and removes the initializer
+  /// expression from the field itself.
+  ///
+  /// This is used to support access of primary constructor parameters in the
+  /// field initializers. For instance
+  ///
+  ///     class C(var int a, final int b, int c) {
+  ///       int d = a + b + c;
+  ///     }
+  ///
+  Initializer takePrimaryConstructorFieldInitializer() {
+    return _introductoryField!.takePrimaryConstructorFieldInitializer();
+  }
+
   bool get hasInitializer => _introductoryField!.hasInitializer;
 
   bool get isExtensionTypeDeclaredInstanceField =>

@@ -322,6 +322,19 @@ abstract class BodyBuilderContext {
     );
   }
 
+  /// Returns the primary constructor parameters available in the initializer
+  /// scope for instance field initializers.
+  ///
+  /// If a non-late instance field is not currently being built, or if the
+  /// enclosing declaration doesn't have any primary constructor with
+  /// parameters, `null` is returned.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    throw new UnsupportedError(
+      '${runtimeType}.primaryConstructorInitializerScopeParameters',
+    );
+  }
+
   /// This is called before parsing constructor initializers.
   ///
   /// The constructor initializers are parsed both in the outline and in the

@@ -57,6 +57,19 @@ sealed class FieldEncoding {
   /// This is only used for instance fields.
   Initializer buildImplicitInitializer();
 
+  /// Creates an [Initializer] for initializing this field with its declared
+  /// initializer value and removes the initializer expression from the field
+  /// itself.
+  ///
+  /// This is used to support access of primary constructor parameters in the
+  /// field initializers. For instance
+  ///
+  ///     class C(var int a, final int b, int c) {
+  ///       int d = a + b + c;
+  ///     }
+  ///
+  Initializer takePrimaryConstructorFieldInitializer();
+
   /// Registers that the (implicit) setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
   void setCovariantByClass();
@@ -252,6 +265,13 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
   @override
   void registerSuperCall() {
     _field!.transformerFlags |= TransformerFlag.superCalls;
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    Expression value = _field!.initializer!;
+    _field!.initializer = null;
+    return new FieldInitializer(_field!, value)..fileOffset = value.fileOffset;
   }
 }
 
@@ -551,6 +571,13 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..isSynthetic = isSynthetic,
     );
     return initializers;
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
+    );
   }
 
   /// Creates an [Expression] that reads [_field].
@@ -1476,6 +1503,13 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       "Unexpected call to ${runtimeType}.registerSuperCall().",
     );
   }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
+    );
+  }
 }
 
 /// The encoding of an extension type declaration representation field.
@@ -1639,6 +1673,13 @@ class RepresentationFieldEncoding implements FieldEncoding {
   void registerSuperCall() {
     throw new UnsupportedError(
       "Unexpected call to ${runtimeType}.registerSuperCall().",
+    );
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
     );
   }
 }
@@ -1936,6 +1977,13 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   void registerSuperCall() {
     throw new UnsupportedError(
       "Unexpected call to ${runtimeType}.registerSuperCall().",
+    );
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
     );
   }
 }

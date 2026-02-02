@@ -1,0 +1,11 @@
+@pragma('vm:never-inline')
+@pragma('wasm:never-inline')
+@pragma('dart2js:noInline')
+int opaqueVal() => int.parse('42');
+
+@pragma('vm:never-inline')
+@pragma('wasm:never-inline')
+@pragma('dart2js:noInline')
+void callClosure(void Function() func) {}
+
+void foo45() {}

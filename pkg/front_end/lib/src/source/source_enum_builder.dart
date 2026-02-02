@@ -940,6 +940,13 @@ class _EnumValuesFieldDeclaration
   ) {
     return [references.getterReference];
   }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      "${runtimeType}.takePrimaryConstructorFieldInitializer",
+    );
+  }
 }
 
 class _EnumValuesClassMember implements ClassMember {
