@@ -187,7 +187,7 @@ abstract final class DartAssistKind {
     "Convert to 'package:' import",
   );
   static const convertToPrimaryConstructor = AssistKind(
-    'convert_to_primary_constructor',
+    'dart.assist.convert.toPrimaryConstructor',
     DartAssistKindPriority.default_,
     'Convert to a primary constructor',
   );
@@ -195,6 +195,11 @@ abstract final class DartAssistKind {
     'dart.assist.convert.packageToRelativeImport',
     DartAssistKindPriority.default_,
     'Convert to a relative import',
+  );
+  static const convertToSecondaryConstructor = AssistKind(
+    'dart.assist.convert.toSecondaryConstructor',
+    DartAssistKindPriority.default_,
+    'Convert to a secondary constructor',
   );
   static const convertToSetLiteral = AssistKind(
     'dart.assist.convert.toSetLiteral',
