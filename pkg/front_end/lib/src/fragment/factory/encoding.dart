@@ -628,9 +628,9 @@ class FactoryEncoding implements InferredTypeListener {
       )) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: diag.incompatibleRedirecteeFunctionType.withArgumentsOld(
-            redirecteeType,
-            factoryTypeWithoutTypeParameters,
+          message: diag.incompatibleRedirecteeFunctionType.withArguments(
+            redirecteeType: redirecteeType,
+            expectedType: factoryTypeWithoutTypeParameters,
           ),
           fileOffset: _redirectionTarget.charOffset,
           length: noLength,
@@ -726,7 +726,10 @@ class FactoryEncoding implements InferredTypeListener {
           _addProblemForRedirectingFactory(
             libraryBuilder: libraryBuilder,
             message: diag.redirectingFactoryIncompatibleTypeArgument
-                .withArgumentsOld(typeArgument, typeParameterBound),
+                .withArguments(
+                  typeArgumentType: typeArgument,
+                  expectedType: typeParameterBound,
+                ),
             fileOffset: redirectionTarget.charOffset,
             length: noLength,
             fileUri: redirectionTarget.fileUri,
@@ -738,7 +741,10 @@ class FactoryEncoding implements InferredTypeListener {
             _addProblemForRedirectingFactory(
               libraryBuilder: libraryBuilder,
               message: diag.redirectingFactoryIncompatibleTypeArgument
-                  .withArgumentsOld(typeArgument, typeParameterBound),
+                  .withArguments(
+                    typeArgumentType: typeArgument,
+                    expectedType: typeParameterBound,
+                  ),
               fileOffset: redirectionTarget.charOffset,
               length: noLength,
               fileUri: redirectionTarget.fileUri,

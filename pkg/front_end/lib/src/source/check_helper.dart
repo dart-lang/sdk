@@ -978,39 +978,38 @@ extension CheckHelper on ProblemReporting {
           if (targetName != null) {
             if (inferred) {
               message = diag.incorrectTypeArgumentQualifiedInferred
-                  .withArgumentsOld(
-                    argument,
-                    typeParameter.bound,
-                    typeParameter.name!,
-                    targetReceiver,
-                    targetName,
+                  .withArguments(
+                    typeArgument: argument,
+                    typeParameterBound: typeParameter.bound,
+                    typeParameterName: typeParameter.name!,
+                    receiverType: targetReceiver,
+                    targetName: targetName,
                   );
             } else {
-              message = diag.incorrectTypeArgumentQualified.withArgumentsOld(
-                argument,
-                typeParameter.bound,
-                typeParameter.name!,
-                targetReceiver,
-                targetName,
+              message = diag.incorrectTypeArgumentQualified.withArguments(
+                typeArgument: argument,
+                typeParameterBound: typeParameter.bound,
+                typeParameterName: typeParameter.name!,
+                receiverType: targetReceiver,
+                targetName: targetName,
               );
             }
           } else {
             if (inferred) {
               message = diag.incorrectTypeArgumentInstantiationInferred
-                  .withArgumentsOld(
-                    argument,
-                    typeParameter.bound,
-                    typeParameter.name!,
-                    targetReceiver,
+                  .withArguments(
+                    typeArgument: argument,
+                    typeParameterBound: typeParameter.bound,
+                    typeParameterName: typeParameter.name!,
+                    receiverType: targetReceiver,
                   );
             } else {
-              message = diag.incorrectTypeArgumentInstantiation
-                  .withArgumentsOld(
-                    argument,
-                    typeParameter.bound,
-                    typeParameter.name!,
-                    targetReceiver,
-                  );
+              message = diag.incorrectTypeArgumentInstantiation.withArguments(
+                typeArgument: argument,
+                typeParameterBound: typeParameter.bound,
+                typeParameterName: typeParameter.name!,
+                receiverType: targetReceiver,
+              );
             }
           }
         } else {
@@ -1018,18 +1017,18 @@ extension CheckHelper on ProblemReporting {
               ? targetName!
               : getGenericTypeName(issue.enclosingType!);
           if (inferred) {
-            message = diag.incorrectTypeArgumentInferred.withArgumentsOld(
-              argument,
-              typeParameter.bound,
-              typeParameter.name!,
-              enclosingName,
+            message = diag.incorrectTypeArgumentInferred.withArguments(
+              typeArgument: argument,
+              typeParameterBound: typeParameter.bound,
+              typeParameterName: typeParameter.name!,
+              enclosingName: enclosingName,
             );
           } else {
-            message = diag.incorrectTypeArgument.withArgumentsOld(
-              argument,
-              typeParameter.bound,
-              typeParameter.name!,
-              enclosingName,
+            message = diag.incorrectTypeArgument.withArguments(
+              typeArgument: argument,
+              typeParameterBound: typeParameter.bound,
+              typeParameterName: typeParameter.name!,
+              enclosingName: enclosingName,
             );
           }
         }

@@ -4552,7 +4552,7 @@ defaultValueInRedirectingFactoryConstructor:
 
 untranslatableUri:
   parameters:
-    Uri uri: undocumented
+    Uri uri: The URI that was not found.
   problemMessage: "Not found: '#uri'"
   exampleAllowOtherCodes: true # PackageNotFound will precede this message.
   script: |
@@ -4576,54 +4576,54 @@ unsupportedPlatformDartLibraryImport:
 
 importChainContext:
   parameters:
-    Uri uri: undocumented
-    String string: undocumented
-    String string2: undocumented
+    Uri uri: The URI of the unavailable library.
+    String importChain: The chain of imports that lead to the unavailable library.
+    String verboseImportChain: The verbose chain of imports for some of these imports.
   problemMessage: |
     The unavailable library '#uri' is imported through these packages:
 
-    #string
+    #importChain
     Detailed import paths for (some of) the these imports:
 
-    #string2
+    #verboseImportChain
   severity: CONTEXT
 
 importChainContextSimple:
   parameters:
-    Uri uri: undocumented
-    String string: undocumented
+    Uri uri: The URi of the unavailable library.
+    String importChain: The chain of imports that lead to the unavailable library.
   problemMessage: |
     The unavailable library '#uri' is imported through these paths:
 
-    #string
+    #importChain
   severity: CONTEXT
 
 cantReadFile:
   parameters:
-    Uri uri: undocumented
-    String string: undocumented
-  problemMessage: "Error when reading '#uri': #string"
+    Uri uri: The URI of the attempted read.
+    String details: Details of the error.
+  problemMessage: "Error when reading '#uri': #details"
   external: test/packages_format_error_test.dart
   script: |
     import "non_existing_file.dart";
 
 exceptionReadingFile:
   parameters:
-    Uri uri: undocumented
-    String string: undocumented
-  problemMessage: "Exception when reading '#uri': #string"
+    Uri uri: The URI of the attempted read.
+    String exception: The exception that occurred.
+  problemMessage: "Exception when reading '#uri': #exception"
 
 packagesFileFormat:
   parameters:
-    String string: undocumented
-  problemMessage: "Problem in packages configuration file: #string"
+    String details: Details of the error.
+  problemMessage: "Problem in packages configuration file: #details"
   external: test/packages_format_error_test.dart
 
 incompatibleRedirecteeFunctionType:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The constructor function type '#type' isn't a subtype of '#type2'."
+    Type redirecteeType: The type of the constructor being redirected to.
+    Type expectedType: The expected type.
+  problemMessage: "The constructor function type '#redirecteeType' isn't a subtype of '#expectedType'."
   script:
     - >-
       class A {
@@ -4655,9 +4655,9 @@ incompatibleRedirecteeFunctionType:
 
 redirectingFactoryIncompatibleTypeArgument:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The type '#type' doesn't extend '#type2'."
+    Type typeArgumentType: The type argument type.
+    Type expectedType: The type that was expected.
+  problemMessage: "The type '#typeArgumentType' doesn't extend '#expectedType'."
   correctionMessage: "Try using a different type as argument."
   script:
     - >-
@@ -4672,11 +4672,11 @@ syntheticToken:
 
 incorrectTypeArgument:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
+    Type typeArgument: The type argument.
+    Type typeParameterBound: The bound of the corresponding type parameter.
+    Name typeParameterName: The name of the type parameter.
+    Name enclosingName: The name of the enclosing element.
+  problemMessage: "Type argument '#typeArgument' doesn't conform to the bound '#typeParameterBound' of the type variable '#typeParameterName' on '#enclosingName'."
   correctionMessage: "Try changing type arguments so that they conform to the bounds."
   script: |
     class C<T extends num> {}
@@ -4684,12 +4684,12 @@ incorrectTypeArgument:
 
 incorrectTypeArgumentQualified:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Name name: undocumented
-    Type type3: undocumented
-    Name name2: undocumented
-  problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
+    Type typeArgument: The type argument.
+    Type typeParameterBound: The bound of the corresponding type parameter.
+    Name typeParameterName: The name of the type parameter.
+    Type receiverType: The type of the receiver.
+    Name targetName: The name of the invoked method.
+  problemMessage: "Type argument '#typeArgument' doesn't conform to the bound '#typeParameterBound' of the type variable '#typeParameterName' on '#receiverType.#targetName'."
   correctionMessage: "Try changing type arguments so that they conform to the bounds."
   script: |
     class C<T> { foo<U extends num>() {} }
@@ -4697,11 +4697,11 @@ incorrectTypeArgumentQualified:
 
 incorrectTypeArgumentInferred:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
+    Type typeArgument: The type argument.
+    Type typeParameterBound: The bound of the corresponding type parameter.
+    Name typeParameterName: The name of the type parameter.
+    Name enclosingName: The name of the enclosing element.
+  problemMessage: "Inferred type argument '#typeArgument' doesn't conform to the bound '#typeParameterBound' of the type variable '#typeParameterName' on '#enclosingName'."
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   script: |
     foo<T extends List<S>, S extends num>(T t) {}
@@ -4709,12 +4709,12 @@ incorrectTypeArgumentInferred:
 
 incorrectTypeArgumentQualifiedInferred:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Name name: undocumented
-    Type type3: undocumented
-    Name name2: undocumented
-  problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
+    Type typeArgument: The type argument.
+    Type typeParameterBound: The bound of the corresponding type parameter.
+    Name typeParameterName: The name of the type parameter.
+    Type receiverType: The type of the receiver.
+    Name targetName: The name of the invoked method.
+  problemMessage: "Inferred type argument '#typeArgument' doesn't conform to the bound '#typeParameterBound' of the type variable '#typeParameterName' on '#receiverType.#targetName'."
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   script: |
     class A { foo<T extends List<S>, S extends num>(T t) {} }
@@ -4722,11 +4722,11 @@ incorrectTypeArgumentQualifiedInferred:
 
 incorrectTypeArgumentInstantiation:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Name name: undocumented
-    Type type3: undocumented
-  problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
+    Type typeArgument: The type argument.
+    Type typeParameterBound: The bound of the corresponding type parameter.
+    Name typeParameterName: The name of the type parameter.
+    Type receiverType: The type of the receiver.
+  problemMessage: "Type argument '#typeArgument' doesn't conform to the bound '#typeParameterBound' of the type variable '#typeParameterName' on '#receiverType'."
   correctionMessage: "Try changing type arguments so that they conform to the bounds."
   script: |
     X bounded<X extends num>(X x) => x;
@@ -4736,11 +4736,11 @@ incorrectTypeArgumentInstantiation:
 
 incorrectTypeArgumentInstantiationInferred:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Name name: undocumented
-    Type type3: undocumented
-  problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
+    Type typeArgument: The type argument.
+    Type typeParameterBound: The bound of the corresponding type parameter.
+    Name typeParameterName: The name of the type parameter.
+    Type receiverType: The type of the receiver.
+  problemMessage: "Inferred type argument '#typeArgument' doesn't conform to the bound '#typeParameterBound' of the type variable '#typeParameterName' on '#receiverType'."
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   script: |
     X bounded<X extends List<Y>, Y extends num>(X x) => x;
