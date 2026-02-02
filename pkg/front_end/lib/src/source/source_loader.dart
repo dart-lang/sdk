@@ -3615,7 +3615,8 @@ class _CheckSuperAccess extends RecursiveVisitor {
 
   void _checkMember(
     Name name, {
-    required Template<Message Function(String name), Function> template,
+    required Template<Function, Message Function({required String memberName})>
+    template,
     required bool isSetter,
     required int accessFileOffset,
   }) {
@@ -3626,7 +3627,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
     );
     if (member == null) {
       _sourceLibraryBuilder.addProblem(
-        template.withArgumentsOld(name.text),
+        template.withArguments(memberName: name.text),
         _typeBuilder.charOffset!,
         noLength,
         _typeBuilder.fileUri!,

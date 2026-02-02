@@ -6752,8 +6752,8 @@ mixinInheritsFromNotObject:
 
 mixinApplicationNoConcreteMethod:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#name'."
+    Name memberName: The name of the unimplemented member.
+  problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#memberName'."
   script: |
     class Super {
       void method() {}
@@ -6768,8 +6768,8 @@ mixinApplicationNoConcreteMethod:
 
 mixinApplicationNoConcreteGetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class doesn't have a concrete implementation of the super-accessed member '#name'."
+    Name memberName: The name of the unimplemented member.
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed member '#memberName'."
   script: |
     class Super {
       int get getter => 42;
@@ -6784,8 +6784,8 @@ mixinApplicationNoConcreteGetter:
 
 mixinApplicationNoConcreteSetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class doesn't have a concrete implementation of the super-accessed setter '#name'."
+    Name memberName: The name of the unimplemented member.
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed setter '#memberName'."
   script: |
     class Super {
       void set setter(int value) {}

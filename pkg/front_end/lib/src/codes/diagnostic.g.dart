@@ -12267,8 +12267,8 @@ Message _withArgumentsOldMixinApplicationIncompatibleSupertype(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 mixinApplicationNoConcreteGetter = const Template(
   "MixinApplicationNoConcreteGetter",
@@ -12277,19 +12277,21 @@ mixinApplicationNoConcreteGetter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinApplicationNoConcreteGetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsMixinApplicationNoConcreteGetter({
+  required String memberName,
+}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     mixinApplicationNoConcreteGetter,
     problemMessage:
-        """The class doesn't have a concrete implementation of the super-accessed member '${name_0}'.""",
-    arguments: {'name': name},
+        """The class doesn't have a concrete implementation of the super-accessed member '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationNoConcreteGetter(String name) =>
-    _withArgumentsMixinApplicationNoConcreteGetter(name: name);
+Message _withArgumentsOldMixinApplicationNoConcreteGetter(String memberName) =>
+    _withArgumentsMixinApplicationNoConcreteGetter(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mixinApplicationNoConcreteMemberContext = const MessageCode(
@@ -12301,8 +12303,8 @@ const MessageCode mixinApplicationNoConcreteMemberContext = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 mixinApplicationNoConcreteMethod = const Template(
   "MixinApplicationNoConcreteMethod",
@@ -12311,24 +12313,26 @@ mixinApplicationNoConcreteMethod = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinApplicationNoConcreteMethod({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsMixinApplicationNoConcreteMethod({
+  required String memberName,
+}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     mixinApplicationNoConcreteMethod,
     problemMessage:
-        """The class doesn't have a concrete implementation of the super-invoked member '${name_0}'.""",
-    arguments: {'name': name},
+        """The class doesn't have a concrete implementation of the super-invoked member '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationNoConcreteMethod(String name) =>
-    _withArgumentsMixinApplicationNoConcreteMethod(name: name);
+Message _withArgumentsOldMixinApplicationNoConcreteMethod(String memberName) =>
+    _withArgumentsMixinApplicationNoConcreteMethod(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 mixinApplicationNoConcreteSetter = const Template(
   "MixinApplicationNoConcreteSetter",
@@ -12337,19 +12341,21 @@ mixinApplicationNoConcreteSetter = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinApplicationNoConcreteSetter({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsMixinApplicationNoConcreteSetter({
+  required String memberName,
+}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     mixinApplicationNoConcreteSetter,
     problemMessage:
-        """The class doesn't have a concrete implementation of the super-accessed setter '${name_0}'.""",
-    arguments: {'name': name},
+        """The class doesn't have a concrete implementation of the super-accessed setter '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinApplicationNoConcreteSetter(String name) =>
-    _withArgumentsMixinApplicationNoConcreteSetter(name: name);
+Message _withArgumentsOldMixinApplicationNoConcreteSetter(String memberName) =>
+    _withArgumentsMixinApplicationNoConcreteSetter(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mixinDeferredMixin = const MessageCode(
