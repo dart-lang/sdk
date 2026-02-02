@@ -1468,7 +1468,9 @@ class FfiTransformer extends Transformer {
         variableLength = sizeAnnotations.single.$2;
         if (arrayDimensions(type) != dimensions.length) {
           diagnosticReporter.report(
-            diag.ffiSizeAnnotationDimensions.withArgumentsOld(node.name.text),
+            diag.ffiSizeAnnotationDimensions.withArguments(
+              fieldName: node.name.text,
+            ),
             node.fileOffset,
             node.name.text.length,
             node.fileUri,

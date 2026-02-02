@@ -4991,8 +4991,8 @@ ffiSizeAnnotation:
 ffiSizeAnnotationDimensions:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
-  problemMessage: "Field '#name' must have an 'Array' annotation that matches the dimensions."
+    Name fieldName: The name of the problematic field.
+  problemMessage: "Field '#fieldName' must have an 'Array' annotation that matches the dimensions."
   external: test/ffi_test.dart
 
 ffiVariableLengthArrayNotLast:
@@ -5005,26 +5005,26 @@ ffiVariableLengthArrayNotLast:
 ffiStructGeneric:
   # Used by dart:ffi
   parameters:
-    String string: undocumented
-    Name name: undocumented
-  problemMessage: "#string '#name' should not be generic."
+    String superclass: The superclass name.
+    Name name: The name of the problematic struct.
+  problemMessage: "#superclass '#name' should not be generic."
   external: test/ffi_test.dart
 
 ffiCompoundImplementsFinalizable:
   # Used by dart:ffi
   parameters:
-    String string: undocumented
-    Name name: undocumented
-  problemMessage: "#string '#name' can't implement Finalizable."
+    String superclass: The superclass name.
+    Name name: The name of the problematic struct.
+  problemMessage: "#superclass '#name' can't implement Finalizable."
   correctionMessage: "Try removing the implements clause from '#name'."
   external: test/ffi_test.dart
 
 ffiDartTypeMismatch:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Expected '#type' to be a subtype of '#type2'."
+    Type actualType: The actual return type.
+    Type expectedType: The expected return type.
+  problemMessage: "Expected '#actualType' to be a subtype of '#expectedType'."
   external: test/ffi_test.dart
 
 ffiDeeplyImmutableClassesMustBeFinalOrSealed:
@@ -5071,15 +5071,15 @@ ffiDefaultAssetDuplicate:
 ffiExpectedExceptionalReturn:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
-  problemMessage: "Expected an exceptional return value for a native callback returning '#type'."
+    Type returnType: The return type of the native callback.
+  problemMessage: "Expected an exceptional return value for a native callback returning '#returnType'."
   external: test/ffi_test.dart
 
 ffiExpectedNoExceptionalReturn:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
-  problemMessage: "Exceptional return value cannot be provided for a native callback returning '#type'."
+    Type returnType: The return type of the native callback.
+  problemMessage: "Exceptional return value cannot be provided for a native callback returning '#returnType'."
   external: test/ffi_test.dart
 
 ffiExpectedConstant:
@@ -5097,14 +5097,14 @@ ffiExceptionalReturnNull:
 ffiNativeCallableListenerReturnVoid:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
-  problemMessage: "The return type of the function passed to NativeCallable.listener must be void rather than '#type'."
+    Type returnType: The return type of the function passed to `NativeCallable.listener`.
+  problemMessage: "The return type of the function passed to NativeCallable.listener must be void rather than '#returnType'."
   external: test/ffi_test.dart
 
 ffiExpectedConstantArg:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
+    Name name: The name of the non-constant argument.
   problemMessage: "Argument '#name' must be a constant."
   external: test/ffi_test.dart
 
@@ -5186,8 +5186,8 @@ ffiAddressOfMustBeNative:
 
 spreadTypeMismatch:
   parameters:
-    Type type: undocumented
-  problemMessage: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
+    Type spreadType: The type of the spread.
+  problemMessage: "Unexpected type '#spreadType' of a spread.  Expected 'dynamic' or an Iterable."
   script:
     - |
       main() {
@@ -5203,22 +5203,22 @@ spreadTypeMismatch:
 cantHaveNamedParameters:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
+    Name name: The name of the entity that can't have named parameters.
   problemMessage: "'#name' can't be declared with named parameters."
   external: test/ffi_test.dart
 
 cantHaveOptionalParameters:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
+    Name name: The name of the entity that can't have named parameters.
   problemMessage: "'#name' can't be declared with optional parameters."
   external: test/ffi_test.dart
 
 spreadElementTypeMismatch:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Can't assign spread elements of type '#type' to collection elements of type '#type2'."
+    Type spreadElementType: The type of the spread element.
+    Type collectionElementType: The type of the enclosing collection.
+  problemMessage: "Can't assign spread elements of type '#spreadElementType' to collection elements of type '#collectionElementType'."
   script: |
     main() {
       List<String> a = <String>["foo"];
@@ -5227,8 +5227,8 @@ spreadElementTypeMismatch:
 
 spreadMapEntryTypeMismatch:
   parameters:
-    Type type: undocumented
-  problemMessage: "Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map."
+    Type spreadType: The type of the spread.
+  problemMessage: "Unexpected type '#spreadType' of a map spread entry.  Expected 'dynamic' or a Map."
   script:
     - |
       main() {
@@ -5243,9 +5243,9 @@ spreadMapEntryTypeMismatch:
 
 spreadMapEntryElementKeyTypeMismatch:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'."
+    Type spreadKeyType: The key type of the spread element.
+    Type mapKeyType: The key type of the enclosing map.
+  problemMessage: "Can't assign spread entry keys of type '#spreadKeyType' to map entry keys of type '#mapKeyType'."
   script: |
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
@@ -5254,9 +5254,9 @@ spreadMapEntryElementKeyTypeMismatch:
 
 spreadMapEntryElementValueTypeMismatch:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
+    Type spreadValueType: The value type of the spread element.
+    Type mapValueType: The value type of the enclosing map.
+  problemMessage: "Can't assign spread entry values of type '#spreadValueType' to map entry values of type '#mapValueType'."
   script: |
     main() {
       Map<String, int> a = <String, int>{"foo": 42};

@@ -4647,8 +4647,8 @@ const MessageCode ffiAddressReceiver = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name),
-  Message Function({required String string, required String name})
+  Message Function(String superclass, String name),
+  Message Function({required String superclass, required String name})
 >
 ffiCompoundImplementsFinalizable = const Template(
   "FfiCompoundImplementsFinalizable",
@@ -4658,25 +4658,29 @@ ffiCompoundImplementsFinalizable = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiCompoundImplementsFinalizable({
-  required String string,
+  required String superclass,
   required String name,
 }) {
-  var string_0 = conversions.validateString(string);
+  var superclass_0 = conversions.validateString(superclass);
   var name_0 = conversions.validateAndDemangleName(name);
   return new Message(
     ffiCompoundImplementsFinalizable,
-    problemMessage: """${string_0} '${name_0}' can't implement Finalizable.""",
+    problemMessage:
+        """${superclass_0} '${name_0}' can't implement Finalizable.""",
     correctionMessage:
         """Try removing the implements clause from '${name_0}'.""",
-    arguments: {'string': string, 'name': name},
+    arguments: {'superclass': superclass, 'name': name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFfiCompoundImplementsFinalizable(
-  String string,
+  String superclass,
   String name,
-) => _withArgumentsFfiCompoundImplementsFinalizable(string: string, name: name);
+) => _withArgumentsFfiCompoundImplementsFinalizable(
+  superclass: superclass,
+  name: name,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiCreateOfStructOrUnion = const MessageCode(
@@ -4687,8 +4691,11 @@ const MessageCode ffiCreateOfStructOrUnion = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 ffiDartTypeMismatch = const Template(
   "FfiDartTypeMismatch",
@@ -4698,24 +4705,29 @@ ffiDartTypeMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiDartTypeMismatch({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     ffiDartTypeMismatch,
     problemMessage:
-        """Expected '${type_0}' to be a subtype of '${type2_0}'.""" +
+        """Expected '${actualType_0}' to be a subtype of '${expectedType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiDartTypeMismatch(DartType type, DartType type2) =>
-    _withArgumentsFfiDartTypeMismatch(type: type, type2: type2);
+Message _withArgumentsOldFfiDartTypeMismatch(
+  DartType actualType,
+  DartType expectedType,
+) => _withArgumentsFfiDartTypeMismatch(
+  actualType: actualType,
+  expectedType: expectedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiDeeplyImmutableClassesMustBeFinalOrSealed =
@@ -4840,8 +4852,8 @@ Message _withArgumentsOldFfiExpectedConstantArg(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType returnType),
+  Message Function({required DartType returnType})
 >
 ffiExpectedExceptionalReturn = const Template(
   "FfiExpectedExceptionalReturn",
@@ -4850,26 +4862,28 @@ ffiExpectedExceptionalReturn = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExpectedExceptionalReturn({required DartType type}) {
+Message _withArgumentsFfiExpectedExceptionalReturn({
+  required DartType returnType,
+}) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var returnType_0 = labeler.labelType(returnType);
   return new Message(
     ffiExpectedExceptionalReturn,
     problemMessage:
-        """Expected an exceptional return value for a native callback returning '${type_0}'.""" +
+        """Expected an exceptional return value for a native callback returning '${returnType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type},
+    arguments: {'returnType': returnType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiExpectedExceptionalReturn(DartType type) =>
-    _withArgumentsFfiExpectedExceptionalReturn(type: type);
+Message _withArgumentsOldFfiExpectedExceptionalReturn(DartType returnType) =>
+    _withArgumentsFfiExpectedExceptionalReturn(returnType: returnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType returnType),
+  Message Function({required DartType returnType})
 >
 ffiExpectedNoExceptionalReturn = const Template(
   "FfiExpectedNoExceptionalReturn",
@@ -4878,21 +4892,23 @@ ffiExpectedNoExceptionalReturn = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExpectedNoExceptionalReturn({required DartType type}) {
+Message _withArgumentsFfiExpectedNoExceptionalReturn({
+  required DartType returnType,
+}) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var returnType_0 = labeler.labelType(returnType);
   return new Message(
     ffiExpectedNoExceptionalReturn,
     problemMessage:
-        """Exceptional return value cannot be provided for a native callback returning '${type_0}'.""" +
+        """Exceptional return value cannot be provided for a native callback returning '${returnType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type},
+    arguments: {'returnType': returnType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiExpectedNoExceptionalReturn(DartType type) =>
-    _withArgumentsFfiExpectedNoExceptionalReturn(type: type);
+Message _withArgumentsOldFfiExpectedNoExceptionalReturn(DartType returnType) =>
+    _withArgumentsFfiExpectedNoExceptionalReturn(returnType: returnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5080,8 +5096,8 @@ const MessageCode ffiLeafCallMustNotTakeHandle = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType returnType),
+  Message Function({required DartType returnType})
 >
 ffiNativeCallableListenerReturnVoid = const Template(
   "FfiNativeCallableListenerReturnVoid",
@@ -5091,22 +5107,23 @@ ffiNativeCallableListenerReturnVoid = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiNativeCallableListenerReturnVoid({
-  required DartType type,
+  required DartType returnType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var returnType_0 = labeler.labelType(returnType);
   return new Message(
     ffiNativeCallableListenerReturnVoid,
     problemMessage:
-        """The return type of the function passed to NativeCallable.listener must be void rather than '${type_0}'.""" +
+        """The return type of the function passed to NativeCallable.listener must be void rather than '${returnType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type},
+    arguments: {'returnType': returnType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiNativeCallableListenerReturnVoid(DartType type) =>
-    _withArgumentsFfiNativeCallableListenerReturnVoid(type: type);
+Message _withArgumentsOldFfiNativeCallableListenerReturnVoid(
+  DartType returnType,
+) => _withArgumentsFfiNativeCallableListenerReturnVoid(returnType: returnType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiNativeDuplicateAnnotations = const MessageCode(
@@ -5310,8 +5327,8 @@ Message _withArgumentsOldFfiSizeAnnotation(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 ffiSizeAnnotationDimensions = const Template(
   "FfiSizeAnnotationDimensions",
@@ -5320,24 +5337,24 @@ ffiSizeAnnotationDimensions = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiSizeAnnotationDimensions({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFfiSizeAnnotationDimensions({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     ffiSizeAnnotationDimensions,
     problemMessage:
-        """Field '${name_0}' must have an 'Array' annotation that matches the dimensions.""",
-    arguments: {'name': name},
+        """Field '${fieldName_0}' must have an 'Array' annotation that matches the dimensions.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiSizeAnnotationDimensions(String name) =>
-    _withArgumentsFfiSizeAnnotationDimensions(name: name);
+Message _withArgumentsOldFfiSizeAnnotationDimensions(String fieldName) =>
+    _withArgumentsFfiSizeAnnotationDimensions(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name),
-  Message Function({required String string, required String name})
+  Message Function(String superclass, String name),
+  Message Function({required String superclass, required String name})
 >
 ffiStructGeneric = const Template(
   "FfiStructGeneric",
@@ -5347,21 +5364,21 @@ ffiStructGeneric = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiStructGeneric({
-  required String string,
+  required String superclass,
   required String name,
 }) {
-  var string_0 = conversions.validateString(string);
+  var superclass_0 = conversions.validateString(superclass);
   var name_0 = conversions.validateAndDemangleName(name);
   return new Message(
     ffiStructGeneric,
-    problemMessage: """${string_0} '${name_0}' should not be generic.""",
-    arguments: {'string': string, 'name': name},
+    problemMessage: """${superclass_0} '${name_0}' should not be generic.""",
+    arguments: {'superclass': superclass, 'name': name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiStructGeneric(String string, String name) =>
-    _withArgumentsFfiStructGeneric(string: string, name: name);
+Message _withArgumentsOldFfiStructGeneric(String superclass, String name) =>
+    _withArgumentsFfiStructGeneric(superclass: superclass, name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -15135,8 +15152,11 @@ const MessageCode spreadElement = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType spreadElementType, DartType collectionElementType),
+  Message Function({
+    required DartType spreadElementType,
+    required DartType collectionElementType,
+  })
 >
 spreadElementTypeMismatch = const Template(
   "SpreadElementTypeMismatch",
@@ -15146,26 +15166,32 @@ spreadElementTypeMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSpreadElementTypeMismatch({
-  required DartType type,
-  required DartType type2,
+  required DartType spreadElementType,
+  required DartType collectionElementType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var spreadElementType_0 = labeler.labelType(spreadElementType);
+  var collectionElementType_0 = labeler.labelType(collectionElementType);
   return new Message(
     spreadElementTypeMismatch,
     problemMessage:
-        """Can't assign spread elements of type '${type_0}' to collection elements of type '${type2_0}'.""" +
+        """Can't assign spread elements of type '${spreadElementType_0}' to collection elements of type '${collectionElementType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {
+      'spreadElementType': spreadElementType,
+      'collectionElementType': collectionElementType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSpreadElementTypeMismatch(
-  DartType type,
-  DartType type2,
-) => _withArgumentsSpreadElementTypeMismatch(type: type, type2: type2);
+  DartType spreadElementType,
+  DartType collectionElementType,
+) => _withArgumentsSpreadElementTypeMismatch(
+  spreadElementType: spreadElementType,
+  collectionElementType: collectionElementType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode spreadMapElement = const MessageCode(
@@ -15176,8 +15202,11 @@ const MessageCode spreadMapElement = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType spreadKeyType, DartType mapKeyType),
+  Message Function({
+    required DartType spreadKeyType,
+    required DartType mapKeyType,
+  })
 >
 spreadMapEntryElementKeyTypeMismatch = const Template(
   "SpreadMapEntryElementKeyTypeMismatch",
@@ -15187,34 +15216,37 @@ spreadMapEntryElementKeyTypeMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSpreadMapEntryElementKeyTypeMismatch({
-  required DartType type,
-  required DartType type2,
+  required DartType spreadKeyType,
+  required DartType mapKeyType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var spreadKeyType_0 = labeler.labelType(spreadKeyType);
+  var mapKeyType_0 = labeler.labelType(mapKeyType);
   return new Message(
     spreadMapEntryElementKeyTypeMismatch,
     problemMessage:
-        """Can't assign spread entry keys of type '${type_0}' to map entry keys of type '${type2_0}'.""" +
+        """Can't assign spread entry keys of type '${spreadKeyType_0}' to map entry keys of type '${mapKeyType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'spreadKeyType': spreadKeyType, 'mapKeyType': mapKeyType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch(
-  DartType type,
-  DartType type2,
+  DartType spreadKeyType,
+  DartType mapKeyType,
 ) => _withArgumentsSpreadMapEntryElementKeyTypeMismatch(
-  type: type,
-  type2: type2,
+  spreadKeyType: spreadKeyType,
+  mapKeyType: mapKeyType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType spreadValueType, DartType mapValueType),
+  Message Function({
+    required DartType spreadValueType,
+    required DartType mapValueType,
+  })
 >
 spreadMapEntryElementValueTypeMismatch = const Template(
   "SpreadMapEntryElementValueTypeMismatch",
@@ -15224,34 +15256,37 @@ spreadMapEntryElementValueTypeMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSpreadMapEntryElementValueTypeMismatch({
-  required DartType type,
-  required DartType type2,
+  required DartType spreadValueType,
+  required DartType mapValueType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var spreadValueType_0 = labeler.labelType(spreadValueType);
+  var mapValueType_0 = labeler.labelType(mapValueType);
   return new Message(
     spreadMapEntryElementValueTypeMismatch,
     problemMessage:
-        """Can't assign spread entry values of type '${type_0}' to map entry values of type '${type2_0}'.""" +
+        """Can't assign spread entry values of type '${spreadValueType_0}' to map entry values of type '${mapValueType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {
+      'spreadValueType': spreadValueType,
+      'mapValueType': mapValueType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldSpreadMapEntryElementValueTypeMismatch(
-  DartType type,
-  DartType type2,
+  DartType spreadValueType,
+  DartType mapValueType,
 ) => _withArgumentsSpreadMapEntryElementValueTypeMismatch(
-  type: type,
-  type2: type2,
+  spreadValueType: spreadValueType,
+  mapValueType: mapValueType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType spreadType),
+  Message Function({required DartType spreadType})
 >
 spreadMapEntryTypeMismatch = const Template(
   "SpreadMapEntryTypeMismatch",
@@ -15260,26 +15295,28 @@ spreadMapEntryTypeMismatch = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadMapEntryTypeMismatch({required DartType type}) {
+Message _withArgumentsSpreadMapEntryTypeMismatch({
+  required DartType spreadType,
+}) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var spreadType_0 = labeler.labelType(spreadType);
   return new Message(
     spreadMapEntryTypeMismatch,
     problemMessage:
-        """Unexpected type '${type_0}' of a map spread entry.  Expected 'dynamic' or a Map.""" +
+        """Unexpected type '${spreadType_0}' of a map spread entry.  Expected 'dynamic' or a Map.""" +
         labeler.originMessages,
-    arguments: {'type': type},
+    arguments: {'spreadType': spreadType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSpreadMapEntryTypeMismatch(DartType type) =>
-    _withArgumentsSpreadMapEntryTypeMismatch(type: type);
+Message _withArgumentsOldSpreadMapEntryTypeMismatch(DartType spreadType) =>
+    _withArgumentsSpreadMapEntryTypeMismatch(spreadType: spreadType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType spreadType),
+  Message Function({required DartType spreadType})
 >
 spreadTypeMismatch = const Template(
   "SpreadTypeMismatch",
@@ -15288,21 +15325,21 @@ spreadTypeMismatch = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsSpreadTypeMismatch({required DartType type}) {
+Message _withArgumentsSpreadTypeMismatch({required DartType spreadType}) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var spreadType_0 = labeler.labelType(spreadType);
   return new Message(
     spreadTypeMismatch,
     problemMessage:
-        """Unexpected type '${type_0}' of a spread.  Expected 'dynamic' or an Iterable.""" +
+        """Unexpected type '${spreadType_0}' of a spread.  Expected 'dynamic' or an Iterable.""" +
         labeler.originMessages,
-    arguments: {'type': type},
+    arguments: {'spreadType': spreadType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSpreadTypeMismatch(DartType type) =>
-    _withArgumentsSpreadTypeMismatch(type: type);
+Message _withArgumentsOldSpreadTypeMismatch(DartType spreadType) =>
+    _withArgumentsSpreadTypeMismatch(spreadType: spreadType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

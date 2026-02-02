@@ -4200,7 +4200,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         replacement = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.spreadTypeMismatch.withArgumentsOld(spreadType),
+          message: diag.spreadTypeMismatch.withArguments(
+            spreadType: spreadType,
+          ),
           fileUri: fileUri,
           fileOffset: element.expression.fileOffset,
           length: 1,
@@ -4211,9 +4213,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!isAssignable(inferredTypeArgument, spreadElementType)) {
         replacement = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.spreadElementTypeMismatch.withArgumentsOld(
-            spreadElementType,
-            inferredTypeArgument,
+          message: diag.spreadElementTypeMismatch.withArguments(
+            spreadElementType: spreadElementType,
+            collectionElementType: inferredTypeArgument,
           ),
           fileUri: fileUri,
           fileOffset: element.expression.fileOffset,
@@ -7163,7 +7165,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Expression receiver = entry.expression;
         Expression problem = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.spreadMapEntryTypeMismatch.withArgumentsOld(spreadType),
+          message: diag.spreadMapEntryTypeMismatch.withArguments(
+            spreadType: spreadType,
+          ),
           fileUri: fileUri,
           fileOffset: receiver.fileOffset,
           length: 1,
@@ -7184,9 +7188,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!isAssignable(inferredKeyType, actualKeyType)) {
         keyError = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.spreadMapEntryElementKeyTypeMismatch.withArgumentsOld(
-            actualKeyType,
-            inferredKeyType,
+          message: diag.spreadMapEntryElementKeyTypeMismatch.withArguments(
+            spreadKeyType: actualKeyType,
+            mapKeyType: inferredKeyType,
           ),
           fileUri: fileUri,
           fileOffset: entry.expression.fileOffset,
@@ -7196,9 +7200,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!isAssignable(inferredValueType, actualValueType)) {
         valueError = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.spreadMapEntryElementValueTypeMismatch.withArgumentsOld(
-            actualValueType,
-            inferredValueType,
+          message: diag.spreadMapEntryElementValueTypeMismatch.withArguments(
+            spreadValueType: actualValueType,
+            mapValueType: inferredValueType,
           ),
           fileUri: fileUri,
           fileOffset: entry.expression.fileOffset,
@@ -7996,8 +8000,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = new MapLiteralEntry(
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.spreadMapEntryTypeMismatch.withArgumentsOld(
-            offsets.iterableSpreadType!,
+          message: diag.spreadMapEntryTypeMismatch.withArguments(
+            spreadType: offsets.iterableSpreadType!,
           ),
           fileUri: fileUri,
           fileOffset: offsets.iterableSpreadOffset!,
