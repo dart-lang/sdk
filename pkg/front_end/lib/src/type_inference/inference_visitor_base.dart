@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
@@ -30,6 +29,7 @@ import '../base/messages.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
+import '../kernel/assigned_variables_impl.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
@@ -138,8 +138,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       .flags
       .isClosureContextLoweringEnabled;
 
-  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables =>
-      _inferrer.assignedVariables;
+  AssignedVariablesImpl get assignedVariables => _inferrer.assignedVariables;
 
   InterfaceType? get thisType => _inferrer.thisType;
 

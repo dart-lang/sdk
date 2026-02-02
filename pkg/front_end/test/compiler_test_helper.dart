@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api;
 import 'package:front_end/src/api_prototype/file_system.dart' as api;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
@@ -20,6 +19,7 @@ import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/dill/dill_target.dart';
+import 'package:front_end/src/kernel/assigned_variables_impl.dart';
 import 'package:front_end/src/kernel/body_builder.dart';
 import 'package:front_end/src/kernel/body_builder_context.dart';
 import 'package:front_end/src/kernel/kernel_target.dart';
@@ -295,7 +295,7 @@ class BodyBuilderTest extends BodyBuilderImpl {
     VariableDeclaration? thisVariable,
     List<TypeParameter>? thisTypeParameters,
     required Uri uri,
-    required AssignedVariables assignedVariables,
+    required AssignedVariablesImpl assignedVariables,
     required TypeEnvironment typeEnvironment,
     required ConstantContext constantContext,
   }) : super(

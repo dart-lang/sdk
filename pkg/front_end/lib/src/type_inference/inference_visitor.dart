@@ -17007,10 +17007,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       variable,
     );
 
-    return (assignedVariables.anywhere.captured.contains(variableKey) ||
-            assignedVariables.anywhere.readCaptured.contains(variableKey))
-        ? CaptureKind.captured
-        : CaptureKind.notCaptured;
+    if (assignedVariables.outsideAsserts.captured.contains(variableKey) ||
+        assignedVariables.outsideAsserts.readCaptured.contains(variableKey)) {
+      return CaptureKind.captured;
+    } else if (assignedVariables.insideAsserts.captured.contains(variableKey) ||
+        assignedVariables.insideAsserts.readCaptured.contains(variableKey)) {
+      return CaptureKind.assertCaptured;
+    } else {
+      return CaptureKind.notCaptured;
+    }
   }
 
   List<Variable> _capturedVariablesForNode(LocalFunction node) {

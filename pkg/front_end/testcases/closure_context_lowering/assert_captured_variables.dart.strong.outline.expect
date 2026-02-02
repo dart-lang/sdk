@@ -1,0 +1,17 @@
+library;
+import self as self;
+
+static method notCaptured(positional-parameter aNotCaptured) → dynamic
+  ;
+static method directCaptured(positional-parameter aCaptured) → dynamic
+  ;
+static method assertCaptured1(positional-parameter aAssertCaptured1) → dynamic
+  ;
+static method assertCaptured2(positional-parameter aAssertCaptured2) → dynamic
+  ;
+static method directOverridingAssertCaptured1(positional-parameter aDirectOverridingAssertCaptured1) → dynamic
+  ;
+static method directOverridingAssertCaptured2(positional-parameter aDirectOverridingAssertCaptured2) → dynamic
+  ;
+static method directOverridingAssertCaptured3(positional-parameter aDirectOverridingAssertCaptured3) → dynamic
+  ;

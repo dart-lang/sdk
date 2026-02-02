@@ -16,7 +16,7 @@ typedef BodyBuilderCreator =
       VariableDeclaration? thisVariable,
       List<TypeParameter>? thisTypeParameters,
       required Uri uri,
-      required AssignedVariables assignedVariables,
+      required AssignedVariablesImpl assignedVariables,
       required TypeEnvironment typeEnvironment,
       required ConstantContext constantContext,
     });
@@ -65,7 +65,7 @@ class _ResolverContext {
   final SourceLibraryBuilder libraryBuilder;
   final TypeInferrer typeInferrer;
   final TypeEnvironment typeEnvironment;
-  final AssignedVariables assignedVariables;
+  final AssignedVariablesImpl assignedVariables;
   final ExtensionScope extensionScope;
   final Uri fileUri;
 
@@ -96,7 +96,7 @@ class _ResolverContext {
       dataForTesting: inferenceDataForTesting,
     );
     TypeEnvironment typeEnvironment = typeInferrer.typeSchemaEnvironment;
-    AssignedVariables assignedVariables = typeInferrer.assignedVariables;
+    AssignedVariablesImpl assignedVariables = typeInferrer.assignedVariables;
     return new _ResolverContext._(
       libraryBuilder: libraryBuilder,
       typeInferrer: typeInferrer,
