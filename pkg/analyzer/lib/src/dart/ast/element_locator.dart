@@ -305,17 +305,17 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   Element? visitPrimaryConstructorDeclaration(
     PrimaryConstructorDeclaration node,
   ) {
-    if (node.constructorName != null) {
-      return node.declaredFragment?.element;
-    }
-    if (node.parent case ExtensionTypeDeclaration extensionType) {
-      return extensionType.declaredFragment?.element;
+    if (node.parent case Declaration declaration) {
+      return declaration.declaredFragment?.element;
     }
     return null;
   }
 
   @override
   Element? visitPrimaryConstructorName(PrimaryConstructorName node) {
+    if (node.parent case PrimaryConstructorDeclaration declaration) {
+      return declaration.declaredFragment?.element;
+    }
     return node.parent!.accept(this);
   }
 
