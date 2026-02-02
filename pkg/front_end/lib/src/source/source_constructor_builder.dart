@@ -16,6 +16,7 @@ import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
 import '../builder/function_signature.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -105,6 +106,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   final ConstructorReferences _constructorReferences;
   final NameScheme _nameScheme;
 
+  final bool isPrimaryConstructor;
+
   SourceConstructorBuilder({
     required this.name,
     required this.libraryBuilder,
@@ -120,7 +123,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
        _nameScheme = nameScheme,
        _introductory = introductory,
        _augmentations = augmentations,
-       _memberName = nameScheme.getDeclaredName(name) {
+       _memberName = nameScheme.getDeclaredName(name),
+       isPrimaryConstructor = introductory.isPrimaryConstructor {
     if (augmentations.isEmpty) {
       _augmentedDeclarations = augmentations;
       _lastDeclaration = introductory;
@@ -128,6 +132,16 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       _augmentedDeclarations = [_introductory, ..._augmentations];
       _lastDeclaration = _augmentedDeclarations.removeLast();
     }
+  }
+
+  /// If this constructor is a primary constructor, returns the parameters
+  /// available in the initializer scope. Otherwise return `null`.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    if (isPrimaryConstructor) {
+      return _lastDeclaration.primaryConstructorInitializerScopeParameters;
+    }
+    return null;
   }
 
   // TODO(johnniwinther): Add annotations to tear-offs.

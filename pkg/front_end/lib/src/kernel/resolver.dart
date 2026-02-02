@@ -303,6 +303,8 @@ class Resolver {
       inferenceDataForTesting: inferenceDataForTesting,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
+    List<FormalParameterBuilder>? primaryConstructorInitializerScopeParameters =
+        bodyBuilderContext.primaryConstructorInitializerScopeParameters;
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
@@ -316,6 +318,12 @@ class Resolver {
       startToken: startToken,
       metadata: metadata,
       isTopLevel: isTopLevel,
+    );
+    _declareFormals(
+      typeInferrer: context.typeInferrer,
+      bodyBuilderContext: bodyBuilderContext,
+      thisVariable: null,
+      formals: primaryConstructorInitializerScopeParameters,
     );
     for (MapEntry<Identifier, Expression?> entry
         in result.fieldInitializers.entries) {
@@ -456,6 +464,7 @@ class Resolver {
         typeInferrer: context.typeInferrer,
         bodyBuilderContext: bodyBuilderContext,
         thisVariable: null,
+        formals: bodyBuilderContext.formals,
       );
       _finishConstructor(
         context: context,
@@ -1169,6 +1178,7 @@ class Resolver {
     required TypeInferrer typeInferrer,
     required BodyBuilderContext bodyBuilderContext,
     required VariableDeclaration? thisVariable,
+    required List<FormalParameterBuilder>? formals,
   }) {
     if (thisVariable != null && bodyBuilderContext.isConstructor) {
       // `thisVariable` usually appears in `_context.formals`, but for a
@@ -1179,7 +1189,6 @@ class Resolver {
         initialized: true,
       );
     }
-    List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
@@ -1286,6 +1295,7 @@ class Resolver {
       typeInferrer: context.typeInferrer,
       bodyBuilderContext: bodyBuilderContext,
       thisVariable: thisVariable,
+      formals: bodyBuilderContext.formals,
     );
     if (bodyBuilderContext.formals != null) {
       // TODO(johnniwinther): Avoid the need for this.

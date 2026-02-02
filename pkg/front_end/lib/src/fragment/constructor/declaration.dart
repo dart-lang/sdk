@@ -59,6 +59,13 @@ abstract class ConstructorDeclaration {
 
   void registerInitializers(List<Initializer> initializers);
 
+  bool get isPrimaryConstructor;
+
+  /// If this constructor is a primary constructor, returns the parameters
+  /// available in the initializer scope. Otherwise returns `null`.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters;
+
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceLoader loader,
@@ -146,6 +153,9 @@ mixin _ConstructorDeclarationMixin
 
   List<SourceNominalParameterBuilder>? get _typeParameters;
 
+  late final List<FormalParameterBuilder>? _initializerScopeParameters =
+      _computeInitializerScopeParameters();
+
   @override
   bool get hasParameters => formals != null;
 
@@ -168,18 +178,45 @@ mixin _ConstructorDeclarationMixin
 
     if (formals == null) return parent;
     Map<String, VariableBuilder> local = {};
-    for (FormalParameterBuilder formal in formals!) {
-      // Wildcard initializing formal parameters do not introduce a local
-      // variable in the initializer list.
-      if (formal.isWildcard) continue;
-
-      local[formal.name] = formal.forFormalParameterInitializerScope();
+    for (FormalParameterBuilder formal in _initializerScopeParameters!) {
+      local[formal.name] = formal;
     }
     return parent.createNestedFixedScope(
       kind: LocalScopeKind.initializers,
       local: local,
     );
   }
+
+  List<FormalParameterBuilder>? _computeInitializerScopeParameters() {
+    if (formals == null) return null;
+    List<FormalParameterBuilder> list = [];
+    for (FormalParameterBuilder formal in formals!) {
+      // Wildcard initializing formal parameters do not introduce a local
+      // variable in the initializer list.
+      if (formal.isWildcard) continue;
+
+      list.add(formal.forFormalParameterInitializerScope());
+    }
+    return list;
+  }
+
+  @override
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    assert(
+      isPrimaryConstructor,
+      "Unexpected call to "
+      "$runtimeType.primaryConstructorInitializerScopeParameters "
+      "on non-primary constructor.",
+    );
+    if (isPrimaryConstructor) {
+      return _initializerScopeParameters;
+    }
+    return null;
+  }
+
+  @override
+  bool get isPrimaryConstructor => false;
 
   @override
   void inferFormalTypes(
@@ -1174,6 +1211,9 @@ class PrimaryConstructorDeclaration
   }
 
   @override
+  bool get isPrimaryConstructor => true;
+
+  @override
   // Coverage-ignore(suite): Not run.
   String? get _nativeMethodName => null;
 
@@ -1434,6 +1474,22 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   void registerInitializers(List<Initializer> initializers) {
     _constructor.initializers.addAll(initializers);
     setParents(initializers, _constructor);
+  }
+
+  @override
+  bool get isPrimaryConstructor => false;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    assert(
+      false,
+      "Unexpected call to "
+      "$runtimeType.initializerScopeParameters "
+      "on non-primary constructor.",
+    );
+    return null;
   }
 
   @override

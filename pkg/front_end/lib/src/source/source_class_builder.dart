@@ -194,6 +194,19 @@ class SourceClassBuilder extends ClassBuilderImpl
     includeDuplicates: includeDuplicates,
   );
 
+  /// If the class has a primary constructor, returns the parameters
+  /// available in the initializer scope. Otherwise return `null`.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    for (SourceMemberBuilder constructorBuilder in _constructorBuilders) {
+      if (constructorBuilder is SourceConstructorBuilder &&
+          constructorBuilder.isPrimaryConstructor) {
+        return constructorBuilder.primaryConstructorInitializerScopeParameters;
+      }
+    }
+    return null;
+  }
+
   void addMemberInternal(
     SourceMemberBuilder memberBuilder, {
     required bool addToNameSpace,

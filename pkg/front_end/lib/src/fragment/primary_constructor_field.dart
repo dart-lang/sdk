@@ -471,6 +471,13 @@ class PrimaryConstructorFieldDeclaration
       return (const DynamicType(), null);
     }
   }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer()',
+    );
+  }
 }
 
 class PrimaryConstructorFieldFragment implements Fragment {

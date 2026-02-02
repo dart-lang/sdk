@@ -1516,6 +1516,7 @@ class KernelTarget {
     List<SourcePropertyBuilder> uninitializedFields = [];
     List<SourcePropertyBuilder> nonFinalFields = [];
     List<SourcePropertyBuilder> lateFinalFields = [];
+    List<SourcePropertyBuilder> nonLateClassInstanceFieldsWithInitializers = [];
 
     Iterator<SourcePropertyBuilder> fieldIterator = classDeclaration
         .filteredMembersIterator(includeDuplicates: false);
@@ -1536,6 +1537,12 @@ class KernelTarget {
       }
       if (!fieldBuilder.hasInitializer) {
         uninitializedFields.add(fieldBuilder);
+      }
+      if (classDeclaration is SourceClassBuilder &&
+          fieldBuilder.isDeclarationInstanceMember &&
+          !fieldBuilder.isLate &&
+          fieldBuilder.hasInitializer) {
+        nonLateClassInstanceFieldsWithInitializers.add(fieldBuilder);
       }
     }
 
@@ -1600,6 +1607,16 @@ class KernelTarget {
         constructorInitializedFields[constructor] = fields;
         (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
             .addAll(fields);
+      }
+      if (constructor.isPrimaryConstructor) {
+        // We prepend the initializers in reversed order to preserve normal
+        // field initializer evaluation order.
+        for (SourcePropertyBuilder field
+            in nonLateClassInstanceFieldsWithInitializers.reversed) {
+          constructor.prependInitializer(
+            field.takePrimaryConstructorFieldInitializer(),
+          );
+        }
       }
     }
 

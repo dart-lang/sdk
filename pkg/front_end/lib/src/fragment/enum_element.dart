@@ -205,6 +205,13 @@ class EnumElementDeclaration
   }
 
   @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      "${runtimeType}.takePrimaryConstructorFieldInitializer",
+    );
+  }
+
+  @override
   void checkFieldTypes(
     ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
