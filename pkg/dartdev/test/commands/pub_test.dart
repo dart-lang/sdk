@@ -67,13 +67,15 @@ void pub() {
   });
 
   test('solve failure', () async {
-    final p = project(pubspecExtras: {
-      'name': 'myapp',
-      'environment': {'sdk': '^2.19.0'},
-      'dependencies': {
-        'foo': {'path': '../not_to_be_found'},
+    final p = project(
+      pubspecExtras: {
+        'name': 'myapp',
+        'environment': {'sdk': '^2.19.0'},
+        'dependencies': {
+          'foo': {'path': '../not_to_be_found'},
+        },
       },
-    });
+    );
     final s = Platform.pathSeparator;
     var result = await p.run(['pub', 'deps']);
     expect(result.exitCode, 66);
@@ -92,6 +94,8 @@ void pub() {
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
     expect(
-        result.stderr, startsWith('Could not find an option named "--foo".'));
+      result.stderr,
+      startsWith('Could not find an option named "--foo".'),
+    );
   });
 }

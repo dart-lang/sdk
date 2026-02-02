@@ -1460,7 +1460,7 @@ enum E {
   this;
 }
 ''',
-      [error(diag.primaryConstructorBodyWithoutDeclaration, 16, 19)],
+      [error(diag.primaryConstructorBodyWithoutDeclaration, 30, 4)],
     );
 
     var node = findNode.singlePrimaryConstructorBody;
@@ -1491,7 +1491,7 @@ enum A/*(bool x, int y)*/ {
 }
 ''',
       [
-        error(diag.primaryConstructorBodyWithoutDeclaration, 37, 29),
+        error(diag.primaryConstructorBodyWithoutDeclaration, 37, 4),
         error(diag.undefinedIdentifier, 51, 1),
         error(diag.undefinedIdentifier, 60, 1),
       ],

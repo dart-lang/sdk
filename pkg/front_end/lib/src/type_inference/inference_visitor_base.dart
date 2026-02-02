@@ -2819,9 +2819,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           replacement = problemReporting.wrapInProblem(
             compilerContext: compilerContext,
             expression: replacement,
-            message: diag.nullableMethodCallError.withArgumentsOld(
-              name.text,
-              receiverType,
+            message: diag.nullableMethodCallError.withArguments(
+              methodName: name.text,
+              receiverType: receiverType,
             ),
             fileUri: fileUri,
             fileOffset: fileOffset,
@@ -2957,9 +2957,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: diag.nullableMethodCallError.withArgumentsOld(
-            callName.text,
-            receiverType,
+          message: diag.nullableMethodCallError.withArguments(
+            methodName: callName.text,
+            receiverType: receiverType,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -3208,9 +3208,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         replacement = problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: replacement,
-          message: diag.nullableMethodCallError.withArgumentsOld(
-            methodName.text,
-            receiverType,
+          message: diag.nullableMethodCallError.withArguments(
+            methodName: methodName.text,
+            receiverType: receiverType,
           ),
           fileUri: fileUri,
           fileOffset: fileOffset,
@@ -5366,9 +5366,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (readTarget.isNullable) {
       readResult = wrapExpressionInferenceResultInProblem(
         readResult,
-        diag.nullablePropertyAccessError.withArgumentsOld(
-          propertyName.text,
-          receiverType,
+        diag.nullablePropertyAccessError.withArguments(
+          propertyName: propertyName.text,
+          receiverType: receiverType,
         ),
         read.fileOffset,
         propertyName.text.length,
@@ -5783,10 +5783,13 @@ class _WhyNotPromotedVisitor
       for (SourceMemberBuilder field in fieldNameInfo.conflictingFields) {
         messages.add(
           diag.fieldNotPromotedBecauseConflictingField
-              .withArgumentsOld(
-                reason.propertyName,
-                field.readTarget!.enclosingClass!.name,
-                NonPromotionDocumentationLink.conflictingNonPromotableField.url,
+              .withArguments(
+                propertyName: reason.propertyName,
+                conflictingFieldClassName:
+                    field.readTarget!.enclosingClass!.name,
+                documentationUrl: NonPromotionDocumentationLink
+                    .conflictingNonPromotableField
+                    .url,
               )
               .withLocation(field.fileUri, field.fileOffset, noLength),
         );
@@ -5794,10 +5797,12 @@ class _WhyNotPromotedVisitor
       for (SourceMemberBuilder getter in fieldNameInfo.conflictingGetters) {
         messages.add(
           diag.fieldNotPromotedBecauseConflictingGetter
-              .withArgumentsOld(
-                reason.propertyName,
-                getter.readTarget!.enclosingClass!.name,
-                NonPromotionDocumentationLink.conflictingGetter.url,
+              .withArguments(
+                propertyName: reason.propertyName,
+                conflictingGetterClassName:
+                    getter.readTarget!.enclosingClass!.name,
+                documentationUrl:
+                    NonPromotionDocumentationLink.conflictingGetter.url,
               )
               .withLocation(getter.fileUri, getter.fileOffset, noLength),
         );
@@ -5805,10 +5810,10 @@ class _WhyNotPromotedVisitor
       for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
         messages.add(
           diag.fieldNotPromotedBecauseConflictingNsmForwarder
-              .withArgumentsOld(
-                reason.propertyName,
-                nsmClass.name,
-                NonPromotionDocumentationLink
+              .withArguments(
+                propertyName: reason.propertyName,
+                conflictingNsmClassName: nsmClass.name,
+                documentationUrl: NonPromotionDocumentationLink
                     .conflictingNoSuchMethodForwarder
                     .url,
               )
@@ -5840,20 +5845,29 @@ class _WhyNotPromotedVisitor
         member = stubTarget;
       }
       propertyReference = member;
-      Template<Message Function(String, String), Function> template =
-          switch (reason.whyNotPromotable) {
-            PropertyNonPromotabilityReason.isNotField =>
-              diag.fieldNotPromotedBecauseNotField,
-            PropertyNonPromotabilityReason.isNotPrivate =>
-              diag.fieldNotPromotedBecauseNotPrivate,
-            PropertyNonPromotabilityReason.isExternal =>
-              diag.fieldNotPromotedBecauseExternal,
-            PropertyNonPromotabilityReason.isNotFinal =>
-              diag.fieldNotPromotedBecauseNotFinal,
-          };
+      Template<
+        Function,
+        Message Function({
+          required String propertyName,
+          required String documentationUrl,
+        })
+      >
+      template = switch (reason.whyNotPromotable) {
+        PropertyNonPromotabilityReason.isNotField =>
+          diag.fieldNotPromotedBecauseNotField,
+        PropertyNonPromotabilityReason.isNotPrivate =>
+          diag.fieldNotPromotedBecauseNotPrivate,
+        PropertyNonPromotabilityReason.isExternal =>
+          diag.fieldNotPromotedBecauseExternal,
+        PropertyNonPromotabilityReason.isNotFinal =>
+          diag.fieldNotPromotedBecauseNotFinal,
+      };
       List<LocatedMessage> messages = [
         template
-            .withArgumentsOld(reason.propertyName, reason.documentationLink.url)
+            .withArguments(
+              propertyName: reason.propertyName,
+              documentationUrl: reason.documentationLink.url,
+            )
             .withLocation(member.fileUri, member.fileOffset, noLength),
       ];
       if (!reason.fieldPromotionEnabled) {
@@ -5875,7 +5889,7 @@ class _WhyNotPromotedVisitor
   List<LocatedMessage> visitThisNotPromoted(ThisNotPromoted reason) {
     return [
       diag.thisNotPromoted
-          .withArgumentsOld(reason.documentationLink.url)
+          .withArguments(documentationUrl: reason.documentationLink.url)
           .withoutLocation(),
     ];
   }

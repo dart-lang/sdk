@@ -611,8 +611,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         // Check return type.
         if (ffiFuncType.returnType != VoidType()) {
           diagnosticReporter.report(
-            diag.ffiNativeCallableListenerReturnVoid.withArgumentsOld(
-              ffiFuncType.returnType,
+            diag.ffiNativeCallableListenerReturnVoid.withArguments(
+              returnType: ffiFuncType.returnType,
             ),
             func.fileOffset,
             1,
@@ -1198,8 +1198,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         expectedReturnClass.superclass == unionClass) {
       if (hasExceptionalReturn) {
         diagnosticReporter.report(
-          diag.ffiExpectedNoExceptionalReturn.withArgumentsOld(
-            ffiFuncType.returnType,
+          diag.ffiExpectedNoExceptionalReturn.withArguments(
+            returnType: ffiFuncType.returnType,
           ),
           node.fileOffset,
           1,
@@ -1211,8 +1211,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       // The exceptional return value is not optional for other return types.
       if (!hasExceptionalReturn) {
         diagnosticReporter.report(
-          diag.ffiExpectedExceptionalReturn.withArgumentsOld(
-            ffiFuncType.returnType,
+          diag.ffiExpectedExceptionalReturn.withArguments(
+            returnType: ffiFuncType.returnType,
           ),
           node.fileOffset,
           1,
@@ -1254,9 +1254,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
       if (!env.isSubtypeOf(returnType, funcType.returnType)) {
         diagnosticReporter.report(
-          diag.ffiDartTypeMismatch.withArgumentsOld(
-            returnType,
-            funcType.returnType,
+          diag.ffiDartTypeMismatch.withArguments(
+            actualType: returnType,
+            expectedType: funcType.returnType,
           ),
           exceptionalReturn.fileOffset,
           1,
@@ -1870,7 +1870,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isLeaf = getIsLeafBoolean(node);
     if (isLeaf == null) {
       diagnosticReporter.report(
-        diag.ffiExpectedConstantArg.withArgumentsOld('isLeaf'),
+        diag.ffiExpectedConstantArg.withArguments(name: 'isLeaf'),
         node.fileOffset,
         1,
         node.location?.file,

@@ -57,15 +57,15 @@ class DartNativeAssetsBuilder {
 
   late final Future<NativeAssetsBuildRunner> _nativeAssetsBuildRunner =
       () async {
-    return NativeAssetsBuildRunner(
-      // This always runs in JIT mode.
-      dartExecutable: Uri.file(sdk.dart),
-      logger: _logger,
-      fileSystem: const LocalFileSystem(),
-      packageLayout: await _packageLayout,
-      userDefines: UserDefines(workspacePubspec: pubspecUri),
-    );
-  }();
+        return NativeAssetsBuildRunner(
+          // This always runs in JIT mode.
+          dartExecutable: Uri.file(sdk.dart),
+          logger: _logger,
+          fileSystem: const LocalFileSystem(),
+          packageLayout: await _packageLayout,
+          userDefines: UserDefines(workspacePubspec: pubspecUri),
+        );
+      }();
 
   DartNativeAssetsBuilder({
     this.pubspecUri,
@@ -181,8 +181,9 @@ class DartNativeAssetsBuilder {
     final builder = await _nativeAssetsBuildRunner;
     final linkResult = await builder.link(
       extensions: _extensions,
-      resourceIdentifiers:
-          recordedUsagesPath != null ? Uri.file(recordedUsagesPath) : null,
+      resourceIdentifiers: recordedUsagesPath != null
+          ? Uri.file(recordedUsagesPath)
+          : null,
       buildResult: buildResult,
     );
     if (linkResult.isFailure) return null;
@@ -261,7 +262,8 @@ class DartNativeAssetsBuilder {
   ///
   /// Returns null and writes to stderr if the package config is malformed.
   static Future<package_config.PackageConfig?> loadPackageConfig(
-      Uri packageConfigUri) async {
+    Uri packageConfigUri,
+  ) async {
     try {
       return await package_config.loadPackageConfigUri(packageConfigUri);
     } on FormatException catch (e) {
@@ -282,10 +284,12 @@ class DartNativeAssetsBuilder {
   // logic in package:package_config.
   static Future<Uri?> _findPackageConfigUri(Uri uri) async {
     while (true) {
-      final packageConfig =
-          File.fromUri(uri.resolve('.dart_tool/package_config.json'));
-      final packageGraph =
-          File.fromUri(uri.resolve('.dart_tool/package_graph.json'));
+      final packageConfig = File.fromUri(
+        uri.resolve('.dart_tool/package_config.json'),
+      );
+      final packageGraph = File.fromUri(
+        uri.resolve('.dart_tool/package_graph.json'),
+      );
       if (await packageConfig.exists() && await packageGraph.exists()) {
         return packageConfig.uri;
       }

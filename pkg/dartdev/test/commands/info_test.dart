@@ -17,8 +17,10 @@ void main() {
       final result = await p.run(['info', '--help']);
 
       expect(result.stdout, isNotEmpty);
-      expect(result.stdout,
-          contains('Show diagnostic information about the installed tooling'));
+      expect(
+        result.stdout,
+        contains('Show diagnostic information about the installed tooling'),
+      );
       expect(result.stderr, isEmpty);
       expect(result.exitCode, 0);
     });

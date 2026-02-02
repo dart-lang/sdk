@@ -35,8 +35,8 @@
   (elem $module0.cross-module-funcs-0
     (set 6 (ref.func $globalH0Foo))
     (set 7 (ref.func $0))
-    (set 8 (ref.func $"H0 (lazy initializer)}")))
-  (func $"H0 (lazy initializer)}" (result (ref $H0))
+    (set 8 (ref.func $"H0 (lazy initializer)")))
+  (func $"H0 (lazy initializer)" (result (ref $H0))
     (local $var0 (ref $_FunctionType))
     (local $var1 (ref $#Closure-0-1))
     (local $var2 (ref $H0))

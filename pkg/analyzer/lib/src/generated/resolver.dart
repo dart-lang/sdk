@@ -3673,7 +3673,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var primaryConstructorDeclaration = node.declaration;
     if (primaryConstructorDeclaration == null) {
       diagnosticReporter.report(
-        diag.primaryConstructorBodyWithoutDeclaration.at(node),
+        diag.primaryConstructorBodyWithoutDeclaration.at(node.thisKeyword),
       );
     }
 

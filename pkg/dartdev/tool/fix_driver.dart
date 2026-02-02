@@ -101,8 +101,10 @@ class FixRunner<T extends Logger> extends CommandRunner<int> {
   final ArgParser argParser = globalDartdevOptionsParser();
 
   FixRunner({required this.logger})
-      : super('fix_runner',
-            'A command-line utility for testing the `dart fix` command.') {
+    : super(
+        'fix_runner',
+        'A command-line utility for testing the `dart fix` command.',
+      ) {
     addCommand(FixCommand());
     _supportedOptions.forEach(argParser.addOption);
   }

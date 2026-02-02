@@ -146,7 +146,6 @@ import 'const_initialized_with_non_constant_value_test.dart'
 import 'const_instance_field_test.dart' as const_instance_field;
 import 'const_map_key_not_primitive_equality_test.dart'
     as const_map_key_not_primitive_equality;
-import 'const_not_initialized_test.dart' as const_not_initialized;
 import 'const_set_element_not_primitive_equality_test.dart'
     as const_set_element_not_primitive_equality;
 import 'const_spread_expected_list_or_set_test.dart'
@@ -315,9 +314,6 @@ import 'extension_type_with_abstract_member_test.dart'
     as extension_type_with_abstract_member;
 import 'external_field_constructor_initializer_test.dart'
     as external_field_constructor_initializer;
-import 'external_field_initializer_test.dart' as external_field_initializer;
-import 'external_variable_initializer_test.dart'
-    as external_variable_initializer;
 import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
@@ -329,12 +325,6 @@ import 'ffi_async_callback_test.dart' as ffi_async_callback_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
 import 'ffi_native_test.dart' as ffi_native_test;
-import 'field_initialized_by_multiple_initializers_test.dart'
-    as field_initialized_by_multiple_initializers;
-import 'field_initialized_in_initializer_and_declaration_test.dart'
-    as field_initialized_in_initializer_and_declaration;
-import 'field_initialized_in_parameter_and_initializer_test.dart'
-    as field_initialized_in_parameter_and_initializer;
 import 'field_initializer_factory_constructor_test.dart'
     as field_initializer_factory_constructor;
 import 'field_initializer_not_assignable_test.dart'
@@ -353,11 +343,6 @@ import 'final_class_implemented_outside_of_library_test.dart'
     as final_class_implemented_outside_of_library;
 import 'final_class_used_as_mixin_constraint_outside_of_library_test.dart'
     as final_class_used_as_mixin_constraint_outside_of_library;
-import 'final_initialized_in_declaration_and_constructor_test.dart'
-    as final_initialized_in_declaration_and_constructor;
-import 'final_not_initialized_constructor_test.dart'
-    as final_not_initialized_constructor;
-import 'final_not_initialized_test.dart' as final_not_initialized;
 import 'for_in_of_invalid_element_type_test.dart'
     as for_in_of_invalid_element_type;
 import 'for_in_of_invalid_type_test.dart' as for_in_of_invalid_type;
@@ -530,8 +515,6 @@ import 'invocation_of_non_function_expression_test.dart'
     as invocation_of_non_function_expression;
 import 'label_in_outer_scope_test.dart' as label_in_outer_scope;
 import 'label_undefined_test.dart' as label_undefined;
-import 'late_final_field_with_const_constructor_test.dart'
-    as late_final_field_with_const_constructor;
 import 'late_final_local_already_assigned_test.dart'
     as late_final_local_already_assigned;
 import 'list_element_type_not_assignable_test.dart'
@@ -690,10 +673,6 @@ import 'not_assigned_potentially_non_nullable_local_variable_test.dart'
 import 'not_binary_operator_test.dart' as not_binary_operator;
 import 'not_enough_positional_arguments_test.dart'
     as not_enough_positional_arguments;
-import 'not_initialized_non_nullable_instance_field_test.dart'
-    as not_initialized_non_nullable_instance_field;
-import 'not_initialized_non_nullable_variable_test.dart'
-    as not_initialized_non_nullable_variable;
 import 'not_instantiated_bound_test.dart' as not_instantiated_bound;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
@@ -947,6 +926,7 @@ import 'use_of_native_extension_test.dart' as use_of_native_extension;
 import 'use_of_nullable_value_test.dart' as use_of_nullable_value_test;
 import 'use_of_void_result_test.dart' as use_of_void_result;
 import 'values_declaration_in_enum_test.dart' as values_declaration_in_enum;
+import 'variable_not_initialized_test.dart' as variable_not_initialized;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
 import 'void_with_type_arguments_test.dart' as void_with_type_arguments_test;
 import 'wrong_number_of_parameters_for_operator_test.dart'
@@ -1058,7 +1038,6 @@ main() {
     const_initialized_with_non_constant_value.main();
     const_instance_field.main();
     const_map_key_not_primitive_equality.main();
-    const_not_initialized.main();
     const_set_element_not_primitive_equality.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
@@ -1166,12 +1145,9 @@ main() {
     extension_type_implements_representation_not_supertype.main();
     extension_type_inherited_member_conflict.main();
     extension_type_representation_depends_on_itself.main();
-
     extension_type_representation_type_bottom.main();
     extension_type_with_abstract_member.main();
     external_field_constructor_initializer.main();
-    external_field_initializer.main();
-    external_variable_initializer.main();
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
@@ -1181,10 +1157,6 @@ main() {
     ffi_async_callback_test.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();
-    field_initialized_by_multiple_initializers.main();
-    final_initialized_in_declaration_and_constructor.main();
-    field_initialized_in_initializer_and_declaration.main();
-    field_initialized_in_parameter_and_initializer.main();
     field_initializer_factory_constructor.main();
     field_initializer_not_assignable.main();
     field_initializer_outside_constructor.main();
@@ -1194,8 +1166,6 @@ main() {
     final_class_extended_outside_of_library.main();
     final_class_implemented_outside_of_library.main();
     final_class_used_as_mixin_constraint_outside_of_library.main();
-    final_not_initialized_constructor.main();
-    final_not_initialized.main();
     for_in_of_invalid_element_type.main();
     for_in_of_invalid_type.main();
     for_in_with_const_variable.main();
@@ -1303,7 +1273,6 @@ main() {
     invocation_of_non_function_expression.main();
     label_in_outer_scope.main();
     label_undefined.main();
-    late_final_field_with_const_constructor.main();
     late_final_local_already_assigned.main();
     list_element_type_not_assignable.main();
     main_first_positional_parameter_type.main();
@@ -1408,8 +1377,6 @@ main() {
     not_assigned_potentially_non_nullable_local_variable.main();
     not_binary_operator.main();
     not_enough_positional_arguments.main();
-    not_initialized_non_nullable_instance_field.main();
-    not_initialized_non_nullable_variable.main();
     not_instantiated_bound.main();
     not_iterable_spread.main();
     not_map_spread.main();
@@ -1584,6 +1551,7 @@ main() {
     use_of_nullable_value_test.main();
     use_of_void_result.main();
     values_declaration_in_enum.main();
+    variable_not_initialized.main();
     variable_type_mismatch.main();
     void_with_type_arguments_test.main();
     wrong_number_of_parameters_for_operator.main();

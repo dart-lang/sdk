@@ -465,7 +465,7 @@ class FfiNativeTransformer extends FfiTransformer {
   ) {
     if (ffiFunctionType.namedParameters.isNotEmpty) {
       diagnosticReporter.report(
-        diag.cantHaveNamedParameters.withArgumentsOld('FfiNative'),
+        diag.cantHaveNamedParameters.withArguments(name: 'FfiNative'),
         annotationOffset,
         0,
         node.location?.file,
@@ -476,7 +476,7 @@ class FfiNativeTransformer extends FfiTransformer {
     if (ffiFunctionType.positionalParameters.length >
         ffiFunctionType.requiredParameterCount) {
       diagnosticReporter.report(
-        diag.cantHaveOptionalParameters.withArgumentsOld('FfiNative'),
+        diag.cantHaveOptionalParameters.withArguments(name: 'FfiNative'),
         annotationOffset,
         0,
         node.location?.file,

@@ -24,8 +24,9 @@ extension ArgParserExtensions on ArgParser {
 
     Map<String, String> allowedHelp = {};
     for (ExperimentalFeature feature in features) {
-      String suffix =
-          feature.isEnabledByDefault ? ' (no-op - enabled by default)' : '';
+      String suffix = feature.isEnabledByDefault
+          ? ' (no-op - enabled by default)'
+          : '';
       allowedHelp[feature.enableString] = '${feature.documentation}$suffix';
     }
 
@@ -33,7 +34,8 @@ extension ArgParserExtensions on ArgParser {
       experimentFlagName,
       valueHelp: 'experiment',
       allowedHelp: verbose ? allowedHelp : null,
-      help: 'Enable one or more experimental features '
+      help:
+          'Enable one or more experimental features '
           '(see dart.dev/go/experiments).',
       hide: !verbose,
     );
@@ -70,8 +72,10 @@ extension ArgResultsExtensions on ArgResults {
       // We allow default true flags, but complain when they are passed in.
       if (feature.isEnabledByDefault &&
           enabledExperiments.contains(feature.enableString)) {
-        stderr.writeln("'${feature.enableString}' is now enabled by default; "
-            'this flag is no longer required.');
+        stderr.writeln(
+          "'${feature.enableString}' is now enabled by default; "
+          'this flag is no longer required.',
+        );
       }
     }
     return enabledExperiments;
@@ -97,8 +101,9 @@ List<String> parseVmEnabledExperiments(List<String> vmArgs) {
 }
 
 bool nativeAssetsEnabled(List<String> vmEnabledExperiments) =>
-    vmEnabledExperiments
-        .contains(ExperimentalFeatures.native_assets.enableString) ||
+    vmEnabledExperiments.contains(
+      ExperimentalFeatures.native_assets.enableString,
+    ) ||
     (_availableOnCurrentChannel(ExperimentalFeatures.native_assets.channels) &&
         ExperimentalFeatures.native_assets.isEnabledByDefault);
 
@@ -106,14 +111,16 @@ bool recordUseEnabled(List<String> vmEnabledExperiments) =>
     vmEnabledExperiments.contains(ExperimentalFeatures.record_use.enableString);
 
 bool dataAssetsEnabled(List<String> vmEnabledExperiments) =>
-    vmEnabledExperiments
-        .contains(ExperimentalFeatures.data_assets.enableString);
+    vmEnabledExperiments.contains(
+      ExperimentalFeatures.data_assets.enableString,
+    );
 
 List<String> validateExperiments(List<String> vmEnabledExperiments) {
   final errors = <String>[];
   for (final enabledExperiment in vmEnabledExperiments) {
     final experiment = experimentalFeatures.firstWhereOrNull(
-        (feature) => feature.enableString == enabledExperiment);
+      (feature) => feature.enableString == enabledExperiment,
+    );
     if (experiment == null) {
       errors.add('Unknown experiment: $enabledExperiment');
     } else if (!_availableOnCurrentChannel(experiment.channels)) {

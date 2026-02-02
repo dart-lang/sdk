@@ -17,9 +17,9 @@ import 'experiment_util.dart';
 import 'utils.dart';
 
 List<Map<String, Object?>> extractAnalytics(io.ProcessResult result) {
-  return LineSplitter.split(result.stderr)
-      .where((line) => line.startsWith('[analytics]: '))
-      .map((line) {
+  return LineSplitter.split(
+    result.stderr,
+  ).where((line) => line.startsWith('[analytics]: ')).map((line) {
     return (json.decode(line.substring('[analytics]: '.length)) as Map)
         .cast<String, Object?>();
   }).toList();
@@ -35,27 +35,24 @@ void main() {
     });
 
     test('--no-analytics', () async {
-      final result =
-          await command.runCommand(command.parse(['--no-analytics']));
+      final result = await command.runCommand(
+        command.parse(['--no-analytics']),
+      );
       expect(result, 0);
       expect(command.unifiedAnalytics.telemetryEnabled, false);
     });
 
     test('--suppress-analytics', () async {
-      final result =
-          await command.runCommand(command.parse(['--suppress-analytics']));
+      final result = await command.runCommand(
+        command.parse(['--suppress-analytics']),
+      );
       expect(result, 0);
       expect(command.unifiedAnalytics.telemetryEnabled, false);
     });
 
     test('--suppress-analytics and --disable-analytics', () async {
       final result = await command.runCommand(
-        command.parse(
-          [
-            '--suppress-analytics',
-            '--disable-analytics',
-          ],
-        ),
+        command.parse(['--suppress-analytics', '--disable-analytics']),
       );
       // --suppress-analytics and --disable-analytics can't be provided
       // together to ensure analytics state properly sticks.
@@ -64,12 +61,7 @@ void main() {
 
     test('--suppress-analytics and --enable-analytics', () async {
       final result = await command.runCommand(
-        command.parse(
-          [
-            '--suppress-analytics',
-            '--enable-analytics',
-          ],
-        ),
+        command.parse(['--suppress-analytics', '--enable-analytics']),
       );
       // --suppress-analytics and --enable-analytics can't be provided
       // together to ensure analytics state properly sticks.
@@ -82,10 +74,7 @@ void main() {
       final p = project();
       final analytics = await p.runLocalWithFakeAnalytics(['help']);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(
-          name: 'help',
-          enabledExperiments: '',
-        )
+        Event.dartCliCommandExecuted(name: 'help', enabledExperiments: ''),
       ]);
     });
 
@@ -98,10 +87,7 @@ void main() {
         path.join(io.Directory.systemTemp.createTempSync().path, 'name'),
       ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(
-          name: 'create',
-          enabledExperiments: '',
-        ),
+        Event.dartCliCommandExecuted(name: 'create', enabledExperiments: ''),
       ]);
     });
 
@@ -116,7 +102,7 @@ void main() {
         () async {
           final p = project(
             pubspecExtras: {
-              'dependencies': {'lints': '2.0.1'}
+              'dependencies': {'lints': '2.0.1'},
             },
           );
           final analytics = await p.runLocalWithFakeAnalytics(['pub', 'get']);
@@ -138,13 +124,13 @@ void main() {
 
     test('format', () async {
       final p = project();
-      final analytics =
-          await p.runLocalWithFakeAnalytics(['format', '-l80', '.']);
+      final analytics = await p.runLocalWithFakeAnalytics([
+        'format',
+        '-l80',
+        '.',
+      ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(
-          name: 'format',
-          enabledExperiments: '',
-        ),
+        Event.dartCliCommandExecuted(name: 'format', enabledExperiments: ''),
       ]);
     });
 
@@ -155,13 +141,10 @@ void main() {
         '--no-pause-isolates-on-exit',
         '--enable-asserts',
         'lib/main.dart',
-        '--argument'
+        '--argument',
       ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(
-          name: 'run',
-          enabledExperiments: '',
-        ),
+        Event.dartCliCommandExecuted(name: 'run', enabledExperiments: ''),
       ]);
     });
 

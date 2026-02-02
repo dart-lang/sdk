@@ -16,40 +16,39 @@ Future<void> rewriteInstallNames(
   final oldToNewInstallNames = <String, String>{};
   final dylibInfos = <(Uri, String)>[];
 
-  await Future.wait(dylibs.map((dylib) async {
-    final newInstallName = relocatable
-        ? _rpathUri
-            .resolveUri(libOutputDirectoryUri)
-            .resolve(dylib.pathSegments.last)
-            .toFilePath()
-        : dylib.toFilePath();
-    final oldInstallName = await _getInstallName(dylib);
-    oldToNewInstallNames[oldInstallName] = newInstallName;
-    dylibInfos.add((dylib, newInstallName));
-  }));
+  await Future.wait(
+    dylibs.map((dylib) async {
+      final newInstallName = relocatable
+          ? _rpathUri
+                .resolveUri(libOutputDirectoryUri)
+                .resolve(dylib.pathSegments.last)
+                .toFilePath()
+          : dylib.toFilePath();
+      final oldInstallName = await _getInstallName(dylib);
+      oldToNewInstallNames[oldInstallName] = newInstallName;
+      dylibInfos.add((dylib, newInstallName));
+    }),
+  );
 
-  await Future.wait(dylibInfos.map((info) async {
-    final (dylib, newInstallName) = info;
-    await _setInstallNames(dylib, newInstallName, oldToNewInstallNames);
-    await _codeSignDylib(dylib);
-  }));
+  await Future.wait(
+    dylibInfos.map((info) async {
+      final (dylib, newInstallName) = info;
+      await _setInstallNames(dylib, newInstallName, oldToNewInstallNames);
+      await _codeSignDylib(dylib);
+    }),
+  );
 }
 
 Future<String> _getInstallName(Uri dylib) async {
-  final otoolResult = await Process.run(
-    'otool',
-    [
-      '-D',
-      dylib.toFilePath(),
-    ],
-  );
+  final otoolResult = await Process.run('otool', ['-D', dylib.toFilePath()]);
   if (otoolResult.exitCode != 0) {
     throw Exception(
       'Failed to get install name for dylib $dylib: ${otoolResult.stderr}',
     );
   }
-  final architectureSections =
-      parseOtoolArchitectureSections(otoolResult.stdout);
+  final architectureSections = parseOtoolArchitectureSections(
+    otoolResult.stdout,
+  );
   if (architectureSections.length != 1) {
     throw Exception(
       'Expected a single architecture section in otool output: $otoolResult',
@@ -63,19 +62,16 @@ Future<void> _setInstallNames(
   String newInstallName,
   Map<String, String> oldToNewInstallNames,
 ) async {
-  final installNameToolResult = await Process.run(
-    'install_name_tool',
-    [
-      '-id',
-      newInstallName,
-      for (final entry in oldToNewInstallNames.entries) ...[
-        '-change',
-        entry.key,
-        entry.value,
-      ],
-      dylib.toFilePath(),
+  final installNameToolResult = await Process.run('install_name_tool', [
+    '-id',
+    newInstallName,
+    for (final entry in oldToNewInstallNames.entries) ...[
+      '-change',
+      entry.key,
+      entry.value,
     ],
-  );
+    dylib.toFilePath(),
+  ]);
   if (installNameToolResult.exitCode != 0) {
     throw Exception(
       'Failed to set install names for dylib $dylib:\n'
@@ -87,15 +83,12 @@ Future<void> _setInstallNames(
 }
 
 Future<void> _codeSignDylib(Uri dylib) async {
-  final codesignResult = await Process.run(
-    'codesign',
-    [
-      '--force',
-      '--sign',
-      '-',
-      dylib.toFilePath(),
-    ],
-  );
+  final codesignResult = await Process.run('codesign', [
+    '--force',
+    '--sign',
+    '-',
+    dylib.toFilePath(),
+  ]);
   if (codesignResult.exitCode != 0) {
     throw Exception(
       'Failed to codesign dylib $dylib: ${codesignResult.stderr}',
@@ -123,8 +116,9 @@ Map<Architecture?, List<String>> parseOtoolArchitectureSections(String output) {
     'arm64': Architecture.arm64,
     'x86_64': Architecture.x64,
   };
-  final RegExp architectureHeaderPattern =
-      RegExp(r'^[^(]+( \(architecture (.+)\))?:$');
+  final RegExp architectureHeaderPattern = RegExp(
+    r'^[^(]+( \(architecture (.+)\))?:$',
+  );
   final Iterator<String> lines = output.trim().split('\n').iterator;
   Architecture? currentArchitecture;
   final Map<Architecture?, List<String>> architectureSections =
@@ -132,8 +126,9 @@ Map<Architecture?, List<String>> parseOtoolArchitectureSections(String output) {
 
   while (lines.moveNext()) {
     final String line = lines.current;
-    final Match? architectureHeader =
-        architectureHeaderPattern.firstMatch(line);
+    final Match? architectureHeader = architectureHeaderPattern.firstMatch(
+      line,
+    );
     if (architectureHeader != null) {
       if (architectureSections.containsKey(null)) {
         throw Exception(
@@ -174,26 +169,22 @@ Map<Architecture?, List<String>> parseOtoolArchitectureSections(String output) {
 /// So, the `bundle/` directory must be added to the include path to allow for
 /// loading dylibs.
 Future<void> rewriteInstallPath(Uri executable) async {
-  final result = await Process.run(
-    'install_name_tool',
-    ['-add_rpath', '@executable_path/..', executable.toFilePath()],
-  );
+  final result = await Process.run('install_name_tool', [
+    '-add_rpath',
+    '@executable_path/..',
+    executable.toFilePath(),
+  ]);
   if (result.exitCode != 0) {
-    throw Exception(
-      'Failed to add rpath: ${result.stderr}',
-    );
+    throw Exception('Failed to add rpath: ${result.stderr}');
   }
 
   // Resign after modifying.
-  final codesignResult = await Process.run(
-    'codesign',
-    [
-      '--force',
-      '--sign',
-      '-',
-      executable.toFilePath(),
-    ],
-  );
+  final codesignResult = await Process.run('codesign', [
+    '--force',
+    '--sign',
+    '-',
+    executable.toFilePath(),
+  ]);
   if (codesignResult.exitCode != 0) {
     throw Exception(
       'Failed to codesign dylib $executable: ${codesignResult.stderr}',

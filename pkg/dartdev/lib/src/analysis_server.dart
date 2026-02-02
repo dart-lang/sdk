@@ -22,8 +22,12 @@ import 'sdk.dart';
 import 'utils.dart';
 
 /// When set, this function is executed just before the Analysis Server starts.
-void Function(String cmdName, List<FileSystemEntity> analysisRoots,
-    ArgResults? argResults)? preAnalysisServerStart;
+void Function(
+  String cmdName,
+  List<FileSystemEntity> analysisRoots,
+  ArgResults? argResults,
+)?
+preAnalysisServerStart;
 
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
@@ -39,8 +43,8 @@ class AnalysisServer {
     this.disableStatusNotificationDebouncing = false,
     this.suppressAnalytics = false,
     bool useAotSnapshot = false,
-  })  : _useAotSnapshot = useAotSnapshot,
-        _usePlugins = usePlugins;
+  }) : _useAotSnapshot = useAotSnapshot,
+       _usePlugins = usePlugins;
 
   final String? cacheDirectoryPath;
   final File? packagesFile;
@@ -72,8 +76,7 @@ class AnalysisServer {
 
   Stream<bool> get onAnalyzing {
     // {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
-    return _streamController('server.status')
-        .stream
+    return _streamController('server.status').stream
         .where((event) => event['analysis'] != null)
         .map((event) => (event['analysis']['isAnalyzing']!) as bool);
   }
@@ -91,7 +94,7 @@ class AnalysisServer {
       final errorsList = event['errors'] as List<dynamic>;
       final errors = [
         for (final error in errorsList)
-          AnalysisError((error as Map).cast<String, dynamic>())
+          AnalysisError((error as Map).cast<String, dynamic>()),
       ];
       return FileAnalysisErrors(file, errors);
     });
@@ -156,9 +159,12 @@ class AnalysisServer {
 
     _streamController('server.pluginError').stream.listen(_handlePluginError);
 
-    _sendCommand('server.setSubscriptions', params: <String, dynamic>{
-      'subscriptions': <String>['STATUS'],
-    });
+    _sendCommand(
+      'server.setSubscriptions',
+      params: <String, dynamic>{
+        'subscriptions': <String>['STATUS'],
+      },
+    );
 
     // Reference and trim off any trailing slash, the Dart Analysis Server
     // protocol throws an error (INVALID_FILE_PATH_FORMAT) if there is a
@@ -169,7 +175,9 @@ class AnalysisServer {
     final analysisRootPaths = [
       for (final root in analysisRoots)
         trimEnd(
-            root.absolute.resolveSymbolicLinksSync(), path.context.separator),
+          root.absolute.resolveSymbolicLinksSync(),
+          path.context.separator,
+        ),
     ];
 
     onAnalyzing.listen((isAnalyzing) {
@@ -186,10 +194,10 @@ class AnalysisServer {
     });
 
     if (setAnalysisRoots) {
-      await _sendCommand('analysis.setAnalysisRoots', params: {
-        'included': analysisRootPaths,
-        'excluded': [],
-      });
+      await _sendCommand(
+        'analysis.setAnalysisRoots',
+        params: {'included': analysisRootPaths, 'excluded': []},
+      );
     }
 
     return process.pid;
@@ -215,7 +223,7 @@ class AnalysisServer {
       if (packagesFile != null) '--packages=${packagesFile!.path}',
       if (enabledExperiments.isNotEmpty)
         '--$experimentFlagName=${enabledExperiments.join(',')}',
-      if (!_usePlugins) '--no-plugins'
+      if (!_usePlugins) '--no-plugins',
     ];
 
     log.trace('$executable ${arguments.join(' ')}');
@@ -223,48 +231,67 @@ class AnalysisServer {
   }
 
   Future<String> getVersion() {
-    return _sendCommand('server.getVersion')
-        .then((response) => response['version']);
+    return _sendCommand(
+      'server.getVersion',
+    ).then((response) => response['version']);
   }
 
   Future<EditBulkFixesResult> requestBulkFixes(
-      String filePath, bool inTestMode, List<String> codes,
-      {bool updatePubspec = false}) {
-    return _sendCommand('edit.bulkFixes', params: <String, dynamic>{
-      'included': [path.canonicalize(filePath)],
-      'inTestMode': inTestMode,
-      'updatePubspec': updatePubspec,
-      if (codes.isNotEmpty) 'codes': codes,
-    }).then((result) {
+    String filePath,
+    bool inTestMode,
+    List<String> codes, {
+    bool updatePubspec = false,
+  }) {
+    return _sendCommand(
+      'edit.bulkFixes',
+      params: <String, dynamic>{
+        'included': [path.canonicalize(filePath)],
+        'inTestMode': inTestMode,
+        'updatePubspec': updatePubspec,
+        if (codes.isNotEmpty) 'codes': codes,
+      },
+    ).then((result) {
       return EditBulkFixesResult.fromJson(
-          ResponseDecoder(null), 'result', result);
+        ResponseDecoder(null),
+        'result',
+        result,
+      );
     });
   }
 
   Future<void> shutdown({Duration? timeout}) async {
     // Request shutdown.
-    final Future<void> future =
-        _sendCommand('server.shutdown').then((Map<String, dynamic> value) {
+    final Future<void> future = _sendCommand('server.shutdown').then((
+      Map<String, dynamic> value,
+    ) {
       _shutdownResponseReceived = true;
       return;
     });
     await (timeout != null
-            ? future.timeout(timeout, onTimeout: () {
-                log.stderr(
-                    'The analysis server timed out while shutting down.');
-              })
+            ? future.timeout(
+                timeout,
+                onTimeout: () {
+                  log.stderr(
+                    'The analysis server timed out while shutting down.',
+                  );
+                },
+              )
             : future)
         .whenComplete(dispose);
   }
 
   /// Send an `analysis.updateContent` request with the given [files].
   Future<void> updateContent(Map<String, AddContentOverlay> files) async {
-    await _sendCommand('analysis.updateContent',
-        params: AnalysisUpdateContentParams(files).toJson());
+    await _sendCommand(
+      'analysis.updateContent',
+      params: AnalysisUpdateContentParams(files).toJson(),
+    );
   }
 
-  Future<Map<String, dynamic>> _sendCommand(String method,
-      {Map<String, dynamic>? params}) {
+  Future<Map<String, dynamic>> _sendCommand(
+    String method, {
+    Map<String, dynamic>? params,
+  }) {
     final String id = (++_id).toString();
     final String message = json.encode(<String, dynamic>{
       'id': id,
@@ -300,15 +327,20 @@ class AnalysisServer {
     final response = json.decode(line) as Object?;
 
     if (response is Map<String, dynamic>) {
-      if (response
-          case {'event': final String event, 'params': final Object? params}) {
+      if (response case {
+        'event': final String event,
+        'params': final Object? params,
+      }) {
         if (params is Map<String, dynamic>) {
           _streamController(event).add(params.cast<String, dynamic>());
         }
       } else if (response case {'id': final String id}) {
         if (response case {'error': final Map<String, Object?> error}) {
-          _requestCompleters.remove(id)?.completeError(
-              RequestError.parse(error.cast<String, dynamic>()));
+          _requestCompleters
+              .remove(id)
+              ?.completeError(
+                RequestError.parse(error.cast<String, dynamic>()),
+              );
         } else {
           _requestCompleters.remove(id)?.complete(response['result'] ?? {});
         }
@@ -320,9 +352,11 @@ class AnalysisServer {
     _serverErrorReceived = true;
     final err = error!;
     log.stderr('An unexpected error was encountered by the Analysis Server.');
-    log.stderr('Please file an issue at '
-        'https://github.com/dart-lang/sdk/issues/new/choose with the following '
-        'details:\n');
+    log.stderr(
+      'Please file an issue at '
+      'https://github.com/dart-lang/sdk/issues/new/choose with the following '
+      'details:\n',
+    );
     // Fields are 'isFatal', 'message', and 'stackTrace'.
     log.stderr(err['message']);
     final stackTrace = err['stackTrace'];
@@ -333,7 +367,9 @@ class AnalysisServer {
 
   StreamController<Map<String, dynamic>> _streamController(String streamId) {
     return _streamControllers.putIfAbsent(
-        streamId, () => StreamController<Map<String, dynamic>>.broadcast());
+      streamId,
+      () => StreamController<Map<String, dynamic>>.broadcast(),
+    );
   }
 
   Future<bool> dispose() async {
@@ -341,22 +377,17 @@ class AnalysisServer {
   }
 }
 
-enum _AnalysisSeverity {
-  error,
-  warning,
-  info,
-  none,
-}
+enum _AnalysisSeverity { error, warning, info, none }
 
 class AnalysisError implements Comparable<AnalysisError> {
   AnalysisError(this.json);
 
   static final Map<String, _AnalysisSeverity> _severityMap =
       <String, _AnalysisSeverity>{
-    'INFO': _AnalysisSeverity.info,
-    'WARNING': _AnalysisSeverity.warning,
-    'ERROR': _AnalysisSeverity.error,
-  };
+        'INFO': _AnalysisSeverity.info,
+        'WARNING': _AnalysisSeverity.warning,
+        'ERROR': _AnalysisSeverity.error,
+      };
 
   // "severity":"INFO","type":"TODO","location":{
   //   "file":"/Users/.../lib/test.dart","offset":362,"length":72,"startLine":15,"startColumn":4
@@ -427,7 +458,8 @@ class AnalysisError implements Comparable<AnalysisError> {
   }
 
   @override
-  String toString() => '${severity!.toLowerCase()} • '
+  String toString() =>
+      '${severity!.toLowerCase()} • '
       '$message • $file:$startLine:$startColumn • '
       '($code)';
 }

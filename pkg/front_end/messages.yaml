@@ -4991,8 +4991,8 @@ ffiSizeAnnotation:
 ffiSizeAnnotationDimensions:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
-  problemMessage: "Field '#name' must have an 'Array' annotation that matches the dimensions."
+    Name fieldName: The name of the problematic field.
+  problemMessage: "Field '#fieldName' must have an 'Array' annotation that matches the dimensions."
   external: test/ffi_test.dart
 
 ffiVariableLengthArrayNotLast:
@@ -5005,26 +5005,26 @@ ffiVariableLengthArrayNotLast:
 ffiStructGeneric:
   # Used by dart:ffi
   parameters:
-    String string: undocumented
-    Name name: undocumented
-  problemMessage: "#string '#name' should not be generic."
+    String superclass: The superclass name.
+    Name name: The name of the problematic struct.
+  problemMessage: "#superclass '#name' should not be generic."
   external: test/ffi_test.dart
 
 ffiCompoundImplementsFinalizable:
   # Used by dart:ffi
   parameters:
-    String string: undocumented
-    Name name: undocumented
-  problemMessage: "#string '#name' can't implement Finalizable."
+    String superclass: The superclass name.
+    Name name: The name of the problematic struct.
+  problemMessage: "#superclass '#name' can't implement Finalizable."
   correctionMessage: "Try removing the implements clause from '#name'."
   external: test/ffi_test.dart
 
 ffiDartTypeMismatch:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Expected '#type' to be a subtype of '#type2'."
+    Type actualType: The actual return type.
+    Type expectedType: The expected return type.
+  problemMessage: "Expected '#actualType' to be a subtype of '#expectedType'."
   external: test/ffi_test.dart
 
 ffiDeeplyImmutableClassesMustBeFinalOrSealed:
@@ -5071,15 +5071,15 @@ ffiDefaultAssetDuplicate:
 ffiExpectedExceptionalReturn:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
-  problemMessage: "Expected an exceptional return value for a native callback returning '#type'."
+    Type returnType: The return type of the native callback.
+  problemMessage: "Expected an exceptional return value for a native callback returning '#returnType'."
   external: test/ffi_test.dart
 
 ffiExpectedNoExceptionalReturn:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
-  problemMessage: "Exceptional return value cannot be provided for a native callback returning '#type'."
+    Type returnType: The return type of the native callback.
+  problemMessage: "Exceptional return value cannot be provided for a native callback returning '#returnType'."
   external: test/ffi_test.dart
 
 ffiExpectedConstant:
@@ -5097,14 +5097,14 @@ ffiExceptionalReturnNull:
 ffiNativeCallableListenerReturnVoid:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
-  problemMessage: "The return type of the function passed to NativeCallable.listener must be void rather than '#type'."
+    Type returnType: The return type of the function passed to `NativeCallable.listener`.
+  problemMessage: "The return type of the function passed to NativeCallable.listener must be void rather than '#returnType'."
   external: test/ffi_test.dart
 
 ffiExpectedConstantArg:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
+    Name name: The name of the non-constant argument.
   problemMessage: "Argument '#name' must be a constant."
   external: test/ffi_test.dart
 
@@ -5186,8 +5186,8 @@ ffiAddressOfMustBeNative:
 
 spreadTypeMismatch:
   parameters:
-    Type type: undocumented
-  problemMessage: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
+    Type spreadType: The type of the spread.
+  problemMessage: "Unexpected type '#spreadType' of a spread.  Expected 'dynamic' or an Iterable."
   script:
     - |
       main() {
@@ -5203,22 +5203,22 @@ spreadTypeMismatch:
 cantHaveNamedParameters:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
+    Name name: The name of the entity that can't have named parameters.
   problemMessage: "'#name' can't be declared with named parameters."
   external: test/ffi_test.dart
 
 cantHaveOptionalParameters:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
+    Name name: The name of the entity that can't have named parameters.
   problemMessage: "'#name' can't be declared with optional parameters."
   external: test/ffi_test.dart
 
 spreadElementTypeMismatch:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Can't assign spread elements of type '#type' to collection elements of type '#type2'."
+    Type spreadElementType: The type of the spread element.
+    Type collectionElementType: The type of the enclosing collection.
+  problemMessage: "Can't assign spread elements of type '#spreadElementType' to collection elements of type '#collectionElementType'."
   script: |
     main() {
       List<String> a = <String>["foo"];
@@ -5227,8 +5227,8 @@ spreadElementTypeMismatch:
 
 spreadMapEntryTypeMismatch:
   parameters:
-    Type type: undocumented
-  problemMessage: "Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map."
+    Type spreadType: The type of the spread.
+  problemMessage: "Unexpected type '#spreadType' of a map spread entry.  Expected 'dynamic' or a Map."
   script:
     - |
       main() {
@@ -5243,9 +5243,9 @@ spreadMapEntryTypeMismatch:
 
 spreadMapEntryElementKeyTypeMismatch:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'."
+    Type spreadKeyType: The key type of the spread element.
+    Type mapKeyType: The key type of the enclosing map.
+  problemMessage: "Can't assign spread entry keys of type '#spreadKeyType' to map entry keys of type '#mapKeyType'."
   script: |
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
@@ -5254,9 +5254,9 @@ spreadMapEntryElementKeyTypeMismatch:
 
 spreadMapEntryElementValueTypeMismatch:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
+    Type spreadValueType: The value type of the spread element.
+    Type mapValueType: The value type of the enclosing map.
+  problemMessage: "Can't assign spread entry values of type '#spreadValueType' to map entry values of type '#mapValueType'."
   script: |
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
@@ -5599,10 +5599,10 @@ fieldNotPromotedBecauseNotEnabled:
 
 fieldNotPromotedBecauseNotField:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' refers to a getter so it couldn't be promoted."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' refers to a getter so it couldn't be promoted."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       int? get _i => 0;
@@ -5617,10 +5617,10 @@ fieldNotPromotedBecauseNotField:
 
 fieldNotPromotedBecauseNotPrivate:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' refers to a public property so it couldn't be promoted."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' refers to a public property so it couldn't be promoted."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       final int? i;
@@ -5636,10 +5636,10 @@ fieldNotPromotedBecauseNotPrivate:
 
 fieldNotPromotedBecauseExternal:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' refers to an external field so it couldn't be promoted."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' refers to an external field so it couldn't be promoted."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       external final int? _i;
@@ -5654,10 +5654,10 @@ fieldNotPromotedBecauseExternal:
 
 fieldNotPromotedBecauseNotFinal:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' refers to a non-final field so it couldn't be promoted."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' refers to a non-final field so it couldn't be promoted."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       int? _i;
@@ -5673,11 +5673,11 @@ fieldNotPromotedBecauseNotFinal:
 
 fieldNotPromotedBecauseConflictingGetter:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string: undocumented
-  problemMessage: "'#name' couldn't be promoted because there is a conflicting getter in class '#name2'."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    Name conflictingGetterClassName: The name of the class containing a conflicting getter.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' couldn't be promoted because there is a conflicting getter in class '#conflictingGetterClassName'."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       final int? _i;
@@ -5696,11 +5696,11 @@ fieldNotPromotedBecauseConflictingGetter:
 
 fieldNotPromotedBecauseConflictingField:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string: undocumented
-  problemMessage: "'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    Name conflictingFieldClassName: The name of the class containing a conflicting field.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' couldn't be promoted because there is a conflicting non-promotable field in class '#conflictingFieldClassName'."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       final int? _i;
@@ -5720,11 +5720,11 @@ fieldNotPromotedBecauseConflictingField:
 
 fieldNotPromotedBecauseConflictingNsmForwarder:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string: undocumented
-  problemMessage: "'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    Name conflictingNsmClassName: The name of the class containing a conflicting `noSuchMethod` forwarder.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#conflictingNsmClassName'."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       final int? _i;
@@ -5743,9 +5743,9 @@ fieldNotPromotedBecauseConflictingNsmForwarder:
 
 thisNotPromoted:
   parameters:
-    String string: undocumented
+    String documentationUrl: The URL of the documentation explaining the problem.
   problemMessage: "'this' can't be promoted."
-  correctionMessage: "See #string"
+  correctionMessage: "See #documentationUrl"
   script: |
     extension on int? {
       bool extension_explicit_this() {
@@ -5758,18 +5758,18 @@ thisNotPromoted:
 
 nullablePropertyAccessError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Property '#name' cannot be accessed on '#type' because it is potentially null."
+    Name propertyName: The name of the problematic property.
+    Type receiverType: The type of the property access receiver.
+  problemMessage: "Property '#propertyName' cannot be accessed on '#receiverType' because it is potentially null."
   correctionMessage: "Try accessing using ?. instead."
   script: |
     bool foo(int? i) => i.isEven;
 
 nullableMethodCallError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Method '#name' cannot be called on '#type' because it is potentially null."
+    Name methodName: The name of the problematic method.
+    Type receiverType: The name of the method invocation recevier.
+  problemMessage: "Method '#methodName' cannot be called on '#receiverType' because it is potentially null."
   correctionMessage: "Try calling using ?. instead."
   script: |
     void foo(int? i) => i.abs();

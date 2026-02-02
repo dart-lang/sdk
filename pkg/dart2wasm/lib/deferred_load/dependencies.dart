@@ -48,17 +48,22 @@ class DependenciesCollector {
         _devirtualizionOracle,
         reference,
         deps);
+    // We collect dependencies of [node] and therefore only have to visit
+    // AST elements that represent code (such as `FunctionNode`, `Initializer`).
     if (node is Procedure) {
-      node.accept(collector);
+      node.function.accept(collector);
       return deps;
     }
     if (node is Constructor) {
-      node.accept(collector);
+      node.function.accept(collector);
+      for (final init in node.initializers) {
+        init.accept(collector);
+      }
       collector.addReference(node.enclosingClass.reference);
       return deps;
     }
     if (node is Field) {
-      node.accept(collector);
+      node.initializer?.accept(collector);
       if (node.fieldReference != reference) {
         collector.addReference(node.fieldReference);
       }

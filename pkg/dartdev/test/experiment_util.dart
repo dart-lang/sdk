@@ -32,8 +32,9 @@ final experimentalFeaturesYaml = () {
 /// break test_all.dart.
 List<Experiment> experimentsWithValidation() {
   final experiments = yaml.loadYaml(
-      File(experimentalFeaturesYaml).readAsStringSync(),
-      sourceUrl: path.toUri(experimentalFeaturesYaml));
+    File(experimentalFeaturesYaml).readAsStringSync(),
+    sourceUrl: path.toUri(experimentalFeaturesYaml),
+  );
   return [
     for (final e in experiments['features'].entries)
       if (e.value['expired'] != true && e.value['validation'] != null)
@@ -42,7 +43,7 @@ List<Experiment> experimentsWithValidation() {
           e.value['validation'],
           tryParseVersion(e.value['enabledIn']),
           tryParseVersion(e.value['experimentalReleaseVersion']),
-        )
+        ),
   ];
 }
 

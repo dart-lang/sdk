@@ -348,9 +348,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   int? _checkCompoundClass(Class node) {
     if (node.typeParameters.isNotEmpty) {
       diagnosticReporter.report(
-        diag.ffiStructGeneric.withArgumentsOld(
-          node.superclass!.name,
-          node.name,
+        diag.ffiStructGeneric.withArguments(
+          superclass: node.superclass!.name,
+          name: node.name,
         ),
         node.fileOffset,
         1,
@@ -373,9 +373,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       finalizableType,
     )) {
       diagnosticReporter.report(
-        diag.ffiCompoundImplementsFinalizable.withArgumentsOld(
-          node.superclass!.name,
-          node.name,
+        diag.ffiCompoundImplementsFinalizable.withArguments(
+          superclass: node.superclass!.name,
+          name: node.name,
         ),
         node.fileOffset,
         1,

@@ -1031,7 +1031,7 @@ class A {
   this;
 }
 ''',
-      [error(diag.primaryConstructorBodyWithoutDeclaration, 12, 19)],
+      [error(diag.primaryConstructorBodyWithoutDeclaration, 26, 4)],
     );
 
     var node = findNode.singlePrimaryConstructorBody;
@@ -1061,7 +1061,7 @@ class A {
 }
 ''',
       [
-        error(diag.primaryConstructorBodyWithoutDeclaration, 12, 29),
+        error(diag.primaryConstructorBodyWithoutDeclaration, 12, 4),
         error(diag.undefinedIdentifier, 26, 1),
         error(diag.undefinedIdentifier, 35, 1),
       ],

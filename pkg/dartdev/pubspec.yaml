@@ -4,7 +4,7 @@ name: dartdev
 publish_to: none
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.11.0
 
 resolution: workspace
 

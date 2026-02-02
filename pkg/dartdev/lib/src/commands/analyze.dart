@@ -39,13 +39,18 @@ class AnalyzeCommand extends DartdevCommand {
   static final int _return = '\r'.codeUnitAt(0);
 
   AnalyzeCommand({bool verbose = false})
-      : super(cmdName, 'Analyze Dart code in a directory.', verbose) {
+    : super(cmdName, 'Analyze Dart code in a directory.', verbose) {
     argParser
-      ..addFlag('fatal-infos',
-          help: 'Treat info level issues as fatal.', negatable: false)
-      ..addFlag('fatal-warnings',
-          help: 'Treat warning level issues as fatal.', defaultsTo: true)
-
+      ..addFlag(
+        'fatal-infos',
+        help: 'Treat info level issues as fatal.',
+        negatable: false,
+      )
+      ..addFlag(
+        'fatal-warnings',
+        help: 'Treat warning level issues as fatal.',
+        defaultsTo: true,
+      )
       // Options hidden by default.
       ..addOption(
         'cache',
@@ -55,7 +60,8 @@ class AnalyzeCommand extends DartdevCommand {
       )
       ..addFlag(
         'memory',
-        help: 'Attempt to print memory usage before exiting. '
+        help:
+            'Attempt to print memory usage before exiting. '
             'Will only print if format is json.',
         hide: !verbose,
       )
@@ -67,10 +73,11 @@ class AnalyzeCommand extends DartdevCommand {
         allowedHelp: {
           'default':
               'The default output format. This format is intended to be user '
-                  'consumable.\nThe format is not specified and can change '
-                  'between releases.',
+              'consumable.\nThe format is not specified and can change '
+              'between releases.',
           'json': 'A machine readable output in a JSON format.',
-          'machine': 'A machine readable output. The format is:\n\n'
+          'machine':
+              'A machine readable output. The format is:\n\n'
               'SEVERITY|TYPE|ERROR_CODE|FILE_PATH|LINE|COLUMN|LENGTH|ERROR_MESSAGE\n\n'
               'Note that the pipe character is escaped with backslashes for '
               'the file path and error message fields.',
@@ -80,7 +87,8 @@ class AnalyzeCommand extends DartdevCommand {
       ..addOption(
         'packages',
         valueHelp: 'path',
-        help: 'The path to the package resolution configuration file, which '
+        help:
+            'The path to the package resolution configuration file, which '
             'supplies a mapping of package names\ninto paths.',
         hide: !verbose,
       )
@@ -96,8 +104,12 @@ class AnalyzeCommand extends DartdevCommand {
         defaultsTo: true,
         hide: true,
       )
-      ..addFlag('plugins',
-          help: 'Use analyzer plugins', defaultsTo: true, hide: true)
+      ..addFlag(
+        'plugins',
+        help: 'Use analyzer plugins',
+        defaultsTo: true,
+        hide: true,
+      )
       ..addExperimentalFlags();
   }
 
@@ -157,8 +169,10 @@ class AnalyzeCommand extends DartdevCommand {
         snapshotName,
       );
       if (!io.File(snapshotPath).existsSync()) {
-        usageException("Invalid Dart SDK path has no '$snapshotName' file: "
-            '${sdkPath.path}');
+        usageException(
+          "Invalid Dart SDK path has no '$snapshotName' file: "
+          '${sdkPath.path}',
+        );
       }
     } else {
       sdkPath = io.Directory(sdk.sdkPath);
@@ -169,18 +183,21 @@ class AnalyzeCommand extends DartdevCommand {
         if (experiment.startsWith('no-'))
           experiment.substring(3)
         else
-          experiment
+          experiment,
     };
-    final unknownExperiments =
-        experimentNames.difference(ExperimentStatus.knownFeatures.keys.toSet());
+    final unknownExperiments = experimentNames.difference(
+      ExperimentStatus.knownFeatures.keys.toSet(),
+    );
     if (unknownExperiments.isNotEmpty) {
-      final unknownExperimentsText =
-          unknownExperiments.map((e) => "'$e'").join(', ');
+      final unknownExperimentsText = unknownExperiments
+          .map((e) => "'$e'")
+          .join(', ');
       usageException('Unknown experiment(s): $unknownExperimentsText');
     }
 
-    final targetsNames =
-        targets.map((entity) => path.basename(entity.path)).join(', ');
+    final targetsNames = targets
+        .map((entity) => path.basename(entity.path))
+        .join(', ');
     final progress = machineFormat || jsonFormat
         ? null
         : log.progress('Analyzing $targetsNames');
@@ -200,13 +217,17 @@ class AnalyzeCommand extends DartdevCommand {
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
-      var isPriorityFile = const {'analysis_options.yaml', 'pubspec.yaml'}
-          .contains(path.basename(fileErrors.file));
+      var isPriorityFile = const {
+        'analysis_options.yaml',
+        'pubspec.yaml',
+      }.contains(path.basename(fileErrors.file));
 
       // Record the issues found (but filter out to do comments unless they've
       // been upgraded from INFO).
-      for (var error in fileErrors.errors.where((AnalysisError error) =>
-          error.type != 'TODO' || error.severity != 'INFO')) {
+      for (var error in fileErrors.errors.where(
+        (AnalysisError error) =>
+            error.type != 'TODO' || error.severity != 'INFO',
+      )) {
         if (isPriorityFile && error.severity == 'ERROR') {
           priorityErrors.add(error);
         } else {
@@ -238,8 +259,8 @@ class AnalyzeCommand extends DartdevCommand {
 
     UsageInfo? usageInfo;
     if (printMemory) {
-      usageInfo =
-          await ProcessProfiler.getProfilerForPlatform()?.getProcessUsage(pid);
+      usageInfo = await ProcessProfiler.getProfilerForPlatform()
+          ?.getProcessUsage(pid);
     }
 
     await server.shutdown();
@@ -281,9 +302,11 @@ class AnalyzeCommand extends DartdevCommand {
 
       if (priorityErrors.isNotEmpty) {
         log.stdout('');
-        log.stdout("Errors were found in 'pubspec.yaml' and/or "
-            "'analysis_options.yaml' which might result in either invalid "
-            'diagnostics being produced or valid diagnostics being missed.');
+        log.stdout(
+          "Errors were found in 'pubspec.yaml' and/or "
+          "'analysis_options.yaml' which might result in either invalid "
+          'diagnostics being produced or valid diagnostics being missed.',
+        );
 
         emit(priorityErrors);
         if (errors.isNotEmpty) {
@@ -374,7 +397,8 @@ class AnalyzeCommand extends DartdevCommand {
         message += ' ${error.correction}';
       }
       var location = '$filePath:${error.startLine}:${error.startColumn}';
-      var output = '$location $bullet '
+      var output =
+          '$location $bullet '
           '$message $bullet '
           '${ansi.green}$codeRef${ansi.none}';
 
@@ -391,9 +415,11 @@ class AnalyzeCommand extends DartdevCommand {
         var contextPath = _relativePath(message.filePath, relativeToDir);
         var messageSentenceFragment = trimEnd(message.message, '.');
 
-        log.stdout('$_bodyIndent'
-            ' - $messageSentenceFragment at '
-            '$contextPath:${message.line}:${message.column}.');
+        log.stdout(
+          '$_bodyIndent'
+          ' - $messageSentenceFragment at '
+          '$contextPath:${message.line}:${message.column}.',
+        );
       }
     }
 
@@ -402,26 +428,25 @@ class AnalyzeCommand extends DartdevCommand {
 
   @visibleForTesting
   static void emitJsonFormat(
-      Logger log, List<AnalysisError> errors, UsageInfo? usageInfo) {
+    Logger log,
+    List<AnalysisError> errors,
+    UsageInfo? usageInfo,
+  ) {
     Map<String, dynamic> location(
-            String filePath, Map<String, dynamic> range) =>
-        {
-          'file': filePath,
-          'range': range,
-        };
+      String filePath,
+      Map<String, dynamic> range,
+    ) => {'file': filePath, 'range': range};
 
     Map<String, dynamic> position(int? offset, int? line, int? column) => {
-          'offset': offset,
-          'line': line,
-          'column': column,
-        };
+      'offset': offset,
+      'line': line,
+      'column': column,
+    };
 
     Map<String, dynamic> range(
-            Map<String, dynamic> start, Map<String, dynamic> end) =>
-        {
-          'start': start,
-          'end': end,
-        };
+      Map<String, dynamic> start,
+      Map<String, dynamic> end,
+    ) => {'start': start, 'end': end};
 
     var diagnostics = <Map<String, dynamic>>[];
     for (final AnalysisError error in errors) {
@@ -430,12 +455,16 @@ class AnalyzeCommand extends DartdevCommand {
         var startOffset = contextMessage.offset;
         contextMessages.add({
           'location': location(
-              contextMessage.filePath,
-              range(
-                  position(
-                      startOffset, contextMessage.line, contextMessage.column),
-                  position(startOffset + contextMessage.length,
-                      contextMessage.endLine, contextMessage.endColumn))),
+            contextMessage.filePath,
+            range(
+              position(startOffset, contextMessage.line, contextMessage.column),
+              position(
+                startOffset + contextMessage.length,
+                contextMessage.endLine,
+                contextMessage.endColumn,
+              ),
+            ),
+          ),
           'message': contextMessage.message,
         });
       }
@@ -445,37 +474,46 @@ class AnalyzeCommand extends DartdevCommand {
         'severity': error.severity,
         'type': error.type,
         'location': location(
-            error.file,
-            range(
-                position(startOffset, error.startLine, error.startColumn),
-                position(startOffset + error.length, error.endLine,
-                    error.endColumn))),
+          error.file,
+          range(
+            position(startOffset, error.startLine, error.startColumn),
+            position(
+              startOffset + error.length,
+              error.endLine,
+              error.endColumn,
+            ),
+          ),
+        ),
         'problemMessage': error.message,
         if (error.correction != null) 'correctionMessage': error.correction,
         if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
         if (error.url != null) 'documentation': error.url,
       });
     }
-    log.stdout(json.encode({
-      'version': 1,
-      'diagnostics': diagnostics,
-      if (usageInfo != null) 'memory': usageInfo.memoryKB
-    }));
+    log.stdout(
+      json.encode({
+        'version': 1,
+        'diagnostics': diagnostics,
+        if (usageInfo != null) 'memory': usageInfo.memoryKB,
+      }),
+    );
   }
 
   @visibleForTesting
   static void emitMachineFormat(Logger log, List<AnalysisError> errors) {
     for (final AnalysisError error in errors) {
-      log.stdout([
-        error.severity,
-        error.type,
-        error.code.toUpperCase(),
-        _escapeForMachineMode(error.file),
-        error.startLine.toString(),
-        error.startColumn.toString(),
-        error.length.toString(),
-        _escapeForMachineMode(error.message),
-      ].join('|'));
+      log.stdout(
+        [
+          error.severity,
+          error.type,
+          error.code.toUpperCase(),
+          _escapeForMachineMode(error.file),
+          error.startLine.toString(),
+          error.startColumn.toString(),
+          error.length.toString(),
+          _escapeForMachineMode(error.message),
+        ].join('|'),
+      );
     }
   }
 

@@ -20,9 +20,10 @@ void help() {
     'help', // `dart help help` is redundant
     'test', // `dart help test` does not call `test:test --help`.
   ];
-  DartdevRunner(['--suppress-analytics'])
-      .commands
-      .forEach((String commandKey, Command<int> command) {
+  DartdevRunner(['--suppress-analytics']).commands.forEach((
+    String commandKey,
+    Command<int> command,
+  ) {
     if (!commandsNotTested.contains(commandKey)) {
       test('(help $commandKey == $commandKey --help)', () async {
         p = project();
@@ -55,9 +56,10 @@ void help() {
   });
 
   test('(--help flags also have -h abbr)', () {
-    DartdevRunner(['--suppress-analytics'])
-        .commands
-        .forEach((String commandKey, Command<int> command) {
+    DartdevRunner(['--suppress-analytics']).commands.forEach((
+      String commandKey,
+      Command<int> command,
+    ) {
       var helpOption = command.argParser.options['help'];
       // Some commands (like pub which use
       // "argParser = ArgParser.allowAnything()") may not have the help Option
@@ -74,9 +76,8 @@ void help() {
     // Include the `Available commands:` with the empty line to ensure all
     // commands have a category.
     expect(
-        result.stdout,
-        contains(
-          '''
+      result.stdout,
+      contains('''
 Available commands:
 
 Global
@@ -105,7 +106,7 @@ Tools
   info                  Show diagnostic information about the installed tooling.
   language-server       Start Dart's analysis server.
   tooling-daemon        Start Dart's tooling daemon.
-''',
-        ));
+'''),
+    );
   });
 }

@@ -17,19 +17,13 @@ import '../sdk.dart';
 import '../utils.dart';
 
 class DevToolsCommand extends DartdevCommand {
-  DevToolsCommand({
-    this.customDevToolsPath,
-    bool verbose = false,
-  })  : argParser = DevToolsServer.buildArgParser(
-          verbose: verbose,
-          includeHelpOption: false,
-          usageLineLength: dartdevUsageLineLength,
-        ),
-        super(
-          'devtools',
-          DevToolsServer.commandDescription,
-          verbose,
-        );
+  DevToolsCommand({this.customDevToolsPath, bool verbose = false})
+    : argParser = DevToolsServer.buildArgParser(
+        verbose: verbose,
+        includeHelpOption: false,
+        usageLineLength: dartdevUsageLineLength,
+      ),
+      super('devtools', DevToolsServer.commandDescription, verbose);
 
   final String? customDevToolsPath;
 
@@ -54,8 +48,9 @@ class DevToolsCommand extends DartdevCommand {
 
     final sdkDir = path.dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
-    final devToolsBinaries =
-        fullSdk ? sdk.devToolsBinaries : path.absolute(sdkDir, 'devtools');
+    final devToolsBinaries = fullSdk
+        ? sdk.devToolsBinaries
+        : path.absolute(sdkDir, 'devtools');
 
     final argList = await _performDDSCheck(args);
     final server = await DevToolsServer().serveDevToolsWithArgs(
@@ -160,10 +155,7 @@ class DevToolsCommand extends DartdevCommand {
       if (pathSegments.length == 1) {
         pathSegments.add('');
       }
-      uri = ddsWsUri.replace(
-        scheme: 'http',
-        pathSegments: pathSegments,
-      );
+      uri = ddsWsUri.replace(scheme: 'http', pathSegments: pathSegments);
     }
     return uri;
   }
@@ -186,10 +178,7 @@ class DevToolsCommand extends DartdevCommand {
     final authCodesEnabled = pathSegments.isNotEmpty;
     final wsUri = uri.replace(
       scheme: 'ws',
-      pathSegments: [
-        ...pathSegments,
-        'ws',
-      ],
+      pathSegments: [...pathSegments, 'ws'],
     );
 
     final vmService = await vmServiceConnectUri(wsUri.toString());
@@ -221,9 +210,7 @@ class DevToolsCommand extends DartdevCommand {
       )) {
         uri = debugSession.ddsUri!;
         if (!machineMode) {
-          print(
-            'Started the Dart Development Service (DDS) at $uri',
-          );
+          print('Started the Dart Development Service (DDS) at $uri');
         }
       } else if (!machineMode) {
         print(

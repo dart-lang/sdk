@@ -37,18 +37,20 @@ void initGlobalState() {
 
 /// Creates a test-project in a temp-dir that will [dispose] itself at the end
 /// of the test.
-TestProject project(
-    {String? mainSrc,
-    String? analysisOptions,
-    String name = TestProject._defaultProjectName,
-    VersionConstraint? sdkConstraint,
-    Map<String, dynamic>? pubspecExtras}) {
+TestProject project({
+  String? mainSrc,
+  String? analysisOptions,
+  String name = TestProject._defaultProjectName,
+  VersionConstraint? sdkConstraint,
+  Map<String, dynamic>? pubspecExtras,
+}) {
   var testProject = TestProject(
-      mainSrc: mainSrc,
-      name: name,
-      analysisOptions: analysisOptions,
-      sdkConstraint: sdkConstraint,
-      pubspecExtras: pubspecExtras);
+    mainSrc: mainSrc,
+    name: name,
+    analysisOptions: analysisOptions,
+    sdkConstraint: sdkConstraint,
+    pubspecExtras: pubspecExtras,
+  );
   addTearDown(() => testProject.dispose());
   return testProject;
 }
@@ -70,11 +72,8 @@ class TestProject {
 
   String get analysisOptionsPath => path.join(dirPath, 'analysis_options.yaml');
 
-  String get packageConfigPath => path.join(
-        dirPath,
-        '.dart_tool',
-        'package_config.json',
-      );
+  String get packageConfigPath =>
+      path.join(dirPath, '.dart_tool', 'package_config.json');
 
   final String name;
 
@@ -93,30 +92,26 @@ class TestProject {
     root = Directory.systemTemp.createTempSync('dartdev');
     file(
       'pubspec.yaml',
-      JsonEncoder.withIndent('  ').convert(
-        {
-          'name': name,
-          'environment': {'sdk': sdkConstraint?.toString() ?? '^3.0.0'},
-          ...?pubspecExtras,
-        },
-      ),
+      JsonEncoder.withIndent('  ').convert({
+        'name': name,
+        'environment': {'sdk': sdkConstraint?.toString() ?? '^3.0.0'},
+        ...?pubspecExtras,
+      }),
     );
     file(
       '.dart_tool/package_config.json',
-      JsonEncoder.withIndent('  ').convert(
-        {
-          'configVersion': 2,
-          'generator': 'utils.dart',
-          'packages': [
-            {
-              'name': name,
-              'rootUri': '../',
-              'packageUri': 'lib/',
-              'languageVersion': '3.2',
-            },
-          ],
-        },
-      ),
+      JsonEncoder.withIndent('  ').convert({
+        'configVersion': 2,
+        'generator': 'utils.dart',
+        'packages': [
+          {
+            'name': name,
+            'rootUri': '../',
+            'packageUri': 'lib/',
+            'languageVersion': '3.2',
+          },
+        ],
+      }),
     );
     file(
       '.dart_tool/package_graph.json',
@@ -127,10 +122,10 @@ class TestProject {
             'name': name,
             'version': '1.0.0',
             'dependencies': [],
-            'devDependencies': []
+            'devDependencies': [],
           },
         ],
-        'configVersion': 1
+        'configVersion': 1,
       }),
     );
     if (analysisOptions != null) {
@@ -195,20 +190,13 @@ class TestProject {
     );
   }
 
-  Future<Process> start(
-    List<String> arguments, {
-    String? workingDir,
-  }) {
+  Future<Process> start(List<String> arguments, {String? workingDir}) {
     return Process.start(
-        Platform.resolvedExecutable,
-        [
-          ...arguments,
-        ],
-        workingDirectory: workingDir ?? dir.path,
-        environment: {
-          'PUB_CACHE': pubCachePath,
-        })
-      ..then((p) => _process = p);
+      Platform.resolvedExecutable,
+      [...arguments],
+      workingDirectory: workingDir ?? dir.path,
+      environment: {'PUB_CACHE': pubCachePath},
+    )..then((p) => _process = p);
   }
 
   Future<void> runWithVmService(
@@ -340,9 +328,10 @@ void ensureRunFromSdkBinDart() {
   }
   if (pathReversed.length < 2 || pathReversed[1] != 'bin') {
     throw StateError(
-        '''Main executable is not from an SDK build: ${uri.toFilePath()}.
+      '''Main executable is not from an SDK build: ${uri.toFilePath()}.
 The `pkg/dartdev` tests must be run with the `dart` executable in the `bin` folder.
-''');
+''',
+    );
   }
 }
 
@@ -360,7 +349,8 @@ String replacePathsWithMatchingCase(String input, {required String filePath}) {
 
 /// Resolves a relative URI from the pkg/dartdev folder.
 Uri resolveDartDevUri(String path) {
-  final dartDevLibUri =
-      Isolate.resolvePackageUriSync(Uri.parse('package:dartdev/'));
+  final dartDevLibUri = Isolate.resolvePackageUriSync(
+    Uri.parse('package:dartdev/'),
+  );
   return dartDevLibUri!.resolve('../$path');
 }

@@ -15,16 +15,15 @@ import 'commands/compilation_server.dart' show CompilationServerCommand;
 import 'resident_frontend_constants.dart';
 
 /// The Resident Frontend Compiler's shutdown command.
-final residentServerShutdownCommand = jsonEncode(
-  <String, Object>{
-    commandString: shutdownString,
-  },
-);
+final residentServerShutdownCommand = jsonEncode(<String, Object>{
+  commandString: shutdownString,
+});
 
 File? getResidentCompilerInfoFileConsideringArgs(final ArgResults args) =>
     getResidentCompilerInfoFileConsideringArgsImpl(
-        args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
-            args[CompilationServerCommand.legacyResidentServerInfoFileFlag]);
+      args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
+          args[CompilationServerCommand.legacyResidentServerInfoFileFlag],
+    );
 
 final String packageConfigName = p.join('.dart_tool', 'package_config.json');
 
@@ -48,10 +47,7 @@ Future<void> shutDownOrForgetResidentFrontendCompiler(File infoFile) async {
   try {
     // As explained in the doc comment above, this function ignores errors. So,
     // we ignore the return value of [sendAndReceiveResponse].
-    await sendAndReceiveResponse(
-      residentServerShutdownCommand,
-      infoFile,
-    );
+    await sendAndReceiveResponse(residentServerShutdownCommand, infoFile);
   } on FileSystemException catch (_) {
     // As explained in the doc comment above, this function ignores errors. We
     // only catch [FileSystemException]s because [sendAndReceiveResponse] cannot
@@ -100,7 +96,7 @@ Future<bool> isFileAotSnapshot(final File file) async {
   if (bytes[0] == 0x01 && bytes[1] == 0xc0 || // arm32
       bytes[0] == 0xaa && bytes[1] == 0x64 || // arm64
       bytes[0] == 0x50 && bytes[1] == 0x32 || // riscv32
-      bytes[0] == 0x50 && bytes[1] == 0x64 /* riscv64 */) {
+      bytes[0] == 0x50 && bytes[1] == 0x64 /* riscv64 */ ) {
     return true;
   }
 
@@ -151,25 +147,22 @@ String createCompileJitJson({
   bool verbose = false,
   String? nativeAssetsYaml,
 }) {
-  return jsonEncode(
-    <String, Object?>{
-      commandString: compileString,
-      sourceString: executable,
-      outputString: outputDill,
-      if (args.wasParsed(defineOption))
-        defineOption: args.multiOption(defineOption),
-      if (args.options.contains(enableAssertsOption) &&
-          args.wasParsed(enableAssertsOption))
-        enableAssertsOption: true,
-      if (args.wasParsed(enableExperimentOption))
-        enableExperimentOption: args
-            .multiOption(enableExperimentOption)
-            .map((e) => '--enable-experiment=$e')
-            .toList(),
-      if (packages != null) packageString: packages,
-      if (args.wasParsed(verbosityOption))
-        verbosityOption: args[verbosityOption],
-      if (nativeAssetsYaml != null) nativeAssetsOption: nativeAssetsYaml,
-    },
-  );
+  return jsonEncode(<String, Object?>{
+    commandString: compileString,
+    sourceString: executable,
+    outputString: outputDill,
+    if (args.wasParsed(defineOption))
+      defineOption: args.multiOption(defineOption),
+    if (args.options.contains(enableAssertsOption) &&
+        args.wasParsed(enableAssertsOption))
+      enableAssertsOption: true,
+    if (args.wasParsed(enableExperimentOption))
+      enableExperimentOption: args
+          .multiOption(enableExperimentOption)
+          .map((e) => '--enable-experiment=$e')
+          .toList(),
+    packageString: ?packages,
+    if (args.wasParsed(verbosityOption)) verbosityOption: args[verbosityOption],
+    nativeAssetsOption: ?nativeAssetsYaml,
+  });
 }

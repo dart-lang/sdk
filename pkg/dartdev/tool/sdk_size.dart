@@ -16,14 +16,18 @@ final String dartSdkPath = p.dirname(p.dirname(Platform.resolvedExecutable));
 final List<FileStats> fileStats = [];
 
 void main(List<String> arguments) {
-  final version =
-      File(p.join(dartSdkPath, 'version')).readAsStringSync().trim();
+  final version = File(
+    p.join(dartSdkPath, 'version'),
+  ).readAsStringSync().trim();
 
-  final sdkData = build(Directory(dartSdkPath), extra: {
-    'comment-1': 'Dart SDK $version',
-    'comment-2': '<size>',
-    'type': 'web',
-  });
+  final sdkData = build(
+    Directory(dartSdkPath),
+    extra: {
+      'comment-1': 'Dart SDK $version',
+      'comment-2': '<size>',
+      'type': 'web',
+    },
+  );
   final sdkSize = fileStats.fold<int>(0, (previous, e) => previous + e.size);
 
   sdkData['comment-2'] = sizeMB(sdkSize);
@@ -55,8 +59,10 @@ void main(List<String> arguments) {
 
 String sizeMB(int size) => '${(size / (1024.0 * 1024)).toStringAsFixed(1)}MB';
 
-Map<String, Object?> build(FileSystemEntity entity,
-    {Map<String, String> extra = const {}}) {
+Map<String, Object?> build(
+  FileSystemEntity entity, {
+  Map<String, String> extra = const {},
+}) {
   const fsBlockSize = 4096.0;
 
   if (entity is File) {
@@ -64,19 +70,14 @@ Map<String, Object?> build(FileSystemEntity entity,
         ((entity.lengthSync() / fsBlockSize).ceilToDouble() * fsBlockSize)
             .truncate();
     fileStats.add(FileStats(p.relative(entity.path, from: dartSdkPath), size));
-    return {
-      'n': entity.name,
-      'value': size,
-    };
+    return {'n': entity.name, 'value': size};
   } else {
     entity as Directory;
 
     return {
       ...extra,
       'n': '${entity.name}/',
-      'children': [
-        ...entity.listSyncSorted().map(build),
-      ],
+      'children': [...entity.listSyncSorted().map(build)],
     };
   }
 }

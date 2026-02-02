@@ -76,25 +76,47 @@ ArgParser globalDartdevOptionsParser({bool verbose = false}) {
     usageLineLength: dartdevUsageLineLength,
     allowTrailingOptions: false,
   );
-  argParser.addFlag('verbose',
-      abbr: 'v', negatable: false, help: 'Show additional command output.');
-  argParser.addFlag('version',
-      negatable: false, help: 'Print the Dart SDK version.');
-  argParser.addFlag('enable-analytics',
-      negatable: false, help: 'Enable analytics.');
-  argParser.addFlag('disable-analytics',
-      negatable: false, help: 'Disable analytics.');
-  argParser.addFlag('disable-telemetry',
-      negatable: false, help: 'Disable telemetry.', hide: true);
+  argParser.addFlag(
+    'verbose',
+    abbr: 'v',
+    negatable: false,
+    help: 'Show additional command output.',
+  );
+  argParser.addFlag(
+    'version',
+    negatable: false,
+    help: 'Print the Dart SDK version.',
+  );
+  argParser.addFlag(
+    'enable-analytics',
+    negatable: false,
+    help: 'Enable analytics.',
+  );
+  argParser.addFlag(
+    'disable-analytics',
+    negatable: false,
+    help: 'Disable analytics.',
+  );
+  argParser.addFlag(
+    'disable-telemetry',
+    negatable: false,
+    help: 'Disable telemetry.',
+    hide: true,
+  );
 
-  argParser.addFlag('diagnostics',
-      negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);
+  argParser.addFlag(
+    'diagnostics',
+    negatable: false,
+    help: 'Show tool diagnostic output.',
+    hide: !verbose,
+  );
 
   argParser.addFlag(
     'analytics',
     defaultsTo: true,
     negatable: true,
-    help: 'Allow or disallow analytics for this `dart *` run without '
+    help:
+        'Allow or disallow analytics for this `dart *` run without '
         'changing the analytics configuration.  '
         'Deprecated: use `--suppress-analytics` instead.',
     hide: true,
@@ -103,7 +125,8 @@ ArgParser globalDartdevOptionsParser({bool verbose = false}) {
   argParser.addFlag(
     'suppress-analytics',
     negatable: false,
-    help: 'Disallow analytics for this `dart *` run without changing the '
+    help:
+        'Disallow analytics for this `dart *` run without changing the '
         'analytics configuration.',
   );
   return argParser;
@@ -336,10 +359,12 @@ class MarkdownTable {
     var widths = <int>[];
 
     for (int col = 0; col < header.length; col++) {
-      var width = _data.map((row) {
-        var item = row.length >= col ? row[col] : null;
-        return item?.value.length ?? 0;
-      }).reduce(math.max);
+      var width = _data
+          .map((row) {
+            var item = row.length >= col ? row[col] : null;
+            return item?.value.length ?? 0;
+          })
+          .reduce(math.max);
       widths.add(math.max(width, _minWidth));
     }
 

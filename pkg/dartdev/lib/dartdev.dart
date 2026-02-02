@@ -57,9 +57,11 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   } catch (e, st) {
     // Unexpected error encountered.
     io.stderr.writeln('An unexpected error was encountered by the Dart CLI.');
-    io.stderr.writeln('Please file an issue at '
-        'https://github.com/dart-lang/sdk/issues/new with the following '
-        'details:\n');
+    io.stderr.writeln(
+      'Please file an issue at '
+      'https://github.com/dart-lang/sdk/issues/new with the following '
+      'details:\n',
+    );
     io.stderr.writeln("Invocation: 'dart ${args.join(' ')}'");
     io.stderr.writeln("Exception: '$e'");
     io.stderr.writeln('Stack Trace:');
@@ -89,56 +91,72 @@ class DartdevRunner extends CommandRunner<int> {
     Analytics? analyticsOverride,
     bool isAnalyticsTest = false,
     List<String> vmArgs = const [],
-  })  : verbose = args.contains('-v') || args.contains('--verbose'),
-        argParser = globalDartdevOptionsParser(
-            verbose: args.contains('-v') || args.contains('--verbose')),
-        vmEnabledExperiments = parseVmEnabledExperiments(vmArgs),
-        _unifiedAnalytics = analyticsOverride,
-        _isAnalyticsTest = isAnalyticsTest,
-        super('dart', '$dartdevDescription.') {
+  }) : verbose = args.contains('-v') || args.contains('--verbose'),
+       argParser = globalDartdevOptionsParser(
+         verbose: args.contains('-v') || args.contains('--verbose'),
+       ),
+       vmEnabledExperiments = parseVmEnabledExperiments(vmArgs),
+       _unifiedAnalytics = analyticsOverride,
+       _isAnalyticsTest = isAnalyticsTest,
+       super('dart', '$dartdevDescription.') {
     // The list of commands should be kept in sync with
     // `DartDevIsolate::ShouldParseCommand` in `runtime/bin/dartdev_isolate.cc`.
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CompilationServerCommand(verbose: verbose));
-    final nativeAssetsExperimentEnabled =
-        nativeAssetsEnabled(vmEnabledExperiments);
+    final nativeAssetsExperimentEnabled = nativeAssetsEnabled(
+      vmEnabledExperiments,
+    );
     final dataAssetsExperimentEnabled = dataAssetsEnabled(vmEnabledExperiments);
     if (nativeAssetsExperimentEnabled) {
       final recordUseExperimentEnabled = recordUseEnabled(vmEnabledExperiments);
-      addCommand(BuildCommand(
+      addCommand(
+        BuildCommand(
           verbose: verbose,
           recordUseEnabled: recordUseExperimentEnabled,
-          dataAssetsExperimentEnabled: dataAssetsExperimentEnabled));
+          dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
+        ),
+      );
     }
-    addCommand(CompileCommand(
-      verbose: verbose,
-      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
-    ));
+    addCommand(
+      CompileCommand(
+        verbose: verbose,
+        nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
+      ),
+    );
     addCommand(CreateCommand(verbose: verbose));
     addCommand(DebugAdapterCommand(verbose: verbose));
     addCommand(DevelopmentServiceCommand(verbose: verbose));
     addCommand(DevToolsCommand(verbose: verbose));
     addCommand(DocCommand(verbose: verbose));
     addCommand(FixCommand(verbose: verbose));
-    addCommand(FormatCommand(
-      verbose: verbose,
-      category: CommandCategory.sourceCode.name,
-    ));
+    addCommand(
+      FormatCommand(
+        verbose: verbose,
+        category: CommandCategory.sourceCode.name,
+      ),
+    );
     addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(DartMCPServerCommand(verbose: verbose));
-    addCommand(pubCommand(
-      isVerbose: () => verbose,
-      category: CommandCategory.project.name,
-    ));
-    addCommand(RunCommand(
-      verbose: verbose,
-      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
-      dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
-    ));
-    addCommand(TestCommand(
+    addCommand(
+      pubCommand(
+        isVerbose: () => verbose,
+        category: CommandCategory.project.name,
+      ),
+    );
+    addCommand(
+      RunCommand(
+        verbose: verbose,
         nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
-        dataAssetsExperimentEnabled: dataAssetsExperimentEnabled));
+        dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
+      ),
+    );
+    addCommand(
+      TestCommand(
+        nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
+        dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
+      ),
+    );
     addCommand(ToolingDaemonCommand(verbose: verbose));
     if (nativeAssetsExperimentEnabled) {
       addCommand(InstallCommand(verbose: verbose));
@@ -165,14 +183,16 @@ class DartdevRunner extends CommandRunner<int> {
     // We don't want to run analytics when we're running in a CI environment
     // unless we're explicitly testing analytics for dartdev.
     final implicitlySuppressAnalytics = isBot() && !_isAnalyticsTest;
-    bool suppressAnalytics = !topLevelResults.flag('analytics') ||
+    bool suppressAnalytics =
+        !topLevelResults.flag('analytics') ||
         topLevelResults.flag('suppress-analytics') ||
         implicitlySuppressAnalytics;
 
     if (topLevelResults.wasParsed('analytics')) {
       io.stderr.writeln(
-          '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
-          'to disable analytics for one run instead.');
+        '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
+        'to disable analytics for one run instead.',
+      );
     }
     final enableAnalytics = topLevelResults.flag('enable-analytics');
     final disableAnalytics = topLevelResults.flag('disable-analytics');
@@ -182,8 +202,10 @@ class DartdevRunner extends CommandRunner<int> {
         (enableAnalytics || disableAnalytics)) {
       // This isn't an error if we're implicitly disabling analytics because
       // we're running in a CI environment.
-      io.stderr.writeln('`--suppress-analytics` cannot be used with either'
-          ' `--enable-analytics` or `--disable-analytics`.');
+      io.stderr.writeln(
+        '`--suppress-analytics` cannot be used with either'
+        ' `--enable-analytics` or `--disable-analytics`.',
+      );
       return 254;
     }
     // The Analytics instance used to report information back to Google Analytics;
@@ -231,7 +253,8 @@ class DartdevRunner extends CommandRunner<int> {
       // If we make it this far, it means the VM couldn't find the file on disk.
       if (firstArg.endsWith('.dart')) {
         io.stderr.writeln(
-            "Error when reading '$firstArg': No such file or directory.");
+          "Error when reading '$firstArg': No such file or directory.",
+        );
         // This is the exit code used by the frontend.
         return 254;
       }
@@ -241,8 +264,9 @@ class DartdevRunner extends CommandRunner<int> {
       log = Logger.verbose(ansi: ansi);
     }
 
-    late final List<String> experimentErrors =
-        validateExperiments(vmEnabledExperiments);
+    late final List<String> experimentErrors = validateExperiments(
+      vmEnabledExperiments,
+    );
     if (experimentErrors.isNotEmpty) {
       experimentErrors.forEach(io.stderr.writeln);
       return 254;
