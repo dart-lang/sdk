@@ -95,9 +95,38 @@ The `analysis_server_plugin` package must depend on the `analyzer` package with
 an _exact_ version constraint. It must also depend on the `analyzer_plugin`
 package with an _exact_ version constraint.
 
-## Release Preparation Steps
+## Workflow: Start a new minor version
 
-To prepare the packages for publishing, follow these steps. You can ask the AI assistant to "Prepare analyzer and related packages for publishing" to perform these edits automatically.
+To start a new minor version for the analyzer and related packages, follow these steps.
+
+1. **Update `analyzer`**:
+    * Edit `pkg/analyzer/pubspec.yaml`.
+    * Set the version to the next minor `dev` version (e.g., `10.0.0` -> `10.1.0-dev`).
+    * Update `pkg/analyzer/CHANGELOG.md` to add a new section for the new version.
+    * Add "Internal changes only" as a placeholder.
+
+2. **Update `analyzer_plugin`**:
+    * Edit `pkg/analyzer_plugin/pubspec.yaml`.
+    * Set the version to the next patch `dev` version.
+    * Update the `analyzer` dependency to be the **exact** version from step 1 (e.g., `10.1.0-dev`).
+    * Update `pkg/analyzer_plugin/CHANGELOG.md` to add a new section for the new version.
+
+3. **Update `analyzer_testing`**:
+    * Edit `pkg/analyzer_testing/pubspec.yaml`.
+    * Update the `analyzer` dependency to be the **exact** version from step 1.
+    * Set the version to the next patch `dev` version.
+    * Update `pkg/analyzer_testing/CHANGELOG.md` to add a new section for the new version.
+
+4. **Update `analysis_server_plugin`**:
+    * Edit `pkg/analysis_server_plugin/pubspec.yaml`.
+    * Set the version to the next patch `dev` version.
+    * Update the `analyzer` dependency to be the **exact** version from step 1.
+    * Update the `analyzer_plugin` dependency to be the **exact** version from step 2.
+    * Update `pkg/analysis_server_plugin/CHANGELOG.md` to add a new section for the new version.
+
+## Workflow: Prepare a release
+
+To prepare the packages for publishing, follow these steps.
 
 1. **Update `_fe_analyzer_shared`**:
     * Edit `pkg/_fe_analyzer_shared/pubspec.yaml`.
