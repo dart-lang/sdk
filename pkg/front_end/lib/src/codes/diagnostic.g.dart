@@ -5595,11 +5595,15 @@ Message _withArgumentsOldFieldNonNullableWithoutInitializerError(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String string),
+  Message Function(
+    String propertyName,
+    String conflictingFieldClassName,
+    String documentationUrl,
+  ),
   Message Function({
-    required String name,
-    required String name2,
-    required String string,
+    required String propertyName,
+    required String conflictingFieldClassName,
+    required String documentationUrl,
   })
 >
 fieldNotPromotedBecauseConflictingField = const Template(
@@ -5610,40 +5614,50 @@ fieldNotPromotedBecauseConflictingField = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNotPromotedBecauseConflictingField({
-  required String name,
-  required String name2,
-  required String string,
+  required String propertyName,
+  required String conflictingFieldClassName,
+  required String documentationUrl,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string_0 = conversions.validateString(string);
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
+  var conflictingFieldClassName_0 = conversions.validateAndDemangleName(
+    conflictingFieldClassName,
+  );
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     fieldNotPromotedBecauseConflictingField,
     problemMessage:
-        """'${name_0}' couldn't be promoted because there is a conflicting non-promotable field in class '${name2_0}'.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
+        """'${propertyName_0}' couldn't be promoted because there is a conflicting non-promotable field in class '${conflictingFieldClassName_0}'.""",
+    correctionMessage: """See ${documentationUrl_0}""",
+    arguments: {
+      'propertyName': propertyName,
+      'conflictingFieldClassName': conflictingFieldClassName,
+      'documentationUrl': documentationUrl,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseConflictingField(
-  String name,
-  String name2,
-  String string,
+  String propertyName,
+  String conflictingFieldClassName,
+  String documentationUrl,
 ) => _withArgumentsFieldNotPromotedBecauseConflictingField(
-  name: name,
-  name2: name2,
-  string: string,
+  propertyName: propertyName,
+  conflictingFieldClassName: conflictingFieldClassName,
+  documentationUrl: documentationUrl,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String string),
+  Message Function(
+    String propertyName,
+    String conflictingGetterClassName,
+    String documentationUrl,
+  ),
   Message Function({
-    required String name,
-    required String name2,
-    required String string,
+    required String propertyName,
+    required String conflictingGetterClassName,
+    required String documentationUrl,
   })
 >
 fieldNotPromotedBecauseConflictingGetter = const Template(
@@ -5654,40 +5668,50 @@ fieldNotPromotedBecauseConflictingGetter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNotPromotedBecauseConflictingGetter({
-  required String name,
-  required String name2,
-  required String string,
+  required String propertyName,
+  required String conflictingGetterClassName,
+  required String documentationUrl,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string_0 = conversions.validateString(string);
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
+  var conflictingGetterClassName_0 = conversions.validateAndDemangleName(
+    conflictingGetterClassName,
+  );
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     fieldNotPromotedBecauseConflictingGetter,
     problemMessage:
-        """'${name_0}' couldn't be promoted because there is a conflicting getter in class '${name2_0}'.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
+        """'${propertyName_0}' couldn't be promoted because there is a conflicting getter in class '${conflictingGetterClassName_0}'.""",
+    correctionMessage: """See ${documentationUrl_0}""",
+    arguments: {
+      'propertyName': propertyName,
+      'conflictingGetterClassName': conflictingGetterClassName,
+      'documentationUrl': documentationUrl,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseConflictingGetter(
-  String name,
-  String name2,
-  String string,
+  String propertyName,
+  String conflictingGetterClassName,
+  String documentationUrl,
 ) => _withArgumentsFieldNotPromotedBecauseConflictingGetter(
-  name: name,
-  name2: name2,
-  string: string,
+  propertyName: propertyName,
+  conflictingGetterClassName: conflictingGetterClassName,
+  documentationUrl: documentationUrl,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2, String string),
+  Message Function(
+    String propertyName,
+    String conflictingNsmClassName,
+    String documentationUrl,
+  ),
   Message Function({
-    required String name,
-    required String name2,
-    required String string,
+    required String propertyName,
+    required String conflictingNsmClassName,
+    required String documentationUrl,
   })
 >
 fieldNotPromotedBecauseConflictingNsmForwarder = const Template(
@@ -5699,31 +5723,37 @@ fieldNotPromotedBecauseConflictingNsmForwarder = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder({
-  required String name,
-  required String name2,
-  required String string,
+  required String propertyName,
+  required String conflictingNsmClassName,
+  required String documentationUrl,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
-  var string_0 = conversions.validateString(string);
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
+  var conflictingNsmClassName_0 = conversions.validateAndDemangleName(
+    conflictingNsmClassName,
+  );
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     fieldNotPromotedBecauseConflictingNsmForwarder,
     problemMessage:
-        """'${name_0}' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '${name2_0}'.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'name2': name2, 'string': string},
+        """'${propertyName_0}' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '${conflictingNsmClassName_0}'.""",
+    correctionMessage: """See ${documentationUrl_0}""",
+    arguments: {
+      'propertyName': propertyName,
+      'conflictingNsmClassName': conflictingNsmClassName,
+      'documentationUrl': documentationUrl,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseConflictingNsmForwarder(
-  String name,
-  String name2,
-  String string,
+  String propertyName,
+  String conflictingNsmClassName,
+  String documentationUrl,
 ) => _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder(
-  name: name,
-  name2: name2,
-  string: string,
+  propertyName: propertyName,
+  conflictingNsmClassName: conflictingNsmClassName,
+  documentationUrl: documentationUrl,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13089,8 +13119,8 @@ Message _withArgumentsOldNullableInterfaceError(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String methodName, DartType receiverType),
+  Message Function({required String methodName, required DartType receiverType})
 >
 nullableMethodCallError = const Template(
   "NullableMethodCallError",
@@ -13100,25 +13130,30 @@ nullableMethodCallError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNullableMethodCallError({
-  required String name,
-  required DartType type,
+  required String methodName,
+  required DartType receiverType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var methodName_0 = conversions.validateAndDemangleName(methodName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var receiverType_0 = labeler.labelType(receiverType);
   return new Message(
     nullableMethodCallError,
     problemMessage:
-        """Method '${name_0}' cannot be called on '${type_0}' because it is potentially null.""" +
+        """Method '${methodName_0}' cannot be called on '${receiverType_0}' because it is potentially null.""" +
         labeler.originMessages,
     correctionMessage: """Try calling using ?. instead.""",
-    arguments: {'name': name, 'type': type},
+    arguments: {'methodName': methodName, 'receiverType': receiverType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNullableMethodCallError(String name, DartType type) =>
-    _withArgumentsNullableMethodCallError(name: name, type: type);
+Message _withArgumentsOldNullableMethodCallError(
+  String methodName,
+  DartType receiverType,
+) => _withArgumentsNullableMethodCallError(
+  methodName: methodName,
+  receiverType: receiverType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13182,8 +13217,11 @@ Message _withArgumentsOldNullableOperatorCallError(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String propertyName, DartType receiverType),
+  Message Function({
+    required String propertyName,
+    required DartType receiverType,
+  })
 >
 nullablePropertyAccessError = const Template(
   "NullablePropertyAccessError",
@@ -13193,27 +13231,30 @@ nullablePropertyAccessError = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNullablePropertyAccessError({
-  required String name,
-  required DartType type,
+  required String propertyName,
+  required DartType receiverType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var propertyName_0 = conversions.validateAndDemangleName(propertyName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var receiverType_0 = labeler.labelType(receiverType);
   return new Message(
     nullablePropertyAccessError,
     problemMessage:
-        """Property '${name_0}' cannot be accessed on '${type_0}' because it is potentially null.""" +
+        """Property '${propertyName_0}' cannot be accessed on '${receiverType_0}' because it is potentially null.""" +
         labeler.originMessages,
     correctionMessage: """Try accessing using ?. instead.""",
-    arguments: {'name': name, 'type': type},
+    arguments: {'propertyName': propertyName, 'receiverType': receiverType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldNullablePropertyAccessError(
-  String name,
-  DartType type,
-) => _withArgumentsNullablePropertyAccessError(name: name, type: type);
+  String propertyName,
+  DartType receiverType,
+) => _withArgumentsNullablePropertyAccessError(
+  propertyName: propertyName,
+  receiverType: receiverType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nullableSpreadError = const MessageCode(
@@ -16059,8 +16100,8 @@ const MessageCode thisAsIdentifier = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String documentationUrl),
+  Message Function({required String documentationUrl})
 >
 thisNotPromoted = const Template(
   "ThisNotPromoted",
@@ -16069,19 +16110,19 @@ thisNotPromoted = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsThisNotPromoted({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsThisNotPromoted({required String documentationUrl}) {
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     thisNotPromoted,
     problemMessage: """'this' can't be promoted.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'string': string},
+    correctionMessage: """See ${documentationUrl_0}""",
+    arguments: {'documentationUrl': documentationUrl},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldThisNotPromoted(String string) =>
-    _withArgumentsThisNotPromoted(string: string);
+Message _withArgumentsOldThisNotPromoted(String documentationUrl) =>
+    _withArgumentsThisNotPromoted(documentationUrl: documentationUrl);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

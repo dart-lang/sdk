@@ -5673,11 +5673,11 @@ fieldNotPromotedBecauseNotFinal:
 
 fieldNotPromotedBecauseConflictingGetter:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string: undocumented
-  problemMessage: "'#name' couldn't be promoted because there is a conflicting getter in class '#name2'."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    Name conflictingGetterClassName: The name of the class containing a conflicting getter.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' couldn't be promoted because there is a conflicting getter in class '#conflictingGetterClassName'."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       final int? _i;
@@ -5696,11 +5696,11 @@ fieldNotPromotedBecauseConflictingGetter:
 
 fieldNotPromotedBecauseConflictingField:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string: undocumented
-  problemMessage: "'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    Name conflictingFieldClassName: The name of the class containing a conflicting field.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' couldn't be promoted because there is a conflicting non-promotable field in class '#conflictingFieldClassName'."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       final int? _i;
@@ -5720,11 +5720,11 @@ fieldNotPromotedBecauseConflictingField:
 
 fieldNotPromotedBecauseConflictingNsmForwarder:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string: undocumented
-  problemMessage: "'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'."
-  correctionMessage: "See #string"
+    Name propertyName: The name of the unpromoted property.
+    Name conflictingNsmClassName: The name of the class containing a conflicting `noSuchMethod` forwarder.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#propertyName' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#conflictingNsmClassName'."
+  correctionMessage: "See #documentationUrl"
   script: |
     class C {
       final int? _i;
@@ -5743,9 +5743,9 @@ fieldNotPromotedBecauseConflictingNsmForwarder:
 
 thisNotPromoted:
   parameters:
-    String string: undocumented
+    String documentationUrl: The URL of the documentation explaining the problem.
   problemMessage: "'this' can't be promoted."
-  correctionMessage: "See #string"
+  correctionMessage: "See #documentationUrl"
   script: |
     extension on int? {
       bool extension_explicit_this() {
@@ -5758,18 +5758,18 @@ thisNotPromoted:
 
 nullablePropertyAccessError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Property '#name' cannot be accessed on '#type' because it is potentially null."
+    Name propertyName: The name of the problematic property.
+    Type receiverType: The type of the property access receiver.
+  problemMessage: "Property '#propertyName' cannot be accessed on '#receiverType' because it is potentially null."
   correctionMessage: "Try accessing using ?. instead."
   script: |
     bool foo(int? i) => i.isEven;
 
 nullableMethodCallError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Method '#name' cannot be called on '#type' because it is potentially null."
+    Name methodName: The name of the problematic method.
+    Type receiverType: The name of the method invocation recevier.
+  problemMessage: "Method '#methodName' cannot be called on '#receiverType' because it is potentially null."
   correctionMessage: "Try calling using ?. instead."
   script: |
     void foo(int? i) => i.abs();

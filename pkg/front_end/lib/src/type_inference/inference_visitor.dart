@@ -11533,9 +11533,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       result = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: write,
-        message: diag.nullablePropertyAccessError.withArgumentsOld(
-          propertyName.text,
-          receiverType,
+        message: diag.nullablePropertyAccessError.withArguments(
+          propertyName: propertyName.text,
+          receiverType: receiverType,
         ),
         fileUri: fileUri,
         fileOffset: write.fileOffset,
