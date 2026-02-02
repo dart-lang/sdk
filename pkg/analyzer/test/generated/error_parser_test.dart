@@ -1049,7 +1049,7 @@ class Foo {
     createParser('external const A f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.constNotInitialized, 17, 1)]);
+    listener.assertErrors([]);
   }
 
   void test_externalField_final() {
@@ -2619,10 +2619,7 @@ class Wrong<T> {
     createParser('const static int f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.modifierOutOfOrder, 6, 6),
-      expectedError(diag.constNotInitialized, 17, 1),
-    ]);
+    listener.assertErrors([expectedError(diag.modifierOutOfOrder, 6, 6)]);
   }
 
   void test_staticAfterVar() {

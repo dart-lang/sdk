@@ -24,73 +24,37 @@ class TopLevelVariableTest extends PartialCodeTest {
           'getter',
           'setter',
         ],
-        expectedDiagnosticsInValidCode: [diag.constNotInitialized],
       ),
       TestDescriptor(
         'constName',
         'const a',
-        [diag.expectedToken, diag.constNotInitialized],
+        [diag.expectedToken],
         "const a;",
         failing: ['functionNonVoid', 'getter', 'setter', 'mixin'],
-        expectedDiagnosticsInValidCode: [diag.constNotInitialized],
       ),
-      TestDescriptor(
-        'constTypeName',
-        'const int a',
-        [diag.expectedToken, diag.constNotInitialized],
-        "const int a;",
-        expectedDiagnosticsInValidCode: [diag.constNotInitialized],
-      ),
+      TestDescriptor('constTypeName', 'const int a', [
+        diag.expectedToken,
+      ], "const int a;"),
       TestDescriptor(
         'constNameComma',
         'const a,',
-        [diag.missingIdentifier, diag.expectedToken, diag.constNotInitialized],
+        [diag.missingIdentifier, diag.expectedToken],
         "const a, _s_;",
         failing: ['functionNonVoid', 'getter'],
-        expectedDiagnosticsInValidCode: [
-          diag.constNotInitialized,
-          diag.constNotInitialized,
-        ],
       ),
       TestDescriptor(
         'constTypeNameComma',
         'const int a,',
-        [diag.missingIdentifier, diag.expectedToken, diag.constNotInitialized],
+        [diag.missingIdentifier, diag.expectedToken],
         "const int a, _s_;",
         failing: ['functionNonVoid', 'getter'],
-        expectedDiagnosticsInValidCode: [
-          diag.constNotInitialized,
-          diag.constNotInitialized,
-        ],
       ),
-      TestDescriptor(
-        'constNameCommaName',
-        'const a, b',
-        [
-          diag.expectedToken,
-          diag.constNotInitialized,
-          diag.constNotInitialized,
-        ],
-        "const a, b;",
-        expectedDiagnosticsInValidCode: [
-          diag.constNotInitialized,
-          diag.constNotInitialized,
-        ],
-      ),
-      TestDescriptor(
-        'constTypeNameCommaName',
-        'const int a, b',
-        [
-          diag.expectedToken,
-          diag.constNotInitialized,
-          diag.constNotInitialized,
-        ],
-        "const int a, b;",
-        expectedDiagnosticsInValidCode: [
-          diag.constNotInitialized,
-          diag.constNotInitialized,
-        ],
-      ),
+      TestDescriptor('constNameCommaName', 'const a, b', [
+        diag.expectedToken,
+      ], "const a, b;"),
+      TestDescriptor('constTypeNameCommaName', 'const int a, b', [
+        diag.expectedToken,
+      ], "const int a, b;"),
       TestDescriptor(
         'final',
         'final',
@@ -105,23 +69,17 @@ class TopLevelVariableTest extends PartialCodeTest {
           'mixin',
           'setter',
         ],
-        expectedDiagnosticsInValidCode: [diag.finalNotInitialized],
       ),
       TestDescriptor(
         'finalName',
         'final a',
-        [diag.expectedToken, diag.finalNotInitialized],
+        [diag.expectedToken],
         "final a;",
         failing: ['functionNonVoid', 'getter', 'setter', 'mixin'],
-        expectedDiagnosticsInValidCode: [diag.finalNotInitialized],
       ),
-      TestDescriptor(
-        'finalTypeName',
-        'final int a',
-        [diag.expectedToken, diag.finalNotInitialized],
-        "final int a;",
-        expectedDiagnosticsInValidCode: [diag.finalNotInitialized],
-      ),
+      TestDescriptor('finalTypeName', 'final int a', [
+        diag.expectedToken,
+      ], "final int a;"),
       TestDescriptor(
         'type',
         'int',

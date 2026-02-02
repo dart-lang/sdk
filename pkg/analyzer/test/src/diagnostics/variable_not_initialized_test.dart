@@ -25,7 +25,6 @@ class A {
       [
         error(diag.constInstanceField, 12, 5),
         error(diag.constNotInitialized, 22, 1),
-        error(diag.notInitializedNonNullableInstanceField, 22, 1),
       ],
     );
   }
@@ -348,10 +347,7 @@ class A {
   this : v = 0;
 }
 ''',
-      [
-        error(diag.finalNotInitialized, 22, 1),
-        error(diag.primaryConstructorBodyWithoutDeclaration, 27, 4),
-      ],
+      [error(diag.primaryConstructorBodyWithoutDeclaration, 27, 4)],
     );
   }
 
@@ -639,10 +635,7 @@ class A {
   this : v = 0;
 }
 ''',
-      [
-        error(diag.notInitializedNonNullableInstanceField, 16, 1),
-        error(diag.primaryConstructorBodyWithoutDeclaration, 21, 4),
-      ],
+      [error(diag.primaryConstructorBodyWithoutDeclaration, 21, 4)],
     );
   }
 
@@ -1071,12 +1064,15 @@ class A {
   }
 
   test_class_staticField1_final_noInitializer_secondaryConstructor() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static final Object? v;
   A();
 }
-''', []);
+''',
+      [error(diag.finalNotInitialized, 33, 1)],
+    );
   }
 
   test_class_staticField1_notFinal_external_typeInt_hasInitializer() async {
@@ -1189,7 +1185,7 @@ class A {
   A();
 }
 ''',
-      [error(diag.notInitializedNonNullableVariable, 37, 2)],
+      [error(diag.finalNotInitialized, 37, 2)],
     );
   }
 
@@ -1278,7 +1274,6 @@ enum A {
       [
         error(diag.constInstanceField, 16, 5),
         error(diag.constNotInitialized, 26, 1),
-        error(diag.notInitializedNonNullableInstanceField, 26, 1),
         error(diag.nonFinalFieldInEnum, 26, 1),
       ],
     );
@@ -1465,10 +1460,7 @@ enum A {
   this : v = 0;
 }
 ''',
-      [
-        error(diag.finalNotInitialized, 26, 1),
-        error(diag.primaryConstructorBodyWithoutDeclaration, 31, 4),
-      ],
+      [error(diag.primaryConstructorBodyWithoutDeclaration, 31, 4)],
     );
   }
 
@@ -1878,9 +1870,8 @@ extension A on int {
 ''',
       [
         error(diag.constInstanceField, 23, 5),
-        error(diag.constNotInitialized, 33, 1),
-        error(diag.notInitializedNonNullableInstanceField, 33, 1),
         error(diag.extensionDeclaresInstanceField, 33, 1),
+        error(diag.constNotInitialized, 33, 1),
       ],
     );
   }
@@ -2107,11 +2098,14 @@ extension type A(int it) {
   }
 
   test_extensionType_staticField1_final_noInitializer() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 extension type A(int it) {
   static final Object? v;
 }
-''', []);
+''',
+      [error(diag.finalNotInitialized, 50, 1)],
+    );
   }
 
   test_extensionType_staticField1_notFinal_external_typeInt_hasInitializer() async {
@@ -2228,7 +2222,6 @@ mixin A {
       [
         error(diag.constInstanceField, 12, 5),
         error(diag.constNotInitialized, 22, 1),
-        error(diag.notInitializedNonNullableInstanceField, 22, 1),
       ],
     );
   }

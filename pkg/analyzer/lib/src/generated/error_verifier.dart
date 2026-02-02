@@ -535,7 +535,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       _checkForConflictingClassMembers(declaredFragment);
-      _checkForFinalNotInitializedInClass(declaredFragment, members);
+      _checkForNotInitializedFieldDeclarations(declaredFragment, members);
       _checkForBadFunctionUse(
         superclass: node.extendsClause?.superclass,
         withClause: node.withClause,
@@ -783,7 +783,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         members,
         node.namePart,
       );
-      _checkForFinalNotInitializedInClass(declaredFragment, members);
+      _checkForNotInitializedFieldDeclarations(declaredFragment, members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.namePart.typeName, node.declaredFragment!);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredElement);
@@ -831,7 +831,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     _enclosingExtension = declaredFragment.asElement2;
     _checkForConflictingExtensionTypeVariableErrorCodes();
-    _checkForFinalNotInitializedInClass(declaredFragment, node.body.members);
+    _checkForNotInitializedFieldDeclarations(
+      declaredFragment,
+      node.body.members,
+    );
 
     GetterSetterTypesVerifier(
       library: _currentLibrary,
@@ -866,6 +869,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diag.builtInIdentifierAsExtensionTypeName,
       );
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(declaredFragment);
+      _checkForNotInitializedFieldDeclarations(
+        declaredFragment,
+        node.body.members,
+      );
 
       var members = node.body.members;
       _checkForRepeatedType(
@@ -932,7 +939,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _hasAccessToThis = !node.isStatic && node.fields.isLate;
       _checkForExtensionDeclaresInstanceField(node);
       _checkForExtensionTypeDeclaresInstanceField(node);
-      _checkForNotInitializedNonNullableStaticField(node);
+
       _checkForWrongTypeParameterVarianceInField(node);
       _checkForLateFinalFieldWithConstConstructor(node);
       _checkForNonFinalFieldInEnum(node);
@@ -1337,7 +1344,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       _checkForConflictingClassMembers(declaredFragment);
-      _checkForFinalNotInitializedInClass(declaredFragment, members);
+      _checkForNotInitializedFieldDeclarations(declaredFragment, members);
       _checkForMainFunction1(node.name, firstFragment);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
@@ -1738,8 +1745,40 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _checkForFinalNotInitialized(node.variables);
-    _checkForNotInitializedNonNullableVariable(node.variables, true);
+    var variableList = node.variables;
+
+    if (variableList.isConst) {
+      for (var variable in variableList.variables) {
+        if (variable.initializer == null) {
+          diagnosticReporter.report(
+            diag.constNotInitialized
+                .withArguments(name: variable.name.lexeme)
+                .at(variable.name),
+          );
+        }
+      }
+    } else if (node.externalKeyword == null && !variableList.isLate) {
+      for (var variable in variableList.variables) {
+        if (variable.initializer == null) {
+          if (variableList.isFinal) {
+            diagnosticReporter.report(
+              diag.finalNotInitialized
+                  .withArguments(name: variable.name.lexeme)
+                  .at(variable.name),
+            );
+          } else {
+            var element = variable.declaredFragment!.element;
+            if (typeSystem.isPotentiallyNonNullable(element.type)) {
+              diagnosticReporter.report(
+                diag.notInitializedNonNullableVariable
+                    .withArguments(name: variable.name.lexeme)
+                    .at(variable.name),
+              );
+            }
+          }
+        }
+      }
+    }
 
     for (var variable in node.variables.variables) {
       var fragment = variable.declaredFragment;
@@ -1815,7 +1854,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _isInLateLocalVariable.add(node.variables.isLate);
 
-    _checkForFinalNotInitialized(node.variables);
+    if (node.variables.isConst) {
+      for (var variable in node.variables.variables) {
+        if (variable.initializer == null) {
+          diagnosticReporter.report(
+            diag.constNotInitialized
+                .withArguments(name: variable.name.lexeme)
+                .at(variable.name),
+          );
+        }
+      }
+    }
+
     super.visitVariableDeclarationStatement(node);
 
     _isInLateLocalVariable.removeLast();
@@ -3842,82 +3892,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verify that the given variable declaration [list] has only initialized
-  /// variables if the list is final or const.
-  ///
-  /// See [diag.constNotInitialized], and
-  /// [diag.finalNotInitialized].
-  void _checkForFinalNotInitialized(VariableDeclarationList list) {
-    if (_isInNativeClass || list.isSynthetic) {
-      return;
-    }
-
-    // Handled during resolution, with flow analysis.
-    if (list.isFinal && list.parent is VariableDeclarationStatement) {
-      return;
-    }
-
-    bool isConst = list.isConst;
-    if (!(isConst || list.isFinal)) {
-      return;
-    }
-    NodeList<VariableDeclaration> variables = list.variables;
-    for (VariableDeclaration variable in variables) {
-      if (variable.initializer == null) {
-        if (isConst) {
-          diagnosticReporter.report(
-            diag.constNotInitialized
-                .withArguments(name: variable.name.lexeme)
-                .at(variable.name),
-          );
-        } else {
-          var variableElement = variable.declaredFragment?.element;
-          if (variableElement is FieldElement &&
-              (variableElement.isAbstract || variableElement.isExternal)) {
-            // Abstract and external fields can't be initialized, so no error.
-          } else if (variableElement is TopLevelVariableElement &&
-              variableElement.isExternal) {
-            // External top level variables can't be initialized, so no error.
-          } else if (!variable.isLate) {
-            diagnosticReporter.report(
-              diag.finalNotInitialized
-                  .withArguments(name: variable.name.lexeme)
-                  .at(variable.name),
-            );
-          }
-        }
-      }
-    }
-  }
-
-  /// If there are no constructors in the given [members], verify that all
-  /// final fields are initialized.  Cases in which there is at least one
-  /// constructor are handled in [_checkForFinalNotInitialized].
-  ///
-  /// See [diag.constNotInitialized], and
-  /// [diag.finalNotInitialized].
-  void _checkForFinalNotInitializedInClass(
-    InstanceFragmentImpl fragment,
-    List<ClassMember> members,
-  ) {
-    if (fragment is InterfaceFragmentImpl) {
-      var element = fragment.element;
-      for (var constructor in element.constructors) {
-        if (constructor.isGenerative && constructor.isOriginDeclaration) {
-          return;
-        }
-      }
-    }
-
-    for (ClassMember classMember in members) {
-      if (classMember is FieldDeclaration) {
-        var fields = classMember.fields;
-        _checkForFinalNotInitialized(fields);
-        _checkForNotInitializedNonNullableInstanceFields(classMember);
-      }
-    }
-  }
-
   /// Check that if a direct supertype of a node is final, then it must be in
   /// the same library.
   ///
@@ -5201,82 +5175,112 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForNotInitializedNonNullableInstanceFields(
+  /// Verify that fields in [fieldDeclaration] are initialized.
+  ///
+  /// If [hasGenerativeConstructor] is `true`, then [ConstructorFieldsVerifier]
+  /// will verify that instance fields are initialized.
+  void _checkForNotInitializedFieldDeclaration(
     FieldDeclaration fieldDeclaration,
+    bool hasGenerativeConstructor,
   ) {
-    if (fieldDeclaration.isStatic) return;
-    var fields = fieldDeclaration.fields;
+    var variableList = fieldDeclaration.fields;
 
-    if (fields.isLate) return;
-    if (fields.isFinal) return;
-
-    if (_isEnclosingClassFfiStruct) return;
-    if (_isEnclosingClassFfiUnion) return;
-
-    for (var field in fields.variables) {
-      var fieldElement = field.declaredFragment?.element as FieldElement;
-      if (fieldElement.isAbstract || fieldElement.isExternal) continue;
-      if (field.initializer != null) continue;
-
-      var type = fieldElement.type;
-      if (!typeSystem.isPotentiallyNonNullable(type)) continue;
-
-      diagnosticReporter.report(
-        diag.notInitializedNonNullableInstanceField
-            .withArguments(name: field.name.lexeme)
-            .at(field),
-      );
-    }
-  }
-
-  void _checkForNotInitializedNonNullableStaticField(FieldDeclaration node) {
-    if (!node.isStatic) {
-      return;
-    }
-    _checkForNotInitializedNonNullableVariable(node.fields, false);
-  }
-
-  void _checkForNotInitializedNonNullableVariable(
-    VariableDeclarationList node,
-    bool topLevel,
-  ) {
-    // Checked separately.
-    if (node.isConst || (topLevel && node.isFinal)) {
+    if (variableList.isConst) {
+      for (var variable in variableList.variables) {
+        if (variable.initializer == null) {
+          diagnosticReporter.report(
+            diag.constNotInitialized
+                .withArguments(name: variable.name.lexeme)
+                .at(variable.name),
+          );
+        }
+      }
       return;
     }
 
-    if (node.isLate) {
+    if (fieldDeclaration.abstractKeyword != null ||
+        fieldDeclaration.externalKeyword != null ||
+        variableList.isLate) {
       return;
     }
 
-    var parent = node.parent;
-    if (parent is FieldDeclaration) {
-      if (parent.externalKeyword != null) {
+    // TODO(scheglov): consider removing
+    // class A native 'something' { final int v; }
+    if (_isInNativeClass) {
+      return;
+    }
+
+    var isInstanceField = !fieldDeclaration.isStatic;
+    if (isInstanceField) {
+      // TODO(scheglov): consider removing
+      if (_isEnclosingClassFfiStruct || _isEnclosingClassFfiUnion) {
         return;
       }
-    } else if (parent is TopLevelVariableDeclaration) {
-      if (parent.externalKeyword != null) {
+      // If there is a constructor, we use [ConstructorFieldsVerifier].
+      if (hasGenerativeConstructor) {
         return;
       }
     }
 
-    if (node.type == null) {
-      return;
-    }
-    var type = node.type!.typeOrThrow;
+    for (var variable in variableList.variables) {
+      if (variable.initializer != null) {
+        continue;
+      }
 
-    if (!typeSystem.isPotentiallyNonNullable(type)) {
-      return;
-    }
-
-    for (var variable in node.variables) {
-      if (variable.initializer == null) {
+      if (variableList.isFinal) {
         diagnosticReporter.report(
-          diag.notInitializedNonNullableVariable
+          diag.finalNotInitialized
               .withArguments(name: variable.name.lexeme)
               .at(variable.name),
         );
+        continue;
       }
+
+      var element = variable.declaredFragment!.element;
+      if (typeSystem.isPotentiallyNonNullable(element.type)) {
+        if (isInstanceField) {
+          diagnosticReporter.report(
+            diag.notInitializedNonNullableInstanceField
+                .withArguments(name: variable.name.lexeme)
+                .at(variable.name),
+          );
+        } else {
+          diagnosticReporter.report(
+            diag.notInitializedNonNullableVariable
+                .withArguments(name: variable.name.lexeme)
+                .at(variable.name),
+          );
+        }
+      }
+    }
+  }
+
+  /// Verify that fields in the given [members] are initialized.
+  ///
+  /// If there is a generative constructor, instance fields are verified by
+  /// [ConstructorFieldsVerifier].
+  void _checkForNotInitializedFieldDeclarations(
+    InstanceFragmentImpl fragment,
+    List<ClassMember> members,
+  ) {
+    var hasGenerativeConstructor = false;
+    var element = fragment.element;
+    if (element is InterfaceElementImpl) {
+      hasGenerativeConstructor = element.constructors.any((constructor) {
+        return constructor.isGenerative && constructor.isOriginDeclaration;
+      });
+    }
+
+    // Primary constructor body is an intention to have a constructor.
+    hasGenerativeConstructor |= members
+        .whereType<PrimaryConstructorBodyImpl>()
+        .isNotEmpty;
+
+    for (var fieldDeclaration in members.whereType<FieldDeclaration>()) {
+      _checkForNotInitializedFieldDeclaration(
+        fieldDeclaration,
+        hasGenerativeConstructor,
+      );
     }
   }
 
