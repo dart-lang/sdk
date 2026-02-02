@@ -23,62 +23,6 @@ main() {
   });
 }
 
-class CharacterRangeReaderTest {
-  void test_advance() {
-    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 4);
-    expect(reader.advance(), 0x79);
-    expect(reader.advance(), 0x80);
-    expect(reader.advance(), 0x80);
-    expect(reader.advance(), -1);
-    expect(reader.advance(), -1);
-  }
-
-  void test_creation() {
-    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 4);
-    expect(reader, isNotNull);
-  }
-
-  void test_getOffset() {
-    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 2);
-    expect(reader.offset, 1);
-    reader.advance();
-    expect(reader.offset, 2);
-    reader.advance();
-    expect(reader.offset, 2);
-  }
-
-  void test_getString() {
-    CharSequenceReader baseReader = CharSequenceReader("__xyzzy__");
-    CharacterRangeReader reader = CharacterRangeReader(baseReader, 2, 7);
-    reader.offset = 5;
-    expect(reader.getString(3, 0), "yzz");
-    expect(reader.getString(4, 1), "zzy");
-  }
-
-  void test_peek() {
-    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 3);
-    expect(reader.peek(), 0x79);
-    expect(reader.peek(), 0x79);
-    reader.advance();
-    expect(reader.peek(), 0x80);
-    expect(reader.peek(), 0x80);
-    reader.advance();
-    expect(reader.peek(), -1);
-    expect(reader.peek(), -1);
-  }
-
-  void test_setOffset() {
-    CharSequenceReader baseReader = CharSequenceReader("xyzzy");
-    CharacterRangeReader reader = CharacterRangeReader(baseReader, 1, 4);
-    reader.offset = 2;
-    expect(reader.offset, 2);
-  }
-}
-
 @reflectiveTest
 class LineInfoTest {
   final featureSet = FeatureSet.latestLanguageVersion();
