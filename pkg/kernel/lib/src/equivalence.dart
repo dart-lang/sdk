@@ -5118,6 +5118,9 @@ class EquivalenceStrategy {
     if (!checkWhileStatement_body(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkWhileStatement_scope(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkWhileStatement_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -9613,6 +9616,11 @@ class EquivalenceStrategy {
   bool checkWhileStatement_body(
       EquivalenceVisitor visitor, WhileStatement node, WhileStatement other) {
     return visitor.checkNodes(node.body, other.body, 'body');
+  }
+
+  bool checkWhileStatement_scope(
+      EquivalenceVisitor visitor, WhileStatement node, WhileStatement other) {
+    return visitor.checkNodes(node.scope, other.scope, 'scope');
   }
 
   bool checkWhileStatement_fileOffset(

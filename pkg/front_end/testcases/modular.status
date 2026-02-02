@@ -23,3 +23,7 @@ inference/mixin_inference_unification_2: TypeCheckError
 closure_context_lowering/local_variables: Crash
 closure_context_lowering/parameters: Crash
 closure_context_lowering/this_variable: Crash
+closure_context_lowering/loop_depth_strategy: Crash
+closure_context_lowering/foo42: Crash
+closure_context_lowering/foo45: Crash
+closure_context_lowering/foo48: Crash
