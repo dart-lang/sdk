@@ -10823,9 +10823,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: binary,
-          message: diag.nullableOperatorCallError.withArgumentsOld(
-            binaryName.text,
-            leftType,
+          message: diag.nullableOperatorCallError.withArguments(
+            operator: binaryName.text,
+            receiverType: leftType,
           ),
           fileUri: fileUri,
           fileOffset: binary.fileOffset,
@@ -10987,9 +10987,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: unary,
-          message: diag.nullableOperatorCallError.withArgumentsOld(
-            unaryName.text,
-            expressionType,
+          message: diag.nullableOperatorCallError.withArguments(
+            operator: unaryName.text,
+            receiverType: expressionType,
           ),
           fileUri: fileUri,
           fileOffset: unary.fileOffset,
@@ -11147,9 +11147,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         problemReporting.wrapInProblem(
           compilerContext: compilerContext,
           expression: read,
-          message: diag.nullableOperatorCallError.withArgumentsOld(
-            indexGetName.text,
-            receiverType,
+          message: diag.nullableOperatorCallError.withArguments(
+            operator: indexGetName.text,
+            receiverType: receiverType,
           ),
           fileUri: fileUri,
           fileOffset: read.fileOffset,
@@ -11301,9 +11301,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: write,
-        message: diag.nullableOperatorCallError.withArgumentsOld(
-          indexSetName.text,
-          receiverType,
+        message: diag.nullableOperatorCallError.withArguments(
+          operator: indexSetName.text,
+          receiverType: receiverType,
         ),
         fileUri: fileUri,
         fileOffset: write.fileOffset,
@@ -13541,8 +13541,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         const DynamicType(),
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.throwingNotAssignableToObjectError.withArgumentsOld(
-            expressionResult.inferredType,
+          message: diag.throwingNotAssignableToObjectError.withArguments(
+            thrownType: expressionResult.inferredType,
           ),
           fileUri: fileUri,
           fileOffset: node.expression.fileOffset,
