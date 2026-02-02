@@ -1863,7 +1863,7 @@ class _ConstantAccessor {
     final initFunctionType =
         translator.typesBuilder.defineFunction(const [], [type]);
     final initFunction =
-        module.functions.define(initFunctionType, '$name (lazy initializer)}');
+        module.functions.define(initFunctionType, '$name (lazy initializer)');
     final b = initFunction.body;
     info._codeGen(info, b, true);
     if (info.needsRuntimeCanonicalization) {
@@ -1885,7 +1885,7 @@ class _ConstantAccessor {
     final initFunctionType =
         translator.typesBuilder.defineFunction(const [], [type]);
     final initFunction =
-        module.functions.define(initFunctionType, '$name (lazy initializer)}');
+        module.functions.define(initFunctionType, '$name (lazy initializer)');
     final b = initFunction.body;
     b.i32_const(tableIndex);
     info._codeGen(info, b, true);

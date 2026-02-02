@@ -48,7 +48,7 @@
   (elem $module0.cross-module-funcs-0
     (set 0 (ref.func $"modH1UseH1 <noInline>")))
   (func $#dummy function (ref struct) -> (ref null #Top) (param $var0 (ref struct)) (result (ref null $#Top)) <...>)
-  (func $"H1 (lazy initializer)}" (result (ref $H1))
+  (func $"H1 (lazy initializer)" (result (ref $H1))
     (local $var0 (ref $#Closure-1-1))
     (local $var1 (ref $_FunctionType))
     (local $var2 (ref $#Closure-0-1))
@@ -126,7 +126,7 @@
     block $label0 (result (ref $H1))
       global.get $H1
       br_on_non_null $label0
-      call $"H1 (lazy initializer)}"
+      call $"H1 (lazy initializer)"
     end $label0
     i32.const 4
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
@@ -134,7 +134,7 @@
     block $label1 (result (ref $H1))
       global.get $H1
       br_on_non_null $label1
-      call $"H1 (lazy initializer)}"
+      call $"H1 (lazy initializer)"
     end $label1
     struct.get $H1 $fun
     local.tee $var0
