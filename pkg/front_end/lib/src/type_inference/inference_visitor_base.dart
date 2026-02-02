@@ -606,11 +606,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         break;
       case AssignabilityKind.unassignableCantTearoff:
-        result = _wrapTearoffErrorExpression(
-          expression,
-          contextType,
-          diag.nullableTearoffError,
-        );
+        result = _wrapTearoffErrorExpression(expression, contextType);
         break;
       case AssignabilityKind.unassignableNullability:
         if (expressionType == assignabilityResult.subtype &&
@@ -714,7 +710,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Expression _wrapTearoffErrorExpression(
     Expression expression,
     DartType contextType,
-    Template<Message Function(String), Function> template,
   ) {
     Expression errorNode =
         new AsExpression(
@@ -734,7 +729,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       errorNode = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: errorNode,
-        message: template.withArgumentsOld(callName.text),
+        message: diag.nullableTearoffError.withArgumentsOld(callName.text),
         fileUri: fileUri,
         fileOffset: errorNode.fileOffset,
         length: noLength,
