@@ -1932,8 +1932,9 @@ class _InvalidAccessVerifier {
 
     // Check if the method being called is a parent method of the current node.
     var bodyParent = node.thisOrAncestorOfType<FunctionBody>()?.parent;
-    if (bodyParent == node.thisOrAncestorOfType<FunctionDeclaration>() ||
-        bodyParent == node.thisOrAncestorOfType<MethodDeclaration>()) {
+    if (bodyParent != null &&
+        (bodyParent == node.thisOrAncestorOfType<FunctionDeclaration>() ||
+            bodyParent == node.thisOrAncestorOfType<MethodDeclaration>())) {
       return;
     }
 
@@ -2078,15 +2079,10 @@ class _InvalidAccessVerifier {
     }
   }
 
-  bool _hasDoNotSubmit(Element element) {
-    if (element.metadata.hasDoNotSubmit) {
-      return true;
-    }
-    if (element is PropertyAccessorElement) {
-      return element.variable.metadata.hasDoNotSubmit;
-    }
-    return false;
-  }
+  bool _hasDoNotSubmit(Element element) =>
+      element.metadata.hasDoNotSubmit ||
+      (element is PropertyAccessorElement &&
+          element.variable.metadata.hasDoNotSubmit);
 
   bool _hasTypeOrSuperType(
     InterfaceElement? element,
