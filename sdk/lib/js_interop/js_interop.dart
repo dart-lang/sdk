@@ -174,7 +174,7 @@ class JSExport {
 /// `undefined`. JavaScript `null` and `undefined` are instead converted to Dart
 /// `null` by the compiler. Therefore, <code>[JSAny]?</code> is the top type of
 /// the type hierarchy as it includes nullish JavaScript values as well.
-extension type JSAny._(JSAnyRepType _jsAny) implements Object {}
+extension type JSAny._(JSAnyType _jsAny) implements Object, JSAnyType {}
 
 /// A JavaScript `Object`.
 ///
@@ -185,7 +185,8 @@ extension type JSAny._(JSAnyRepType _jsAny) implements Object {}
 /// When declaring interop extension types, [JSObject] is usually the type you
 /// will use as the representation type.
 @JS('Object')
-extension type JSObject._(JSObjectRepType _jsObject) implements JSAny {
+extension type JSObject._(JSObjectType _jsObject)
+    implements JSAny, JSObjectType {
   /// Creates a [JSObject] from an object provided by an earlier interop
   /// library.
   ///
@@ -194,7 +195,7 @@ extension type JSObject._(JSObjectRepType _jsObject) implements JSAny {
   /// This constructor is intended to allow users to avoid having to cast to and
   /// from [JSObject].
   JSObject.fromInteropObject(Object interopObject)
-    : _jsObject = interopObject as JSObjectRepType;
+    : _jsObject = interopObject as JSObjectType;
 
   /// Creates a new empty JavaScript object.
   ///
@@ -205,13 +206,13 @@ extension type JSObject._(JSObjectRepType _jsObject) implements JSAny {
 
 // TODO(srujzs): Move this member to `JSObject` once we can patch extension type
 // members.
-external JSObjectRepType _createObjectLiteral();
+external JSObjectType _createObjectLiteral();
 
 /// A JavaScript [`Function`](https://tc39.es/ecma262/#sec-function-objects)
 /// value.
 @JS('Function')
-extension type JSFunction._(JSFunctionRepType _jsFunction)
-    implements JSObject {}
+extension type JSFunction._(JSFunctionType _jsFunction)
+    implements JSObject, JSFunctionType {}
 
 /// A JavaScript callable function created from a Dart function.
 ///
@@ -220,9 +221,9 @@ extension type JSFunction._(JSFunctionRepType _jsFunction)
 /// to convert a Dart function.
 @JS('Function')
 extension type JSExportedDartFunction._(
-  JSExportedDartFunctionRepType _jsExportedDartFunction
+  JSExportedDartFunctionType _jsExportedDartFunction
 )
-    implements JSFunction {}
+    implements JSFunction, JSExportedDartFunctionType {}
 
 /// A JavaScript [`Array`](https://tc39.es/ecma262/#sec-array-objects).
 ///
@@ -243,8 +244,8 @@ extension type JSExportedDartFunction._(
 /// <code>[List]<T></code>, casts may be introduced to ensure that it is indeed
 /// a <code>[List]<T></code>.
 @JS('Array')
-extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
-    implements JSObject {
+extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
+    implements JSObject, JSArrayType {
   /// Creates an empty JavaScript `Array`.
   ///
   /// Equivalent to `new Array()` and more efficient than `[].jsify()`.
@@ -295,8 +296,8 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
 /// When converted to a <code>[Future]<T></code>, there is a cast to ensure that
 /// the [Future] actually resolves to a [T] to ensure soundness.
 @JS('Promise')
-extension type JSPromise<T extends JSAny?>._(JSPromiseRepType _jsPromise)
-    implements JSObject {
+extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
+    implements JSObject, JSPromiseType {
   external JSPromise(JSFunction executor);
 }
 
@@ -331,13 +332,13 @@ class NullRejectionException implements Exception {
 ///
 /// See [ObjectToJSBoxedDartObject.toJSBox] to wrap an arbitrary [Object].
 @JS('Object')
-extension type JSBoxedDartObject._(JSBoxedDartObjectRepType _jsBoxedDartObject)
-    implements JSObject {}
+extension type JSBoxedDartObject._(JSBoxedDartObjectType _jsBoxedDartObject)
+    implements JSObject, JSBoxedDartObjectType {}
 
 /// A JavaScript `ArrayBuffer`.
 @JS('ArrayBuffer')
-extension type JSArrayBuffer._(JSArrayBufferRepType _jsArrayBuffer)
-    implements JSObject {
+extension type JSArrayBuffer._(JSArrayBufferType _jsArrayBuffer)
+    implements JSObject, JSArrayBufferType {
   /// Creates a JavaScript `ArrayBuffer` of size [length] using an optional
   /// [options] JavaScript object that sets the `maxByteLength`.
   @Since('3.6')
@@ -346,7 +347,8 @@ extension type JSArrayBuffer._(JSArrayBufferRepType _jsArrayBuffer)
 
 /// A JavaScript `DataView`.
 @JS('DataView')
-extension type JSDataView._(JSDataViewRepType _jsDataView) implements JSObject {
+extension type JSDataView._(JSDataViewType _jsDataView)
+    implements JSObject, JSDataViewType {
   /// Creates a JavaScript `DataView` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [byteLength].
   @Since('3.6')
@@ -354,13 +356,13 @@ extension type JSDataView._(JSDataViewRepType _jsDataView) implements JSObject {
 }
 
 /// Abstract supertype of all JavaScript typed arrays.
-extension type JSTypedArray._(JSTypedArrayRepType _jsTypedArray)
-    implements JSObject {}
+extension type JSTypedArray._(JSTypedArrayType _jsTypedArray)
+    implements JSObject, JSTypedArrayType {}
 
 /// A JavaScript `Int8Array`.
 @JS('Int8Array')
-extension type JSInt8Array._(JSInt8ArrayRepType _jsInt8Array)
-    implements JSTypedArray {
+extension type JSInt8Array._(JSInt8ArrayType _jsInt8Array)
+    implements JSTypedArray, JSInt8ArrayType {
   /// Creates a JavaScript `Int8Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -376,8 +378,8 @@ extension type JSInt8Array._(JSInt8ArrayRepType _jsInt8Array)
 
 /// A JavaScript `Uint8Array`.
 @JS('Uint8Array')
-extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
-    implements JSTypedArray {
+extension type JSUint8Array._(JSUint8ArrayType _jsUint8Array)
+    implements JSTypedArray, JSUint8ArrayType {
   /// Creates a JavaScript `Uint8Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -394,9 +396,9 @@ extension type JSUint8Array._(JSUint8ArrayRepType _jsUint8Array)
 /// A JavaScript `Uint8ClampedArray`.
 @JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
-  JSUint8ClampedArrayRepType _jsUint8ClampedArray
+  JSUint8ClampedArrayType _jsUint8ClampedArray
 )
-    implements JSTypedArray {
+    implements JSTypedArray, JSUint8ClampedArrayType {
   /// Creates a JavaScript `Uint8ClampedArray` with [buffer] as its backing
   /// storage, offset by [byteOffset] bytes, of size [length].
   ///
@@ -416,8 +418,8 @@ extension type JSUint8ClampedArray._(
 
 /// A JavaScript `Int16Array`.
 @JS('Int16Array')
-extension type JSInt16Array._(JSInt16ArrayRepType _jsInt16Array)
-    implements JSTypedArray {
+extension type JSInt16Array._(JSInt16ArrayType _jsInt16Array)
+    implements JSTypedArray, JSInt16ArrayType {
   /// Creates a JavaScript `Int16Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -433,8 +435,8 @@ extension type JSInt16Array._(JSInt16ArrayRepType _jsInt16Array)
 
 /// A JavaScript `Uint16Array`.
 @JS('Uint16Array')
-extension type JSUint16Array._(JSUint16ArrayRepType _jsUint16Array)
-    implements JSTypedArray {
+extension type JSUint16Array._(JSUint16ArrayType _jsUint16Array)
+    implements JSTypedArray, JSUint16ArrayType {
   /// Creates a JavaScript `Uint16Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -450,8 +452,8 @@ extension type JSUint16Array._(JSUint16ArrayRepType _jsUint16Array)
 
 /// A JavaScript `Int32Array`.
 @JS('Int32Array')
-extension type JSInt32Array._(JSInt32ArrayRepType _jsInt32Array)
-    implements JSTypedArray {
+extension type JSInt32Array._(JSInt32ArrayType _jsInt32Array)
+    implements JSTypedArray, JSInt32ArrayType {
   /// Creates a JavaScript `Int32Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -467,8 +469,8 @@ extension type JSInt32Array._(JSInt32ArrayRepType _jsInt32Array)
 
 /// A JavaScript `Uint32Array`.
 @JS('Uint32Array')
-extension type JSUint32Array._(JSUint32ArrayRepType _jsUint32Array)
-    implements JSTypedArray {
+extension type JSUint32Array._(JSUint32ArrayType _jsUint32Array)
+    implements JSTypedArray, JSUint32ArrayType {
   /// Creates a JavaScript `Uint32Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -484,8 +486,8 @@ extension type JSUint32Array._(JSUint32ArrayRepType _jsUint32Array)
 
 /// A JavaScript `Float32Array`.
 @JS('Float32Array')
-extension type JSFloat32Array._(JSFloat32ArrayRepType _jsFloat32Array)
-    implements JSTypedArray {
+extension type JSFloat32Array._(JSFloat32ArrayType _jsFloat32Array)
+    implements JSTypedArray, JSFloat32ArrayType {
   /// Creates a JavaScript `Float32Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -501,8 +503,8 @@ extension type JSFloat32Array._(JSFloat32ArrayRepType _jsFloat32Array)
 
 /// A JavaScript `Float64Array`.
 @JS('Float64Array')
-extension type JSFloat64Array._(JSFloat64ArrayRepType _jsFloat64Array)
-    implements JSTypedArray {
+extension type JSFloat64Array._(JSFloat64ArrayType _jsFloat64Array)
+    implements JSTypedArray, JSFloat64ArrayType {
   /// Creates a JavaScript `Float64Array` with [buffer] as its backing storage,
   /// offset by [byteOffset] bytes, of size [length].
   ///
@@ -521,20 +523,24 @@ extension type JSFloat64Array._(JSFloat64ArrayRepType _jsFloat64Array)
 // subtypes of [JSAny].
 
 /// A JavaScript number.
-extension type JSNumber._(JSNumberRepType _jsNumber) implements JSAny {}
+extension type JSNumber._(JSNumberType _jsNumber)
+    implements JSAny, JSNumberType {}
 
 /// A JavaScript boolean.
-extension type JSBoolean._(JSBooleanRepType _jsBoolean) implements JSAny {}
+extension type JSBoolean._(JSBooleanType _jsBoolean)
+    implements JSAny, JSBooleanType {}
 
 /// A JavaScript string.
-extension type JSString._(JSStringRepType _jsString) implements JSAny {}
+extension type JSString._(JSStringType _jsString)
+    implements JSAny, JSStringType {}
 
 @JS('Symbol')
 external JSSymbol _constructSymbol([String? description]);
 
 /// A JavaScript `Symbol`.
 @JS('Symbol')
-extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
+extension type JSSymbol._(JSSymbolType _jsSymbol)
+    implements JSAny, JSSymbolType {
   // TODO(srujzs): See if this can be made `const` so it can be used in similar
   // situations to a Dart symbol literal.
   /// Creates a new, unique JavaScript `Symbol`.
@@ -653,7 +659,8 @@ extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
 }
 
 /// A JavaScript `BigInt`.
-extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
+extension type JSBigInt._(JSBigIntType _jsBigInt)
+    implements JSAny, JSBigIntType {}
 
 /// An opaque reference to a Dart object that can be passed to JavaScript.
 ///
@@ -682,7 +689,7 @@ extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}
 /// See [ObjectToExternalDartReference.toExternalReference] to allow an
 /// arbitrary value of type [T] to be passed to JavaScript.
 extension type ExternalDartReference<T extends Object?>._(
-  ExternalDartReferenceRepType<T> _externalDartReference
+  ExternalDartReferenceType<T> _externalDartReference
 ) {}
 
 /// JS type equivalent for `undefined` for interop member return types.
@@ -690,7 +697,7 @@ extension type ExternalDartReference<T extends Object?>._(
 /// Prefer using `void` instead of this.
 // TODO(srujzs): Mark this as deprecated. There are no performance costs from
 // using `void`, and we'll likely provide a different way to box `undefined`.
-typedef JSVoid = JSVoidRepType;
+typedef JSVoid = JSVoidType;
 
 /// Helper members to determine if a value is JavaScript `undefined` or `null`.
 ///
