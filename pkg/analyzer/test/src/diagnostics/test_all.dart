@@ -113,7 +113,6 @@ import 'const_constructor_field_type_mismatch_test.dart'
     as const_constructor_field_type_mismatch;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
-import 'const_constructor_with_body_test.dart' as const_constructor_with_body;
 import 'const_constructor_with_field_initialized_by_non_const_test.dart'
     as const_constructor_with_field_initialized_by_non_const;
 import 'const_constructor_with_mixin_with_field_test.dart'
@@ -163,6 +162,7 @@ import 'constant_pattern_never_matches_value_type_test.dart'
     as constant_pattern_never_matches_value_type;
 import 'constant_pattern_with_non_constant_expression_test.dart'
     as constant_pattern_with_non_constant_expression;
+import 'constructor_body_test.dart' as constructor_body;
 import 'continue_label_invalid_test.dart' as continue_label_invalid;
 import 'could_not_infer_test.dart' as could_not_infer;
 import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
@@ -314,6 +314,7 @@ import 'extension_type_with_abstract_member_test.dart'
     as extension_type_with_abstract_member;
 import 'external_field_constructor_initializer_test.dart'
     as external_field_constructor_initializer;
+import 'external_method_with_body_test.dart' as external_method_with_body;
 import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
@@ -1015,7 +1016,6 @@ main() {
     conflicting_type_variable_and_member.main();
     const_constructor_field_type_mismatch.main();
     const_constructor_param_type_mismatch.main();
-    const_constructor_with_body.main();
     const_constructor_with_field_initialized_by_non_const.main();
     const_constructor_with_mixin_with_field.main();
     const_constructor_with_non_const_super.main();
@@ -1049,6 +1049,7 @@ main() {
     const_with_undefined_constructor.main();
     constant_pattern_never_matches_value_type.main();
     constant_pattern_with_non_constant_expression.main();
+    constructor_body.main();
     continue_label_invalid.main();
     could_not_infer.main();
     creation_of_struct_or_union.main();
@@ -1148,6 +1149,7 @@ main() {
     extension_type_representation_type_bottom.main();
     extension_type_with_abstract_member.main();
     external_field_constructor_initializer.main();
+    external_method_with_body.main();
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();

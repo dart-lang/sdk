@@ -4,6 +4,7 @@
 
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
+import 'package:analysis_server_plugin/src/plugin_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -273,7 +274,19 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   @override
   List<String> get fixArguments => [_code];
 
-  String get _code => diagnostic.diagnosticCode.lowerCaseName;
+  String get _code {
+    var code = diagnostic.diagnosticCode.lowerCaseName;
+    for (var entry in PluginServer.registries.entries) {
+      if (int.tryParse(entry.key) != null) {
+        // Skip numeric keys (we don't know the plugin name).
+        continue;
+      }
+      if (entry.value.codeMap.containsValue(diagnostic.diagnosticCode)) {
+        return '${entry.key}/$code';
+      }
+    }
+    return code;
+  }
 
   /// Returns `true` if any of the following is `true`:
   /// - `error.code` is present in the `cannot-ignore` list.

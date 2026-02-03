@@ -5221,8 +5221,8 @@ ffiNativeOnlyNativeFieldWrapperClassCanBePointer = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2),
-  Message Function({required int count, required int count2})
+  Message Function(int expectedCount, int actualCount),
+  Message Function({required int expectedCount, required int actualCount})
 >
 ffiNativeUnexpectedNumberOfParameters = const Template(
   "FfiNativeUnexpectedNumberOfParameters",
@@ -5232,30 +5232,30 @@ ffiNativeUnexpectedNumberOfParameters = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiNativeUnexpectedNumberOfParameters({
-  required int count,
-  required int count2,
+  required int expectedCount,
+  required int actualCount,
 }) {
   return new Message(
     ffiNativeUnexpectedNumberOfParameters,
     problemMessage:
-        """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}.""",
-    arguments: {'count': count, 'count2': count2},
+        """Unexpected number of Native annotation parameters. Expected ${expectedCount} but has ${actualCount}.""",
+    arguments: {'expectedCount': expectedCount, 'actualCount': actualCount},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFfiNativeUnexpectedNumberOfParameters(
-  int count,
-  int count2,
+  int expectedCount,
+  int actualCount,
 ) => _withArgumentsFfiNativeUnexpectedNumberOfParameters(
-  count: count,
-  count2: count2,
+  expectedCount: expectedCount,
+  actualCount: actualCount,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2),
-  Message Function({required int count, required int count2})
+  Message Function(int expectedCount, int actualCount),
+  Message Function({required int expectedCount, required int actualCount})
 >
 ffiNativeUnexpectedNumberOfParametersWithReceiver = const Template(
   "FfiNativeUnexpectedNumberOfParametersWithReceiver",
@@ -5267,24 +5267,24 @@ ffiNativeUnexpectedNumberOfParametersWithReceiver = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver({
-  required int count,
-  required int count2,
+  required int expectedCount,
+  required int actualCount,
 }) {
   return new Message(
     ffiNativeUnexpectedNumberOfParametersWithReceiver,
     problemMessage:
-        """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}. Native instance method annotation must have receiver as first argument.""",
-    arguments: {'count': count, 'count2': count2},
+        """Unexpected number of Native annotation parameters. Expected ${expectedCount} but has ${actualCount}. Native instance method annotation must have receiver as first argument.""",
+    arguments: {'expectedCount': expectedCount, 'actualCount': actualCount},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFfiNativeUnexpectedNumberOfParametersWithReceiver(
-  int count,
-  int count2,
+  int expectedCount,
+  int actualCount,
 ) => _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver(
-  count: count,
-  count2: count2,
+  expectedCount: expectedCount,
+  actualCount: actualCount,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

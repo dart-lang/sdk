@@ -7,8 +7,10 @@ import 'dart:async';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
+import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analysis_server_plugin/src/plugin_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
@@ -77,6 +79,54 @@ plugins:
       buffer.writeln('      $diagnosticName: $enablement');
     }
     newAnalysisOptionsYamlFile(packagePath, buffer.toString());
+  }
+
+  Future<void> test_ignoreFixes() async {
+    writeAnalysisOptionsWithPlugin();
+    var fileContent = 'bool b = false;';
+    newFile(filePath, fileContent);
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var result = await pluginServer.handleEditGetFixes(
+      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
+    );
+    var fixes = result.fixes.single.fixes;
+    for (var fix in fixes) {
+      if (fix.change.id == ignoreErrorLineKind.id) {
+        expect(
+          fix.change.message,
+          "Ignore 'no_literals/no_bools' for this line",
+        );
+        var resultCode = protocol.SourceEdit.applySequence(
+          fileContent,
+          fix.change.edits.first.edits,
+        );
+        expect(
+          resultCode,
+          normalizeNewlinesForPlatform('''
+// ignore: no_literals/no_bools
+bool b = false;'''),
+        );
+      } else if (fix.change.id == ignoreErrorFileKind.id) {
+        expect(
+          fix.change.message,
+          "Ignore 'no_literals/no_bools' for the whole file",
+        );
+        var resultCode = protocol.SourceEdit.applySequence(
+          fileContent,
+          fix.change.edits.first.edits,
+        );
+        expect(
+          resultCode,
+          normalizeNewlinesForPlatform('''
+// ignore_for_file: no_literals/no_bools
+
+bool b = false;'''),
+        );
+      }
+    }
   }
 }
 
@@ -202,6 +252,48 @@ bool b = [!false!];
     var fixes = result.fixes.single;
     // The WrapInQuotes fix plus three "ignore diagnostic" fixes.
     expect(fixes.fixes, hasLength(4));
+  }
+
+  Future<void> test_ignoreFixes() async {
+    writeAnalysisOptionsWithPlugin();
+    var fileContent = 'bool b = false;';
+    newFile(filePath, fileContent);
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var result = await pluginServer.handleEditGetFixes(
+      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
+    );
+    var fixes = result.fixes.single.fixes;
+    for (var fix in fixes) {
+      if (fix.change.id == ignoreErrorLineKind.id) {
+        expect(fix.change.message, "Ignore 'no_bools' for this line");
+        var resultCode = protocol.SourceEdit.applySequence(
+          fileContent,
+          fix.change.edits.first.edits,
+        );
+        expect(
+          resultCode,
+          normalizeNewlinesForPlatform('''
+// ignore: no_bools
+bool b = false;'''),
+        );
+      } else if (fix.change.id == ignoreErrorFileKind.id) {
+        expect(fix.change.message, "Ignore 'no_bools' for the whole file");
+        var resultCode = protocol.SourceEdit.applySequence(
+          fileContent,
+          fix.change.edits.first.edits,
+        );
+        expect(
+          resultCode,
+          normalizeNewlinesForPlatform('''
+// ignore_for_file: no_bools
+
+bool b = false;'''),
+        );
+      }
+    }
   }
 
   Future<void> test_handleEditGetFixes_afterLine() async {

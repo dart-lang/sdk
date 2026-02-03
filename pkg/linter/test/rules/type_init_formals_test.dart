@@ -48,7 +48,32 @@ class Invalid {
     );
   }
 
-  test_requiredConstructorParam_tightening() async {
+  test_requiredParam_declaring() async {
+    await assertNoDiagnostics(r'''
+class A({required var String this.s});
+''');
+  }
+
+  test_requiredParam_inPrimaryConstructor_tightening() async {
+    await assertNoDiagnostics(r'''
+class A({required String this.s}) {
+  String? s;
+}
+''');
+  }
+
+  test_requiredParam_inPrimaryConstructor_unnecessaryType() async {
+    await assertDiagnostics(
+      r'''
+class A({required String this.s}) {
+  String s;
+}
+''',
+      [lint(18, 6)],
+    );
+  }
+
+  test_requiredParam_tightening() async {
     await assertNoDiagnostics(r'''
 class A {
   String? s;
@@ -57,7 +82,7 @@ class A {
 ''');
   }
 
-  test_requiredConstructorParam_unnecessaryNullableType() async {
+  test_requiredParam_unnecessaryNullableType() async {
     await assertDiagnostics(
       r'''
 class A {
@@ -69,7 +94,7 @@ class A {
     );
   }
 
-  test_requiredConstructorParam_unnecessaryType() async {
+  test_requiredParam_unnecessaryType() async {
     await assertDiagnostics(
       r'''
 class A {

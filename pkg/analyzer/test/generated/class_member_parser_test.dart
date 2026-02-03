@@ -1018,11 +1018,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   void test_parseClassMember_method_native_with_body_allowed() {
     allowNativeClause = true;
     _parseClassMember_method_native_with_body();
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    assertErrorsWithCodes([diag.externalMethodWithBody]);
-    //      listener.assertErrors([
-    //        expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 17, 2),
-    //      ]);
+    listener.assertErrors([expectedError(diag.externalMethodWithBody, 17, 1)]);
   }
 
   void test_parseClassMember_method_native_with_body_not_allowed() {
@@ -1033,10 +1029,6 @@ void Function<A>(core.List<core.int> x) m() => null;
       diag.nativeClauseShouldBeAnnotation,
       diag.externalMethodWithBody,
     ]);
-    //      listener.assertErrors([
-    //        expectedError(ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, 4, 6),
-    //        expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 17, 2),
-    //      ]);
   }
 
   void test_parseClassMember_method_operator_noType() {

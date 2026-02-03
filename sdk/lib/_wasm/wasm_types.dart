@@ -274,6 +274,111 @@ class WasmF64 extends _WasmBase {
   external WasmF64 copysign(WasmF64 other);
 }
 
+/// The Wasm `v128` type.
+@pragma("wasm:entry-point")
+class WasmV128 extends _WasmBase {}
+
+extension type WasmI8x16(WasmV128 value) {
+  @pragma("wasm:intrinsic")
+  external factory WasmI8x16.splat(WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLaneSigned(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLaneUnsigned(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 replaceLane(int index, WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 operator +(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 operator -(WasmI8x16 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 operator -();
+}
+
+extension type WasmI16x8(WasmV128 value) {
+  @pragma("wasm:intrinsic")
+  external factory WasmI16x8.splat(WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLaneSigned(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLaneUnsigned(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 replaceLane(int index, WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 operator +(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 operator -(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 operator *(WasmI16x8 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 dotProduct(WasmI16x8 other);
+}
+
+extension type WasmI32x4(WasmV128 value) {
+  @pragma("wasm:intrinsic")
+  external factory WasmI32x4.splat(WasmI32 value);
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLane(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 replaceLane(int index, WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 operator +(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 operator -(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 operator *(WasmI32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 operator -();
+}
+
+extension type WasmI64x2(WasmV128 value) {
+  @pragma("wasm:intrinsic")
+  external factory WasmI64x2.splat(WasmI64 value);
+  @pragma("wasm:intrinsic")
+  external WasmI64 extractLane(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 replaceLane(int index, WasmI64 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 operator +(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 operator -(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 operator *(WasmI64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 operator -();
+}
+
+extension type WasmF32x4(WasmV128 value) {
+  @pragma("wasm:intrinsic")
+  external factory WasmF32x4.splat(WasmF32 value);
+  @pragma("wasm:intrinsic")
+  external WasmF32 extractLane(int index);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 replaceLane(int index, WasmF32 value);
+}
+
+extension type WasmF64x2(WasmV128 value) {
+  @pragma("wasm:intrinsic")
+  external factory WasmF64x2.splat(WasmF64 value);
+  @pragma("wasm:intrinsic")
+  external WasmF64 extractLane(int index);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 replaceLane(int index, WasmF64 value);
+}
+
 /// A Wasm array.
 ///
 /// NOTE: `T` is invariant.
