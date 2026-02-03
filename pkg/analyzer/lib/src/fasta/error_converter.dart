@@ -57,12 +57,7 @@ class FastaErrorReporter {
         );
         return;
       case PseudoSharedCode.constConstructorWithBody:
-        diagnosticReporter?.report(
-          diag.constConstructorWithBody.atOffset(
-            offset: offset,
-            length: length,
-          ),
-        );
+        // Reported by [ErrorVerifier]
         return;
       case PseudoSharedCode.constNotInitialized:
         // Reported by [ErrorVerifier]
@@ -362,6 +357,12 @@ class FastaErrorReporter {
   void reportMessage(Message message, int offset, int length) {
     Code code = message.code;
     if (code.sharedCode case var sharedCode?) {
+      // Reported by [ErrorVerifier].
+      if (sharedCode == SharedCode.externalFactoryWithBody ||
+          sharedCode == SharedCode.redirectingConstructorWithBody ||
+          sharedCode == SharedCode.externalMethodWithBody) {
+        return;
+      }
       var diagnosticCode = sharedAnalyzerCodes[sharedCode.index];
       diagnosticReporter!.reportError(
         Diagnostic.tmp(
