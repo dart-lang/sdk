@@ -244,7 +244,7 @@ class DartCallHierarchyComputer {
     // Group results by their container, since we only want to return a single
     // entry for a body, with a set of ranges within.
     var resultsByContainer = <Element, CallHierarchyCalls>{};
-    // We may need to fetch parsed results for the other files, reuse them
+    // We may need to fetch parsed results for the other files; reuse them
     // across calls.
     var parsedUnits = <String, SomeParsedUnitResult?>{};
     for (var reference in references) {
@@ -346,22 +346,23 @@ class DartCallHierarchyComputer {
     // constructor for unnamed constructor (since we use the constructors name
     // as the target otherwise).
     return switch (node) {
-      // Type name in a named constructor reference, not considered a call.
+      // Type name in a named constructor reference; not considered a call.
       NamedType(parent: ConstructorName(:var name?))
           when offset < name.offset =>
         null,
-      // Type name in a named constructor declaration, not considered a call.
+      // Type name in a named constructor declaration; not considered a call.
       Identifier(parent: ConstructorDeclaration(:var name?))
           when offset < name.offset =>
         null,
       // Type name in an unnamed constructor declaration, or constructor name in
-      // a named constructor, use the constructor.
+      // a named constructor; use the constructor.
       Identifier(parent: ConstructorDeclaration(name: null)) => node.parent,
-      // Type name in a named primary constructor declaration, not considered a call.
+      // Type name in a named primary constructor declaration; not considered a
+      // call.
       PrimaryConstructorDeclaration(:var constructorName?)
           when offset < constructorName.name.offset =>
         null,
-      // Primary constructor name, use the constructor.
+      // Primary constructor name; use the constructor.
       PrimaryConstructorName() => node.parent,
       _ => node,
     };
