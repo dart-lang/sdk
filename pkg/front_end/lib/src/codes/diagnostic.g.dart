@@ -12942,11 +12942,11 @@ nonCovariantTypeParameterInRepresentationType = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String string, String string2),
+  Message Function(DartType scrutineeType, String witness, String correction),
   Message Function({
-    required DartType type,
-    required String string,
-    required String string2,
+    required DartType scrutineeType,
+    required String witness,
+    required String correction,
   })
 >
 nonExhaustiveSwitchExpression = const Template(
@@ -12957,43 +12957,47 @@ nonExhaustiveSwitchExpression = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonExhaustiveSwitchExpression({
-  required DartType type,
-  required String string,
-  required String string2,
+  required DartType scrutineeType,
+  required String witness,
+  required String correction,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var scrutineeType_0 = labeler.labelType(scrutineeType);
+  var witness_0 = conversions.validateString(witness);
+  var correction_0 = conversions.validateString(correction);
   return new Message(
     nonExhaustiveSwitchExpression,
     problemMessage:
-        """The type '${type_0}' is not exhaustively matched by the switch cases since it doesn't match '${string_0}'.""" +
+        """The type '${scrutineeType_0}' is not exhaustively matched by the switch cases since it doesn't match '${witness_0}'.""" +
         labeler.originMessages,
     correctionMessage:
-        """Try adding a wildcard pattern or cases that match '${string2_0}'.""",
-    arguments: {'type': type, 'string': string, 'string2': string2},
+        """Try adding a wildcard pattern or cases that match '${correction_0}'.""",
+    arguments: {
+      'scrutineeType': scrutineeType,
+      'witness': witness,
+      'correction': correction,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldNonExhaustiveSwitchExpression(
-  DartType type,
-  String string,
-  String string2,
+  DartType scrutineeType,
+  String witness,
+  String correction,
 ) => _withArgumentsNonExhaustiveSwitchExpression(
-  type: type,
-  string: string,
-  string2: string2,
+  scrutineeType: scrutineeType,
+  witness: witness,
+  correction: correction,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String string, String string2),
+  Message Function(DartType scrutineeType, String witness, String correction),
   Message Function({
-    required DartType type,
-    required String string,
-    required String string2,
+    required DartType scrutineeType,
+    required String witness,
+    required String correction,
   })
 >
 nonExhaustiveSwitchStatement = const Template(
@@ -13004,34 +13008,38 @@ nonExhaustiveSwitchStatement = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNonExhaustiveSwitchStatement({
-  required DartType type,
-  required String string,
-  required String string2,
+  required DartType scrutineeType,
+  required String witness,
+  required String correction,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var scrutineeType_0 = labeler.labelType(scrutineeType);
+  var witness_0 = conversions.validateString(witness);
+  var correction_0 = conversions.validateString(correction);
   return new Message(
     nonExhaustiveSwitchStatement,
     problemMessage:
-        """The type '${type_0}' is not exhaustively matched by the switch cases since it doesn't match '${string_0}'.""" +
+        """The type '${scrutineeType_0}' is not exhaustively matched by the switch cases since it doesn't match '${witness_0}'.""" +
         labeler.originMessages,
     correctionMessage:
-        """Try adding a default case or cases that match '${string2_0}'.""",
-    arguments: {'type': type, 'string': string, 'string2': string2},
+        """Try adding a default case or cases that match '${correction_0}'.""",
+    arguments: {
+      'scrutineeType': scrutineeType,
+      'witness': witness,
+      'correction': correction,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldNonExhaustiveSwitchStatement(
-  DartType type,
-  String string,
-  String string2,
+  DartType scrutineeType,
+  String witness,
+  String correction,
 ) => _withArgumentsNonExhaustiveSwitchStatement(
-  type: type,
-  string: string,
-  string2: string2,
+  scrutineeType: scrutineeType,
+  witness: witness,
+  correction: correction,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

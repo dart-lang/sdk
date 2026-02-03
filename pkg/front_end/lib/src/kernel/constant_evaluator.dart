@@ -1447,10 +1447,10 @@ class ConstantsTransformer extends RemovingTransformer {
           (isSwitchExpression
                   ? diag.nonExhaustiveSwitchExpression
                   : diag.nonExhaustiveSwitchStatement)
-              .withArgumentsOld(
-                expressionType,
-                nonExhaustiveness.witnesses.first.asWitness,
-                nonExhaustiveness.witnesses.first.asCorrection,
+              .withArguments(
+                scrutineeType: expressionType,
+                witness: nonExhaustiveness.witnesses.first.asWitness,
+                correction: nonExhaustiveness.witnesses.first.asCorrection,
               ),
         ),
       );

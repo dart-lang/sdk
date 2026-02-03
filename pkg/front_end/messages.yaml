@@ -7018,11 +7018,11 @@ jointPatternVariablesMismatch:
 
 nonExhaustiveSwitchExpression:
   parameters:
-    Type type: undocumented
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
-  correctionMessage: "Try adding a wildcard pattern or cases that match '#string2'."
+    Type scrutineeType: The type of the scrutinee.
+    String witness: Witness of the type that is not matched.
+    String correction: Correction for the type that is not matched.
+  problemMessage: "The type '#scrutineeType' is not exhaustively matched by the switch cases since it doesn't match '#witness'."
+  correctionMessage: "Try adding a wildcard pattern or cases that match '#correction'."
   script: |
     enum Enum { a, b }
     String method(Enum e) => switch (e) {
@@ -7031,11 +7031,11 @@ nonExhaustiveSwitchExpression:
 
 nonExhaustiveSwitchStatement:
   parameters:
-    Type type: undocumented
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
-  correctionMessage: "Try adding a default case or cases that match '#string2'."
+    Type scrutineeType: The type of the scrutinee.
+    String witness: Witness of the type that is not matched.
+    String correction: Correction for the type that is not matched.
+  problemMessage: "The type '#scrutineeType' is not exhaustively matched by the switch cases since it doesn't match '#witness'."
+  correctionMessage: "Try adding a default case or cases that match '#correction'."
   script: |
     enum Enum { a, b }
     method(Enum e) {
