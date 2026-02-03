@@ -1044,9 +1044,9 @@ class _SanitizedMember {
           );
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-          diag.implementNonExtensionTypeAndExtensionTypeMember.withArgumentsOld(
-            extensionTypeDeclarationBuilder.name,
-            name.text,
+          diag.implementNonExtensionTypeAndExtensionTypeMember.withArguments(
+            extensionTypeName: extensionTypeDeclarationBuilder.name,
+            memberName: name.text,
           ),
           extensionTypeDeclarationBuilder.fileOffset,
           extensionTypeDeclarationBuilder.name.length,
@@ -1063,9 +1063,9 @@ class _SanitizedMember {
           );
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-          diag.implementMultipleExtensionTypeMembers.withArgumentsOld(
-            extensionTypeDeclarationBuilder.name,
-            name.text,
+          diag.implementMultipleExtensionTypeMembers.withArguments(
+            extensionTypeName: extensionTypeDeclarationBuilder.name,
+            memberName: name.text,
           ),
           extensionTypeDeclarationBuilder.fileOffset,
           extensionTypeDeclarationBuilder.name.length,

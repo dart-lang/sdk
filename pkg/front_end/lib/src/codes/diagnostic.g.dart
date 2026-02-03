@@ -3054,8 +3054,8 @@ dotShorthandsConstructorInvocationWithTypeArguments = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String dotShorthandName),
+  Message Function({required String dotShorthandName})
 >
 dotShorthandsInvalidContext = const Template(
   "DotShorthandsInvalidContext",
@@ -3064,24 +3064,30 @@ dotShorthandsInvalidContext = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDotShorthandsInvalidContext({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDotShorthandsInvalidContext({
+  required String dotShorthandName,
+}) {
+  var dotShorthandName_0 = conversions.validateAndDemangleName(
+    dotShorthandName,
+  );
   return new Message(
     dotShorthandsInvalidContext,
     problemMessage:
-        """No type was provided to find the dot shorthand '${name_0}'.""",
-    arguments: {'name': name},
+        """No type was provided to find the dot shorthand '${dotShorthandName_0}'.""",
+    arguments: {'dotShorthandName': dotShorthandName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDotShorthandsInvalidContext(String name) =>
-    _withArgumentsDotShorthandsInvalidContext(name: name);
+Message _withArgumentsOldDotShorthandsInvalidContext(String dotShorthandName) =>
+    _withArgumentsDotShorthandsInvalidContext(
+      dotShorthandName: dotShorthandName,
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String getterName, DartType contextType),
+  Message Function({required String getterName, required DartType contextType})
 >
 dotShorthandsUndefinedGetter = const Template(
   "DotShorthandsUndefinedGetter",
@@ -3091,28 +3097,31 @@ dotShorthandsUndefinedGetter = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDotShorthandsUndefinedGetter({
-  required String name,
-  required DartType type,
+  required String getterName,
+  required DartType contextType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var getterName_0 = conversions.validateAndDemangleName(getterName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var contextType_0 = labeler.labelType(contextType);
   return new Message(
     dotShorthandsUndefinedGetter,
     problemMessage:
-        """The static getter or field '${name_0}' isn't defined for the type '${type_0}'.""" +
+        """The static getter or field '${getterName_0}' isn't defined for the type '${contextType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
-        """Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '${name_0}'.""",
-    arguments: {'name': name, 'type': type},
+        """Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '${getterName_0}'.""",
+    arguments: {'getterName': getterName, 'contextType': contextType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldDotShorthandsUndefinedGetter(
-  String name,
-  DartType type,
-) => _withArgumentsDotShorthandsUndefinedGetter(name: name, type: type);
+  String getterName,
+  DartType contextType,
+) => _withArgumentsDotShorthandsUndefinedGetter(
+  getterName: getterName,
+  contextType: contextType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -3989,8 +3998,8 @@ Message _withArgumentsOldExperimentDisabledInvalidLanguageVersion(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String experimentName),
+  Message Function({required String experimentName})
 >
 experimentExpiredDisabled = const Template(
   "ExperimentExpiredDisabled",
@@ -3999,24 +4008,26 @@ experimentExpiredDisabled = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentExpiredDisabled({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsExperimentExpiredDisabled({
+  required String experimentName,
+}) {
+  var experimentName_0 = conversions.validateAndDemangleName(experimentName);
   return new Message(
     experimentExpiredDisabled,
     problemMessage:
-        """The experiment '${name_0}' has expired and can't be disabled.""",
-    arguments: {'name': name},
+        """The experiment '${experimentName_0}' has expired and can't be disabled.""",
+    arguments: {'experimentName': experimentName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentExpiredDisabled(String name) =>
-    _withArgumentsExperimentExpiredDisabled(name: name);
+Message _withArgumentsOldExperimentExpiredDisabled(String experimentName) =>
+    _withArgumentsExperimentExpiredDisabled(experimentName: experimentName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String experimentName),
+  Message Function({required String experimentName})
 >
 experimentExpiredEnabled = const Template(
   "ExperimentExpiredEnabled",
@@ -4025,19 +4036,21 @@ experimentExpiredEnabled = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentExpiredEnabled({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsExperimentExpiredEnabled({
+  required String experimentName,
+}) {
+  var experimentName_0 = conversions.validateAndDemangleName(experimentName);
   return new Message(
     experimentExpiredEnabled,
     problemMessage:
-        """The experiment '${name_0}' has expired and can't be enabled.""",
-    arguments: {'name': name},
+        """The experiment '${experimentName_0}' has expired and can't be enabled.""",
+    arguments: {'experimentName': experimentName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExperimentExpiredEnabled(String name) =>
-    _withArgumentsExperimentExpiredEnabled(name: name);
+Message _withArgumentsOldExperimentExpiredEnabled(String experimentName) =>
+    _withArgumentsExperimentExpiredEnabled(experimentName: experimentName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6570,8 +6583,11 @@ const MessageCode illegalSyncGeneratorVoidReturnType = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String extensionTypeName, String memberName),
+  Message Function({
+    required String extensionTypeName,
+    required String memberName,
+  })
 >
 implementMultipleExtensionTypeMembers = const Template(
   "ImplementMultipleExtensionTypeMembers",
@@ -6581,34 +6597,42 @@ implementMultipleExtensionTypeMembers = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplementMultipleExtensionTypeMembers({
-  required String name,
-  required String name2,
+  required String extensionTypeName,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var extensionTypeName_0 = conversions.validateAndDemangleName(
+    extensionTypeName,
+  );
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     implementMultipleExtensionTypeMembers,
     problemMessage:
-        """The extension type '${name_0}' can't inherit the member '${name2_0}' from more than one extension type.""",
+        """The extension type '${extensionTypeName_0}' can't inherit the member '${memberName_0}' from more than one extension type.""",
     correctionMessage:
-        """Try declaring a member '${name2_0}' in '${name_0}' to resolve the conflict.""",
-    arguments: {'name': name, 'name2': name2},
+        """Try declaring a member '${memberName_0}' in '${extensionTypeName_0}' to resolve the conflict.""",
+    arguments: {
+      'extensionTypeName': extensionTypeName,
+      'memberName': memberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldImplementMultipleExtensionTypeMembers(
-  String name,
-  String name2,
+  String extensionTypeName,
+  String memberName,
 ) => _withArgumentsImplementMultipleExtensionTypeMembers(
-  name: name,
-  name2: name2,
+  extensionTypeName: extensionTypeName,
+  memberName: memberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String extensionTypeName, String memberName),
+  Message Function({
+    required String extensionTypeName,
+    required String memberName,
+  })
 >
 implementNonExtensionTypeAndExtensionTypeMember = const Template(
   "ImplementNonExtensionTypeAndExtensionTypeMember",
@@ -6619,28 +6643,33 @@ implementNonExtensionTypeAndExtensionTypeMember = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember({
-  required String name,
-  required String name2,
+  required String extensionTypeName,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var extensionTypeName_0 = conversions.validateAndDemangleName(
+    extensionTypeName,
+  );
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     implementNonExtensionTypeAndExtensionTypeMember,
     problemMessage:
-        """The extension type '${name_0}' can't inherit the member '${name2_0}' as both an extension type member and a non-extension type member.""",
+        """The extension type '${extensionTypeName_0}' can't inherit the member '${memberName_0}' as both an extension type member and a non-extension type member.""",
     correctionMessage:
-        """Try declaring a member '${name2_0}' in '${name_0}' to resolve the conflict.""",
-    arguments: {'name': name, 'name2': name2},
+        """Try declaring a member '${memberName_0}' in '${extensionTypeName_0}' to resolve the conflict.""",
+    arguments: {
+      'extensionTypeName': extensionTypeName,
+      'memberName': memberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldImplementNonExtensionTypeAndExtensionTypeMember(
-  String name,
-  String name2,
+  String extensionTypeName,
+  String memberName,
 ) => _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember(
-  name: name,
-  name2: name2,
+  extensionTypeName: extensionTypeName,
+  memberName: memberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6829,8 +6858,8 @@ const MessageCode implicitSuperCallOfNonMethod = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 implicitSuperInitializerMissingArguments = const Template(
   "ImplicitSuperInitializerMissingArguments",
@@ -6840,23 +6869,25 @@ implicitSuperInitializerMissingArguments = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsImplicitSuperInitializerMissingArguments({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     implicitSuperInitializerMissingArguments,
     problemMessage:
-        """The implicitly called unnamed constructor from '${name_0}' has required parameters.""",
+        """The implicitly called unnamed constructor from '${className_0}' has required parameters.""",
     correctionMessage:
         """Try adding an explicit super initializer with the required arguments.""",
-    arguments: {'name': name},
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldImplicitSuperInitializerMissingArguments(
-  String name,
-) => _withArgumentsImplicitSuperInitializerMissingArguments(name: name);
+  String className,
+) => _withArgumentsImplicitSuperInitializerMissingArguments(
+  className: className,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -11797,8 +11828,8 @@ const MessageCode loadLibraryTakesNoArguments = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 localVariableUsedBeforeDeclared = const Template(
   "LocalVariableUsedBeforeDeclared",
@@ -11807,24 +11838,26 @@ localVariableUsedBeforeDeclared = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLocalVariableUsedBeforeDeclared({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsLocalVariableUsedBeforeDeclared({
+  required String variableName,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     localVariableUsedBeforeDeclared,
     problemMessage:
-        """Local variable '${name_0}' can't be referenced before it is declared.""",
-    arguments: {'name': name},
+        """Local variable '${variableName_0}' can't be referenced before it is declared.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLocalVariableUsedBeforeDeclared(String name) =>
-    _withArgumentsLocalVariableUsedBeforeDeclared(name: name);
+Message _withArgumentsOldLocalVariableUsedBeforeDeclared(String variableName) =>
+    _withArgumentsLocalVariableUsedBeforeDeclared(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 localVariableUsedBeforeDeclaredContext = const Template(
   "LocalVariableUsedBeforeDeclaredContext",
@@ -11835,19 +11868,23 @@ localVariableUsedBeforeDeclaredContext = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLocalVariableUsedBeforeDeclaredContext({
-  required String name,
+  required String variableName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     localVariableUsedBeforeDeclaredContext,
-    problemMessage: """This is the declaration of the variable '${name_0}'.""",
-    arguments: {'name': name},
+    problemMessage:
+        """This is the declaration of the variable '${variableName_0}'.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLocalVariableUsedBeforeDeclaredContext(String name) =>
-    _withArgumentsLocalVariableUsedBeforeDeclaredContext(name: name);
+Message _withArgumentsOldLocalVariableUsedBeforeDeclaredContext(
+  String variableName,
+) => _withArgumentsLocalVariableUsedBeforeDeclaredContext(
+  variableName: variableName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mainNotFunctionDeclaration = const MessageCode(
@@ -17507,8 +17544,8 @@ Message _withArgumentsOldWebLiteralCannotBeRepresentedExactly(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String typeVariableName, DartType type),
+  Message Function({required String typeVariableName, required DartType type})
 >
 wrongTypeParameterVarianceInSuperinterface = const Template(
   "WrongTypeParameterVarianceInSuperinterface",
@@ -17518,26 +17555,28 @@ wrongTypeParameterVarianceInSuperinterface = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsWrongTypeParameterVarianceInSuperinterface({
-  required String name,
+  required String typeVariableName,
   required DartType type,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
   TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     wrongTypeParameterVarianceInSuperinterface,
     problemMessage:
-        """'${name_0}' can't be used contravariantly or invariantly in '${type_0}'.""" +
+        """'${typeVariableName_0}' can't be used contravariantly or invariantly in '${type_0}'.""" +
         labeler.originMessages,
-    arguments: {'name': name, 'type': type},
+    arguments: {'typeVariableName': typeVariableName, 'type': type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldWrongTypeParameterVarianceInSuperinterface(
-  String name,
+  String typeVariableName,
   DartType type,
 ) => _withArgumentsWrongTypeParameterVarianceInSuperinterface(
-  name: name,
+  typeVariableName: typeVariableName,
   type: type,
 );

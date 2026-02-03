@@ -894,12 +894,14 @@ class BodyBuilderImpl extends StackListenerImpl
       // second (or innermost declaration) of `x`.
       for (int previousOffset in previousOffsets) {
         addProblem(
-          diag.localVariableUsedBeforeDeclared.withArgumentsOld(variableName),
+          diag.localVariableUsedBeforeDeclared.withArguments(
+            variableName: variableName,
+          ),
           previousOffset,
           variableName.length,
           context: <LocatedMessage>[
             diag.localVariableUsedBeforeDeclaredContext
-                .withArgumentsOld(variableName)
+                .withArguments(variableName: variableName)
                 .withLocation(uri, variable.fileOffset, variableName.length),
           ],
         );

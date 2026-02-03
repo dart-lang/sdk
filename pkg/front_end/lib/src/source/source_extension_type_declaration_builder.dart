@@ -285,7 +285,10 @@ class SourceExtensionTypeDeclarationBuilder
               Message? errorMessage;
               if (variable.parameter.isLegacyCovariant) {
                 errorMessage = diag.wrongTypeParameterVarianceInSuperinterface
-                    .withArgumentsOld(variable.name, interface);
+                    .withArguments(
+                      typeVariableName: variable.name,
+                      type: interface,
+                    );
               } else {
                 // Coverage-ignore-block(suite): Not run.
                 errorMessage = diag.invalidTypeParameterInSupertypeWithVariance

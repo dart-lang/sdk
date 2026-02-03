@@ -7365,23 +7365,23 @@ invalidExtensionTypeSuperExtensionType:
 
 localVariableUsedBeforeDeclared:
   parameters:
-    Name name: undocumented
-  problemMessage: "Local variable '#name' can't be referenced before it is declared."
+    Name variableName: The name of the not-yet-declared variable.
+  problemMessage: "Local variable '#variableName' can't be referenced before it is declared."
   script: |
     foo(dynamic x, dynamic y) { y = x; dynamic x; }
 
 localVariableUsedBeforeDeclaredContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the declaration of the variable '#name'."
+    Name variableName: The name of the problematic variable.
+  problemMessage: "This is the declaration of the variable '#variableName'."
   severity: CONTEXT
 
 implementNonExtensionTypeAndExtensionTypeMember:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member."
-  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+    Name extensionTypeName: The name of the extension type.
+    Name memberName: The name of the member that is being inherited from both an extension type member and a non-extension type member.
+  problemMessage: "The extension type '#extensionTypeName' can't inherit the member '#memberName' as both an extension type member and a non-extension type member."
+  correctionMessage: "Try declaring a member '#memberName' in '#extensionTypeName' to resolve the conflict."
   script: |
     class Class {
       void method() {}
@@ -7413,10 +7413,10 @@ nonExtensionTypeMemberOneOfContext:
 
 implementMultipleExtensionTypeMembers:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The extension type '#name' can't inherit the member '#name2' from more than one extension type."
-  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+    Name extensionTypeName: The name of the problematic extension type.
+    Name memberName: The name of the member that can't be inherited from more than one extension type.
+  problemMessage: "The extension type '#extensionTypeName' can't inherit the member '#memberName' from more than one extension type."
+  correctionMessage: "Try declaring a member '#memberName' in '#extensionTypeName' to resolve the conflict."
   script: |
     extension type ExtensionType1(int i) {
       void method() {}
@@ -7484,9 +7484,9 @@ representationFieldTrailingComma:
 
 wrongTypeParameterVarianceInSuperinterface:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "'#name' can't be used contravariantly or invariantly in '#type'."
+    Name typeVariableName: The name of the problematic type variable.
+    Type type: The type in which the type variable is used contravariantly or invariantly.
+  problemMessage: "'#typeVariableName' can't be used contravariantly or invariantly in '#type'."
   script: |
     extension type E<X>(List<Function(Object?)> foo) implements List<Function(X)> {}
 
@@ -7572,13 +7572,13 @@ recordUsedAsCallable:
 
 experimentExpiredEnabled:
   parameters:
-    Name name: undocumented
-  problemMessage: "The experiment '#name' has expired and can't be enabled."
+    Name experimentName: The name of the expired experiment.
+  problemMessage: "The experiment '#experimentName' has expired and can't be enabled."
 
 experimentExpiredDisabled:
   parameters:
-    Name name: undocumented
-  problemMessage: "The experiment '#name' has expired and can't be disabled."
+    Name experimentName: The name of the expired experiment.
+  problemMessage: "The experiment '#experimentName' has expired and can't be disabled."
 
 dartFfiLibraryInDart2Wasm:
   parameters: none
@@ -7604,8 +7604,8 @@ missingNamedSuperConstructorParameter:
 
 implicitSuperInitializerMissingArguments:
   parameters:
-    Name name: undocumented
-  problemMessage: "The implicitly called unnamed constructor from '#name' has required parameters."
+    Name className: The name of the class containing the implicitly called unnamed constructor.
+  problemMessage: "The implicitly called unnamed constructor from '#className' has required parameters."
   correctionMessage: "Try adding an explicit super initializer with the required arguments."
   script: |
     class A { A(int foo); } class B extends A { B(); }
@@ -7625,8 +7625,8 @@ dotShorthandsConstructorInvocationWithTypeArguments:
 
 dotShorthandsInvalidContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "No type was provided to find the dot shorthand '#name'."
+    Name dotShorthandName: The name of the dot shorthand that was sought.
+  problemMessage: "No type was provided to find the dot shorthand '#dotShorthandName'."
   experiments: dot-shorthands
   script: |
     void main() {
@@ -7635,10 +7635,10 @@ dotShorthandsInvalidContext:
 
 dotShorthandsUndefinedGetter:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "The static getter or field '#name' isn't defined for the type '#type'."
-  correctionMessage: "Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#name'."
+    Name getterName: The name of the getter (or field) that isn't defined.
+    Type contextType: The dot shorthand context type in which the getter was sought.
+  problemMessage: "The static getter or field '#getterName' isn't defined for the type '#contextType'."
+  correctionMessage: "Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#getterName'."
   experiments: dot-shorthands
   script: |
     class C {
