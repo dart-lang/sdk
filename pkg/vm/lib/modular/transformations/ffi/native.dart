@@ -491,9 +491,9 @@ class FfiNativeTransformer extends FfiTransformer {
               ? diag.ffiNativeUnexpectedNumberOfParameters
               : diag.ffiNativeUnexpectedNumberOfParametersWithReceiver);
       diagnosticReporter.report(
-        template.withArgumentsOld(
-          dartFunctionType.positionalParameters.length,
-          ffiFunctionType.positionalParameters.length,
+        template.withArguments(
+          expectedCount: dartFunctionType.positionalParameters.length,
+          actualCount: ffiFunctionType.positionalParameters.length,
         ),
         annotationOffset,
         1,

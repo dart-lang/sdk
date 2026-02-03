@@ -5123,17 +5123,17 @@ ffiLeafCallMustNotReturnHandle:
 ffiNativeUnexpectedNumberOfParametersWithReceiver:
   # Used by dart:ffi
   parameters:
-    int count: undocumented
-    int count2: undocumented
-  problemMessage: "Unexpected number of Native annotation parameters. Expected #count but has #count2. Native instance method annotation must have receiver as first argument."
+    int expectedCount: The expected number of parameters.
+    int actualCount: The actual number of parameters.
+  problemMessage: "Unexpected number of Native annotation parameters. Expected #expectedCount but has #actualCount. Native instance method annotation must have receiver as first argument."
   external: test/ffi_test.dart
 
 ffiNativeUnexpectedNumberOfParameters:
   # Used by dart:ffi
   parameters:
-    int count: undocumented
-    int count2: undocumented
-  problemMessage: "Unexpected number of Native annotation parameters. Expected #count but has #count2."
+    int expectedCount: The expected number of parameters.
+    int actualCount: The actual number of parameters.
+  problemMessage: "Unexpected number of Native annotation parameters. Expected #expectedCount but has #actualCount."
   external: test/ffi_test.dart
 
 ffiNativeOnlyNativeFieldWrapperClassCanBePointer:
