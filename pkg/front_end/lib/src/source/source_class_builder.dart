@@ -893,7 +893,10 @@ class SourceClassBuilder extends ClassBuilderImpl
                   member is MethodBuilder && !member.isAbstract)) {
             libraryBuilder.addProblem(
               diag.enumImplementerContainsRestrictedInstanceDeclaration
-                  .withArgumentsOld(this.name, restrictedMemberName),
+                  .withArguments(
+                    className: this.name,
+                    memberName: restrictedMemberName,
+                  ),
               member.fileOffset,
               member.fullNameForErrors.length,
               fileUri,
@@ -996,7 +999,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           superClassType != null &&
           superClass.cls != objectClass) {
         libraryBuilder.addProblem(
-          diag.mixinInheritsFromNotObject.withArgumentsOld(name),
+          diag.mixinInheritsFromNotObject.withArguments(className: name),
           superClassType.charOffset ?? TreeNode.noOffset,
           noLength,
           superClassType.fileUri ?? // Coverage-ignore(suite): Not run.
@@ -1016,8 +1019,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           mixinSuperClassNode.classBuilder.cls != objectClass &&
           !mixedInNode.classBuilder.cls.isMixinDeclaration) {
         libraryBuilder.addProblem(
-          diag.mixinInheritsFromNotObject.withArgumentsOld(
-            mixedInNode.classBuilder.name,
+          diag.mixinInheritsFromNotObject.withArguments(
+            className: mixedInNode.classBuilder.name,
           ),
           _mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
           noLength,

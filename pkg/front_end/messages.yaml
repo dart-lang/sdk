@@ -6636,47 +6636,47 @@ unmatchedAugmentationClassMember:
 
 unmatchedPatchClassMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Patch member '#name' doesn't match a member in the origin class."
+    Name memberName: The name of the unmatched member.
+  problemMessage: "Patch member '#memberName' doesn't match a member in the origin class."
   correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
 
 unmatchedAugmentationLibraryMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation member '#name' doesn't match a member in the augmented library."
+    Name memberName: The name of the unmatched member.
+  problemMessage: "Augmentation member '#memberName' doesn't match a member in the augmented library."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
   experiments: augmentations
 
 unmatchedPatchLibraryMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Patch member '#name' doesn't match a member in the origin library."
+    Name memberName: The name of the unmatched member.
+  problemMessage: "Patch member '#memberName' doesn't match a member in the origin library."
   correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
 
 unmatchedAugmentationClass:
   parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation class '#name' doesn't match a class in the augmented library."
+    Name className: The name of the unmatched class.
+  problemMessage: "Augmentation class '#className' doesn't match a class in the augmented library."
   correctionMessage: "Try changing the name to an existing class or removing the 'augment' modifier."
   experiments: augmentations
 
 unmatchedPatchClass:
   parameters:
-    Name name: undocumented
-  problemMessage: "Patch class '#name' doesn't match a class in the origin library."
+    Name className: The name of the unmatched class.
+  problemMessage: "Patch class '#className' doesn't match a class in the origin library."
   correctionMessage: "Try changing the name to an existing class or removing the '@patch' annotation."
 
 unmatchedAugmentationDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation '#name' doesn't match a declaration in the augmented library."
+    Name declarationName: The name of the unmatched declaration.
+  problemMessage: "Augmentation '#declarationName' doesn't match a declaration in the augmented library."
   correctionMessage: "Try changing the name to an existing declaration or removing the 'augment' modifier."
   experiments: macros
 
 unmatchedPatchDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "Patch '#name' doesn't match a declaration in the origin library."
+    Name declarationName: The name of the unmatched declaration.
+  problemMessage: "Patch '#declarationName' doesn't match a declaration in the origin library."
   correctionMessage: "Try changing the name to an existing declaration or removing the '@patch' annotation."
 
 unmatchedAugmentationConstructor:
@@ -6698,9 +6698,9 @@ nonAugmentationDeclarationConflictCause:
 
 optionalSuperParameterWithoutInitializer:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-  problemMessage: "Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor."
+    Type superParameterType: The type of the optional super-initializer parameter.
+    Name superParameterName: The name of the optional super-initializer parameter.
+  problemMessage: "Type '#superParameterType' of the optional super-initializer parameter '#superParameterName' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor."
   script: |
     class Foo {
       Foo([num x = 3.14]) {}
@@ -6712,8 +6712,8 @@ optionalSuperParameterWithoutInitializer:
 
 enumContainsRestrictedInstanceDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "An enum can't declare a non-abstract member named '#name'."
+    Name memberName: The name of the member that cnnot be declared.
+  problemMessage: "An enum can't declare a non-abstract member named '#memberName'."
   script: |
     enum E1 {
       element;
@@ -6722,9 +6722,9 @@ enumContainsRestrictedInstanceDeclaration:
 
 enumImplementerContainsRestrictedInstanceDeclaration:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'."
+    Name className: The name of the problematic class.
+    Name memberName: The name of the restricted static member.
+  problemMessage: "'#className' has 'Enum' as a superinterface and can't contain non-static members with name '#memberName'."
   script: |
     class Foo extends Enum {
       int get index => 42;
@@ -6742,8 +6742,8 @@ enumAbstractMember:
 
 mixinInheritsFromNotObject:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
+    Name className: The name of the class that can't be used as a mixin.
+  problemMessage: "The class '#className' can't be used as a mixin because it extends a class other than 'Object'."
   script: |
     // @dart=2.19
     class Base {}

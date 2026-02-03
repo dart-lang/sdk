@@ -3628,8 +3628,8 @@ const MessageCode enumConstructorTearoff = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 enumContainsRestrictedInstanceDeclaration = const Template(
   "EnumContainsRestrictedInstanceDeclaration",
@@ -3639,21 +3639,23 @@ enumContainsRestrictedInstanceDeclaration = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsEnumContainsRestrictedInstanceDeclaration({
-  required String name,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     enumContainsRestrictedInstanceDeclaration,
     problemMessage:
-        """An enum can't declare a non-abstract member named '${name_0}'.""",
-    arguments: {'name': name},
+        """An enum can't declare a non-abstract member named '${memberName_0}'.""",
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldEnumContainsRestrictedInstanceDeclaration(
-  String name,
-) => _withArgumentsEnumContainsRestrictedInstanceDeclaration(name: name);
+  String memberName,
+) => _withArgumentsEnumContainsRestrictedInstanceDeclaration(
+  memberName: memberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode enumContainsValuesDeclaration = const MessageCode(
@@ -3676,8 +3678,8 @@ const MessageCode enumFactoryRedirectsToConstructor = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String memberName),
+  Message Function({required String className, required String memberName})
 >
 enumImplementerContainsRestrictedInstanceDeclaration = const Template(
   "EnumImplementerContainsRestrictedInstanceDeclaration",
@@ -3689,26 +3691,26 @@ enumImplementerContainsRestrictedInstanceDeclaration = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration({
-  required String name,
-  required String name2,
+  required String className,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     enumImplementerContainsRestrictedInstanceDeclaration,
     problemMessage:
-        """'${name_0}' has 'Enum' as a superinterface and can't contain non-static members with name '${name2_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """'${className_0}' has 'Enum' as a superinterface and can't contain non-static members with name '${memberName_0}'.""",
+    arguments: {'className': className, 'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldEnumImplementerContainsRestrictedInstanceDeclaration(
-  String name,
-  String name2,
+  String className,
+  String memberName,
 ) => _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration(
-  name: name,
-  name2: name2,
+  className: className,
+  memberName: memberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12433,8 +12435,8 @@ Message _withArgumentsOldMixinInferenceNoMatchingClass(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 mixinInheritsFromNotObject = const Template(
   "MixinInheritsFromNotObject",
@@ -12443,19 +12445,19 @@ mixinInheritsFromNotObject = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMixinInheritsFromNotObject({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsMixinInheritsFromNotObject({required String className}) {
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     mixinInheritsFromNotObject,
     problemMessage:
-        """The class '${name_0}' can't be used as a mixin because it extends a class other than 'Object'.""",
-    arguments: {'name': name},
+        """The class '${className_0}' can't be used as a mixin because it extends a class other than 'Object'.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMixinInheritsFromNotObject(String name) =>
-    _withArgumentsMixinInheritsFromNotObject(name: name);
+Message _withArgumentsOldMixinInheritsFromNotObject(String className) =>
+    _withArgumentsMixinInheritsFromNotObject(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -13631,8 +13633,11 @@ const MessageCode optionalParametersInExtensionTypeDeclaration =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name),
-  Message Function({required DartType type, required String name})
+  Message Function(DartType superParameterType, String superParameterName),
+  Message Function({
+    required DartType superParameterType,
+    required String superParameterName,
+  })
 >
 optionalSuperParameterWithoutInitializer = const Template(
   "OptionalSuperParameterWithoutInitializer",
@@ -13642,28 +13647,33 @@ optionalSuperParameterWithoutInitializer = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOptionalSuperParameterWithoutInitializer({
-  required DartType type,
-  required String name,
+  required DartType superParameterType,
+  required String superParameterName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
+  var superParameterType_0 = labeler.labelType(superParameterType);
+  var superParameterName_0 = conversions.validateAndDemangleName(
+    superParameterName,
+  );
   return new Message(
     optionalSuperParameterWithoutInitializer,
     problemMessage:
-        """Type '${type_0}' of the optional super-initializer parameter '${name_0}' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""" +
+        """Type '${superParameterType_0}' of the optional super-initializer parameter '${superParameterName_0}' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'name': name},
+    arguments: {
+      'superParameterType': superParameterType,
+      'superParameterName': superParameterName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldOptionalSuperParameterWithoutInitializer(
-  DartType type,
-  String name,
+  DartType superParameterType,
+  String superParameterName,
 ) => _withArgumentsOptionalSuperParameterWithoutInitializer(
-  type: type,
-  name: name,
+  superParameterType: superParameterType,
+  superParameterName: superParameterName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16763,8 +16773,8 @@ unexpectedSuperParametersInGenerativeConstructors = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 unmatchedAugmentationClass = const Template(
   "UnmatchedAugmentationClass",
@@ -16773,21 +16783,21 @@ unmatchedAugmentationClass = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationClass({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsUnmatchedAugmentationClass({required String className}) {
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     unmatchedAugmentationClass,
     problemMessage:
-        """Augmentation class '${name_0}' doesn't match a class in the augmented library.""",
+        """Augmentation class '${className_0}' doesn't match a class in the augmented library.""",
     correctionMessage:
         """Try changing the name to an existing class or removing the 'augment' modifier.""",
-    arguments: {'name': name},
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationClass(String name) =>
-    _withArgumentsUnmatchedAugmentationClass(name: name);
+Message _withArgumentsOldUnmatchedAugmentationClass(String className) =>
+    _withArgumentsUnmatchedAugmentationClass(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -16849,8 +16859,8 @@ Message _withArgumentsOldUnmatchedAugmentationConstructor(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String declarationName),
+  Message Function({required String declarationName})
 >
 unmatchedAugmentationDeclaration = const Template(
   "UnmatchedAugmentationDeclaration",
@@ -16859,26 +16869,31 @@ unmatchedAugmentationDeclaration = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationDeclaration({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsUnmatchedAugmentationDeclaration({
+  required String declarationName,
+}) {
+  var declarationName_0 = conversions.validateAndDemangleName(declarationName);
   return new Message(
     unmatchedAugmentationDeclaration,
     problemMessage:
-        """Augmentation '${name_0}' doesn't match a declaration in the augmented library.""",
+        """Augmentation '${declarationName_0}' doesn't match a declaration in the augmented library.""",
     correctionMessage:
         """Try changing the name to an existing declaration or removing the 'augment' modifier.""",
-    arguments: {'name': name},
+    arguments: {'declarationName': declarationName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationDeclaration(String name) =>
-    _withArgumentsUnmatchedAugmentationDeclaration(name: name);
+Message _withArgumentsOldUnmatchedAugmentationDeclaration(
+  String declarationName,
+) => _withArgumentsUnmatchedAugmentationDeclaration(
+  declarationName: declarationName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 unmatchedAugmentationLibraryMember = const Template(
   "UnmatchedAugmentationLibraryMember",
@@ -16888,27 +16903,28 @@ unmatchedAugmentationLibraryMember = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnmatchedAugmentationLibraryMember({
-  required String name,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     unmatchedAugmentationLibraryMember,
     problemMessage:
-        """Augmentation member '${name_0}' doesn't match a member in the augmented library.""",
+        """Augmentation member '${memberName_0}' doesn't match a member in the augmented library.""",
     correctionMessage:
         """Try changing the name to an existing member or removing the 'augment' modifier.""",
-    arguments: {'name': name},
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationLibraryMember(String name) =>
-    _withArgumentsUnmatchedAugmentationLibraryMember(name: name);
+Message _withArgumentsOldUnmatchedAugmentationLibraryMember(
+  String memberName,
+) => _withArgumentsUnmatchedAugmentationLibraryMember(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 unmatchedPatchClass = const Template(
   "UnmatchedPatchClass",
@@ -16917,26 +16933,26 @@ unmatchedPatchClass = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedPatchClass({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsUnmatchedPatchClass({required String className}) {
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     unmatchedPatchClass,
     problemMessage:
-        """Patch class '${name_0}' doesn't match a class in the origin library.""",
+        """Patch class '${className_0}' doesn't match a class in the origin library.""",
     correctionMessage:
         """Try changing the name to an existing class or removing the '@patch' annotation.""",
-    arguments: {'name': name},
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchClass(String name) =>
-    _withArgumentsUnmatchedPatchClass(name: name);
+Message _withArgumentsOldUnmatchedPatchClass(String className) =>
+    _withArgumentsUnmatchedPatchClass(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 unmatchedPatchClassMember = const Template(
   "UnmatchedPatchClassMember",
@@ -16945,26 +16961,26 @@ unmatchedPatchClassMember = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedPatchClassMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsUnmatchedPatchClassMember({required String memberName}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     unmatchedPatchClassMember,
     problemMessage:
-        """Patch member '${name_0}' doesn't match a member in the origin class.""",
+        """Patch member '${memberName_0}' doesn't match a member in the origin class.""",
     correctionMessage:
         """Try changing the name to an existing member or removing the '@patch' annotation.""",
-    arguments: {'name': name},
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchClassMember(String name) =>
-    _withArgumentsUnmatchedPatchClassMember(name: name);
+Message _withArgumentsOldUnmatchedPatchClassMember(String memberName) =>
+    _withArgumentsUnmatchedPatchClassMember(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String declarationName),
+  Message Function({required String declarationName})
 >
 unmatchedPatchDeclaration = const Template(
   "UnmatchedPatchDeclaration",
@@ -16973,26 +16989,28 @@ unmatchedPatchDeclaration = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedPatchDeclaration({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsUnmatchedPatchDeclaration({
+  required String declarationName,
+}) {
+  var declarationName_0 = conversions.validateAndDemangleName(declarationName);
   return new Message(
     unmatchedPatchDeclaration,
     problemMessage:
-        """Patch '${name_0}' doesn't match a declaration in the origin library.""",
+        """Patch '${declarationName_0}' doesn't match a declaration in the origin library.""",
     correctionMessage:
         """Try changing the name to an existing declaration or removing the '@patch' annotation.""",
-    arguments: {'name': name},
+    arguments: {'declarationName': declarationName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchDeclaration(String name) =>
-    _withArgumentsUnmatchedPatchDeclaration(name: name);
+Message _withArgumentsOldUnmatchedPatchDeclaration(String declarationName) =>
+    _withArgumentsUnmatchedPatchDeclaration(declarationName: declarationName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String memberName),
+  Message Function({required String memberName})
 >
 unmatchedPatchLibraryMember = const Template(
   "UnmatchedPatchLibraryMember",
@@ -17001,21 +17019,23 @@ unmatchedPatchLibraryMember = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedPatchLibraryMember({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsUnmatchedPatchLibraryMember({
+  required String memberName,
+}) {
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     unmatchedPatchLibraryMember,
     problemMessage:
-        """Patch member '${name_0}' doesn't match a member in the origin library.""",
+        """Patch member '${memberName_0}' doesn't match a member in the origin library.""",
     correctionMessage:
         """Try changing the name to an existing member or removing the '@patch' annotation.""",
-    arguments: {'name': name},
+    arguments: {'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedPatchLibraryMember(String name) =>
-    _withArgumentsUnmatchedPatchLibraryMember(name: name);
+Message _withArgumentsOldUnmatchedPatchLibraryMember(String memberName) =>
+    _withArgumentsUnmatchedPatchLibraryMember(memberName: memberName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode unnamedObjectPatternField = const MessageCode(
