@@ -6931,8 +6931,8 @@ interfaceClassExtendedOutsideOfLibrary:
 
 finalClassExtendedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be extended outside of its library because it's a final class."
+    Name className: The name of the class that can't be extended outside its library.
+  problemMessage: "The class '#className' can't be extended outside of its library because it's a final class."
   script:
     main.dart:
       import 'lib.dart';
@@ -7011,8 +7011,8 @@ unspecifiedGetterNameInObjectPattern:
 
 jointPatternVariablesMismatch:
   parameters:
-    Name name: undocumented
-  problemMessage: "Variable pattern '#name' doesn't have the same type or finality in all cases."
+    Name variableName: The name of the problematic variable.
+  problemMessage: "Variable pattern '#variableName' doesn't have the same type or finality in all cases."
   script: |
     test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
 
@@ -7047,9 +7047,9 @@ nonExhaustiveSwitchStatement:
 
 patternTypeMismatchInIrrefutableContext:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The matched value of type '#type' isn't assignable to the required type '#type2'."
+    Type actualType: The matched value type.
+    Type expectedType: The type that the matched value isn't assignable to.
+  problemMessage: "The matched value of type '#actualType' isn't assignable to the required type '#expectedType'."
   correctionMessage: "Try changing the required type of the pattern, or the matched value type."
   script: |
     method(List<String> list) {
@@ -7058,8 +7058,8 @@ patternTypeMismatchInIrrefutableContext:
 
 duplicatePatternAssignmentVariable:
   parameters:
-    Name name: undocumented
-  problemMessage: The variable '#name' is already assigned in this pattern.
+    Name variableName: The name of the already-assigned variable.
+  problemMessage: The variable '#variableName' is already assigned in this pattern.
   correctionMessage: Try renaming the variable.
   script: |
     method(List<String> list) {
@@ -7074,8 +7074,8 @@ duplicatePatternAssignmentVariableContext:
 
 duplicateRecordPatternField:
   parameters:
-    Name name: undocumented
-  problemMessage: The field '#name' is already matched in this pattern.
+    Name fieldName: The name of the duplicated field.
+  problemMessage: The field '#fieldName' is already matched in this pattern.
   correctionMessage: Try removing the duplicate field.
   script: |
     method(o) {
@@ -7131,8 +7131,8 @@ refutablePatternInIrrefutableContext:
 
 missingVariablePattern:
   parameters:
-    Name name: undocumented
-  problemMessage: "Variable pattern '#name' is missing in this branch of the logical-or pattern."
+    Name variableName: The name of the variable that's missing in this branch of the logical-or pattern.
+  problemMessage: "Variable pattern '#variableName' is missing in this branch of the logical-or pattern."
   correctionMessage: "Try declaring this variable pattern in the branch."
   script: |
     method(x) {
@@ -7300,15 +7300,15 @@ patternVariableAssignmentInsideGuard:
 
 jointPatternVariableNotInAll:
   parameters:
-    Name name: undocumented
-  problemMessage: "The variable '#name' is available in some, but not all cases that share this body."
+    Name variableName: The name of the variable that's not available in all cases that share this body.
+  problemMessage: "The variable '#variableName' is available in some, but not all cases that share this body."
   script: |
     test(x) { switch(x) { case var a: case < 0: case [var a]: return a; default: return null; } }
 
 jointPatternVariableWithLabelDefault:
   parameters:
-    Name name: undocumented
-  problemMessage: "The variable '#name' is not available because there is a label or 'default' case."
+    Name variableName: The name of the variable that's not available due to a label or `default` case.
+  problemMessage: "The variable '#variableName' is not available because there is a label or 'default' case."
   script: |
     test(x) { switch(x) { case var a: default: return a; } }
 
@@ -7343,22 +7343,22 @@ extensionTypeDeclarationCause:
 
 invalidExtensionTypeSuperInterface:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Name name: undocumented
-  problemMessage: "The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'."
-  correctionMessage: "Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'."
+    Type interfaceType: The implemented interface type.
+    Type representationType: The representation type.
+    Name extensionTypeName: The extension type name.
+  problemMessage: "The implemented interface '#interfaceType' must be a supertype of the representation type '#representationType' of extension type '#extensionTypeName'."
+  correctionMessage: "Try changing the interface type to a supertype of '#representationType' or the representation type to a subtype of '#interfaceType'."
   script: |
     extension type E(num n) implements int {}
 
 invalidExtensionTypeSuperExtensionType:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Type type3: undocumented
-  problemMessage: "The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself."
-  correctionMessage: "Try changing the representation type to a subtype of '#type2'."
+    Type representationType: The extension type's representation type.
+    Name extensionTypeName: The name of the problematic extension type.
+    Type implementedExtensionRepresentationType: The representation type of the implemented extension type.
+    Type implementedExtensionType: The implemented extension type.
+  problemMessage: "The representation type '#representationType' of extension type '#extensionTypeName' must be either a subtype of the representation type '#implementedExtensionRepresentationType' of the implemented extension type '#implementedExtensionType' or a subtype of '#implementedExtensionType' itself."
+  correctionMessage: "Try changing the representation type to a subtype of '#implementedExtensionRepresentationType'."
   script: |
     extension type E1(int i) {}
     extension type E2(num n) implements E1 {}

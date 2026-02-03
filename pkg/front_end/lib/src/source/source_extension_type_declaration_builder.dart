@@ -680,10 +680,10 @@ class SourceExtensionTypeDeclarationBuilder
             interface,
           )) {
             libraryBuilder.addProblem(
-              diag.invalidExtensionTypeSuperInterface.withArgumentsOld(
-                interface,
-                declaredRepresentationType,
-                name,
+              diag.invalidExtensionTypeSuperInterface.withArguments(
+                interfaceType: interface,
+                representationType: declaredRepresentationType,
+                extensionTypeName: name,
               ),
               typeBuilder.charOffset!,
               noLength,
@@ -704,11 +704,12 @@ class SourceExtensionTypeDeclarationBuilder
               instantiatedImplementedRepresentationType,
             )) {
               libraryBuilder.addProblem(
-                diag.invalidExtensionTypeSuperExtensionType.withArgumentsOld(
-                  declaredRepresentationType,
-                  name,
-                  instantiatedImplementedRepresentationType,
-                  interface,
+                diag.invalidExtensionTypeSuperExtensionType.withArguments(
+                  representationType: declaredRepresentationType,
+                  extensionTypeName: name,
+                  implementedExtensionRepresentationType:
+                      instantiatedImplementedRepresentationType,
+                  implementedExtensionType: interface,
                 ),
                 typeBuilder.charOffset!,
                 noLength,

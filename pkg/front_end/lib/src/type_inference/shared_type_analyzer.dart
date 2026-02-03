@@ -80,8 +80,8 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.duplicatePatternAssignmentVariable.withArgumentsOld(
-        variable.name!,
+      message: diag.duplicatePatternAssignmentVariable.withArguments(
+        variableName: variable.name!,
       ),
       fileUri: uri,
       fileOffset: duplicate.fileOffset,
@@ -105,7 +105,7 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.duplicateRecordPatternField.withArgumentsOld(name),
+      message: diag.duplicateRecordPatternField.withArguments(fieldName: name),
       fileUri: uri,
       fileOffset: duplicate.pattern.fileOffset,
       length: noLength,
@@ -223,9 +223,9 @@ class SharedTypeAnalyzerErrors
   }) {
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: diag.patternTypeMismatchInIrrefutableContext.withArgumentsOld(
-        matchedType.unwrapTypeView(),
-        requiredType.unwrapTypeView(),
+      message: diag.patternTypeMismatchInIrrefutableContext.withArguments(
+        actualType: matchedType.unwrapTypeView(),
+        expectedType: requiredType.unwrapTypeView(),
       ),
       fileUri: uri,
       fileOffset: pattern.fileOffset,

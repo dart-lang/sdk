@@ -2430,8 +2430,8 @@ severity: $severity
                 );
               } else {
                 cls.libraryBuilder.addProblem(
-                  diag.finalClassExtendedOutsideOfLibrary.withArgumentsOld(
-                    supertypeDeclaration.fullNameForErrors,
+                  diag.finalClassExtendedOutsideOfLibrary.withArguments(
+                    className: supertypeDeclaration.fullNameForErrors,
                   ),
                   supertypeBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,

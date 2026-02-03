@@ -3152,8 +3152,8 @@ Message _withArgumentsOldDotShorthandsUndefinedInvocation(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 duplicatePatternAssignmentVariable = const Template(
   "DuplicatePatternAssignmentVariable",
@@ -3163,21 +3163,24 @@ duplicatePatternAssignmentVariable = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatePatternAssignmentVariable({
-  required String name,
+  required String variableName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     duplicatePatternAssignmentVariable,
     problemMessage:
-        """The variable '${name_0}' is already assigned in this pattern.""",
+        """The variable '${variableName_0}' is already assigned in this pattern.""",
     correctionMessage: """Try renaming the variable.""",
-    arguments: {'name': name},
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatePatternAssignmentVariable(String name) =>
-    _withArgumentsDuplicatePatternAssignmentVariable(name: name);
+Message _withArgumentsOldDuplicatePatternAssignmentVariable(
+  String variableName,
+) => _withArgumentsDuplicatePatternAssignmentVariable(
+  variableName: variableName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode duplicatePatternAssignmentVariableContext = const MessageCode(
@@ -3188,8 +3191,8 @@ const MessageCode duplicatePatternAssignmentVariableContext = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 duplicateRecordPatternField = const Template(
   "DuplicateRecordPatternField",
@@ -3198,20 +3201,20 @@ duplicateRecordPatternField = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicateRecordPatternField({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDuplicateRecordPatternField({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     duplicateRecordPatternField,
     problemMessage:
-        """The field '${name_0}' is already matched in this pattern.""",
+        """The field '${fieldName_0}' is already matched in this pattern.""",
     correctionMessage: """Try removing the duplicate field.""",
-    arguments: {'name': name},
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicateRecordPatternField(String name) =>
-    _withArgumentsDuplicateRecordPatternField(name: name);
+Message _withArgumentsOldDuplicateRecordPatternField(String fieldName) =>
+    _withArgumentsDuplicateRecordPatternField(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode duplicateRecordPatternFieldContext = const MessageCode(
@@ -6026,8 +6029,8 @@ Message _withArgumentsOldFieldNotPromotedBecauseNotPrivate(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 finalClassExtendedOutsideOfLibrary = const Template(
   "FinalClassExtendedOutsideOfLibrary",
@@ -6037,20 +6040,20 @@ finalClassExtendedOutsideOfLibrary = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalClassExtendedOutsideOfLibrary({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     finalClassExtendedOutsideOfLibrary,
     problemMessage:
-        """The class '${name_0}' can't be extended outside of its library because it's a final class.""",
-    arguments: {'name': name},
+        """The class '${className_0}' can't be extended outside of its library because it's a final class.""",
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFinalClassExtendedOutsideOfLibrary(String name) =>
-    _withArgumentsFinalClassExtendedOutsideOfLibrary(name: name);
+Message _withArgumentsOldFinalClassExtendedOutsideOfLibrary(String className) =>
+    _withArgumentsFinalClassExtendedOutsideOfLibrary(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9014,12 +9017,17 @@ Message _withArgumentsOldInvalidContinueTarget(String label) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String name, DartType type2, DartType type3),
+  Message Function(
+    DartType representationType,
+    String extensionTypeName,
+    DartType implementedExtensionRepresentationType,
+    DartType implementedExtensionType,
+  ),
   Message Function({
-    required DartType type,
-    required String name,
-    required DartType type2,
-    required DartType type3,
+    required DartType representationType,
+    required String extensionTypeName,
+    required DartType implementedExtensionRepresentationType,
+    required DartType implementedExtensionType,
   })
 >
 invalidExtensionTypeSuperExtensionType = const Template(
@@ -9030,47 +9038,62 @@ invalidExtensionTypeSuperExtensionType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidExtensionTypeSuperExtensionType({
-  required DartType type,
-  required String name,
-  required DartType type2,
-  required DartType type3,
+  required DartType representationType,
+  required String extensionTypeName,
+  required DartType implementedExtensionRepresentationType,
+  required DartType implementedExtensionType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var type2_0 = labeler.labelType(type2);
-  var type3_0 = labeler.labelType(type3);
+  var representationType_0 = labeler.labelType(representationType);
+  var extensionTypeName_0 = conversions.validateAndDemangleName(
+    extensionTypeName,
+  );
+  var implementedExtensionRepresentationType_0 = labeler.labelType(
+    implementedExtensionRepresentationType,
+  );
+  var implementedExtensionType_0 = labeler.labelType(implementedExtensionType);
   return new Message(
     invalidExtensionTypeSuperExtensionType,
     problemMessage:
-        """The representation type '${type_0}' of extension type '${name_0}' must be either a subtype of the representation type '${type2_0}' of the implemented extension type '${type3_0}' or a subtype of '${type3_0}' itself.""" +
+        """The representation type '${representationType_0}' of extension type '${extensionTypeName_0}' must be either a subtype of the representation type '${implementedExtensionRepresentationType_0}' of the implemented extension type '${implementedExtensionType_0}' or a subtype of '${implementedExtensionType_0}' itself.""" +
         labeler.originMessages,
     correctionMessage:
-        """Try changing the representation type to a subtype of '${type2_0}'.""",
-    arguments: {'type': type, 'name': name, 'type2': type2, 'type3': type3},
+        """Try changing the representation type to a subtype of '${implementedExtensionRepresentationType_0}'.""",
+    arguments: {
+      'representationType': representationType,
+      'extensionTypeName': extensionTypeName,
+      'implementedExtensionRepresentationType':
+          implementedExtensionRepresentationType,
+      'implementedExtensionType': implementedExtensionType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidExtensionTypeSuperExtensionType(
-  DartType type,
-  String name,
-  DartType type2,
-  DartType type3,
+  DartType representationType,
+  String extensionTypeName,
+  DartType implementedExtensionRepresentationType,
+  DartType implementedExtensionType,
 ) => _withArgumentsInvalidExtensionTypeSuperExtensionType(
-  type: type,
-  name: name,
-  type2: type2,
-  type3: type3,
+  representationType: representationType,
+  extensionTypeName: extensionTypeName,
+  implementedExtensionRepresentationType:
+      implementedExtensionRepresentationType,
+  implementedExtensionType: implementedExtensionType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, String name),
+  Message Function(
+    DartType interfaceType,
+    DartType representationType,
+    String extensionTypeName,
+  ),
   Message Function({
-    required DartType type,
-    required DartType type2,
-    required String name,
+    required DartType interfaceType,
+    required DartType representationType,
+    required String extensionTypeName,
   })
 >
 invalidExtensionTypeSuperInterface = const Template(
@@ -9081,34 +9104,40 @@ invalidExtensionTypeSuperInterface = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidExtensionTypeSuperInterface({
-  required DartType type,
-  required DartType type2,
-  required String name,
+  required DartType interfaceType,
+  required DartType representationType,
+  required String extensionTypeName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var name_0 = conversions.validateAndDemangleName(name);
+  var interfaceType_0 = labeler.labelType(interfaceType);
+  var representationType_0 = labeler.labelType(representationType);
+  var extensionTypeName_0 = conversions.validateAndDemangleName(
+    extensionTypeName,
+  );
   return new Message(
     invalidExtensionTypeSuperInterface,
     problemMessage:
-        """The implemented interface '${type_0}' must be a supertype of the representation type '${type2_0}' of extension type '${name_0}'.""" +
+        """The implemented interface '${interfaceType_0}' must be a supertype of the representation type '${representationType_0}' of extension type '${extensionTypeName_0}'.""" +
         labeler.originMessages,
     correctionMessage:
-        """Try changing the interface type to a supertype of '${type2_0}' or the representation type to a subtype of '${type_0}'.""",
-    arguments: {'type': type, 'type2': type2, 'name': name},
+        """Try changing the interface type to a supertype of '${representationType_0}' or the representation type to a subtype of '${interfaceType_0}'.""",
+    arguments: {
+      'interfaceType': interfaceType,
+      'representationType': representationType,
+      'extensionTypeName': extensionTypeName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidExtensionTypeSuperInterface(
-  DartType type,
-  DartType type2,
-  String name,
+  DartType interfaceType,
+  DartType representationType,
+  String extensionTypeName,
 ) => _withArgumentsInvalidExtensionTypeSuperInterface(
-  type: type,
-  type2: type2,
-  name: name,
+  interfaceType: interfaceType,
+  representationType: representationType,
+  extensionTypeName: extensionTypeName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9989,8 +10018,8 @@ Message _withArgumentsOldInvokeNonFunction(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 jointPatternVariableNotInAll = const Template(
   "JointPatternVariableNotInAll",
@@ -9999,24 +10028,26 @@ jointPatternVariableNotInAll = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJointPatternVariableNotInAll({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsJointPatternVariableNotInAll({
+  required String variableName,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     jointPatternVariableNotInAll,
     problemMessage:
-        """The variable '${name_0}' is available in some, but not all cases that share this body.""",
-    arguments: {'name': name},
+        """The variable '${variableName_0}' is available in some, but not all cases that share this body.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJointPatternVariableNotInAll(String name) =>
-    _withArgumentsJointPatternVariableNotInAll(name: name);
+Message _withArgumentsOldJointPatternVariableNotInAll(String variableName) =>
+    _withArgumentsJointPatternVariableNotInAll(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 jointPatternVariableWithLabelDefault = const Template(
   "JointPatternVariableWithLabelDefault",
@@ -10026,25 +10057,28 @@ jointPatternVariableWithLabelDefault = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJointPatternVariableWithLabelDefault({
-  required String name,
+  required String variableName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     jointPatternVariableWithLabelDefault,
     problemMessage:
-        """The variable '${name_0}' is not available because there is a label or 'default' case.""",
-    arguments: {'name': name},
+        """The variable '${variableName_0}' is not available because there is a label or 'default' case.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJointPatternVariableWithLabelDefault(String name) =>
-    _withArgumentsJointPatternVariableWithLabelDefault(name: name);
+Message _withArgumentsOldJointPatternVariableWithLabelDefault(
+  String variableName,
+) => _withArgumentsJointPatternVariableWithLabelDefault(
+  variableName: variableName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 jointPatternVariablesMismatch = const Template(
   "JointPatternVariablesMismatch",
@@ -10053,19 +10087,21 @@ jointPatternVariablesMismatch = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJointPatternVariablesMismatch({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsJointPatternVariablesMismatch({
+  required String variableName,
+}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     jointPatternVariablesMismatch,
     problemMessage:
-        """Variable pattern '${name_0}' doesn't have the same type or finality in all cases.""",
-    arguments: {'name': name},
+        """Variable pattern '${variableName_0}' doesn't have the same type or finality in all cases.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJointPatternVariablesMismatch(String name) =>
-    _withArgumentsJointPatternVariablesMismatch(name: name);
+Message _withArgumentsOldJointPatternVariablesMismatch(String variableName) =>
+    _withArgumentsJointPatternVariablesMismatch(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -12304,8 +12340,8 @@ missingPositionalSuperConstructorParameter = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 missingVariablePattern = const Template(
   "MissingVariablePattern",
@@ -12314,20 +12350,20 @@ missingVariablePattern = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsMissingVariablePattern({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsMissingVariablePattern({required String variableName}) {
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     missingVariablePattern,
     problemMessage:
-        """Variable pattern '${name_0}' is missing in this branch of the logical-or pattern.""",
+        """Variable pattern '${variableName_0}' is missing in this branch of the logical-or pattern.""",
     correctionMessage: """Try declaring this variable pattern in the branch.""",
-    arguments: {'name': name},
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMissingVariablePattern(String name) =>
-    _withArgumentsMissingVariablePattern(name: name);
+Message _withArgumentsOldMissingVariablePattern(String variableName) =>
+    _withArgumentsMissingVariablePattern(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -14768,8 +14804,11 @@ const MessageCode patternMatchingError = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType actualType, DartType expectedType),
+  Message Function({
+    required DartType actualType,
+    required DartType expectedType,
+  })
 >
 patternTypeMismatchInIrrefutableContext = const Template(
   "PatternTypeMismatchInIrrefutableContext",
@@ -14779,30 +14818,30 @@ patternTypeMismatchInIrrefutableContext = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPatternTypeMismatchInIrrefutableContext({
-  required DartType type,
-  required DartType type2,
+  required DartType actualType,
+  required DartType expectedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
   return new Message(
     patternTypeMismatchInIrrefutableContext,
     problemMessage:
-        """The matched value of type '${type_0}' isn't assignable to the required type '${type2_0}'.""" +
+        """The matched value of type '${actualType_0}' isn't assignable to the required type '${expectedType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try changing the required type of the pattern, or the matched value type.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldPatternTypeMismatchInIrrefutableContext(
-  DartType type,
-  DartType type2,
+  DartType actualType,
+  DartType expectedType,
 ) => _withArgumentsPatternTypeMismatchInIrrefutableContext(
-  type: type,
-  type2: type2,
+  actualType: actualType,
+  expectedType: expectedType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -13480,8 +13480,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 jointVariable.type != inferredType) {
               jointVariable.initializer = problemReporting.buildProblem(
                 compilerContext: compilerContext,
-                message: diag.jointPatternVariablesMismatch.withArgumentsOld(
-                  jointVariable.name!,
+                message: diag.jointPatternVariablesMismatch.withArguments(
+                  variableName: jointVariable.name!,
                 ),
                 fileUri: fileUri,
                 fileOffset:
@@ -15098,8 +15098,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (leftVariable.type != rightVariable.type ||
             leftVariable.isFinal != rightVariable.isFinal) {
           problemReporting.addProblem(
-            diag.jointPatternVariablesMismatch.withArgumentsOld(
-              rightVariableName,
+            diag.jointPatternVariablesMismatch.withArguments(
+              variableName: rightVariableName,
             ),
             leftVariable.fileOffset,
             rightVariableName.length,
