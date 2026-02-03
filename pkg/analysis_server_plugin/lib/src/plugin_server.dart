@@ -87,8 +87,8 @@ class PluginServer {
   /// The next modification stamp for a changed file in the [_resourceProvider].
   int _overlayModificationStamp = 0;
 
-  /// The list of registered features for each plugin, for reporting purposes.
-  final _registries = <String, PluginRegistryImpl>{};
+  /// The map of registered features for each plugin, for namespacing purposes.
+  static final registries = <String, PluginRegistryImpl>{};
 
   PluginServer({
     required ResourceProvider resourceProvider,
@@ -101,17 +101,17 @@ class PluginServer {
       // For this unnamed (old) constructor, we were not tracking them by name
       // so we do this (use '$i') simply to store the registries uniquely.
       //
-      // `_registries` was previously only used for the `PLUGIN_REQUEST_DETAILS`
+      // `registries` was previously only used for the `PLUGIN_REQUEST_DETAILS`
       // request handling.
       //
       // Now, we plan on deprecating this constructor and move to `new2`, since
       // that allows us to track plugins by name and fix issues with ignores and
       // avoiding diagnostic collisions.
       //
-      // When initializing with this constructor we can't use `_registries` to
+      // When initializing with this constructor we can't use `registries` to
       // find them by name, so we use the main `Registry.ruleRegistry` to find
       // the rules instead.
-      _registries['$i'] = registry;
+      registries['$i'] = registry;
       plugin.register(registry);
       i++;
     }
@@ -125,7 +125,7 @@ class PluginServer {
        _plugins = plugins.values.toList() {
     for (var MapEntry(key: name, value: plugin) in plugins.entries) {
       var registry = PluginRegistryImpl(plugin.name);
-      _registries[name.toLowerCase()] = registry;
+      registries[name.toLowerCase()] = registry;
       plugin.register(registry);
     }
     PluginRegistryImpl.registerIgnoreProducerGenerators();
@@ -465,7 +465,7 @@ class PluginServer {
 
     for (var configuration in analysisOptions.pluginConfigurations) {
       if (!configuration.isEnabled) continue;
-      var registry = _registries[configuration.name] ?? Registry.ruleRegistry;
+      var registry = registries[configuration.name] ?? Registry.ruleRegistry;
       var rules = registry.enabled({
         for (var entry in configuration.diagnosticConfigs.entries)
           entry.key.toLowerCase(): entry.value,
@@ -659,7 +659,7 @@ class PluginServer {
 
       case protocol.PLUGIN_REQUEST_DETAILS:
         var details = <protocol.PluginDetails>[];
-        for (var pluginRegistry in _registries.values) {
+        for (var pluginRegistry in registries.values) {
           var assists = [
             for (var assistKind in pluginRegistry.assistKinds)
               protocol.AssistDescription(assistKind.id, assistKind.message),
