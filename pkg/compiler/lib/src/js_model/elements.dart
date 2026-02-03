@@ -251,7 +251,7 @@ abstract class JConstructor extends JFunction implements ConstructorEntity {
     JClass enclosingClass,
     Name name,
     ParameterStructure parameterStructure, {
-    required bool isExternal,
+    required super.isExternal,
     required this.isConst,
   }) : super(
          enclosingClass.library,
@@ -259,7 +259,6 @@ abstract class JConstructor extends JFunction implements ConstructorEntity {
          name,
          parameterStructure,
          AsyncMarker.sync,
-         isExternal: isExternal,
        );
 
   @override
@@ -686,8 +685,8 @@ class JGetter extends JFunction {
     JClass? enclosingClass,
     Name name,
     AsyncMarker asyncMarker, {
-    required bool isStatic,
-    required bool isExternal,
+    required super.isStatic,
+    required super.isExternal,
     required this.isAbstract,
   }) : super(
          library,
@@ -695,8 +694,6 @@ class JGetter extends JFunction {
          name,
          ParameterStructure.getter,
          asyncMarker,
-         isStatic: isStatic,
-         isExternal: isExternal,
        );
 
   factory JGetter.readFromDataSource(DataSourceReader source) {
@@ -768,8 +765,8 @@ class JSetter extends JFunction {
     JLibrary library,
     JClass? enclosingClass,
     Name name, {
-    required bool isStatic,
-    required bool isExternal,
+    required super.isStatic,
+    required super.isExternal,
     required this.isAbstract,
   }) : super(
          library,
@@ -777,8 +774,6 @@ class JSetter extends JFunction {
          name,
          ParameterStructure.setter,
          AsyncMarker.sync,
-         isStatic: isStatic,
-         isExternal: isExternal,
        );
 
   factory JSetter.readFromDataSource(DataSourceReader source) {
