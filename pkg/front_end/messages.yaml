@@ -4755,17 +4755,17 @@ incorrectTypeArgumentVariable:
 
 superBoundedHint:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not."
+    Type attemptedType: The type that the user appears to be attempting to make super-bounded.
+    Type invertedType: The inverted type, which does not satisfy its bounds.
+  problemMessage: "If you want '#attemptedType' to be a super-bounded type, note that the inverted type '#invertedType' must then satisfy its bounds, which it does not."
   severity: CONTEXT
 
 mixinApplicationIncompatibleSupertype:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Type type3: undocumented
-  problemMessage: "'#type' doesn't implement '#type2' so it can't be used with '#type3'."
+    Type supertype: The mixin application supertype.
+    Type requiredInterfaceType: The type that the supertype is required to implement.
+    Type mixedInType: The mixed in type that can't be used.
+  problemMessage: "'#supertype' doesn't implement '#requiredInterfaceType' so it can't be used with '#mixedInType'."
   script: |-
     class I {}
     mixin M on I {}
@@ -4793,7 +4793,7 @@ genericFunctionTypeUsedAsActualTypeArgument:
 
 genericFunctionTypeInferredAsActualTypeArgument:
   parameters:
-    Type type: undocumented
+    Type type: The generic function type that was inferred.
   problemMessage: "Generic function type '#type' inferred as a type argument."
   correctionMessage: "Try providing a non-generic function type explicitly."
   script: |
@@ -4804,9 +4804,9 @@ genericFunctionTypeInferredAsActualTypeArgument:
 
 genericFunctionTypeAsTypeArgumentThroughTypedef:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Generic function type '#type' used as a type argument through typedef '#type2'."
+    Type genericFunctionType: The generic function type that was used as a type argument.
+    Type aliasType: The type alias.
+  problemMessage: "Generic function type '#genericFunctionType' used as a type argument through typedef '#aliasType'."
   correctionMessage: "Try providing a non-generic function type explicitly."
   script:
     main.dart: |
@@ -4820,17 +4820,17 @@ genericFunctionTypeAsTypeArgumentThroughTypedef:
 # about the origins of raw interface types in error messages containing types.
 typeOrigin:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
+    Name name: The name whose origin is being explained.
+    Uri uri: The URI of the name's origin.
   problemMessage: "'#name' is from '#uri'."
   external: test/type_labeler_test.dart
 
 typeOriginWithFileUri:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
-    Uri uri2: undocumented
-  problemMessage: "'#name' is from '#uri' ('#uri2')."
+    Name name: The name whose origin is being explained.
+    Uri importUri: The import URI of the name's origin.
+    Uri fileUri: The file URI of the name's origin.
+  problemMessage: "'#name' is from '#importUri' ('#fileUri')."
   external: test/type_labeler_test.dart
 
 objectExtends:
@@ -4850,7 +4850,7 @@ objectMixesIn:
 
 instanceAndSynthesizedStaticConflict:
   parameters:
-    Name name: undocumented
+    Name name: The name of the conflicting synthesized static member.
   problemMessage: "This instance member conflicts with the synthesized static member called '#name'."
   script: |
     enum E {
@@ -5292,8 +5292,8 @@ spreadMapElement:
 
 nonNullAwareSpreadIsNull:
   parameters:
-    Type type: undocumented
-  problemMessage: "Can't spread a value with static type '#type'."
+    Type spreadType: The static type of the spread.
+  problemMessage: "Can't spread a value with static type '#spreadType'."
   script: |
     main() {
       <int>[...null];
@@ -5313,21 +5313,21 @@ nonPositiveArrayDimensions:
 
 invalidTypeParameterInSupertype:
   parameters:
-    Name name: undocumented
-    String string2: undocumented
-    Name name2: undocumented
-  problemMessage: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."
+    Name typeVariableName: The implicitly 'out' type variable name.
+    String useVariance: The variance keyword for the position in which the type variable is used.
+    Name supertypeName: The supertype name.
+  problemMessage: "Can't use implicitly 'out' variable '#typeVariableName' in an '#useVariance' position in supertype '#supertypeName'."
   script: |
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
 
 invalidTypeParameterInSupertypeWithVariance:
   parameters:
-    String string: undocumented
-    Name name: undocumented
-    String string2: undocumented
-    Name name2: undocumented
-  problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'."
+    String typeVariableVariance: The variance of the type variable.
+    Name typeVariableName: The type variable name.
+    String useVariance: The variance keyword for the position in which the type variable is used.
+    Name supertypeName: The supertype name.
+  problemMessage: "Can't use '#typeVariableVariance' type variable '#typeVariableName' in an '#useVariance' position in supertype '#supertypeName'."
   script: |
     class A<out X> {}
     class B<out Y> extends A<Function(Y)> {}
@@ -5335,10 +5335,10 @@ invalidTypeParameterInSupertypeWithVariance:
 
 invalidTypeParameterVariancePosition:
   parameters:
-    String string: undocumented
-    Name name: undocumented
-    String string2: undocumented
-  problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position."
+    String typeVariableVariance: The variance of the type variable.
+    Name typeVariableName: The type variable name.
+    String useVariance: The variance keyword for the position in which the type variable is used.
+  problemMessage: "Can't use '#typeVariableVariance' type variable '#typeVariableName' in an '#useVariance' position."
   script: |
     class A<out T> {
       void method(T x) {}
@@ -5346,10 +5346,10 @@ invalidTypeParameterVariancePosition:
 
 invalidTypeParameterVariancePositionInReturnType:
   parameters:
-    String string: undocumented
-    Name name: undocumented
-    String string2: undocumented
-  problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in the return type."
+    String typeVariableVariance: The variance of the type variable.
+    Name typeVariableName: The type variable name.
+    String useVariance: The variance keyword for the position in which the type variable is used.
+  problemMessage: "Can't use '#typeVariableVariance' type variable '#typeVariableName' in an '#useVariance' position in the return type."
   script: |
     class A<in T> {
       T method() {
@@ -5360,10 +5360,10 @@ invalidTypeParameterVariancePositionInReturnType:
 
 combinedMemberSignatureFailed:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Class '#name' inherits multiple members named '#name2' with incompatible signatures."
-  correctionMessage: "Try adding a declaration of '#name2' to '#name'."
+    Name className: The name of the class that inherits multiple members.
+    Name memberName: The name of the member that is multiply inherited.
+  problemMessage: "Class '#className' inherits multiple members named '#memberName' with incompatible signatures."
+  correctionMessage: "Try adding a declaration of '#memberName' to '#className'."
   script:
     - |
       abstract class I1 {
@@ -5378,10 +5378,10 @@ combinedMemberSignatureFailed:
 
 extensionTypeCombinedMemberSignatureFailed:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Extension type '#name' inherits multiple members named '#name2' with incompatible signatures."
-  correctionMessage: "Try adding a declaration of '#name2' to '#name'."
+    Name extensionTypeName: The name of the extension type that inherits multiple members.
+    Name memberName: The name of the member that is multiply inherited.
+  problemMessage: "Extension type '#extensionTypeName' inherits multiple members named '#memberName' with incompatible signatures."
+  correctionMessage: "Try adding a declaration of '#memberName' to '#extensionTypeName'."
   script:
     - |
       abstract class I1 {
@@ -5397,23 +5397,23 @@ extensionTypeCombinedMemberSignatureFailed:
 
 languageVersionTooHighExplicit:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    int count3: undocumented
-    int count4: undocumented
-  problemMessage: "The specified language version #count.#count2 is too high. The highest supported language version is #count3.#count4."
+    int specifiedMajor: The specified major version.
+    int specifiedMinor: The specified minor version.
+    int highestSupportedMajor: The highest supported major version.
+    int highestSupportedMinor: The highest supported minor version.
+  problemMessage: "The specified language version #specifiedMajor.#specifiedMinor is too high. The highest supported language version is #highestSupportedMajor.#highestSupportedMinor."
   script: |
     // @dart=100.200
   exampleAllowMultipleReports: true
 
 languageVersionTooHighPackage:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    Name name: undocumented
-    int count3: undocumented
-    int count4: undocumented
-  problemMessage: "The language version #count.#count2 specified for the package '#name' is too high. The highest supported language version is #count3.#count4."
+    int specifiedMajor: The specified major version.
+    int specifiedMinor: The specified minor version.
+    Name packageName: The package name.
+    int highestSupportedMajor: The highest supported major version.
+    int highestSupportedMinor: The highest supported minor version.
+  problemMessage: "The language version #specifiedMajor.#specifiedMinor specified for the package '#packageName' is too high. The highest supported language version is #highestSupportedMajor.#highestSupportedMinor."
   script:
     .dart_tool/package_config.json: |
       {
@@ -5432,23 +5432,23 @@ languageVersionTooHighPackage:
 
 languageVersionTooLowExplicit:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    int count3: undocumented
-    int count4: undocumented
-  problemMessage: "The specified language version #count.#count2 is too low. The lowest supported language version is #count3.#count4."
+    int specifiedMajor: The specified major version.
+    int specifiedMinor: The specified minor version.
+    int lowestSupportedMajor: The lowest supported major version.
+    int lowestSupportedMinor: The lowest supported minor version.
+  problemMessage: "The specified language version #specifiedMajor.#specifiedMinor is too low. The lowest supported language version is #lowestSupportedMajor.#lowestSupportedMinor."
   script: |
     // @dart=2.9
   exampleAllowMultipleReports: true
 
 languageVersionTooLowPackage:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    Name name: undocumented
-    int count3: undocumented
-    int count4: undocumented
-  problemMessage: "The language version #count.#count2 specified for the package '#name' is too low. The lowest supported language version is #count3.#count4."
+    int specifiedMajor: The specified major version.
+    int specifiedMinor: The specified minor version.
+    Name packageName: The package name.
+    int lowestSupportedMajor: The lowest supported major version.
+    int lowestSupportedMinor: The lowest supported minor version.
+  problemMessage: "The language version #specifiedMajor.#specifiedMinor specified for the package '#packageName' is too low. The lowest supported language version is #lowestSupportedMajor.#lowestSupportedMinor."
   script:
     .dart_tool/package_config.json: |
       {
@@ -5528,9 +5528,9 @@ explicitExtensionArgumentMismatch:
 
 explicitExtensionTypeArgumentMismatch:
   parameters:
-    Name name: undocumented
-    int count: undocumented
-  problemMessage: "Explicit extension application of extension '#name' takes '#count' type argument(s)."
+    Name extensionName: The name of the extension.
+    int typeArgumentCount: The number of type arguments the extension takes.
+  problemMessage: "Explicit extension application of extension '#extensionName' takes '#typeArgumentCount' type argument(s)."
   script: |
     extension Extension on int {
       method(a) {}
@@ -5555,19 +5555,19 @@ explicitExtensionAsLvalue:
 
 deferredExtensionImport:
   parameters:
-    Name name: undocumented
-  problemMessage: "Extension '#name' cannot be imported through a deferred import."
-  correctionMessage: "Try adding the `hide #name` to the import."
+    Name extensionName: The name of the extension.
+  problemMessage: "Extension '#extensionName' cannot be imported through a deferred import."
+  correctionMessage: "Try adding the `hide #extensionName` to the import."
   script:
     main.dart: "import 'lib.dart' deferred as prefix;"
     lib.dart: "extension Extension on void {}"
 
 variableCouldBeNullDueToWrite:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "Variable '#name' could not be promoted due to an assignment."
-  correctionMessage: "Try null checking the variable after the assignment.  See #string"
+    Name variableName: The name of the unpromoted variable.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "Variable '#variableName' could not be promoted due to an assignment."
+  correctionMessage: "Try null checking the variable after the assignment.  See #documentationUrl"
   script: |
     void foo(int? i, int? j) {
       if (i == null) return;
@@ -5579,10 +5579,10 @@ variableCouldBeNullDueToWrite:
 
 fieldNotPromotedBecauseNotEnabled:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above."
-  correctionMessage: "See #string"
+    Name variableName: The name of the unpromoted variable.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#variableName' couldn't be promoted because field promotion is only available in Dart 3.2 and above."
+  correctionMessage: "See #documentationUrl"
   script: |
     // @dart=3.1
     class C {
@@ -6636,47 +6636,47 @@ unmatchedAugmentationClassMember:
 
 unmatchedPatchClassMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Patch member '#name' doesn't match a member in the origin class."
+    Name memberName: The name of the unmatched member.
+  problemMessage: "Patch member '#memberName' doesn't match a member in the origin class."
   correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
 
 unmatchedAugmentationLibraryMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation member '#name' doesn't match a member in the augmented library."
+    Name memberName: The name of the unmatched member.
+  problemMessage: "Augmentation member '#memberName' doesn't match a member in the augmented library."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
   experiments: augmentations
 
 unmatchedPatchLibraryMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Patch member '#name' doesn't match a member in the origin library."
+    Name memberName: The name of the unmatched member.
+  problemMessage: "Patch member '#memberName' doesn't match a member in the origin library."
   correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
 
 unmatchedAugmentationClass:
   parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation class '#name' doesn't match a class in the augmented library."
+    Name className: The name of the unmatched class.
+  problemMessage: "Augmentation class '#className' doesn't match a class in the augmented library."
   correctionMessage: "Try changing the name to an existing class or removing the 'augment' modifier."
   experiments: augmentations
 
 unmatchedPatchClass:
   parameters:
-    Name name: undocumented
-  problemMessage: "Patch class '#name' doesn't match a class in the origin library."
+    Name className: The name of the unmatched class.
+  problemMessage: "Patch class '#className' doesn't match a class in the origin library."
   correctionMessage: "Try changing the name to an existing class or removing the '@patch' annotation."
 
 unmatchedAugmentationDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation '#name' doesn't match a declaration in the augmented library."
+    Name declarationName: The name of the unmatched declaration.
+  problemMessage: "Augmentation '#declarationName' doesn't match a declaration in the augmented library."
   correctionMessage: "Try changing the name to an existing declaration or removing the 'augment' modifier."
   experiments: macros
 
 unmatchedPatchDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "Patch '#name' doesn't match a declaration in the origin library."
+    Name declarationName: The name of the unmatched declaration.
+  problemMessage: "Patch '#declarationName' doesn't match a declaration in the origin library."
   correctionMessage: "Try changing the name to an existing declaration or removing the '@patch' annotation."
 
 unmatchedAugmentationConstructor:
@@ -6698,9 +6698,9 @@ nonAugmentationDeclarationConflictCause:
 
 optionalSuperParameterWithoutInitializer:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-  problemMessage: "Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor."
+    Type superParameterType: The type of the optional super-initializer parameter.
+    Name superParameterName: The name of the optional super-initializer parameter.
+  problemMessage: "Type '#superParameterType' of the optional super-initializer parameter '#superParameterName' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor."
   script: |
     class Foo {
       Foo([num x = 3.14]) {}
@@ -6712,8 +6712,8 @@ optionalSuperParameterWithoutInitializer:
 
 enumContainsRestrictedInstanceDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "An enum can't declare a non-abstract member named '#name'."
+    Name memberName: The name of the member that cnnot be declared.
+  problemMessage: "An enum can't declare a non-abstract member named '#memberName'."
   script: |
     enum E1 {
       element;
@@ -6722,9 +6722,9 @@ enumContainsRestrictedInstanceDeclaration:
 
 enumImplementerContainsRestrictedInstanceDeclaration:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'."
+    Name className: The name of the problematic class.
+    Name memberName: The name of the restricted static member.
+  problemMessage: "'#className' has 'Enum' as a superinterface and can't contain non-static members with name '#memberName'."
   script: |
     class Foo extends Enum {
       int get index => 42;
@@ -6742,8 +6742,8 @@ enumAbstractMember:
 
 mixinInheritsFromNotObject:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
+    Name className: The name of the class that can't be used as a mixin.
+  problemMessage: "The class '#className' can't be used as a mixin because it extends a class other than 'Object'."
   script: |
     // @dart=2.19
     class Base {}
@@ -6891,8 +6891,8 @@ cantUseClassAsMixin:
 
 baseClassImplementedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be implemented outside of its library because it's a base class."
+    Name typeName: The name of the class that can't be implemented outside of its library.
+  problemMessage: "The class '#typeName' can't be implemented outside of its library because it's a base class."
   script:
     main.dart:
       import 'lib.dart';
@@ -6909,8 +6909,8 @@ baseOrFinalClassImplementedOutsideOfLibraryCause:
 
 baseMixinImplementedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a base mixin."
+    Name typeName: The name of the mixin that can't be implemented outside of its library.
+  problemMessage: "The mixin '#typeName' can't be implemented outside of its library because it's a base mixin."
   script:
     main.dart:
       import 'lib.dart';

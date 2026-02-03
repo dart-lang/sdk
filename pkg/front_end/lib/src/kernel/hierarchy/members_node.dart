@@ -102,8 +102,8 @@ abstract class MembersNodeBuilder {
         // TODO(johnniwinther): Move this to the creation of the shared
         // property builder.
         declarationBuilder.libraryBuilder.addProblem2(
-          diag.instanceAndSynthesizedStaticConflict.withArgumentsOld(
-            staticMember.name.text,
+          diag.instanceAndSynthesizedStaticConflict.withArguments(
+            name: staticMember.name.text,
           ),
           instanceMember.uriOffset,
         );

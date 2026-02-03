@@ -673,9 +673,9 @@ extension CheckHelper on ProblemReporting {
       DartType unaliased = type.unalias;
       if (hasGenericFunctionTypeAsTypeArgument(unaliased)) {
         addProblem(
-          diag.genericFunctionTypeAsTypeArgumentThroughTypedef.withArgumentsOld(
-            unaliased,
-            type,
+          diag.genericFunctionTypeAsTypeArgumentThroughTypedef.withArguments(
+            genericFunctionType: unaliased,
+            aliasType: type,
           ),
           fileOffset,
           noLength,
@@ -850,7 +850,10 @@ extension CheckHelper on ProblemReporting {
       // Coverage-ignore-block(suite): Not run.
       (context ??= <LocatedMessage>[]).add(
         diag.superBoundedHint
-            .withArgumentsOld(superBoundedAttempt, superBoundedAttemptInverted)
+            .withArguments(
+              attemptedType: superBoundedAttempt,
+              invertedType: superBoundedAttemptInverted,
+            )
             .withLocation(fileUri, fileOffset, noLength),
       );
     }
@@ -941,9 +944,9 @@ extension CheckHelper on ProblemReporting {
               <LocatedMessage>[])
           .add(
             diag.superBoundedHint
-                .withArgumentsOld(
-                  superBoundedAttempt,
-                  superBoundedAttemptInverted,
+                .withArguments(
+                  attemptedType: superBoundedAttempt,
+                  invertedType: superBoundedAttemptInverted,
                 )
                 .withLocation(fileUri, fileOffset, noLength),
           );
@@ -968,7 +971,7 @@ extension CheckHelper on ProblemReporting {
       if (issue.isGenericTypeAsArgumentIssue) {
         if (inferred) {
           message = diag.genericFunctionTypeInferredAsActualTypeArgument
-              .withArgumentsOld(argument);
+              .withArguments(type: argument);
         } else {
           message = diag.genericFunctionTypeUsedAsActualTypeArgument;
         }

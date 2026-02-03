@@ -665,13 +665,13 @@ class LabeledNode {
       }
     }
     Message message = (importUri == fileUri || importUri.isScheme('dart'))
-        ? diag.typeOrigin.withArgumentsOld(toString(), importUri)
+        ? diag.typeOrigin.withArguments(name: toString(), uri: importUri)
         :
           // Coverage-ignore(suite): Not run.
-          diag.typeOriginWithFileUri.withArgumentsOld(
-            toString(),
-            importUri,
-            fileUri,
+          diag.typeOriginWithFileUri.withArguments(
+            name: toString(),
+            importUri: importUri,
+            fileUri: fileUri,
           );
     return "\n - " + message.problemMessage;
   }

@@ -54,11 +54,13 @@ void _checkAugmentation(
     switch (declaration.kind) {
       case _DeclarationKind.Class:
         message = declaration.inPatch
-            ? diag.unmatchedPatchClass.withArgumentsOld(declaration.displayName)
+            ? diag.unmatchedPatchClass.withArguments(
+                className: declaration.displayName,
+              )
             :
               // Coverage-ignore(suite): Not run.
-              diag.unmatchedAugmentationClass.withArgumentsOld(
-                declaration.displayName,
+              diag.unmatchedAugmentationClass.withArguments(
+                className: declaration.displayName,
               );
       case _DeclarationKind.Constructor:
       case _DeclarationKind.Factory:
@@ -66,18 +68,18 @@ void _checkAugmentation(
       case _DeclarationKind.Property:
         if (declaration.inLibrary) {
           message = declaration.inPatch
-              ? diag.unmatchedPatchLibraryMember.withArgumentsOld(
-                  declaration.displayName,
+              ? diag.unmatchedPatchLibraryMember.withArguments(
+                  memberName: declaration.displayName,
                 )
               :
                 // Coverage-ignore(suite): Not run.
-                diag.unmatchedAugmentationLibraryMember.withArgumentsOld(
-                  declaration.displayName,
+                diag.unmatchedAugmentationLibraryMember.withArguments(
+                  memberName: declaration.displayName,
                 );
         } else {
           message = declaration.inPatch
-              ? diag.unmatchedPatchClassMember.withArgumentsOld(
-                  declaration.displayName,
+              ? diag.unmatchedPatchClassMember.withArguments(
+                  memberName: declaration.displayName,
                 )
               :
                 // Coverage-ignore(suite): Not run.
@@ -95,13 +97,13 @@ void _checkAugmentation(
       case _DeclarationKind.Typedef:
         // TODO(johnniwinther): Specialize more messages.
         message = declaration.inPatch
-            ? diag.unmatchedPatchDeclaration.withArgumentsOld(
-                declaration.displayName,
+            ? diag.unmatchedPatchDeclaration.withArguments(
+                declarationName: declaration.displayName,
               )
             :
               // Coverage-ignore(suite): Not run.
-              diag.unmatchedAugmentationDeclaration.withArgumentsOld(
-                declaration.displayName,
+              diag.unmatchedAugmentationDeclaration.withArguments(
+                declarationName: declaration.displayName,
               );
     }
     problemReporting.addProblem2(message, declaration.uriOffset);
@@ -1346,7 +1348,9 @@ class EnumValuesDeclaration extends _PropertyDeclaration
     _PropertyDeclaration declaration,
   ) {
     problemReporting.addProblem2(
-      diag.instanceAndSynthesizedStaticConflict.withArgumentsOld(displayName),
+      diag.instanceAndSynthesizedStaticConflict.withArguments(
+        name: displayName,
+      ),
       declaration.uriOffset,
     );
   }

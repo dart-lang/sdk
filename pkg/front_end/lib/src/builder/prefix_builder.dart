@@ -101,7 +101,7 @@ class PrefixBuilder extends NamedBuilderImpl
   }) {
     if (deferred && member is ExtensionBuilder) {
       parent.addProblem(
-        diag.deferredExtensionImport.withArgumentsOld(name),
+        diag.deferredExtensionImport.withArguments(extensionName: name),
         importOffset,
         noLength,
         fileUri,

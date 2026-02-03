@@ -555,12 +555,12 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
           );
           if (version > target.currentSdkVersion) {
             packageLanguageVersionProblem = diag.languageVersionTooHighPackage
-                .withArgumentsOld(
-                  version.major,
-                  version.minor,
-                  packageForLanguageVersion.name,
-                  target.currentSdkVersion.major,
-                  target.currentSdkVersion.minor,
+                .withArguments(
+                  specifiedMajor: version.major,
+                  specifiedMinor: version.minor,
+                  packageName: packageForLanguageVersion.name,
+                  highestSupportedMajor: target.currentSdkVersion.major,
+                  highestSupportedMinor: target.currentSdkVersion.minor,
                 );
             packageLanguageVersion = new InvalidLanguageVersion(
               fileUri,
@@ -571,12 +571,12 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
             );
           } else if (version < target.leastSupportedVersion) {
             packageLanguageVersionProblem = diag.languageVersionTooLowPackage
-                .withArgumentsOld(
-                  version.major,
-                  version.minor,
-                  packageForLanguageVersion.name,
-                  target.leastSupportedVersion.major,
-                  target.leastSupportedVersion.minor,
+                .withArguments(
+                  specifiedMajor: version.major,
+                  specifiedMinor: version.minor,
+                  packageName: packageForLanguageVersion.name,
+                  lowestSupportedMajor: target.leastSupportedVersion.major,
+                  lowestSupportedMinor: target.leastSupportedVersion.minor,
                 );
             packageLanguageVersion = new InvalidLanguageVersion(
               fileUri,
@@ -2536,12 +2536,17 @@ severity: $severity
               if (checkedClass.isBase && !cls.cls.isAnonymousMixin) {
                 // Report an error for a class implementing a base class outside
                 // of its library.
-                final Template<Message Function(String), Function> template =
-                    checkedClass.isMixinDeclaration
+                final Template<
+                  Function,
+                  Message Function({required String typeName})
+                >
+                template = checkedClass.isMixinDeclaration
                     ? diag.baseMixinImplementedOutsideOfLibrary
                     : diag.baseClassImplementedOutsideOfLibrary;
                 cls.libraryBuilder.addProblem(
-                  template.withArgumentsOld(checkedClass.fullNameForErrors),
+                  template.withArguments(
+                    typeName: checkedClass.fullNameForErrors,
+                  ),
                   interfaceBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,
                   interfaceBuilder

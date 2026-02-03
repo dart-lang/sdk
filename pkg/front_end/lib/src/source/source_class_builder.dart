@@ -893,7 +893,10 @@ class SourceClassBuilder extends ClassBuilderImpl
                   member is MethodBuilder && !member.isAbstract)) {
             libraryBuilder.addProblem(
               diag.enumImplementerContainsRestrictedInstanceDeclaration
-                  .withArgumentsOld(this.name, restrictedMemberName),
+                  .withArguments(
+                    className: this.name,
+                    memberName: restrictedMemberName,
+                  ),
               member.fileOffset,
               member.fullNameForErrors.length,
               fileUri,
@@ -996,7 +999,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           superClassType != null &&
           superClass.cls != objectClass) {
         libraryBuilder.addProblem(
-          diag.mixinInheritsFromNotObject.withArgumentsOld(name),
+          diag.mixinInheritsFromNotObject.withArguments(className: name),
           superClassType.charOffset ?? TreeNode.noOffset,
           noLength,
           superClassType.fileUri ?? // Coverage-ignore(suite): Not run.
@@ -1016,8 +1019,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           mixinSuperClassNode.classBuilder.cls != objectClass &&
           !mixedInNode.classBuilder.cls.isMixinDeclaration) {
         libraryBuilder.addProblem(
-          diag.mixinInheritsFromNotObject.withArgumentsOld(
-            mixedInNode.classBuilder.name,
+          diag.mixinInheritsFromNotObject.withArguments(
+            className: mixedInNode.classBuilder.name,
           ),
           _mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
           noLength,
@@ -1109,10 +1112,10 @@ class SourceClassBuilder extends ClassBuilderImpl
             requiredInterface,
           )) {
         libraryBuilder.addProblem(
-          diag.mixinApplicationIncompatibleSupertype.withArgumentsOld(
-            supertype,
-            requiredInterface,
-            cls.mixedInType!.asInterfaceType,
+          diag.mixinApplicationIncompatibleSupertype.withArguments(
+            supertype: supertype,
+            requiredInterfaceType: requiredInterface,
+            mixedInType: cls.mixedInType!.asInterfaceType,
           ),
           cls.fileOffset,
           noLength,
@@ -1163,18 +1166,18 @@ class SourceClassBuilder extends ClassBuilderImpl
           .variance!;
       if (!variance.greaterThanOrEqual(typeParameters![i].variance)) {
         if (typeParameters![i].parameter.isLegacyCovariant) {
-          message = diag.invalidTypeParameterInSupertype.withArgumentsOld(
-            typeParameters![i].name,
-            variance.keyword,
-            supertype.typeName!.name,
+          message = diag.invalidTypeParameterInSupertype.withArguments(
+            typeVariableName: typeParameters![i].name,
+            useVariance: variance.keyword,
+            supertypeName: supertype.typeName!.name,
           );
         } else {
           message = diag.invalidTypeParameterInSupertypeWithVariance
-              .withArgumentsOld(
-                typeParameters![i].variance.keyword,
-                typeParameters![i].name,
-                variance.keyword,
-                supertype.typeName!.name,
+              .withArguments(
+                typeVariableVariance: typeParameters![i].variance.keyword,
+                typeVariableName: typeParameters![i].name,
+                useVariance: variance.keyword,
+                supertypeName: supertype.typeName!.name,
               );
         }
         libraryBuilder.addProblem(message, fileOffset, noLength, fileUri);
@@ -1388,16 +1391,16 @@ class SourceClassBuilder extends ClassBuilderImpl
       Message message;
       if (isReturnType) {
         message = diag.invalidTypeParameterVariancePositionInReturnType
-            .withArgumentsOld(
-              typeParameter.variance.keyword,
-              typeParameter.name!,
-              variance.keyword,
+            .withArguments(
+              typeVariableVariance: typeParameter.variance.keyword,
+              typeVariableName: typeParameter.name!,
+              useVariance: variance.keyword,
             );
       } else {
-        message = diag.invalidTypeParameterVariancePosition.withArgumentsOld(
-          typeParameter.variance.keyword,
-          typeParameter.name!,
-          variance.keyword,
+        message = diag.invalidTypeParameterVariancePosition.withArguments(
+          typeVariableVariance: typeParameter.variance.keyword,
+          typeVariableName: typeParameter.name!,
+          useVariance: variance.keyword,
         );
       }
       problemReporting.reportTypeArgumentIssue(

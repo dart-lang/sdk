@@ -248,8 +248,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
           customIndexDeclaration = customIndexDeclaration?.next;
         }
         libraryBuilder.addProblem(
-          diag.enumContainsRestrictedInstanceDeclaration.withArgumentsOld(
-            restrictedInstanceMemberName,
+          diag.enumContainsRestrictedInstanceDeclaration.withArguments(
+            memberName: restrictedInstanceMemberName,
           ),
           customIndexDeclaration!.fileOffset,
           customIndexDeclaration.fullNameForErrors.length,
