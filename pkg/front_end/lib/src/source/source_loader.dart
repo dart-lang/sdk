@@ -2536,12 +2536,17 @@ severity: $severity
               if (checkedClass.isBase && !cls.cls.isAnonymousMixin) {
                 // Report an error for a class implementing a base class outside
                 // of its library.
-                final Template<Message Function(String), Function> template =
-                    checkedClass.isMixinDeclaration
+                final Template<
+                  Function,
+                  Message Function({required String typeName})
+                >
+                template = checkedClass.isMixinDeclaration
                     ? diag.baseMixinImplementedOutsideOfLibrary
                     : diag.baseClassImplementedOutsideOfLibrary;
                 cls.libraryBuilder.addProblem(
-                  template.withArgumentsOld(checkedClass.fullNameForErrors),
+                  template.withArguments(
+                    typeName: checkedClass.fullNameForErrors,
+                  ),
                   interfaceBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,
                   interfaceBuilder

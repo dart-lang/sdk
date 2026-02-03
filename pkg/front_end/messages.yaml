@@ -6891,8 +6891,8 @@ cantUseClassAsMixin:
 
 baseClassImplementedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be implemented outside of its library because it's a base class."
+    Name typeName: The name of the class that can't be implemented outside of its library.
+  problemMessage: "The class '#typeName' can't be implemented outside of its library because it's a base class."
   script:
     main.dart:
       import 'lib.dart';
@@ -6909,8 +6909,8 @@ baseOrFinalClassImplementedOutsideOfLibraryCause:
 
 baseMixinImplementedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a base mixin."
+    Name typeName: The name of the mixin that can't be implemented outside of its library.
+  problemMessage: "The mixin '#typeName' can't be implemented outside of its library because it's a base mixin."
   script:
     main.dart:
       import 'lib.dart';

@@ -316,8 +316,8 @@ const MessageCode awaitOfExtensionTypeNotFuture = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 baseClassImplementedOutsideOfLibrary = const Template(
   "BaseClassImplementedOutsideOfLibrary",
@@ -327,25 +327,26 @@ baseClassImplementedOutsideOfLibrary = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBaseClassImplementedOutsideOfLibrary({
-  required String name,
+  required String typeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     baseClassImplementedOutsideOfLibrary,
     problemMessage:
-        """The class '${name_0}' can't be implemented outside of its library because it's a base class.""",
-    arguments: {'name': name},
+        """The class '${typeName_0}' can't be implemented outside of its library because it's a base class.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBaseClassImplementedOutsideOfLibrary(String name) =>
-    _withArgumentsBaseClassImplementedOutsideOfLibrary(name: name);
+Message _withArgumentsOldBaseClassImplementedOutsideOfLibrary(
+  String typeName,
+) => _withArgumentsBaseClassImplementedOutsideOfLibrary(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeName),
+  Message Function({required String typeName})
 >
 baseMixinImplementedOutsideOfLibrary = const Template(
   "BaseMixinImplementedOutsideOfLibrary",
@@ -355,20 +356,21 @@ baseMixinImplementedOutsideOfLibrary = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBaseMixinImplementedOutsideOfLibrary({
-  required String name,
+  required String typeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var typeName_0 = conversions.validateAndDemangleName(typeName);
   return new Message(
     baseMixinImplementedOutsideOfLibrary,
     problemMessage:
-        """The mixin '${name_0}' can't be implemented outside of its library because it's a base mixin.""",
-    arguments: {'name': name},
+        """The mixin '${typeName_0}' can't be implemented outside of its library because it's a base mixin.""",
+    arguments: {'typeName': typeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldBaseMixinImplementedOutsideOfLibrary(String name) =>
-    _withArgumentsBaseMixinImplementedOutsideOfLibrary(name: name);
+Message _withArgumentsOldBaseMixinImplementedOutsideOfLibrary(
+  String typeName,
+) => _withArgumentsBaseMixinImplementedOutsideOfLibrary(typeName: typeName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
