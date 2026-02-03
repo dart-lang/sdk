@@ -6585,6 +6585,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       switch (node.parent) {
         ConstructorDeclaration(:var factoryKeyword) => factoryKeyword == null,
         MethodDeclaration(:var isStatic) => !isStatic,
+        PrimaryConstructorBody() => true,
         _ => _hasAccessToThis,
       };
 
