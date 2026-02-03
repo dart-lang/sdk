@@ -1,3 +1,8 @@
+## 0.3.9-dev
+
+- Require version `10.1.0-dev` of the `analyzer` package.
+- Require version `0.14.3-dev` of the `analyzer_plugin` package.
+
 ## 0.3.8
 
 - Rules are more properly namespaced in the plugin in which they are registered,

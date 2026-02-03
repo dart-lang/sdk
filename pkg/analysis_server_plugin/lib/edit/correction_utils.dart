@@ -13,7 +13,6 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
@@ -459,7 +458,7 @@ class TokenUtils {
       var tokens = <Token>[];
       var scanner =
           Scanner(
-            CharSequenceReader(s),
+            s,
             DiagnosticReporter(DiagnosticListener.nullListener, _SourceMock()),
           )..configureFeatures(
             featureSetForOverriding: featureSet,

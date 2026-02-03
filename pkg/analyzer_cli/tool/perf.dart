@@ -19,7 +19,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/file_system/file_system.dart';
@@ -234,7 +233,7 @@ ScannerResult tokenize(Source source) {
   // first converting to String?
   var scanner =
       Scanner(
-          CharSequenceReader(contents),
+          contents,
           DiagnosticReporter(DiagnosticListener.nullListener, source),
         )
         ..configureFeatures(

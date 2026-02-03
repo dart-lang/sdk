@@ -41,6 +41,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_null_awa
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_primary_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_secondary_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_super_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_switch_expression.dart';
@@ -127,6 +128,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   ConvertToPackageImport.new,
   ConvertToPrimaryConstructor.new,
   ConvertToRelativeImport.new,
+  ConvertToSecondaryConstructor.new,
   ConvertToSetLiteral.new,
   ConvertToSingleQuotes.new,
   ConvertToSuperParameters.new,

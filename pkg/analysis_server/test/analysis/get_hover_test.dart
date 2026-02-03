@@ -1375,7 +1375,7 @@ extension type A(var int x){
   test_extensionType_constructor_primary_named_declaration() async {
     newFile(testFilePath, '''
 /// my extension type
-extension type A.named(var int x){
+extension type A.named(int x) {
 }
 ''');
 

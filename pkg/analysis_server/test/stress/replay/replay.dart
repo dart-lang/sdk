@@ -14,7 +14,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart' as error;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
@@ -226,7 +225,7 @@ class Driver {
     var featureSet = FeatureSet.latestLanguageVersion();
     var scanner =
         Scanner(
-          CharSequenceReader(text),
+          text,
           error.DiagnosticReporter(
             error.DiagnosticListener.nullListener,
             _TestSource(),

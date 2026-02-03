@@ -4785,8 +4785,8 @@ const MessageCode ffiDefaultAssetDuplicate = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name),
-  Message Function({required String string, required String name})
+  Message Function(String superclass, String name),
+  Message Function({required String superclass, required String name})
 >
 ffiEmptyStruct = const Template(
   "FfiEmptyStruct",
@@ -4796,22 +4796,22 @@ ffiEmptyStruct = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiEmptyStruct({
-  required String string,
+  required String superclass,
   required String name,
 }) {
-  var string_0 = conversions.validateString(string);
+  var superclass_0 = conversions.validateString(superclass);
   var name_0 = conversions.validateAndDemangleName(name);
   return new Message(
     ffiEmptyStruct,
     problemMessage:
-        """${string_0} '${name_0}' is empty. Empty structs and unions are undefined behavior.""",
-    arguments: {'string': string, 'name': name},
+        """${superclass_0} '${name_0}' is empty. Empty structs and unions are undefined behavior.""",
+    arguments: {'superclass': superclass, 'name': name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiEmptyStruct(String string, String name) =>
-    _withArgumentsFfiEmptyStruct(string: string, name: name);
+Message _withArgumentsOldFfiEmptyStruct(String superclass, String name) =>
+    _withArgumentsFfiEmptyStruct(superclass: superclass, name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiExceptionalReturnNull = const MessageCode(
@@ -4912,8 +4912,8 @@ Message _withArgumentsOldFfiExpectedNoExceptionalReturn(DartType returnType) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String sealedClassName),
+  Message Function({required String sealedClassName})
 >
 ffiExtendsOrImplementsSealedClass = const Template(
   "FfiExtendsOrImplementsSealedClass",
@@ -4923,24 +4923,28 @@ ffiExtendsOrImplementsSealedClass = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiExtendsOrImplementsSealedClass({
-  required String name,
+  required String sealedClassName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var sealedClassName_0 = conversions.validateAndDemangleName(sealedClassName);
   return new Message(
     ffiExtendsOrImplementsSealedClass,
-    problemMessage: """Class '${name_0}' cannot be extended or implemented.""",
-    arguments: {'name': name},
+    problemMessage:
+        """Class '${sealedClassName_0}' cannot be extended or implemented.""",
+    arguments: {'sealedClassName': sealedClassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiExtendsOrImplementsSealedClass(String name) =>
-    _withArgumentsFfiExtendsOrImplementsSealedClass(name: name);
+Message _withArgumentsOldFfiExtendsOrImplementsSealedClass(
+  String sealedClassName,
+) => _withArgumentsFfiExtendsOrImplementsSealedClass(
+  sealedClassName: sealedClassName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 ffiFieldAnnotation = const Template(
   "FfiFieldAnnotation",
@@ -4949,27 +4953,27 @@ ffiFieldAnnotation = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldAnnotation({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFfiFieldAnnotation({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     ffiFieldAnnotation,
     problemMessage:
-        """Field '${name_0}' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.""",
-    arguments: {'name': name},
+        """Field '${fieldName_0}' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldAnnotation(String name) =>
-    _withArgumentsFfiFieldAnnotation(name: name);
+Message _withArgumentsOldFfiFieldAnnotation(String fieldName) =>
+    _withArgumentsFfiFieldAnnotation(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name, List<String> names),
+  Message Function(String superclass, String name, List<String> cycleElements),
   Message Function({
-    required String string,
+    required String superclass,
     required String name,
-    required List<String> names,
+    required List<String> cycleElements,
   })
 >
 ffiFieldCyclic = const Template(
@@ -4980,32 +4984,41 @@ ffiFieldCyclic = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiFieldCyclic({
-  required String string,
+  required String superclass,
   required String name,
-  required List<String> names,
+  required List<String> cycleElements,
 }) {
-  var string_0 = conversions.validateString(string);
+  var superclass_0 = conversions.validateString(superclass);
   var name_0 = conversions.validateAndDemangleName(name);
-  var names_0 = conversions.validateAndItemizeNames(names);
+  var cycleElements_0 = conversions.validateAndItemizeNames(cycleElements);
   return new Message(
     ffiFieldCyclic,
-    problemMessage: """${string_0} '${name_0}' contains itself. Cycle elements:
-${names_0}""",
-    arguments: {'string': string, 'name': name, 'names': names},
+    problemMessage:
+        """${superclass_0} '${name_0}' contains itself. Cycle elements:
+${cycleElements_0}""",
+    arguments: {
+      'superclass': superclass,
+      'name': name,
+      'cycleElements': cycleElements,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFfiFieldCyclic(
-  String string,
+  String superclass,
   String name,
-  List<String> names,
-) => _withArgumentsFfiFieldCyclic(string: string, name: name, names: names);
+  List<String> cycleElements,
+) => _withArgumentsFfiFieldCyclic(
+  superclass: superclass,
+  name: name,
+  cycleElements: cycleElements,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 ffiFieldInitializer = const Template(
   "FfiFieldInitializer",
@@ -5014,26 +5027,26 @@ ffiFieldInitializer = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldInitializer({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFfiFieldInitializer({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     ffiFieldInitializer,
     problemMessage:
-        """Field '${name_0}' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+        """Field '${fieldName_0}' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
     correctionMessage:
         """Mark the field as external to avoid having to initialize it.""",
-    arguments: {'name': name},
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldInitializer(String name) =>
-    _withArgumentsFfiFieldInitializer(name: name);
+Message _withArgumentsOldFfiFieldInitializer(String fieldName) =>
+    _withArgumentsFfiFieldInitializer(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 ffiFieldNoAnnotation = const Template(
   "FfiFieldNoAnnotation",
@@ -5042,24 +5055,24 @@ ffiFieldNoAnnotation = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldNoAnnotation({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFfiFieldNoAnnotation({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     ffiFieldNoAnnotation,
     problemMessage:
-        """Field '${name_0}' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
-    arguments: {'name': name},
+        """Field '${fieldName_0}' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldNoAnnotation(String name) =>
-    _withArgumentsFfiFieldNoAnnotation(name: name);
+Message _withArgumentsOldFfiFieldNoAnnotation(String fieldName) =>
+    _withArgumentsFfiFieldNoAnnotation(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 ffiFieldNull = const Template(
   "FfiFieldNull",
@@ -5068,19 +5081,19 @@ ffiFieldNull = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiFieldNull({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFfiFieldNull({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     ffiFieldNull,
     problemMessage:
-        """Field '${name_0}' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
-    arguments: {'name': name},
+        """Field '${fieldName_0}' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiFieldNull(String name) =>
-    _withArgumentsFfiFieldNull(name: name);
+Message _withArgumentsOldFfiFieldNull(String fieldName) =>
+    _withArgumentsFfiFieldNull(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiLeafCallMustNotReturnHandle = const MessageCode(
@@ -5301,8 +5314,8 @@ const MessageCode ffiPackedAnnotationAlignment = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String fieldName),
+  Message Function({required String fieldName})
 >
 ffiSizeAnnotation = const Template(
   "FfiSizeAnnotation",
@@ -5311,19 +5324,19 @@ ffiSizeAnnotation = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiSizeAnnotation({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsFfiSizeAnnotation({required String fieldName}) {
+  var fieldName_0 = conversions.validateAndDemangleName(fieldName);
   return new Message(
     ffiSizeAnnotation,
     problemMessage:
-        """Field '${name_0}' must have exactly one 'Array' annotation.""",
-    arguments: {'name': name},
+        """Field '${fieldName_0}' must have exactly one 'Array' annotation.""",
+    arguments: {'fieldName': fieldName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldFfiSizeAnnotation(String name) =>
-    _withArgumentsFfiSizeAnnotation(name: name);
+Message _withArgumentsOldFfiSizeAnnotation(String fieldName) =>
+    _withArgumentsFfiSizeAnnotation(fieldName: fieldName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5410,11 +5423,15 @@ Message _withArgumentsOldFfiTypeInvalid(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, DartType type3),
+  Message Function(
+    DartType actualType,
+    DartType expectedType,
+    DartType nativeType,
+  ),
   Message Function({
-    required DartType type,
-    required DartType type2,
-    required DartType type3,
+    required DartType actualType,
+    required DartType expectedType,
+    required DartType nativeType,
   })
 >
 ffiTypeMismatch = const Template(
@@ -5425,29 +5442,37 @@ ffiTypeMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiTypeMismatch({
-  required DartType type,
-  required DartType type2,
-  required DartType type3,
+  required DartType actualType,
+  required DartType expectedType,
+  required DartType nativeType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var type3_0 = labeler.labelType(type3);
+  var actualType_0 = labeler.labelType(actualType);
+  var expectedType_0 = labeler.labelType(expectedType);
+  var nativeType_0 = labeler.labelType(nativeType);
   return new Message(
     ffiTypeMismatch,
     problemMessage:
-        """Expected type '${type_0}' to be '${type2_0}', which is the Dart type corresponding to '${type3_0}'.""" +
+        """Expected type '${actualType_0}' to be '${expectedType_0}', which is the Dart type corresponding to '${nativeType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2, 'type3': type3},
+    arguments: {
+      'actualType': actualType,
+      'expectedType': expectedType,
+      'nativeType': nativeType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFfiTypeMismatch(
-  DartType type,
-  DartType type2,
-  DartType type3,
-) => _withArgumentsFfiTypeMismatch(type: type, type2: type2, type3: type3);
+  DartType actualType,
+  DartType expectedType,
+  DartType nativeType,
+) => _withArgumentsFfiTypeMismatch(
+  actualType: actualType,
+  expectedType: expectedType,
+  nativeType: nativeType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiVariableLengthArrayNotLast = const MessageCode(

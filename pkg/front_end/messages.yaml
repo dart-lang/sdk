@@ -4893,85 +4893,85 @@ ffiCreateOfStructOrUnion:
 ffiTypeMismatch:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Type type3: undocumented
-  problemMessage: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
+    Type actualType: The erroneous type.
+    Type expectedType: The expected type.
+    Type nativeType: The corresponding native type.
+  problemMessage: "Expected type '#actualType' to be '#expectedType', which is the Dart type corresponding to '#nativeType'."
   external: test/ffi_test.dart
 
 ffiEmptyStruct:
   # Used by dart:ffi
   parameters:
-    String string: undocumented
-    Name name: undocumented
-  problemMessage: "#string '#name' is empty. Empty structs and unions are undefined behavior."
+    String superclass: The superclass name.
+    Name name: The name of the problematic struct.
+  problemMessage: "#superclass '#name' is empty. Empty structs and unions are undefined behavior."
   external: test/ffi_test.dart
 
 ffiTypeInvalid:
   # Used by dart:ffi
   parameters:
-    Type type: undocumented
+    Type type: The invalid type.
   problemMessage: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
   external: test/ffi_test.dart
 
 ffiFieldNull:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
-  problemMessage: "Field '#name' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`."
+    Name fieldName: The name of the erroneous field.
+  problemMessage: "Field '#fieldName' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`."
   external: test/ffi_test.dart
 
 ffiFieldAnnotation:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
-  problemMessage: "Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields."
+    Name fieldName: The name of the erroneous field.
+  problemMessage: "Field '#fieldName' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields."
   external: test/ffi_test.dart
 
 ffiFieldNoAnnotation:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
-  problemMessage: "Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code."
+    Name fieldName: The name of the erroneous field.
+  problemMessage: "Field '#fieldName' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code."
   external: test/ffi_test.dart
 
 ffiFieldCyclic:
   # Used by dart:ffi
   parameters:
-    String string: undocumented
-    Name name: undocumented
-    Names names: undocumented
+    String superclass: The superclass name.
+    Name name: The name of the problematic struct.
+    Names cycleElements: The components in the cycle.
   problemMessage: |
-    #string '#name' contains itself. Cycle elements:
-    #names
+    #superclass '#name' contains itself. Cycle elements:
+    #cycleElements
   external: test/ffi_test.dart
 
 ffiNotStatic:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
+    Name name: The name of the problematic element.
   problemMessage: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context."
   external: test/ffi_test.dart
 
 ffiFieldInitializer:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
-  problemMessage: "Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution."
+    Name fieldName: The name of the problematic field.
+  problemMessage: "Field '#fieldName' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution."
   correctionMessage: "Mark the field as external to avoid having to initialize it."
   external: test/ffi_test.dart
 
 ffiExtendsOrImplementsSealedClass:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
-  problemMessage: "Class '#name' cannot be extended or implemented."
+    Name sealedClassName: The name of the class that cannot be extended or implemented.
+  problemMessage: "Class '#sealedClassName' cannot be extended or implemented."
   external: test/ffi_test.dart
 
 ffiPackedAnnotation:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
+    Name name: The name of the problematic struct.
   problemMessage: "Struct '#name' must have at most one 'Packed' annotation."
   external: test/ffi_test.dart
 
@@ -4984,8 +4984,8 @@ ffiPackedAnnotationAlignment:
 ffiSizeAnnotation:
   # Used by dart:ffi
   parameters:
-    Name name: undocumented
-  problemMessage: "Field '#name' must have exactly one 'Array' annotation."
+    Name fieldName: The name of the problematic field.
+  problemMessage: "Field '#fieldName' must have exactly one 'Array' annotation."
   external: test/ffi_test.dart
 
 ffiSizeAnnotationDimensions:

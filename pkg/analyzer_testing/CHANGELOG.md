@@ -1,3 +1,7 @@
+## 0.1.11-dev
+
+- Require version `10.1.0-dev` of the `analyzer` package.
+
 ## 0.1.10
 
 - A stub Flutter package can be added in tests by overriding the

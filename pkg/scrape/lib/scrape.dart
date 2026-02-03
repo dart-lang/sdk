@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -275,11 +274,10 @@ class Scrape {
     var featureSet = FeatureSet.latestLanguageVersion();
 
     // Tokenize the source.
-    var reader = CharSequenceReader(source);
     var stringSource = StringSource(source, file.path);
     var diagnosticReporter =
         DiagnosticReporter(diagnosticListener, stringSource);
-    var scanner = Scanner(reader, diagnosticReporter);
+    var scanner = Scanner(source, diagnosticReporter);
     scanner.configureFeatures(
         featureSet: featureSet, featureSetForOverriding: featureSet);
     var startToken = scanner.tokenize();

@@ -278,8 +278,6 @@ class DartUnitHoverComputer {
     } else if (node is SimpleIdentifier &&
         parent is DotShorthandConstructorInvocation) {
       return parent;
-    } else if (node is PrimaryConstructorName) {
-      return parent;
     }
     return node;
   }

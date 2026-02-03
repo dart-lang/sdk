@@ -9,7 +9,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -27,9 +26,8 @@ class ParseBase with ResourceProviderMixin {
 
     var diagnosticListener = RecordingDiagnosticListener();
 
-    var reader = CharSequenceReader(content);
     var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
-    var scanner = Scanner(reader, diagnosticReporter)
+    var scanner = Scanner(content, diagnosticReporter)
       ..configureFeatures(
         featureSetForOverriding: featureSet,
         featureSet: featureSet,
