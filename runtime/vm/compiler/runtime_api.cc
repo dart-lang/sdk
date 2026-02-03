@@ -370,10 +370,6 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
              dart::Object::ShouldHaveDeeplyImmutabilityBitSet(cid));
 }
 
-word Object::tags_offset() {
-  return 0;
-}
-
 const word UntaggedObject::kCardRememberedBit =
     dart::UntaggedObject::CardRememberedBit::shift();
 
@@ -555,10 +551,6 @@ intptr_t Class::TypeArgumentsFieldOffset(const dart::Class& klass) {
 
 bool Class::TraceAllocation(const dart::Class& klass) {
   return klass.TraceAllocation(dart::IsolateGroup::Current());
-}
-
-word Instance::first_field_offset() {
-  return TranslateOffsetInWords(dart::Instance::NextFieldOffset());
 }
 
 word Instance::native_fields_array_offset() {

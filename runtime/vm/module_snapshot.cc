@@ -82,6 +82,14 @@ class ModuleSnapshot : public AllStatic {
     kImplicitSetter,
     kFieldInitializer,
   };
+
+  // Object pool entry kinds in the module snapshots.
+  // Should match ObjectPoolEntryKind enum
+  // declared in pkg/native_compiler/lib/snapshot/snapshot.dart.
+  enum ObjectPoolEntryKind {
+    kObjectRef,
+    kNewObjectTags,
+  };
 };
 
 class Deserializer;
@@ -714,7 +722,11 @@ class CodeDeserializationCluster : public DeserializationCluster {
         }
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
       } else {
-        UNREACHABLE();
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+        if (FLAG_disassemble_stubs) {
+          Disassembler::DisassembleStub("", code);
+        }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
       }
 
 #if !defined(PRODUCT)
@@ -744,10 +756,14 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d_) override {
     Deserializer::Local d(d_);
 
-    const uint8_t entry_bits =
+    const uint8_t tagged_entry_bits =
         ObjectPool::EncodeBits(ObjectPool::EntryType::kTaggedObject,
-                               ObjectPool::Patchability::kPatchable,
-                               ObjectPool::SnapshotBehavior::kSnapshotable);
+                               ObjectPool::Patchability::kNotPatchable,
+                               ObjectPool::SnapshotBehavior::kNotSnapshotable);
+    const uint8_t immediate_entry_bits =
+        ObjectPool::EncodeBits(ObjectPool::EntryType::kImmediate,
+                               ObjectPool::Patchability::kNotPatchable,
+                               ObjectPool::SnapshotBehavior::kNotSnapshotable);
 
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       const intptr_t length = d.ReadUnsigned();
@@ -756,9 +772,26 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
                                      ObjectPool::InstanceSize(length));
       pool->untag()->length_ = length;
       for (intptr_t j = 0; j < length; j++) {
-        pool->untag()->entry_bits()[j] = entry_bits;
-        UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
-        entry.raw_obj_ = d.ReadRef();
+        const auto kind =
+            static_cast<ModuleSnapshot::ObjectPoolEntryKind>(d.ReadUnsigned());
+        switch (kind) {
+          case ModuleSnapshot::kObjectRef: {
+            pool->untag()->entry_bits()[j] = tagged_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_obj_ = d.ReadRef();
+            break;
+          }
+          case ModuleSnapshot::kNewObjectTags: {
+            ClassPtr cls = static_cast<ClassPtr>(d.ReadRef());
+            pool->untag()->entry_bits()[j] = immediate_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_value_ = compiler::target::MakeTagWordForNewSpaceObject(
+                cls->untag()->id_,
+                Object::RoundedAllocationSize(Class::host_instance_size(cls) *
+                                              kCompressedWordSize));
+            break;
+          }
+        }
       }
     }
   }
@@ -771,6 +804,9 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
       pool ^= refs.At(id);
 
       for (intptr_t i = 0, length = pool.Length(); i < length; ++i) {
+        if (pool.TypeAt(i) != ObjectPool::EntryType::kTaggedObject) {
+          continue;
+        }
         obj = pool.ObjectAt(i);
         if (obj.IsAbstractType() || obj.IsTypeArguments()) {
           obj = Instance::Cast(obj).Canonicalize(d->thread());

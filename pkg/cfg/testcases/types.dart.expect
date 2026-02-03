@@ -53,7 +53,7 @@ B0 = EntryBlock()
 B0 = EntryBlock()
   v1 = TypeParameters()
   v2 = TypeArguments(v1, <A..T%>)
-  v3 = AllocateObject(v2)
+  v3 = AllocateObject A<A..T%>(v2)
   DirectCall A._(v3)
   Return(v3)
 

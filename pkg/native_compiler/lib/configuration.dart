@@ -11,13 +11,17 @@ import 'package:cfg/passes/simplification.dart';
 import 'package:cfg/passes/value_numbering.dart';
 import 'package:native_compiler/back_end/arm64/code_generator.dart';
 import 'package:native_compiler/back_end/arm64/constraints.dart';
+import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
+import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/code_generator.dart';
 import 'package:native_compiler/back_end/constraints.dart';
 import 'package:native_compiler/back_end/regalloc_checker.dart';
 import 'package:native_compiler/back_end/register_allocator.dart';
+import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/passes/lowering.dart';
 import 'package:native_compiler/passes/reorder_blocks.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:native_compiler/snapshot/image_writer.dart';
 import 'package:native_compiler/snapshot/macho/macho_image_writer.dart';
@@ -51,8 +55,13 @@ abstract base class Configuration {
     required this.outputLibraryName,
   });
 
+  VMOffsets get vmOffsets;
+
+  ObjectLayout get objectLayout;
+
   Pipeline createPipeline(
     FunctionRegistry functionRegistry,
+    StubFactory stubFactory,
     CodeConsumer consumeGeneratedCode,
   );
 
@@ -63,6 +72,11 @@ abstract base class Configuration {
   CodeGenerator createCodeGenerator(BackEndState backEndState) =>
       switch (targetCPU) {
         TargetCPU.arm64 => Arm64CodeGenerator(backEndState),
+      };
+
+  StubFactory createStubFactory(CodeConsumer consumeGeneratedCode) =>
+      switch (targetCPU) {
+        TargetCPU.arm64 => Arm64StubFactory(vmOffsets, consumeGeneratedCode),
       };
 
   ImageWriter createImageWriter() => switch (imageFormat) {
@@ -78,17 +92,30 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     required super.outputLibraryName,
   });
 
-  VMOffsets createVMOffsets() => switch (targetCPU) {
+  @override
+  late final VMOffsets vmOffsets = switch (targetCPU) {
     TargetCPU.arm64 => Arm64VMOffsets(),
+  };
+
+  @override
+  late final ObjectLayout objectLayout = switch (targetCPU) {
+    TargetCPU.arm64 => ObjectLayout(
+      vmOffsets,
+      wordSize: 8,
+      compressedWordSize: 8,
+    ),
   };
 
   @override
   Pipeline createPipeline(
     FunctionRegistry functionRegistry,
+    StubFactory stubFactory,
     CodeConsumer consumeGeneratedCode,
   ) {
     final backEndState = BackEndState();
-    backEndState.vmOffsets = createVMOffsets();
+    backEndState.vmOffsets = vmOffsets;
+    backEndState.objectLayout = objectLayout;
+    backEndState.stubFactory = stubFactory;
     backEndState.consumeGeneratedCode = consumeGeneratedCode;
     final constraints = createConstraints();
     return Pipeline([

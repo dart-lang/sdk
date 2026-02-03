@@ -5,10 +5,14 @@
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/utils/misc.dart';
+import 'package:kernel/ast.dart' as ast;
 import 'package:native_compiler/back_end/arm64/assembler.dart';
+import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code_generator.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/object_pool.dart';
+import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
 final class Arm64CodeGenerator extends CodeGenerator {
@@ -21,19 +25,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void enterFrame() {
-    _asm.pushPair(FP, LR);
-    _asm.mov(FP, stackPointerReg);
-
-    // Tag and save caller pool pointer.
-    _asm.add(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
-    _asm.pushPair(poolPointerReg, codeReg);
-
-    // Load and untag current pool pointer.
-    _asm.ldr(
-      poolPointerReg,
-      _asm.fieldAddress(codeReg, _asm.vmOffsets.Code_object_pool_offset),
-    );
-    _asm.sub(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
+    _asm.enterDartFrame();
 
     // TODO: calculate stack frame size.
     _asm.sub(stackPointerReg, stackPointerReg, Immediate(64));
@@ -185,12 +177,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void visitReturn(Return instr) {
     assert(inputReg(instr, 0) == returnReg);
-    // Restore and untag pool pointer.
-    _asm.ldr(poolPointerReg, RegOffsetAddress(FP, -2 * wordSize));
-    _asm.sub(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
-
-    _asm.mov(stackPointerReg, FP);
-    _asm.popPair(FP, LR);
+    _asm.leaveDartFrame();
     _asm.ret();
   }
 
@@ -255,13 +242,13 @@ final class Arm64CodeGenerator extends CodeGenerator {
     // TODO: call directly through Code.
     _asm.ldr(
       codeReg,
-      _asm.fieldAddress(functionReg, _asm.vmOffsets.Function_code_offset),
+      _asm.fieldAddress(functionReg, vmOffsets.Function_code_offset),
     );
     _asm.ldr(
       tempReg,
       _asm.fieldAddress(
         functionReg,
-        _asm.vmOffsets.Function_entry_point_offset.first,
+        vmOffsets.Function_entry_point_offset.first,
       ),
     );
     _asm.blr(tempReg);
@@ -350,7 +337,107 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitAllocateObject(AllocateObject instr) {
-    _asm.unimplemented('Unimplemented: code generation for AllocateObject');
+    final cls = (instr.type.dartType as ast.InterfaceType).classNode;
+    final instanceSize = objectLayout.getInstanceSize(cls);
+    final typeArgsField = objectLayout.getTypeArgumentsField(cls);
+    final typeArgumentsReg = AllocationStub.typeArgumentsReg;
+    final tagsReg = AllocationStub.tagsReg;
+    final resultReg = AllocationStub.resultReg;
+    assert(!instr.hasTypeArguments || inputReg(instr, 0) == typeArgumentsReg);
+    assert(outputReg(instr) == resultReg);
+
+    // TODO: support huge objects
+
+    final done = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.callStub(backEndState.stubFactory.getAllocationStub(cls));
+      _asm.b(done);
+    });
+
+    final endReg = AllocationStub.scratch1Reg;
+    final newTopReg = AllocationStub.scratch2Reg;
+    // Load Thread.top_ and Thread.end_.
+    _asm.ldp(
+      resultReg,
+      endReg,
+      _asm.pairAddress(threadReg, vmOffsets.Thread_top_offset),
+    );
+    _asm.addImmediate(newTopReg, resultReg, instanceSize);
+    _asm.cmp(endReg, newTopReg);
+    _asm.b(slowPath, Condition.unsignedLessOrEqual);
+
+    // TLAB has enough space. Update top and initialize object.
+    _asm.loadFromPool(tagsReg, NewObjectTags(cls));
+    _asm.str(newTopReg, _asm.address(threadReg, vmOffsets.Thread_top_offset));
+    _asm.str(tagsReg, _asm.address(resultReg, vmOffsets.Object_tags_offset));
+    // TODO: figure out if we need store-store barrier here.
+
+    // TODO: support compressed pointers.
+    const maxUnrolledSize = 16 * wordSize;
+    if (instanceSize <= maxUnrolledSize) {
+      int offset = vmOffsets.Instance_first_field_offset;
+      for (; offset + 2 * wordSize <= instanceSize; offset += 2 * wordSize) {
+        _asm.stp(nullReg, nullReg, _asm.pairAddress(resultReg, offset));
+      }
+      if (offset < instanceSize) {
+        _asm.str(nullReg, _asm.address(resultReg, offset));
+        offset += wordSize;
+      }
+      assert(offset == instanceSize);
+    } else {
+      final fieldReg = AllocationStub.scratch1Reg;
+      _asm.addImmediate(
+        fieldReg,
+        resultReg,
+        vmOffsets.Instance_first_field_offset,
+      );
+
+      final loop = Label();
+      _asm.bind(loop);
+      _asm.stp(
+        nullReg,
+        nullReg,
+        WritebackRegOffsetAddress(fieldReg, 2 * wordSize, isPostIndexed: true),
+      );
+      // There is at least two word (kAllocationRedZoneSize) gap at the end of page
+      // which makes it possible to initialize objects by two words at once and
+      // write slightly beyond the end.
+      _asm.cmp(fieldReg, newTopReg);
+      _asm.b(loop, Condition.unsignedLess);
+    }
+
+    _asm.addImmediate(resultReg, resultReg, heapObjectTag);
+
+    if (typeArgsField != null) {
+      if (instr.hasTypeArguments) {
+        _asm.str(
+          typeArgumentsReg,
+          _asm.fieldAddress(
+            resultReg,
+            objectLayout.getFieldOffset(typeArgsField),
+          ),
+        );
+      } else {
+        final typeArgs = getInstantiatorTypeArguments(cls, []);
+        if (typeArgs != null) {
+          _asm.loadConstant(
+            typeArgumentsReg,
+            ConstantValue(TypeArgumentsConstant(typeArgs)),
+          );
+          _asm.str(
+            typeArgumentsReg,
+            _asm.fieldAddress(
+              resultReg,
+              objectLayout.getFieldOffset(typeArgsField),
+            ),
+          );
+        }
+      }
+    }
+
+    // TODO: allocation profile; allocation probe points.
+
+    _asm.bind(done);
   }
 
   @override
@@ -395,11 +482,32 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void generateMove(Location from, Location to) {
-    if (from is Register && to is Register) {
-      _asm.mov(to, from);
-      return;
+    switch (from) {
+      case Register():
+        switch (to) {
+          case Register():
+            _asm.mov(to, from);
+            return;
+          case StackLocation():
+            _asm.str(from, _asm.address(FP, to.frameOffset));
+            return;
+          default:
+            break;
+        }
+      case StackLocation():
+        switch (to) {
+          case Register():
+            _asm.ldr(to, _asm.address(FP, from.frameOffset));
+            return;
+          default:
+            break;
+        }
+      default:
+        break;
     }
-    _asm.unimplemented('Unimplemented: code generation for generateMove');
+    _asm.unimplemented(
+      'Unimplemented: code generation for generateMove ${from.runtimeType} -> ${to.runtimeType}',
+    );
   }
 
   @override
@@ -444,4 +552,8 @@ extension on ComparisonOpcode {
     ComparisonOpcode.doubleGreater => Condition.greater,
     ComparisonOpcode.doubleGreaterOrEqual => Condition.greaterOrEqual,
   };
+}
+
+extension on StackLocation {
+  int get frameOffset => -(2 + index) * wordSize;
 }

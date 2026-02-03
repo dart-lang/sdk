@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:native_compiler/back_end/arm64/assembler.dart';
+import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
 import 'package:native_compiler/back_end/constraints.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:cfg/ir/instructions.dart';
@@ -190,9 +191,16 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitAllocateObject(AllocateObject instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        if (instr.inputCount == 1) anyCpuRegister,
-      ]);
+      InstructionConstraints(
+        AllocationStub.resultReg,
+        [if (instr.hasTypeArguments) AllocationStub.typeArgumentsReg],
+        [
+          if (!instr.hasTypeArguments) AllocationStub.typeArgumentsReg,
+          AllocationStub.tagsReg,
+          AllocationStub.scratch1Reg,
+          AllocationStub.scratch2Reg,
+        ],
+      );
 
   @override
   InstructionConstraints? visitAllocateClosure(AllocateClosure instr) =>
