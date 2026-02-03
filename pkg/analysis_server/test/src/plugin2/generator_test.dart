@@ -37,7 +37,7 @@ import 'package:no_ints/main.dart' as no_ints;
     );
   }
 
-  void test_entrypointListsPluginInstances() {
+  void test_entrypointMapPluginInstances() {
     var pluginPackageGenerator = PluginPackageGenerator(
       configurations: [
         PluginConfiguration(
@@ -53,10 +53,10 @@ import 'package:no_ints/main.dart' as no_ints;
     expect(
       pluginPackageGenerator.generateEntrypoint(),
       contains('''
-    plugins: [
-      no_bools.plugin,
-      no_ints.plugin,
-    ],
+    plugins: {
+      'no_bools': no_bools.plugin,
+      'no_ints': no_ints.plugin,
+    },
 '''),
     );
   }
@@ -193,9 +193,8 @@ environment:
     );
   }
 
-  void test_useMapConstructor() {
+  void test_useMapConstructor_version() {
     var pluginPackageGenerator = PluginPackageGenerator(
-      useMapConstructor: true,
       configurations: [
         PluginConfiguration(
           name: 'no_bools',
@@ -207,9 +206,6 @@ environment:
         ),
       ],
     );
-    var entrypoint = pluginPackageGenerator.generateEntrypoint();
-    expect(entrypoint, contains("'no_bools': no_bools.plugin,"));
-    expect(entrypoint, contains("'no_ints': no_ints.plugin,"));
     var pubspec = pluginPackageGenerator.generatePubspec();
     expect(pubspec, contains('analysis_server_plugin: ^0.3.8'));
   }
