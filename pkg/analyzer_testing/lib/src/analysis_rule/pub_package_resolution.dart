@@ -229,24 +229,6 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// This allows various `package:flutter/` imports to resolve.
   bool get addFlutterPackageDep => false;
 
-  /// Adds the 'js' package as a dependency to the package-under-test.
-  ///
-  /// This allows various `package:js/` imports to resolve.
-  @Deprecated(
-    'The mock js package is deprecated; use '
-    '`PubPackageResolutionTest.newPackage` to make a custom mock',
-  )
-  bool get addJsPackageDep => false;
-
-  /// Adds the 'kernel' package as a dependency to the package-under-test.
-  ///
-  /// This allows various `package:kernel/` imports to resolve.
-  @Deprecated(
-    'The mock kernel package is deprecated; use '
-    '`PubPackageResolutionTest.newPackage` to make a custom mock',
-  )
-  bool get addKernelPackageDep => false;
-
   /// Adds the 'meta' package as a dependency to the package-under-test.
   ///
   /// This allows various `package:meta/` imports to resolve.
@@ -645,16 +627,6 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
       var flutterPath = addFlutter().parent.path;
       configCopy.add(name: 'flutter', rootPath: flutterPath);
-    }
-
-    if (addJsPackageDep) {
-      var jsPath = addJs().parent.path;
-      configCopy.add(name: 'js', rootPath: jsPath);
-    }
-
-    if (addKernelPackageDep) {
-      var kernelPath = addKernel().parent.path;
-      configCopy.add(name: 'kernel', rootPath: kernelPath);
     }
 
     if (addMetaPackageDep) {
