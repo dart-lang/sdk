@@ -201,7 +201,9 @@ class SharedInteropTransformer extends Transformer {
         if (!_inIsATearoff) {
           assert(interopType is TypeParameterType);
           _diagnosticReporter.report(
-            diag.jsInteropIsAInvalidTypeVariable.withArgumentsOld(interopType),
+            diag.jsInteropIsAInvalidTypeVariable.withArguments(
+              type: interopType,
+            ),
             invocation.fileOffset,
             invocation.name.text.length,
             invocation.location?.file,
@@ -244,7 +246,7 @@ class SharedInteropTransformer extends Transformer {
   bool _verifyExportable(DartType dartType) {
     if (dartType is! InterfaceType) {
       _diagnosticReporter.report(
-        diag.jsInteropExportInvalidTypeArgument.withArgumentsOld(dartType),
+        diag.jsInteropExportInvalidTypeArgument.withArguments(type: dartType),
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -256,8 +258,8 @@ class SharedInteropTransformer extends Transformer {
         js_interop.hasStaticInteropAnnotation(dartClass) ||
         js_interop.hasAnonymousAnnotation(dartClass)) {
       _diagnosticReporter.report(
-        diag.jsInteropExportInvalidInteropTypeArgument.withArgumentsOld(
-          dartType,
+        diag.jsInteropExportInvalidInteropTypeArgument.withArguments(
+          type: dartType,
         ),
         invocation.fileOffset,
         invocation.name.text.length,
@@ -588,7 +590,9 @@ class SharedInteropTransformer extends Transformer {
           if (descriptorNode is Procedure &&
               _extensionIndex.isLiteralConstructor(descriptorNode)) {
             _diagnosticReporter.report(
-              diag.jsInteropIsAObjectLiteralType.withArgumentsOld(interopType),
+              diag.jsInteropIsAObjectLiteralType.withArguments(
+                type: interopType,
+              ),
               invocation.fileOffset,
               invocation.name.text.length,
               invocation.location?.file,
@@ -617,9 +621,9 @@ class SharedInteropTransformer extends Transformer {
     if (typeofString != null) {
       if (interopTypeDecl != jsType) {
         _diagnosticReporter.report(
-          diag.jsInteropIsAPrimitiveExtensionType.withArgumentsOld(
-            interopType,
-            jsTypeName,
+          diag.jsInteropIsAPrimitiveExtensionType.withArguments(
+            interopType: interopType,
+            jsTypeName: jsTypeName,
           ),
           invocation.fileOffset,
           invocation.name.text.length,

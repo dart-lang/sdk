@@ -176,9 +176,9 @@ class ExportChecker {
       var sortedExistingMembers =
           existingMembers.map((member) => member.toString()).toList()..sort();
       _diagnosticReporter.report(
-        diag.jsInteropExportMemberCollision.withArgumentsOld(
-          exportName,
-          sortedExistingMembers.join(', '),
+        diag.jsInteropExportMemberCollision.withArguments(
+          exportName: exportName,
+          members: sortedExistingMembers.join(', '),
         ),
         cls.fileOffset,
         cls.name.length,
@@ -189,7 +189,9 @@ class ExportChecker {
 
     if (exports.isEmpty) {
       _diagnosticReporter.report(
-        diag.jsInteropExportNoExportableMembers.withArgumentsOld(cls.name),
+        diag.jsInteropExportNoExportableMembers.withArguments(
+          className: cls.name,
+        ),
         cls.fileOffset,
         cls.name.length,
         cls.location?.file,

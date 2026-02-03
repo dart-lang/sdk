@@ -808,7 +808,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (!cls.isAbstract && !cls.isEnum && hasEnumSuperinterface) {
         libraryBuilder.addProblem(
-          diag.enumSupertypeOfNonAbstractClass.withArgumentsOld(name),
+          diag.enumSupertypeOfNonAbstractClass.withArguments(className: name),
           fileOffset,
           noLength,
           fileUri,
@@ -837,8 +837,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             length = uriOffset.length;
           }
           libraryBuilder.addProblem(
-            diag.enumImplementerContainsValuesDeclaration.withArgumentsOld(
-              this.name,
+            diag.enumImplementerContainsValuesDeclaration.withArguments(
+              className: this.name,
             ),
             fileOffset,
             length,
@@ -864,8 +864,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             length = uriOffset.length;
           }
           libraryBuilder.addProblem(
-            diag.enumImplementerContainsValuesDeclaration.withArgumentsOld(
-              this.name,
+            diag.enumImplementerContainsValuesDeclaration.withArguments(
+              className: this.name,
             ),
             fileOffset,
             length,
@@ -874,9 +874,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
         if (superclassDeclaringConcreteValues != null) {
           libraryBuilder.addProblem(
-            diag.inheritedRestrictedMemberOfEnumImplementer.withArgumentsOld(
-              "values",
-              superclassDeclaringConcreteValues.name,
+            diag.inheritedRestrictedMemberOfEnumImplementer.withArguments(
+              memberName: "values",
+              superclassName: superclassDeclaringConcreteValues.name,
             ),
             fileOffset,
             noLength,
@@ -906,9 +906,9 @@ class SourceClassBuilder extends ClassBuilderImpl
             ClassBuilder restrictedNameMemberProvider =
                 restrictedMembersInSuperclasses[restrictedMemberName]!;
             libraryBuilder.addProblem(
-              diag.inheritedRestrictedMemberOfEnumImplementer.withArgumentsOld(
-                restrictedMemberName,
-                restrictedNameMemberProvider.name,
+              diag.inheritedRestrictedMemberOfEnumImplementer.withArguments(
+                memberName: restrictedMemberName,
+                superclassName: restrictedNameMemberProvider.name,
               ),
               fileOffset,
               noLength,

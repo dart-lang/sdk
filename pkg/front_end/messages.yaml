@@ -5988,47 +5988,47 @@ jsInteropExportDisallowedMember:
 
 jsInteropExportInvalidInteropTypeArgument:
   parameters:
-    Type type: undocumented
+    Type type: The invalid type.
   problemMessage: "Type argument '#type' needs to be a non-JS interop type."
   correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
 
 jsInteropExportInvalidTypeArgument:
   parameters:
-    Type type: undocumented
+    Type type: The invalid type.
   problemMessage: "Type argument '#type' needs to be an interface type."
   correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
 
 jsInteropExportMemberCollision:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "The following class members collide with the same export '#name': #string."
+    Name exportName: The name of the conflicting export.
+    String members: The class members that collide with the conflicting export, separated by `, `.
+  problemMessage: "The following class members collide with the same export '#exportName': #members."
   correctionMessage: "Either remove the conflicting members or use a different export name."
 
 jsInteropExportNoExportableMembers:
   parameters:
-    Name name: undocumented
-  problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
+    Name className: The name of the class with no exportable members.
+  problemMessage: "Class '#className' has no exportable members in the class or the inheritance chain."
   correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
 
 jsInteropIsAInvalidTypeVariable:
   parameters:
-    Type type: undocumented
+    Type type: The type argument provided to `isA`.
   problemMessage: "Type argument '#type' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time."
   correctionMessage: "Use a valid interop extension type that can be determined at compile-time as the type argument instead."
 
 jsInteropIsAObjectLiteralType:
   parameters:
-    Type type: undocumented
+    Type type: The type with an object literal constructor.
   problemMessage: "Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check."
   correctionMessage: "Use 'JSObject' as the type argument instead."
 
 jsInteropIsAPrimitiveExtensionType:
   parameters:
-    Type type: undocumented
-    String string: undocumented
-  problemMessage: "Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'."
-  correctionMessage: "Use the primitive JS type '#string' as the type argument instead."
+    Type interopType: The type that wraps a primitive JS type.
+    String jsTypeName: The name of the JS type that is wrapped.
+  problemMessage: "Type argument '#interopType' wraps primitive JS type '#jsTypeName', which is specially handled using 'typeof'."
+  correctionMessage: "Use the primitive JS type '#jsTypeName' as the type argument instead."
 
 jsInteropIsATearoff:
   parameters: none
@@ -6037,9 +6037,9 @@ jsInteropIsATearoff:
 
 jsInteropExtensionTypeNotInterop:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
+    Name extensionTypeName: The name of the extension type that is marked with a `@JS` annotation.
+    Type representationType: The type that is not a valid JS interop type.
+  problemMessage: "Extension type '#extensionTypeName' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#representationType'."
   correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types."
 
 jsInteropExtensionTypeMemberNotInterop:
@@ -6069,20 +6069,20 @@ jsInteropExternalMemberNotJSAnnotated:
 
 jsInteropFunctionToJSNamedParameters:
   parameters:
-    String conversion: undocumented
+    String conversion: The "toJS" conversion in use.
   problemMessage: "Functions converted via '#conversion' cannot declare named parameters."
   correctionMessage: "Remove the declared named parameters from the function."
 
 jsInteropFunctionToJSRequiresStaticType:
   parameters:
-    String conversion: undocumented
-    Type type: undocumented
-  problemMessage: "Functions converted via '#conversion' require a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`."
+    String conversion: The "toJS" conversion in use.
+    Type functionType: The imprecise function type.
+  problemMessage: "Functions converted via '#conversion' require a statically known function type, but Type '#functionType' is not a precise function type, e.g., `void Function()`."
   correctionMessage: "Insert an explicit cast to the expected function type."
 
 jsInteropFunctionToJSTypeParameters:
   parameters:
-    String conversion: undocumented
+    String conversion: The "toJS" conversion in use.
   problemMessage: "Functions converted via '#conversion' cannot declare type parameters."
   correctionMessage: "Remove the declared type parameters from the function."
 
@@ -6189,21 +6189,21 @@ jsInteropStaticInteropMockMissingImplements:
 
 jsInteropStaticInteropMockNotStaticInteropType:
   parameters:
-    Type type: undocumented
+    Type type: The problematic type argument.
   problemMessage: "Type argument '#type' needs to be a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
 
 jsInteropStaticInteropMockTypeParametersNotAllowed:
   parameters:
-    Type type: undocumented
+    Type type: The problematic type argument.
   problemMessage: "Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance."
   correctionMessage: "Remove the type parameter in the type argument or replace it with its bound."
 
 jsInteropStaticInteropNoJSAnnotation:
   parameters:
-    Name name: undocumented
+    Name className: The name of the problematic class.
   problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
-  correctionMessage: "Add `@JS` to class '#name'."
+  correctionMessage: "Add `@JS` to class '#className'."
 
 jsInteropStaticInteropParameterInitializersAreIgnored:
   parameters: none
@@ -6218,40 +6218,40 @@ jsInteropStaticInteropSyntheticConstructor:
 
 jsInteropStaticInteropTearOffsDisallowed:
   parameters:
-    String string: undocumented
-    Name name: undocumented
-  problemMessage: "Tear-offs of external #string '#name' are disallowed."
+    String memberKind: The kind of member that was torn off.
+    Name memberName: The name of the member that was torn off.
+  problemMessage: "Tear-offs of external #memberKind '#memberName' are disallowed."
   correctionMessage: "Declare a closure that calls this member instead."
 
 jsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
   parameters:
-    Name name: undocumented
-  problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation."
+    Name className: The name of the problematic class.
+  problemMessage: "JS interop class '#className' has an `@trustTypes` annotation, but no `@staticInterop` annotation."
   correctionMessage: "Try marking the class using `@staticInterop`."
 
 jsInteropStaticInteropTrustTypesUsageNotAllowed:
   parameters:
-    Name name: undocumented
-  problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
+    Name className: The name of the problematic class.
+  problemMessage: "JS interop class '#className' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
   correctionMessage: "Try removing the `@trustTypes` annotation."
 
 jsInteropStaticInteropWithInstanceMembers:
   parameters:
-    Name name: undocumented
-  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
+    Name className: The name of the problematic class.
+  problemMessage: "JS interop class '#className' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
 
 jsInteropStaticInteropWithNonStaticSupertype:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
+    Name className: The name of the problematic class.
+    Name superclassName: The name of the superclass, which is not annotated.
+  problemMessage: "JS interop class '#className' has an `@staticInterop` annotation, but has supertype '#superclassName', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
 
 nonNullableNotAssignedError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Non-nullable variable '#name' must be assigned before it can be used."
+    Name variableName: The name of the unassigned variable.
+  problemMessage: "Non-nullable variable '#variableName' must be assigned before it can be used."
   script: |
     method<T>() {
       T t; t;
@@ -6259,8 +6259,8 @@ nonNullableNotAssignedError:
 
 finalNotAssignedError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Final variable '#name' must be assigned before it can be used."
+    Name variableName: The name of the unassigned variable.
+  problemMessage: "Final variable '#variableName' must be assigned before it can be used."
   script: |
     method(bool b) {
       final int i;
@@ -6272,8 +6272,8 @@ finalNotAssignedError:
 
 lateDefinitelyUnassignedError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Late variable '#name' without initializer is definitely unassigned."
+    Name variableName: The name of the unassigned variable.
+  problemMessage: "Late variable '#variableName' without initializer is definitely unassigned."
   script: |
     method<T>() {
       late T t; t;
@@ -6281,8 +6281,8 @@ lateDefinitelyUnassignedError:
 
 lateDefinitelyAssignedError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Late final variable '#name' definitely assigned."
+    Name variableName: The name of the definitely assigned variable.
+  problemMessage: "Late final variable '#variableName' definitely assigned."
   script: |
     method() {
       late final int t;
@@ -6292,8 +6292,8 @@ lateDefinitelyAssignedError:
 
 finalPossiblyAssignedError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Final variable '#name' might already be assigned at this point."
+    Name variableName: The name of the possibly assigned variable.
+  problemMessage: "Final variable '#variableName' might already be assigned at this point."
   script: |
     method() {
       final int i;
@@ -6303,8 +6303,8 @@ finalPossiblyAssignedError:
 
 cannotAssignToFinalVariable:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't assign to the final variable '#name'."
+    Name variableName: The name of the final variable.
+  problemMessage: "Can't assign to the final variable '#variableName'."
   script: |
      main() {
        final int i = 0;
@@ -6313,8 +6313,8 @@ cannotAssignToFinalVariable:
 
 cannotAssignToConstVariable:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't assign to the const variable '#name'."
+    Name variableName: The name of the const variable.
+  problemMessage: "Can't assign to the const variable '#variableName'."
   script: |
     main() {
       const int i = 0;
@@ -6429,17 +6429,17 @@ mainRequiredNamedParametersExported:
 
 mainWrongParameterType:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'."
+    Type actualType: The actual type of the parameter.
+    Type expectedType: The expected type of the parameter.
+  problemMessage: "The type '#actualType' of the first parameter of the 'main' method is not a supertype of '#expectedType'."
   script:
     - main(Set<String> args) {}
 
 mainWrongParameterTypeExported:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'."
+    Type actualType: The actual type of the parameter.
+    Type expectedType: The expected type of the parameter.
+  problemMessage: "The type '#actualType' of the first parameter of the exported 'main' method is not a supertype of '#expectedType'."
   exampleAllowOtherCodes: true
   script:
     main.dart:
@@ -6461,8 +6461,8 @@ unsupportedDartExt:
 
 instantiationNonGenericFunctionType:
   parameters:
-    Type type: undocumented
-  problemMessage: "The static type of the explicit instantiation operand must be a generic function type but is '#type'."
+    Type operandType: The type of the explicit instantiation operand.
+  problemMessage: "The static type of the explicit instantiation operand must be a generic function type but is '#operandType'."
   correctionMessage: "Try changing the operand or remove the type arguments."
   script: |
     f() {}
@@ -6470,17 +6470,17 @@ instantiationNonGenericFunctionType:
 
 instantiationNullableGenericFunctionType:
   parameters:
-    Type type: undocumented
-  problemMessage: "The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'."
+    Type operandType: The type of the explicit instantiation operand.
+  problemMessage: "The static type of the explicit instantiation operand must be a non-null generic function type but is '#operandType'."
   correctionMessage: "Try changing the operand or remove the type arguments."
   script: |
     test(void Function<T>()? f) => f<int>;
 
 instantiationTooFewArguments:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-  problemMessage: "Too few type arguments: #count required, #count2 given."
+    int expectedCount: The number of type arguments expected.
+    int actualCount: The number of type arguments given.
+  problemMessage: "Too few type arguments: #expectedCount required, #actualCount given."
   correctionMessage: "Try adding the missing type arguments."
   script: |
     f<X, Y>() {}
@@ -6488,9 +6488,9 @@ instantiationTooFewArguments:
 
 instantiationTooManyArguments:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-  problemMessage: "Too many type arguments: #count allowed, but #count2 found."
+    int expectedCount: The number of type arguments expected.
+    int actualCount: The number of type arguments given.
+  problemMessage: "Too many type arguments: #expectedCount allowed, but #actualCount found."
   correctionMessage: "Try removing the extra type arguments."
   script: |
     f<X>() {}
@@ -6544,8 +6544,8 @@ superInitializerParameter:
 
 enumSupertypeOfNonAbstractClass:
   parameters:
-    Name name: undocumented
-  problemMessage: "Non-abstract class '#name' has 'Enum' as a superinterface."
+    Name className: The name of the problematic class.
+  problemMessage: "Non-abstract class '#className' has 'Enum' as a superinterface."
   script: |
     class Foo extends Enum {
       int get index => 42;
@@ -6602,8 +6602,8 @@ enumContainsValuesDeclaration:
 
 enumImplementerContainsValuesDeclaration:
   parameters:
-    Name name: undocumented
-  problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'."
+    Name className: The name of the problematic class.
+  problemMessage: "'#className' has 'Enum' as a superinterface and can't contain non-static member with name 'values'."
   script: |
     mixin M1 on Enum {
       final int values = 42;
@@ -6611,8 +6611,8 @@ enumImplementerContainsValuesDeclaration:
 
 enumInheritsRestricted:
   parameters:
-    Name name: undocumented
-  problemMessage: "An enum can't inherit a member named '#name'."
+    Name memberName: The name of the member that can't be inherited.
+  problemMessage: "An enum can't inherit a member named '#memberName'."
   script: |
     mixin class A1 {
       int get hashCode => 42;
@@ -6629,8 +6629,8 @@ enumInheritsRestrictedMember:
 
 unmatchedAugmentationClassMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation member '#name' doesn't match a member in the augmented class."
+    Name memberName: The name of the unmatched augmentation member.
+  problemMessage: "Augmentation member '#memberName' doesn't match a member in the augmented class."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
   experiments: augmentations
 
@@ -6752,8 +6752,8 @@ mixinInheritsFromNotObject:
 
 mixinApplicationNoConcreteMethod:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#name'."
+    Name memberName: The name of the unimplemented member.
+  problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#memberName'."
   script: |
     class Super {
       void method() {}
@@ -6768,8 +6768,8 @@ mixinApplicationNoConcreteMethod:
 
 mixinApplicationNoConcreteGetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class doesn't have a concrete implementation of the super-accessed member '#name'."
+    Name memberName: The name of the unimplemented member.
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed member '#memberName'."
   script: |
     class Super {
       int get getter => 42;
@@ -6784,8 +6784,8 @@ mixinApplicationNoConcreteGetter:
 
 mixinApplicationNoConcreteSetter:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class doesn't have a concrete implementation of the super-accessed setter '#name'."
+    Name memberName: The name of the unimplemented member.
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed setter '#memberName'."
   script: |
     class Super {
       void set setter(int value) {}
@@ -6820,16 +6820,16 @@ noAugmentSuperInvokeTarget:
 
 indexOutOfBoundInRecordIndexGet:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    Type type: undocumented
-  problemMessage: "Index #count is out of range 0..#count2 of positional fields of records #type."
+    int index: The index that was used.
+    int positionalFieldCount: The number of positional fields.
+    Type recordType: The record type in question.
+  problemMessage: "Index #index is out of range 0..#positionalFieldCount of positional fields of records #recordType."
 
 nameNotFoundInRecordNameGet:
   parameters:
-    String string: undocumented
-    Type type: undocumented
-  problemMessage: "Field name #string isn't found in records of type #type."
+    String fieldName: The field name that was not found.
+    Type recordType: The record type in question.
+  problemMessage: "Field name #fieldName isn't found in records of type #recordType."
 
 objectMemberNameUsedForRecordField:
   parameters: none
@@ -6860,17 +6860,17 @@ enumWithNameValues:
 
 inheritedRestrictedMemberOfEnumImplementer:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'."
+    Name memberName: The name of the restricted member.
+    Name superclassName: The name of the superclass the restricted member can't be inherited from.
+  problemMessage: "A concrete instance member named '#memberName' can't be inherited from '#superclassName' in a class that implements 'Enum'."
   script: |
     abstract class A { int get hashCode => 0; }
     abstract class B extends A implements Enum {}
 
 sealedClassSubtypeOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
+    Name sealedClassName: The name of the sealed class.
+  problemMessage: "The class '#sealedClassName' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
   script:
     main.dart:
       import 'lib.dart';
@@ -6880,8 +6880,8 @@ sealedClassSubtypeOutsideOfLibrary:
 
 cantUseClassAsMixin:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin."
+    Name className: The name of the class that can't be used as a mixin.
+  problemMessage: "The class '#className' can't be used as a mixin because it isn't a mixin class nor a mixin."
   script:
     main.dart:
       import 'lib.dart';
@@ -6902,9 +6902,9 @@ baseClassImplementedOutsideOfLibrary:
 
 baseOrFinalClassImplementedOutsideOfLibraryCause:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The type '#name' is a subtype of '#name2', and '#name2' is defined here."
+    Name subtypeName: The name of the subtype.
+    Name causeName: The name of the supertype, which is the cause being identified by this context message.
+  problemMessage: "The type '#subtypeName' is a subtype of '#causeName', and '#causeName' is defined here."
   severity: CONTEXT
 
 baseMixinImplementedOutsideOfLibrary:
@@ -6920,8 +6920,8 @@ baseMixinImplementedOutsideOfLibrary:
 
 interfaceClassExtendedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be extended outside of its library because it's an interface class."
+    Name interfaceClassName: The name of the class that can't be extended outsibe of its library.
+  problemMessage: "The class '#interfaceClassName' can't be extended outside of its library because it's an interface class."
   script:
     main.dart:
       import 'lib.dart';
