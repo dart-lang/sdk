@@ -1166,18 +1166,18 @@ class SourceClassBuilder extends ClassBuilderImpl
           .variance!;
       if (!variance.greaterThanOrEqual(typeParameters![i].variance)) {
         if (typeParameters![i].parameter.isLegacyCovariant) {
-          message = diag.invalidTypeParameterInSupertype.withArgumentsOld(
-            typeParameters![i].name,
-            variance.keyword,
-            supertype.typeName!.name,
+          message = diag.invalidTypeParameterInSupertype.withArguments(
+            typeVariableName: typeParameters![i].name,
+            useVariance: variance.keyword,
+            supertypeName: supertype.typeName!.name,
           );
         } else {
           message = diag.invalidTypeParameterInSupertypeWithVariance
-              .withArgumentsOld(
-                typeParameters![i].variance.keyword,
-                typeParameters![i].name,
-                variance.keyword,
-                supertype.typeName!.name,
+              .withArguments(
+                typeVariableVariance: typeParameters![i].variance.keyword,
+                typeVariableName: typeParameters![i].name,
+                useVariance: variance.keyword,
+                supertypeName: supertype.typeName!.name,
               );
         }
         libraryBuilder.addProblem(message, fileOffset, noLength, fileUri);
@@ -1391,16 +1391,16 @@ class SourceClassBuilder extends ClassBuilderImpl
       Message message;
       if (isReturnType) {
         message = diag.invalidTypeParameterVariancePositionInReturnType
-            .withArgumentsOld(
-              typeParameter.variance.keyword,
-              typeParameter.name!,
-              variance.keyword,
+            .withArguments(
+              typeVariableVariance: typeParameter.variance.keyword,
+              typeVariableName: typeParameter.name!,
+              useVariance: variance.keyword,
             );
       } else {
-        message = diag.invalidTypeParameterVariancePosition.withArgumentsOld(
-          typeParameter.variance.keyword,
-          typeParameter.name!,
-          variance.keyword,
+        message = diag.invalidTypeParameterVariancePosition.withArguments(
+          typeVariableVariance: typeParameter.variance.keyword,
+          typeVariableName: typeParameter.name!,
+          useVariance: variance.keyword,
         );
       }
       problemReporting.reportTypeArgumentIssue(

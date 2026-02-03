@@ -599,9 +599,9 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         }).toList();
 
         classBuilder.libraryBuilder.addProblem(
-          diag.combinedMemberSignatureFailed.withArgumentsOld(
-            name,
-            declarations.first.fullNameForErrors,
+          diag.combinedMemberSignatureFailed.withArguments(
+            className: name,
+            memberName: declarations.first.fullNameForErrors,
           ),
           classBuilder.fileOffset,
           nameLength,
@@ -1017,9 +1017,9 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       }).toList();
 
       extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-        diag.extensionTypeCombinedMemberSignatureFailed.withArgumentsOld(
-          name,
-          declarations.first.fullNameForErrors,
+        diag.extensionTypeCombinedMemberSignatureFailed.withArguments(
+          extensionTypeName: name,
+          memberName: declarations.first.fullNameForErrors,
         ),
         extensionTypeDeclarationBuilder.fileOffset,
         nameLength,

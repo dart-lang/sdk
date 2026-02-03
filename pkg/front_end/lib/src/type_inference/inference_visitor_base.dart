@@ -5744,9 +5744,9 @@ class _WhyNotPromotedVisitor
     int offset = node.fileOffset;
     return [
       diag.variableCouldBeNullDueToWrite
-          .withArgumentsOld(
-            reason.variable.cosmeticName!,
-            reason.documentationLink.url,
+          .withArguments(
+            variableName: reason.variable.cosmeticName!,
+            documentationUrl: reason.documentationLink.url,
           )
           .withLocation(inferrer.fileUri, offset, noLength),
     ];
@@ -5898,9 +5898,10 @@ class _WhyNotPromotedVisitor
     if (member is Member) {
       messages.add(
         diag.fieldNotPromotedBecauseNotEnabled
-            .withArgumentsOld(
-              reason.propertyName,
-              NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
+            .withArguments(
+              variableName: reason.propertyName,
+              documentationUrl:
+                  NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
             )
             .withLocation(member.fileUri, member.fileOffset, noLength),
       );

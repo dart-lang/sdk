@@ -289,11 +289,11 @@ class SourceExtensionTypeDeclarationBuilder
               } else {
                 // Coverage-ignore-block(suite): Not run.
                 errorMessage = diag.invalidTypeParameterInSupertypeWithVariance
-                    .withArgumentsOld(
-                      variable.variance.keyword,
-                      variable.name,
-                      variance.keyword,
-                      typeBuilder.typeName!.name,
+                    .withArguments(
+                      typeVariableVariance: variable.variance.keyword,
+                      typeVariableName: variable.name,
+                      useVariance: variance.keyword,
+                      supertypeName: typeBuilder.typeName!.name,
                     );
               }
               libraryBuilder.addProblem(

@@ -5292,8 +5292,8 @@ spreadMapElement:
 
 nonNullAwareSpreadIsNull:
   parameters:
-    Type type: undocumented
-  problemMessage: "Can't spread a value with static type '#type'."
+    Type spreadType: The static type of the spread.
+  problemMessage: "Can't spread a value with static type '#spreadType'."
   script: |
     main() {
       <int>[...null];
@@ -5313,21 +5313,21 @@ nonPositiveArrayDimensions:
 
 invalidTypeParameterInSupertype:
   parameters:
-    Name name: undocumented
-    String string2: undocumented
-    Name name2: undocumented
-  problemMessage: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."
+    Name typeVariableName: The implicitly 'out' type variable name.
+    String useVariance: The variance keyword for the position in which the type variable is used.
+    Name supertypeName: The supertype name.
+  problemMessage: "Can't use implicitly 'out' variable '#typeVariableName' in an '#useVariance' position in supertype '#supertypeName'."
   script: |
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
 
 invalidTypeParameterInSupertypeWithVariance:
   parameters:
-    String string: undocumented
-    Name name: undocumented
-    String string2: undocumented
-    Name name2: undocumented
-  problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'."
+    String typeVariableVariance: The variance of the type variable.
+    Name typeVariableName: The type variable name.
+    String useVariance: The variance keyword for the position in which the type variable is used.
+    Name supertypeName: The supertype name.
+  problemMessage: "Can't use '#typeVariableVariance' type variable '#typeVariableName' in an '#useVariance' position in supertype '#supertypeName'."
   script: |
     class A<out X> {}
     class B<out Y> extends A<Function(Y)> {}
@@ -5335,10 +5335,10 @@ invalidTypeParameterInSupertypeWithVariance:
 
 invalidTypeParameterVariancePosition:
   parameters:
-    String string: undocumented
-    Name name: undocumented
-    String string2: undocumented
-  problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position."
+    String typeVariableVariance: The variance of the type variable.
+    Name typeVariableName: The type variable name.
+    String useVariance: The variance keyword for the position in which the type variable is used.
+  problemMessage: "Can't use '#typeVariableVariance' type variable '#typeVariableName' in an '#useVariance' position."
   script: |
     class A<out T> {
       void method(T x) {}
@@ -5346,10 +5346,10 @@ invalidTypeParameterVariancePosition:
 
 invalidTypeParameterVariancePositionInReturnType:
   parameters:
-    String string: undocumented
-    Name name: undocumented
-    String string2: undocumented
-  problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in the return type."
+    String typeVariableVariance: The variance of the type variable.
+    Name typeVariableName: The type variable name.
+    String useVariance: The variance keyword for the position in which the type variable is used.
+  problemMessage: "Can't use '#typeVariableVariance' type variable '#typeVariableName' in an '#useVariance' position in the return type."
   script: |
     class A<in T> {
       T method() {
@@ -5360,10 +5360,10 @@ invalidTypeParameterVariancePositionInReturnType:
 
 combinedMemberSignatureFailed:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Class '#name' inherits multiple members named '#name2' with incompatible signatures."
-  correctionMessage: "Try adding a declaration of '#name2' to '#name'."
+    Name className: The name of the class that inherits multiple members.
+    Name memberName: The name of the member that is multiply inherited.
+  problemMessage: "Class '#className' inherits multiple members named '#memberName' with incompatible signatures."
+  correctionMessage: "Try adding a declaration of '#memberName' to '#className'."
   script:
     - |
       abstract class I1 {
@@ -5378,10 +5378,10 @@ combinedMemberSignatureFailed:
 
 extensionTypeCombinedMemberSignatureFailed:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Extension type '#name' inherits multiple members named '#name2' with incompatible signatures."
-  correctionMessage: "Try adding a declaration of '#name2' to '#name'."
+    Name extensionTypeName: The name of the extension type that inherits multiple members.
+    Name memberName: The name of the member that is multiply inherited.
+  problemMessage: "Extension type '#extensionTypeName' inherits multiple members named '#memberName' with incompatible signatures."
+  correctionMessage: "Try adding a declaration of '#memberName' to '#extensionTypeName'."
   script:
     - |
       abstract class I1 {
@@ -5397,23 +5397,23 @@ extensionTypeCombinedMemberSignatureFailed:
 
 languageVersionTooHighExplicit:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    int count3: undocumented
-    int count4: undocumented
-  problemMessage: "The specified language version #count.#count2 is too high. The highest supported language version is #count3.#count4."
+    int specifiedMajor: The specified major version.
+    int specifiedMinor: The specified minor version.
+    int highestSupportedMajor: The highest supported major version.
+    int highestSupportedMinor: The highest supported minor version.
+  problemMessage: "The specified language version #specifiedMajor.#specifiedMinor is too high. The highest supported language version is #highestSupportedMajor.#highestSupportedMinor."
   script: |
     // @dart=100.200
   exampleAllowMultipleReports: true
 
 languageVersionTooHighPackage:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    Name name: undocumented
-    int count3: undocumented
-    int count4: undocumented
-  problemMessage: "The language version #count.#count2 specified for the package '#name' is too high. The highest supported language version is #count3.#count4."
+    int specifiedMajor: The specified major version.
+    int specifiedMinor: The specified minor version.
+    Name packageName: The package name.
+    int highestSupportedMajor: The highest supported major version.
+    int highestSupportedMinor: The highest supported minor version.
+  problemMessage: "The language version #specifiedMajor.#specifiedMinor specified for the package '#packageName' is too high. The highest supported language version is #highestSupportedMajor.#highestSupportedMinor."
   script:
     .dart_tool/package_config.json: |
       {
@@ -5432,23 +5432,23 @@ languageVersionTooHighPackage:
 
 languageVersionTooLowExplicit:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    int count3: undocumented
-    int count4: undocumented
-  problemMessage: "The specified language version #count.#count2 is too low. The lowest supported language version is #count3.#count4."
+    int specifiedMajor: The specified major version.
+    int specifiedMinor: The specified minor version.
+    int lowestSupportedMajor: The lowest supported major version.
+    int lowestSupportedMinor: The lowest supported minor version.
+  problemMessage: "The specified language version #specifiedMajor.#specifiedMinor is too low. The lowest supported language version is #lowestSupportedMajor.#lowestSupportedMinor."
   script: |
     // @dart=2.9
   exampleAllowMultipleReports: true
 
 languageVersionTooLowPackage:
   parameters:
-    int count: undocumented
-    int count2: undocumented
-    Name name: undocumented
-    int count3: undocumented
-    int count4: undocumented
-  problemMessage: "The language version #count.#count2 specified for the package '#name' is too low. The lowest supported language version is #count3.#count4."
+    int specifiedMajor: The specified major version.
+    int specifiedMinor: The specified minor version.
+    Name packageName: The package name.
+    int lowestSupportedMajor: The lowest supported major version.
+    int lowestSupportedMinor: The lowest supported minor version.
+  problemMessage: "The language version #specifiedMajor.#specifiedMinor specified for the package '#packageName' is too low. The lowest supported language version is #lowestSupportedMajor.#lowestSupportedMinor."
   script:
     .dart_tool/package_config.json: |
       {
@@ -5528,9 +5528,9 @@ explicitExtensionArgumentMismatch:
 
 explicitExtensionTypeArgumentMismatch:
   parameters:
-    Name name: undocumented
-    int count: undocumented
-  problemMessage: "Explicit extension application of extension '#name' takes '#count' type argument(s)."
+    Name extensionName: The name of the extension.
+    int typeArgumentCount: The number of type arguments the extension takes.
+  problemMessage: "Explicit extension application of extension '#extensionName' takes '#typeArgumentCount' type argument(s)."
   script: |
     extension Extension on int {
       method(a) {}
@@ -5555,19 +5555,19 @@ explicitExtensionAsLvalue:
 
 deferredExtensionImport:
   parameters:
-    Name name: undocumented
-  problemMessage: "Extension '#name' cannot be imported through a deferred import."
-  correctionMessage: "Try adding the `hide #name` to the import."
+    Name extensionName: The name of the extension.
+  problemMessage: "Extension '#extensionName' cannot be imported through a deferred import."
+  correctionMessage: "Try adding the `hide #extensionName` to the import."
   script:
     main.dart: "import 'lib.dart' deferred as prefix;"
     lib.dart: "extension Extension on void {}"
 
 variableCouldBeNullDueToWrite:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "Variable '#name' could not be promoted due to an assignment."
-  correctionMessage: "Try null checking the variable after the assignment.  See #string"
+    Name variableName: The name of the unpromoted variable.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "Variable '#variableName' could not be promoted due to an assignment."
+  correctionMessage: "Try null checking the variable after the assignment.  See #documentationUrl"
   script: |
     void foo(int? i, int? j) {
       if (i == null) return;
@@ -5579,10 +5579,10 @@ variableCouldBeNullDueToWrite:
 
 fieldNotPromotedBecauseNotEnabled:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above."
-  correctionMessage: "See #string"
+    Name variableName: The name of the unpromoted variable.
+    String documentationUrl: The URL of the documentation explaining the problem.
+  problemMessage: "'#variableName' couldn't be promoted because field promotion is only available in Dart 3.2 and above."
+  correctionMessage: "See #documentationUrl"
   script: |
     // @dart=3.1
     class C {

@@ -4172,7 +4172,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (coreTypes.isNull(spreadTypeBound) && !element.isNullAware) {
         replacement = problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.nonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
+          message: diag.nonNullAwareSpreadIsNull.withArguments(
+            spreadType: spreadType,
+          ),
           fileUri: fileUri,
           fileOffset: element.expression.fileOffset,
           length: 1,
@@ -7127,7 +7129,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         replacement = new MapLiteralEntry(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
-            message: diag.nonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
+            message: diag.nonNullAwareSpreadIsNull.withArguments(
+              spreadType: spreadType,
+            ),
             fileUri: fileUri,
             fileOffset: entry.expression.fileOffset,
             length: 1,

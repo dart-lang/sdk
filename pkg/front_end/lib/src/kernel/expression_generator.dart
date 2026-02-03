@@ -4752,8 +4752,10 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         int typeParameterCount = extensionBuilder.typeParameters?.length ?? 0;
         if (typeArguments.types.length != typeParameterCount) {
           return _helper.buildProblem(
-            message: diag.explicitExtensionTypeArgumentMismatch
-                .withArgumentsOld(extensionBuilder.name, typeParameterCount),
+            message: diag.explicitExtensionTypeArgumentMismatch.withArguments(
+              extensionName: extensionBuilder.name,
+              typeArgumentCount: typeParameterCount,
+            ),
             fileUri: _helper.uri,
             fileOffset: fileOffset,
             length: lengthForToken(token),

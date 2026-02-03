@@ -1076,8 +1076,8 @@ Message _withArgumentsOldClassShouldBeListedAsExtendableInDynamicInterface(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String className, String memberName),
+  Message Function({required String className, required String memberName})
 >
 combinedMemberSignatureFailed = const Template(
   "CombinedMemberSignatureFailed",
@@ -1087,26 +1087,29 @@ combinedMemberSignatureFailed = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCombinedMemberSignatureFailed({
-  required String name,
-  required String name2,
+  required String className,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var className_0 = conversions.validateAndDemangleName(className);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     combinedMemberSignatureFailed,
     problemMessage:
-        """Class '${name_0}' inherits multiple members named '${name2_0}' with incompatible signatures.""",
+        """Class '${className_0}' inherits multiple members named '${memberName_0}' with incompatible signatures.""",
     correctionMessage:
-        """Try adding a declaration of '${name2_0}' to '${name_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """Try adding a declaration of '${memberName_0}' to '${className_0}'.""",
+    arguments: {'className': className, 'memberName': memberName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldCombinedMemberSignatureFailed(
-  String name,
-  String name2,
-) => _withArgumentsCombinedMemberSignatureFailed(name: name, name2: name2);
+  String className,
+  String memberName,
+) => _withArgumentsCombinedMemberSignatureFailed(
+  className: className,
+  memberName: memberName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2818,8 +2821,8 @@ Message _withArgumentsOldDefaultValueInRedirectingFactoryConstructor(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String extensionName),
+  Message Function({required String extensionName})
 >
 deferredExtensionImport = const Template(
   "DeferredExtensionImport",
@@ -2828,20 +2831,21 @@ deferredExtensionImport = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDeferredExtensionImport({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDeferredExtensionImport({required String extensionName}) {
+  var extensionName_0 = conversions.validateAndDemangleName(extensionName);
   return new Message(
     deferredExtensionImport,
     problemMessage:
-        """Extension '${name_0}' cannot be imported through a deferred import.""",
-    correctionMessage: """Try adding the `hide ${name_0}` to the import.""",
-    arguments: {'name': name},
+        """Extension '${extensionName_0}' cannot be imported through a deferred import.""",
+    correctionMessage:
+        """Try adding the `hide ${extensionName_0}` to the import.""",
+    arguments: {'extensionName': extensionName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDeferredExtensionImport(String name) =>
-    _withArgumentsDeferredExtensionImport(name: name);
+Message _withArgumentsOldDeferredExtensionImport(String extensionName) =>
+    _withArgumentsDeferredExtensionImport(extensionName: extensionName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4147,8 +4151,11 @@ const MessageCode explicitExtensionAsLvalue = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, int count),
-  Message Function({required String name, required int count})
+  Message Function(String extensionName, int typeArgumentCount),
+  Message Function({
+    required String extensionName,
+    required int typeArgumentCount,
+  })
 >
 explicitExtensionTypeArgumentMismatch = const Template(
   "ExplicitExtensionTypeArgumentMismatch",
@@ -4158,25 +4165,28 @@ explicitExtensionTypeArgumentMismatch = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExplicitExtensionTypeArgumentMismatch({
-  required String name,
-  required int count,
+  required String extensionName,
+  required int typeArgumentCount,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var extensionName_0 = conversions.validateAndDemangleName(extensionName);
   return new Message(
     explicitExtensionTypeArgumentMismatch,
     problemMessage:
-        """Explicit extension application of extension '${name_0}' takes '${count}' type argument(s).""",
-    arguments: {'name': name, 'count': count},
+        """Explicit extension application of extension '${extensionName_0}' takes '${typeArgumentCount}' type argument(s).""",
+    arguments: {
+      'extensionName': extensionName,
+      'typeArgumentCount': typeArgumentCount,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExplicitExtensionTypeArgumentMismatch(
-  String name,
-  int count,
+  String extensionName,
+  int typeArgumentCount,
 ) => _withArgumentsExplicitExtensionTypeArgumentMismatch(
-  name: name,
-  count: count,
+  extensionName: extensionName,
+  typeArgumentCount: typeArgumentCount,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4322,8 +4332,11 @@ Message _withArgumentsOldExtensionMemberConflictsWithObjectMember(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String name2),
-  Message Function({required String name, required String name2})
+  Message Function(String extensionTypeName, String memberName),
+  Message Function({
+    required String extensionTypeName,
+    required String memberName,
+  })
 >
 extensionTypeCombinedMemberSignatureFailed = const Template(
   "ExtensionTypeCombinedMemberSignatureFailed",
@@ -4333,28 +4346,33 @@ extensionTypeCombinedMemberSignatureFailed = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExtensionTypeCombinedMemberSignatureFailed({
-  required String name,
-  required String name2,
+  required String extensionTypeName,
+  required String memberName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var extensionTypeName_0 = conversions.validateAndDemangleName(
+    extensionTypeName,
+  );
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   return new Message(
     extensionTypeCombinedMemberSignatureFailed,
     problemMessage:
-        """Extension type '${name_0}' inherits multiple members named '${name2_0}' with incompatible signatures.""",
+        """Extension type '${extensionTypeName_0}' inherits multiple members named '${memberName_0}' with incompatible signatures.""",
     correctionMessage:
-        """Try adding a declaration of '${name2_0}' to '${name_0}'.""",
-    arguments: {'name': name, 'name2': name2},
+        """Try adding a declaration of '${memberName_0}' to '${extensionTypeName_0}'.""",
+    arguments: {
+      'extensionTypeName': extensionTypeName,
+      'memberName': memberName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExtensionTypeCombinedMemberSignatureFailed(
-  String name,
-  String name2,
+  String extensionTypeName,
+  String memberName,
 ) => _withArgumentsExtensionTypeCombinedMemberSignatureFailed(
-  name: name,
-  name2: name2,
+  extensionTypeName: extensionTypeName,
+  memberName: memberName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5840,8 +5858,11 @@ Message _withArgumentsOldFieldNotPromotedBecauseExternal(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String variableName, String documentationUrl),
+  Message Function({
+    required String variableName,
+    required String documentationUrl,
+  })
 >
 fieldNotPromotedBecauseNotEnabled = const Template(
   "FieldNotPromotedBecauseNotEnabled",
@@ -5851,26 +5872,31 @@ fieldNotPromotedBecauseNotEnabled = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFieldNotPromotedBecauseNotEnabled({
-  required String name,
-  required String string,
+  required String variableName,
+  required String documentationUrl,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     fieldNotPromotedBecauseNotEnabled,
     problemMessage:
-        """'${name_0}' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
-    correctionMessage: """See ${string_0}""",
-    arguments: {'name': name, 'string': string},
+        """'${variableName_0}' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
+    correctionMessage: """See ${documentationUrl_0}""",
+    arguments: {
+      'variableName': variableName,
+      'documentationUrl': documentationUrl,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldFieldNotPromotedBecauseNotEnabled(
-  String name,
-  String string,
-) =>
-    _withArgumentsFieldNotPromotedBecauseNotEnabled(name: name, string: string);
+  String variableName,
+  String documentationUrl,
+) => _withArgumentsFieldNotPromotedBecauseNotEnabled(
+  variableName: variableName,
+  documentationUrl: documentationUrl,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9709,11 +9735,15 @@ Message _withArgumentsOldInvalidReturnAsync(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string2, String name2),
+  Message Function(
+    String typeVariableName,
+    String useVariance,
+    String supertypeName,
+  ),
   Message Function({
-    required String name,
-    required String string2,
-    required String name2,
+    required String typeVariableName,
+    required String useVariance,
+    required String supertypeName,
   })
 >
 invalidTypeParameterInSupertype = const Template(
@@ -9724,40 +9754,51 @@ invalidTypeParameterInSupertype = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidTypeParameterInSupertype({
-  required String name,
-  required String string2,
-  required String name2,
+  required String typeVariableName,
+  required String useVariance,
+  required String supertypeName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string2_0 = conversions.validateString(string2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
+  var useVariance_0 = conversions.validateString(useVariance);
+  var supertypeName_0 = conversions.validateAndDemangleName(supertypeName);
   return new Message(
     invalidTypeParameterInSupertype,
     problemMessage:
-        """Can't use implicitly 'out' variable '${name_0}' in an '${string2_0}' position in supertype '${name2_0}'.""",
-    arguments: {'name': name, 'string2': string2, 'name2': name2},
+        """Can't use implicitly 'out' variable '${typeVariableName_0}' in an '${useVariance_0}' position in supertype '${supertypeName_0}'.""",
+    arguments: {
+      'typeVariableName': typeVariableName,
+      'useVariance': useVariance,
+      'supertypeName': supertypeName,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidTypeParameterInSupertype(
-  String name,
-  String string2,
-  String name2,
+  String typeVariableName,
+  String useVariance,
+  String supertypeName,
 ) => _withArgumentsInvalidTypeParameterInSupertype(
-  name: name,
-  string2: string2,
-  name2: name2,
+  typeVariableName: typeVariableName,
+  useVariance: useVariance,
+  supertypeName: supertypeName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name, String string2, String name2),
+  Message Function(
+    String typeVariableVariance,
+    String typeVariableName,
+    String useVariance,
+    String supertypeName,
+  ),
   Message Function({
-    required String string,
-    required String name,
-    required String string2,
-    required String name2,
+    required String typeVariableVariance,
+    required String typeVariableName,
+    required String useVariance,
+    required String supertypeName,
   })
 >
 invalidTypeParameterInSupertypeWithVariance = const Template(
@@ -9769,48 +9810,54 @@ invalidTypeParameterInSupertypeWithVariance = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidTypeParameterInSupertypeWithVariance({
-  required String string,
-  required String name,
-  required String string2,
-  required String name2,
+  required String typeVariableVariance,
+  required String typeVariableName,
+  required String useVariance,
+  required String supertypeName,
 }) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string2_0 = conversions.validateString(string2);
-  var name2_0 = conversions.validateAndDemangleName(name2);
+  var typeVariableVariance_0 = conversions.validateString(typeVariableVariance);
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
+  var useVariance_0 = conversions.validateString(useVariance);
+  var supertypeName_0 = conversions.validateAndDemangleName(supertypeName);
   return new Message(
     invalidTypeParameterInSupertypeWithVariance,
     problemMessage:
-        """Can't use '${string_0}' type variable '${name_0}' in an '${string2_0}' position in supertype '${name2_0}'.""",
+        """Can't use '${typeVariableVariance_0}' type variable '${typeVariableName_0}' in an '${useVariance_0}' position in supertype '${supertypeName_0}'.""",
     arguments: {
-      'string': string,
-      'name': name,
-      'string2': string2,
-      'name2': name2,
+      'typeVariableVariance': typeVariableVariance,
+      'typeVariableName': typeVariableName,
+      'useVariance': useVariance,
+      'supertypeName': supertypeName,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidTypeParameterInSupertypeWithVariance(
-  String string,
-  String name,
-  String string2,
-  String name2,
+  String typeVariableVariance,
+  String typeVariableName,
+  String useVariance,
+  String supertypeName,
 ) => _withArgumentsInvalidTypeParameterInSupertypeWithVariance(
-  string: string,
-  name: name,
-  string2: string2,
-  name2: name2,
+  typeVariableVariance: typeVariableVariance,
+  typeVariableName: typeVariableName,
+  useVariance: useVariance,
+  supertypeName: supertypeName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name, String string2),
+  Message Function(
+    String typeVariableVariance,
+    String typeVariableName,
+    String useVariance,
+  ),
   Message Function({
-    required String string,
-    required String name,
-    required String string2,
+    required String typeVariableVariance,
+    required String typeVariableName,
+    required String useVariance,
   })
 >
 invalidTypeParameterVariancePosition = const Template(
@@ -9821,39 +9868,49 @@ invalidTypeParameterVariancePosition = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidTypeParameterVariancePosition({
-  required String string,
-  required String name,
-  required String string2,
+  required String typeVariableVariance,
+  required String typeVariableName,
+  required String useVariance,
 }) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string2_0 = conversions.validateString(string2);
+  var typeVariableVariance_0 = conversions.validateString(typeVariableVariance);
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
+  var useVariance_0 = conversions.validateString(useVariance);
   return new Message(
     invalidTypeParameterVariancePosition,
     problemMessage:
-        """Can't use '${string_0}' type variable '${name_0}' in an '${string2_0}' position.""",
-    arguments: {'string': string, 'name': name, 'string2': string2},
+        """Can't use '${typeVariableVariance_0}' type variable '${typeVariableName_0}' in an '${useVariance_0}' position.""",
+    arguments: {
+      'typeVariableVariance': typeVariableVariance,
+      'typeVariableName': typeVariableName,
+      'useVariance': useVariance,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidTypeParameterVariancePosition(
-  String string,
-  String name,
-  String string2,
+  String typeVariableVariance,
+  String typeVariableName,
+  String useVariance,
 ) => _withArgumentsInvalidTypeParameterVariancePosition(
-  string: string,
-  name: name,
-  string2: string2,
+  typeVariableVariance: typeVariableVariance,
+  typeVariableName: typeVariableName,
+  useVariance: useVariance,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String name, String string2),
+  Message Function(
+    String typeVariableVariance,
+    String typeVariableName,
+    String useVariance,
+  ),
   Message Function({
-    required String string,
-    required String name,
-    required String string2,
+    required String typeVariableVariance,
+    required String typeVariableName,
+    required String useVariance,
   })
 >
 invalidTypeParameterVariancePositionInReturnType = const Template(
@@ -9865,30 +9922,36 @@ invalidTypeParameterVariancePositionInReturnType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInvalidTypeParameterVariancePositionInReturnType({
-  required String string,
-  required String name,
-  required String string2,
+  required String typeVariableVariance,
+  required String typeVariableName,
+  required String useVariance,
 }) {
-  var string_0 = conversions.validateString(string);
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string2_0 = conversions.validateString(string2);
+  var typeVariableVariance_0 = conversions.validateString(typeVariableVariance);
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
+  var useVariance_0 = conversions.validateString(useVariance);
   return new Message(
     invalidTypeParameterVariancePositionInReturnType,
     problemMessage:
-        """Can't use '${string_0}' type variable '${name_0}' in an '${string2_0}' position in the return type.""",
-    arguments: {'string': string, 'name': name, 'string2': string2},
+        """Can't use '${typeVariableVariance_0}' type variable '${typeVariableName_0}' in an '${useVariance_0}' position in the return type.""",
+    arguments: {
+      'typeVariableVariance': typeVariableVariance,
+      'typeVariableName': typeVariableName,
+      'useVariance': useVariance,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldInvalidTypeParameterVariancePositionInReturnType(
-  String string,
-  String name,
-  String string2,
+  String typeVariableVariance,
+  String typeVariableName,
+  String useVariance,
 ) => _withArgumentsInvalidTypeParameterVariancePositionInReturnType(
-  string: string,
-  name: name,
-  string2: string2,
+  typeVariableVariance: typeVariableVariance,
+  typeVariableName: typeVariableName,
+  useVariance: useVariance,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11389,12 +11452,17 @@ const MessageCode languageVersionPatchContext = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, int count3, int count4),
+  Message Function(
+    int specifiedMajor,
+    int specifiedMinor,
+    int highestSupportedMajor,
+    int highestSupportedMinor,
+  ),
   Message Function({
-    required int count,
-    required int count2,
-    required int count3,
-    required int count4,
+    required int specifiedMajor,
+    required int specifiedMinor,
+    required int highestSupportedMajor,
+    required int highestSupportedMinor,
   })
 >
 languageVersionTooHighExplicit = const Template(
@@ -11405,46 +11473,52 @@ languageVersionTooHighExplicit = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLanguageVersionTooHighExplicit({
-  required int count,
-  required int count2,
-  required int count3,
-  required int count4,
+  required int specifiedMajor,
+  required int specifiedMinor,
+  required int highestSupportedMajor,
+  required int highestSupportedMinor,
 }) {
   return new Message(
     languageVersionTooHighExplicit,
     problemMessage:
-        """The specified language version ${count}.${count2} is too high. The highest supported language version is ${count3}.${count4}.""",
+        """The specified language version ${specifiedMajor}.${specifiedMinor} is too high. The highest supported language version is ${highestSupportedMajor}.${highestSupportedMinor}.""",
     arguments: {
-      'count': count,
-      'count2': count2,
-      'count3': count3,
-      'count4': count4,
+      'specifiedMajor': specifiedMajor,
+      'specifiedMinor': specifiedMinor,
+      'highestSupportedMajor': highestSupportedMajor,
+      'highestSupportedMinor': highestSupportedMinor,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldLanguageVersionTooHighExplicit(
-  int count,
-  int count2,
-  int count3,
-  int count4,
+  int specifiedMajor,
+  int specifiedMinor,
+  int highestSupportedMajor,
+  int highestSupportedMinor,
 ) => _withArgumentsLanguageVersionTooHighExplicit(
-  count: count,
-  count2: count2,
-  count3: count3,
-  count4: count4,
+  specifiedMajor: specifiedMajor,
+  specifiedMinor: specifiedMinor,
+  highestSupportedMajor: highestSupportedMajor,
+  highestSupportedMinor: highestSupportedMinor,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, String name, int count3, int count4),
+  Message Function(
+    int specifiedMajor,
+    int specifiedMinor,
+    String packageName,
+    int highestSupportedMajor,
+    int highestSupportedMinor,
+  ),
   Message Function({
-    required int count,
-    required int count2,
-    required String name,
-    required int count3,
-    required int count4,
+    required int specifiedMajor,
+    required int specifiedMinor,
+    required String packageName,
+    required int highestSupportedMajor,
+    required int highestSupportedMinor,
   })
 >
 languageVersionTooHighPackage = const Template(
@@ -11455,50 +11529,55 @@ languageVersionTooHighPackage = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLanguageVersionTooHighPackage({
-  required int count,
-  required int count2,
-  required String name,
-  required int count3,
-  required int count4,
+  required int specifiedMajor,
+  required int specifiedMinor,
+  required String packageName,
+  required int highestSupportedMajor,
+  required int highestSupportedMinor,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var packageName_0 = conversions.validateAndDemangleName(packageName);
   return new Message(
     languageVersionTooHighPackage,
     problemMessage:
-        """The language version ${count}.${count2} specified for the package '${name_0}' is too high. The highest supported language version is ${count3}.${count4}.""",
+        """The language version ${specifiedMajor}.${specifiedMinor} specified for the package '${packageName_0}' is too high. The highest supported language version is ${highestSupportedMajor}.${highestSupportedMinor}.""",
     arguments: {
-      'count': count,
-      'count2': count2,
-      'name': name,
-      'count3': count3,
-      'count4': count4,
+      'specifiedMajor': specifiedMajor,
+      'specifiedMinor': specifiedMinor,
+      'packageName': packageName,
+      'highestSupportedMajor': highestSupportedMajor,
+      'highestSupportedMinor': highestSupportedMinor,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldLanguageVersionTooHighPackage(
-  int count,
-  int count2,
-  String name,
-  int count3,
-  int count4,
+  int specifiedMajor,
+  int specifiedMinor,
+  String packageName,
+  int highestSupportedMajor,
+  int highestSupportedMinor,
 ) => _withArgumentsLanguageVersionTooHighPackage(
-  count: count,
-  count2: count2,
-  name: name,
-  count3: count3,
-  count4: count4,
+  specifiedMajor: specifiedMajor,
+  specifiedMinor: specifiedMinor,
+  packageName: packageName,
+  highestSupportedMajor: highestSupportedMajor,
+  highestSupportedMinor: highestSupportedMinor,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, int count3, int count4),
+  Message Function(
+    int specifiedMajor,
+    int specifiedMinor,
+    int lowestSupportedMajor,
+    int lowestSupportedMinor,
+  ),
   Message Function({
-    required int count,
-    required int count2,
-    required int count3,
-    required int count4,
+    required int specifiedMajor,
+    required int specifiedMinor,
+    required int lowestSupportedMajor,
+    required int lowestSupportedMinor,
   })
 >
 languageVersionTooLowExplicit = const Template(
@@ -11509,46 +11588,52 @@ languageVersionTooLowExplicit = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLanguageVersionTooLowExplicit({
-  required int count,
-  required int count2,
-  required int count3,
-  required int count4,
+  required int specifiedMajor,
+  required int specifiedMinor,
+  required int lowestSupportedMajor,
+  required int lowestSupportedMinor,
 }) {
   return new Message(
     languageVersionTooLowExplicit,
     problemMessage:
-        """The specified language version ${count}.${count2} is too low. The lowest supported language version is ${count3}.${count4}.""",
+        """The specified language version ${specifiedMajor}.${specifiedMinor} is too low. The lowest supported language version is ${lowestSupportedMajor}.${lowestSupportedMinor}.""",
     arguments: {
-      'count': count,
-      'count2': count2,
-      'count3': count3,
-      'count4': count4,
+      'specifiedMajor': specifiedMajor,
+      'specifiedMinor': specifiedMinor,
+      'lowestSupportedMajor': lowestSupportedMajor,
+      'lowestSupportedMinor': lowestSupportedMinor,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldLanguageVersionTooLowExplicit(
-  int count,
-  int count2,
-  int count3,
-  int count4,
+  int specifiedMajor,
+  int specifiedMinor,
+  int lowestSupportedMajor,
+  int lowestSupportedMinor,
 ) => _withArgumentsLanguageVersionTooLowExplicit(
-  count: count,
-  count2: count2,
-  count3: count3,
-  count4: count4,
+  specifiedMajor: specifiedMajor,
+  specifiedMinor: specifiedMinor,
+  lowestSupportedMajor: lowestSupportedMajor,
+  lowestSupportedMinor: lowestSupportedMinor,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int count, int count2, String name, int count3, int count4),
+  Message Function(
+    int specifiedMajor,
+    int specifiedMinor,
+    String packageName,
+    int lowestSupportedMajor,
+    int lowestSupportedMinor,
+  ),
   Message Function({
-    required int count,
-    required int count2,
-    required String name,
-    required int count3,
-    required int count4,
+    required int specifiedMajor,
+    required int specifiedMinor,
+    required String packageName,
+    required int lowestSupportedMajor,
+    required int lowestSupportedMinor,
   })
 >
 languageVersionTooLowPackage = const Template(
@@ -11559,40 +11644,40 @@ languageVersionTooLowPackage = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLanguageVersionTooLowPackage({
-  required int count,
-  required int count2,
-  required String name,
-  required int count3,
-  required int count4,
+  required int specifiedMajor,
+  required int specifiedMinor,
+  required String packageName,
+  required int lowestSupportedMajor,
+  required int lowestSupportedMinor,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var packageName_0 = conversions.validateAndDemangleName(packageName);
   return new Message(
     languageVersionTooLowPackage,
     problemMessage:
-        """The language version ${count}.${count2} specified for the package '${name_0}' is too low. The lowest supported language version is ${count3}.${count4}.""",
+        """The language version ${specifiedMajor}.${specifiedMinor} specified for the package '${packageName_0}' is too low. The lowest supported language version is ${lowestSupportedMajor}.${lowestSupportedMinor}.""",
     arguments: {
-      'count': count,
-      'count2': count2,
-      'name': name,
-      'count3': count3,
-      'count4': count4,
+      'specifiedMajor': specifiedMajor,
+      'specifiedMinor': specifiedMinor,
+      'packageName': packageName,
+      'lowestSupportedMajor': lowestSupportedMajor,
+      'lowestSupportedMinor': lowestSupportedMinor,
     },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldLanguageVersionTooLowPackage(
-  int count,
-  int count2,
-  String name,
-  int count3,
-  int count4,
+  int specifiedMajor,
+  int specifiedMinor,
+  String packageName,
+  int lowestSupportedMajor,
+  int lowestSupportedMinor,
 ) => _withArgumentsLanguageVersionTooLowPackage(
-  count: count,
-  count2: count2,
-  name: name,
-  count3: count3,
-  count4: count4,
+  specifiedMajor: specifiedMajor,
+  specifiedMinor: specifiedMinor,
+  packageName: packageName,
+  lowestSupportedMajor: lowestSupportedMajor,
+  lowestSupportedMinor: lowestSupportedMinor,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12930,8 +13015,8 @@ const MessageCode nonExtensionTypeMemberOneOfContext = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(DartType spreadType),
+  Message Function({required DartType spreadType})
 >
 nonNullAwareSpreadIsNull = const Template(
   "NonNullAwareSpreadIsNull",
@@ -12940,21 +13025,21 @@ nonNullAwareSpreadIsNull = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullAwareSpreadIsNull({required DartType type}) {
+Message _withArgumentsNonNullAwareSpreadIsNull({required DartType spreadType}) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var spreadType_0 = labeler.labelType(spreadType);
   return new Message(
     nonNullAwareSpreadIsNull,
     problemMessage:
-        """Can't spread a value with static type '${type_0}'.""" +
+        """Can't spread a value with static type '${spreadType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type},
+    arguments: {'spreadType': spreadType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldNonNullAwareSpreadIsNull(DartType type) =>
-    _withArgumentsNonNullAwareSpreadIsNull(type: type);
+Message _withArgumentsOldNonNullAwareSpreadIsNull(DartType spreadType) =>
+    _withArgumentsNonNullAwareSpreadIsNull(spreadType: spreadType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -17192,8 +17277,11 @@ Message _withArgumentsOldValueForRequiredParameterNotProvidedError(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String variableName, String documentationUrl),
+  Message Function({
+    required String variableName,
+    required String documentationUrl,
+  })
 >
 variableCouldBeNullDueToWrite = const Template(
   "VariableCouldBeNullDueToWrite",
@@ -17203,26 +17291,32 @@ variableCouldBeNullDueToWrite = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsVariableCouldBeNullDueToWrite({
-  required String name,
-  required String string,
+  required String variableName,
+  required String documentationUrl,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
+  var documentationUrl_0 = conversions.validateString(documentationUrl);
   return new Message(
     variableCouldBeNullDueToWrite,
     problemMessage:
-        """Variable '${name_0}' could not be promoted due to an assignment.""",
+        """Variable '${variableName_0}' could not be promoted due to an assignment.""",
     correctionMessage:
-        """Try null checking the variable after the assignment.  See ${string_0}""",
-    arguments: {'name': name, 'string': string},
+        """Try null checking the variable after the assignment.  See ${documentationUrl_0}""",
+    arguments: {
+      'variableName': variableName,
+      'documentationUrl': documentationUrl,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldVariableCouldBeNullDueToWrite(
-  String name,
-  String string,
-) => _withArgumentsVariableCouldBeNullDueToWrite(name: name, string: string);
+  String variableName,
+  String documentationUrl,
+) => _withArgumentsVariableCouldBeNullDueToWrite(
+  variableName: variableName,
+  documentationUrl: documentationUrl,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode verificationErrorOriginContext = const MessageCode(

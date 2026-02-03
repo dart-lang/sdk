@@ -555,12 +555,12 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
           );
           if (version > target.currentSdkVersion) {
             packageLanguageVersionProblem = diag.languageVersionTooHighPackage
-                .withArgumentsOld(
-                  version.major,
-                  version.minor,
-                  packageForLanguageVersion.name,
-                  target.currentSdkVersion.major,
-                  target.currentSdkVersion.minor,
+                .withArguments(
+                  specifiedMajor: version.major,
+                  specifiedMinor: version.minor,
+                  packageName: packageForLanguageVersion.name,
+                  highestSupportedMajor: target.currentSdkVersion.major,
+                  highestSupportedMinor: target.currentSdkVersion.minor,
                 );
             packageLanguageVersion = new InvalidLanguageVersion(
               fileUri,
@@ -571,12 +571,12 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
             );
           } else if (version < target.leastSupportedVersion) {
             packageLanguageVersionProblem = diag.languageVersionTooLowPackage
-                .withArgumentsOld(
-                  version.major,
-                  version.minor,
-                  packageForLanguageVersion.name,
-                  target.leastSupportedVersion.major,
-                  target.leastSupportedVersion.minor,
+                .withArguments(
+                  specifiedMajor: version.major,
+                  specifiedMinor: version.minor,
+                  packageName: packageForLanguageVersion.name,
+                  lowestSupportedMajor: target.leastSupportedVersion.major,
+                  lowestSupportedMinor: target.leastSupportedVersion.minor,
                 );
             packageLanguageVersion = new InvalidLanguageVersion(
               fileUri,

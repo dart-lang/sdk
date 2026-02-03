@@ -498,11 +498,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // If trying to set a language version that is higher than the current sdk
       // version it's an error.
       addPostponedProblem(
-        diag.languageVersionTooHighExplicit.withArgumentsOld(
-          version.major,
-          version.minor,
-          loader.target.currentSdkVersion.major,
-          loader.target.currentSdkVersion.minor,
+        diag.languageVersionTooHighExplicit.withArguments(
+          specifiedMajor: version.major,
+          specifiedMinor: version.minor,
+          highestSupportedMajor: loader.target.currentSdkVersion.major,
+          highestSupportedMinor: loader.target.currentSdkVersion.minor,
         ),
         offset,
         length,
@@ -519,11 +519,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       );
     } else if (version < loader.target.leastSupportedVersion) {
       addPostponedProblem(
-        diag.languageVersionTooLowExplicit.withArgumentsOld(
-          version.major,
-          version.minor,
-          loader.target.leastSupportedVersion.major,
-          loader.target.leastSupportedVersion.minor,
+        diag.languageVersionTooLowExplicit.withArguments(
+          specifiedMajor: version.major,
+          specifiedMinor: version.minor,
+          lowestSupportedMajor: loader.target.leastSupportedVersion.major,
+          lowestSupportedMinor: loader.target.leastSupportedVersion.minor,
         ),
         offset,
         length,
