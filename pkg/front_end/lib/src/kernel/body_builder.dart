@@ -8762,7 +8762,9 @@ class BodyBuilderImpl extends StackListenerImpl
           // TODO(ahe): Should validate this is a goto target.
           if (!_labelScope.claimLabel(labelName)) {
             addProblem(
-              diag.duplicateLabelInSwitchStatement.withArgumentsOld(labelName),
+              diag.duplicateLabelInSwitchStatement.withArguments(
+                labelName: labelName,
+              ),
               label.charOffset,
               labelName.length,
             );

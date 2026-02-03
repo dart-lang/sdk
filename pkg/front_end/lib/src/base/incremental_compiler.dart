@@ -2606,7 +2606,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         compilerContext: compilerContext,
         expression: node,
         message: diag.expressionEvaluationKnownVariableUnavailable
-            .withArgumentsOld(variable.cosmeticName!),
+            .withArguments(variableName: variable.cosmeticName!),
         fileUri: fileUri,
         fileOffset: node.fileOffset,
         length: variable.cosmeticName!.length,

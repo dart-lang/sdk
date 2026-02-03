@@ -16821,9 +16821,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // [node.name] in the declaration of [cachedContext].
       replacement = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: diag.dotShorthandsUndefinedInvocation.withArgumentsOld(
-          node.name.text,
-          cachedContext,
+        message: diag.dotShorthandsUndefinedInvocation.withArguments(
+          memberName: node.name.text,
+          contextType: cachedContext,
         ),
         fileUri: fileUri,
         fileOffset: node.nameOffset,

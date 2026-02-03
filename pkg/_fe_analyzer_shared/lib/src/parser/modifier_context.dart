@@ -657,9 +657,9 @@ class ModifierContext {
   void reportConflictingModifiers(Token modifier, Token earlierModifier) {
     parser.reportRecoverableError(
       modifier,
-      diag.conflictingModifiers.withArgumentsOld(
-        modifier.lexeme,
-        earlierModifier.lexeme,
+      diag.conflictingModifiers.withArguments(
+        modifier: modifier.lexeme,
+        earlierModifier: earlierModifier.lexeme,
       ),
     );
   }
@@ -728,7 +728,10 @@ class ModifierContext {
   void reportModifierOutOfOrder(Token modifier, String beforeModifier) {
     parser.reportRecoverableError(
       modifier,
-      diag.modifierOutOfOrder.withArgumentsOld(modifier.lexeme, beforeModifier),
+      diag.modifierOutOfOrder.withArguments(
+        modifier: modifier.lexeme,
+        expectedLaterModifier: beforeModifier,
+      ),
     );
   }
 }

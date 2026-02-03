@@ -1786,12 +1786,12 @@ conflictingMethodAndField = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
-/// String string2: undocumented
+/// String modifier: The problematic modifier.
+/// String earlierModifier: The earlier modifier that conflicts.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String string,
-    required String string2,
+    required String modifier,
+    required String earlierModifier,
   })
 >
 conflictingModifiers = DiagnosticWithArguments(
@@ -3993,7 +3993,7 @@ const DiagnosticWithoutArguments duplicateImport =
 /// 0: the label that was duplicated
 ///
 /// Parameters:
-/// Name name: undocumented
+/// Name labelName: The name of the label that was already used.
 const DiagnosticCode duplicateLabelInSwitchStatement =
     DiagnosticCodeWithExpectedTypes(
       name: 'duplicate_label_in_switch_statement',
@@ -4528,9 +4528,9 @@ const DiagnosticCode expectedIdentifierButGotKeyword =
     );
 
 /// Parameters:
-/// String string: undocumented
+/// String expected: What was expected.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String string})
+  LocatableDiagnostic Function({required String expected})
 >
 expectedInstead = DiagnosticWithArguments(
   name: 'expected_instead',
@@ -9442,8 +9442,8 @@ const DiagnosticCode literalWithClass = DiagnosticCodeWithExpectedTypes(
 );
 
 /// Parameters:
-/// String string: undocumented
-/// Token lexeme: undocumented
+/// String kind: The literal kind
+/// Token lexeme: The lexeme between `new` and the literal.
 const DiagnosticCode literalWithClassAndNew = DiagnosticCodeWithExpectedTypes(
   name: 'literal_with_class_and_new',
   problemMessage: "A {0} literal can't be prefixed by 'new {1}'.",
@@ -10742,12 +10742,12 @@ const DiagnosticWithoutArguments mixinWithNonClassSuperclass =
     );
 
 /// Parameters:
-/// String string: undocumented
-/// String string2: undocumented
+/// String modifier: The problematic modifier.
+/// String expectedLaterModifier: The modifier that should come later.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String string,
-    required String string2,
+    required String modifier,
+    required String expectedLaterModifier,
   })
 >
 modifierOutOfOrder = DiagnosticWithArguments(
@@ -10761,12 +10761,12 @@ modifierOutOfOrder = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
-/// String string2: undocumented
+/// String definitionKind: The kind of definition that has multiple clauses.
+/// String clauseKind: The kind of clause of which there are multiple.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String string,
-    required String string2,
+    required String definitionKind,
+    required String clauseKind,
   })
 >
 multipleClauses = DiagnosticWithArguments(
@@ -12759,12 +12759,12 @@ const DiagnosticWithoutArguments optionalParameterInOperator =
     );
 
 /// Parameters:
-/// String string: undocumented
-/// String string2: undocumented
+/// String expectedEarlierClause: The kind of clause that must come earlier.
+/// String expectedLaterClause: The kind of clause that must come later.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String string,
-    required String string2,
+    required String expectedEarlierClause,
+    required String expectedLaterClause,
   })
 >
 outOfOrderClauses = DiagnosticWithArguments(
@@ -18173,10 +18173,13 @@ LocatableDiagnostic _withArgumentsConflictingMethodAndField({
 }
 
 LocatableDiagnostic _withArgumentsConflictingModifiers({
-  required String string,
-  required String string2,
+  required String modifier,
+  required String earlierModifier,
 }) {
-  return LocatableDiagnosticImpl(diag.conflictingModifiers, [string, string2]);
+  return LocatableDiagnosticImpl(diag.conflictingModifiers, [
+    modifier,
+    earlierModifier,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsConflictingStaticAndInstance({
@@ -18696,8 +18699,8 @@ LocatableDiagnostic _withArgumentsEnumWithAbstractMember({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsExpectedInstead({required String string}) {
-  return LocatableDiagnosticImpl(diag.expectedInstead, [string]);
+LocatableDiagnostic _withArgumentsExpectedInstead({required String expected}) {
+  return LocatableDiagnosticImpl(diag.expectedInstead, [expected]);
 }
 
 LocatableDiagnostic _withArgumentsExpectedOneListPatternTypeArguments({
@@ -19936,17 +19939,23 @@ LocatableDiagnostic _withArgumentsMixinSuperClassConstraintDisallowedClass({
 }
 
 LocatableDiagnostic _withArgumentsModifierOutOfOrder({
-  required String string,
-  required String string2,
+  required String modifier,
+  required String expectedLaterModifier,
 }) {
-  return LocatableDiagnosticImpl(diag.modifierOutOfOrder, [string, string2]);
+  return LocatableDiagnosticImpl(diag.modifierOutOfOrder, [
+    modifier,
+    expectedLaterModifier,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMultipleClauses({
-  required String string,
-  required String string2,
+  required String definitionKind,
+  required String clauseKind,
 }) {
-  return LocatableDiagnosticImpl(diag.multipleClauses, [string, string2]);
+  return LocatableDiagnosticImpl(diag.multipleClauses, [
+    definitionKind,
+    clauseKind,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsMultiplePlugins({
@@ -20323,10 +20332,13 @@ LocatableDiagnostic _withArgumentsOnRepeated({required String interfaceName}) {
 }
 
 LocatableDiagnostic _withArgumentsOutOfOrderClauses({
-  required String string,
-  required String string2,
+  required String expectedEarlierClause,
+  required String expectedLaterClause,
 }) {
-  return LocatableDiagnosticImpl(diag.outOfOrderClauses, [string, string2]);
+  return LocatableDiagnosticImpl(diag.outOfOrderClauses, [
+    expectedEarlierClause,
+    expectedLaterClause,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsParseError({required String errorMessage}) {

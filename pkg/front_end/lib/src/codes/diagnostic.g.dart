@@ -3116,8 +3116,8 @@ Message _withArgumentsOldDotShorthandsUndefinedGetter(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String memberName, DartType contextType),
+  Message Function({required String memberName, required DartType contextType})
 >
 dotShorthandsUndefinedInvocation = const Template(
   "DotShorthandsUndefinedInvocation",
@@ -3127,28 +3127,31 @@ dotShorthandsUndefinedInvocation = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDotShorthandsUndefinedInvocation({
-  required String name,
-  required DartType type,
+  required String memberName,
+  required DartType contextType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var contextType_0 = labeler.labelType(contextType);
   return new Message(
     dotShorthandsUndefinedInvocation,
     problemMessage:
-        """The static method or constructor '${name_0}' isn't defined for the type '${type_0}'.""" +
+        """The static method or constructor '${memberName_0}' isn't defined for the type '${contextType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
-        """Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '${name_0}'.""",
-    arguments: {'name': name, 'type': type},
+        """Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '${memberName_0}'.""",
+    arguments: {'memberName': memberName, 'contextType': contextType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldDotShorthandsUndefinedInvocation(
-  String name,
-  DartType type,
-) => _withArgumentsDotShorthandsUndefinedInvocation(name: name, type: type);
+  String memberName,
+  DartType contextType,
+) => _withArgumentsDotShorthandsUndefinedInvocation(
+  memberName: memberName,
+  contextType: contextType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4201,8 +4204,8 @@ const MessageCode exportedMain = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 expressionEvaluationKnownVariableUnavailable = const Template(
   "ExpressionEvaluationKnownVariableUnavailable",
@@ -4213,21 +4216,23 @@ expressionEvaluationKnownVariableUnavailable = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpressionEvaluationKnownVariableUnavailable({
-  required String name,
+  required String variableName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     expressionEvaluationKnownVariableUnavailable,
     problemMessage:
-        """The variable '${name_0}' is unavailable in this expression evaluation.""",
-    arguments: {'name': name},
+        """The variable '${variableName_0}' is unavailable in this expression evaluation.""",
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldExpressionEvaluationKnownVariableUnavailable(
-  String name,
-) => _withArgumentsExpressionEvaluationKnownVariableUnavailable(name: name);
+  String variableName,
+) => _withArgumentsExpressionEvaluationKnownVariableUnavailable(
+  variableName: variableName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode expressionNotMetadata = const MessageCode(

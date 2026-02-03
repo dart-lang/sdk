@@ -7650,10 +7650,10 @@ dotShorthandsUndefinedGetter:
 
 dotShorthandsUndefinedInvocation:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "The static method or constructor '#name' isn't defined for the type '#type'."
-  correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'."
+    Name memberName: The name of the static method or constructor that was sought.
+    Type contextType: The dot shorthand context type in which the static method or constructor was sought.
+  problemMessage: "The static method or constructor '#memberName' isn't defined for the type '#contextType'."
+  correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#memberName'."
   experiments: dot-shorthands
   script: |
     class C {
@@ -7665,8 +7665,8 @@ dotShorthandsUndefinedInvocation:
 
 expressionEvaluationKnownVariableUnavailable:
   parameters:
-    Name name: undocumented
-  problemMessage: "The variable '#name' is unavailable in this expression evaluation."
+    Name variableName: The name of the unavailable variable.
+  problemMessage: "The variable '#variableName' is unavailable in this expression evaluation."
 
 partOfName:
   parameters: none
