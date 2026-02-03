@@ -134,7 +134,6 @@ class PropertyForInVariable implements ForInVariable {
       receiverType,
       propertySet.name,
       propertySet.fileOffset,
-      diag.undefinedSetter,
     );
     if (error != null) {
       _rhs = error;
