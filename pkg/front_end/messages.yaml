@@ -4755,17 +4755,17 @@ incorrectTypeArgumentVariable:
 
 superBoundedHint:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not."
+    Type attemptedType: The type that the user appears to be attempting to make super-bounded.
+    Type invertedType: The inverted type, which does not satisfy its bounds.
+  problemMessage: "If you want '#attemptedType' to be a super-bounded type, note that the inverted type '#invertedType' must then satisfy its bounds, which it does not."
   severity: CONTEXT
 
 mixinApplicationIncompatibleSupertype:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Type type3: undocumented
-  problemMessage: "'#type' doesn't implement '#type2' so it can't be used with '#type3'."
+    Type supertype: The mixin application supertype.
+    Type requiredInterfaceType: The type that the supertype is required to implement.
+    Type mixedInType: The mixed in type that can't be used.
+  problemMessage: "'#supertype' doesn't implement '#requiredInterfaceType' so it can't be used with '#mixedInType'."
   script: |-
     class I {}
     mixin M on I {}
@@ -4793,7 +4793,7 @@ genericFunctionTypeUsedAsActualTypeArgument:
 
 genericFunctionTypeInferredAsActualTypeArgument:
   parameters:
-    Type type: undocumented
+    Type type: The generic function type that was inferred.
   problemMessage: "Generic function type '#type' inferred as a type argument."
   correctionMessage: "Try providing a non-generic function type explicitly."
   script: |
@@ -4804,9 +4804,9 @@ genericFunctionTypeInferredAsActualTypeArgument:
 
 genericFunctionTypeAsTypeArgumentThroughTypedef:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "Generic function type '#type' used as a type argument through typedef '#type2'."
+    Type genericFunctionType: The generic function type that was used as a type argument.
+    Type aliasType: The type alias.
+  problemMessage: "Generic function type '#genericFunctionType' used as a type argument through typedef '#aliasType'."
   correctionMessage: "Try providing a non-generic function type explicitly."
   script:
     main.dart: |
@@ -4820,17 +4820,17 @@ genericFunctionTypeAsTypeArgumentThroughTypedef:
 # about the origins of raw interface types in error messages containing types.
 typeOrigin:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
+    Name name: The name whose origin is being explained.
+    Uri uri: The URI of the name's origin.
   problemMessage: "'#name' is from '#uri'."
   external: test/type_labeler_test.dart
 
 typeOriginWithFileUri:
   parameters:
-    Name name: undocumented
-    Uri uri: undocumented
-    Uri uri2: undocumented
-  problemMessage: "'#name' is from '#uri' ('#uri2')."
+    Name name: The name whose origin is being explained.
+    Uri importUri: The import URI of the name's origin.
+    Uri fileUri: The file URI of the name's origin.
+  problemMessage: "'#name' is from '#importUri' ('#fileUri')."
   external: test/type_labeler_test.dart
 
 objectExtends:
@@ -4850,7 +4850,7 @@ objectMixesIn:
 
 instanceAndSynthesizedStaticConflict:
   parameters:
-    Name name: undocumented
+    Name name: The name of the conflicting synthesized static member.
   problemMessage: "This instance member conflicts with the synthesized static member called '#name'."
   script: |
     enum E {

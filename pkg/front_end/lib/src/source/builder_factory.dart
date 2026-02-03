@@ -1348,7 +1348,9 @@ class EnumValuesDeclaration extends _PropertyDeclaration
     _PropertyDeclaration declaration,
   ) {
     problemReporting.addProblem2(
-      diag.instanceAndSynthesizedStaticConflict.withArgumentsOld(displayName),
+      diag.instanceAndSynthesizedStaticConflict.withArguments(
+        name: displayName,
+      ),
       declaration.uriOffset,
     );
   }

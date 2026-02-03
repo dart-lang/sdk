@@ -6299,8 +6299,11 @@ const MessageCode forInLoopWithConstVariable = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType genericFunctionType, DartType aliasType),
+  Message Function({
+    required DartType genericFunctionType,
+    required DartType aliasType,
+  })
 >
 genericFunctionTypeAsTypeArgumentThroughTypedef = const Template(
   "GenericFunctionTypeAsTypeArgumentThroughTypedef",
@@ -6311,30 +6314,33 @@ genericFunctionTypeAsTypeArgumentThroughTypedef = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef({
-  required DartType type,
-  required DartType type2,
+  required DartType genericFunctionType,
+  required DartType aliasType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var genericFunctionType_0 = labeler.labelType(genericFunctionType);
+  var aliasType_0 = labeler.labelType(aliasType);
   return new Message(
     genericFunctionTypeAsTypeArgumentThroughTypedef,
     problemMessage:
-        """Generic function type '${type_0}' used as a type argument through typedef '${type2_0}'.""" +
+        """Generic function type '${genericFunctionType_0}' used as a type argument through typedef '${aliasType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try providing a non-generic function type explicitly.""",
-    arguments: {'type': type, 'type2': type2},
+    arguments: {
+      'genericFunctionType': genericFunctionType,
+      'aliasType': aliasType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef(
-  DartType type,
-  DartType type2,
+  DartType genericFunctionType,
+  DartType aliasType,
 ) => _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef(
-  type: type,
-  type2: type2,
+  genericFunctionType: genericFunctionType,
+  aliasType: aliasType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12240,11 +12246,15 @@ Message _withArgumentsOldMissingVariablePattern(String name) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2, DartType type3),
+  Message Function(
+    DartType supertype,
+    DartType requiredInterfaceType,
+    DartType mixedInType,
+  ),
   Message Function({
-    required DartType type,
-    required DartType type2,
-    required DartType type3,
+    required DartType supertype,
+    required DartType requiredInterfaceType,
+    required DartType mixedInType,
   })
 >
 mixinApplicationIncompatibleSupertype = const Template(
@@ -12255,32 +12265,36 @@ mixinApplicationIncompatibleSupertype = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMixinApplicationIncompatibleSupertype({
-  required DartType type,
-  required DartType type2,
-  required DartType type3,
+  required DartType supertype,
+  required DartType requiredInterfaceType,
+  required DartType mixedInType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
-  var type3_0 = labeler.labelType(type3);
+  var supertype_0 = labeler.labelType(supertype);
+  var requiredInterfaceType_0 = labeler.labelType(requiredInterfaceType);
+  var mixedInType_0 = labeler.labelType(mixedInType);
   return new Message(
     mixinApplicationIncompatibleSupertype,
     problemMessage:
-        """'${type_0}' doesn't implement '${type2_0}' so it can't be used with '${type3_0}'.""" +
+        """'${supertype_0}' doesn't implement '${requiredInterfaceType_0}' so it can't be used with '${mixedInType_0}'.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2, 'type3': type3},
+    arguments: {
+      'supertype': supertype,
+      'requiredInterfaceType': requiredInterfaceType,
+      'mixedInType': mixedInType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldMixinApplicationIncompatibleSupertype(
-  DartType type,
-  DartType type2,
-  DartType type3,
+  DartType supertype,
+  DartType requiredInterfaceType,
+  DartType mixedInType,
 ) => _withArgumentsMixinApplicationIncompatibleSupertype(
-  type: type,
-  type2: type2,
-  type3: type3,
+  supertype: supertype,
+  requiredInterfaceType: requiredInterfaceType,
+  mixedInType: mixedInType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15667,8 +15681,11 @@ const MessageCode superAsIdentifier = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, DartType type2),
-  Message Function({required DartType type, required DartType type2})
+  Message Function(DartType attemptedType, DartType invertedType),
+  Message Function({
+    required DartType attemptedType,
+    required DartType invertedType,
+  })
 >
 superBoundedHint = const Template(
   "SuperBoundedHint",
@@ -15679,24 +15696,29 @@ superBoundedHint = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperBoundedHint({
-  required DartType type,
-  required DartType type2,
+  required DartType attemptedType,
+  required DartType invertedType,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var type2_0 = labeler.labelType(type2);
+  var attemptedType_0 = labeler.labelType(attemptedType);
+  var invertedType_0 = labeler.labelType(invertedType);
   return new Message(
     superBoundedHint,
     problemMessage:
-        """If you want '${type_0}' to be a super-bounded type, note that the inverted type '${type2_0}' must then satisfy its bounds, which it does not.""" +
+        """If you want '${attemptedType_0}' to be a super-bounded type, note that the inverted type '${invertedType_0}' must then satisfy its bounds, which it does not.""" +
         labeler.originMessages,
-    arguments: {'type': type, 'type2': type2},
+    arguments: {'attemptedType': attemptedType, 'invertedType': invertedType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldSuperBoundedHint(DartType type, DartType type2) =>
-    _withArgumentsSuperBoundedHint(type: type, type2: type2);
+Message _withArgumentsOldSuperBoundedHint(
+  DartType attemptedType,
+  DartType invertedType,
+) => _withArgumentsSuperBoundedHint(
+  attemptedType: attemptedType,
+  invertedType: invertedType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -16469,8 +16491,12 @@ Message _withArgumentsOldTypeOrigin(String name, Uri uri) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, Uri uri, Uri uri2),
-  Message Function({required String name, required Uri uri, required Uri uri2})
+  Message Function(String name, Uri importUri, Uri fileUri),
+  Message Function({
+    required String name,
+    required Uri importUri,
+    required Uri fileUri,
+  })
 >
 typeOriginWithFileUri = const Template(
   "TypeOriginWithFileUri",
@@ -16481,25 +16507,30 @@ typeOriginWithFileUri = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeOriginWithFileUri({
   required String name,
-  required Uri uri,
-  required Uri uri2,
+  required Uri importUri,
+  required Uri fileUri,
 }) {
   var name_0 = conversions.validateAndDemangleName(name);
-  var uri_0 = conversions.relativizeUri(uri);
-  var uri2_0 = conversions.relativizeUri(uri2);
+  var importUri_0 = conversions.relativizeUri(importUri);
+  var fileUri_0 = conversions.relativizeUri(fileUri);
   return new Message(
     typeOriginWithFileUri,
-    problemMessage: """'${name_0}' is from '${uri_0}' ('${uri2_0}').""",
-    arguments: {'name': name, 'uri': uri, 'uri2': uri2},
+    problemMessage:
+        """'${name_0}' is from '${importUri_0}' ('${fileUri_0}').""",
+    arguments: {'name': name, 'importUri': importUri, 'fileUri': fileUri},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldTypeOriginWithFileUri(
   String name,
-  Uri uri,
-  Uri uri2,
-) => _withArgumentsTypeOriginWithFileUri(name: name, uri: uri, uri2: uri2);
+  Uri importUri,
+  Uri fileUri,
+) => _withArgumentsTypeOriginWithFileUri(
+  name: name,
+  importUri: importUri,
+  fileUri: fileUri,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode typeParameterDuplicatedName = const MessageCode(

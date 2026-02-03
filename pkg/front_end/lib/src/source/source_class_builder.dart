@@ -1112,10 +1112,10 @@ class SourceClassBuilder extends ClassBuilderImpl
             requiredInterface,
           )) {
         libraryBuilder.addProblem(
-          diag.mixinApplicationIncompatibleSupertype.withArgumentsOld(
-            supertype,
-            requiredInterface,
-            cls.mixedInType!.asInterfaceType,
+          diag.mixinApplicationIncompatibleSupertype.withArguments(
+            supertype: supertype,
+            requiredInterfaceType: requiredInterface,
+            mixedInType: cls.mixedInType!.asInterfaceType,
           ),
           cls.fileOffset,
           noLength,

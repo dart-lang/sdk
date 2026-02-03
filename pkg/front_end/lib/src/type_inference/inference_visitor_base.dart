@@ -5567,8 +5567,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(!libraryBuilder.libraryFeatures.genericMetadata.isEnabled);
     if (isGenericFunctionTypeOrAlias(typeArgument)) {
       libraryBuilder.addProblem(
-        diag.genericFunctionTypeInferredAsActualTypeArgument.withArgumentsOld(
-          typeArgument,
+        diag.genericFunctionTypeInferredAsActualTypeArgument.withArguments(
+          type: typeArgument,
         ),
         fileOffset,
         noLength,
