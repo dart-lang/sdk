@@ -167,7 +167,7 @@ enum StaticIntrinsic {
   wasmI16x8Add('dart:_wasm', null, 'WasmI16x8|+'),
   wasmI16x8Sub('dart:_wasm', null, 'WasmI16x8|-'),
   wasmI16x8Mul('dart:_wasm', null, 'WasmI16x8|*'),
-  wasm32x4MulDotI16x8('dart:_wasm', 'WasmI16x8', 'dotProduct'),
+  wasm32x4MulDotI16x8('dart:_wasm', null, 'WasmI16x8|dotProduct'),
   wasmI16x8Neg('dart:_wasm', null, 'WasmI16x8|unary-'),
   wasmI32x4Add('dart:_wasm', null, 'WasmI32x4|+'),
   wasmI32x4Sub('dart:_wasm', null, 'WasmI32x4|-'),
