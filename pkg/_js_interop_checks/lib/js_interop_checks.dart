@@ -171,9 +171,9 @@ class JsInteropChecks extends RecursiveVisitor {
     if (hasDartJSInteropAnnotation(node) &&
         !extensionIndex.isInteropExtensionType(node)) {
       _reporter.report(
-        diag.jsInteropExtensionTypeNotInterop.withArgumentsOld(
-          node.name,
-          node.declaredRepresentationType,
+        diag.jsInteropExtensionTypeNotInterop.withArguments(
+          extensionTypeName: node.name,
+          representationType: node.declaredRepresentationType,
         ),
         node.fileOffset,
         node.name.length,
@@ -792,21 +792,23 @@ class JsInteropChecks extends RecursiveVisitor {
     final functionType = argument.getStaticType(_staticTypeContext);
     if (functionType is! FunctionType) {
       report(
-        diag.jsInteropFunctionToJSRequiresStaticType.withArgumentsOld(
-          conversion,
-          functionType,
+        diag.jsInteropFunctionToJSRequiresStaticType.withArguments(
+          conversion: conversion,
+          functionType: functionType,
         ),
       );
     } else {
       if (functionType.typeParameters.isNotEmpty) {
         report(
-          diag.jsInteropFunctionToJSTypeParameters.withArgumentsOld(conversion),
+          diag.jsInteropFunctionToJSTypeParameters.withArguments(
+            conversion: conversion,
+          ),
         );
       }
       if (functionType.namedParameters.isNotEmpty) {
         report(
-          diag.jsInteropFunctionToJSNamedParameters.withArgumentsOld(
-            conversion,
+          diag.jsInteropFunctionToJSNamedParameters.withArguments(
+            conversion: conversion,
           ),
         );
       }

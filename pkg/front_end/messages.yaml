@@ -5988,47 +5988,47 @@ jsInteropExportDisallowedMember:
 
 jsInteropExportInvalidInteropTypeArgument:
   parameters:
-    Type type: undocumented
+    Type type: The invalid type.
   problemMessage: "Type argument '#type' needs to be a non-JS interop type."
   correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
 
 jsInteropExportInvalidTypeArgument:
   parameters:
-    Type type: undocumented
+    Type type: The invalid type.
   problemMessage: "Type argument '#type' needs to be an interface type."
   correctionMessage: "Use a non-JS interop class that uses `@JSExport` instead."
 
 jsInteropExportMemberCollision:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-  problemMessage: "The following class members collide with the same export '#name': #string."
+    Name exportName: The name of the conflicting export.
+    String members: The class members that collide with the conflicting export, separated by `, `.
+  problemMessage: "The following class members collide with the same export '#exportName': #members."
   correctionMessage: "Either remove the conflicting members or use a different export name."
 
 jsInteropExportNoExportableMembers:
   parameters:
-    Name name: undocumented
-  problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
+    Name className: The name of the class with no exportable members.
+  problemMessage: "Class '#className' has no exportable members in the class or the inheritance chain."
   correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
 
 jsInteropIsAInvalidTypeVariable:
   parameters:
-    Type type: undocumented
+    Type type: The type argument provided to `isA`.
   problemMessage: "Type argument '#type' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time."
   correctionMessage: "Use a valid interop extension type that can be determined at compile-time as the type argument instead."
 
 jsInteropIsAObjectLiteralType:
   parameters:
-    Type type: undocumented
+    Type type: The type with an object literal constructor.
   problemMessage: "Type argument '#type' has an object literal constructor. Because 'isA' uses the type's name or '@JS()' rename, this may result in an incorrect type check."
   correctionMessage: "Use 'JSObject' as the type argument instead."
 
 jsInteropIsAPrimitiveExtensionType:
   parameters:
-    Type type: undocumented
-    String string: undocumented
-  problemMessage: "Type argument '#type' wraps primitive JS type '#string', which is specially handled using 'typeof'."
-  correctionMessage: "Use the primitive JS type '#string' as the type argument instead."
+    Type interopType: The type that wraps a primitive JS type.
+    String jsTypeName: The name of the JS type that is wrapped.
+  problemMessage: "Type argument '#interopType' wraps primitive JS type '#jsTypeName', which is specially handled using 'typeof'."
+  correctionMessage: "Use the primitive JS type '#jsTypeName' as the type argument instead."
 
 jsInteropIsATearoff:
   parameters: none
@@ -6037,9 +6037,9 @@ jsInteropIsATearoff:
 
 jsInteropExtensionTypeNotInterop:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
+    Name extensionTypeName: The name of the extension type that is marked with a `@JS` annotation.
+    Type representationType: The type that is not a valid JS interop type.
+  problemMessage: "Extension type '#extensionTypeName' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#representationType'."
   correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types."
 
 jsInteropExtensionTypeMemberNotInterop:
@@ -6069,20 +6069,20 @@ jsInteropExternalMemberNotJSAnnotated:
 
 jsInteropFunctionToJSNamedParameters:
   parameters:
-    String conversion: undocumented
+    String conversion: The "toJS" conversion in use.
   problemMessage: "Functions converted via '#conversion' cannot declare named parameters."
   correctionMessage: "Remove the declared named parameters from the function."
 
 jsInteropFunctionToJSRequiresStaticType:
   parameters:
-    String conversion: undocumented
-    Type type: undocumented
-  problemMessage: "Functions converted via '#conversion' require a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`."
+    String conversion: The "toJS" conversion in use.
+    Type functionType: The imprecise function type.
+  problemMessage: "Functions converted via '#conversion' require a statically known function type, but Type '#functionType' is not a precise function type, e.g., `void Function()`."
   correctionMessage: "Insert an explicit cast to the expected function type."
 
 jsInteropFunctionToJSTypeParameters:
   parameters:
-    String conversion: undocumented
+    String conversion: The "toJS" conversion in use.
   problemMessage: "Functions converted via '#conversion' cannot declare type parameters."
   correctionMessage: "Remove the declared type parameters from the function."
 

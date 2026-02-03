@@ -10213,8 +10213,8 @@ Message _withArgumentsOldJsInteropExportInvalidTypeArgument(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, String string),
-  Message Function({required String name, required String string})
+  Message Function(String exportName, String members),
+  Message Function({required String exportName, required String members})
 >
 jsInteropExportMemberCollision = const Template(
   "JsInteropExportMemberCollision",
@@ -10224,31 +10224,34 @@ jsInteropExportMemberCollision = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropExportMemberCollision({
-  required String name,
-  required String string,
+  required String exportName,
+  required String members,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  var string_0 = conversions.validateString(string);
+  var exportName_0 = conversions.validateAndDemangleName(exportName);
+  var members_0 = conversions.validateString(members);
   return new Message(
     jsInteropExportMemberCollision,
     problemMessage:
-        """The following class members collide with the same export '${name_0}': ${string_0}.""",
+        """The following class members collide with the same export '${exportName_0}': ${members_0}.""",
     correctionMessage:
         """Either remove the conflicting members or use a different export name.""",
-    arguments: {'name': name, 'string': string},
+    arguments: {'exportName': exportName, 'members': members},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropExportMemberCollision(
-  String name,
-  String string,
-) => _withArgumentsJsInteropExportMemberCollision(name: name, string: string);
+  String exportName,
+  String members,
+) => _withArgumentsJsInteropExportMemberCollision(
+  exportName: exportName,
+  members: members,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String className),
+  Message Function({required String className})
 >
 jsInteropExportNoExportableMembers = const Template(
   "JsInteropExportNoExportableMembers",
@@ -10258,22 +10261,22 @@ jsInteropExportNoExportableMembers = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropExportNoExportableMembers({
-  required String name,
+  required String className,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var className_0 = conversions.validateAndDemangleName(className);
   return new Message(
     jsInteropExportNoExportableMembers,
     problemMessage:
-        """Class '${name_0}' has no exportable members in the class or the inheritance chain.""",
+        """Class '${className_0}' has no exportable members in the class or the inheritance chain.""",
     correctionMessage:
         """Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
-    arguments: {'name': name},
+    arguments: {'className': className},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropExportNoExportableMembers(String name) =>
-    _withArgumentsJsInteropExportNoExportableMembers(name: name);
+Message _withArgumentsOldJsInteropExportNoExportableMembers(String className) =>
+    _withArgumentsJsInteropExportNoExportableMembers(className: className);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropExtensionTypeMemberNotInterop = const MessageCode(
@@ -10286,8 +10289,11 @@ const MessageCode jsInteropExtensionTypeMemberNotInterop = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name, DartType type),
-  Message Function({required String name, required DartType type})
+  Message Function(String extensionTypeName, DartType representationType),
+  Message Function({
+    required String extensionTypeName,
+    required DartType representationType,
+  })
 >
 jsInteropExtensionTypeNotInterop = const Template(
   "JsInteropExtensionTypeNotInterop",
@@ -10297,28 +10303,36 @@ jsInteropExtensionTypeNotInterop = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropExtensionTypeNotInterop({
-  required String name,
-  required DartType type,
+  required String extensionTypeName,
+  required DartType representationType,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var extensionTypeName_0 = conversions.validateAndDemangleName(
+    extensionTypeName,
+  );
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var representationType_0 = labeler.labelType(representationType);
   return new Message(
     jsInteropExtensionTypeNotInterop,
     problemMessage:
-        """Extension type '${name_0}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${type_0}'.""" +
+        """Extension type '${extensionTypeName_0}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${representationType_0}'.""" +
         labeler.originMessages,
     correctionMessage:
         """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
-    arguments: {'name': name, 'type': type},
+    arguments: {
+      'extensionTypeName': extensionTypeName,
+      'representationType': representationType,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropExtensionTypeNotInterop(
-  String name,
-  DartType type,
-) => _withArgumentsJsInteropExtensionTypeNotInterop(name: name, type: type);
+  String extensionTypeName,
+  DartType representationType,
+) => _withArgumentsJsInteropExtensionTypeNotInterop(
+  extensionTypeName: extensionTypeName,
+  representationType: representationType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -10390,8 +10404,8 @@ Message _withArgumentsOldJsInteropFunctionToJSNamedParameters(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String conversion, DartType type),
-  Message Function({required String conversion, required DartType type})
+  Message Function(String conversion, DartType functionType),
+  Message Function({required String conversion, required DartType functionType})
 >
 jsInteropFunctionToJSRequiresStaticType = const Template(
   "JsInteropFunctionToJSRequiresStaticType",
@@ -10402,29 +10416,29 @@ jsInteropFunctionToJSRequiresStaticType = const Template(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropFunctionToJSRequiresStaticType({
   required String conversion,
-  required DartType type,
+  required DartType functionType,
 }) {
   var conversion_0 = conversions.validateString(conversion);
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
+  var functionType_0 = labeler.labelType(functionType);
   return new Message(
     jsInteropFunctionToJSRequiresStaticType,
     problemMessage:
-        """Functions converted via '${conversion_0}' require a statically known function type, but Type '${type_0}' is not a precise function type, e.g., `void Function()`.""" +
+        """Functions converted via '${conversion_0}' require a statically known function type, but Type '${functionType_0}' is not a precise function type, e.g., `void Function()`.""" +
         labeler.originMessages,
     correctionMessage:
         """Insert an explicit cast to the expected function type.""",
-    arguments: {'conversion': conversion, 'type': type},
+    arguments: {'conversion': conversion, 'functionType': functionType},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropFunctionToJSRequiresStaticType(
   String conversion,
-  DartType type,
+  DartType functionType,
 ) => _withArgumentsJsInteropFunctionToJSRequiresStaticType(
   conversion: conversion,
-  type: type,
+  functionType: functionType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10565,8 +10579,8 @@ Message _withArgumentsOldJsInteropIsAObjectLiteralType(DartType type) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type, String string),
-  Message Function({required DartType type, required String string})
+  Message Function(DartType interopType, String jsTypeName),
+  Message Function({required DartType interopType, required String jsTypeName})
 >
 jsInteropIsAPrimitiveExtensionType = const Template(
   "JsInteropIsAPrimitiveExtensionType",
@@ -10576,30 +10590,30 @@ jsInteropIsAPrimitiveExtensionType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropIsAPrimitiveExtensionType({
-  required DartType type,
-  required String string,
+  required DartType interopType,
+  required String jsTypeName,
 }) {
   TypeLabeler labeler = new TypeLabeler();
-  var type_0 = labeler.labelType(type);
-  var string_0 = conversions.validateString(string);
+  var interopType_0 = labeler.labelType(interopType);
+  var jsTypeName_0 = conversions.validateString(jsTypeName);
   return new Message(
     jsInteropIsAPrimitiveExtensionType,
     problemMessage:
-        """Type argument '${type_0}' wraps primitive JS type '${string_0}', which is specially handled using 'typeof'.""" +
+        """Type argument '${interopType_0}' wraps primitive JS type '${jsTypeName_0}', which is specially handled using 'typeof'.""" +
         labeler.originMessages,
     correctionMessage:
-        """Use the primitive JS type '${string_0}' as the type argument instead.""",
-    arguments: {'type': type, 'string': string},
+        """Use the primitive JS type '${jsTypeName_0}' as the type argument instead.""",
+    arguments: {'interopType': interopType, 'jsTypeName': jsTypeName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropIsAPrimitiveExtensionType(
-  DartType type,
-  String string,
+  DartType interopType,
+  String jsTypeName,
 ) => _withArgumentsJsInteropIsAPrimitiveExtensionType(
-  type: type,
-  string: string,
+  interopType: interopType,
+  jsTypeName: jsTypeName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
