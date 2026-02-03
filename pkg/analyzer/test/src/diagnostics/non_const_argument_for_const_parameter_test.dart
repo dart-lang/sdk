@@ -526,6 +526,40 @@ void g([@mustBeConst int? value]) {}
     );
   }
 
+  test_primaryConstructor_constantLiteral_succeeds() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+final c = C(3);
+
+class C(@mustBeConst int i);
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 77, 11),
+      ],
+    );
+  }
+
+  test_primaryConstructor_variable_fails() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+final f = 3;
+final c = C(f);
+
+class C(@mustBeConst int i);
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 76, 1),
+        error(diag.experimentalMemberUse, 90, 11),
+      ],
+    );
+  }
+
   test_redirectingConstructor_variable_fails() async {
     await assertErrorsInCode(
       r'''
