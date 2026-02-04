@@ -1247,9 +1247,9 @@ literalWithClassAndNew:
 literalWithClass:
   type: syntacticError
   parameters:
-    String string: undocumented
-    Token lexeme: undocumented
-  problemMessage: "A #string literal can't be prefixed by '#lexeme'."
+    String kind: The literal kind.
+    Token lexeme: The lexeme between `new` and the literal.
+  problemMessage: "A #kind literal can't be prefixed by '#lexeme'."
   correctionMessage: "Try removing '#lexeme'"
   analyzerCode: literalWithClass
   hasPublishedDocs: false
@@ -1856,8 +1856,8 @@ topLevelOperator:
 typeArgumentsOnTypeVariable:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't use type arguments with type variable '#name'."
+    Name typeVariableName: The name of the type variable.
+  problemMessage: "Can't use type arguments with type variable '#typeVariableName'."
   correctionMessage: "Try removing the type arguments."
   analyzerCode: typeArgumentsOnTypeVariable
   hasPublishedDocs: false
@@ -2016,10 +2016,10 @@ colonInPlaceOfIn:
 binaryOperatorWrittenOut:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Binary operator '#string' is written as '#string2' instead of the written out word."
-  correctionMessage: "Try replacing '#string' with '#string2'."
+    String actualOperator: The binary operator that was seen.
+    String expectedOperator: The binary operator that was expected.
+  problemMessage: "Binary operator '#actualOperator' is written as '#expectedOperator' instead of the written out word."
+  correctionMessage: "Try replacing '#actualOperator' with '#expectedOperator'."
   analyzerCode: binaryOperatorWrittenOut
   hasPublishedDocs: false
   script: |
@@ -2166,8 +2166,8 @@ invalidConstantPatternNegation:
 invalidConstantPatternUnary:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "The unary operator #name is not supported as a constant pattern."
+    Name operatorName: The name of the unsupported operator.
+  problemMessage: "The unary operator #operatorName is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: invalidConstantPatternUnary
   hasPublishedDocs: false
@@ -2227,8 +2227,8 @@ invalidConstantPatternConstPrefix:
 invalidConstantPatternBinary:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "The binary operator #name is not supported as a constant pattern."
+    Name operatorName: The name of the unsupported operator.
+  problemMessage: "The binary operator #operatorName is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: invalidConstantPatternBinary
   hasPublishedDocs: false
@@ -2240,8 +2240,8 @@ invalidConstantPatternBinary:
 patternAssignmentDeclaresVariable:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "Variable '#name' can't be declared in a pattern assignment."
+    Name variableName: The name of the variable that was erroneously declared.
+  problemMessage: "Variable '#variableName' can't be declared in a pattern assignment."
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
   analyzerCode: patternAssignmentDeclaresVariable
   hasPublishedDocs: false
@@ -2296,8 +2296,8 @@ variablePatternKeywordInDeclarationContext:
 illegalPatternVariableName:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
-  problemMessage: The variable declared by a variable pattern can't be named '#lexeme'.
+    Token variableName: The name that can't be used as a pattern variable name.
+  problemMessage: The variable declared by a variable pattern can't be named '#variableName'.
   correctionMessage: Choose a different name.
   analyzerCode: illegalPatternVariableName
   hasPublishedDocs: false
@@ -2314,8 +2314,8 @@ illegalPatternVariableName:
 illegalPatternAssignmentVariableName:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
-  problemMessage: A variable assigned by a pattern assignment can't be named '#lexeme'.
+    Token variableName: The name that can't be used as the name of a variable assigned by a pattern assignment.
+  problemMessage: A variable assigned by a pattern assignment can't be named '#variableName'.
   correctionMessage: Choose a different name.
   analyzerCode: illegalPatternAssignmentVariableName
   hasPublishedDocs: false
@@ -2331,9 +2331,9 @@ illegalPatternAssignmentVariableName:
 illegalPatternIdentifierName:
   type: syntacticError
   parameters:
-    Token lexeme: undocumented
-  problemMessage: A pattern can't refer to an identifier named '#lexeme'.
-  correctionMessage: Match the identifier using '== #lexeme'.
+    Token identifier: The identifier that can't be referred to.
+  problemMessage: A pattern can't refer to an identifier named '#identifier'.
+  correctionMessage: Match the identifier using '== #identifier'.
   analyzerCode: illegalPatternIdentifierName
   hasPublishedDocs: false
   comment: |-

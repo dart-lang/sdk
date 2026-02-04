@@ -167,8 +167,11 @@ const MessageCode baseEnum = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String actualOperator, String expectedOperator),
+  Message Function({
+    required String actualOperator,
+    required String expectedOperator,
+  })
 >
 binaryOperatorWrittenOut = const Template(
   "BinaryOperatorWrittenOut",
@@ -179,25 +182,32 @@ binaryOperatorWrittenOut = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsBinaryOperatorWrittenOut({
-  required String string,
-  required String string2,
+  required String actualOperator,
+  required String expectedOperator,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var actualOperator_0 = conversions.validateString(actualOperator);
+  var expectedOperator_0 = conversions.validateString(expectedOperator);
   return new Message(
     binaryOperatorWrittenOut,
     problemMessage:
-        """Binary operator '${string_0}' is written as '${string2_0}' instead of the written out word.""",
-    correctionMessage: """Try replacing '${string_0}' with '${string2_0}'.""",
-    arguments: {'string': string, 'string2': string2},
+        """Binary operator '${actualOperator_0}' is written as '${expectedOperator_0}' instead of the written out word.""",
+    correctionMessage:
+        """Try replacing '${actualOperator_0}' with '${expectedOperator_0}'.""",
+    arguments: {
+      'actualOperator': actualOperator,
+      'expectedOperator': expectedOperator,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldBinaryOperatorWrittenOut(
-  String string,
-  String string2,
-) => _withArgumentsBinaryOperatorWrittenOut(string: string, string2: string2);
+  String actualOperator,
+  String expectedOperator,
+) => _withArgumentsBinaryOperatorWrittenOut(
+  actualOperator: actualOperator,
+  expectedOperator: expectedOperator,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode breakOutsideOfLoop = const MessageCode(
@@ -1629,8 +1639,8 @@ const MessageCode illegalAssignmentToNonAssignable = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token variableName),
+  Message Function({required Token variableName})
 >
 illegalPatternAssignmentVariableName = const Template(
   "IllegalPatternAssignmentVariableName",
@@ -1641,26 +1651,29 @@ illegalPatternAssignmentVariableName = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsIllegalPatternAssignmentVariableName({
-  required Token lexeme,
+  required Token variableName,
 }) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+  var variableName_0 = conversions.tokenToLexeme(variableName);
   return new Message(
     illegalPatternAssignmentVariableName,
     problemMessage:
-        """A variable assigned by a pattern assignment can't be named '${lexeme_0}'.""",
+        """A variable assigned by a pattern assignment can't be named '${variableName_0}'.""",
     correctionMessage: """Choose a different name.""",
-    arguments: {'lexeme': lexeme},
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalPatternAssignmentVariableName(Token lexeme) =>
-    _withArgumentsIllegalPatternAssignmentVariableName(lexeme: lexeme);
+Message _withArgumentsOldIllegalPatternAssignmentVariableName(
+  Token variableName,
+) => _withArgumentsIllegalPatternAssignmentVariableName(
+  variableName: variableName,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token identifier),
+  Message Function({required Token identifier})
 >
 illegalPatternIdentifierName = const Template(
   "IllegalPatternIdentifierName",
@@ -1670,25 +1683,27 @@ illegalPatternIdentifierName = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalPatternIdentifierName({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+Message _withArgumentsIllegalPatternIdentifierName({
+  required Token identifier,
+}) {
+  var identifier_0 = conversions.tokenToLexeme(identifier);
   return new Message(
     illegalPatternIdentifierName,
     problemMessage:
-        """A pattern can't refer to an identifier named '${lexeme_0}'.""",
+        """A pattern can't refer to an identifier named '${identifier_0}'.""",
     correctionMessage: """Match the identifier using '==""",
-    arguments: {'lexeme': lexeme},
+    arguments: {'identifier': identifier},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalPatternIdentifierName(Token lexeme) =>
-    _withArgumentsIllegalPatternIdentifierName(lexeme: lexeme);
+Message _withArgumentsOldIllegalPatternIdentifierName(Token identifier) =>
+    _withArgumentsIllegalPatternIdentifierName(identifier: identifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(Token lexeme),
-  Message Function({required Token lexeme})
+  Message Function(Token variableName),
+  Message Function({required Token variableName})
 >
 illegalPatternVariableName = const Template(
   "IllegalPatternVariableName",
@@ -1698,20 +1713,22 @@ illegalPatternVariableName = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalPatternVariableName({required Token lexeme}) {
-  var lexeme_0 = conversions.tokenToLexeme(lexeme);
+Message _withArgumentsIllegalPatternVariableName({
+  required Token variableName,
+}) {
+  var variableName_0 = conversions.tokenToLexeme(variableName);
   return new Message(
     illegalPatternVariableName,
     problemMessage:
-        """The variable declared by a variable pattern can't be named '${lexeme_0}'.""",
+        """The variable declared by a variable pattern can't be named '${variableName_0}'.""",
     correctionMessage: """Choose a different name.""",
-    arguments: {'lexeme': lexeme},
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldIllegalPatternVariableName(Token lexeme) =>
-    _withArgumentsIllegalPatternVariableName(lexeme: lexeme);
+Message _withArgumentsOldIllegalPatternVariableName(Token variableName) =>
+    _withArgumentsIllegalPatternVariableName(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode implementsBeforeExtends = const MessageCode(
@@ -1906,8 +1923,8 @@ const MessageCode invalidCodePoint = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 invalidConstantPatternBinary = const Template(
   "InvalidConstantPatternBinary",
@@ -1917,20 +1934,22 @@ invalidConstantPatternBinary = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidConstantPatternBinary({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsInvalidConstantPatternBinary({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     invalidConstantPatternBinary,
     problemMessage:
-        """The binary operator ${name_0} is not supported as a constant pattern.""",
+        """The binary operator ${operatorName_0} is not supported as a constant pattern.""",
     correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
-    arguments: {'name': name},
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidConstantPatternBinary(String name) =>
-    _withArgumentsInvalidConstantPatternBinary(name: name);
+Message _withArgumentsOldInvalidConstantPatternBinary(String operatorName) =>
+    _withArgumentsInvalidConstantPatternBinary(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode invalidConstantPatternConstPrefix = const MessageCode(
@@ -1977,8 +1996,8 @@ const MessageCode invalidConstantPatternNegation = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String operatorName),
+  Message Function({required String operatorName})
 >
 invalidConstantPatternUnary = const Template(
   "InvalidConstantPatternUnary",
@@ -1988,20 +2007,22 @@ invalidConstantPatternUnary = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidConstantPatternUnary({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsInvalidConstantPatternUnary({
+  required String operatorName,
+}) {
+  var operatorName_0 = conversions.validateAndDemangleName(operatorName);
   return new Message(
     invalidConstantPatternUnary,
     problemMessage:
-        """The unary operator ${name_0} is not supported as a constant pattern.""",
+        """The unary operator ${operatorName_0} is not supported as a constant pattern.""",
     correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
-    arguments: {'name': name},
+    arguments: {'operatorName': operatorName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldInvalidConstantPatternUnary(String name) =>
-    _withArgumentsInvalidConstantPatternUnary(name: name);
+Message _withArgumentsOldInvalidConstantPatternUnary(String operatorName) =>
+    _withArgumentsInvalidConstantPatternUnary(operatorName: operatorName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -2164,8 +2185,8 @@ const MessageCode libraryDirectiveNotFirst = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, Token lexeme),
-  Message Function({required String string, required Token lexeme})
+  Message Function(String kind, Token lexeme),
+  Message Function({required String kind, required Token lexeme})
 >
 literalWithClass = const Template(
   "LiteralWithClass",
@@ -2176,23 +2197,23 @@ literalWithClass = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLiteralWithClass({
-  required String string,
+  required String kind,
   required Token lexeme,
 }) {
-  var string_0 = conversions.validateString(string);
+  var kind_0 = conversions.validateString(kind);
   var lexeme_0 = conversions.tokenToLexeme(lexeme);
   return new Message(
     literalWithClass,
     problemMessage:
-        """A ${string_0} literal can't be prefixed by '${lexeme_0}'.""",
+        """A ${kind_0} literal can't be prefixed by '${lexeme_0}'.""",
     correctionMessage: """Try removing '${lexeme_0}'""",
-    arguments: {'string': string, 'lexeme': lexeme},
+    arguments: {'kind': kind, 'lexeme': lexeme},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLiteralWithClass(String string, Token lexeme) =>
-    _withArgumentsLiteralWithClass(string: string, lexeme: lexeme);
+Message _withArgumentsOldLiteralWithClass(String kind, Token lexeme) =>
+    _withArgumentsLiteralWithClass(kind: kind, lexeme: lexeme);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -2727,8 +2748,8 @@ const MessageCode partOfTwice = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String variableName),
+  Message Function({required String variableName})
 >
 patternAssignmentDeclaresVariable = const Template(
   "PatternAssignmentDeclaresVariable",
@@ -2739,22 +2760,24 @@ patternAssignmentDeclaresVariable = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPatternAssignmentDeclaresVariable({
-  required String name,
+  required String variableName,
 }) {
-  var name_0 = conversions.validateAndDemangleName(name);
+  var variableName_0 = conversions.validateAndDemangleName(variableName);
   return new Message(
     patternAssignmentDeclaresVariable,
     problemMessage:
-        """Variable '${name_0}' can't be declared in a pattern assignment.""",
+        """Variable '${variableName_0}' can't be declared in a pattern assignment.""",
     correctionMessage:
         """Try using a preexisting variable or changing the assignment to a pattern variable declaration.""",
-    arguments: {'name': name},
+    arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldPatternAssignmentDeclaresVariable(String name) =>
-    _withArgumentsPatternAssignmentDeclaresVariable(name: name);
+Message _withArgumentsOldPatternAssignmentDeclaresVariable(
+  String variableName,
+) =>
+    _withArgumentsPatternAssignmentDeclaresVariable(variableName: variableName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -2992,8 +3015,8 @@ const MessageCode typeAfterVar = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String typeVariableName),
+  Message Function({required String typeVariableName})
 >
 typeArgumentsOnTypeVariable = const Template(
   "TypeArgumentsOnTypeVariable",
@@ -3003,20 +3026,26 @@ typeArgumentsOnTypeVariable = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeArgumentsOnTypeVariable({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsTypeArgumentsOnTypeVariable({
+  required String typeVariableName,
+}) {
+  var typeVariableName_0 = conversions.validateAndDemangleName(
+    typeVariableName,
+  );
   return new Message(
     typeArgumentsOnTypeVariable,
     problemMessage:
-        """Can't use type arguments with type variable '${name_0}'.""",
+        """Can't use type arguments with type variable '${typeVariableName_0}'.""",
     correctionMessage: """Try removing the type arguments.""",
-    arguments: {'name': name},
+    arguments: {'typeVariableName': typeVariableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldTypeArgumentsOnTypeVariable(String name) =>
-    _withArgumentsTypeArgumentsOnTypeVariable(name: name);
+Message _withArgumentsOldTypeArgumentsOnTypeVariable(String typeVariableName) =>
+    _withArgumentsTypeArgumentsOnTypeVariable(
+      typeVariableName: typeVariableName,
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode typeBeforeFactory = const MessageCode(
