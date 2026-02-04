@@ -94,7 +94,7 @@ class ModuleSnapshot : public AllStatic {
 
 class Deserializer;
 
-class DeserializationCluster : public ZoneAllocated {
+class DeserializationCluster : public ZoneObject {
  public:
   explicit DeserializationCluster(const char* name)
       : name_(name), start_index_(-1), stop_index_(-1) {}

@@ -728,10 +728,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get isConst => _firstFragment.isConst;
 
   @override
-  @trackedIncludedInId
-  bool get isDeclaring => _firstFragment.isDeclaring;
-
-  @override
   @trackedIndirectly
   bool get isDefaultConstructor => _firstFragment.isDefaultConstructor;
 
@@ -2792,7 +2788,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   FieldFormalParameterElementImpl? get declaringFormalParameter {
     if (enclosingElement case InterfaceElementImpl enclosingElement) {
       var declaringConstructor = enclosingElement.constructors.firstWhereOrNull(
-        (constructor) => constructor.isDeclaring,
+        (constructor) => constructor.isPrimary,
       );
       return declaringConstructor?.formalParameters
           .whereType<FieldFormalParameterElementImpl>()
@@ -10678,7 +10674,6 @@ enum _ClassFragmentImplModifiers {
 
 enum _ConstructorFragmentImplModifiers {
   isConst,
-  isDeclaring,
   isFactory,
   isOriginDeclaration,
   isOriginImplicitDefault,

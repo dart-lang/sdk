@@ -58,7 +58,7 @@ static intptr_t ToInstructionEnd(intptr_t pos) {
 }
 
 // Additional information on loops during register allocation.
-struct ExtraLoopInfo : public ZoneAllocated {
+struct ExtraLoopInfo : public ZoneObject {
   ExtraLoopInfo(intptr_t s, intptr_t e)
       : start(s), end(e), backedge_interference(nullptr) {}
   intptr_t start;

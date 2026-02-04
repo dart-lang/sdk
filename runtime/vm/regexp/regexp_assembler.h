@@ -93,7 +93,7 @@ class BlockLabel : public ValueObject {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
-class RegExpMacroAssembler : public ZoneAllocated {
+class RegExpMacroAssembler : public ZoneObject {
  public:
   // The implementation must be able to handle at least:
   static constexpr intptr_t kMaxRegister = (1 << 16) - 1;

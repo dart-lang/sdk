@@ -3381,7 +3381,6 @@ package:analyzer/dart/element/element.dart:
     firstFragment (getter: ConstructorFragment)
     fragments (getter: List<ConstructorFragment>)
     isConst (getter: bool)
-    isDeclaring (getter: bool, experimental)
     isDefaultConstructor (getter: bool)
     isFactory (getter: bool)
     isGenerative (getter: bool)

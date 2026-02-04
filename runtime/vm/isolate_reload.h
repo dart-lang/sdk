@@ -63,7 +63,7 @@ struct FieldMapping {
 using FieldMappingArray = ZoneGrowableArray<FieldMapping>;
 using FieldOffsetArray = ZoneGrowableArray<intptr_t>;
 
-class InstanceMorpher : public ZoneAllocated {
+class InstanceMorpher : public ZoneObject {
  public:
   // Creates a new [InstanceMorpher] based on the [from]/[to] class
   // descriptions.
@@ -106,7 +106,7 @@ class InstanceMorpher : public ZoneAllocated {
   GrowableArray<const Instance*> before_;
 };
 
-class ReasonForCancelling : public ZoneAllocated {
+class ReasonForCancelling : public ZoneObject {
  public:
   explicit ReasonForCancelling(Zone* zone) {}
   virtual ~ReasonForCancelling() {}

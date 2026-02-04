@@ -15,7 +15,7 @@
 
 namespace dart {
 
-void* ZoneAllocated::operator new(uintptr_t size, dart::Zone* zone) {
+void* ZoneObject::operator new(uintptr_t size, dart::Zone* zone) {
   return reinterpret_cast<void*>(zone->AllocUnsafe(size));
 }
 

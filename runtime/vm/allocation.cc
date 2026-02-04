@@ -14,16 +14,16 @@ namespace dart {
 static void* Allocate(uword size, Zone* zone) {
   ASSERT(zone != nullptr);
   if (size > static_cast<uword>(kIntptrMax)) {
-    FATAL("ZoneAllocated object has unexpectedly large size %" Pu "", size);
+    FATAL("ZoneObject object has unexpectedly large size %" Pu "", size);
   }
   return reinterpret_cast<void*>(zone->AllocUnsafe(size));
 }
 
-void* ZoneAllocated::operator new(uword size) {
+void* ZoneObject::operator new(uword size) {
   return Allocate(size, Thread::Current()->zone());
 }
 
-void* ZoneAllocated::operator new(uword size, Zone* zone) {
+void* ZoneObject::operator new(uword size, Zone* zone) {
   return Allocate(size, zone);
 }
 

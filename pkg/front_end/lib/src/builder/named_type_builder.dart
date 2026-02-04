@@ -325,8 +325,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         String nameText = typeName.name;
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message = diag.typeArgumentsOnTypeVariable.withArgumentsOld(
-          nameText,
+        Message message = diag.typeArgumentsOnTypeVariable.withArguments(
+          typeVariableName: nameText,
         );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         // TODO(johnniwinther): Should we retain the declaration to support

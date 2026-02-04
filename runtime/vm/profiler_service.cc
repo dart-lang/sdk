@@ -490,7 +490,7 @@ void ProfileCode::PrintToJSONArray(JSONArray* codes) {
 }
 #endif  // !defined(PRODUCT)
 
-class ProfileFunctionTable : public ZoneAllocated {
+class ProfileFunctionTable : public ZoneObject {
  public:
   ProfileFunctionTable()
       : null_function_(Function::ZoneHandle()),
