@@ -58,11 +58,10 @@ class RenameProcessor {
           false;
       while (fragment != null) {
         switch (fragment) {
-          // ignore: experimental_member_use
           case FieldFormalParameterFragment(:var privateName?)
               when supportsPrivateNamedParameters:
             // A private named parameter's element has the public name ("foo"),
-            // but the identifer we are renaming is the original private name
+            // but the identifier we are renaming is the original private name
             // ("_foo"). In that case, use the private name so that we have the
             // correct length including the underscore.
             nameRange = range.startOffsetLength(

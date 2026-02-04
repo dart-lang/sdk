@@ -1540,7 +1540,6 @@ lsp.SignatureHelp toSignatureHelp(
     var hasFinal = p is FieldFormalParameterElement
         ? (p.field?.isFinal ?? false)
         : p.isFinal;
-    // ignore: experimental_member_use
     var hasVar = p is FieldFormalParameterElement && p.isDeclaring && !hasFinal;
 
     var prefixes = [
