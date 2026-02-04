@@ -218,7 +218,7 @@ class RangeBoundary : public ValueObject {
   int64_t offset_;
 };
 
-class Range : public ZoneAllocated {
+class Range : public ZoneObject {
  public:
   Range() : min_(), max_() {}
 
@@ -227,7 +227,7 @@ class Range : public ZoneAllocated {
   }
 
   Range(const Range& other)
-      : ZoneAllocated(), min_(other.min_), max_(other.max_) {}
+      : ZoneObject(), min_(other.min_), max_(other.max_) {}
 
   Range& operator=(const Range& other) {
     min_ = other.min_;

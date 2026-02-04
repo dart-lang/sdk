@@ -615,7 +615,7 @@ Location LocationRemapForSlowPath(Location loc,
 // Return a memory operand for stack slot locations.
 compiler::Address LocationToStackSlotAddress(Location loc);
 
-class PairLocation : public ZoneAllocated {
+class PairLocation : public ZoneObject {
  public:
   PairLocation() {
     for (intptr_t i = 0; i < kPairLength; i++) {
@@ -855,7 +855,7 @@ class RegisterSet : public ValueObject {
 };
 
 // Specification of locations for inputs and output.
-class LocationSummary : public ZoneAllocated {
+class LocationSummary : public ZoneObject {
  public:
   enum ContainsCall {
     // Used registers must be reserved as tmp.

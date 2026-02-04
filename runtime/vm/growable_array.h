@@ -48,17 +48,17 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
 };
 
 template <typename T>
-class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated, Zone> {
+class ZoneGrowableArray : public BaseGrowableArray<T, ZoneObject, Zone> {
  public:
   ZoneGrowableArray(Zone* zone, intptr_t initial_capacity)
-      : BaseGrowableArray<T, ZoneAllocated, Zone>(initial_capacity,
-                                                  ASSERT_NOTNULL(zone)) {}
+      : BaseGrowableArray<T, ZoneObject, Zone>(initial_capacity,
+                                               ASSERT_NOTNULL(zone)) {}
   explicit ZoneGrowableArray(intptr_t initial_capacity)
-      : BaseGrowableArray<T, ZoneAllocated, Zone>(
+      : BaseGrowableArray<T, ZoneObject, Zone>(
             initial_capacity,
             ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
   ZoneGrowableArray()
-      : BaseGrowableArray<T, ZoneAllocated, Zone>(
+      : BaseGrowableArray<T, ZoneObject, Zone>(
             ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
 
   ZoneGrowableArray(ZoneGrowableArray&& other) = default;
@@ -108,10 +108,10 @@ class GrowableHandlePtrArray
 
 template <typename T>
 class ZoneGrowableHandlePtrArray
-    : public BaseGrowableHandlePtrArray<T, ZoneAllocated> {
+    : public BaseGrowableHandlePtrArray<T, ZoneObject> {
  public:
   ZoneGrowableHandlePtrArray(Zone* zone, intptr_t initial_capacity)
-      : BaseGrowableHandlePtrArray<T, ZoneAllocated>(zone, initial_capacity) {}
+      : BaseGrowableHandlePtrArray<T, ZoneObject>(zone, initial_capacity) {}
 };
 
 }  // namespace dart

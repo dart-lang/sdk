@@ -30,7 +30,7 @@ enum class CompilerTracing {
   kOff,
 };
 
-struct FunctionPragmas : public ZoneAllocated {
+struct FunctionPragmas : public ZoneObject {
   explicit FunctionPragmas(const Function& function);
 
   const Function& function;

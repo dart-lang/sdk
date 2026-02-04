@@ -13,7 +13,7 @@
 
 namespace dart {
 
-class ObjectSetRegion : public ZoneAllocated {
+class ObjectSetRegion : public ZoneObject {
  public:
   ObjectSetRegion(Zone* zone, uword start, uword end)
       : start_(start),
@@ -44,7 +44,7 @@ class ObjectSetRegion : public ZoneAllocated {
   BitVector bit_vector_;
 };
 
-class ObjectSet : public ZoneAllocated {
+class ObjectSet : public ZoneObject {
  public:
   explicit ObjectSet(Zone* zone) : zone_(zone), sorted_(true), regions_() {}
 

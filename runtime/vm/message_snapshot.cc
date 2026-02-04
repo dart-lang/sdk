@@ -75,7 +75,7 @@ class MessageDeserializer;
 class ApiMessageSerializer;
 class ApiMessageDeserializer;
 
-class MessageSerializationCluster : public ZoneAllocated {
+class MessageSerializationCluster : public ZoneObject {
  public:
   explicit MessageSerializationCluster(const char* name,
                                        MessagePhase phase,
@@ -106,7 +106,7 @@ class MessageSerializationCluster : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(MessageSerializationCluster);
 };
 
-class MessageDeserializationCluster : public ZoneAllocated {
+class MessageDeserializationCluster : public ZoneObject {
  public:
   explicit MessageDeserializationCluster(const char* name,
                                          bool is_canonical = false)
