@@ -56,24 +56,22 @@ class ValueOption<T> extends Option<T> {
 class IntOption extends ValueOption<int> {
   IntOption(
       String name, void Function(WasmCompilerOptions o, int v) applyToOptions,
-      {String? defaultsTo, String? abbr})
-      : super(name, applyToOptions, (v) => int.parse(v),
-            defaultsTo: defaultsTo, abbr: abbr);
+      {super.defaultsTo, super.abbr})
+      : super(name, applyToOptions, (v) => int.parse(v));
 }
 
 class StringOption extends ValueOption<String> {
   StringOption(String name,
       void Function(WasmCompilerOptions o, String v) applyToOptions,
-      {String? defaultsTo, bool hide = false})
-      : super(name, applyToOptions, (v) => v, defaultsTo: defaultsTo);
+      {super.defaultsTo, bool hide = false})
+      : super(name, applyToOptions, (v) => v);
 }
 
 class UriOption extends ValueOption<Uri> {
   UriOption(
       String name, void Function(WasmCompilerOptions o, Uri v) applyToOptions,
-      {String? defaultsTo})
-      : super(name, applyToOptions, (v) => resolveInputUri(v as String),
-            defaultsTo: defaultsTo);
+      {super.defaultsTo})
+      : super(name, applyToOptions, (v) => resolveInputUri(v as String));
 }
 
 class MultiValueOption<T> extends Option<List<T>> {
@@ -95,23 +93,21 @@ class MultiValueOption<T> extends Option<List<T>> {
 class IntMultiOption extends MultiValueOption<int> {
   IntMultiOption(String name,
       void Function(WasmCompilerOptions o, List<int> v) applyToOptions,
-      {Iterable<String>? defaultsTo})
-      : super(name, applyToOptions, (v) => int.parse(v),
-            defaultsTo: defaultsTo);
+      {super.defaultsTo})
+      : super(name, applyToOptions, (v) => int.parse(v));
 }
 
 class StringMultiOption extends MultiValueOption<String> {
   StringMultiOption(String name,
       void Function(WasmCompilerOptions o, List<String> v) applyToOptions,
-      {String? abbr, Iterable<String>? defaultsTo, bool splitCommas = true})
-      : super(name, applyToOptions, (v) => v,
-            abbr: abbr, defaultsTo: defaultsTo, splitCommas: splitCommas);
+      {super.abbr, super.defaultsTo, super.splitCommas = true})
+      : super(name, applyToOptions, (v) => v);
 }
 
 class UriMultiOption extends MultiValueOption<Uri> {
   UriMultiOption(String name,
       void Function(WasmCompilerOptions o, List<Uri> v) applyToOptions,
-      {Iterable<String>? defaultsTo})
-      : super(name, applyToOptions, (v) => Uri.file(Directory(v).absolute.path),
-            defaultsTo: defaultsTo);
+      {super.defaultsTo})
+      : super(
+            name, applyToOptions, (v) => Uri.file(Directory(v).absolute.path));
 }
