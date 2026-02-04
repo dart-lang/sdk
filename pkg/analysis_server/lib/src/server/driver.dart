@@ -38,9 +38,12 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
+import 'package:perf_witness/server.dart' as perf_witness;
+import 'package:perf_witness/src/async_span.dart' as perf_witness;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
@@ -155,6 +158,8 @@ class Driver implements ServerStarter {
   /// The name of the flag to enable fine-grained dependencies.
   static const String withFineDependenciesOption = 'with-fine-dependencies';
 
+  static const String pluginsFlag = 'plugins';
+
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
       CrashReportingAttachmentsBuilder.empty;
@@ -179,6 +184,9 @@ class Driver implements ServerStarter {
     SendPort? sendPort,
     bool defaultToLsp = false,
   }) {
+    OperationPerformanceImpl.runAsyncHook = perf_witness.AsyncSpan.runUnary;
+    perf_witness.PerfWitnessServer.start(tag: 'das').ignore();
+
     var sessionStartTime = DateTime.now();
     var parser = createArgParser(defaultToLsp: defaultToLsp);
     var results = parser.parse(arguments);
@@ -220,6 +228,8 @@ class Driver implements ServerStarter {
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
+
+    analysisServerOptions.usePlugins = results.flag(pluginsFlag);
 
     // Analytics (legacy, and unified)
     var disableAnalyticsForSession = results.flag(suppressAnalyticsFlag);
@@ -946,6 +956,12 @@ class Driver implements ServerStarter {
     parser.addFlag(
       disableServerFeatureSearchOption,
       help: 'disable all search features',
+      hide: true,
+    );
+    parser.addFlag(
+      pluginsFlag,
+      help: 'Use analyzer plugins',
+      defaultsTo: true,
       hide: true,
     );
     parser.addFlag(

@@ -63,6 +63,7 @@ class WasmCompilerOptions {
   bool saveUnopt = false;
   Set<int> moduleIdsToOptimize = const {};
   bool stripWasm = true;
+  Uri? recordedUsesFile;
   List<CompilerPhase> phases = const [
     CompilerPhase.cfe,
     CompilerPhase.tfa,
@@ -85,6 +86,21 @@ class WasmCompilerOptions {
       emitAsMain || id == mainModuleId
           ? path.basename(filePath)
           : path.basename(path.setExtension(filePath, '_module$id.wasm'));
+
+  int? idForModuleName(String mainWasmFilename, String moduleFilename) {
+    assert(mainWasmFilename.endsWith('.wasm') &&
+        !mainWasmFilename.contains(path.separator));
+
+    if (mainWasmFilename == moduleFilename) return mainModuleId;
+
+    final prefix = '${path.basenameWithoutExtension(mainWasmFilename)}_module';
+    if (!moduleFilename.startsWith(prefix) ||
+        !moduleFilename.endsWith('.wasm')) {
+      return null;
+    }
+    return int.tryParse(moduleFilename.substring(
+        prefix.length, moduleFilename.length - '.wasm'.length));
+  }
 
   static int _defaultMaxActiveWasmOptProcesses() {
     try {

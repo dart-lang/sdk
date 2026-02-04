@@ -55,7 +55,6 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       arg_desc_var_(nullptr),
       expression_temp_var_(nullptr),
       entry_points_temp_var_(nullptr),
-      finally_return_temp_var_(nullptr),
       dynamic_closure_call_vars_(nullptr),
       guarded_fields_(),
       default_parameter_values_(nullptr),
@@ -152,21 +151,6 @@ LocalVariable* ParsedFunction::EnsureEntryPointsTemp() {
   }
   ASSERT(has_entry_points_temp_var());
   return entry_points_temp_var();
-}
-
-void ParsedFunction::EnsureFinallyReturnTemp(bool is_async) {
-  if (!has_finally_return_temp_var()) {
-    LocalVariable* temp =
-        new (Z) LocalVariable(function_.token_pos(), function_.token_pos(),
-                              Symbols::FinallyRetVal(), Object::dynamic_type());
-    ASSERT(temp != nullptr);
-    temp->set_is_final();
-    if (is_async) {
-      temp->set_is_captured();
-    }
-    set_finally_return_temp_var(temp);
-  }
-  ASSERT(has_finally_return_temp_var());
 }
 
 void ParsedFunction::SetRegExpCompileData(
@@ -285,25 +269,12 @@ void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
   num_stack_locals_ = num_stack_locals;
 }
 
-void ParsedFunction::SetCovariantParameters(
-    const BitVector* covariant_parameters) {
-  ASSERT(covariant_parameters_ == nullptr);
-  ASSERT(covariant_parameters->length() == function_.NumParameters());
-  covariant_parameters_ = covariant_parameters;
-}
-
 void ParsedFunction::SetGenericCovariantImplParameters(
     const BitVector* generic_covariant_impl_parameters) {
   ASSERT(generic_covariant_impl_parameters_ == nullptr);
   ASSERT(generic_covariant_impl_parameters->length() ==
          function_.NumParameters());
   generic_covariant_impl_parameters_ = generic_covariant_impl_parameters;
-}
-
-bool ParsedFunction::IsCovariantParameter(intptr_t i) const {
-  ASSERT(covariant_parameters_ != nullptr);
-  ASSERT((i >= 0) && (i < function_.NumParameters()));
-  return covariant_parameters_->Contains(i);
 }
 
 bool ParsedFunction::IsGenericCovariantImplParameter(intptr_t i) const {

@@ -38,8 +38,10 @@ void devtools() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Open DevTools'));
-    expect(result.stdout,
-        contains('Usage: dart devtools [arguments] [service protocol uri]'));
+    expect(
+      result.stdout,
+      contains('Usage: dart devtools [arguments] [service protocol uri]'),
+    );
 
     // Does not show verbose help.
     expect(result.stdout.contains('--try-ports'), isFalse);
@@ -52,9 +54,11 @@ void devtools() {
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Open DevTools'));
     expect(
-        result.stdout,
-        contains(
-            'Usage: dart [vm-options] devtools [arguments] [service protocol uri]'));
+      result.stdout,
+      contains(
+        'Usage: dart [vm-options] devtools [arguments] [service protocol uri]',
+      ),
+    );
 
     // Shows verbose help.
     expect(result.stdout, contains('--try-ports'));
@@ -84,32 +88,32 @@ void devtools() {
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter())
           .listen((line) async {
-        final json = jsonDecode(line);
-        final eventName = json['event'] as String?;
-        final params = (json['params'] as Map?)?.cast<String, Object?>();
-        switch (eventName) {
-          case 'server.dtdStarted':
-            // {"event":"server.dtdStarted","params":{
-            //   "uri":"ws://127.0.0.1:50882/nQf49D0YcbONeKVq"
-            // }}
-            expect(params!['uri'], isA<String>());
-            dtdServedCompleter.complete();
-          case 'server.started':
-            // {"event":"server.started","method":"server.started","params":{
-            //   "host":"127.0.0.1","port":9100,"pid":93508,"protocolVersion":"1.1.0"
-            // }}
-            expect(params!['host'], isA<String>());
-            expect(params['port'], isA<int>());
-            devToolsHost = params['host'] as String;
-            devToolsPort = params['port'] as int;
+            final json = jsonDecode(line);
+            final eventName = json['event'] as String?;
+            final params = (json['params'] as Map?)?.cast<String, Object?>();
+            switch (eventName) {
+              case 'server.dtdStarted':
+                // {"event":"server.dtdStarted","params":{
+                //   "uri":"ws://127.0.0.1:50882/nQf49D0YcbONeKVq"
+                // }}
+                expect(params!['uri'], isA<String>());
+                dtdServedCompleter.complete();
+              case 'server.started':
+                // {"event":"server.started","method":"server.started","params":{
+                //   "host":"127.0.0.1","port":9100,"pid":93508,"protocolVersion":"1.1.0"
+                // }}
+                expect(params!['host'], isA<String>());
+                expect(params['port'], isA<int>());
+                devToolsHost = params['host'] as String;
+                devToolsPort = params['port'] as int;
 
-            // We can cancel the subscription because the 'server.started' event
-            // is expected after the 'server.dtdStarted' event.
-            await sub.cancel();
-            devToolsServedCompleter.complete();
-          default:
-        }
-      });
+                // We can cancel the subscription because the 'server.started' event
+                // is expected after the 'server.dtdStarted' event.
+                await sub.cancel();
+                devToolsServedCompleter.complete();
+              default:
+            }
+          });
 
       await Future.wait([
         dtdServedCompleter.future,
@@ -125,12 +129,15 @@ void devtools() {
       HttpClient client = HttpClient();
       expect(devToolsHost, isNotNull);
       expect(devToolsPort, isNotNull);
-      final httpRequest =
-          await client.get(devToolsHost!, devToolsPort!, 'index.html');
+      final httpRequest = await client.get(
+        devToolsHost!,
+        devToolsPort!,
+        'index.html',
+      );
       final httpResponse = await httpRequest.close();
 
-      final contents =
-          (await httpResponse.transform(utf8.decoder).toList()).join();
+      final contents = (await httpResponse.transform(utf8.decoder).toList())
+          .join();
       client.close();
 
       expect(contents, contains('DevTools'));
@@ -150,7 +157,7 @@ void devtools() {
       'devtools',
       '--no-launch-browser',
       if (shouldPrintDtd) '--print-dtd',
-      if (vmServiceUri != null) vmServiceUri,
+      ?vmServiceUri,
     ]);
     process.stderr.transform(utf8.decoder).listen(print);
 
@@ -162,16 +169,16 @@ void devtools() {
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter())
         .listen((event) async {
-      print(event);
-      if (event.contains(ddsStartedRegExp)) {
-        startedDds = true;
-      } else if (event.contains(dtdStartedRegExp)) {
-        startedDtd = true;
-      } else if (event.contains(servingDevToolsRegExp)) {
-        await sub.cancel();
-        devToolsServedCompleter.complete();
-      }
-    });
+          print(event);
+          if (event.contains(ddsStartedRegExp)) {
+            startedDds = true;
+          } else if (event.contains(dtdStartedRegExp)) {
+            startedDtd = true;
+          } else if (event.contains(servingDevToolsRegExp)) {
+            await sub.cancel();
+            devToolsServedCompleter.complete();
+          }
+        });
 
     await devToolsServedCompleter.future;
     expect(startedDds, shouldStartDds);
@@ -218,14 +225,12 @@ Future<void> main() async {
     Future<String> startTargetProject({
       required bool disableServiceAuthCodes,
     }) async {
-      targetProjectInstance = await targetProject.start(
-        [
-          '--no-dds',
-          '--observe=0',
-          if (disableServiceAuthCodes) '--disable-service-auth-codes',
-          targetProject.relativeFilePath,
-        ],
-      );
+      targetProjectInstance = await targetProject.start([
+        '--no-dds',
+        '--observe=0',
+        if (disableServiceAuthCodes) '--disable-service-auth-codes',
+        targetProject.relativeFilePath,
+      ]);
 
       final serviceUriCompleter = Completer<String>();
       late final StreamSubscription<String> sub;
@@ -233,13 +238,13 @@ Future<void> main() async {
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen((event) async {
-        if (event.contains(dartVMServiceRegExp)) {
-          await sub.cancel();
-          serviceUriCompleter.complete(
-            dartVMServiceRegExp.firstMatch(event)!.group(1),
-          );
-        }
-      });
+            if (event.contains(dartVMServiceRegExp)) {
+              await sub.cancel();
+              serviceUriCompleter.complete(
+                dartVMServiceRegExp.firstMatch(event)!.group(1),
+              );
+            }
+          });
 
       return await serviceUriCompleter.future;
     }
@@ -260,14 +265,12 @@ Future<void> main() async {
 
       test('check for redirect with auth codes $authCodesEnabledStr', () async {
         final vmServiceUri = Uri.parse(
-          await startTargetProject(
-            disableServiceAuthCodes: disableAuthCodes,
-          ),
+          await startTargetProject(disableServiceAuthCodes: disableAuthCodes),
         );
         var updatedUri =
             await DevToolsCommand.checkForRedirectToExistingDDSInstance(
-          vmServiceUri,
-        );
+              vmServiceUri,
+            );
         // We should not have followed a redirect since DDS isn't running.
         expect(vmServiceUri, updatedUri);
 
@@ -282,8 +285,8 @@ Future<void> main() async {
         // DDS URI.
         updatedUri =
             await DevToolsCommand.checkForRedirectToExistingDDSInstance(
-          vmServiceUri,
-        );
+              vmServiceUri,
+            );
         expect(updatedUri, ddsUri);
       });
     }

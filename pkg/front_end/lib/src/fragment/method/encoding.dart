@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/names.dart';
@@ -17,6 +19,7 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
 import '../../source/fragment_factory.dart';
@@ -35,6 +38,9 @@ sealed class MethodEncoding implements InferredTypeListener {
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
   List<FormalParameterBuilder>? get formals;
   FunctionNode get function;
+
+  bool get isNoSuchMethodForwarder;
+
   Procedure get invokeTarget;
 
   Procedure? get readTarget;
@@ -85,9 +91,14 @@ sealed class MethodEncoding implements InferredTypeListener {
     ClassHierarchyBase hierarchy,
   );
 
-  VariableDeclaration getFormalParameter(int index);
-
   VariableDeclaration? getTearOffParameter(int index);
+
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  });
 }
 
 sealed class MethodEncodingStrategy {
@@ -133,6 +144,9 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   FunctionNode get function => _procedure!.function;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   Procedure get invokeTarget {
@@ -229,7 +243,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       if (_fragment.name == indexSetName.text) {
         if (returnType is! VoidType) {
           problemReporting.addProblem(
-            codeNonVoidReturnOperator,
+            diag.nonVoidReturnOperator,
             _fragment.returnType.charOffset!,
             noLength,
             _fragment.fileUri,
@@ -366,15 +380,28 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
   void onInferredType(DartType type) {
     function.returnType = type;
+  }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
   }
 }
 
@@ -412,6 +439,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   Procedure? _procedure;
 
   Procedure? _extensionTearOff;
+
   @override
   late final List<TypeParameter>? thisTypeParameters =
       _clonedDeclarationTypeParameters != null
@@ -448,6 +476,9 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
   @override
   FunctionNode get function => _procedure!.function;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   Procedure get invokeTarget => _procedure!;
@@ -547,6 +578,11 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         typeParameters.add(t.parameter);
       }
     }
+    assert(
+      _thisFormal.kind == FormalParameterKind.requiredPositional ||
+          // Coverage-ignore(suite): Not run.
+          _thisFormal.kind == FormalParameterKind.optionalPositional,
+    );
     FunctionNode function =
         new FunctionNode(
             isAbstractOrExternal ? null : new EmptyStatement(),
@@ -572,7 +608,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       if (_fragment.name == indexSetName.text) {
         if (returnType is! VoidType) {
           problemReporting.addProblem(
-            codeNonVoidReturnOperator,
+            diag.nonVoidReturnOperator,
             _fragment.returnType.charOffset!,
             noLength,
             _fragment.fileUri,
@@ -743,17 +779,32 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
-
-  @override
   VariableDeclaration? getTearOffParameter(int index) {
-    return _extensionTearOffParameterMap?[getFormalParameter(index)];
+    return _extensionTearOffParameterMap?[_fragment
+        .declaredFormals![index]
+        .variable!];
   }
 
   @override
   void onInferredType(DartType type) {
     function.returnType = type;
+  }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
   }
 
   /// Creates a top level function that creates a tear off of an extension
@@ -974,6 +1025,13 @@ class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
       onTypeBuilder: declarationBuilder.onType,
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
+      isClosureContextLoweringEnabled: builder
+          .libraryBuilder
+          .loader
+          .target
+          .backendTarget
+          .flags
+          .isClosureContextLoweringEnabled,
     );
     return fragment.isOperator
         ? new _ExtensionInstanceOperatorEncoding(
@@ -1105,6 +1163,13 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
           typeParameterFactory: typeParameterFactory,
           fileUri: fragment.fileUri,
           fileOffset: fragment.nameOffset,
+          isClosureContextLoweringEnabled: builder
+              .libraryBuilder
+              .loader
+              .target
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled,
         );
     return fragment.isOperator
         ? new _ExtensionTypeInstanceOperatorEncoding(

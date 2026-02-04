@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -27,8 +28,7 @@ import '../base/identifiers.dart'
         OmittedIdentifier;
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/scope.dart';
-import '../codes/cfe_codes.dart'
-    show Code, LocatedMessage, Message, codeExpectedBlockToSkip;
+import '../codes/cfe_codes.dart' show Code, LocatedMessage, Message;
 import '../fragment/fragment.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/body_builder_context.dart';
@@ -401,9 +401,9 @@ class DietListener extends StackListenerImpl {
       case ProcedureKind.Factory:
         throw new UnsupportedError("Unexpected procedure kind: $kind");
     }
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       buildFunctionBody(functionBodyBuildingContext, bodyToken, metadata);
     }
   }
@@ -744,9 +744,9 @@ class DietListener extends StackListenerImpl {
       identifier,
     );
 
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       if (_inRedirectingFactory) {
         libraryBuilder.loader.createResolver().buildRedirectingFactoryMethod(
           libraryBuilder: libraryBuilder,
@@ -789,7 +789,7 @@ class DietListener extends StackListenerImpl {
     debugEvent("NativeFunctionBodySkipped");
     if (!enableNative) {
       super.handleRecoverableError(
-        codeExpectedBlockToSkip,
+        diag.expectedBlockToSkip,
         nativeToken,
         nativeToken,
       );
@@ -869,9 +869,9 @@ class DietListener extends StackListenerImpl {
       case ProcedureKind.Factory:
         throw new UnsupportedError("Unexpected procedure kind: $kind");
     }
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       buildFunctionBody(functionBodyBuildingContext, beginParam, metadata);
     }
   }
@@ -898,9 +898,9 @@ class DietListener extends StackListenerImpl {
     FunctionFragment functionFragment = _offsetMap.lookupConstructor(
       identifier,
     );
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       buildFunctionBody(functionBodyBuildingContext, beginParam, metadata);
     }
   }
@@ -1002,7 +1002,6 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNoClassBody(Token semicolonToken) {
     assert(
       checkState(semicolonToken, [
@@ -1159,14 +1158,15 @@ class DietListener extends StackListenerImpl {
     FunctionFragment functionFragment = _offsetMap.lookupPrimaryConstructor(
       beginToken,
     );
-    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
-    if (functionBodyBuildingContext.shouldBuild) {
+    if (functionBodyBuildingContext != null) {
       libraryBuilder.loader.createResolver().buildPrimaryConstructor(
         libraryBuilder: libraryBuilder,
         functionBodyBuildingContext: functionBodyBuildingContext,
         fileUri: uri,
         startToken: formalsToken,
+        finishFunction: functionBodyBuildingContext.shouldFinishFunction,
       );
     }
 
@@ -1189,7 +1189,9 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
+  void beginPrimaryConstructorBody(Token token) {}
+
+  @override
   void endPrimaryConstructorBody(
     Token beginToken,
     Token? beginInitializers,
@@ -1199,9 +1201,23 @@ class DietListener extends StackListenerImpl {
     assert(
       checkState(beginToken, [/* metadata token */ ValueKinds.TokenOrNull]),
     );
-    // TODO(primary-constructors): Implement primary constructor body.
-    pop() as Token?;
+    Token? metadata = pop() as Token?;
     checkEmpty(beginToken.charOffset);
+
+    PrimaryConstructorBodyFragment functionFragment = _offsetMap
+        .lookupPrimaryConstructorBody(beginToken);
+    FunctionBodyBuildingContext? functionBodyBuildingContext = functionFragment
+        .createFunctionBodyBuildingContext();
+    if (functionBodyBuildingContext != null) {
+      libraryBuilder.loader.createResolver().buildPrimaryConstructorBody(
+        libraryBuilder: libraryBuilder,
+        constructorBuilder: functionFragment.builder,
+        functionBodyBuildingContext: functionBodyBuildingContext,
+        fileUri: uri,
+        startToken: beginToken,
+        metadata: metadata,
+      );
+    }
   }
 
   @override

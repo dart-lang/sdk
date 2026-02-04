@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -29,18 +30,7 @@ import '../base/messages.dart'
         FormattedMessage,
         LocatedMessage,
         Message,
-        codeConstConstructorLateFinalFieldCause,
-        codeConstConstructorLateFinalFieldError,
-        codeConstConstructorNonFinalField,
-        codeConstConstructorNonFinalFieldCause,
-        codeConstConstructorRedirectionToNonConst,
         noLength,
-        codeFieldNonNullableNotInitializedByConstructorError,
-        codeFieldNonNullableWithoutInitializerError,
-        codeFinalFieldNotInitialized,
-        codeFinalFieldNotInitializedByConstructor,
-        codeMissingImplementationCause,
-        codeSuperclassHasNoDefaultConstructor,
         CompilationPhaseForProblemReporting;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/ticker.dart' show Ticker;
@@ -1448,7 +1438,7 @@ class KernelTarget {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
             classBuilder.libraryBuilder.addProblem(
-              codeConstConstructorRedirectionToNonConst,
+              diag.constConstructorRedirectionToNonConst,
               initializer.fileOffset,
               initializer.target.name.text.length,
               constructor.fileUri,
@@ -1475,8 +1465,8 @@ class KernelTarget {
               offset = cls.fileOffset;
               fileUri = cls.fileUri;
             }
-            Message message = codeSuperclassHasNoDefaultConstructor
-                .withArgumentsOld(cls.superclass!.name);
+            Message message = diag.superclassHasNoDefaultConstructor
+                .withArguments(className: cls.superclass!.name);
             classBuilder.libraryBuilder.addProblem(
               message,
               offset,
@@ -1504,8 +1494,7 @@ class KernelTarget {
           /// >If a generative constructor c is not a redirecting constructor
           /// >and no body is provided, then c implicitly has an empty body {}.
           /// We use an empty statement instead.
-          constructor.function.body = new EmptyStatement()
-            ..parent = constructor.function;
+          constructor.function.registerFunctionBody(new EmptyStatement());
         }
       }
     }
@@ -1527,6 +1516,7 @@ class KernelTarget {
     List<SourcePropertyBuilder> uninitializedFields = [];
     List<SourcePropertyBuilder> nonFinalFields = [];
     List<SourcePropertyBuilder> lateFinalFields = [];
+    List<SourcePropertyBuilder> nonLateClassInstanceFieldsWithInitializers = [];
 
     Iterator<SourcePropertyBuilder> fieldIterator = classDeclaration
         .filteredMembersIterator(includeDuplicates: false);
@@ -1548,6 +1538,12 @@ class KernelTarget {
       if (!fieldBuilder.hasInitializer) {
         uninitializedFields.add(fieldBuilder);
       }
+      if (classDeclaration is SourceClassBuilder &&
+          fieldBuilder.isDeclarationInstanceMember &&
+          !fieldBuilder.isLate &&
+          fieldBuilder.hasInitializer) {
+        nonLateClassInstanceFieldsWithInitializers.add(fieldBuilder);
+      }
     }
 
     Map<SourceConstructorBuilder, Set<SourcePropertyBuilder>>
@@ -1562,13 +1558,13 @@ class KernelTarget {
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.libraryBuilder.addProblem(
-          codeConstConstructorNonFinalField,
+          diag.constConstructorNonFinalField,
           constructor.fileOffset,
           noLength,
           constructor.fileUri,
           context: nonFinalFields
               .map(
-                (field) => codeConstConstructorNonFinalFieldCause.withLocation(
+                (field) => diag.constConstructorNonFinalFieldCause.withLocation(
                   field.fileUri,
                   field.fileOffset,
                   noLength,
@@ -1581,10 +1577,10 @@ class KernelTarget {
       if (constructor.isConst && lateFinalFields.isNotEmpty) {
         for (SourcePropertyBuilder field in lateFinalFields) {
           classDeclaration.libraryBuilder.addProblem2(
-            codeConstConstructorLateFinalFieldError,
+            diag.constConstructorLateFinalFieldError,
             field.fieldUriOffset!,
             context: [
-              codeConstConstructorLateFinalFieldCause.withLocation(
+              diag.constConstructorLateFinalFieldCause.withLocation(
                 constructor.fileUri,
                 constructor.fileOffset,
                 noLength,
@@ -1612,6 +1608,16 @@ class KernelTarget {
         (initializedFieldBuilders ??= new Set<SourcePropertyBuilder>.identity())
             .addAll(fields);
       }
+      if (constructor.isPrimaryConstructor) {
+        // We prepend the initializers in reversed order to preserve normal
+        // field initializer evaluation order.
+        for (SourcePropertyBuilder field
+            in nonLateClassInstanceFieldsWithInitializers.reversed) {
+          constructor.prependInitializer(
+            field.takePrimaryConstructorFieldInitializer(),
+          );
+        }
+      }
     }
 
     // Run through all fields that aren't initialized by any constructor, and
@@ -1634,8 +1640,8 @@ class KernelTarget {
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
               libraryBuilder.addProblem(
-                codeFinalFieldNotInitialized.withArgumentsOld(
-                  fieldBuilder.name,
+                diag.finalFieldNotInitialized.withArguments(
+                  fieldName: fieldBuilder.name,
                 ),
                 fieldBuilder.fileOffset,
                 fieldBuilder.name.length,
@@ -1645,7 +1651,7 @@ class KernelTarget {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-              codeFieldNonNullableWithoutInitializerError.withArgumentsOld(
+              diag.fieldNonNullableWithoutInitializerError.withArgumentsOld(
                 fieldBuilder.name,
                 fieldBuilder.fieldType,
               ),
@@ -1678,15 +1684,15 @@ class KernelTarget {
             // properly.
             if (!constructorBuilder.invokeTarget.isErroneous) {
               libraryBuilder.addProblem(
-                codeFinalFieldNotInitializedByConstructor.withArgumentsOld(
-                  fieldBuilder.name,
+                diag.finalFieldNotInitializedByConstructor.withArguments(
+                  fieldName: fieldBuilder.name,
                 ),
                 constructorBuilder.fileOffset,
                 constructorBuilder.name.length,
                 constructorBuilder.fileUri,
                 context: [
-                  codeMissingImplementationCause
-                      .withArgumentsOld(fieldBuilder.name)
+                  diag.missingImplementationCause
+                      .withArguments(name: fieldBuilder.name)
                       .withLocation(
                         fieldBuilder.fileUri,
                         fieldBuilder.fileOffset,
@@ -1700,14 +1706,14 @@ class KernelTarget {
               !fieldBuilder.isLate &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-              codeFieldNonNullableNotInitializedByConstructorError
+              diag.fieldNonNullableNotInitializedByConstructorError
                   .withArgumentsOld(fieldBuilder.name, fieldBuilder.fieldType),
               constructorBuilder.fileOffset,
               noLength,
               constructorBuilder.fileUri,
               context: [
-                codeMissingImplementationCause
-                    .withArgumentsOld(fieldBuilder.name)
+                diag.missingImplementationCause
+                    .withArguments(name: fieldBuilder.name)
                     .withLocation(
                       fieldBuilder.fileUri,
                       fieldBuilder.fileOffset,

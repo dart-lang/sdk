@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' show Library, Version;
 
 import '../base/export.dart' show Export;
@@ -13,14 +14,7 @@ import '../base/extension_scope.dart';
 import '../base/loader.dart' show Loader;
 import '../base/lookup_result.dart';
 import '../base/messages.dart'
-    show
-        FormattedMessage,
-        LocatedMessage,
-        Message,
-        ProblemReporting,
-        codeInternalProblemConstructorNotFound,
-        codeInternalProblemNotFoundIn,
-        codeInternalProblemPrivateConstructorAccess;
+    show FormattedMessage, LocatedMessage, Message, ProblemReporting;
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../source/name_scheme.dart';
@@ -210,8 +204,8 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     constructorName ??= "";
     if (constructorName.startsWith("_")) {
       return internalProblem(
-        codeInternalProblemPrivateConstructorAccess.withArgumentsOld(
-          constructorName,
+        diag.internalProblemPrivateConstructorAccess.withArguments(
+          name: constructorName,
         ),
         -1,
         null,
@@ -250,9 +244,9 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     }
     // Coverage-ignore-block(suite): Not run.
     throw internalProblem(
-      codeInternalProblemConstructorNotFound.withArgumentsOld(
-        "$className.$constructorName",
-        importUri,
+      diag.internalProblemConstructorNotFound.withArguments(
+        name: "$className.$constructorName",
+        uri: importUri,
       ),
       -1,
       null,
@@ -269,7 +263,10 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
     if (builder == null) {
       internalProblem(
-        codeInternalProblemNotFoundIn.withArgumentsOld(name, fullNameForErrors),
+        diag.internalProblemNotFoundIn.withArguments(
+          name: name,
+          within: fullNameForErrors,
+        ),
         -1,
         null,
       );

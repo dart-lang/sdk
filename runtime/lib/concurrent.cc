@@ -127,8 +127,9 @@ DEFINE_FFI_NATIVE_ENTRY(IsolateGroup_runSync,
 
   {
     DARTSCOPE(current_thread);
-    FfiCallbackMetadata::EnsureTriviallyImmutable(
-        current_thread->zone(), Object::Handle(Api::UnwrapHandle(closure)));
+    auto& object =
+        Object::Handle(current_thread->zone(), Api::UnwrapHandle(closure));
+    object.EnsureDeeplyImmutable(current_thread->zone());
   }
 
   Isolate* saved_isolate = current_thread->isolate();

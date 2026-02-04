@@ -29,8 +29,9 @@ const keepTempKey = 'KEEP_TEMPORARY_DIRECTORIES';
 Future<void> inTempDir(Future<void> Function(Uri tempUri) fun) async {
   final tempDir = await Directory.systemTemp.createTemp();
   // Deal with Windows temp folder aliases.
-  final tempUri =
-      Directory(await tempDir.resolveSymbolicLinks()).uri.normalizePath();
+  final tempUri = Directory(
+    await tempDir.resolveSymbolicLinks(),
+  ).uri.normalizePath();
   try {
     await fun(tempUri);
   } finally {
@@ -64,22 +65,26 @@ Future<run_process.RunProcessResult> runProcess({
   bool captureOutput = true,
   int expectedExitCode = 0,
   bool throwOnUnexpectedExitCode = false,
-}) =>
-    run_process.runProcess(
-      executable: executable,
-      arguments: arguments,
-      workingDirectory: workingDirectory,
-      environment: environment,
-      includeParentEnvironment: includeParentEnvironment,
-      logger: logger,
-      captureOutput: captureOutput,
-      expectedExitCode: expectedExitCode,
-      throwOnUnexpectedExitCode: throwOnUnexpectedExitCode,
-      filesystem: const LocalFileSystem(),
-    );
+}) => run_process.runProcess(
+  executable: executable,
+  arguments: arguments,
+  workingDirectory: workingDirectory,
+  environment: environment,
+  includeParentEnvironment: includeParentEnvironment,
+  logger: logger,
+  captureOutput: captureOutput,
+  expectedExitCode: expectedExitCode,
+  throwOnUnexpectedExitCode: throwOnUnexpectedExitCode,
+  filesystem: const LocalFileSystem(),
+);
 
-Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
-    Uri packageLocation, Uri sdkRoot, bool usePubWorkspace) async {
+Future<void> copyTestProjects(
+  Uri copyTargetUri,
+  Logger logger,
+  Uri packageLocation,
+  Uri sdkRoot,
+  bool usePubWorkspace,
+) async {
   // Reuse the test projects from `pkg:native`.
   final testProjectsUri = packageLocation.resolve('test_data/');
   final manifestUri = testProjectsUri.resolve('manifest.yaml');
@@ -87,16 +92,21 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
   final manifestString = await manifestFile.readAsString();
   final manifestYaml = loadYamlDocument(manifestString);
   final manifest = [
-    for (final path in manifestYaml.contents as YamlList) Uri(path: path)
+    for (final path in manifestYaml.contents as YamlList) Uri(path: path),
   ];
   final filesToCopy = manifest
-      .where((e) => !(e.pathSegments.last.startsWith('pubspec') &&
-          e.pathSegments.last.endsWith('.yaml')))
+      .where(
+        (e) =>
+            !(e.pathSegments.last.startsWith('pubspec') &&
+                e.pathSegments.last.endsWith('.yaml')),
+      )
       .toList();
   final pubspecPaths = manifest
-      .where((e) =>
-          e.pathSegments.last.startsWith('pubspec') &&
-          e.pathSegments.last.endsWith('.yaml'))
+      .where(
+        (e) =>
+            e.pathSegments.last.startsWith('pubspec') &&
+            e.pathSegments.last.endsWith('.yaml'),
+      )
       .toList();
 
   for (final pathToCopy in filesToCopy) {
@@ -122,9 +132,7 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
             .resolve('third_party/pkg/native/pkgs/$package/')
             .toFilePath(),
       },
-    'meta': {
-      'path': sdkRoot.resolve('pkg/meta/').toFilePath(),
-    },
+    'meta': {'path': sdkRoot.resolve('pkg/meta/').toFilePath()},
   };
   final userDefinesWorkspace = {};
   for (final pubspecPath in pubspecPaths) {
@@ -177,9 +185,7 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
             pubspec.toFilePath().replaceAll('pubspec.yaml', ''),
       ],
       'dependency_overrides': dependencyOverrides,
-      'hooks': {
-        'user_defines': userDefinesWorkspace,
-      }
+      'hooks': {'user_defines': userDefinesWorkspace},
     });
     final pubspecUri = copyTargetUri.resolve('pubspec.yaml');
     await File.fromUri(pubspecUri).writeAsString(workspacePubspec.toString());
@@ -189,10 +195,7 @@ Future<void> copyTestProjects(Uri copyTargetUri, Logger logger,
   // native assets are pre-built
   final myNativeLibraryUri = copyTargetUri.resolve('my_native_library/');
   if (await Directory(myNativeLibraryUri.toFilePath()).exists()) {
-    await runPubGet(
-      workingDirectory: myNativeLibraryUri,
-      logger: logger,
-    );
+    await runPubGet(workingDirectory: myNativeLibraryUri, logger: logger);
     await runDart(
       arguments: ['tool/native.dart', 'build'],
       workingDirectory: myNativeLibraryUri,
@@ -216,22 +219,17 @@ Future<void> runPubGet({
 void expectDartAppStdout(String stdout) {
   expect(
     stdout,
-    stringContainsInOrder(
-      [
-        'add(5, 6) = 11',
-        'subtract(5, 6) = -1',
-      ],
-    ),
+    stringContainsInOrder(['add(5, 6) = 11', 'subtract(5, 6) = -1']),
   );
 }
 
 /// Logger that outputs the full trace when a test fails.
 Logger get logger => _logger ??= () {
-      // A new logger is lazily created for each test so that the messages
-      // captured by printOnFailure are scoped to the correct test.
-      addTearDown(() => _logger = null);
-      return _createTestLogger();
-    }();
+  // A new logger is lazily created for each test so that the messages
+  // captured by printOnFailure are scoped to the correct test.
+  addTearDown(() => _logger = null);
+  return _createTestLogger();
+}();
 
 Logger? _logger;
 
@@ -243,7 +241,8 @@ Logger _createTestLogger({List<String>? capturedMessages}) =>
       ..level = Level.ALL
       ..onRecord.listen((record) {
         printOnFailure(
-            '${record.level.name}: ${record.time}: ${record.message}');
+          '${record.level.name}: ${record.time}: ${record.message}',
+        );
         capturedMessages?.add(record.message);
       });
 
@@ -253,40 +252,39 @@ Future<void> nativeAssetsTest(
   String packageUnderTest,
   Future<void> Function(Uri) fun, {
   bool usePubWorkspace = false,
-}) async =>
-    await runPackageTest(
-      packageUnderTest,
-      fun,
-      const [
-        'add_asset_link',
-        'dart_app',
-        'dev_dependency_with_hook',
-        'drop_dylib_link',
-        'native_add_duplicate',
-        'native_add_version_skew',
-        'native_add',
-        'native_dynamic_linking',
-        'system_library',
-        'treeshaking_native_libs',
-        'user_defines',
-      ],
-      sdkRootUri.resolve('third_party/pkg/native/pkgs/hooks_runner/'),
-      sdkRootUri,
-      usePubWorkspace,
-    );
+}) async => await runPackageTest(
+  packageUnderTest,
+  fun,
+  const [
+    'add_asset_link',
+    'dart_app',
+    'dev_dependency_with_hook',
+    'drop_dylib_link',
+    'native_add_duplicate',
+    'native_add_version_skew',
+    'native_add',
+    'native_dynamic_linking',
+    'recursive_invocation',
+    'system_library',
+    'treeshaking_native_libs',
+    'user_defines',
+  ],
+  sdkRootUri.resolve('third_party/pkg/native/pkgs/hooks_runner/'),
+  sdkRootUri,
+  usePubWorkspace,
+);
 
 Future<void> recordUseTest(
   String packageUnderTest,
   Future<void> Function(Uri) fun,
-) async =>
-    await runPackageTest(
-      packageUnderTest,
-      fun,
-      const ['drop_dylib_recording', 'drop_data_asset'],
-      sdkRootUri.resolve('third_party/pkg/native/pkgs/record_use/'),
-      sdkRootUri,
-      false,
-    );
+) async => await runPackageTest(
+  packageUnderTest,
+  fun,
+  const ['drop_dylib_recording', 'drop_data_asset'],
+  sdkRootUri.resolve('third_party/pkg/native/pkgs/record_use/'),
+  sdkRootUri,
+  false,
+);
 
 Future<void> runPackageTest(
   String packageUnderTest,
@@ -299,7 +297,12 @@ Future<void> runPackageTest(
   assert(validPackages.contains(packageUnderTest));
   return await inTempDir((tempUri) async {
     await copyTestProjects(
-        tempUri, logger, packageLocation, sdkRoot, usePubWorkspace);
+      tempUri,
+      logger,
+      packageLocation,
+      sdkRoot,
+      usePubWorkspace,
+    );
     final packageUri = tempUri.resolve('$packageUnderTest/');
     return await fun(packageUri);
   });
@@ -331,5 +334,6 @@ Future<run_process.RunProcessResult> runDart({
 }
 
 final nativeAssetsExperimentAvailableOnCurrentChannel = ExperimentalFeatures
-    .native_assets.channels
+    .native_assets
+    .channels
     .contains(Runtime.runtime.channel);

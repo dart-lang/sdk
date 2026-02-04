@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
@@ -125,28 +125,25 @@ class TypePropertyResolver {
         }
       }
 
-      DiagnosticCode diagnosticCode;
-      List<String> arguments;
+      LocatableDiagnostic locatableDiagnostic;
       if (parentNode == null) {
-        diagnosticCode = diag.uncheckedInvocationOfNullableValue;
-        arguments = [];
+        locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
       } else {
         if (parentNode is CascadeExpression) {
           parentNode = parentNode.cascadeSections.first;
         }
         if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
-          diagnosticCode = diag.uncheckedOperatorInvocationOfNullableValue;
-          arguments = [name];
+          locatableDiagnostic = diag.uncheckedOperatorInvocationOfNullableValue
+              .withArguments(operator: name);
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression) {
-          diagnosticCode = diag.uncheckedMethodInvocationOfNullableValue;
-          arguments = [name];
+          locatableDiagnostic = diag.uncheckedMethodInvocationOfNullableValue
+              .withArguments(name: name);
         } else if (parentNode is FunctionExpressionInvocation) {
-          diagnosticCode = diag.uncheckedInvocationOfNullableValue;
-          arguments = [];
+          locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
         } else {
-          diagnosticCode = diag.uncheckedPropertyAccessOfNullableValue;
-          arguments = [name];
+          locatableDiagnostic = diag.uncheckedPropertyAccessOfNullableValue
+              .withArguments(name: name);
         }
       }
 
@@ -169,10 +166,9 @@ class TypePropertyResolver {
         }
       }
       _resolver.nullableDereferenceVerifier.report(
-        diagnosticCode,
+        locatableDiagnostic,
         propertyErrorEntity,
         receiverType,
-        arguments: arguments,
         messages: messages,
       );
       _reportedGetterError = true;

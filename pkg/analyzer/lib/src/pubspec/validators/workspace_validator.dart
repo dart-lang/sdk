@@ -48,13 +48,17 @@ void _validateDirectoryPath(
   var dirPath = context.join(packageRoot, normalizedEntry);
   // Check if given path is a sub directory of the package root.
   if (!packageRootFolder.contains(dirPath)) {
-    ctx.reportErrorForNode(errorField, diag.workspaceValueNotSubdirectory, [
-      packageRoot,
-    ]);
+    ctx.reportErrorForNode(
+      errorField,
+      diag.workspaceValueNotSubdirectory.withArguments(path: packageRoot),
+    );
     return;
   }
   var subDirectory = ctx.provider.getFolder(dirPath);
   if (!subDirectory.exists) {
-    ctx.reportErrorForNode(errorField, diag.pathDoesNotExist, [pathValue]);
+    ctx.reportErrorForNode(
+      errorField,
+      diag.pathDoesNotExist.withArguments(path: pathValue),
+    );
   }
 }

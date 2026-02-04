@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -549,10 +548,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   _IndexContributor(this.assembler);
 
-  void recordIsAncestorOf(InterfaceElement descendant) {
-    _recordIsAncestorOf(descendant, descendant, false, <InterfaceElement>[]);
-  }
-
   /// Record that the name [node] has a relation of the given [kind].
   void recordNameRelation(
     SimpleIdentifier node,
@@ -621,6 +616,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
         return;
       }
     }
+    // Ignore formal parameters of local functions.
+    if (element is FormalParameterElement &&
+        element.enclosingElement is LocalFunctionElement) {
+      return;
+    }
     // Elements for generic function types are enclosed by the compilation
     // units, but don't have names. So, we cannot index references to their
     // named parameters. Ignore them.
@@ -662,6 +662,17 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    recordRelation(
+      node.element,
+      IndexRelationKind.IS_WRITTEN_BY,
+      node.name,
+      false,
+    );
+    super.visitAssignedVariablePattern(node);
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     recordOperatorReference(node.operator, node.element);
     super.visitAssignmentExpression(node);
@@ -687,7 +698,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
         true,
       );
     }
-    recordIsAncestorOf(declaredElement);
 
     // If the class has only a synthetic default constructor, then it
     // implicitly invokes the default super constructor. Associate the
@@ -713,7 +723,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
-    recordIsAncestorOf(node.declaredFragment!.element);
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
     super.visitClassTypeAlias(node);
   }
@@ -892,8 +901,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
       memberNodes: node.body.members,
     );
 
-    var declaredElement = node.declaredFragment!.element;
-    recordIsAncestorOf(declaredElement);
     super.visitEnumDeclaration(node);
   }
 
@@ -910,21 +917,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     super.visitExportDirective(node);
-  }
-
-  @override
-  void visitExpression(Expression node) {
-    var parameterElement = node.correspondingParameter;
-    if (parameterElement != null && parameterElement.isOptionalPositional) {
-      recordRelationOffset(
-        parameterElement,
-        IndexRelationKind.IS_REFERENCED_BY,
-        node.offset,
-        0,
-        true,
-      );
-    }
-    super.visitExpression(node);
   }
 
   @override
@@ -954,9 +946,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
       implementsClause: node.implementsClause,
       memberNodes: node.body.members,
     );
-
-    var declaredElement = node.declaredFragment!.element;
-    recordIsAncestorOf(declaredElement);
 
     super.visitExtensionTypeDeclaration(node);
   }
@@ -1030,7 +1019,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _addSubtypeForMixinDeclaration(node);
-    recordIsAncestorOf(node.declaredFragment!.element);
     super.visitMixinDeclaration(node);
   }
 
@@ -1179,17 +1167,30 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
       recordNameRelation(node, kind, isQualified);
     }
-    // ignore a local reference to a parameter
-    if (element is FormalParameterElement && node.parent is! Label) {
-      return;
+    IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;
+    if (element is FormalParameterElement) {
+      var parent = node.parent;
+      var isGet = node.inGetterContext();
+      var isSet = node.inSetterContext();
+      if (parent is CommentReference) {
+        kind = IndexRelationKind.IS_REFERENCED_BY;
+      } else if (parent is Label && parent.parent is NamedExpression) {
+        kind = IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT;
+      } else if (isGet && isSet) {
+        kind = IndexRelationKind.IS_READ_WRITTEN_BY;
+      } else if (isGet) {
+        if (parent is MethodInvocation && parent.methodName == node) {
+          kind = IndexRelationKind.IS_INVOKED_BY;
+        } else {
+          kind = IndexRelationKind.IS_READ_BY;
+        }
+      } else if (isSet) {
+        kind = IndexRelationKind.IS_WRITTEN_BY;
+      }
     }
+
     // record specific relations
-    recordRelation(
-      element,
-      IndexRelationKind.IS_REFERENCED_BY,
-      node,
-      isQualified,
-    );
+    recordRelation(element, kind, node, isQualified);
   }
 
   @override
@@ -1226,7 +1227,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
       if (superParameter != null) {
         recordRelation(
           superParameter,
-          IndexRelationKind.IS_REFERENCED_BY,
+          node.isNamed
+              ? IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT
+              : IndexRelationKind.IS_REFERENCED_BY,
           node.name,
           true,
         );
@@ -1399,58 +1402,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
       name,
       isQualified: importPrefix != null,
     );
-  }
-
-  void _recordIsAncestorOf(
-    Element descendant,
-    InterfaceElement ancestor,
-    bool includeThis,
-    List<InterfaceElement> visitedElements,
-  ) {
-    if (visitedElements.contains(ancestor)) {
-      return;
-    }
-    visitedElements.add(ancestor);
-    if (includeThis) {
-      var offset = descendant.firstFragment.nameOffset;
-      var length = descendant.name?.length;
-      if (offset != null && length != null) {
-        assembler.addElementRelation(
-          ancestor,
-          IndexRelationKind.IS_ANCESTOR_OF,
-          offset,
-          length,
-          false,
-        );
-      }
-    }
-    {
-      var superType = ancestor.supertype;
-      if (superType != null) {
-        _recordIsAncestorOf(
-          descendant,
-          superType.element,
-          true,
-          visitedElements,
-        );
-      }
-    }
-    for (InterfaceType mixinType in ancestor.mixins) {
-      _recordIsAncestorOf(descendant, mixinType.element, true, visitedElements);
-    }
-    if (ancestor is MixinElement) {
-      for (InterfaceType type in ancestor.superclassConstraints) {
-        _recordIsAncestorOf(descendant, type.element, true, visitedElements);
-      }
-    }
-    for (InterfaceType implementedType in ancestor.interfaces) {
-      _recordIsAncestorOf(
-        descendant,
-        implementedType.element,
-        true,
-        visitedElements,
-      );
-    }
   }
 }
 

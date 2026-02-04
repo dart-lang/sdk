@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/field.dart';
+import 'package:cfg/ir/global_context.dart';
 import 'package:kernel/ast.dart' as ast show DartType, InterfaceType, Name;
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/flow_graph.dart';
@@ -766,9 +767,9 @@ abstract base class CallInstruction extends Definition
     required super.inputCount,
   });
 
-  bool get hasTypeArguments => inputCount > 0 && inputDefAt(0) is TypeArguments;
-  TypeArguments? get typeArguments =>
-      hasTypeArguments ? inputDefAt(0) as TypeArguments : null;
+  bool get hasTypeArguments =>
+      inputCount > 0 && inputDefAt(0).type is TypeArgumentsType;
+  Definition? get typeArguments => hasTypeArguments ? inputDefAt(0) : null;
 }
 
 /// Direct call of the target function.
@@ -803,10 +804,30 @@ final class InterfaceCall extends CallInstruction {
     this.interfaceTarget,
     this.type, {
     required super.inputCount,
-  });
+  }) : assert(inputCount > 0);
+
+  Definition get receiver => inputDefAt(0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitInterfaceCall(this);
+}
+
+/// Call closure function using the given closure instance.
+final class ClosureCall extends CallInstruction {
+  @override
+  final CType type;
+
+  ClosureCall(
+    super.graph,
+    super.sourcePosition,
+    this.type, {
+    required super.inputCount,
+  }) : assert(inputCount > 0);
+
+  Definition get closure => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitClosureCall(this);
 }
 
 enum DynamicCallKind { method, getter, setter }
@@ -822,7 +843,9 @@ final class DynamicCall extends CallInstruction {
     this.selector,
     this.kind, {
     required super.inputCount,
-  });
+  }) : assert(inputCount > 0);
+
+  Definition get receiver => inputDefAt(0);
 
   @override
   CType get type => const TopType();
@@ -1044,6 +1067,25 @@ final class Throw extends Instruction
   R accept<R>(InstructionVisitor<R> v) => v.visitThrow(this);
 }
 
+/// Checks that input object is not null. Throws TypeError if object is null.
+final class NullCheck extends Definition with CanThrow, Pure, Idempotent {
+  @override
+  late final CType type = operand.type.toNonNullableType;
+
+  NullCheck(super.graph, super.sourcePosition, Definition object)
+    : super(inputCount: 1) {
+    setInputAt(0, object);
+  }
+
+  Definition get operand => inputDefAt(0);
+
+  @override
+  bool attributesEqual(covariant NullCheck other) => true;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitNullCheck(this);
+}
+
 /// Represents collection of class and function type parameters.
 final class TypeParameters extends Definition with NoThrow, Pure {
   TypeParameters(super.graph, super.sourcePosition, Definition? receiver)
@@ -1135,24 +1177,23 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitTypeTest(this);
 }
 
-/// Represents a list of type arguments passed to a call or an instance
-/// allocation.
+/// Represents a list of type arguments which use type parameters and
+/// passed to a call or an instance allocation.
 ///
-/// Only used as the first input of call instructions and [AllocateObject].
+/// Only used as the first input of call instructions, [AllocateObject],
+/// [AllocateListLiteral] and [AllocateMapLiteral].
 final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   final List<ast.DartType> types;
   TypeArguments(
     super.graph,
     super.sourcePosition,
     this.types,
-    Definition? typeParameters,
-  ) : super(inputCount: typeParameters != null ? 1 : 0) {
-    if (typeParameters != null) {
-      setInputAt(0, typeParameters);
-    }
+    Definition typeParameters,
+  ) : super(inputCount: 1) {
+    setInputAt(0, typeParameters);
   }
 
-  Definition? get typeParameters => (inputCount > 0) ? inputDefAt(0) : null;
+  Definition get typeParameters => inputDefAt(0);
 
   @override
   CType get type => const TypeArgumentsType();
@@ -1165,9 +1206,36 @@ final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitTypeArguments(this);
 }
 
+/// Represents a type literal which uses type parameters.
+final class TypeLiteral extends Definition with NoThrow, Pure, Idempotent {
+  final ast.DartType uninstantiatedType;
+  TypeLiteral(
+    super.graph,
+    super.sourcePosition,
+    this.uninstantiatedType,
+    Definition typeParameters,
+  ) : super(inputCount: 1) {
+    setInputAt(0, typeParameters);
+  }
+
+  Definition get typeParameters => inputDefAt(0);
+
+  @override
+  CType get type =>
+      StaticType(GlobalContext.instance.coreTypes.typeNonNullableRawType);
+
+  @override
+  bool attributesEqual(covariant TypeLiteral other) =>
+      this.uninstantiatedType == other.uninstantiatedType;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitTypeLiteral(this);
+}
+
 /// Allocate an instance of given type.
 ///
-/// If type is a generic class, then [AllocateObject] can take [TypeArguments] as an input.
+/// If type is a generic class, then [AllocateObject] takes type arguments
+/// as an input.
 final class AllocateObject extends Definition with CanThrow, Pure {
   @override
   final CType type;
@@ -1176,7 +1244,7 @@ final class AllocateObject extends Definition with CanThrow, Pure {
     super.graph,
     super.sourcePosition,
     this.type,
-    TypeArguments? typeArguments,
+    Definition? typeArguments,
   ) : super(inputCount: typeArguments != null ? 1 : 0) {
     if (typeArguments != null) {
       assert(
@@ -1189,11 +1257,89 @@ final class AllocateObject extends Definition with CanThrow, Pure {
     }
   }
 
-  TypeArguments? get typeArguments =>
-      (inputCount > 0) ? inputDefAt(0) as TypeArguments : null;
+  bool get hasTypeArguments => inputCount > 0;
+  Definition? get typeArguments => hasTypeArguments ? inputDefAt(0) : null;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateObject(this);
+}
+
+/// Allocate a closure instance.
+///
+/// Takes captured values as inputs.
+final class AllocateClosure extends Definition with CanThrow, Pure {
+  final ClosureFunction function;
+
+  @override
+  final CType type;
+
+  AllocateClosure(
+    super.graph,
+    super.sourcePosition,
+    this.function,
+    this.type, {
+    required super.inputCount,
+  });
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateClosure(this);
+}
+
+/// Allocate a new List literal with given type arguments and elements.
+final class AllocateListLiteral extends Definition with CanThrow, Pure {
+  @override
+  final CType type;
+
+  AllocateListLiteral(
+    super.graph,
+    super.sourcePosition,
+    this.type, {
+    required super.inputCount,
+  }) : assert(inputCount > 0);
+
+  Definition get typeArguments => inputDefAt(0);
+  Definition elementAt(int index) => inputDefAt(index + 1);
+  int get length => inputCount - 1;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateListLiteral(this);
+}
+
+/// Allocate a new Map literal with given type arguments and key-value pairs.
+final class AllocateMapLiteral extends Definition with CanThrow, Pure {
+  @override
+  final CType type;
+
+  AllocateMapLiteral(
+    super.graph,
+    super.sourcePosition,
+    this.type, {
+    required super.inputCount,
+  }) : assert(inputCount > 0 && inputCount.isOdd);
+
+  Definition get typeArguments => inputDefAt(0);
+  Definition keyAt(int index) => inputDefAt((index << 1) + 1);
+  Definition valueAt(int index) => inputDefAt((index << 1) + 2);
+  int get length => (inputCount - 1) >> 1;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateMapLiteral(this);
+}
+
+/// Interpolate given objects into a String.
+final class StringInterpolation extends Definition
+    with CanThrow, HasSideEffects {
+  StringInterpolation(
+    super.graph,
+    super.sourcePosition, {
+    required super.inputCount,
+  });
+
+  @override
+  CType get type => const StringType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitStringInterpolation(this);
 }
 
 enum BinaryIntOpcode {
@@ -1387,6 +1533,34 @@ final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   R accept<R>(InstructionVisitor<R> v) => v.visitUnaryDoubleOp(this);
 }
 
+enum UnaryBoolOpcode {
+  not('!');
+
+  final String token;
+  const UnaryBoolOpcode(this.token);
+}
+
+/// Unary operation on the bool operand.
+final class UnaryBoolOp extends Definition with NoThrow, Pure, Idempotent {
+  UnaryBoolOpcode op;
+
+  UnaryBoolOp(super.graph, super.sourcePosition, this.op, Definition operand)
+    : super(inputCount: 1) {
+    setInputAt(0, operand);
+  }
+
+  Definition get operand => inputDefAt(0);
+
+  @override
+  CType get type => const BoolType();
+
+  @override
+  bool attributesEqual(covariant UnaryBoolOp other) => op == other.op;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnaryBoolOp(this);
+}
+
 /// Marker for the back-end specific instructions.
 base mixin BackendInstruction on Instruction {}
 
@@ -1418,17 +1592,78 @@ final class CompareAndBranch extends Instruction
   R accept<R>(InstructionVisitor<R> v) => v.visitCompareAndBranch(this);
 }
 
+/// Allocate a fixed-size List of given length.
+final class AllocateList extends Definition
+    with CanThrow, Pure, BackendInstruction {
+  AllocateList(super.graph, super.sourcePosition, Definition length)
+    : super(inputCount: 1) {
+    setInputAt(0, length);
+  }
+
+  Definition get length => inputDefAt(0);
+
+  CType get type =>
+      StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateList(this);
+}
+
+/// Set value of [index]-th element of the given fixed-size List.
+final class SetListElement extends Instruction
+    with NoThrow, HasSideEffects, BackendInstruction {
+  SetListElement(
+    super.graph,
+    super.sourcePosition,
+    Definition list,
+    Definition index,
+    Definition value,
+  ) : super(inputCount: 3) {
+    setInputAt(0, list);
+    setInputAt(1, index);
+    setInputAt(2, value);
+  }
+
+  Definition get list => inputDefAt(0);
+  Definition get index => inputDefAt(1);
+  Definition get value => inputDefAt(2);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitSetListElement(this);
+}
+
 /// Base class for move operations, part of [ParallelMove].
 abstract base class MoveOp {}
+
+/// Purpose of the [ParallelMove] operation, used to distinguish multiple
+/// independent moves.
+///
+/// This enum also specifies the order of successive [ParallelMove] instructions,
+/// e.g. for every two successive [ParallelMove] instructions it is guaranteed
+/// that `instr.stage.index < instr.next.stage.index`.
+enum ParallelMoveStage {
+  // Move fixed output of the instruction to its desired location.
+  output,
+  // Spill output of the instruction.
+  spill,
+  // Split live ranges.
+  split,
+  // Moves at control flow edges (including phi moves).
+  control,
+  // Move instruction inputs to their fixed locations.
+  input,
+}
 
 /// In native back-ends, register allocator inserts [ParallelMove]
 /// instructions to copy values atomically between registers
 /// and memory locations.
 final class ParallelMove extends Instruction
     with NoThrow, HasSideEffects, BackendInstruction {
+  final ParallelMoveStage stage;
   final List<MoveOp> moves = [];
 
-  ParallelMove(FlowGraph graph) : super(graph, noPosition, inputCount: 0);
+  ParallelMove(FlowGraph graph, this.stage)
+    : super(graph, noPosition, inputCount: 0);
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitParallelMove(this);

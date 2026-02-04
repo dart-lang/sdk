@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
     show DynamicInterfaceYamlFile;
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
@@ -18,10 +20,12 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
+import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart' as pool;
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
 import 'package:vm/transformations/mixin_deduplication.dart'
     as mixin_deduplication show transformLibraries;
+import 'package:vm/transformations/record_use/record_use.dart' as record_use;
 import 'package:vm/transformations/to_string_transformer.dart'
     as to_string_transformer;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
@@ -43,6 +47,7 @@ import 'js/runtime_generator.dart' as js;
 import 'modules.dart';
 import 'record_class_generator.dart';
 import 'records.dart';
+import 'source_map_utils.dart';
 import 'target.dart' as wasm show Mode;
 import 'target.dart' hide Mode;
 import 'translator.dart';
@@ -85,10 +90,16 @@ class TfaResult extends CompilationSuccess {
 }
 
 class CodegenResult extends CompilationSuccess {
+  /// The main wasm file of the compiled application.
   final String mainWasmFile;
-  final int numModules;
 
-  CodegenResult(this.mainWasmFile, this.numModules);
+  /// The ids of all emitted wasm modules, including the special `0` id
+  /// for the main module.
+  final Set<int> moduleIds;
+
+  CodegenResult(this.mainWasmFile, this.moduleIds) {
+    assert(moduleIds.contains(compiler.WasmCompilerOptions.mainModuleId));
+  }
 }
 
 class OptResult extends CompilationSuccess {
@@ -155,6 +166,7 @@ const List<String> _binaryenFlags = [
   '--enable-sign-ext',
   '--enable-bulk-memory',
   '--enable-threads',
+  '--enable-simd',
   '--no-inline=*<noInline>*',
   '--closed-world',
   '--traps-never-happen',
@@ -178,6 +190,7 @@ const List<String> _binaryenFlagsMultiModule = [
   '--enable-sign-ext',
   '--enable-bulk-memory',
   '--enable-threads',
+  '--enable-simd',
   '--no-inline=*<noInline>*',
   '--traps-never-happen',
   '-Os',
@@ -586,7 +599,7 @@ Future<CompilationResult> _runTfaPhase(
 Future<CodegenResult> _loadCodegenResult(compiler.WasmCompilerOptions options,
     CompilerPhaseInputOutputManager ioManager) async {
   final mainUri = (await ioManager.resolveUri(options.mainUri))!.toFilePath();
-  return CodegenResult(mainUri, await ioManager.getModuleCount(mainUri));
+  return CodegenResult(mainUri, await ioManager.getModuleIds(mainUri));
 }
 
 Future<CompilationResult> _runCodegenPhase(
@@ -625,17 +638,28 @@ Future<CompilationResult> _runCodegenPhase(
   final generateSourceMaps = options.translatorOptions.generateSourceMaps;
   final modules = translator.translate(ioManager.sourceMapUrlGenerator);
   final writeFutures = <Future<void>>[];
-  modules.forEach((moduleOutput, module) {
-    if (moduleOutput.skipEmit) return;
+
+  List<String?>? classNames;
+  if (generateSourceMaps && options.translatorOptions.minify) {
+    classNames = [];
+    for (var classId = 0; classId < translator.classes.length; classId += 1) {
+      classNames.add(translator.classes[classId].cls?.name);
+    }
+  }
+
+  modules.forEach((moduleMetadata, module) {
+    if (moduleMetadata.skipEmit) return;
     final serializer = Serializer();
     module.serialize(serializer);
     writeFutures.add(
-        ioManager.writeWasmModule(serializer.data, moduleOutput.moduleName));
-
+        ioManager.writeWasmModule(serializer.data, moduleMetadata.moduleName));
     if (generateSourceMaps) {
-      final sourceMap = serializer.sourceMapSerializer.serialize();
-      writeFutures.add(
-          ioManager.writeWasmSourceMap(sourceMap, moduleOutput.moduleName));
+      final sourceMapJson = serializer.sourceMapSerializer.serializeAsJson();
+      if (moduleMetadata.isMain && classNames != null) {
+        addMinifiedClassNames(sourceMapJson, classNames);
+      }
+      writeFutures.add(ioManager.writeWasmSourceMap(
+          jsonEncode(sourceMapJson), moduleMetadata.moduleName));
     }
   });
   await Future.wait(writeFutures);
@@ -676,40 +700,63 @@ Future<CompilationResult> _runCodegenPhase(
     await writeLoadIdsFile(component, coreTypes, options, loadingMap);
   }
 
+  final wasmOutputFilename = path.basename(options.outputFile);
+  final moduleIds = modules.keys
+      .map<int>((moduleMetadata) => options.idForModuleName(
+          wasmOutputFilename, moduleMetadata.moduleName)!)
+      .toSet();
+
   await ioManager.writeJsRuntime(jsRuntime);
   await ioManager.writeSupportJs(supportJs);
 
-  return CodegenResult(options.outputFile, modules.length);
+  if (options.recordedUsesFile != null) {
+    String loadingUnitForNode(TreeNode node) {
+      while (node is! NamedNode) {
+        node = node.parent!;
+      }
+      assert(node is Member || node is Class);
+      final moduleOutput = moduleOutputData.moduleForReference(node.reference);
+      if (moduleOutput == moduleOutputData.defaultModule &&
+          moduleOutputData.modules.length > 1) {
+        // This is an unassigned reference such as a constant class only
+        // used for annotations. Assign it to the main module as a placeholder.
+        return moduleOutputData.mainModule.moduleImportName;
+      }
+      return moduleOutput.moduleImportName;
+    }
+
+    record_use.transformComponent(
+        component, options.recordedUsesFile!, options.mainUri,
+        loadingUnitLookup: loadingUnitForNode);
+  }
+
+  return CodegenResult(options.outputFile, moduleIds);
 }
 
 Future<CompilationResult> _runOptPhase(
     CodegenResult codegenResult,
     compiler.WasmCompilerOptions options,
     CompilerPhaseInputOutputManager ioManager) async {
-  final numModules = codegenResult.numModules;
+  final moduleIdsToOptimize = options.moduleIdsToOptimize.isEmpty
+      ? codegenResult.moduleIds
+      : options.moduleIdsToOptimize;
+
+  final numModules = moduleIdsToOptimize.length;
   final optPool = pool.Pool(options.maxActiveWasmOptProcesses == -1
       ? numModules
       : options.maxActiveWasmOptProcesses);
 
-  final iterator = options.moduleIdsToOptimize.isEmpty
-      ? List.generate(numModules, (i) => i).iterator
-      : options.moduleIdsToOptimize.iterator;
-
-  while (iterator.moveNext()) {
-    final moduleId = iterator.current;
-    if (moduleId < 0 || moduleId >= numModules) {
-      throw ArgumentError('Invalid module ID to optimize: $moduleId');
-    }
-    final resource = await optPool.request();
-    ioManager
-        .runWasmOpt(
+  await Future.wait([
+    for (final moduleId in moduleIdsToOptimize)
+      optPool.withResource(() async {
+        await ioManager.runWasmOpt(
             codegenResult.mainWasmFile,
             moduleId,
             options.useMultiModuleOpt
                 ? _binaryenFlagsMultiModule
-                : _binaryenFlags)
-        .then((_) => resource.release());
-  }
+                : _binaryenFlags);
+      }),
+  ]);
   await optPool.close();
   return OptResult(options.outputFile, numModules);
 }

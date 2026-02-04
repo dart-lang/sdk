@@ -33,7 +33,6 @@ class AddDiagnosticPropertyReferenceBulkTest extends BulkFixProcessorTest {
       lints: [LintNames.diagnostic_describe_all_properties],
     );
     await resolveTestCode(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
@@ -44,7 +43,6 @@ class C extends Widget with Diagnosticable {
 ''');
 
     await assertHasFix(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
@@ -67,7 +65,6 @@ class C extends Widget with Diagnosticable {
       lints: [LintNames.diagnostic_describe_all_properties],
     );
     await resolveTestCode(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
@@ -84,7 +81,6 @@ class C extends Widget with Diagnosticable {
 ''');
 
     await assertHasFix(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
@@ -107,7 +103,6 @@ class C extends Widget with Diagnosticable {
   Future<void> test_singleFile() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
@@ -129,7 +124,6 @@ class D extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
@@ -174,13 +168,12 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
 
   Future<void> test_boolField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
   bool get absorbing => _absorbing;
-  bool _absorbing = false;
-  bool ignoringSemantics = false;
+  final bool _absorbing = false;
+  final bool ignoringSemantics = false;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -189,13 +182,12 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
   bool get absorbing => _absorbing;
-  bool _absorbing = false;
-  bool ignoringSemantics = false;
+  final bool _absorbing = false;
+  final bool ignoringSemantics = false;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -208,22 +200,20 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_boolField_empty() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  bool ignoringSemantics = false;
+  final bool ignoringSemantics = false;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   }
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  bool ignoringSemantics = false;
+  final bool ignoringSemantics = false;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     properties.add(DiagnosticsProperty<bool>('ignoringSemantics', ignoringSemantics));
@@ -234,22 +224,20 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_boolField_empty_customParamName() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  bool ignoringSemantics = false;
+  final bool ignoringSemantics = false;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder props) {
   }
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  bool ignoringSemantics = false;
+  final bool ignoringSemantics = false;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder props) {
     props.add(DiagnosticsProperty<bool>('ignoringSemantics', ignoringSemantics));
@@ -260,12 +248,11 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_boolGetter() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
   bool get absorbing => _absorbing;
-  bool _absorbing = false;
+  final bool _absorbing = false;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -273,12 +260,11 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
   bool get absorbing => _absorbing;
-  bool _absorbing = false;
+  final bool _absorbing = false;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -290,12 +276,11 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_colorField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  Color field = Color(0);
+  final Color field = Color(0);
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -303,12 +288,11 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  Color field = Color(0);
+  final Color field = Color(0);
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -320,11 +304,10 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_doubleField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  double field = 4.2;
+  final double field = 4.2;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -332,11 +315,10 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  double field = 4.2;
+  final double field = 4.2;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -348,11 +330,10 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_dynamicField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  dynamic field;
+  final dynamic field = 7;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -360,11 +341,10 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  dynamic field;
+  final dynamic field = 7;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -376,11 +356,10 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_enumField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  Foo field = Foo.bar;
+  final Foo field = Foo.bar;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -389,11 +368,10 @@ class C extends Widget with Diagnosticable {
 enum Foo {bar}
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  Foo field = Foo.bar;
+  final Foo field = Foo.bar;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -406,12 +384,11 @@ enum Foo {bar}
 
   Future<void> test_functionField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  ValueChanged<double> onChanged = (d) {};
+  final ValueChanged<double> onChanged = (d) {};
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -420,12 +397,11 @@ class C extends Widget with Diagnosticable {
 typedef ValueChanged<T> = void Function(T value);
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  ValueChanged<double> onChanged = (d) {};
+  final ValueChanged<double> onChanged = (d) {};
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -438,11 +414,10 @@ typedef ValueChanged<T> = void Function(T value);
 
   Future<void> test_intField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  int field = 0;
+  final int field = 0;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -450,11 +425,10 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  int field = 0;
+  final int field = 0;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -466,19 +440,17 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_iterableField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  Iterable<String> field = [];
+  final Iterable<String> field = [];
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  Iterable<String> field = [];
+  final Iterable<String> field = [];
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -491,11 +463,10 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_listField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  List<List<String>> field = [];
+  final List<List<String>> field = [];
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -503,11 +474,10 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  List<List<String>> field = [];
+  final List<List<String>> field = [];
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -520,12 +490,11 @@ class C extends Widget with Diagnosticable {
   Future<void> test_matrix4Field() async {
     writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 class C extends Widget with Diagnosticable {
-  Matrix4 field = Matrix4();
+  final Matrix4 field = Matrix4();
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -533,12 +502,11 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 class C extends Widget with Diagnosticable {
-  Matrix4 field = Matrix4();
+  final Matrix4 field = Matrix4();
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -550,11 +518,10 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_objectField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  Object field = '';
+  final Object field = '';
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -562,11 +529,10 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  Object field = '';
+  final Object field = '';
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -578,11 +544,10 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_stringField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  String field = '';
+  final String field = '';
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -590,11 +555,10 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  String field = '';
+  final String field = '';
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -606,19 +570,17 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_stringField_noDebugFillProperties() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  String field = '';
+  final String field = '';
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  String field = '';
+  final String field = '';
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -631,11 +593,10 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_typeOutOfScopeField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  ClassNotInScope<bool> onChanged;
+  final ClassNotInScope<bool> onChanged = 7;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -644,11 +605,10 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
-  ClassNotInScope<bool> onChanged;
+  final ClassNotInScope<bool> onChanged = 7;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -661,7 +621,6 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_typeOutOfScopeGetter() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
@@ -674,7 +633,6 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class C extends Widget with Diagnosticable {
@@ -691,9 +649,9 @@ class C extends Widget with Diagnosticable {
 
   Future<void> test_varField() async {
     await resolveTestCode('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+// ignore: must_be_immutable
 class C extends Widget with Diagnosticable {
   var field;
   @override
@@ -703,9 +661,9 @@ class C extends Widget with Diagnosticable {
 }
 ''');
     await assertHasFix('''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+// ignore: must_be_immutable
 class C extends Widget with Diagnosticable {
   var field;
   @override

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -53,6 +52,11 @@ class WidgetPreviewVerifier {
       _ when !_isSupportedParent(node: parent) => false,
       ConstructorDeclaration() => _isValidConstructorPreviewApplication(
         declaration: parent,
+        name: parent.name?.lexeme,
+        parentDeclaration: parent.parent?.parent,
+        isExternal: parent.externalKeyword != null,
+        isFactory: parent.factoryKeyword != null,
+        parameters: parent.parameters,
       ),
       FunctionDeclaration() => _isValidFunctionPreviewApplication(
         declaration: parent,
@@ -60,6 +64,15 @@ class WidgetPreviewVerifier {
       MethodDeclaration() => _isValidMethodPreviewApplication(
         declaration: parent,
       ),
+      PrimaryConstructorBody(:var declaration?) =>
+        _isValidConstructorPreviewApplication(
+          declaration: parent,
+          name: parent.declaration?.constructorName?.name.lexeme,
+          parentDeclaration: parent.parent?.parent,
+          isExternal: false,
+          isFactory: false,
+          parameters: declaration.formalParameters,
+        ),
       _ => false,
     };
 
@@ -79,27 +92,26 @@ class WidgetPreviewVerifier {
     return parameters.any((e) => e.isRequired);
   }
 
-  /// Returns true if `name` is private or `node.parent` is a [ClassDeclaration]
+  /// Returns whether [name] is private or `node.parent` is a [ClassDeclaration]
   /// that has a private name.
-  bool _isPrivateContext({required Token? name, required AstNode node}) {
-    if (Identifier.isPrivateName(name?.lexeme ?? '')) {
-      return true;
-    }
+  bool _isPrivateContext({required String? name, required AstNode node}) {
+    if (name != null && Identifier.isPrivateName(name)) return true;
+
     var parent = node.parent?.parent;
     if (parent == null) return false;
 
-    return switch (parent) {
-      ClassDeclaration(:var name) => Identifier.isPrivateName(name.lexeme),
-      EnumDeclaration(:var name) => Identifier.isPrivateName(name.lexeme),
-      ExtensionDeclaration(:var name) => Identifier.isPrivateName(
-        name?.lexeme ?? '',
-      ),
-      ExtensionTypeDeclaration(:var name) => Identifier.isPrivateName(
-        name.lexeme,
-      ),
-      MixinDeclaration(:var name) => Identifier.isPrivateName(name.lexeme),
-      _ => false,
+    var nameToken = switch (parent) {
+      ClassDeclaration declaration => declaration.namePart.typeName,
+      EnumDeclaration declaration => declaration.namePart.typeName,
+      ExtensionDeclaration declaration => declaration.name,
+      ExtensionTypeDeclaration declaration =>
+        declaration.primaryConstructor.typeName,
+      MixinDeclaration declaration => declaration.name,
+      _ => null,
     };
+    if (nameToken == null) return false;
+
+    return Identifier.isPrivateName(nameToken.lexeme);
   }
 
   /// Returns true if `node.parent` is a supported context for defining widget
@@ -131,24 +143,22 @@ class WidgetPreviewVerifier {
   ///   - The constructor is not external
   ///   - The constructor does not have any required arguments
   bool _isValidConstructorPreviewApplication({
-    required ConstructorDeclaration declaration,
+    required AstNode declaration,
+    required String? name,
+    required AstNode? parentDeclaration,
+    required bool isExternal,
+    required bool isFactory,
+    required FormalParameterList parameters,
   }) {
-    var parent = declaration.parent?.parent;
-    if (parent is! ClassDeclaration) return false;
+    if (isExternal) return false;
+    if (parentDeclaration is! ClassDeclaration) return false;
 
-    var fragment = parent.declaredFragment;
-    if (fragment is! ClassFragment) return false;
-
-    var element = fragment.element;
-    var name = declaration.name;
-    var externalKeyword = declaration.externalKeyword;
-    var factoryKeyword = declaration.factoryKeyword;
-    var parameters = declaration.parameters;
+    var element = parentDeclaration.declaredFragment?.element;
+    if (element is! ClassElement) return false;
 
     return !_isPrivateContext(name: name, node: declaration) &&
         element.isWidget &&
-        !(element.isAbstract && factoryKeyword == null) &&
-        externalKeyword == null &&
+        !(element.isAbstract && !isFactory) &&
         !_hasRequiredParameters(parameters.parameters);
   }
 
@@ -172,7 +182,7 @@ class WidgetPreviewVerifier {
         parameters: FormalParameterList(:var parameters),
       ),
     )) {
-      return !_isPrivateContext(name: name, node: declaration) &&
+      return !_isPrivateContext(name: name.lexeme, node: declaration) &&
           // Check for nested function.
           declaration.parent is! FunctionDeclarationStatement &&
           externalKeyword == null &&
@@ -201,7 +211,7 @@ class WidgetPreviewVerifier {
       :NamedType returnType,
       parameters: FormalParameterList(:var parameters),
     )) {
-      return !_isPrivateContext(name: name, node: declaration) &&
+      return !_isPrivateContext(name: name.lexeme, node: declaration) &&
           isStatic &&
           // Check for nested function.
           declaration.parent is! FunctionDeclarationStatement &&
@@ -241,10 +251,13 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (Identifier.isPrivateName(node.name)) {
-      diagnosticReporter.atNode(
-        rootArgument!,
-        diag.invalidWidgetPreviewPrivateArgument,
-        arguments: [node.name, node.name.replaceFirst(RegExp('_*'), '')],
+      diagnosticReporter.report(
+        diag.invalidWidgetPreviewPrivateArgument
+            .withArguments(
+              privateSymbolName: node.name,
+              suggestedName: node.name.replaceFirst(RegExp('_*'), ''),
+            )
+            .at(rootArgument!),
       );
     }
     super.visitSimpleIdentifier(node);

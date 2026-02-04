@@ -258,3 +258,10 @@ wildcard_variables/top_level_function_no_shadow: semiFuzzFailureOnForceRebuildBo
 
 # Temporarily unimplemented binary serialization, see https://github.com/dart-lang/sdk/issues/61765
 closure_context_lowering/local_variables: Crash
+closure_context_lowering/parameters: Crash
+closure_context_lowering/this_variable: Crash
+closure_context_lowering/loop_depth_strategy: Crash
+closure_context_lowering/foo42: Crash
+closure_context_lowering/foo45: Crash
+closure_context_lowering/foo48: Crash
+closure_context_lowering/assert_captured_variables: Crash

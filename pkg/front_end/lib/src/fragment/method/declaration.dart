@@ -25,6 +25,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_method_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -111,7 +112,7 @@ class MethodDeclarationImpl
   List<FormalParameterBuilder>? get formals => _encoding.formals;
 
   @override
-  FunctionNode get function => _encoding.function;
+  bool get isNoSuchMethodForwarder => _encoding.isNoSuchMethodForwarder;
 
   @override
   Procedure get invokeTarget => _encoding.invokeTarget;
@@ -267,13 +268,33 @@ class MethodDeclarationImpl
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) {
-    return _encoding.getFormalParameter(index);
+  VariableDeclaration? getTearOffParameter(int index) {
+    return _encoding.getTearOffParameter(index);
   }
 
   @override
-  VariableDeclaration? getTearOffParameter(int index) {
-    return _encoding.getTearOffParameter(index);
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    _encoding.registerFunctionBody(
+      body: body,
+      scope: scope,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
+    );
+  }
+
+  @override
+  DartType get returnTypeContext {
+    final bool isReturnTypeUndeclared =
+        _fragment.returnType is OmittedTypeBuilder &&
+        _encoding.function.returnType is DynamicType;
+    return isReturnTypeUndeclared
+        ? const UnknownType()
+        : _encoding.function.returnType;
   }
 }
 
@@ -281,7 +302,16 @@ class MethodDeclarationImpl
 abstract class MethodFragmentDeclaration {
   List<FormalParameterBuilder>? get formals;
 
-  FunctionNode get function;
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  });
+
+  DartType get returnTypeContext;
+
+  bool get isNoSuchMethodForwarder;
 
   TypeBuilder get returnType;
 
@@ -294,8 +324,6 @@ abstract class MethodFragmentDeclaration {
   BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder);
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
-
-  VariableDeclaration getFormalParameter(int index);
 
   VariableDeclaration? getTearOffParameter(int index);
 }

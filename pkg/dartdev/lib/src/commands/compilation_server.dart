@@ -33,12 +33,7 @@ class CompilationServerCommand extends DartdevCommand {
       'using the --resident-compiler-info-file option.';
 
   CompilationServerCommand({bool verbose = false})
-      : super(
-          commandName,
-          commandDescription,
-          false,
-          hidden: !verbose,
-        ) {
+    : super(commandName, commandDescription, false, hidden: !verbose) {
     addSubcommand(CompilationServerStartCommand());
     addSubcommand(CompilationServerShutdownCommand());
   }
@@ -53,12 +48,7 @@ class CompilationServerStartCommand extends DartdevCommand {
   static const commandDescription = 'Start a resident frontend compiler.';
 
   CompilationServerStartCommand({bool verbose = false})
-      : super(
-          commandName,
-          commandDescription,
-          false,
-          hidden: !verbose,
-        ) {
+    : super(commandName, commandDescription, false, hidden: !verbose) {
     argParser
       ..addOption(
         CompilationServerCommand.residentCompilerInfoFileFlag,
@@ -112,7 +102,7 @@ Shut down a resident frontend compiler.
 Note that this command name and usage could change as we evolve the resident frontend compiler behavior.''';
 
   CompilationServerShutdownCommand({bool verbose = false})
-      : super(commandName, commandDescription, false, hidden: !verbose) {
+    : super(commandName, commandDescription, false, hidden: !verbose) {
     argParser
       ..addOption(
         CompilationServerCommand.residentCompilerInfoFileFlag,
@@ -153,8 +143,9 @@ Note that this command name and usage could change as we evolve the resident fro
       return 0;
     }
 
-    final residentCompilerInfo =
-        ResidentCompilerInfo.fromFile(residentCompilerInfoFile);
+    final residentCompilerInfo = ResidentCompilerInfo.fromFile(
+      residentCompilerInfoFile,
+    );
     final address = residentCompilerInfo.address;
     final port = residentCompilerInfo.port;
     // There is nothing actionable the user can do in response to an error

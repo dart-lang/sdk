@@ -4,8 +4,8 @@
 
 import 'dart:typed_data';
 
-import '../serialize/serialize.dart';
 import '../serialize/printer.dart';
+import '../serialize/serialize.dart';
 import 'ir.dart';
 
 /// A logically const wasm module ready to encode. Created with `ModuleBuilder`.
@@ -287,6 +287,10 @@ class Module implements Serializable {
         if (type is! FunctionType) {
           mp.enqueueType(type);
         }
+      }
+
+      for (final memory in [...memories.imported, ...memories.defined]) {
+        mp.enqueueMemory(memory);
       }
 
       for (final table in [...tables.imported, ...tables.defined]) {

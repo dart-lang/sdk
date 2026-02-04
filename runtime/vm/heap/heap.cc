@@ -543,12 +543,10 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
       }
     }
 
-    thread->isolate_group()->ForEachIsolate(
-        [&](Isolate* isolate) {
-          // Discard regexp backtracking stacks to further reduce memory usage.
-          isolate->CacheRegexpBacktrackStack(nullptr);
-        },
-        /*at_safepoint=*/true);
+    thread->isolate_group()->ForEachMutatorAtASafepoint([&](Thread* mutator) {
+      // Discard regexp backtracking stacks to further reduce memory usage.
+      mutator->CacheRegexpBacktrackStack(nullptr);
+    });
 
     RecordBeforeGC(type, reason);
     NOT_IN_PRODUCT(VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId));

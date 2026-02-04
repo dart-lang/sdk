@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
@@ -132,6 +133,9 @@ abstract base class Assembler {
   Address fieldAddress(Register obj, int offset) =>
       address(obj, offset - heapObjectTag);
 
+  void enterDartFrame();
+  void leaveDartFrame();
+
   // Push and pop values using Dart stackPointerReg.
   void push(Register reg);
   void pop(Register reg);
@@ -149,7 +153,25 @@ abstract base class Assembler {
   /// Load arbitrary integer [value] into register.
   void loadImmediate(Register reg, int value);
 
+  /// [dst] = [src] + arbitrary integer [value].
+  void addImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]);
+
+  /// [dst] = bitwise and ([src], arbitrary integer [value]).
+  void andImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]);
+
   void callRuntime(RuntimeEntry entry, int argumentCount);
+  void callLeafRuntime(LeafRuntimeEntry entry);
+  void callStub(Code stub);
 
   void unimplemented(String message);
 }

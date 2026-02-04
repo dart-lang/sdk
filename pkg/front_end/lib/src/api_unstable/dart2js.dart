@@ -6,7 +6,8 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
-import 'package:front_end/src/codes/cfe_codes.dart' show codeMissingMain;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -170,7 +171,7 @@ Future<Component?> compile(
       if (component.mainMethod == null) {
         context.options.report(
           context,
-          codeMissingMain.withLocation(inputs.single, -1, 0),
+          diag.missingMain.withLocation(inputs.single, -1, 0),
           CfeSeverity.error,
         );
         return null;

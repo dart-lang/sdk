@@ -1056,18 +1056,8 @@ bool Thread::IsExecutingDartCode() const {
   return (top_exit_frame_info() == 0) && VMTag::IsDartTag(vm_tag());
 }
 
-bool Thread::IsExecutingDartCodeIgnoreRace() const {
-  return (top_exit_frame_info_ignore_race() == 0) &&
-         VMTag::IsDartTag(vm_tag_ignore_race());
-}
-
 bool Thread::HasExitedDartCode() const {
   return (top_exit_frame_info() != 0) && !VMTag::IsDartTag(vm_tag());
-}
-
-bool Thread::HasExitedDartCodeIgnoreRace() const {
-  return (top_exit_frame_info_ignore_race() != 0) &&
-         !VMTag::IsDartTag(vm_tag_ignore_race());
 }
 
 template <class C>
@@ -1697,16 +1687,6 @@ void Thread::set_forward_table_new(WeakTable* table) {
 void Thread::set_forward_table_old(WeakTable* table) {
   std::unique_ptr<WeakTable> value(table);
   forward_table_old_ = std::move(value);
-}
-
-void Thread::VisitMutators(MutatorThreadVisitor* visitor) {
-  if (visitor == nullptr) {
-    return;
-  }
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->thread_registry()->ForEachThread(
-        [&](Thread* thread) { visitor->VisitMutatorThread(thread); });
-  });
 }
 
 #if defined(DART_INCLUDE_PROFILER)

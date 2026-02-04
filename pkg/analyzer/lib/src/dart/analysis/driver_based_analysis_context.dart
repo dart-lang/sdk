@@ -8,7 +8,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisOptions, AnalysisOptionsImpl;
 
 /// An analysis context whose implementation is based on an analysis driver.
 class DriverBasedAnalysisContext implements AnalysisContext {
@@ -27,8 +28,8 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   DriverBasedAnalysisContext(this.resourceProvider, this.contextRoot);
 
   /// Get all the analysis options objects associated with this context.
-  List<AnalysisOptions> get allAnalysisOptions => [
-    ...driver.analysisOptionsMap.entries.map((e) => e.options),
+  List<AnalysisOptionsImpl> get allAnalysisOptions => [
+    ...driver.analysisOptionsMap.options,
   ];
 
   @override

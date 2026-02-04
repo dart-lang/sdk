@@ -54,10 +54,10 @@ class AssignmentVerifier {
       _diagnosticReporter.report(diag.assignmentToMethod.at(node));
     } else if (recovery is PrefixElement) {
       if (recovery.name case var prefixName?) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.prefixIdentifierNotFollowedByDot,
-          arguments: [prefixName],
+        _diagnosticReporter.report(
+          diag.prefixIdentifierNotFollowedByDot
+              .withArguments(name: prefixName)
+              .at(node),
         );
       }
     } else if (recovery is GetterElement) {
@@ -92,16 +92,14 @@ class AssignmentVerifier {
         return;
       }
       if (receiverType != null) {
-        _diagnosticReporter.atNode(
-          node,
-          diag.undefinedSetter,
-          arguments: [node.name, receiverType],
+        _diagnosticReporter.report(
+          diag.undefinedSetter
+              .withArguments(setterName: node.name, type: receiverType)
+              .at(node),
         );
       } else {
-        _diagnosticReporter.atNode(
-          node,
-          diag.undefinedIdentifier,
-          arguments: [node.name],
+        _diagnosticReporter.report(
+          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
         );
       }
     }

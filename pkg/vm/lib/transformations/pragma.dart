@@ -18,6 +18,7 @@ const kVmPlatformConstPragmaName = "vm:platform-const";
 const kVmPlatformConstIfPragmaName = "vm:platform-const-if";
 const kVmFfiNative = "vm:ffi:native";
 const kVmSharedPragmaName = "vm:shared";
+const kVmDeeplyImmutablePragmaName = "vm:deeply-immutable";
 
 // Pragmas recognized by dart2wasm
 const kWasmEntryPointPragmaName = "wasm:entry-point";
@@ -94,6 +95,10 @@ class ParsedDynModuleEntryPointPragma implements ParsedPragma {
 
 class ParsedVmSharedPragma implements ParsedPragma {
   const ParsedVmSharedPragma();
+}
+
+class ParsedVmDeeplyImmutablePragma implements ParsedPragma {
+  const ParsedVmDeeplyImmutablePragma();
 }
 
 abstract class PragmaAnnotationParser {
@@ -241,6 +246,8 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return const ParsedDynModuleEntryPointPragma();
       case kVmSharedPragmaName:
         return const ParsedVmSharedPragma();
+      case kVmDeeplyImmutablePragmaName:
+        return const ParsedVmDeeplyImmutablePragma();
       default:
         return null;
     }

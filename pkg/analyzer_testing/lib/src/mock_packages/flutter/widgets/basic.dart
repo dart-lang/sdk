@@ -10,6 +10,7 @@ import 'package:flutter/rendering.dart';
 import 'framework.dart';
 
 export 'package:flutter/animation.dart';
+export 'package:flutter/foundation.dart';
 export 'package:flutter/painting.dart';
 export 'package:flutter/rendering.dart';
 

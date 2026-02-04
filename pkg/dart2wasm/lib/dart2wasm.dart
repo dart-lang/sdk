@@ -57,6 +57,9 @@ final List<Option> options = [
   }, defaultsTo: _d.translatorOptions.omitBoundsChecks),
   Flag("verbose", (o, value) => o.translatorOptions.verbose = value,
       defaultsTo: _d.translatorOptions.verbose),
+  Flag("unique-constant-names",
+      (o, value) => o.translatorOptions.uniqueConstantNames = value,
+      defaultsTo: true, negatable: true),
   Flag("verify-type-checks",
       (o, value) => o.translatorOptions.verifyTypeChecks = value,
       defaultsTo: _d.translatorOptions.verifyTypeChecks),
@@ -151,6 +154,7 @@ final List<Option> options = [
   Flag("strip-wasm", (o, value) => o.stripWasm = value, negatable: true),
   IntMultiOption("wasm-opt-module-ids",
       (o, value) => o.moduleIdsToOptimize = value.toSet()),
+  UriOption("recorded-uses", (o, value) => o.recordedUsesFile = value),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

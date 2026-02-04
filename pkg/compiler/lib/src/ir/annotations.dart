@@ -419,10 +419,7 @@ Iterable<PragmaAnnotationData> _pragmaAnnotations(ir.Constant constant) {
     ];
   } else if (uri == Uris.packageMeta) {
     if (cls.name == 'RecordUse') {
-      return const [
-        PragmaAnnotationData('noInline'),
-        PragmaAnnotationData('resource-identifier'),
-      ];
+      return const [PragmaAnnotationData('record-use')];
     }
   }
   return const [];

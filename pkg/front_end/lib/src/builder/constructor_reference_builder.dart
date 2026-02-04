@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
+
 import '../base/lookup_result.dart';
-import '../base/messages.dart' show noLength, codeConstructorNotFound;
+import '../base/messages.dart' show noLength;
 import '../base/scope.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
@@ -77,7 +79,7 @@ class ConstructorReferenceBuilder {
     }
     if (target == null) {
       accessingLibrary.addProblem(
-        codeConstructorNotFound.withArgumentsOld(fullNameForErrors),
+        diag.constructorNotFound.withArguments(name: fullNameForErrors),
         charOffset,
         noLength,
         fileUri,

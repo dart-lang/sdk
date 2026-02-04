@@ -1,1 +1,9 @@
-include: package:lints/recommended.yaml
+include: package:dart_flutter_team_lints/analysis_options.yaml
+
+analyzer:
+  errors:
+    lines_longer_than_80_chars: ignore
+    omit_local_variable_types: ignore
+    only_throw_errors: ignore
+    prefer_const_constructors: ignore
+    prefer_single_quotes: ignore

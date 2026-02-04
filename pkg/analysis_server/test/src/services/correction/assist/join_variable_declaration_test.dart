@@ -66,7 +66,7 @@ void f() {
 
   Future<void> test_onAssignment_notDeclaration() async {
     await resolveTestCode('''
-void f(var v) {
+void f(v) {
   ^v = 1;
 }
 ''');

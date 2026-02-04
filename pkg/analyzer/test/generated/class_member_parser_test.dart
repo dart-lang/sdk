@@ -1018,25 +1018,14 @@ void Function<A>(core.List<core.int> x) m() => null;
   void test_parseClassMember_method_native_with_body_allowed() {
     allowNativeClause = true;
     _parseClassMember_method_native_with_body();
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    assertErrorsWithCodes([diag.externalMethodWithBody]);
-    //      listener.assertErrors([
-    //        expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 17, 2),
-    //      ]);
+    assertNoErrors();
   }
 
   void test_parseClassMember_method_native_with_body_not_allowed() {
     allowNativeClause = false;
     _parseClassMember_method_native_with_body();
     // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    assertErrorsWithCodes([
-      diag.nativeClauseShouldBeAnnotation,
-      diag.externalMethodWithBody,
-    ]);
-    //      listener.assertErrors([
-    //        expectedError(ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, 4, 6),
-    //        expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 17, 2),
-    //      ]);
+    assertErrorsWithCodes([diag.nativeClauseShouldBeAnnotation]);
   }
 
   void test_parseClassMember_method_operator_noType() {
@@ -1569,7 +1558,6 @@ void Function<A>(core.List<core.int> x) m() => null;
         expectedError(diag.invalidConstructorName, 11, 1),
         expectedError(diag.missingIdentifier, 20, 1),
         expectedError(diag.expectedToken, 20, 1),
-        expectedError(diag.constConstructorWithBody, 20, 1),
         expectedError(diag.expectedToken, 21, 1),
         expectedError(diag.expectedToken, 22, 1),
         expectedError(diag.expectedToken, 22, 1),

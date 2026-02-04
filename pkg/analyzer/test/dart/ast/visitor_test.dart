@@ -31,7 +31,7 @@ class B {
   return q() + 4;
   }
 }
-A f(var p) {
+A f(p) {
   if ((p as A).g) {
     return p;
   } else {

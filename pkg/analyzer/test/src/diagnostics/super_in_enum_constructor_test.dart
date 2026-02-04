@@ -15,7 +15,19 @@ main() {
 
 @reflectiveTest
 class SuperInEnumConstructorTest extends PubPackageResolutionTest {
-  test_hasRedirect() async {
+  test_primary_one() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  this : super();
+}
+''',
+      [error(diag.superInEnumConstructor, 25, 5)],
+    );
+  }
+
+  test_typeName_hasRedirect() async {
     await assertErrorsInCode(
       r'''
 enum E {
@@ -28,7 +40,7 @@ enum E {
     );
   }
 
-  test_one() async {
+  test_typeName_one() async {
     await assertErrorsInCode(
       r'''
 enum E {
@@ -40,7 +52,7 @@ enum E {
     );
   }
 
-  test_two() async {
+  test_typeName_two() async {
     await assertErrorsInCode(
       r'''
 enum E {

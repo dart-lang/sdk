@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 import '../base/export.dart';
 import '../base/identifiers.dart';
 import '../base/import.dart';
 import '../base/problems.dart';
-import '../codes/cfe_codes.dart';
 import '../fragment/fragment.dart';
 
 /// Map from offsets of directives and declarations to the objects the define.
@@ -21,6 +21,7 @@ class OffsetMap {
   final Map<int, DeclarationFragmentImpl> _declarations = {};
   final Map<int, FieldFragment> _fields = {};
   final Map<int, PrimaryConstructorFragment> _primaryConstructors = {};
+  final Map<int, PrimaryConstructorBodyFragment> _primaryConstructorBodies = {};
   final Map<int, ConstructorFragment> _constructors = {};
   final Map<int, FactoryFragment> _factoryFragments = {};
   final Map<int, GetterFragment> _getters = {};
@@ -149,6 +150,23 @@ class OffsetMap {
     );
   }
 
+  void registerPrimaryConstructorBody(
+    Token token,
+    PrimaryConstructorBodyFragment fragment,
+  ) {
+    _primaryConstructorBodies[token.charOffset] = fragment;
+  }
+
+  PrimaryConstructorBodyFragment lookupPrimaryConstructorBody(
+    Token beginToken,
+  ) {
+    return _checkFragment(
+      _primaryConstructorBodies[beginToken.charOffset],
+      '<primary-constructor-body>',
+      beginToken.charOffset,
+    );
+  }
+
   void registerConstructorFragment(
     Identifier identifier,
     ConstructorFragment fragment,
@@ -208,7 +226,7 @@ class OffsetMap {
   T _checkDirective<T>(T? directive, String name, int charOffset) {
     if (directive == null) {
       internalProblem(
-        codeInternalProblemNotFound.withArgumentsOld(name),
+        diag.internalProblemNotFound.withArguments(name: name),
         charOffset,
         uri,
       );
@@ -219,7 +237,7 @@ class OffsetMap {
   T _checkFragment<T>(T? fragment, String name, int fileOffset) {
     if (fragment == null) {
       internalProblem(
-        codeInternalProblemNotFound.withArgumentsOld(name),
+        diag.internalProblemNotFound.withArguments(name: name),
         fileOffset,
         uri,
       );

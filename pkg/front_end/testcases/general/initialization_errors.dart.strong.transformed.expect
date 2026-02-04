@@ -105,14 +105,14 @@ class A extends core::Object {
   constructor •() → self::A
     : self::A::x = 41, invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:9:16: Error: 'x' was already initialized by this constructor.
         this.x = 42 {}
-               ^", super core::Object::•() {}
+               ^" {}
 }
 class B extends core::Object {
   final field core::int x;
   constructor •() → self::B
     : self::B::x = 41, invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:16:16: Error: 'x' was already initialized by this constructor.
         this.x = 42 {}
-               ^", super core::Object::•() {}
+               ^" {}
 }
 class C extends core::Object {
   final field core::int x = 2;
@@ -121,7 +121,7 @@ class C extends core::Object {
       : this.x = 41,
                ^", invalid-initializer "pkg/front_end/testcases/general/initialization_errors.dart:23:16: Error: 'x' was already initialized by this constructor.
         this.x = 42 {}
-               ^", super core::Object::•() {}
+               ^" {}
 }
 class D extends core::Object {
   final field core::int x;

@@ -106,7 +106,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     } else if (ResponseMessage.canParse(json, nullLspJsonReporter)) {
       onMessage(ResponseMessage.fromJson(json));
     } else {
-      _sendParseError();
+      _sendParseError(data);
     }
   }
 
@@ -136,11 +136,12 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     );
   }
 
-  void _sendParseError() {
+  void _sendParseError([String? data]) {
     var error = ResponseMessage(
       error: ResponseError(
         code: ErrorCodes.ParseError,
         message: 'Unable to parse message',
+        data: data,
       ),
       jsonrpc: jsonRpcVersion,
     );

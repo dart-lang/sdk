@@ -17,8 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class NodeLocator2Test extends _SharedNodeLocatorTests {
-  @override
+class NodeLocator2Test extends ParserTestCase {
   AstNode? locate(CompilationUnit unit, int start, [int? end]) {
     var locator = NodeLocator2(start, end);
     var node = locator.searchWithin(unit)!;
@@ -42,25 +41,6 @@ class NodeLocator2Test extends _SharedNodeLocatorTests {
     expect(NodeLocator2(7).searchWithin(unit), same(unit));
     expect(NodeLocator2(100).searchWithin(unit), isNull);
   }
-
-  void test_startEndOffset() {
-    String code = ' f() {} ';
-    //             01234567
-    CompilationUnit unit = parseCompilationUnit(code);
-    var function = unit.declarations.single as FunctionDeclaration;
-    expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
-    expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));
-    expect(NodeLocator2(1, 2).searchWithin(unit), same(function));
-    expect(NodeLocator2(1, 3).searchWithin(unit), same(function));
-    expect(NodeLocator2(1, 4).searchWithin(unit), same(function));
-    expect(NodeLocator2(5, 7).searchWithin(unit), same(unit));
-    expect(NodeLocator2(5, 100).searchWithin(unit), isNull);
-    expect(NodeLocator2(100, 200).searchWithin(unit), isNull);
-  }
-}
-
-abstract class _SharedNodeLocatorTests extends ParserTestCase {
-  AstNode? locate(CompilationUnit unit, int start, [int? end]);
 
   void test_searchWithin_class_afterName_beforeTypeParameters() {
     var source = r'''
@@ -141,6 +121,21 @@ set s(int i) {}
     var unit = parseCompilationUnit(source);
     var node = _assertLocate(unit, source.indexOf('(int i)'));
     expect(node, isFunctionDeclaration);
+  }
+
+  void test_startEndOffset() {
+    String code = ' f() {} ';
+    //             01234567
+    CompilationUnit unit = parseCompilationUnit(code);
+    var function = unit.declarations.single as FunctionDeclaration;
+    expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
+    expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));
+    expect(NodeLocator2(1, 2).searchWithin(unit), same(function));
+    expect(NodeLocator2(1, 3).searchWithin(unit), same(function));
+    expect(NodeLocator2(1, 4).searchWithin(unit), same(function));
+    expect(NodeLocator2(5, 7).searchWithin(unit), same(unit));
+    expect(NodeLocator2(5, 100).searchWithin(unit), isNull);
+    expect(NodeLocator2(100, 200).searchWithin(unit), isNull);
   }
 
   AstNode _assertLocate(CompilationUnit unit, int start, [int? end]) {

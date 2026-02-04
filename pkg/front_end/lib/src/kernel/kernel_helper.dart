@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
-import '../base/messages.dart';
 import '../builder/library_builder.dart';
 
 /// Data for clone default values for synthesized function nodes once the
@@ -301,9 +301,9 @@ class DelayedDefaultValueCloner {
       synthesizedParameter.hasDeclaredInitializer = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
-          codeOptionalSuperParameterWithoutInitializer.withArgumentsOld(
-            synthesizedParameter.type,
-            synthesizedParameter.name!,
+          diag.optionalSuperParameterWithoutInitializer.withArguments(
+            superParameterType: synthesizedParameter.type,
+            superParameterName: synthesizedParameter.name!,
           ),
           synthesizedParameter.fileOffset,
           synthesizedParameter.name?.length ?? 1,
@@ -385,4 +385,25 @@ void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {
   origin.isExternal = augmentation.isExternal;
   origin.function = augmentation.function;
   origin.function.parent = origin;
+}
+
+extension FunctionNodeExtension on FunctionNode {
+  void registerFunctionBody(
+    Statement body, {
+    AsyncMarker asyncMarker = AsyncMarker.Sync,
+    DartType? emittedValueType = null,
+  }) {
+    assert(
+      !(asyncMarker == AsyncMarker.Sync && emittedValueType != null),
+      "Unexpected emitted value type for sync function.",
+    );
+    assert(
+      !(asyncMarker != AsyncMarker.Sync && emittedValueType == null),
+      "Missing emitted value type for non-sync function.",
+    );
+    this.body = body..parent = this;
+    this.asyncMarker = asyncMarker;
+    this.dartAsyncMarker = asyncMarker;
+    this.emittedValueType = emittedValueType;
+  }
 }

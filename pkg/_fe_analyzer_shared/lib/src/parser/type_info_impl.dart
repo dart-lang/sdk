@@ -4,7 +4,7 @@
 
 library _fe_analyzer_shared.parser.type_info_impl;
 
-import '../messages/codes.dart' as codes;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
 
 import '../scanner/token.dart'
     show Keyword, SyntheticToken, Token, TokenIsAExtension, TokenType;
@@ -115,7 +115,7 @@ class NoType implements TypeInfo {
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
-    parser.reportRecoverableErrorWithToken(token.next!, codes.codeExpectedType);
+    parser.reportRecoverableErrorWithToken(token.next!, diag.expectedType);
     parser.rewriter.insertSyntheticIdentifier(token);
     return simpleType.parseType(token, parser);
   }
@@ -430,7 +430,7 @@ class VoidType implements TypeInfo {
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     // Report an error, then parse `void` as if it were a type name.
-    parser.reportRecoverableError(token.next!, codes.codeInvalidVoid);
+    parser.reportRecoverableError(token.next!, diag.invalidVoid);
     return simpleType.parseTypeNotVoid(token, parser);
   }
 
@@ -452,10 +452,7 @@ class VoidType implements TypeInfo {
       TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token);
       if (typeParam != noTypeParamOrArg) {
         hasTypeArguments = true;
-        parser.reportRecoverableError(
-          token.next!,
-          codes.codeVoidWithTypeArguments,
-        );
+        parser.reportRecoverableError(token.next!, diag.voidWithTypeArguments);
         token = typeParam.parseArguments(token, parser);
       }
     }
@@ -1450,7 +1447,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
           parser.reportRecoverableErrorWithEnd(
             atToken,
             next,
-            codes.codeAnnotationOnTypeArgument,
+            diag.annotationOnTypeArgument,
           );
           typeInfo = computeType(next, /* required = */ true, inDeclaration);
         }
@@ -1509,7 +1506,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
           // Report an error and skip actual identifier
           parser.reportRecoverableError(
             identifier,
-            codes.codeMultipleVarianceModifiers,
+            diag.multipleVarianceModifiers,
           );
           variance = variance.next!;
           identifier = identifier.next!;
@@ -1602,7 +1599,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     Token next = token.next!;
     parser.reportRecoverableError(
       next,
-      codes.codeExpectedButGot.withArgumentsOld(','),
+      diag.expectedButGot.withArguments(expected: ','),
     );
     return parser.rewriter.insertToken(
       token,
@@ -1619,7 +1616,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (!errorReported) {
         parser.reportRecoverableError(
           token,
-          codes.codeExpectedAfterButGot.withArgumentsOld('>'),
+          diag.expectedAfterButGot.withArguments(expected: '>'),
         );
         errorReported = true;
       }
@@ -1641,7 +1638,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         if (!errorReported) {
           parser.reportRecoverableError(
             token,
-            codes.codeExpectedAfterButGot.withArgumentsOld('>'),
+            diag.expectedAfterButGot.withArguments(expected: '>'),
           );
           errorReported = true;
         }
@@ -1668,7 +1665,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (!errorReported) {
         parser.reportRecoverableError(
           token,
-          codes.codeExpectedAfterButGot.withArgumentsOld('>'),
+          diag.expectedAfterButGot.withArguments(expected: '>'),
         );
         errorReported = true;
       }
@@ -1693,7 +1690,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         // Only report an error if one has not already been reported.
         parser.reportRecoverableError(
           token,
-          codes.codeExpectedAfterButGot.withArgumentsOld('>'),
+          diag.expectedAfterButGot.withArguments(expected: '>'),
         );
         errorReported = true;
       }
@@ -1709,7 +1706,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       // Only report an error if one has not already been reported.
       parser.reportRecoverableError(
         token,
-        codes.codeExpectedAfterButGot.withArgumentsOld('>'),
+        diag.expectedAfterButGot.withArguments(expected: '>'),
       );
     }
     if (parseCloser(next)) {

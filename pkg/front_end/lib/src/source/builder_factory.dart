@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
@@ -53,11 +54,13 @@ void _checkAugmentation(
     switch (declaration.kind) {
       case _DeclarationKind.Class:
         message = declaration.inPatch
-            ? codeUnmatchedPatchClass.withArgumentsOld(declaration.displayName)
+            ? diag.unmatchedPatchClass.withArguments(
+                className: declaration.displayName,
+              )
             :
               // Coverage-ignore(suite): Not run.
-              codeUnmatchedAugmentationClass.withArgumentsOld(
-                declaration.displayName,
+              diag.unmatchedAugmentationClass.withArguments(
+                className: declaration.displayName,
               );
       case _DeclarationKind.Constructor:
       case _DeclarationKind.Factory:
@@ -65,23 +68,23 @@ void _checkAugmentation(
       case _DeclarationKind.Property:
         if (declaration.inLibrary) {
           message = declaration.inPatch
-              ? codeUnmatchedPatchLibraryMember.withArgumentsOld(
-                  declaration.displayName,
+              ? diag.unmatchedPatchLibraryMember.withArguments(
+                  memberName: declaration.displayName,
                 )
               :
                 // Coverage-ignore(suite): Not run.
-                codeUnmatchedAugmentationLibraryMember.withArgumentsOld(
-                  declaration.displayName,
+                diag.unmatchedAugmentationLibraryMember.withArguments(
+                  memberName: declaration.displayName,
                 );
         } else {
           message = declaration.inPatch
-              ? codeUnmatchedPatchClassMember.withArgumentsOld(
-                  declaration.displayName,
+              ? diag.unmatchedPatchClassMember.withArguments(
+                  memberName: declaration.displayName,
                 )
               :
                 // Coverage-ignore(suite): Not run.
-                codeUnmatchedAugmentationClassMember.withArgumentsOld(
-                  declaration.displayName,
+                diag.unmatchedAugmentationClassMember.withArguments(
+                  memberName: declaration.displayName,
                 );
         }
       case _DeclarationKind.Mixin:
@@ -94,13 +97,13 @@ void _checkAugmentation(
       case _DeclarationKind.Typedef:
         // TODO(johnniwinther): Specialize more messages.
         message = declaration.inPatch
-            ? codeUnmatchedPatchDeclaration.withArgumentsOld(
-                declaration.displayName,
+            ? diag.unmatchedPatchDeclaration.withArguments(
+                declarationName: declaration.displayName,
               )
             :
               // Coverage-ignore(suite): Not run.
-              codeUnmatchedAugmentationDeclaration.withArgumentsOld(
-                declaration.displayName,
+              diag.unmatchedAugmentationDeclaration.withArguments(
+                declarationName: declaration.displayName,
               );
     }
     problemReporting.addProblem2(message, declaration.uriOffset);
@@ -150,6 +153,7 @@ class BuilderFactory {
     String name, {
     List<Fragment>? fragments,
     SyntheticDeclaration? syntheticDeclaration,
+    List<PrimaryConstructorBodyFragment>? primaryConstructorBodies,
   }) {
     List<_PreBuilder> nonConstructorPreBuilders = [];
     List<_PreBuilder> constructorPreBuilders = [];
@@ -170,6 +174,7 @@ class BuilderFactory {
           fragment,
           inLibrary: _inLibrary,
           unnamedFragments: unnamedFragments,
+          primaryConstructorBodies: primaryConstructorBodies,
         );
 
         declaration?.registerPreBuilder(
@@ -215,6 +220,7 @@ class BuilderFactory {
       // Coverage-ignore(suite): Not run.
       case ConstructorFragment():
       case PrimaryConstructorFragment():
+      case PrimaryConstructorBodyFragment():
       case FactoryFragment():
       case FieldFragment():
       case PrimaryConstructorFieldFragment():
@@ -273,12 +279,12 @@ class BuilderFactory {
             augmentation.typeParameters?.length ?? 0;
         if (introductoryTypeParameterCount != augmentationTypeParameterCount) {
           _problemReporting.addProblem(
-            codePatchClassTypeParametersMismatch,
+            diag.patchClassTypeParametersMismatch,
             augmentation.nameOffset,
             name.length,
             augmentation.fileUri,
             context: [
-              codePatchClassOrigin.withLocation(
+              diag.patchClassOrigin.withLocation(
                 fragment.fileUri,
                 fragment.nameOffset,
                 name.length,
@@ -371,7 +377,14 @@ class BuilderFactory {
     );
 
     ConstructorEncodingStrategy encodingStrategy =
-        new ConstructorEncodingStrategy(_declarationBuilder!);
+        new ConstructorEncodingStrategy(
+          _declarationBuilder!,
+          isClosureContextLoweringEnabled: _loader
+              .target
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled,
+        );
 
     ConstructorReferences constructorReferences = new ConstructorReferences(
       name: name,
@@ -427,6 +440,7 @@ class BuilderFactory {
     Fragment fragment, {
     required bool inLibrary,
     required List<Fragment> unnamedFragments,
+    required List<PrimaryConstructorBodyFragment>? primaryConstructorBodies,
   }) {
     switch (fragment) {
       case ClassFragment():
@@ -534,8 +548,13 @@ class BuilderFactory {
           uriOffset: fragment.uriOffset,
         );
       case PrimaryConstructorFragment():
+        PrimaryConstructorBodyFragment? bodyFragment;
+        if (primaryConstructorBodies != null &&
+            primaryConstructorBodies.isNotEmpty) {
+          bodyFragment = primaryConstructorBodies.removeAt(0);
+        }
         return new _GenerativeConstructorDeclaration(
-          new PrimaryConstructorDeclaration(fragment),
+          new PrimaryConstructorDeclaration(fragment, bodyFragment),
           name: fragment.name,
           displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
@@ -544,6 +563,9 @@ class BuilderFactory {
           isConst: fragment.modifiers.isConst,
           uriOffset: fragment.uriOffset,
         );
+      case PrimaryConstructorBodyFragment():
+        // Coverage-ignore(suite): Not run.
+        throw new UnsupportedError("Unexpected primary constructor body.");
       case FieldFragment():
         RegularFieldDeclaration declaration = new RegularFieldDeclaration(
           fragment,
@@ -572,7 +594,9 @@ class BuilderFactory {
         return new _FieldDeclaration(
           displayName: fragment.name,
           isAugment: false,
-          propertyKind: _PropertyKind.FinalField,
+          propertyKind: fragment.hasSetter
+              ? _PropertyKind.Field
+              : _PropertyKind.FinalField,
           isStatic: false,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: false,
@@ -580,6 +604,7 @@ class BuilderFactory {
           declarations: new _PropertyDeclarations(
             field: declaration,
             getter: declaration,
+            setter: fragment.hasSetter ? declaration : null,
           ),
         );
       case GetterFragment():
@@ -713,12 +738,12 @@ class BuilderFactory {
             augmentation.typeParameters?.length ?? 0;
         if (introductoryTypeParameterCount != augmentationTypeParameterCount) {
           _problemReporting.addProblem(
-            codePatchExtensionTypeParametersMismatch,
+            diag.patchExtensionTypeParametersMismatch,
             augmentation.nameOrExtensionOffset,
             nameLength,
             augmentation.fileUri,
             context: [
-              codePatchExtensionOrigin.withLocation(
+              diag.patchExtensionOrigin.withLocation(
                 fragment.fileUri,
                 fragment.nameOrExtensionOffset,
                 nameLength,
@@ -1312,7 +1337,7 @@ class EnumValuesDeclaration extends _PropertyDeclaration
     _Declaration declaration,
   ) {
     problemReporting.addProblem2(
-      codeEnumContainsValuesDeclaration,
+      diag.enumContainsValuesDeclaration,
       declaration.uriOffset,
     );
   }
@@ -1323,7 +1348,9 @@ class EnumValuesDeclaration extends _PropertyDeclaration
     _PropertyDeclaration declaration,
   ) {
     problemReporting.addProblem2(
-      codeInstanceAndSynthesizedStaticConflict.withArgumentsOld(displayName),
+      diag.instanceAndSynthesizedStaticConflict.withArguments(
+        name: displayName,
+      ),
       declaration.uriOffset,
     );
   }
@@ -1645,11 +1672,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
       case _ExistingKind.Getable:
         if (newIsSetter) {
           problemReporting.addProblem2(
-            codeSetterConflictsWithDeclaration.withArgumentsOld(name),
+            diag.setterConflictsWithDeclaration.withArguments(setterName: name),
             newUriOffset,
             context: [
-              codeSetterConflictsWithDeclarationCause
-                  .withArgumentsOld(name)
+              diag.setterConflictsWithDeclarationCause
+                  .withArguments(setterName: name)
                   .withLocation2(existingUriOffset),
             ],
           );
@@ -1659,11 +1686,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
       case _ExistingKind.ExplicitSetter:
         if (!newIsSetter) {
           problemReporting.addProblem2(
-            codeDeclarationConflictsWithSetter.withArgumentsOld(name),
+            diag.declarationConflictsWithSetter.withArguments(setterName: name),
             newUriOffset,
             context: <LocatedMessage>[
-              codeDeclarationConflictsWithSetterCause
-                  .withArgumentsOld(name)
+              diag.declarationConflictsWithSetterCause
+                  .withArguments(setterName: name)
                   .withLocation2(existingUriOffset),
             ],
           );
@@ -1672,11 +1699,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
         break;
       case _ExistingKind.ImplicitSetter:
         problemReporting.addProblem2(
-          codeConflictsWithImplicitSetter.withArgumentsOld(name),
+          diag.conflictsWithImplicitSetter.withArguments(fieldName: name),
           newUriOffset,
           context: [
-            codeConflictsWithImplicitSetterCause
-                .withArgumentsOld(name)
+            diag.conflictsWithImplicitSetterCause
+                .withArguments(fieldName: name)
                 .withLocation2(existingUriOffset),
           ],
         );
@@ -1684,11 +1711,11 @@ mixin _DeclarationReportingMixin implements _Declaration {
     }
 
     problemReporting.addProblem2(
-      codeDuplicatedDeclaration.withArgumentsOld(name),
+      diag.duplicatedDeclaration.withArguments(name: name),
       newUriOffset,
       context: <LocatedMessage>[
-        codeDuplicatedDeclarationCause
-            .withArgumentsOld(name)
+        diag.duplicatedDeclarationCause
+            .withArguments(name: name)
             .withLocation2(existingUriOffset),
       ],
     );
@@ -1727,11 +1754,11 @@ class _FactoryConstructorDeclaration extends _ConstructorDeclaration
     //    }
     //
     problemReporting.addProblem2(
-      codeMemberConflictsWithFactory.withArgumentsOld(displayName),
+      diag.memberConflictsWithFactory.withArguments(factoryName: displayName),
       nonConstructorDeclaration.uriOffset,
       context: [
-        codeMemberConflictsWithFactoryCause
-            .withArgumentsOld(displayName)
+        diag.memberConflictsWithFactoryCause
+            .withArguments(factoryName: displayName)
             .withLocation2(uriOffset),
       ],
     );
@@ -1826,11 +1853,13 @@ class _GenerativeConstructorDeclaration extends _ConstructorDeclaration
     //    }
     //
     problemReporting.addProblem2(
-      codeMemberConflictsWithConstructor.withArgumentsOld(displayName),
+      diag.memberConflictsWithConstructor.withArguments(
+        constructorName: displayName,
+      ),
       nonConstructorDeclaration.uriOffset,
       context: [
-        codeMemberConflictsWithConstructorCause
-            .withArgumentsOld(displayName)
+        diag.memberConflictsWithConstructorCause
+            .withArguments(constructorName: displayName)
             .withLocation2(uriOffset),
       ],
     );
@@ -1914,11 +1943,13 @@ abstract class _NonConstructorDeclaration extends _Declaration {
       //    }
       //
       problemReporting.addProblem2(
-        codeConstructorConflictsWithMember.withArgumentsOld(displayName),
+        diag.constructorConflictsWithMember.withArguments(
+          memberName: displayName,
+        ),
         constructorDeclaration.uriOffset,
         context: [
-          codeConstructorConflictsWithMemberCause
-              .withArgumentsOld(displayName)
+          diag.constructorConflictsWithMemberCause
+              .withArguments(memberName: displayName)
               .withLocation2(uriOffset),
         ],
       );
@@ -1935,11 +1966,11 @@ abstract class _NonConstructorDeclaration extends _Declaration {
       //    }
       //
       problemReporting.addProblem2(
-        codeFactoryConflictsWithMember.withArgumentsOld(displayName),
+        diag.factoryConflictsWithMember.withArguments(memberName: displayName),
         constructorDeclaration.uriOffset,
         context: [
-          codeFactoryConflictsWithMemberCause
-              .withArgumentsOld(displayName)
+          diag.factoryConflictsWithMemberCause
+              .withArguments(memberName: displayName)
               .withLocation2(uriOffset),
         ],
       );
@@ -2005,21 +2036,25 @@ abstract class _PropertyDeclaration extends _NonConstructorDeclaration {
   ) {
     if (isStatic) {
       problemReporting.addProblem2(
-        codeInstanceConflictsWithStatic.withArgumentsOld(displayName),
+        diag.instanceConflictsWithStatic.withArguments(
+          propertyName: displayName,
+        ),
         declaration.uriOffset,
         context: [
-          codeInstanceConflictsWithStaticCause
-              .withArgumentsOld(displayName)
+          diag.instanceConflictsWithStaticCause
+              .withArguments(propertyName: displayName)
               .withLocation2(uriOffset),
         ],
       );
     } else {
       problemReporting.addProblem2(
-        codeStaticConflictsWithInstance.withArgumentsOld(displayName),
+        diag.staticConflictsWithInstance.withArguments(
+          propertyName: displayName,
+        ),
         declaration.uriOffset,
         context: [
-          codeStaticConflictsWithInstanceCause
-              .withArgumentsOld(displayName)
+          diag.staticConflictsWithInstanceCause
+              .withArguments(propertyName: displayName)
               .withLocation2(uriOffset),
         ],
       );

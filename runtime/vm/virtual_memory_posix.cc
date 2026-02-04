@@ -564,7 +564,8 @@ void VirtualMemory::Init() {
 
 #if defined(DART_COMPRESSED_POINTERS)
   ASSERT(compressed_heap_ == nullptr);
-  compressed_heap_ = Reserve(kCompressedHeapSize, kCompressedHeapAlignment);
+  compressed_heap_ = Reserve(kGuardRegionSize * 2 + kCompressedHeapSize,
+                             kCompressedHeapAlignment);
   if (compressed_heap_ == nullptr) {
     int error = errno;
     const int kBufferSize = 1024;
@@ -572,8 +573,9 @@ void VirtualMemory::Init() {
     FATAL("Failed to reserve region for compressed heap: %d (%s)", error,
           Utils::StrError(error, error_buf, kBufferSize));
   }
-  VirtualMemoryCompressedHeap::Init(compressed_heap_->address(),
-                                    compressed_heap_->size());
+  VirtualMemoryCompressedHeap::Init(
+      reinterpret_cast<void*>(compressed_heap_->start() + kGuardRegionSize),
+      kCompressedHeapSize);
 #endif  // defined(DART_COMPRESSED_POINTERS)
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   FILE* fp = fopen("/proc/sys/vm/max_map_count", "r");
@@ -582,7 +584,7 @@ void VirtualMemory::Init() {
     int count = fscanf(fp, "%zu", &max_map_count);
     fclose(fp);
     if (count == 1) {
-      size_t max_heap_pages = FLAG_old_gen_heap_size * MB / kPageSize;
+      size_t max_heap_pages = FLAG_old_gen_heap_size * MB / Page::kPageSize;
       if (max_map_count < max_heap_pages) {
         OS::PrintErr(
             "warning: vm.max_map_count (%zu) is not large enough to support "

@@ -451,6 +451,7 @@ deftypes
 degrades
 degree
 del
+delaying
 delegated
 delegating
 delim
@@ -493,6 +494,7 @@ deterministic
 dev
 developed
 device
+diag
 dictates
 dies
 diff
@@ -1467,6 +1469,7 @@ ranges
 ranked
 rapid
 rarely
+rate
 ratio
 rb
 rc

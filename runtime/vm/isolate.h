@@ -38,7 +38,6 @@
 #include "vm/thread_pool.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
-#include "vm/virtual_memory.h"
 
 namespace dart {
 
@@ -212,9 +211,6 @@ class IdleTimeHandler : public ValueObject {
   // Initializes the idle time handler with the given [heap], to which
   // idle notifications will be sent.
   void InitializeWithHeap(Heap* heap);
-
-  // Returns whether the caller should check for idle timeouts.
-  bool ShouldCheckForIdle();
 
   // Declares that the idle time should be reset to now.
   void UpdateStartIdleTime();
@@ -647,8 +643,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // adding/removing isolates, so no locks will be held.
   void ForEachIsolate(std::function<void(Isolate* isolate)> function,
                       bool at_safepoint = false);
-  Isolate* FirstIsolate() const;
-  Isolate* FirstIsolateLocked() const;
 
   void ForEachMutatorAtASafepoint(std::function<void(Thread* thread)> function);
 
@@ -1493,10 +1487,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   static void KillAllSystemIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
-  // Lookup an isolate by its main port. Returns nullptr if no matching isolate
-  // is found.
-  static Isolate* LookupIsolateByPort(Dart_Port port);
-
   // Lookup an isolate by its main port and return a copy of its name. Returns
   // nullptr if not matching isolate is found.
   static std::unique_ptr<char[]> LookupIsolateNameByPort(Dart_Port port);
@@ -1511,14 +1501,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   void RememberLiveTemporaries();
   void DeferredMarkLiveTemporaries();
-
-  std::unique_ptr<VirtualMemory> TakeRegexpBacktrackStack() {
-    return std::move(regexp_backtracking_stack_cache_);
-  }
-
-  void CacheRegexpBacktrackStack(std::unique_ptr<VirtualMemory> stack) {
-    regexp_backtracking_stack_cache_ = std::move(stack);
-  }
 
   void init_loaded_prefixes_set_storage();
   bool IsPrefixLoaded(const LibraryPrefix& prefix) const;
@@ -1716,8 +1698,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // send a kill message).
   // This is protected by [isolate_creation_monitor_].
   bool accepts_messages_ = false;
-
-  std::unique_ptr<VirtualMemory> regexp_backtracking_stack_cache_ = nullptr;
 
   intptr_t wake_pause_event_handler_count_;
 

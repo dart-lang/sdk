@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -179,10 +180,8 @@ class PrefixedIdentifierResolver {
       return;
     }
 
-    _resolver.diagnosticReporter.atNode(
-      node,
-      diag.extensionAsExpression,
-      arguments: [node.name],
+    _resolver.diagnosticReporter.report(
+      diag.extensionAsExpression.withArguments(name: node.name).at(node),
     );
 
     if (node is PrefixedIdentifierImpl) {

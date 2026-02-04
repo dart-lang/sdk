@@ -1353,7 +1353,7 @@ foo() {
   C()<int>;
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 57, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 57, 5)],
     );
 
     var node = findNode.implicitCallReference('C()<int>;');
@@ -1397,7 +1397,7 @@ foo() {
   C()<int>;
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 50, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 50, 5)],
     );
 
     var node = findNode.implicitCallReference('C()<int>;');
@@ -3048,7 +3048,7 @@ class A {
   }
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 44, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 44, 5)],
     );
 
     var reference = findNode.functionReference('foo<int>;');
@@ -3089,7 +3089,7 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
   (1 == 2 ? foo : bar)<int, String>;
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsAnonymousFunction, 85, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsFunction, 85, 13)],
     );
 
     var reference = findNode.functionReference(
@@ -3506,7 +3506,7 @@ class A {
   }
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 58, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 58, 5)],
     );
 
     var reference = findNode.functionReference('foo<int>;');
@@ -3542,7 +3542,7 @@ class A {
   }
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 50, 10)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 50, 10)],
     );
 
     var reference = findNode.functionReference('foo<int, int>;');

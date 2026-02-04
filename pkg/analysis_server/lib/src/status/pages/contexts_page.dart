@@ -12,7 +12,6 @@ import 'package:analysis_server/src/status/utilities/library_cycle_extensions.da
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -42,7 +41,7 @@ class ContextsPage extends DiagnosticPageWithNav {
   Future<void> generateContent(Map<String, String> params) async {
     var driverMap = SplayTreeMap.of(
       server.driverMap,
-      (a, b) => a.shortName.compareTo(b.shortName),
+      (a, b) => a.path.compareTo(b.path),
     );
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
@@ -55,16 +54,11 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="tabnav">');
     buf.writeln('<nav class="tabnav-tabs">');
     for (var f in driverMap.keys) {
-      if (f == folder) {
-        buf.writeln(
-          '<a class="tabnav-tab selected">${escape(f.shortName)}</a>',
-        );
-      } else {
-        var p = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
-        buf.writeln(
-          '<a href="$p" class="tabnav-tab">${escape(f.shortName)}</a>',
-        );
-      }
+      var selectedClass = f == folder ? 'selected' : '';
+      var href = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
+      buf.writeln(
+        '<a href="${escape(href)}" class="tabnav-tab $selectedClass" title="${escape(f.path)}">${escape(f.shortName)}</a>',
+      );
     }
     buf.writeln('</nav>');
     buf.writeln('</div>');
@@ -78,13 +72,12 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     // Display analysis options entries inside this context root.
     var separator = folder.provider.pathContext.separator;
-    var optionsInContextRoot = driver.analysisOptionsMap.entries.where(
+    var foldersInContextRoot = driver.analysisOptionsMap.folders.where(
       (e) =>
-          contextPath == e.folder.path ||
-          contextPath.startsWith('${e.folder.path}$separator'),
+          contextPath == e.path ||
+          contextPath.startsWith('${e.path}$separator'),
     );
-    ul(optionsInContextRoot, (OptionsMapEntry entry) {
-      var folder = entry.folder;
+    ul(foldersInContextRoot, (folder) {
       buf.write(escape(folder.path));
       var optionsPath = path.join(folder.path, 'analysis_options.yaml');
       var contentsPath =

@@ -25,12 +25,8 @@ import 'package:front_end/src/base/problems.dart' show DebugAbort;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/codes/cfe_codes.dart'
-    show
-        Message,
-        PlainAndColorizedString,
-        codeFastaUsageLong,
-        codeFastaUsageShort,
-        codeUnspecified;
+    show Message, PlainAndColorizedString;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
 import 'package:front_end/src/scheme_based_file_system.dart'
@@ -363,8 +359,8 @@ Message computeUsage(String programName, bool verbose) {
   String? summary;
   String options =
       (verbose
-              ? codeFastaUsageLong.problemMessage
-              : codeFastaUsageShort.problemMessage)
+              ? diag.fastaUsageLong.problemMessage
+              : diag.fastaUsageShort.problemMessage)
           .trim();
   switch (programName) {
     case "outline":
@@ -395,7 +391,7 @@ Message computeUsage(String programName, bool verbose) {
   }
   sb.write(options);
   // TODO(ahe): Don't use [codeUnspecified].
-  return codeUnspecified.withArgumentsOld("$sb");
+  return diag.unspecified.withArguments(message: "$sb");
 }
 
 Future<T> runProtectedFromAbort<T>(

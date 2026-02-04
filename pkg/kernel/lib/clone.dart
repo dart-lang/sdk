@@ -210,25 +210,25 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) {
     return new AbstractSuperPropertyGet.byReference(
-        node.name, node.interfaceTargetReference);
+        clone(node.receiver), node.name, node.interfaceTargetReference);
   }
 
   @override
   TreeNode visitAbstractSuperPropertySet(AbstractSuperPropertySet node) {
-    return new AbstractSuperPropertySet.byReference(
+    return new AbstractSuperPropertySet.byReference(clone(node.receiver),
         node.name, clone(node.value), node.interfaceTargetReference);
   }
 
   @override
   TreeNode visitSuperPropertyGet(SuperPropertyGet node) {
     return new SuperPropertyGet.byReference(
-        node.name, node.interfaceTargetReference);
+        clone(node.receiver), node.name, node.interfaceTargetReference);
   }
 
   @override
   TreeNode visitSuperPropertySet(SuperPropertySet node) {
-    return new SuperPropertySet.byReference(
-        node.name, clone(node.value), node.interfaceTargetReference);
+    return new SuperPropertySet.byReference(clone(node.receiver), node.name,
+        clone(node.value), node.interfaceTargetReference);
   }
 
   @override
@@ -244,13 +244,13 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitAbstractSuperMethodInvocation(
       AbstractSuperMethodInvocation node) {
-    return new AbstractSuperMethodInvocation.byReference(
+    return new AbstractSuperMethodInvocation.byReference(clone(node.receiver),
         node.name, clone(node.arguments), node.interfaceTargetReference);
   }
 
   @override
   TreeNode visitSuperMethodInvocation(SuperMethodInvocation node) {
-    return new SuperMethodInvocation.byReference(
+    return new SuperMethodInvocation.byReference(clone(node.receiver),
         node.name, clone(node.arguments), node.interfaceTargetReference);
   }
 

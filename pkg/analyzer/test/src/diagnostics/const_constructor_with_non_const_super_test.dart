@@ -15,31 +15,85 @@ main() {
 
 @reflectiveTest
 class ConstConstructorWithNonConstSuperTest extends PubPackageResolutionTest {
-  test_class_explicit() async {
+  test_class_explicit_constructor_newHead() async {
     await assertErrorsInCode(
       r'''
-class A {
-  A();
+class A {}
+class B extends A {
+  const new(): super();
 }
+''',
+      [error(diag.constConstructorWithNonConstSuper, 46, 7)],
+    );
+  }
+
+  test_class_explicit_constructor_typeName() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
 class B extends A {
   const B(): super();
 }
 ''',
-      [error(diag.constConstructorWithNonConstSuper, 52, 7)],
+      [error(diag.constConstructorWithNonConstSuper, 44, 7)],
     );
   }
 
-  test_class_implicit() async {
+  test_class_explicit_primaryConstructor_hasBody() async {
     await assertErrorsInCode(
       r'''
-class A {
-  A();
+class A {}
+class const B() extends A {
+  this : super();
 }
+''',
+      [error(diag.constConstructorWithNonConstSuper, 48, 7)],
+    );
+  }
+
+  test_class_implicit_constructor_newHead() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+class B extends A {
+  const new();
+}
+''',
+      [error(diag.constConstructorWithNonConstSuper, 39, 3)],
+    );
+  }
+
+  test_class_implicit_constructor_typeName() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
 class B extends A {
   const B();
 }
 ''',
-      [error(diag.constConstructorWithNonConstSuper, 47, 1)],
+      [error(diag.constConstructorWithNonConstSuper, 39, 1)],
+    );
+  }
+
+  test_class_implicit_primaryConstructor_hasBody() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+class const B() extends A {
+  this;
+}
+''',
+      [error(diag.constConstructorWithNonConstSuper, 17, 5)],
+    );
+  }
+
+  test_class_implicit_primaryConstructor_noBody() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+class const B() extends A;
+''',
+      [error(diag.constConstructorWithNonConstSuper, 17, 5)],
     );
   }
 

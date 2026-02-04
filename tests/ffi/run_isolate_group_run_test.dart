@@ -15,6 +15,7 @@
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 
@@ -44,7 +45,11 @@ main(List<String> args) {
 
   testFailToAssignClosureWithListToSharedVar();
 
-  testFailToPrint();
+  testCapturesClassWithDeeplyImmutableClosure();
+  testFailToCaptureClassWithNonFinalCapturingClosure();
+  testCapturesClassWithFinalCapturingClosure();
+
+  testPrint();
 
   testFailToIsolateGroupRunSyncThrows();
   testIsolateCurrent();
@@ -63,6 +68,10 @@ main(List<String> args) {
   testRandom();
   testEncoding();
   testRecursiveToString();
+
+  testBytesBuilder();
+
+  testRegExp();
 
   print("All tests completed :)");
 }
@@ -267,16 +276,65 @@ void testFailToAssignClosureWithListToSharedVar() {
 }
 
 ///
-void testFailToPrint() {
+@pragma('vm:deeply-immutable')
+final class FooWithFunc {
+  final int Function() func;
+  final int kuka;
+
+  FooWithFunc(this.func, this.kuka);
+}
+
+void testCapturesClassWithDeeplyImmutableClosure() {
+  final foo = FooWithFunc(() => 42, 43);
+  final result = IsolateGroup.runSync(() {
+    return foo.func();
+  });
+  Expect.equals(42, result);
+}
+
+@pragma('vm:shared')
+bool skipAccessAtRuntime = false;
+
+void testFailToCaptureClassWithNonFinalCapturingClosure() {
+  var closureValue = 42;
+
+  // Construction of this "deeply-immutable" object should actually fail at
+  // runtime due to closure closing over non-final [closureValue] variable.
   Expect.throws(
-    () {
-      IsolateGroup.runSync(() {
-        print('42');
-      });
-    },
-    (e) => e is Error && e.toString().contains("AccessError"),
-    'Expect error printing',
+    () => FooWithFunc(() => skipAccessAtRuntime ? -1 : closureValue, 43),
+    (e) => e is Error && e.toString().contains("Only final not-late"),
   );
+}
+
+void testCapturesClassWithFinalCapturingClosure() {
+  final finalClosureValue = 43;
+  final foo = FooWithFunc(
+    () => skipAccessAtRuntime ? -1 : finalClosureValue,
+    44,
+  );
+
+  skipAccessAtRuntime = true;
+  Expect.equals(
+    -1,
+    IsolateGroup.runSync(() {
+      return foo.func();
+    }),
+  );
+
+  skipAccessAtRuntime = false;
+  Expect.equals(
+    43,
+    IsolateGroup.runSync(() {
+      return foo.func();
+    }),
+  );
+}
+
+///
+void testPrint() {
+  IsolateGroup.runSync(() {
+    print('42');
+  });
 }
 
 ///
@@ -469,4 +527,24 @@ void testRecursiveToString() {
       return l.toString();
     }),
   );
+}
+
+///
+void testBytesBuilder() {
+  IsolateGroup.runSync(() {
+    BytesBuilder builder = new BytesBuilder();
+    builder.add([1, 2, 3]);
+    Expect.listEquals([1, 2, 3], builder.toBytes());
+    builder.clear();
+    Expect.isTrue(builder.isEmpty);
+  });
+}
+
+///
+void testRegExp() {
+  IsolateGroup.runSync(() {
+    RegExp re = new RegExp("abc", multiLine: false, caseSensitive: true);
+    Match? m = re.firstMatch("defabcghi");
+    Expect.equals("abc", m?[0]);
+  });
 }

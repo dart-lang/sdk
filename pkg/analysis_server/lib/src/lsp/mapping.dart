@@ -1536,8 +1536,19 @@ lsp.SignatureHelp toSignatureHelp(
     var defaultCodeSuffix = p.defaultValueCode != null
         ? ' = ${p.defaultValueCode}'
         : '';
-    var requiredPrefix = p.isRequiredNamed ? 'required ' : '';
-    return '$requiredPrefix${p.type} ${p.displayName}$defaultCodeSuffix';
+
+    var hasFinal = p is FieldFormalParameterElement
+        ? (p.field?.isFinal ?? false)
+        : p.isFinal;
+    // ignore: experimental_member_use
+    var hasVar = p is FieldFormalParameterElement && p.isDeclaring && !hasFinal;
+
+    var prefixes = [
+      if (hasFinal) 'final ',
+      if (hasVar) 'var ',
+      if (p.isRequiredNamed) 'required ',
+    ];
+    return '${prefixes.join()}${p.type} ${p.displayName}$defaultCodeSuffix';
   }
 
   /// Gets the full signature label in the form

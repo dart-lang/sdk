@@ -41,17 +41,7 @@ void f() {
     expect(refactor, isNull);
   }
 
-  void test_canRename_class() async {
-    var refactor = await _compute(r'''
-class ^Old {}
-}
-''');
-
-    expect(refactor!.refactoringElement.element.name, 'Old');
-    expect(refactor.refactoringElement.offset, _correctionContext.offset);
-  }
-
-  void test_canRename_field() async {
+  void test_canRename_class_field() async {
     var refactor = await _compute(r'''
 class A {
  int ^bar;
@@ -65,15 +55,57 @@ class A {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_canRename_field_static_private() async {
+  void test_canRename_class_field_static_private() async {
     var refactor = await _compute(r'''
-class A{
+class A {
   static const ^_val = 1234;
 }
 ''');
 
     expect(refactor, isNotNull);
     expect(refactor!.refactoringElement.element.name, '_val');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
+  }
+
+  void test_canRename_class_itself() async {
+    var refactor = await _compute(r'''
+class ^Old {}
+}
+''');
+
+    expect(refactor!.refactoringElement.element.name, 'Old');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
+  }
+
+  void test_canRename_class_method() async {
+    var refactor = await _compute(r'''
+class A {
+  void ^foo() {}
+}
+''');
+
+    expect(refactor!.refactoringElement.element.name, 'foo');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
+  }
+
+  void test_canRename_class_operator() async {
+    var refactor = await _compute(r'''
+class A {
+  A operator ^+(A other) => this;
+}
+''');
+
+    expect(refactor, isNull);
+  }
+
+  void test_canRename_extension_method() async {
+    var refactor = await _compute(r'''
+extension E on int {
+  void ^foo() {}
+}
+''');
+
+    expect(refactor!.refactoringElement.element.name, 'foo');
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
@@ -114,27 +146,6 @@ void foo() {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_canRename_method() async {
-    var refactor = await _compute(r'''
-extension E on int {
-  void ^foo() {}
-}
-''');
-
-    expect(refactor!.refactoringElement.element.name, 'foo');
-    expect(refactor.refactoringElement.offset, _correctionContext.offset);
-  }
-
-  void test_canRename_operator() async {
-    var refactor = await _compute(r'''
-class A{
-  A operator ^+(A other) => this;
-}
-''');
-
-    expect(refactor, isNull);
-  }
-
   void test_canRename_parameter() async {
     var refactor = await _compute(r'''
 void foo(int ^bar) {
@@ -160,7 +171,18 @@ void f() {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
-  void test_checkName_class() async {
+  void test_checkName_class_constructor() async {
+    var result = await _checkName(r'''
+class A {
+  A.^test() {}
+}
+''', 'test');
+
+    expect(result!.status.problems.length, 1);
+    expect(result.status.hasError, isTrue);
+  }
+
+  void test_checkName_class_itself() async {
     var result = await _checkName(r'''
 class ^Old {}
 ''', 'New');
@@ -200,17 +222,6 @@ void foo() {
     expect(result.oldName, 'a');
   }
 
-  void test_checkName_newName() async {
-    var result = await _checkName(r'''
-class A {
-  A.^test() {}
-}
-''', 'test');
-
-    expect(result!.status.problems.length, 1);
-    expect(result.status.hasError, isTrue);
-  }
-
   void test_checkName_parameter() async {
     var result = await _checkName(r'''
 void foo(String ^a) {
@@ -240,74 +251,74 @@ typedef ^Foo = void Function();
     expect(result.oldName, 'Foo');
   }
 
-  void test_rename_class() async {
+  @FailingTest(reason: 'Support for primary-constructors')
+  // TODO(scheglov): implement it
+  void test_rename_class_constructor_newHead_add() async {
     var testCode = '''
-class ^Old implements Other {
-  Old() {}
-  Old.named() {}
-}
-class Other {
-  factory Other.a() = Old;
-  factory Other.b() = Old.named;
+class A {
+  new ^();
 }
 void f() {
-  Old t1 = new Old();
-  Old t2 = new Old.named();
+  new A();
 }
 ''';
-    var result = await _rename(testCode, 'New');
+
+    var result = await _rename(testCode, 'newName');
     _assertTestChangeResult('''
-class New implements Other {
-  New() {}
-  New.named() {}
-}
-class Other {
-  factory Other.a() = New;
-  factory Other.b() = New.named;
+class A {
+  new newName ();
 }
 void f() {
-  New t1 = new New();
-  New t2 = new New.named();
+  new A.newName();
 }
 ''', result!.replaceMatches.first.matches);
   }
 
-  void test_rename_class_flutterWidget() async {
+  @FailingTest(reason: 'Support for primary-constructors')
+  // TODO(scheglov): implement it
+  void test_rename_class_constructor_newHead_change() async {
     var testCode = '''
-import 'package:flutter/material.dart';
-
-class ^TestPage extends StatefulWidget {
-  const TestPage();
-
-  @override
-  State<TestPage> createState() => TestPageState();
+class A {
+  new ^test() {}
 }
-
-class TestPageState extends State<TestPage> {
-  @override
-  Widget build(BuildContext context) => throw 0;
+void f() {
+  new A.test();
 }
 ''';
 
-    var result = await _rename(testCode, 'NewPage');
-    expect(result!.replaceMatches.length, 1);
-    expect(result.replaceMatches.first.matches, [
-      ReplaceInfo('NewPage', CharacterLocation(4, 9), 8),
-      ReplaceInfo('NewPage', CharacterLocation(7, 9), 8),
-      ReplaceInfo('NewPage', CharacterLocation(10, 35), 8),
-      ReplaceInfo('NewPage', CharacterLocation(3, 7), 8),
-    ]);
-    expect(result.flutterWidgetRename != null, isTrue);
-    expect(result.flutterWidgetRename!.name, 'NewPageState');
-    expect(
-      result.flutterWidgetRename!.replacements.first.matches
-          .map((m) => m.startPosition)
-          .toList(),
-      [CharacterLocation(7, 36), CharacterLocation(10, 7)],
-    );
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+class A {
+  new newName() {}
+}
+void f() {
+  new A.newName();
+}
+''', result!.replaceMatches.first.matches);
   }
 
-  void test_rename_constructor_add() async {
+  void test_rename_class_constructor_newHead_remove() async {
+    var testCode = '''
+class A {
+  new ^test() {}
+}
+void f() {
+  new A.test();
+}
+''';
+
+    var result = await _rename(testCode, '');
+    _assertTestChangeResult('''
+class A {
+  new () {}
+}
+void f() {
+  new A();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_class_constructor_typeName_add() async {
     var testCode = '''
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [new A] and [A.new]
@@ -342,139 +353,7 @@ void f() {
 ''', result!.replaceMatches.first.matches);
   }
 
-  void test_rename_constructor_enum() async {
-    var testCode = '''
-/// [E.new]
-enum E {
-  v1(), v2.new(), v3, v4.other();
-  const ^E(); // 0
-  const E.other() : this();
-}
-''';
-
-    var result = await _rename(testCode, 'newName');
-    _assertTestChangeResult('''
-/// [E.newName]
-enum E {
-  v1.newName(), v2.newName(), v3.newName(), v4.other();
-  const E.newName(); // 0
-  const E.other() : this.newName();
-}
-''', result!.replaceMatches.first.matches);
-  }
-
-  void test_rename_constructor_enum_hasConstructor() async {
-    var testCode = '''
-/// [E.new]
-enum E {
-  v1(), v2.^new(), v3;
-
-  factory E.other() => throw 0;
-}
-''';
-
-    var result = await _rename(testCode, 'newName');
-    _assertTestChangeResult('''
-/// [E.newName]
-enum E {
-  v1.newName(), v2.newName(), v3.newName();
-
-  factory E.other() => throw 0;
-
-  const E.newName();
-}
-''', result!.replaceMatches.first.matches);
-  }
-
-  void test_rename_constructor_enum_hasField() async {
-    var testCode = '''
-/// [E.new]
-enum E {
-  v1(), v2.^new(), v3;
-
-  final int foo = 0;
-}
-''';
-
-    var result = await _rename(testCode, 'newName');
-    _assertTestChangeResult('''
-/// [E.newName]
-enum E {
-  v1.newName(), v2.newName(), v3.newName();
-
-  final int foo = 0;
-
-  const E.newName();
-}
-''', result!.replaceMatches.first.matches);
-  }
-
-  void test_rename_constructor_enum_hasMethod() async {
-    var testCode = '''
-/// [E.new]
-enum E {
-  v1(), v2.^new(), v3;
-
-  void foo() {}
-}
-''';
-
-    var result = await _rename(testCode, 'newName');
-    _assertTestChangeResult('''
-/// [E.newName]
-enum E {
-  v1.newName(), v2.newName(), v3.newName();
-
-  const E.newName();
-
-  void foo() {}
-}
-''', result!.replaceMatches.first.matches);
-  }
-
-  void test_rename_constructor_enum_named() async {
-    var testCode = '''
-/// [E.test]
-enum E {
-  v1.^test(), v2.other();
-  const E.test(); // 0
-  const E.other() : this.test();
-}
-''';
-
-    var result = await _rename(testCode, 'newName');
-    _assertTestChangeResult('''
-/// [E.newName]
-enum E {
-  v1.newName(), v2.other();
-  const E.newName(); // 0
-  const E.other() : this.newName();
-}
-''', result!.replaceMatches.first.matches);
-  }
-
-  void test_rename_constructor_enum_remove() async {
-    var testCode = '''
-/// [E]
-enum E {
-  v1.test(), v2.other();
-  const E.^test(); // 0
-  const E.other() : this.test();
-}
-''';
-
-    var result = await _rename(testCode, '');
-    _assertTestChangeResult('''
-/// [E]
-enum E {
-  v1(), v2.other();
-  const E(); // 0
-  const E.other() : this();
-}
-''', result!.replaceMatches.first.matches);
-  }
-
-  void test_rename_constructor_named() async {
+  void test_rename_class_constructor_typeName_change() async {
     var testCode = '''
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [A.test] and [new A.test]
@@ -509,7 +388,7 @@ void f() {
 ''', result!.replaceMatches.first.matches);
   }
 
-  void test_rename_constructor_remove() async {
+  void test_rename_class_constructor_typeName_remove() async {
     var testCode = '''
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [A.test] and [new A.test]
@@ -544,7 +423,7 @@ void f() {
 ''', result!.replaceMatches.first.matches);
   }
 
-  void test_rename_constructor_synthetic() async {
+  void test_rename_class_constructor_typeName_synthetic() async {
     var testCode = '''
 // ignore: deprecated_new_in_comment_reference
 /// Documentation for [new A] and [A.new]
@@ -579,9 +458,9 @@ void f() {
 ''', result!.replaceMatches.first.matches);
   }
 
-  void test_rename_field() async {
+  void test_rename_class_field() async {
     var testCode = '''
-class A{
+class A {
   int get ^x => 5;
 }
 
@@ -592,7 +471,7 @@ void foo() {
 
     var result = await _rename(testCode, 'y');
     _assertTestChangeResult('''
-class A{
+class A {
   int get y => 5;
 }
 
@@ -602,9 +481,9 @@ void foo() {
 ''', result!.replaceMatches.first.matches);
   }
 
-  void test_rename_field_static_private() async {
+  void test_rename_class_field_static_private() async {
     var testCode = '''
-class A{
+class A {
   static const ^_val = 1234;
 }
 
@@ -615,12 +494,392 @@ void foo() {
 
     var result = await _rename(testCode, '_newVal');
     _assertTestChangeResult('''
-class A{
+class A {
   static const _newVal = 1234;
 }
 
 void foo() {
   print(A._newVal);
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_class_itself() async {
+    var testCode = '''
+class ^Old implements Other {
+  Old() {}
+  Old.named() {}
+}
+class Other {
+  factory Other.a() = Old;
+  factory Other.b() = Old.named;
+}
+void f() {
+  Old t1 = new Old();
+  Old t2 = new Old.named();
+}
+''';
+    var result = await _rename(testCode, 'New');
+    _assertTestChangeResult('''
+class New implements Other {
+  New() {}
+  New.named() {}
+}
+class Other {
+  factory Other.a() = New;
+  factory Other.b() = New.named;
+}
+void f() {
+  New t1 = new New();
+  New t2 = new New.named();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_class_itself_flutterWidget() async {
+    var testCode = '''
+import 'package:flutter/material.dart';
+
+class ^TestPage extends StatefulWidget {
+  const TestPage();
+
+  @override
+  State<TestPage> createState() => TestPageState();
+}
+
+class TestPageState extends State<TestPage> {
+  @override
+  Widget build(BuildContext context) => throw 0;
+}
+''';
+
+    var result = await _rename(testCode, 'NewPage');
+    expect(result!.replaceMatches.length, 1);
+    expect(result.replaceMatches.first.matches, [
+      ReplaceInfo('NewPage', CharacterLocation(4, 9), 8),
+      ReplaceInfo('NewPage', CharacterLocation(7, 9), 8),
+      ReplaceInfo('NewPage', CharacterLocation(10, 35), 8),
+      ReplaceInfo('NewPage', CharacterLocation(3, 7), 8),
+    ]);
+    expect(result.flutterWidgetRename != null, isTrue);
+    expect(result.flutterWidgetRename!.name, 'NewPageState');
+    expect(
+      result.flutterWidgetRename!.replacements.first.matches
+          .map((m) => m.startPosition)
+          .toList(),
+      [CharacterLocation(7, 36), CharacterLocation(10, 7)],
+    );
+  }
+
+  void test_rename_class_method_imported() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
+class A {
+  foo() {}
+}
+''');
+    await fileResolver.resolve(path: a.path);
+    var result = await _rename(r'''
+import 'a.dart';
+void f() {
+  var a = A().^foo();
+}
+''', 'bar');
+    expect(result!.replaceMatches.length, 2);
+    expect(result.replaceMatches.first.matches, [
+      ReplaceInfo('bar', CharacterLocation(3, 15), 3),
+    ]);
+    expect(result.replaceMatches[1].matches, [
+      ReplaceInfo('bar', CharacterLocation(2, 3), 3),
+    ]);
+  }
+
+  void test_rename_class_primaryConstructor_add() async {
+    var testCode = '''
+class A^(int x) {}
+void f() {
+  new A(0);
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+class A.newName(int x) {}
+void f() {
+  new A.newName(0);
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_class_primaryConstructor_change() async {
+    var testCode = '''
+class A.named^(int x) {}
+void f() {
+  new A.named(0);
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+class A.newName(int x) {}
+void f() {
+  new A.newName(0);
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_class_primaryConstructor_remove() async {
+    var testCode = '''
+class A.named^(int x) {}
+void f() {
+  new A.named(0);
+}
+''';
+
+    var result = await _rename(testCode, '');
+    _assertTestChangeResult('''
+class A(int x) {}
+void f() {
+  new A(0);
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  @FailingTest(reason: 'Support for primary-constructors')
+  // TODO(scheglov): implement it
+  void test_rename_enum_constructor_newHead_add() async {
+    var testCode = '''
+enum E {
+  v1, v2;
+  const new ^();
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+enum E {
+  v1.newName(), v2.newName();
+  const new newName ();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  @FailingTest(reason: 'Support for primary-constructors')
+  // TODO(scheglov): implement it
+  void test_rename_enum_constructor_newHead_change() async {
+    var testCode = '''
+enum E {
+  v1.test(), v2.test();
+  const new ^test();
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+enum E {
+  v1.newName(), v2.newName();
+  const new newName();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  @FailingTest(reason: 'Support for primary-constructors')
+  // TODO(scheglov): implement it
+  void test_rename_enum_constructor_newHead_remove() async {
+    var testCode = '''
+enum E {
+  v1.test(), v2.test();
+  const new ^test();
+}
+''';
+
+    var result = await _rename(testCode, '');
+    _assertTestChangeResult('''
+enum E {
+  v1, v2;
+  const new ();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_enum_constructor_typeName_add() async {
+    var testCode = '''
+/// [E.new]
+enum E {
+  v1(), v2.new(), v3, v4.other();
+  const ^E(); // 0
+  const E.other() : this();
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName(), v4.other();
+  const E.newName(); // 0
+  const E.other() : this.newName();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_enum_constructor_typeName_add_hasConstructor() async {
+    var testCode = '''
+/// [E.new]
+enum E {
+  v1(), v2.^new(), v3;
+
+  factory E.other() => throw 0;
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  factory E.other() => throw 0;
+
+  const E.newName();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_enum_constructor_typeName_add_hasField() async {
+    var testCode = '''
+/// [E.new]
+enum E {
+  v1(), v2.^new(), v3;
+
+  final int foo = 0;
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  final int foo = 0;
+
+  const E.newName();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_enum_constructor_typeName_add_hasMethod() async {
+    var testCode = '''
+/// [E.new]
+enum E {
+  v1(), v2.^new(), v3;
+
+  void foo() {}
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.newName(), v3.newName();
+
+  const E.newName();
+
+  void foo() {}
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_enum_constructor_typeName_change() async {
+    var testCode = '''
+/// [E.test]
+enum E {
+  v1.^test(), v2.other();
+  const E.test(); // 0
+  const E.other() : this.test();
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+/// [E.newName]
+enum E {
+  v1.newName(), v2.other();
+  const E.newName(); // 0
+  const E.other() : this.newName();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_enum_constructor_typeName_remove() async {
+    var testCode = '''
+/// [E]
+enum E {
+  v1.test(), v2.other();
+  const E.^test(); // 0
+  const E.other() : this.test();
+}
+''';
+
+    var result = await _rename(testCode, '');
+    _assertTestChangeResult('''
+/// [E]
+enum E {
+  v1(), v2.other();
+  const E(); // 0
+  const E.other() : this();
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_enum_primaryConstructor_add() async {
+    var testCode = '''
+enum E^(int x) {
+  v1(0), v2(0);
+  final int x;
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+enum E.newName(int x) {
+  v1.newName(0), v2.newName(0);
+  final int x;
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_enum_primaryConstructor_change() async {
+    var testCode = '''
+enum E.named^(int x) {
+  v1.named(0), v2.named(0);
+  final int x;
+}
+''';
+
+    var result = await _rename(testCode, 'newName');
+    _assertTestChangeResult('''
+enum E.newName(int x) {
+  v1.newName(0), v2.newName(0);
+  final int x;
+}
+''', result!.replaceMatches.first.matches);
+  }
+
+  void test_rename_enum_primaryConstructor_remove() async {
+    var testCode = '''
+enum E.named^(int x) {
+  v1.named(0), v2.named(0);
+  final int x;
+}
+''';
+
+    var result = await _rename(testCode, '');
+    _assertTestChangeResult('''
+enum E(int x) {
+  v1(0), v2(0);
+  final int x;
 }
 ''', result!.replaceMatches.first.matches);
   }
@@ -807,28 +1066,6 @@ void foo() {
   var bar = 0; var b = bar + 1;
 }
 ''', result!.replaceMatches.first.matches);
-  }
-
-  void test_rename_method_imported() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
-class A {
-  foo() {}
-}
-''');
-    await fileResolver.resolve(path: a.path);
-    var result = await _rename(r'''
-import 'a.dart';
-void f() {
-  var a = A().^foo();
-}
-''', 'bar');
-    expect(result!.replaceMatches.length, 2);
-    expect(result.replaceMatches.first.matches, [
-      ReplaceInfo('bar', CharacterLocation(3, 15), 3),
-    ]);
-    expect(result.replaceMatches[1].matches, [
-      ReplaceInfo('bar', CharacterLocation(2, 3), 3),
-    ]);
   }
 
   void test_rename_parameter() async {

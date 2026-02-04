@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -11,16 +12,7 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../api_prototype/lowering_predicates.dart'
     show extractQualifiedNameFromExtensionMethodName;
 
-import '../codes/cfe_codes.dart'
-    show
-        codeDynamicCallsAreNotAllowedInDynamicModule,
-        noLength,
-        codeConstructorShouldBeListedAsCallableInDynamicInterface,
-        codeMemberShouldBeListedAsCallableInDynamicInterface,
-        codeExtensionTypeShouldBeListedAsCallableInDynamicInterface,
-        codeClassShouldBeListedAsCallableInDynamicInterface,
-        codeClassShouldBeListedAsExtendableInDynamicInterface,
-        codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface;
+import '../codes/cfe_codes.dart' show noLength;
 
 /// Validate dynamic module [libraries].
 ///
@@ -714,7 +706,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
 
   void _dynamicCall(TreeNode node) {
     loader.addProblem(
-      codeDynamicCallsAreNotAllowedInDynamicModule,
+      diag.dynamicCallsAreNotAllowedInDynamicModule,
       node.fileOffset,
       noLength,
       node.location!.file,
@@ -722,11 +714,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   void _verifyCallable(TreeNode target, TreeNode node) {
-    if (target is Procedure) {
-      target = _unwrapMixinStubs(target);
-    }
     if (target is Member) {
-      target = _unwrapMixinCopy(target);
+      target = _unwrapMember(target);
     }
     if (!_isFromDynamicModule(target) &&
         !_isSpecified(target, spec.callable) &&
@@ -739,8 +728,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             name += '.' + target.name.text;
           }
           loader.addProblem(
-            codeConstructorShouldBeListedAsCallableInDynamicInterface
-                .withArgumentsOld(name),
+            diag.constructorShouldBeListedAsCallableInDynamicInterface
+                .withArguments(name: name),
             node.fileOffset,
             noLength,
             node.location!.file,
@@ -757,24 +746,26 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             }
           }
           loader.addProblem(
-            codeMemberShouldBeListedAsCallableInDynamicInterface
-                .withArgumentsOld(name),
+            diag.memberShouldBeListedAsCallableInDynamicInterface.withArguments(
+              name: name,
+            ),
             node.fileOffset,
             noLength,
             node.location!.file,
           );
         case Class():
           loader.addProblem(
-            codeClassShouldBeListedAsCallableInDynamicInterface
-                .withArgumentsOld(target.name),
+            diag.classShouldBeListedAsCallableInDynamicInterface.withArguments(
+              name: target.name,
+            ),
             node.fileOffset,
             noLength,
             node.location!.file,
           );
         case ExtensionTypeDeclaration():
           loader.addProblem(
-            codeExtensionTypeShouldBeListedAsCallableInDynamicInterface
-                .withArgumentsOld(target.name),
+            diag.extensionTypeShouldBeListedAsCallableInDynamicInterface
+                .withArguments(name: target.name),
             node.fileOffset,
             noLength,
             node.location!.file,
@@ -792,8 +783,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         !_isSpecified(baseClass, spec.extendable) &&
         !languageImplPragmas.isExtendable(baseClass)) {
       loader.addProblem(
-        codeClassShouldBeListedAsExtendableInDynamicInterface.withArgumentsOld(
-          baseClass.name,
+        diag.classShouldBeListedAsExtendableInDynamicInterface.withArguments(
+          name: baseClass.name,
         ),
         node.fileOffset,
         noLength,
@@ -802,11 +793,17 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     }
   }
 
-  // Unwrap synthetic mixin stubs to get actual implementation member.
-  Member _unwrapMixinStubs(Member member) {
-    if (member is Procedure &&
-        member.stubKind == ProcedureStubKind.ConcreteMixinStub) {
-      return _unwrapMixinStubs(member.stubTarget!);
+  // Unwrap synthetic stubs to get actual member.
+  Member _unwrapStubs(Member member) {
+    if (member is Procedure) {
+      switch (member.stubKind) {
+        case ProcedureStubKind.ConcreteForwardingStub:
+        case ProcedureStubKind.ConcreteMixinStub:
+        case ProcedureStubKind.MemberSignature:
+          return _unwrapStubs(member.stubTarget!);
+        default:
+          break;
+      }
     }
     return member;
   }
@@ -830,14 +827,16 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     )!;
   }
 
+  Member _unwrapMember(Member member) => _unwrapMixinCopy(_unwrapStubs(member));
+
   void _verifyOverrides(
     List<Member> implementationMembers,
     List<Member> interfaceMembers,
   ) {
     int i = 0, j = 0;
     while (i < implementationMembers.length && j < interfaceMembers.length) {
-      Member impl = _unwrapMixinStubs(implementationMembers[i]);
-      Member interfaceMember = interfaceMembers[j];
+      Member impl = _unwrapMember(implementationMembers[i]);
+      Member interfaceMember = _unwrapMember(interfaceMembers[j]);
       int comparison = ClassHierarchy.compareMembers(impl, interfaceMember);
       if (comparison < 0) {
         ++i;
@@ -856,15 +855,14 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   void _verifyOverride(Member ownMember, Member superMember) {
-    superMember = _unwrapMixinCopy(superMember);
     if (!_isFromDynamicModule(superMember) &&
         !_isSpecified(superMember, spec.canBeOverridden) &&
         !languageImplPragmas.canBeOverridden(superMember)) {
       loader.addProblem(
-        codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface
-            .withArgumentsOld(
-              superMember.enclosingClass!.name,
-              superMember.name.text,
+        diag.memberShouldBeListedAsCanBeOverriddenInDynamicInterface
+            .withArguments(
+              className: superMember.enclosingClass!.name,
+              memberName: superMember.name.text,
             ),
         ownMember.fileOffset,
         noLength,

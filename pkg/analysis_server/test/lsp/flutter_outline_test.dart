@@ -121,6 +121,7 @@ import 'package:flutter/material.dart';
 Widget build(BuildContext context) {
   return Container(
     child: DefaultTextStyle(
+      style: TextStyle(),
       child: Row(
         children: <Widget>[
           Container(child: Icon(Icons.alarm)),
@@ -145,7 +146,7 @@ Widget build(BuildContext context) {
       equals(
         Range(
           start: Position(line: 0, character: 0),
-          end: Position(line: 15, character: 0),
+          end: Position(line: 16, character: 0),
         ),
       ),
     );
@@ -158,7 +159,7 @@ Widget build(BuildContext context) {
       equals(
         Range(
           start: Position(line: 2, character: 0),
-          end: Position(line: 14, character: 1),
+          end: Position(line: 15, character: 1),
         ),
       ),
     );
@@ -167,7 +168,7 @@ Widget build(BuildContext context) {
       equals(
         Range(
           start: Position(line: 3, character: 0),
-          end: Position(line: 14, character: 1),
+          end: Position(line: 15, character: 1),
         ),
       ),
     );
@@ -195,8 +196,8 @@ Widget build(BuildContext context) {
       icon.range,
       equals(
         Range(
-          start: Position(line: 8, character: 27),
-          end: Position(line: 8, character: 44),
+          start: Position(line: 9, character: 27),
+          end: Position(line: 9, character: 44),
         ),
       ),
     );
@@ -209,8 +210,8 @@ Widget build(BuildContext context) {
       attributes[0].valueRange,
       equals(
         Range(
-          start: Position(line: 8, character: 32),
-          end: Position(line: 8, character: 43),
+          start: Position(line: 9, character: 32),
+          end: Position(line: 9, character: 43),
         ),
       ),
     );

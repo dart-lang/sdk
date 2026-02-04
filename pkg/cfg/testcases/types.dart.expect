@@ -8,12 +8,12 @@ B0 = EntryBlock()
 
 --- A.bar
 B0 = EntryBlock()
+  v4 = Constant(<int>)
   v6 = Constant(1)
   v10 = Constant(2)
   v12 = Constant(null)
   v1 = Parameter(this)
   v3 = TypeParameters(v1)
-  v4 = TypeArguments(<int>)
   InterfaceCall A.foo(v4, v1, v6)
   v8 = TypeArguments(v3, <Map<String, A.T%>>)
   InterfaceCall A.foo(v8, v1, v10)
@@ -36,11 +36,24 @@ B8 = TargetBlock() idom:B0
 B10 = JoinBlock(B8, B7) idom:B0
   Return(v16)
 
+--- A.baz
+B0 = EntryBlock()
+  v4 = Constant(TypeLiteralConstant(List<dynamic>))
+  v10 = Constant(null)
+  v1 = Parameter(this)
+  v3 = TypeParameters(v1)
+  DirectCall print(v4)
+  v6 = TypeLiteral(A.T%, v3)
+  DirectCall print(v6)
+  v8 = TypeLiteral(Map<A.baz.S%, A.T%>, v3)
+  DirectCall print(v8)
+  Return(v10)
+
 --- A.
 B0 = EntryBlock()
   v1 = TypeParameters()
   v2 = TypeArguments(v1, <A..T%>)
-  v3 = AllocateObject(v2)
+  v3 = AllocateObject A<A..T%>(v2)
   DirectCall A._(v3)
   Return(v3)
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
@@ -16,25 +17,7 @@ import '../base/messages.dart'
         ProblemReporting,
         CfeSeverity,
         Template,
-        codeClassImplementsDeferredClass,
-        codeExtendsDeferredClass,
-        codeExtensionTypeImplementsDeferred,
-        codeMixinDeferredMixin,
-        codeMixinSuperClassConstraintDeferredClass,
-        codeNotATypeContext,
-        codeTypeVariableInStaticContext,
-        codeTypedefCause,
         noLength,
-        codeExtendingRestricted,
-        codeNotAPrefixInTypeAnnotation,
-        codeNotAType,
-        codeSupertypeIsIllegal,
-        codeSupertypeIsIllegalAliased,
-        codeSupertypeIsNullableAliased,
-        codeSupertypeIsTypeParameter,
-        codeTypeArgumentMismatch,
-        codeTypeArgumentsOnTypeVariable,
-        codeTypeNotFound,
         CompilationPhaseForProblemReporting;
 import '../base/scope.dart';
 import '../base/uris.dart';
@@ -266,9 +249,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         // Attempt to use a member or type parameter as a prefix.
         int nameOffset = typeName.fullNameOffset;
         int nameLength = typeName.fullNameLength;
-        Message message = codeNotAPrefixInTypeAnnotation.withArgumentsOld(
-          qualifier,
-          typeName.name,
+        Message message = diag.notAPrefixInTypeAnnotation.withArguments(
+          prefix: qualifier,
+          typeName: typeName.name,
         );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         bind(
@@ -301,26 +284,22 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     if (member is TypeDeclarationBuilder) {
       bind(problemReporting, member);
     } else {
-      Template<Message Function(String name), Function> template =
-          member == null ? codeTypeNotFound : codeNotAType;
       String nameText = typeName.fullName;
       int nameOffset = typeName.fullNameOffset;
       int nameLength = typeName.fullNameLength;
       Message message;
       List<LocatedMessage>? context;
       if (member == null) {
-        template = codeTypeNotFound;
-        message = template.withArgumentsOld(nameText);
+        message = diag.typeNotFound.withArguments(name: nameText);
       } else {
-        template = codeNotAType;
         context = <LocatedMessage>[
-          codeNotATypeContext.withLocation(
+          diag.notATypeContext.withLocation(
             member.fileUri!,
             member.fileOffset,
             nameLength,
           ),
         ];
-        message = template.withArgumentsOld(nameText);
+        message = diag.notAType.withArguments(name: nameText);
       }
       problemReporting.addProblem(
         message,
@@ -346,7 +325,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         String nameText = typeName.name;
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message = codeTypeArgumentsOnTypeVariable.withArgumentsOld(
+        Message message = diag.typeArgumentsOnTypeVariable.withArgumentsOld(
           nameText,
         );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
@@ -358,8 +337,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       } else if (typeArguments!.length != declaration.typeParametersCount) {
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message = codeTypeArgumentMismatch.withArgumentsOld(
-          declaration.typeParametersCount,
+        Message message = diag.typeArgumentMismatch.withArguments(
+          expectedCount: declaration.typeParametersCount,
         );
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         _declaration = buildInvalidTypeDeclarationBuilder(
@@ -374,7 +353,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       int nameOffset = typeName.nameOffset;
       int nameLength = typeName.nameLength;
       // TODO(johnniwinther): Create a custom message.
-      Message message = codeNotAType.withArgumentsOld(nameText);
+      Message message = diag.notAType.withArguments(name: nameText);
       problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
         message.withLocation(fileUri!, nameOffset, nameLength),
@@ -390,7 +369,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           case InstanceTypeParameterAccessState.Disallowed:
             int nameOffset = typeName.nameOffset;
             int nameLength = typeName.nameLength;
-            Message message = codeTypeVariableInStaticContext;
+            Message message = diag.typeVariableInStaticContext;
             problemReporting.addProblem(
               message,
               nameOffset,
@@ -404,7 +383,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           case InstanceTypeParameterAccessState.Invalid:
             int nameOffset = typeName.nameOffset;
             int nameLength = typeName.nameLength;
-            Message message = codeTypeVariableInStaticContext;
+            Message message = diag.typeVariableInStaticContext;
             _declaration = buildInvalidTypeDeclarationBuilder(
               message.withLocation(fileUri!, nameOffset, nameLength),
             );
@@ -456,12 +435,12 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
-    Template<Message Function(String name), Function> template =
+    Template<Function, Message Function({required String typeName})> template =
         declaration.isTypeParameter
-        ? codeSupertypeIsTypeParameter
-        : codeSupertypeIsIllegal;
+        ? diag.supertypeIsTypeParameter
+        : diag.supertypeIsIllegal;
     library.addProblem(
-      template.withArgumentsOld(fullNameForErrors),
+      template.withArguments(typeName: fullNameForErrors),
       charOffset!,
       noLength,
       fileUri,
@@ -481,18 +460,18 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Message message;
     if (declaration.isTypeParameter) {
       // Coverage-ignore-block(suite): Not run.
-      message = codeSupertypeIsTypeParameter.withArgumentsOld(
-        fullNameForErrors,
+      message = diag.supertypeIsTypeParameter.withArguments(
+        typeName: fullNameForErrors,
       );
     } else if (type.nullability == Nullability.nullable) {
-      message = codeSupertypeIsNullableAliased.withArgumentsOld(
-        fullNameForErrors,
-        type,
+      message = diag.supertypeIsNullableAliased.withArguments(
+        typeName: fullNameForErrors,
+        aliasedType: type,
       );
     } else {
-      message = codeSupertypeIsIllegalAliased.withArgumentsOld(
-        fullNameForErrors,
-        type,
+      message = diag.supertypeIsIllegalAliased.withArguments(
+        typeName: fullNameForErrors,
+        aliasedType: type,
       );
     }
     library.addProblem(
@@ -501,7 +480,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       noLength,
       fileUri,
       context: [
-        codeTypedefCause.withLocation(
+        diag.typedefCause.withLocation(
           aliasBuilder.fileUri,
           aliasBuilder.fileOffset,
           noLength,
@@ -516,7 +495,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       switch (typeUse) {
         case TypeUse.classExtendsType:
           libraryBuilder.addProblem(
-            codeExtendsDeferredClass,
+            diag.extendsDeferredClass,
             typeName.fullNameOffset,
             typeName.fullNameLength,
             fileUri ?? // Coverage-ignore(suite): Not run.
@@ -524,7 +503,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           );
         case TypeUse.classImplementsType:
           libraryBuilder.addProblem(
-            codeClassImplementsDeferredClass,
+            diag.classImplementsDeferredClass,
             typeName.fullNameOffset,
             typeName.fullNameLength,
             fileUri ?? // Coverage-ignore(suite): Not run.
@@ -532,7 +511,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           );
         case TypeUse.mixinOnType:
           libraryBuilder.addProblem(
-            codeMixinSuperClassConstraintDeferredClass,
+            diag.mixinSuperClassConstraintDeferredClass,
             typeName.fullNameOffset,
             typeName.fullNameLength,
             fileUri ?? // Coverage-ignore(suite): Not run.
@@ -540,7 +519,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           );
         case TypeUse.extensionTypeImplementsType:
           libraryBuilder.addProblem(
-            codeExtensionTypeImplementsDeferred,
+            diag.extensionTypeImplementsDeferred,
             typeName.fullNameOffset,
             typeName.fullNameLength,
             fileUri ?? // Coverage-ignore(suite): Not run.
@@ -548,7 +527,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           );
         case TypeUse.classWithType:
           libraryBuilder.addProblem(
-            codeMixinDeferredMixin,
+            diag.mixinDeferredMixin,
             typeName.fullNameOffset,
             typeName.fullNameLength,
             fileUri ?? // Coverage-ignore(suite): Not run.
@@ -681,7 +660,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           // Coverage-ignore-block(suite): Not run.
           if (!library.mayImplementRestrictedTypes) {
             library.addProblem(
-              codeExtendingRestricted.withArgumentsOld(declaration.name),
+              diag.extendingRestricted.withArguments(
+                restrictedName: declaration.name,
+              ),
               charOffset!,
               noLength,
               fileUri,

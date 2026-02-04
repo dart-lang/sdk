@@ -416,6 +416,57 @@ void f(String s) {
     _expectSdkCoreType(result, 'String');
   }
 
+  Future<void> test_primaryConstructor_className() async {
+    var code = TestCode.parse('''
+class /*[0*/A/*0]*/();
+
+/*[1*/A^/*1]*/? a;
+''');
+
+    var ranges = code.ranges.ranges;
+    var targetRange = ranges[0];
+    var originRange = ranges[1];
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, originRange);
+    expect(result.targetUri, mainFileUri);
+    expect(result.targetSelectionRange, targetRange);
+    expect(result.targetRange, rangeOfString(code, 'class A();'));
+  }
+
+  Future<void> test_primaryConstructor_invocation() async {
+    var code = TestCode.parse('''
+class /*[0*/A/*0]*/();
+
+var a = /*[1*/A^/*1]*/();
+''');
+
+    var ranges = code.ranges.ranges;
+    var targetRange = ranges[0];
+    var originRange = ranges[1];
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, originRange);
+    expect(result.targetUri, mainFileUri);
+    expect(result.targetSelectionRange, targetRange);
+    expect(result.targetRange, rangeOfString(code, 'class A();'));
+  }
+
+  Future<void> test_primaryConstructor_variable() async {
+    var code = TestCode.parse('''
+class /*[0*/A/*0]*/();
+
+final /*[1*/a^/*1]*/ = A();
+''');
+
+    var ranges = code.ranges.ranges;
+    var targetRange = ranges[0];
+    var originRange = ranges[1];
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, originRange);
+    expect(result.targetUri, mainFileUri);
+    expect(result.targetSelectionRange, targetRange);
+    expect(result.targetRange, rangeOfString(code, 'class A();'));
+  }
+
   Future<void> test_setter() async {
     var code = TestCode.parse('''
 class A {

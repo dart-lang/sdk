@@ -106,11 +106,14 @@ class AssignmentExpressionResolver {
 
     if (flow != null) {
       if (writeElement2 is PromotableElementImpl) {
-        flow.write(
+        flow.storeExpressionInfo(
           node,
-          writeElement2,
-          SharedTypeView(node.typeOrThrow),
-          hasRead ? null : right,
+          flow.write(
+            node,
+            writeElement2,
+            SharedTypeView(node.typeOrThrow),
+            hasRead ? null : right,
+          ),
         );
       }
       if (isIfNull) {
@@ -265,10 +268,10 @@ class AssignmentExpressionResolver {
     );
     node.element = result.getter2 as InternalMethodElement?;
     if (result.needsGetterError) {
-      _diagnosticReporter.atToken(
-        operator,
-        diag.undefinedOperator,
-        arguments: [methodName, leftType],
+      _diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(operator: methodName, type: leftType)
+            .at(operator),
       );
     }
   }

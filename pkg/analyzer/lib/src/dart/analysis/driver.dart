@@ -50,7 +50,6 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -108,7 +107,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 603;
+  static const int DATA_VERSION = 608;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -611,11 +610,10 @@ class AnalysisDriver {
         var libraryElement = libraryResult.element as LibraryElementImpl;
         bundleWriter.writeLibraryElement(libraryElement);
 
+        var unitUris = libraryElement.internal.allUnitSourceUris();
         packageBundleBuilder.addLibrary(
           uriStr,
-          libraryElement.fragments.map((e) {
-            return e.source.uri.toString();
-          }).toList(),
+          unitUris.map((uri) => uri.toString()).toList(),
         );
       }
     }
@@ -774,10 +772,8 @@ class AnalysisDriver {
     return completer.future;
   }
 
-  /// NOTE: this API is experimental and subject to change in a future
-  /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
   AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
-      analysisOptionsMap.getOptions(file);
+      analysisOptionsMap[file];
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
   /// [path]. If there is no cached result, return `null`. Usually only results
@@ -2505,8 +2501,7 @@ class AnalysisDriver {
   }) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex)
-      ..addBool(enableDebugResolutionMarkers);
+      ..addBool(enableIndex);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
 
     var workspace = analysisContext?.contextRoot.workspace;
@@ -2653,7 +2648,7 @@ class AnalysisDriverScheduler {
 
   AnalysisStatusWorkingStatistics? get _workingStatistics {
     return _statusSupport.currentStatus
-        .ifTypeOrNull<AnalysisStatusWorking>()
+        .tryCast<AnalysisStatusWorking>()
         ?.workingStatistics;
   }
 

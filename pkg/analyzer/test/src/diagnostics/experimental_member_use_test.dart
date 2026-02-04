@@ -349,7 +349,9 @@ var x = Foo();
 
   test_insideLibrary() async {
     await assertNoErrorsInCode(r'''
-@Deprecated.implement()
+import 'package:meta/meta.dart';
+
+@experimental
 class Foo {}
 var x = Foo();
 ''');
@@ -557,6 +559,8 @@ class A {
   @experimental
   A();
 }
+
+void g(A a) {}
 ''');
 
     await assertErrorsInCode(
@@ -564,13 +568,12 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .new();
+  g(.new());
 }
 ''',
       [
-        error(diag.experimentalMemberUse, 43, 1),
-        error(diag.unusedLocalVariable, 45, 1),
-        error(diag.experimentalMemberUse, 50, 3),
+        error(diag.experimentalMemberUse, 45, 6),
+        error(diag.experimentalMemberUse, 46, 3),
       ],
     );
   }
@@ -583,6 +586,7 @@ import 'package:meta/meta.dart';
 class A {
   A();
 }
+void g(A a) {}
 ''');
 
     await assertErrorsInCode(
@@ -590,13 +594,10 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .new();
+  g(.new());
 }
 ''',
-      [
-        error(diag.experimentalMemberUse, 43, 1),
-        error(diag.unusedLocalVariable, 45, 1),
-      ],
+      [error(diag.experimentalMemberUse, 45, 6)],
     );
   }
 
@@ -608,6 +609,7 @@ import 'package:meta/meta.dart';
 class A {
   A.a();
 }
+void g(A _) {}
 ''');
 
     await assertErrorsInCode(
@@ -615,13 +617,10 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .a();
+  g(.a());
 }
 ''',
-      [
-        error(diag.experimentalMemberUse, 43, 1),
-        error(diag.unusedLocalVariable, 45, 1),
-      ],
+      [error(diag.experimentalMemberUse, 45, 4)],
     );
   }
 
@@ -634,17 +633,17 @@ class A {
   @experimental
   A.named(int i) {}
 }
+void g(A a) {}
 ''',
       code: r'''
 f() {
-  A a = .named(1);
+  g(.named(1));
 }
 ''',
       [
-        error(diag.unusedLocalVariable, 39, 1),
         error(
           diag.experimentalMemberUse,
-          44,
+          40,
           5,
           messageContains: [
             "'A.named' is experimental and could be removed or changed at any time.",
@@ -662,6 +661,7 @@ class A {
   @experimental
   A();
 }
+void g(A a) {}
 ''');
 
     await assertErrorsInCode(
@@ -669,13 +669,10 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .new();
+  g(.new());
 }
 ''',
-      [
-        error(diag.unusedLocalVariable, 45, 1),
-        error(diag.experimentalMemberUse, 50, 3),
-      ],
+      [error(diag.experimentalMemberUse, 46, 3)],
     );
   }
 
@@ -1358,18 +1355,40 @@ class A {
 }
 ''',
       code: r'''
-f() {
-  return new A.named(1);
-}
+var a = A.named(1);
 ''',
       [
         error(
           diag.experimentalMemberUse,
-          48,
+          37,
           7,
           messageContains: [
             "'A.named' is experimental and could be removed or changed at any time.",
           ],
+        ),
+      ],
+    );
+  }
+
+  test_instanceCreation_namedConstructor_primary() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:meta/meta.dart';
+
+class A.named() {
+  @experimental
+  this;
+}
+''',
+      code: r'''
+var a = A.named();
+''',
+      [
+        error(
+          diag.experimentalMemberUse,
+          37,
+          7,
+          messageContains: ["'A.named' is experimental and could be removed"],
         ),
       ],
     );
@@ -1685,6 +1704,16 @@ class C {
 ''');
   }
 
+  test_parameter_named_inPrimaryConstructor_assertInitializer() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C({@experimental int y = 0}) {
+  this : assert(y > 0);
+}
+''');
+  }
+
   test_parameter_named_ofFunction() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 import 'package:meta/meta.dart';
@@ -1778,6 +1807,26 @@ import 'package:meta/meta.dart';
 @experimental
 void f(A a) {
   a.foo(0);
+}
+''',
+    );
+  }
+
+  test_parameter_positionalOptional_inExperimentalPrimaryConstructor() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+import 'package:meta/meta.dart';
+
+void foo([@experimental int x = 0]) {}
+''',
+      code: r'''
+import 'package:meta/meta.dart';
+
+class A() {
+  @experimental
+  this {
+    foo(0);
+  }
 }
 ''',
     );

@@ -710,6 +710,65 @@ class A {
 ''');
   }
 
+  Future<void> test_class_constructor_primary_declaration() async {
+    var testCode = TestCode.parseNormalized(r'''
+class A {}
+class B {}
+mixin M {}
+
+[!
+class const D<T extends Object>.named(
+  var int x, [
+  final int y = 0,
+]) extends A with M implements B {
+  this {}
+}
+!]
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, 0, r'''
+6:1 |class| KEYWORD
+6:7 |const| KEYWORD
+6:13 |D| CLASS
+6:15 |T| TYPE_PARAMETER
+6:17 |extends| KEYWORD
+6:25 |Object| CLASS
+6:33 |named| CONSTRUCTOR
+7:3 |var| KEYWORD
+7:7 |int| CLASS
+7:11 |x| PARAMETER_DECLARATION
+8:3 |final| KEYWORD
+8:9 |int| CLASS
+8:13 |y| PARAMETER_DECLARATION
+8:17 |0| LITERAL_INTEGER
+9:4 |extends| KEYWORD
+9:12 |A| CLASS
+9:14 |with| KEYWORD
+9:19 |M| MIXIN
+9:21 |implements| BUILT_IN
+9:32 |B| CLASS
+10:3 |this| KEYWORD
+''');
+  }
+
+  Future<void> test_class_constructor_primary_invocation() async {
+    var testCode = TestCode.parseNormalized(r'''
+class A.named(int a, {int b = 0});
+
+var a = [!A.named(1, b: 2);!]
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, 0, r'''
+3:9 |A| CONSTRUCTOR
+3:11 |named| CONSTRUCTOR
+3:17 |1| LITERAL_INTEGER
+3:20 |b| PARAMETER_REFERENCE
+3:23 |2| LITERAL_INTEGER
+''');
+  }
+
   Future<void> test_class_method_functionTypedFormalParameter() async {
     var testCode = TestCode.parseNormalized(r'''
 class A {
@@ -1301,7 +1360,7 @@ extension type const A<T>.named(int it) implements num {}
     assertHighlightText(testCode, -1, r'''
 1:1 |extension| BUILT_IN
 1:11 |type| BUILT_IN
-1:16 |const| BUILT_IN
+1:16 |const| KEYWORD
 1:22 |A| EXTENSION_TYPE
 1:24 |T| TYPE_PARAMETER
 1:27 |named| CONSTRUCTOR
@@ -1719,6 +1778,14 @@ var v = const {0};
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.KEYWORD, 'const');
+  }
+
+  Future<void> test_KEYWORD_covariant() async {
+    addTestFile('''
+void f(covariant Object object) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'covariant');
   }
 
   Future<void> test_KEYWORD_if_list() async {
@@ -2420,6 +2487,7 @@ typedef int MyFunction<T extends num>(T a, String b);
 1:9 |int| CLASS
 1:13 |MyFunction| FUNCTION_TYPE_ALIAS
 1:24 |T| TYPE_PARAMETER
+1:26 |extends| KEYWORD
 1:34 |num| CLASS
 1:39 |T| TYPE_PARAMETER
 1:41 |a| PARAMETER_DECLARATION

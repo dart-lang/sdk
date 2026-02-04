@@ -11,10 +11,10 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/memory_file_system.dart'
     show MemoryFileSystem;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/base/messages.dart'
-    show codeCantReadFile, codePackagesFileFormat;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 
 void main() {
   Uri root = Uri.parse("org-dartlang-test:///");
@@ -36,7 +36,7 @@ void main() {
       (_) => c.options.createPackagesFromFile(packages),
     );
     Expect.identical(
-      codePackagesFileFormat,
+      diag.packagesFileFormat,
       getMessageCodeObject(messages.single),
     );
     messages.clear();
@@ -44,7 +44,7 @@ void main() {
     await c.runInContext<void>(
       (_) => c.options.createPackagesFromFile(root.resolve("missing-file")),
     );
-    Expect.identical(codeCantReadFile, getMessageCodeObject(messages.single));
+    Expect.identical(diag.cantReadFile, getMessageCodeObject(messages.single));
     messages.clear();
   });
 }

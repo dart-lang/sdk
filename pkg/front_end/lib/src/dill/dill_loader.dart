@@ -6,6 +6,7 @@ import 'dart:collection' show Queue;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart'
     show Class, Component, DartType, ExtensionTypeDeclaration, Library;
 
@@ -18,9 +19,7 @@ import '../base/messages.dart'
         Message,
         noLength,
         SummaryTemplate,
-        Template,
-        codePlatformPrivateLibraryAccess,
-        codeInternalProblemContextSeverity;
+        Template;
 import '../base/problems.dart' show internalProblem;
 import '../base/ticker.dart' show Ticker;
 import '../base/uris.dart';
@@ -28,8 +27,6 @@ import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart'
-    show SummaryTemplate, Template, codeDillOutlineSummary;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../source/source_loader.dart' show SourceLoader;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
@@ -149,7 +146,7 @@ class DillLoader extends Loader {
           )) {
         // Coverage-ignore-block(suite): Not run.
         accessor.addProblem(
-          codePlatformPrivateLibraryAccess,
+          diag.platformPrivateLibraryAccess,
           charOffset,
           noLength,
           accessor.fileUri,
@@ -180,7 +177,7 @@ class DillLoader extends Loader {
     _logSummary(outlineSummaryTemplate);
   }
 
-  void _logSummary(Template<SummaryTemplate, Function> template) {
+  void _logSummary(Template<Function, SummaryTemplate> template) {
     ticker.log(
       // Coverage-ignore(suite): Not run.
       (Duration elapsed, Duration sinceStart) {
@@ -191,12 +188,12 @@ class DillLoader extends Loader {
         }
         double ms =
             elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
-        Message message = template.withArgumentsOld(
-          libraryCount,
-          byteCount,
-          ms,
-          byteCount / ms,
-          ms / libraryCount,
+        Message message = template.withArguments(
+          count: libraryCount,
+          bytes: byteCount,
+          timeMs: ms,
+          rateBytesPerMs: byteCount / ms,
+          averageTimeMs: ms / libraryCount,
         );
         print("$sinceStart: ${message.problemMessage}");
       },
@@ -273,7 +270,9 @@ severity: $severity
     if (!seenMessages.add(trace)) return null;
     if (message.code.severity == CfeSeverity.context) {
       internalProblem(
-        codeInternalProblemContextSeverity.withArgumentsOld(message.code.name),
+        diag.internalProblemContextSeverity.withArguments(
+          messageCode: message.code.name,
+        ),
         charOffset,
         fileUri,
       );
@@ -314,8 +313,8 @@ severity: $severity
     return formattedMessage;
   }
 
-  Template<SummaryTemplate, Function> get outlineSummaryTemplate =>
-      codeDillOutlineSummary;
+  Template<Function, SummaryTemplate> get outlineSummaryTemplate =>
+      diag.dillOutlineSummary;
 
   /// Append compiled libraries from the given [component]. If the [filter] is
   /// provided, append only libraries whose [Uri] is accepted by the [filter].

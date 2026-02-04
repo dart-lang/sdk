@@ -520,6 +520,7 @@ struct InstrAttrs {
   M(GuardFieldClass, _)                                                        \
   M(GuardFieldLength, _)                                                       \
   M(GuardFieldType, _)                                                         \
+  M(CheckFieldImmutability, _)                                                 \
   M(IfThenElse, kNoGC)                                                         \
   M(MaterializeObject, _)                                                      \
   M(TestInt, kNoGC)                                                            \
@@ -6606,6 +6607,55 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
+};
+
+// Throws if [value] is not immutable.
+//
+// This is used when it's impossible to conclude from the variable static type
+// whether value is immutable(in case of closures, for example).
+class CheckFieldImmutabilityInstr : public TemplateInstruction<1, Throws> {
+ public:
+  CheckFieldImmutabilityInstr(Value* value,
+                              const Field& field,
+                              intptr_t deopt_id)
+      : TemplateInstruction(deopt_id), field_(field) {
+    SetInputAt(0, value);
+    CheckField(field);
+  }
+
+  Value* value() const { return inputs_[0]; }
+  enum {
+    kValue = 0,
+  };
+
+  const Field& field() const { return field_; }
+
+  DECLARE_INSTRUCTION(CheckFieldImmutability)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return !CompilerState::Current().is_aot();
+  }
+  virtual bool CanBecomeDeoptimizationTarget() const { return true; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool AttributesEqual(const Instruction& other) const;
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F) F(const Field&, field_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckFieldImmutabilityInstr,
+                                          TemplateInstruction,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CheckFieldImmutabilityInstr);
 };
 
 enum class SlowPathOnSentinelValue {

@@ -97,7 +97,7 @@ class ModuleOutputData {
         constantToModuleMetadata = null,
         assert(modules[0].isMain);
 
-  ModuleOutputData.monolitic(ModuleMetadata module)
+  ModuleOutputData.monolithic(ModuleMetadata module)
       : modules = [module],
         libraryToModuleMetadata = null,
         referenceToModuleMetadata = null,
@@ -114,13 +114,14 @@ class ModuleOutputData {
   ModuleMetadata moduleForReference(Reference reference) {
     // Turn artificial [Reference]s used in dart2wasm to the normal Kernel AST
     // [Reference]s.
-    if (reference.isTypeCheckerReference ||
-        reference.isCheckedEntryReference ||
-        reference.isUncheckedEntryReference ||
-        reference.isBodyReference ||
-        reference.isInitializerReference ||
-        reference.isConstructorBodyReference ||
-        reference.isTearOffReference) {
+    if (reference.node is Member &&
+        (reference.isTypeCheckerReference ||
+            reference.isCheckedEntryReference ||
+            reference.isUncheckedEntryReference ||
+            reference.isBodyReference ||
+            reference.isInitializerReference ||
+            reference.isConstructorBodyReference ||
+            reference.isTearOffReference)) {
       reference = reference.asMember.reference;
     }
 
@@ -156,7 +157,7 @@ class DefaultModuleStrategy extends ModuleStrategy {
     // module.
     final builder = ModuleMetadataBuilder(options);
     final mainModule = builder.buildModuleMetadata(emitAsMain: true);
-    return ModuleOutputData.monolitic(mainModule);
+    return ModuleOutputData.monolithic(mainModule);
   }
 
   @override
@@ -170,15 +171,12 @@ class DefaultModuleStrategy extends ModuleStrategy {
       DeferredModuleLoadingMap loadingMap) async {}
 }
 
-bool _hasWasmExportPragma(CoreTypes coreTypes, Member m) =>
-    hasPragma(coreTypes, m, 'wasm:export');
-
 bool containsWasmExport(CoreTypes coreTypes, Library lib) {
-  if (lib.members.any((m) => _hasWasmExportPragma(coreTypes, m))) {
+  if (lib.members.any((m) => hasWasmExportPragma(coreTypes, m))) {
     return true;
   }
   return lib.classes
-      .any((c) => c.members.any((m) => _hasWasmExportPragma(coreTypes, m)));
+      .any((c) => c.members.any((m) => hasWasmExportPragma(coreTypes, m)));
 }
 
 abstract class ModuleStrategy {
@@ -212,6 +210,9 @@ class DeferredModuleLoadingMap {
   final List<LibraryDependency> loadIdToDeferredImport;
 
   // Maps (library, import-name)-id to list of needed modules.
+  //
+  // NOTE: The load lists are mutable and may get pruned by the compiler after
+  // code generation to avoid emitting & loading empty modules.
   final List<List<ModuleMetadata>> moduleMap;
 
   DeferredModuleLoadingMap._(

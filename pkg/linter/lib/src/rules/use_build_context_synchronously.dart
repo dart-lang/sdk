@@ -469,6 +469,10 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
+  AsyncState? visitNullAwareElement(NullAwareElement node) =>
+      node.value.accept(this)?.asynchronousOrNull;
+
+  @override
   AsyncState? visitParenthesizedExpression(ParenthesizedExpression node) =>
       node.expression.accept(this);
 
@@ -1309,12 +1313,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (isBuildContext(node.target?.staticType, skipNullable: true)) {
-      var buildContextElement = node.target?.buildContextTypedElement;
+    var target = node.target;
+    if (target != null &&
+        target.staticType.isBuildContext(skipNullable: true)) {
+      var buildContextElement = target.buildContextTypedElement;
       if (buildContextElement != null) {
         var mountedGetter = buildContextElement.associatedMountedGetter;
         if (mountedGetter != null) {
-          check(node.target!, mountedGetter);
+          check(target, mountedGetter);
         }
       }
     }
@@ -1329,7 +1335,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     // Getter access.
-    if (isBuildContext(node.prefix.staticType, skipNullable: true)) {
+    if (node.prefix.staticType.isBuildContext(skipNullable: true)) {
       if (node.identifier.name != 'mounted') {
         var buildContextElement = node.prefix.buildContextTypedElement;
         if (buildContextElement != null) {
@@ -1416,9 +1422,7 @@ extension on Expression {
       };
 
       var isGetter = element is PropertyAccessorElement;
-      if (isBuildContext(argType, skipNullable: isGetter)) {
-        return declaration;
-      }
+      if (argType.isBuildContext(skipNullable: isGetter)) return declaration;
     } else if (self is ParenthesizedExpression) {
       return self.expression.buildContextTypedElement;
     } else if (self is PostfixExpression &&
@@ -1462,7 +1466,7 @@ extension ElementExtension on Element {
 
     if (self is PropertyAccessorElement) {
       var enclosingElement = self.enclosingElement;
-      if (enclosingElement is InterfaceElement && isState(enclosingElement)) {
+      if (enclosingElement is InterfaceElement && enclosingElement.isState) {
         // The BuildContext object is the field on Flutter's State class.
         // This object can only be guarded by async gaps with a mounted
         // check on the State.

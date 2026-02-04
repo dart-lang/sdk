@@ -12,14 +12,16 @@ import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:collection/collection.dart';
+import 'package:language_server_protocol/protocol_special.dart' show Either2;
 
 import 'log.dart';
+import 'message_equality.dart';
 import 'server_driver.dart';
 
 /// Some messages from the analysis server should just be ignored.
 bool _shouldSkip(Message message) =>
     // This is the response to the initialize request.
-    message.id == 0 ||
+    (message.id?.valueEquals(0) ?? false) ||
     // Notifications, we can skip these.
     message.id == null ||
     // These are unpredictable and noisy, we can silently ignore them for now.
@@ -62,10 +64,10 @@ class LogPlayer {
     var extraServerMessages = <Message>[];
     // Maps the recorded message IDs for messages initiated by the analysis
     // server to the actual message IDs observed for this run.
-    var actualServerMessageIds = <int, int>{};
+    var actualServerMessageIds = <Either2<int, String>, Either2<int, String>>{};
     // Original recorded ids for work progress notifications. We will skip the
     // responses to these and not expect the requests as they are unreliable.
-    var workProgressIds = <int>{};
+    var workProgressIds = <Either2<int, String>>{};
     try {
       while (nextIndex < entries.length) {
         try {
@@ -91,7 +93,8 @@ class LogPlayer {
                 ),
               );
             case EntryKind.message:
-              if (entry.receiver == ProcessId.server) {
+              if (entry.sender == ProcessId.ide &&
+                  entry.receiver == ProcessId.server) {
                 if (entry.message.isResponse &&
                     workProgressIds.contains(entry.message.id)) {
                   // Skip these responses, we return a canned response and ignore
@@ -106,13 +109,14 @@ class LogPlayer {
                     throw StateError(
                       'Cannot respond to a server message that we haven\'t '
                       'received yet, expected an analysis server request with '
-                      'ID: ${entry.message.id}',
+                      'ID: ${entry.message.id}\n${json.encode(entry)}',
                     );
                   }
                   entry.message.setId(actualId);
                 }
                 await _sendMessageToServer(entry, server);
-              } else if (entry.sender == ProcessId.server) {
+              } else if (entry.sender == ProcessId.server &&
+                  entry.receiver == ProcessId.ide) {
                 var isServerInitiatedRequest = entry.message.method != null;
                 var foundMessage = extraServerMessages.firstWhereOrNull(
                   (recorded) => recorded.equals(
@@ -124,13 +128,13 @@ class LogPlayer {
                   // We have already seen this message, just remove it from the
                   // list of extra messages.
                   extraServerMessages.remove(foundMessage);
-                  if (isServerInitiatedRequest) {
+                  if (isServerInitiatedRequest && entry.message.id != null) {
                     // Record the ID mapping if it was a server initiated request.
                     actualServerMessageIds[entry.message.id!] =
                         foundMessage.id!;
                   }
                   stderr.writeln(
-                    'Matched previous extra message with ID: ${foundMessage.id}!',
+                    'Matched previous message: ${foundMessage.preview}',
                   );
                 } else if (isServerInitiatedRequest &&
                     entry.message.id == null) {
@@ -148,22 +152,27 @@ class LogPlayer {
                   // consistent ordering.
                   await _waitForMessagesFromServer(
                     pendingServerMessageExpectations,
+                    extraServerMessages,
                   );
                 }
+              } else if (entry.sender == ProcessId.watcher &&
+                  entry.receiver == ProcessId.server) {
+                await _sendMessageToServer(entry, server);
               } else {
-                throw StateError('''
-Unexpected sender/receiver for message:
-
-sender: ${entry.sender}
-receiver: ${entry.receiver}
-''');
+                stderr.writeln(
+                  'Unsupported sender/receiver for message:\n'
+                  '${json.encode(entry)}',
+                );
               }
           }
         } finally {
           nextIndex++;
         }
       }
-      await _waitForMessagesFromServer(pendingServerMessageExpectations);
+      await _waitForMessagesFromServer(
+        pendingServerMessageExpectations,
+        extraServerMessages,
+      );
       if (extraServerMessages.isNotEmpty) {
         stderr.writeln(
           'There were ${extraServerMessages.length} extra messages '
@@ -184,7 +193,7 @@ receiver: ${entry.receiver}
     Message message,
     ServerDriver? server,
     List<Message> pendingServerMessageExpectations,
-    Map<int, int> actualServerMessageIds,
+    Map<Either2<int, String>, Either2<int, String>> actualServerMessageIds,
     List<Message> extraServerMessages,
   ) {
     var isServerInitiatedRequest = message.method != null;
@@ -193,13 +202,7 @@ receiver: ${entry.receiver}
     if (message.method == 'window/workDoneProgress/create' &&
         message.params?['token'] == 'ANALYZING') {
       server?.sendMessageFromIde(
-        Message({
-          'time': DateTime.now().millisecondsSinceEpoch,
-          'kind': 'message',
-          'sender': 'ide',
-          'receiver': 'server',
-          'message': {'jsonrpc': '2.0', 'id': message.id, 'result': null},
-        }),
+        Message({'jsonrpc': '2.0', 'id': message.id, 'result': null}),
       );
       return;
     }
@@ -222,36 +225,23 @@ receiver: ${entry.receiver}
       if (message.method == 'workspace/configuration') {
         // The server always sends this but we don't always record it,
         // and it requires a response.
-        var now = DateTime.now();
         server?.sendMessageFromIde(
           Message({
-            'time': now.millisecond,
-            'kind': 'message',
-            'sender': 'ide',
-            'receiver': 'server',
-            'message': {
-              'jsonrpc': '2.0',
-              'id': message.id,
-              'result': [
-                {
-                  'analysisExcludedFolders': [],
-                  'clientRequestTime': now.millisecond,
-                },
-              ],
-            },
+            'jsonrpc': '2.0',
+            'id': message.id,
+            'result': [
+              {
+                'analysisExcludedFolders': [],
+                'clientRequestTime': DateTime.now().millisecond,
+              },
+            ],
           }),
         );
       } else if (message.method == 'client/registerCapability') {
         // The server always sends this but we don't always record
         // it, just return an empty response.
         server?.sendMessageFromIde(
-          Message({
-            'time': DateTime.now().millisecond,
-            'kind': 'message',
-            'sender': 'ide',
-            'receiver': 'server',
-            'message': {'jsonrpc': '2.0', 'id': message.id, 'result': []},
-          }),
+          Message({'jsonrpc': '2.0', 'id': message.id, 'result': []}),
         );
       } else {
         if (!_shouldSkip(message)) {
@@ -307,16 +297,13 @@ receiver: ${entry.receiver}
   /// emptied out.
   Future<void> _waitForMessagesFromServer(
     List<Message> pendingServerMessageExpectations,
+    List<Message> extraServerMessages,
   ) async {
     if (pendingServerMessageExpectations.isEmpty) return;
     var watch = Stopwatch()..start();
-    var trimmed = json.encode(pendingServerMessageExpectations.first.map);
-    if (trimmed.length > 100) {
-      trimmed = '${trimmed.substring(0, 100)}...';
-    }
     var progress = logger.progress(
       'Waiting for ${pendingServerMessageExpectations.length} analysis server '
-      'message(s): $trimmed',
+      'message(s): ${pendingServerMessageExpectations.first.preview}',
     );
     try {
       while (watch.elapsed < timeout) {
@@ -327,7 +314,9 @@ receiver: ${entry.receiver}
       }
       throw TimeoutException(
         'Timed out waiting for analysis server messages:\n\n'
-        '${pendingServerMessageExpectations.join('\n\n')}',
+        '${pendingServerMessageExpectations.map(json.encode).join('\n\n')}'
+        '\n\nUnmatched analysis server messages:\n\n'
+        '${extraServerMessages.map(json.encode).join('\n\n')}',
       );
     } finally {
       progress.finish(showTiming: true);
@@ -336,17 +325,23 @@ receiver: ${entry.receiver}
 }
 
 extension MessageExtension on Message {
-  bool equals(Message other, {bool skipMatchId = true}) {
-    if (method != other.method) return false;
-    if (!skipMatchId && id != other.id) return false;
-    return switch (method) {
-      // No method means this is a response, compare the result.
-      null => const DeepCollectionEquality().equals(result, other.result),
-      // A method means this is a request, compare the params.
-      String() => const DeepCollectionEquality().equals(params, other.params),
-    };
+  static final _messageEquality = MessageEquality(ignoredKeys: {'version'});
+
+  // A preview of the message, first 100 chars followed by "..."
+  String get preview {
+    var content = json.encode(map);
+    if (content.length > 100) {
+      content = '${content.substring(0, 100)}...';
+    }
+    return content;
   }
 
+  bool equals(Message other, {bool skipMatchId = true}) =>
+      _messageEquality.equals(this, other, skipMatchId: skipMatchId);
+
   // Can't be a setter https://github.com/dart-lang/language/issues/4334
-  void setId(int newId) => map['id'] = newId;
+  void setId(Either2<int, String> newId) =>
+      // We always store the underlying value in the map, not the Either2,
+      // because that matches what a real JSON map would have.
+      map['id'] = newId.map((i) => i, (s) => s);
 }

@@ -2102,10 +2102,47 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* CheckFieldImmutabilityInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(
+      0, Location::RegisterLocation(EnsureDeeplyImmutableStubABI::kValueReg));
+  summary->set_temp(
+      0, Location::RegisterLocation(EnsureDeeplyImmutableStubABI::kTempReg));
+  return summary;
+}
+
+void CheckFieldImmutabilityInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const Register temp = locs()->temp(0).reg();
+
+  auto slow_path = new EnsureDeeplyImmutableSlowPath(this, value);
+  compiler->AddSlowPathCode(slow_path);
+
+  __ BranchIfSmi(value, slow_path->exit_label(),
+                 compiler::Assembler::kNearJump);
+
+  __ movl(temp, compiler::FieldAddress(
+                    value, compiler::target::Object::tags_offset()));
+  __ testl(temp,
+           compiler::Immediate(
+               1 << compiler::target::UntaggedObject::kDeeplyImmutableBit));
+  // If immutability bit is not set, go to runtime.
+  __ j(ZERO, slow_path->entry_label());
+
+  __ Bind(slow_path->exit_label());
+}
+
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumTemps =
-      FLAG_experimental_shared_data && field().is_shared() ? 2 : 1;
+  const bool need_extra_temp = FLAG_experimental_shared_data &&
+                               field().is_shared() &&
+                               !field().has_deeply_immutable_type();
+  const intptr_t kNumTemps = need_extra_temp ? 2 : 1;
   const bool can_call_to_throw = FLAG_experimental_shared_data;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, 1, kNumTemps,
@@ -2114,7 +2151,7 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(0, value()->NeedsWriteBarrier() ? Location::WritableRegister()
                                                : Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
-  if (FLAG_experimental_shared_data && field().is_shared()) {
+  if (need_extra_temp) {
     locs->set_temp(1, Location::RegisterLocation(
                           CheckedStoreIntoSharedStubABI::kFieldReg));
   }
@@ -2142,33 +2179,30 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadIsolate(temp);
       __ BranchIfZero(temp, slow_path->entry_label());
     } else {
-      // TODO(dartbug.com/61078): use field static type information to decide
-      // whether the following value check is needed or not.
-      checked_store_into_shared_slow_path =
-          new CheckedStoreIntoSharedSlowPath(this, in);
-      compiler->AddSlowPathCode(checked_store_into_shared_slow_path);
+      if (!field().has_deeply_immutable_type()) {
+        checked_store_into_shared_slow_path =
+            new CheckedStoreIntoSharedSlowPath(this, in);
+        compiler->AddSlowPathCode(checked_store_into_shared_slow_path);
 
-      compiler::Label allow_store;
-      __ BranchIfSmi(in, &allow_store, compiler::Assembler::kNearJump);
+        compiler::Label allow_store;
+        __ BranchIfSmi(in, &allow_store, compiler::Assembler::kNearJump);
 
-      __ movl(temp, compiler::FieldAddress(
-                        in, compiler::target::Object::tags_offset()));
-      __ testl(temp, compiler::Immediate(
-                         1 << compiler::target::UntaggedObject::kCanonicalBit));
-      // If canonical bit is set, no need for runtime check.
-      __ j(NOT_ZERO, &allow_store);
-      __ testl(temp, compiler::Immediate(
-                         1 << compiler::target::UntaggedObject::kImmutableBit));
-      // If immutability bit is not set, go to runtime.
-      __ j(ZERO, checked_store_into_shared_slow_path->entry_label());
+        __ movl(temp, compiler::FieldAddress(
+                          in, compiler::target::Object::tags_offset()));
+        __ testl(temp,
+                 compiler::Immediate(
+                     1 << compiler::target::UntaggedObject::kCanonicalBit));
+        // If canonical bit is set, no need for runtime check.
+        __ j(NOT_ZERO, &allow_store);
+        __ testl(
+            temp,
+            compiler::Immediate(
+                1 << compiler::target::UntaggedObject::kDeeplyImmutableBit));
+        // If immutability bit is not set, go to runtime.
+        __ j(ZERO, checked_store_into_shared_slow_path->entry_label());
 
-      // If immutability bit is set, skip runtime unless it's a Closure
-      // (see raw_object.h ImmutableBit description for deep vs  shallow).
-      __ LoadClassId(temp, in);
-      __ CompareImmediate(temp, kClosureCid);
-      __ BranchIf(EQUAL, checked_store_into_shared_slow_path->entry_label());
-
-      __ Bind(&allow_store);
+        __ Bind(&allow_store);
+      }
     }
   }
 
@@ -2189,7 +2223,8 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             in);
   }
 
-  if (FLAG_experimental_shared_data && field().is_shared()) {
+  if (FLAG_experimental_shared_data && field().is_shared() &&
+      !field().has_deeply_immutable_type()) {
     __ Bind(checked_store_into_shared_slow_path->exit_label());
   }
 }
@@ -5460,8 +5495,10 @@ void CheckWritableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movl(temp,
           compiler::FieldAddress(locs()->in(0).reg(),
                                  compiler::target::Object::tags_offset()));
-  __ testl(temp, compiler::Immediate(
-                     1 << compiler::target::UntaggedObject::kImmutableBit));
+  __ testl(temp,
+           compiler::Immediate(
+               1 << compiler::target::UntaggedObject::kDeeplyImmutableBit |
+               1 << compiler::target::UntaggedObject::kShallowImmutableBit));
   __ j(NOT_ZERO, slow_path->entry_label());
 }
 

@@ -76,7 +76,7 @@ static constexpr intptr_t kDeltaEncodedTypedDataCid = kNativePointer;
 struct GrowableArrayStorageTraits {
   class Array : public ZoneAllocated {
    public:
-    explicit Array(Zone* zone, intptr_t length)
+    Array(Zone* zone, intptr_t length)
         : length_(length), array_(zone->Alloc<ObjectPtr>(length)) {}
 
     intptr_t Length() const { return length_; }
@@ -160,15 +160,17 @@ static void RelocateCodeObjects(
 class SerializationCluster : public ZoneAllocated {
  public:
   static constexpr intptr_t kSizeVaries = -1;
-  explicit SerializationCluster(const char* name,
-                                intptr_t cid,
-                                intptr_t target_instance_size = kSizeVaries,
-                                bool is_canonical = false)
+  SerializationCluster(const char* name,
+                       intptr_t cid,
+                       intptr_t target_instance_size = kSizeVaries,
+                       bool is_canonical = false,
+                       bool is_deeply_immutable = false)
       : name_(name),
         cid_(cid),
         target_instance_size_(target_instance_size),
         is_canonical_(is_canonical),
-        is_immutable_(Object::ShouldHaveImmutabilityBitSet(cid)) {
+        is_deeply_immutable_(is_canonical_ ||
+                             Object::ShouldHaveDeeplyImmutabilityBitSet(cid)) {
     ASSERT(target_instance_size == kSizeVaries || target_instance_size >= 0);
   }
   virtual ~SerializationCluster() {}
@@ -190,7 +192,7 @@ class SerializationCluster : public ZoneAllocated {
   const char* name() const { return name_; }
   intptr_t cid() const { return cid_; }
   bool is_canonical() const { return is_canonical_; }
-  bool is_immutable() const { return is_immutable_; }
+  bool is_deeply_immutable() const { return is_deeply_immutable_; }
   intptr_t size() const { return size_; }
   intptr_t num_objects() const { return num_objects_; }
 
@@ -208,7 +210,7 @@ class SerializationCluster : public ZoneAllocated {
   const intptr_t cid_;
   const intptr_t target_instance_size_;
   const bool is_canonical_;
-  const bool is_immutable_;
+  const bool is_deeply_immutable_;
   intptr_t size_ = 0;
   intptr_t num_objects_ = 0;
   intptr_t target_memory_size_ = 0;
@@ -218,12 +220,15 @@ class DeserializationCluster : public ZoneAllocated {
  public:
   explicit DeserializationCluster(const char* name,
                                   bool is_canonical = false,
-                                  bool is_immutable = false)
+                                  bool is_deeply_immutable = false)
       : name_(name),
         is_canonical_(is_canonical),
-        is_immutable_(is_immutable),
+        is_deeply_immutable_(is_deeply_immutable),
         start_index_(-1),
-        stop_index_(-1) {}
+        stop_index_(-1) {
+    // All canonical should be deeply-immutable
+    ASSERT(is_deeply_immutable_ || !is_canonical_);
+  }
   virtual ~DeserializationCluster() {}
 
   // Allocate memory for all objects in the cluster and write their addresses
@@ -248,14 +253,14 @@ class DeserializationCluster : public ZoneAllocated {
 
   const char* name() const { return name_; }
   bool is_canonical() const { return is_canonical_; }
-  bool is_immutable() const { return is_immutable_; }
+  bool is_deeply_immutable() const { return is_deeply_immutable_; }
 
  protected:
   void ReadAllocFixedSize(Deserializer* deserializer, intptr_t instance_size);
 
   const char* const name_;
   const bool is_canonical_;
-  const bool is_immutable_;
+  const bool is_deeply_immutable_;
   // The range of the ref array that belongs to this cluster.
   intptr_t start_index_;
   intptr_t stop_index_;
@@ -336,7 +341,9 @@ class Serializer : public ThreadStackResource {
   ObjectPtr ParentOf(const Object& object) const;
 #endif
 
-  SerializationCluster* NewClusterForClass(intptr_t cid, bool is_canonical);
+  SerializationCluster* NewClusterForClass(intptr_t cid,
+                                           bool is_canonical,
+                                           bool is_deeply_immutable);
 
   void ReserveHeader() {
     // Make room for recording snapshot buffer size.
@@ -595,6 +602,7 @@ class Serializer : public ThreadStackResource {
   NonStreamingWriteStream* stream_;
   ImageWriter* image_writer_;
   SerializationCluster** canonical_clusters_by_cid_;
+  SerializationCluster** immutable_clusters_by_cid_;
   SerializationCluster** clusters_by_cid_;
   CodeSerializationCluster* code_cluster_ = nullptr;
 
@@ -682,18 +690,15 @@ class Deserializer : public ThreadStackResource {
   ApiErrorPtr VerifyImageAlignment();
 
   ObjectPtr Allocate(intptr_t size);
-  static void InitializeHeader(ObjectPtr raw,
-                               intptr_t cid,
-                               intptr_t size,
-                               bool is_canonical = false) {
-    InitializeHeader(raw, cid, size, is_canonical,
-                     ShouldHaveImmutabilityBitSetCid(cid));
+  static void InitializeHeader(ObjectPtr raw, intptr_t cid, intptr_t size) {
+    InitializeHeader(raw, cid, size, /*is_canonical=*/false,
+                     /*is_deeply_immutable=*/false);
   }
   static void InitializeHeader(ObjectPtr raw,
                                intptr_t cid,
                                intptr_t size,
                                bool is_canonical,
-                               bool is_immutable);
+                               bool is_deeply_immutable);
 
   // Reads raw data (for basic types).
   // sizeof(T) must be in {1,2,4,8}.
@@ -832,7 +837,7 @@ class Deserializer : public ThreadStackResource {
     }
 
     template <typename T, typename... P>
-    void ReadFromTo(T obj, P&&... params) {
+    DART_FORCE_INLINE void ReadFromTo(T obj, P&&... params) {
       auto* from = obj->untag()->from();
       auto* to_snapshot = obj->untag()->to_snapshot(d_->kind(), params...);
       auto* to = obj->untag()->to(params...);
@@ -847,6 +852,8 @@ class Deserializer : public ThreadStackResource {
         *p = null_;
       }
     }
+
+    ObjectPtr null() const { return null_; }
 
    private:
     Deserializer* const d_;
@@ -885,7 +892,7 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t class_id,
                                     intptr_t size,
                                     bool is_canonical,
-                                    bool is_immutable) {
+                                    bool is_deeply_immutable) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword tags = 0;
   tags = UntaggedObject::ClassIdTag::update(class_id, tags);
@@ -895,7 +902,9 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
   tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
-  tags = UntaggedObject::ImmutableBit::update(is_immutable, tags);
+  tags = UntaggedObject::ShallowImmutableBit::update(
+      Object::ShouldHaveShallowImmutabilityBitSet(class_id), tags);
+  tags = UntaggedObject::DeeplyImmutableBit::update(is_deeply_immutable, tags);
   raw->untag()->tags_ = tags;
 }
 
@@ -904,9 +913,10 @@ void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
   intptr_t start_size = serializer->bytes_written();
   intptr_t start_data = serializer->GetDataSize();
   intptr_t start_objects = serializer->next_ref_index();
-  uint32_t tags = UntaggedObject::ClassIdTag::encode(cid_) |
-                  UntaggedObject::CanonicalBit::encode(is_canonical()) |
-                  UntaggedObject::ImmutableBit::encode(is_immutable());
+  uint32_t tags =
+      UntaggedObject::ClassIdTag::encode(cid_) |
+      UntaggedObject::CanonicalBit::encode(is_canonical()) |
+      UntaggedObject::DeeplyImmutableBit::encode(is_deeply_immutable());
   serializer->Write<uint32_t>(tags);
   WriteAlloc(serializer);
   intptr_t stop_size = serializer->bytes_written();
@@ -1225,10 +1235,15 @@ class CanonicalSetSerializationCluster : public SerializationCluster {
  protected:
   CanonicalSetSerializationCluster(intptr_t cid,
                                    bool is_canonical,
+                                   bool is_deeply_immutable,
                                    bool represents_canonical_set,
                                    const char* name,
                                    intptr_t target_instance_size = 0)
-      : SerializationCluster(name, cid, target_instance_size, is_canonical),
+      : SerializationCluster(name,
+                             cid,
+                             target_instance_size,
+                             is_canonical,
+                             is_deeply_immutable),
         represents_canonical_set_(represents_canonical_set) {}
 
   virtual bool IsInCanonicalSet(Serializer* s, PointerType ptr) {
@@ -1327,9 +1342,10 @@ template <typename SetType, bool kAllCanonicalObjectsAreIncludedIntoSet = true>
 class CanonicalSetDeserializationCluster : public DeserializationCluster {
  public:
   CanonicalSetDeserializationCluster(bool is_canonical,
+                                     bool is_deeply_immutable,
                                      bool is_root_unit,
                                      const char* name)
-      : DeserializationCluster(name, is_canonical),
+      : DeserializationCluster(name, is_canonical, is_deeply_immutable),
         is_root_unit_(is_root_unit),
         table_(SetType::ArrayHandle::Handle()) {}
 
@@ -1437,11 +1453,13 @@ class CanonicalSetDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeParametersSerializationCluster : public SerializationCluster {
  public:
-  TypeParametersSerializationCluster()
+  TypeParametersSerializationCluster(bool is_canonical,
+                                     bool is_deeply_immutable)
       : SerializationCluster("TypeParameters",
                              kTypeParametersCid,
-                             compiler::target::TypeParameters::InstanceSize()) {
-  }
+                             compiler::target::TypeParameters::InstanceSize(),
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~TypeParametersSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1475,8 +1493,11 @@ class TypeParametersSerializationCluster : public SerializationCluster {
 
 class TypeParametersDeserializationCluster : public DeserializationCluster {
  public:
-  TypeParametersDeserializationCluster()
-      : DeserializationCluster("TypeParameters") {}
+  TypeParametersDeserializationCluster(bool is_canonical,
+                                       bool is_deeply_immutable)
+      : DeserializationCluster("TypeParameters",
+                               is_canonical,
+                               is_deeply_immutable) {}
   ~TypeParametersDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -1503,9 +1524,11 @@ class TypeArgumentsSerializationCluster
                                               TypeArgumentsPtr> {
  public:
   TypeArgumentsSerializationCluster(bool is_canonical,
+                                    bool is_deeply_immutable,
                                     bool represents_canonical_set)
       : CanonicalSetSerializationCluster(kTypeArgumentsCid,
                                          is_canonical,
+                                         is_deeply_immutable,
                                          represents_canonical_set,
                                          "TypeArguments") {}
   ~TypeArgumentsSerializationCluster() {}
@@ -1561,9 +1584,11 @@ class TypeArgumentsSerializationCluster
 class TypeArgumentsDeserializationCluster
     : public CanonicalSetDeserializationCluster<CanonicalTypeArgumentsSet> {
  public:
-  explicit TypeArgumentsDeserializationCluster(bool is_canonical,
-                                               bool is_root_unit)
+  TypeArgumentsDeserializationCluster(bool is_canonical,
+                                      bool is_deeply_immutable,
+                                      bool is_root_unit)
       : CanonicalSetDeserializationCluster(is_canonical,
+                                           is_deeply_immutable,
                                            is_root_unit,
                                            "TypeArguments") {}
   ~TypeArgumentsDeserializationCluster() {}
@@ -1588,7 +1613,7 @@ class TypeArgumentsDeserializationCluster
       const intptr_t length = d.ReadUnsigned();
       Deserializer::InitializeHeader(type_args, kTypeArgumentsCid,
                                      TypeArguments::InstanceSize(length),
-                                     mark_canonical);
+                                     mark_canonical, is_deeply_immutable());
       type_args->untag()->length_ = Smi::New(length);
       type_args->untag()->hash_ = Smi::New(d.Read<int32_t>());
       type_args->untag()->nullability_ = Smi::New(d.ReadUnsigned());
@@ -2456,8 +2481,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->untag()->index_ = d.Read<int32_t>();
       lib->untag()->num_imports_ = d.Read<uint16_t>();
       lib->untag()->load_state_ = d.Read<int8_t>();
-      lib->untag()->flags_ =
-          UntaggedLibrary::InFullSnapshotBit::update(true, d.Read<uint8_t>());
+      lib->untag()->flags_ = d.Read<uint8_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(d_->kind() != Snapshot::kFullAOT);
       lib->untag()->kernel_library_index_ = d.Read<uint32_t>();
@@ -3619,10 +3643,12 @@ class RODataSerializationCluster
   RODataSerializationCluster(Zone* zone,
                              const char* type,
                              intptr_t cid,
-                             bool is_canonical)
+                             bool is_canonical,
+                             bool is_deeply_immutable)
       : CanonicalSetSerializationCluster(
             cid,
             is_canonical,
+            is_deeply_immutable,
             is_canonical && IsStringClassId(cid),
             ImageWriter::TagObjectTypeAsReadOnly(zone, type)),
         type_(type) {}
@@ -3682,10 +3708,12 @@ class RODataSerializationCluster
 class RODataDeserializationCluster
     : public CanonicalSetDeserializationCluster<CanonicalStringSet> {
  public:
-  explicit RODataDeserializationCluster(intptr_t cid,
-                                        bool is_canonical,
-                                        bool is_root_unit)
+  RODataDeserializationCluster(intptr_t cid,
+                               bool is_canonical,
+                               bool is_deeply_immutable,
+                               bool is_root_unit)
       : CanonicalSetDeserializationCluster(is_canonical,
+                                           is_deeply_immutable,
                                            is_root_unit,
                                            "ROData"),
         cid_(cid) {}
@@ -4446,8 +4474,14 @@ class UnhandledExceptionDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class InstanceSerializationCluster : public SerializationCluster {
  public:
-  InstanceSerializationCluster(bool is_canonical, intptr_t cid)
-      : SerializationCluster("Instance", cid, kSizeVaries, is_canonical) {
+  InstanceSerializationCluster(bool is_canonical,
+                               bool is_deeply_immutable,
+                               intptr_t cid)
+      : SerializationCluster("Instance",
+                             cid,
+                             kSizeVaries,
+                             is_canonical,
+                             is_deeply_immutable) {
     ClassPtr cls = IsolateGroup::Current()->class_table()->At(cid);
     host_next_field_offset_in_words_ =
         cls->untag()->host_next_field_offset_in_words_;
@@ -4551,11 +4585,11 @@ class InstanceSerializationCluster : public SerializationCluster {
 
 class AbstractInstanceDeserializationCluster : public DeserializationCluster {
  protected:
-  explicit AbstractInstanceDeserializationCluster(const char* name,
-                                                  bool is_canonical,
-                                                  bool is_immutable,
-                                                  bool is_root_unit)
-      : DeserializationCluster(name, is_canonical, is_immutable),
+  AbstractInstanceDeserializationCluster(const char* name,
+                                         bool is_canonical,
+                                         bool is_deeply_immutable,
+                                         bool is_root_unit)
+      : DeserializationCluster(name, is_canonical, is_deeply_immutable),
         is_root_unit_(is_root_unit) {}
 
   const bool is_root_unit_;
@@ -4580,13 +4614,13 @@ class AbstractInstanceDeserializationCluster : public DeserializationCluster {
 class InstanceDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit InstanceDeserializationCluster(intptr_t cid,
-                                          bool is_canonical,
-                                          bool is_immutable,
-                                          bool is_root_unit)
+  InstanceDeserializationCluster(intptr_t cid,
+                                 bool is_canonical,
+                                 bool is_deeply_immutable,
+                                 bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Instance",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~InstanceDeserializationCluster() {}
@@ -4609,7 +4643,7 @@ class InstanceDeserializationCluster
 
     const intptr_t cid = cid_;
     const bool mark_canonical = is_root_unit_ && is_canonical();
-    const bool is_immutable = is_immutable_;
+    const bool is_deeply_immutable = is_deeply_immutable_;
     intptr_t next_field_offset = next_field_offset_in_words_
                                  << kCompressedWordSizeLog2;
     intptr_t instance_size = Object::RoundedAllocationSize(
@@ -4619,7 +4653,7 @@ class InstanceDeserializationCluster
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       InstancePtr instance = static_cast<InstancePtr>(d.Ref(id));
       Deserializer::InitializeHeader(instance, cid, instance_size,
-                                     mark_canonical, is_immutable);
+                                     mark_canonical, is_deeply_immutable);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
@@ -4637,7 +4671,7 @@ class InstanceDeserializationCluster
       while (offset < instance_size) {
         CompressedObjectPtr* p = reinterpret_cast<CompressedObjectPtr*>(
             reinterpret_cast<uword>(instance->untag()) + offset);
-        *p = Object::null();
+        *p = d.null();
         offset += kCompressedWordSize;
       }
       ASSERT(offset == instance_size);
@@ -4723,10 +4757,13 @@ class TypeSerializationCluster
           TypePtr,
           /*kAllCanonicalObjectsAreIncludedIntoSet=*/false> {
  public:
-  TypeSerializationCluster(bool is_canonical, bool represents_canonical_set)
+  TypeSerializationCluster(bool is_canonical,
+                           bool is_deeply_immutable,
+                           bool represents_canonical_set)
       : CanonicalSetSerializationCluster(
             kTypeCid,
             is_canonical,
+            is_deeply_immutable,
             represents_canonical_set,
             "Type",
             compiler::target::Type::InstanceSize()) {}
@@ -4803,9 +4840,11 @@ class TypeDeserializationCluster
           CanonicalTypeSet,
           /*kAllCanonicalObjectsAreIncludedIntoSet=*/false> {
  public:
-  explicit TypeDeserializationCluster(bool is_canonical, bool is_root_unit)
-      : CanonicalSetDeserializationCluster(is_canonical, is_root_unit, "Type") {
-  }
+  TypeDeserializationCluster(bool is_canonical, bool is_root_unit)
+      : CanonicalSetDeserializationCluster(is_canonical,
+                                           /*is_deeply_immutable=*/true,
+                                           is_root_unit,
+                                           "Type") {}
   ~TypeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -4820,7 +4859,7 @@ class TypeDeserializationCluster
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       TypePtr type = static_cast<TypePtr>(d.Ref(id));
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
-                                     mark_canonical);
+                                     mark_canonical, is_deeply_immutable());
       d.ReadFromTo(type);
       type->untag()->set_flags(d.ReadUnsigned());
     }
@@ -4865,11 +4904,13 @@ class FunctionTypeSerializationCluster
                                               FunctionType,
                                               FunctionTypePtr> {
  public:
-  explicit FunctionTypeSerializationCluster(bool is_canonical,
-                                            bool represents_canonical_set)
+  FunctionTypeSerializationCluster(bool is_canonical,
+                                   bool is_deeply_immutable,
+                                   bool represents_canonical_set)
       : CanonicalSetSerializationCluster(
             kFunctionTypeCid,
             is_canonical,
+            is_deeply_immutable,
             represents_canonical_set,
             "FunctionType",
             compiler::target::FunctionType::InstanceSize()) {}
@@ -4915,9 +4956,9 @@ class FunctionTypeSerializationCluster
 class FunctionTypeDeserializationCluster
     : public CanonicalSetDeserializationCluster<CanonicalFunctionTypeSet> {
  public:
-  explicit FunctionTypeDeserializationCluster(bool is_canonical,
-                                              bool is_root_unit)
+  FunctionTypeDeserializationCluster(bool is_canonical, bool is_root_unit)
       : CanonicalSetDeserializationCluster(is_canonical,
+                                           /*is_deeply_immutable=*/true,
                                            is_root_unit,
                                            "FunctionType") {}
   ~FunctionTypeDeserializationCluster() {}
@@ -4933,8 +4974,9 @@ class FunctionTypeDeserializationCluster
     const bool mark_canonical = is_root_unit_ && is_canonical();
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       FunctionTypePtr type = static_cast<FunctionTypePtr>(d.Ref(id));
-      Deserializer::InitializeHeader(
-          type, kFunctionTypeCid, FunctionType::InstanceSize(), mark_canonical);
+      Deserializer::InitializeHeader(type, kFunctionTypeCid,
+                                     FunctionType::InstanceSize(),
+                                     mark_canonical, is_deeply_immutable());
       d.ReadFromTo(type);
       type->untag()->set_flags(d.Read<uint8_t>());
       type->untag()->packed_parameter_counts_ = d.Read<uint32_t>();
@@ -4982,10 +5024,12 @@ class RecordTypeSerializationCluster
                                               RecordTypePtr> {
  public:
   RecordTypeSerializationCluster(bool is_canonical,
+                                 bool is_deeply_immutable,
                                  bool represents_canonical_set)
       : CanonicalSetSerializationCluster(
             kRecordTypeCid,
             is_canonical,
+            is_deeply_immutable,
             represents_canonical_set,
             "RecordType",
             compiler::target::RecordType::InstanceSize()) {}
@@ -5031,6 +5075,7 @@ class RecordTypeDeserializationCluster
  public:
   RecordTypeDeserializationCluster(bool is_canonical, bool is_root_unit)
       : CanonicalSetDeserializationCluster(is_canonical,
+                                           /*is_deeply_immutable=*/true,
                                            is_root_unit,
                                            "RecordType") {}
   ~RecordTypeDeserializationCluster() {}
@@ -5046,8 +5091,9 @@ class RecordTypeDeserializationCluster
     const bool mark_canonical = is_root_unit_ && is_canonical();
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       RecordTypePtr type = static_cast<RecordTypePtr>(d.Ref(id));
-      Deserializer::InitializeHeader(
-          type, kRecordTypeCid, RecordType::InstanceSize(), mark_canonical);
+      Deserializer::InitializeHeader(type, kRecordTypeCid,
+                                     RecordType::InstanceSize(), mark_canonical,
+                                     is_deeply_immutable());
       d.ReadFromTo(type);
       type->untag()->set_flags(d.Read<uint8_t>());
     }
@@ -5093,10 +5139,12 @@ class TypeParameterSerializationCluster
                                               TypeParameterPtr> {
  public:
   TypeParameterSerializationCluster(bool is_canonical,
+                                    bool is_deeply_immutable,
                                     bool cluster_represents_canonical_set)
       : CanonicalSetSerializationCluster(
             kTypeParameterCid,
             is_canonical,
+            is_deeply_immutable,
             cluster_represents_canonical_set,
             "TypeParameter",
             compiler::target::TypeParameter::InstanceSize()) {}
@@ -5142,9 +5190,9 @@ class TypeParameterSerializationCluster
 class TypeParameterDeserializationCluster
     : public CanonicalSetDeserializationCluster<CanonicalTypeParameterSet> {
  public:
-  explicit TypeParameterDeserializationCluster(bool is_canonical,
-                                               bool is_root_unit)
+  TypeParameterDeserializationCluster(bool is_canonical, bool is_root_unit)
       : CanonicalSetDeserializationCluster(is_canonical,
+                                           /*is_deeply_immutable=*/true,
                                            is_root_unit,
                                            "TypeParameter") {}
   ~TypeParameterDeserializationCluster() {}
@@ -5162,7 +5210,7 @@ class TypeParameterDeserializationCluster
       TypeParameterPtr type = static_cast<TypeParameterPtr>(d.Ref(id));
       Deserializer::InitializeHeader(type, kTypeParameterCid,
                                      TypeParameter::InstanceSize(),
-                                     mark_canonical);
+                                     mark_canonical, is_deeply_immutable());
       d.ReadFromTo(type);
       type->untag()->base_ = d.Read<uint16_t>();
       type->untag()->index_ = d.Read<uint16_t>();
@@ -5206,11 +5254,12 @@ class TypeParameterDeserializationCluster
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class ClosureSerializationCluster : public SerializationCluster {
  public:
-  explicit ClosureSerializationCluster(bool is_canonical)
+  ClosureSerializationCluster(bool is_canonical, bool is_deeply_immutable)
       : SerializationCluster("Closure",
                              kClosureCid,
                              compiler::target::Closure::InstanceSize(),
-                             is_canonical) {}
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~ClosureSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -5245,12 +5294,12 @@ class ClosureSerializationCluster : public SerializationCluster {
 class ClosureDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit ClosureDeserializationCluster(bool is_canonical,
-                                         bool is_immutable,
-                                         bool is_root_unit)
+  ClosureDeserializationCluster(bool is_canonical,
+                                bool is_deeply_immutable,
+                                bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Closure",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit) {}
   ~ClosureDeserializationCluster() {}
 
@@ -5265,7 +5314,8 @@ class ClosureDeserializationCluster
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ClosurePtr closure = static_cast<ClosurePtr>(d.Ref(id));
       Deserializer::InitializeHeader(closure, kClosureCid,
-                                     Closure::InstanceSize(), mark_canonical);
+                                     Closure::InstanceSize(), mark_canonical,
+                                     is_deeply_immutable());
       d.ReadFromTo(closure);
 #if defined(DART_PRECOMPILED_RUNTIME)
       closure->untag()->entry_point_ = 0;
@@ -5294,8 +5344,12 @@ class ClosureDeserializationCluster
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class MintSerializationCluster : public SerializationCluster {
  public:
-  explicit MintSerializationCluster(bool is_canonical)
-      : SerializationCluster("int", kMintCid, kSizeVaries, is_canonical) {}
+  MintSerializationCluster(bool is_canonical, bool is_deeply_immutable)
+      : SerializationCluster("int",
+                             kMintCid,
+                             kSizeVaries,
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~MintSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -5343,12 +5397,10 @@ class MintSerializationCluster : public SerializationCluster {
 class MintDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit MintDeserializationCluster(bool is_canonical,
-                                      bool is_immutable,
-                                      bool is_root_unit)
+  MintDeserializationCluster(bool is_canonical, bool is_root_unit)
       : AbstractInstanceDeserializationCluster("int",
                                                is_canonical,
-                                               is_immutable,
+                                               /*is_deeply_immutable=*/true,
                                                is_root_unit) {}
   ~MintDeserializationCluster() {}
 
@@ -5363,7 +5415,8 @@ class MintDeserializationCluster
       } else {
         MintPtr mint = static_cast<MintPtr>(d->Allocate(Mint::InstanceSize()));
         Deserializer::InitializeHeader(mint, kMintCid, Mint::InstanceSize(),
-                                       mark_canonical);
+                                       mark_canonical,
+                                       /*is_deeply_immutable=*/true);
         mint->untag()->value_ = value;
         d->AssignRef(mint);
       }
@@ -5377,11 +5430,12 @@ class MintDeserializationCluster
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class DoubleSerializationCluster : public SerializationCluster {
  public:
-  explicit DoubleSerializationCluster(bool is_canonical)
+  DoubleSerializationCluster(bool is_canonical, bool is_deeply_immutable)
       : SerializationCluster("double",
                              kDoubleCid,
                              compiler::target::Double::InstanceSize(),
-                             is_canonical) {}
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~DoubleSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -5415,14 +5469,12 @@ class DoubleSerializationCluster : public SerializationCluster {
 class DoubleDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit DoubleDeserializationCluster(bool is_canonical,
-                                        bool is_immutable,
-                                        bool is_root_unit)
+  DoubleDeserializationCluster(bool is_canonical, bool is_root_unit)
       : AbstractInstanceDeserializationCluster("double",
                                                is_canonical,
-                                               is_immutable,
+                                               /*is_deeply_immutable=*/true,
                                                is_root_unit) {
-    ASSERT(Object::ShouldHaveImmutabilityBitSet(kDoubleCid));
+    ASSERT(Object::ShouldHaveDeeplyImmutabilityBitSet(kDoubleCid));
   }
   ~DoubleDeserializationCluster() {}
 
@@ -5436,7 +5488,8 @@ class DoubleDeserializationCluster
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       DoublePtr dbl = static_cast<DoublePtr>(d.Ref(id));
       Deserializer::InitializeHeader(dbl, kDoubleCid, Double::InstanceSize(),
-                                     mark_canonical);
+                                     mark_canonical,
+                                     /*is_deeply_immutable=*/true);
       dbl->untag()->value_ = d.Read<double>();
     }
   }
@@ -5445,11 +5498,14 @@ class DoubleDeserializationCluster
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class Simd128SerializationCluster : public SerializationCluster {
  public:
-  explicit Simd128SerializationCluster(intptr_t cid, bool is_canonical)
+  Simd128SerializationCluster(intptr_t cid,
+                              bool is_canonical,
+                              bool is_deeply_immutable)
       : SerializationCluster("Simd128",
                              cid,
                              compiler::target::Int32x4::InstanceSize(),
-                             is_canonical) {
+                             is_canonical,
+                             is_deeply_immutable) {
     ASSERT_EQUAL(compiler::target::Int32x4::InstanceSize(),
                  compiler::target::Float32x4::InstanceSize());
     ASSERT_EQUAL(compiler::target::Int32x4::InstanceSize(),
@@ -5488,13 +5544,12 @@ class Simd128SerializationCluster : public SerializationCluster {
 class Simd128DeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit Simd128DeserializationCluster(intptr_t cid,
-                                         bool is_canonical,
-                                         bool is_immutable,
-                                         bool is_root_unit)
+  Simd128DeserializationCluster(intptr_t cid,
+                                bool is_canonical,
+                                bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Simd128",
                                                is_canonical,
-                                               is_immutable,
+                                               /*is_deeply_immutable=*/true,
                                                is_root_unit),
         cid_(cid) {}
   ~Simd128DeserializationCluster() {}
@@ -5512,7 +5567,8 @@ class Simd128DeserializationCluster
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ObjectPtr vector = d.Ref(id);
       Deserializer::InitializeHeader(vector, cid, Int32x4::InstanceSize(),
-                                     mark_canonical);
+                                     mark_canonical,
+                                     /*is_deeply_immutable=*/true);
       d.ReadBytes(&(static_cast<Int32x4Ptr>(vector)->untag()->value_),
                   sizeof(simd128_value_t));
     }
@@ -5525,11 +5581,14 @@ class Simd128DeserializationCluster
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class GrowableObjectArraySerializationCluster : public SerializationCluster {
  public:
-  GrowableObjectArraySerializationCluster()
+  GrowableObjectArraySerializationCluster(bool is_canonical,
+                                          bool is_deeply_immutable)
       : SerializationCluster(
             "GrowableObjectArray",
             kGrowableObjectArrayCid,
-            compiler::target::GrowableObjectArray::InstanceSize()) {}
+            compiler::target::GrowableObjectArray::InstanceSize(),
+            is_canonical,
+            is_deeply_immutable) {}
   ~GrowableObjectArraySerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -5564,8 +5623,11 @@ class GrowableObjectArraySerializationCluster : public SerializationCluster {
 class GrowableObjectArrayDeserializationCluster
     : public DeserializationCluster {
  public:
-  GrowableObjectArrayDeserializationCluster()
-      : DeserializationCluster("GrowableObjectArray") {}
+  GrowableObjectArrayDeserializationCluster(bool is_canonical,
+                                            bool is_deeply_immutable)
+      : DeserializationCluster("GrowableObjectArray",
+                               is_canonical,
+                               is_deeply_immutable) {}
   ~GrowableObjectArrayDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -5588,8 +5650,12 @@ class GrowableObjectArrayDeserializationCluster
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class RecordSerializationCluster : public SerializationCluster {
  public:
-  explicit RecordSerializationCluster(bool is_canonical)
-      : SerializationCluster("Record", kRecordCid, kSizeVaries, is_canonical) {}
+  RecordSerializationCluster(bool is_canonical, bool is_deeply_immutable)
+      : SerializationCluster("Record",
+                             kRecordCid,
+                             kSizeVaries,
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~RecordSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -5637,12 +5703,12 @@ class RecordSerializationCluster : public SerializationCluster {
 class RecordDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit RecordDeserializationCluster(bool is_canonical,
-                                        bool is_immutable,
-                                        bool is_root_unit)
+  RecordDeserializationCluster(bool is_canonical,
+                               bool is_deeply_immutable,
+                               bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Record",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit) {}
   ~RecordDeserializationCluster() {}
 
@@ -5666,7 +5732,7 @@ class RecordDeserializationCluster
       const intptr_t num_fields = RecordShape(shape).num_fields();
       Deserializer::InitializeHeader(record, kRecordCid,
                                      Record::InstanceSize(num_fields),
-                                     stamp_canonical);
+                                     stamp_canonical, is_deeply_immutable());
       record->untag()->shape_ = Smi::New(shape);
       for (intptr_t j = 0; j < num_fields; ++j) {
         record->untag()->data()[j] = d.ReadRef();
@@ -6026,10 +6092,12 @@ class DeltaEncodedTypedDataDeserializationCluster
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class StackTraceSerializationCluster : public SerializationCluster {
  public:
-  StackTraceSerializationCluster()
+  StackTraceSerializationCluster(bool is_canonical, bool is_deeply_immutable)
       : SerializationCluster("StackTrace",
                              kStackTraceCid,
-                             compiler::target::StackTrace::InstanceSize()) {}
+                             compiler::target::StackTrace::InstanceSize(),
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~StackTraceSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -6063,7 +6131,10 @@ class StackTraceSerializationCluster : public SerializationCluster {
 
 class StackTraceDeserializationCluster : public DeserializationCluster {
  public:
-  StackTraceDeserializationCluster() : DeserializationCluster("StackTrace") {}
+  explicit StackTraceDeserializationCluster(bool is_deeply_immutable)
+      : DeserializationCluster("StackTrace",
+                               /*is_canonical=*/false,
+                               is_deeply_immutable) {}
   ~StackTraceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -6086,10 +6157,12 @@ class StackTraceDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class RegExpSerializationCluster : public SerializationCluster {
  public:
-  RegExpSerializationCluster()
+  RegExpSerializationCluster(bool is_canonical, bool is_deeply_immutable)
       : SerializationCluster("RegExp",
                              kRegExpCid,
-                             compiler::target::RegExp::InstanceSize()) {}
+                             compiler::target::RegExp::InstanceSize(),
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~RegExpSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -6126,7 +6199,10 @@ class RegExpSerializationCluster : public SerializationCluster {
 
 class RegExpDeserializationCluster : public DeserializationCluster {
  public:
-  RegExpDeserializationCluster() : DeserializationCluster("RegExp") {}
+  explicit RegExpDeserializationCluster(bool is_deeply_immutable)
+      : DeserializationCluster("RegExp",
+                               /*is_canonical=*/false,
+                               is_deeply_immutable) {}
   ~RegExpDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -6231,11 +6307,14 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class MapSerializationCluster : public SerializationCluster {
  public:
-  MapSerializationCluster(bool is_canonical, intptr_t cid)
+  MapSerializationCluster(bool is_canonical,
+                          bool is_deeply_immutable,
+                          intptr_t cid)
       : SerializationCluster("Map",
                              cid,
                              compiler::target::Map::InstanceSize(),
-                             is_canonical) {}
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~MapSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -6273,13 +6352,13 @@ class MapSerializationCluster : public SerializationCluster {
 class MapDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit MapDeserializationCluster(intptr_t cid,
-                                     bool is_canonical,
-                                     bool is_immutable,
-                                     bool is_root_unit)
+  MapDeserializationCluster(intptr_t cid,
+                            bool is_canonical,
+                            bool is_deeply_immutable,
+                            bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Map",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~MapDeserializationCluster() {}
@@ -6296,7 +6375,7 @@ class MapDeserializationCluster
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       MapPtr map = static_cast<MapPtr>(d.Ref(id));
       Deserializer::InitializeHeader(map, cid, Map::InstanceSize(),
-                                     mark_canonical);
+                                     mark_canonical, is_deeply_immutable());
       d.ReadFromTo(map);
     }
   }
@@ -6308,11 +6387,14 @@ class MapDeserializationCluster
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class SetSerializationCluster : public SerializationCluster {
  public:
-  SetSerializationCluster(bool is_canonical, intptr_t cid)
+  SetSerializationCluster(bool is_canonical,
+                          bool is_deeply_immutable,
+                          intptr_t cid)
       : SerializationCluster("Set",
                              cid,
                              compiler::target::Set::InstanceSize(),
-                             is_canonical) {}
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~SetSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -6350,13 +6432,13 @@ class SetSerializationCluster : public SerializationCluster {
 class SetDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit SetDeserializationCluster(intptr_t cid,
-                                     bool is_canonical,
-                                     bool is_immutable,
-                                     bool is_root_unit)
+  SetDeserializationCluster(intptr_t cid,
+                            bool is_canonical,
+                            bool is_deeply_immutable,
+                            bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Set",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~SetDeserializationCluster() {}
@@ -6373,7 +6455,7 @@ class SetDeserializationCluster
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       SetPtr set = static_cast<SetPtr>(d.Ref(id));
       Deserializer::InitializeHeader(set, cid, Set::InstanceSize(),
-                                     mark_canonical);
+                                     mark_canonical, is_deeply_immutable());
       d.ReadFromTo(set);
     }
   }
@@ -6385,8 +6467,14 @@ class SetDeserializationCluster
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class ArraySerializationCluster : public SerializationCluster {
  public:
-  ArraySerializationCluster(bool is_canonical, intptr_t cid)
-      : SerializationCluster("Array", cid, kSizeVaries, is_canonical) {}
+  ArraySerializationCluster(bool is_canonical,
+                            bool is_deeply_immutable,
+                            intptr_t cid)
+      : SerializationCluster("Array",
+                             cid,
+                             kSizeVaries,
+                             is_canonical,
+                             is_deeply_immutable) {}
   ~ArraySerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -6492,13 +6580,13 @@ class ArraySerializationCluster : public SerializationCluster {
 class ArrayDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit ArrayDeserializationCluster(intptr_t cid,
-                                       bool is_canonical,
-                                       bool is_immutable,
-                                       bool is_root_unit)
+  ArrayDeserializationCluster(intptr_t cid,
+                              bool is_canonical,
+                              bool is_deeply_immutable,
+                              bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Array",
                                                is_canonical,
-                                               is_immutable,
+                                               is_deeply_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~ArrayDeserializationCluster() {}
@@ -6522,8 +6610,8 @@ class ArrayDeserializationCluster
       ArrayPtr array = static_cast<ArrayPtr>(d.Ref(id));
       const intptr_t length = d.ReadUnsigned();
       Deserializer::InitializeHeader(array, cid, Array::InstanceSize(length),
-                                     stamp_canonical);
-      if (Array::UseCardMarkingForAllocation(length)) {
+                                     stamp_canonical, is_deeply_immutable());
+      if (UNLIKELY(Array::UseCardMarkingForAllocation(length))) {
         array->untag()->SetCardRememberedBitUnsynchronized();
         Page::Of(array)->AllocateCardTable();
       }
@@ -6614,7 +6702,7 @@ class WeakArrayDeserializationCluster : public DeserializationCluster {
       WeakArrayPtr array = static_cast<WeakArrayPtr>(d.Ref(id));
       const intptr_t length = d.ReadUnsigned();
       Deserializer::InitializeHeader(array, kWeakArrayCid,
-                                     WeakArray::InstanceSize(length), false);
+                                     WeakArray::InstanceSize(length));
       array->untag()->next_seen_by_gc_ = WeakArray::null();
       array->untag()->length_ = Smi::New(length);
       for (intptr_t j = 0; j < length; j++) {
@@ -6639,10 +6727,12 @@ class StringSerializationCluster
     return (length << 1) | (cid == kTwoByteStringCid ? 0x1 : 0x0);
   }
 
-  explicit StringSerializationCluster(bool is_canonical,
-                                      bool represents_canonical_set)
+  StringSerializationCluster(bool is_canonical,
+                             bool is_deeply_immutable,
+                             bool represents_canonical_set)
       : CanonicalSetSerializationCluster(kStringCid,
                                          is_canonical,
+                                         is_deeply_immutable,
                                          represents_canonical_set,
                                          "String",
                                          kSizeVaries) {}
@@ -6708,8 +6798,9 @@ class StringDeserializationCluster
                                     : TwoByteString::InstanceSize(length);
   }
 
-  explicit StringDeserializationCluster(bool is_canonical, bool is_root_unit)
+  StringDeserializationCluster(bool is_canonical, bool is_root_unit)
       : CanonicalSetDeserializationCluster(is_canonical,
+                                           /*is_deeply_immutable=*/true,
                                            is_root_unit,
                                            "String") {}
   ~StringDeserializationCluster() {}
@@ -6743,7 +6834,8 @@ class StringDeserializationCluster
                                instance_size - 1 * kWordSize) = 0;
       *reinterpret_cast<word*>(reinterpret_cast<uint8_t*>(str->untag()) +
                                instance_size - 2 * kWordSize) = 0;
-      Deserializer::InitializeHeader(str, cid, instance_size, is_canonical());
+      Deserializer::InitializeHeader(str, cid, instance_size, is_canonical(),
+                                     /*is_deeply_immutable=*/true);
 #if DART_COMPRESSED_POINTERS
       // Gap caused by less-than-a-word length_ smi sitting before data_.
       const intptr_t length_offset =
@@ -6818,8 +6910,8 @@ class FakeSerializationCluster : public SerializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class VMSerializationRoots : public SerializationRoots {
  public:
-  explicit VMSerializationRoots(const WeakArray& symbol_table,
-                                bool should_write_symbol_table)
+  VMSerializationRoots(const WeakArray& symbol_table,
+                       bool should_write_symbol_table)
       : symbol_table_(symbol_table),
         should_write_symbol_table_(should_write_symbol_table),
         zone_(Thread::Current()->zone()) {}
@@ -7449,6 +7541,7 @@ Serializer::Serializer(Thread* thread,
       stream_(stream),
       image_writer_(image_writer),
       canonical_clusters_by_cid_(nullptr),
+      immutable_clusters_by_cid_(nullptr),
       clusters_by_cid_(nullptr),
       stack_(),
       num_cids_(0),
@@ -7474,6 +7567,10 @@ Serializer::Serializer(Thread* thread,
   for (intptr_t i = 0; i < num_cids_; i++) {
     canonical_clusters_by_cid_[i] = nullptr;
   }
+  immutable_clusters_by_cid_ = new SerializationCluster*[num_cids_];
+  for (intptr_t i = 0; i < num_cids_; i++) {
+    immutable_clusters_by_cid_[i] = nullptr;
+  }
   clusters_by_cid_ = new SerializationCluster*[num_cids_];
   for (intptr_t i = 0; i < num_cids_; i++) {
     clusters_by_cid_[i] = nullptr;
@@ -7485,6 +7582,7 @@ Serializer::Serializer(Thread* thread,
 
 Serializer::~Serializer() {
   delete[] canonical_clusters_by_cid_;
+  delete[] immutable_clusters_by_cid_;
   delete[] clusters_by_cid_;
 }
 
@@ -7852,7 +7950,8 @@ const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
 }
 
 SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
-                                                     bool is_canonical) {
+                                                     bool is_canonical,
+                                                     bool is_deeply_immutable) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
   return nullptr;
@@ -7860,7 +7959,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
   Zone* Z = zone_;
   if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
     Push(isolate_group()->class_table()->At(cid));
-    return new (Z) InstanceSerializationCluster(is_canonical, cid);
+    return new (Z)
+        InstanceSerializationCluster(is_canonical, is_deeply_immutable, cid);
   }
   if (IsTypedDataViewClassId(cid)) {
     return new (Z) TypedDataViewSerializationCluster(cid);
@@ -7883,7 +7983,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
   // compressed pointers.
   if (Snapshot::IncludesCode(kind_)) {
     if (auto const type = ReadOnlyObjectType(cid)) {
-      return new (Z) RODataSerializationCluster(Z, type, cid, is_canonical);
+      return new (Z) RODataSerializationCluster(Z, type, cid, is_canonical,
+                                                is_deeply_immutable);
     }
   }
 #endif
@@ -7895,10 +7996,11 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
     case kClassCid:
       return new (Z) ClassSerializationCluster(num_cids_ + num_tlc_cids_);
     case kTypeParametersCid:
-      return new (Z) TypeParametersSerializationCluster();
+      return new (Z)
+          TypeParametersSerializationCluster(is_canonical, is_deeply_immutable);
     case kTypeArgumentsCid:
       return new (Z) TypeArgumentsSerializationCluster(
-          is_canonical, cluster_represents_canonical_set);
+          is_canonical, is_deeply_immutable, cluster_represents_canonical_set);
     case kPatchClassCid:
       return new (Z) PatchClassSerializationCluster();
     case kFunctionCid:
@@ -7950,61 +8052,74 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
     case kLibraryPrefixCid:
       return new (Z) LibraryPrefixSerializationCluster();
     case kTypeCid:
-      return new (Z) TypeSerializationCluster(is_canonical,
+      return new (Z) TypeSerializationCluster(is_canonical, is_deeply_immutable,
                                               cluster_represents_canonical_set);
     case kFunctionTypeCid:
       return new (Z) FunctionTypeSerializationCluster(
-          is_canonical, cluster_represents_canonical_set);
+          is_canonical, is_deeply_immutable, cluster_represents_canonical_set);
     case kRecordTypeCid:
       return new (Z) RecordTypeSerializationCluster(
-          is_canonical, cluster_represents_canonical_set);
+          is_canonical, is_deeply_immutable, cluster_represents_canonical_set);
     case kTypeParameterCid:
       return new (Z) TypeParameterSerializationCluster(
-          is_canonical, cluster_represents_canonical_set);
+          is_canonical, is_deeply_immutable, cluster_represents_canonical_set);
     case kClosureCid:
-      return new (Z) ClosureSerializationCluster(is_canonical);
+      return new (Z)
+          ClosureSerializationCluster(is_canonical, is_deeply_immutable);
     case kMintCid:
-      return new (Z) MintSerializationCluster(is_canonical);
+      return new (Z)
+          MintSerializationCluster(is_canonical, is_deeply_immutable);
     case kDoubleCid:
-      return new (Z) DoubleSerializationCluster(is_canonical);
+      return new (Z)
+          DoubleSerializationCluster(is_canonical, is_deeply_immutable);
     case kInt32x4Cid:
     case kFloat32x4Cid:
     case kFloat64x2Cid:
-      return new (Z) Simd128SerializationCluster(cid, is_canonical);
+      return new (Z)
+          Simd128SerializationCluster(cid, is_canonical, is_deeply_immutable);
     case kGrowableObjectArrayCid:
-      return new (Z) GrowableObjectArraySerializationCluster();
+      return new (Z) GrowableObjectArraySerializationCluster(
+          is_canonical, is_deeply_immutable);
     case kRecordCid:
-      return new (Z) RecordSerializationCluster(is_canonical);
+      return new (Z)
+          RecordSerializationCluster(is_canonical, is_deeply_immutable);
     case kStackTraceCid:
-      return new (Z) StackTraceSerializationCluster();
+      return new (Z)
+          StackTraceSerializationCluster(is_canonical, is_deeply_immutable);
     case kRegExpCid:
-      return new (Z) RegExpSerializationCluster();
+      return new (Z)
+          RegExpSerializationCluster(is_canonical, is_deeply_immutable);
     case kWeakPropertyCid:
       return new (Z) WeakPropertySerializationCluster();
     case kMapCid:
       // We do not have mutable hash maps in snapshots.
       UNREACHABLE();
     case kConstMapCid:
-      return new (Z) MapSerializationCluster(is_canonical, kConstMapCid);
+      return new (Z) MapSerializationCluster(is_canonical, is_deeply_immutable,
+                                             kConstMapCid);
     case kSetCid:
       // We do not have mutable hash sets in snapshots.
       UNREACHABLE();
     case kConstSetCid:
-      return new (Z) SetSerializationCluster(is_canonical, kConstSetCid);
+      return new (Z) SetSerializationCluster(is_canonical, is_deeply_immutable,
+                                             kConstSetCid);
     case kArrayCid:
-      return new (Z) ArraySerializationCluster(is_canonical, kArrayCid);
+      return new (Z) ArraySerializationCluster(is_canonical,
+                                               is_deeply_immutable, kArrayCid);
     case kImmutableArrayCid:
-      return new (Z)
-          ArraySerializationCluster(is_canonical, kImmutableArrayCid);
+      return new (Z) ArraySerializationCluster(
+          is_canonical, is_deeply_immutable, kImmutableArrayCid);
     case kWeakArrayCid:
       return new (Z) WeakArraySerializationCluster();
     case kStringCid:
-      return new (Z) StringSerializationCluster(
-          is_canonical, cluster_represents_canonical_set && !vm_);
+      return new (Z)
+          StringSerializationCluster(is_canonical, is_deeply_immutable,
+                                     cluster_represents_canonical_set && !vm_);
 #define CASE_FFI_CID(name) case kFfi##name##Cid:
       CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
 #undef CASE_FFI_CID
-      return new (Z) InstanceSerializationCluster(is_canonical, cid);
+      return new (Z)
+          InstanceSerializationCluster(is_canonical, is_deeply_immutable, cid);
     case kDeltaEncodedTypedDataCid:
       return new (Z) DeltaEncodedTypedDataSerializationCluster();
     case kWeakSerializationReferenceCid:
@@ -8458,15 +8573,20 @@ void Serializer::PushWeak(ObjectPtr object) {
 void Serializer::Trace(ObjectPtr object, intptr_t cid_override) {
   intptr_t cid;
   bool is_canonical;
+  bool is_deeply_immutable;
   if (!object->IsHeapObject()) {
     // Smis are merged into the Mint cluster because Smis for the writer might
     // become Mints for the reader and vice versa.
     cid = kMintCid;
     is_canonical = true;
+    is_deeply_immutable = true;
   } else {
     cid = object->GetClassIdOfHeapObject();
     is_canonical = object->untag()->IsCanonical();
+    is_deeply_immutable = object->untag()->IsDeeplyImmutable();
   }
+  // if is_canonical then has to be is_deeply_immutable
+  ASSERT(is_deeply_immutable || !is_canonical);
   if (cid_override != kIllegalCid) {
     cid = cid_override;
   } else if (IsStringClassId(cid)) {
@@ -8474,9 +8594,11 @@ void Serializer::Trace(ObjectPtr object, intptr_t cid_override) {
   }
 
   SerializationCluster** cluster_ref =
-      is_canonical ? &canonical_clusters_by_cid_[cid] : &clusters_by_cid_[cid];
+      is_canonical ? &canonical_clusters_by_cid_[cid]
+                   : (is_deeply_immutable ? &immutable_clusters_by_cid_[cid]
+                                          : &clusters_by_cid_[cid]);
   if (*cluster_ref == nullptr) {
-    *cluster_ref = NewClusterForClass(cid, is_canonical);
+    *cluster_ref = NewClusterForClass(cid, is_canonical, is_deeply_immutable);
     if (*cluster_ref == nullptr) {
       UnexpectedObject(object, "No serialization cluster defined");
     }
@@ -8646,6 +8768,10 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
     canonical_clusters_by_cid_[cid] = nullptr;                                 \
   }
 #define ADD_NON_CANONICAL_NEXT(cid)                                            \
+  if (auto const cluster = immutable_clusters_by_cid_[cid]) {                  \
+    clusters.Add(cluster);                                                     \
+    immutable_clusters_by_cid_[cid] = nullptr;                                 \
+  }                                                                            \
   if (auto const cluster = clusters_by_cid_[cid]) {                            \
     clusters.Add(cluster);                                                     \
     clusters_by_cid_[cid] = nullptr;                                           \
@@ -8677,6 +8803,11 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
     }
   }
   for (intptr_t cid = 0; cid < num_cids_; cid++) {
+    if (auto const cluster = immutable_clusters_by_cid_[cid]) {
+      clusters.Add(cluster);
+    }
+  }
+  for (intptr_t cid = 0; cid < num_cids_; cid++) {
     if (auto const cluster = clusters_by_cid_[cid]) {
       clusters.Add(clusters_by_cid_[cid]);
     }
@@ -8686,7 +8817,9 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
     const auto& cluster = clusters.At(i);
     const intptr_t cid = cluster->cid();
     auto const cid_clusters =
-        cluster->is_canonical() ? canonical_clusters_by_cid_ : clusters_by_cid_;
+        cluster->is_canonical()          ? canonical_clusters_by_cid_
+        : cluster->is_deeply_immutable() ? immutable_clusters_by_cid_
+                                         : clusters_by_cid_;
     ASSERT(cid_clusters[cid] == nullptr);
     cid_clusters[cid] = cluster;
   }
@@ -8901,6 +9034,9 @@ void Serializer::PrintSnapshotSizes() {
       if (auto const cluster = canonical_clusters_by_cid_[cid]) {
         clusters_by_size.Add(cluster);
       }
+      if (auto const cluster = immutable_clusters_by_cid_[cid]) {
+        clusters_by_size.Add(cluster);
+      }
       if (auto const cluster = clusters_by_cid_[cid]) {
         clusters_by_size.Add(cluster);
       }
@@ -9009,22 +9145,26 @@ DeserializationCluster* Deserializer::ReadCluster() {
   const uint32_t tags = Read<uint32_t>();
   const intptr_t cid = UntaggedObject::ClassIdTag::decode(tags);
   const bool is_canonical = UntaggedObject::CanonicalBit::decode(tags);
-  const bool is_immutable = UntaggedObject::ImmutableBit::decode(tags);
+  const bool is_deeply_immutable =
+      UntaggedObject::DeeplyImmutableBit::decode(tags);
   Zone* Z = zone_;
   if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
     return new (Z) InstanceDeserializationCluster(
-        cid, is_canonical, is_immutable, !is_non_root_unit_);
+        cid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
   }
   if (IsTypedDataViewClassId(cid)) {
     ASSERT(!is_canonical);
+    ASSERT(!is_deeply_immutable);
     return new (Z) TypedDataViewDeserializationCluster(cid);
   }
   if (IsExternalTypedDataClassId(cid)) {
     ASSERT(!is_canonical);
+    ASSERT(!is_deeply_immutable);
     return new (Z) ExternalTypedDataDeserializationCluster(cid);
   }
   if (IsTypedDataClassId(cid)) {
     ASSERT(!is_canonical);
+    ASSERT(!is_deeply_immutable);
     return new (Z) TypedDataDeserializationCluster(cid);
   }
 
@@ -9034,14 +9174,14 @@ DeserializationCluster* Deserializer::ReadCluster() {
       case kPcDescriptorsCid:
       case kCodeSourceMapCid:
       case kCompressedStackMapsCid:
-        return new (Z)
-            RODataDeserializationCluster(cid, is_canonical, !is_non_root_unit_);
+        return new (Z) RODataDeserializationCluster(
+            cid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
       case kOneByteStringCid:
       case kTwoByteStringCid:
       case kStringCid:
         if (!is_non_root_unit_) {
-          return new (Z) RODataDeserializationCluster(cid, is_canonical,
-                                                      !is_non_root_unit_);
+          return new (Z) RODataDeserializationCluster(
+              cid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
         }
         break;
     }
@@ -9051,151 +9191,189 @@ DeserializationCluster* Deserializer::ReadCluster() {
   switch (cid) {
     case kClassCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) ClassDeserializationCluster();
     case kTypeParametersCid:
-      return new (Z) TypeParametersDeserializationCluster();
+      return new (Z) TypeParametersDeserializationCluster(is_canonical,
+                                                          is_deeply_immutable);
     case kTypeArgumentsCid:
-      return new (Z)
-          TypeArgumentsDeserializationCluster(is_canonical, !is_non_root_unit_);
+      return new (Z) TypeArgumentsDeserializationCluster(
+          is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kPatchClassCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) PatchClassDeserializationCluster();
     case kFunctionCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) FunctionDeserializationCluster();
     case kClosureDataCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) ClosureDataDeserializationCluster();
     case kFfiTrampolineDataCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) FfiTrampolineDataDeserializationCluster();
     case kFieldCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) FieldDeserializationCluster();
     case kScriptCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) ScriptDeserializationCluster();
     case kLibraryCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) LibraryDeserializationCluster();
     case kNamespaceCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) NamespaceDeserializationCluster();
 #if !defined(DART_PRECOMPILED_RUNTIME)
     case kKernelProgramInfoCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) KernelProgramInfoDeserializationCluster();
 #endif  // !DART_PRECOMPILED_RUNTIME
     case kCodeCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) CodeDeserializationCluster();
     case kObjectPoolCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) ObjectPoolDeserializationCluster();
     case kPcDescriptorsCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) PcDescriptorsDeserializationCluster();
     case kCodeSourceMapCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) CodeSourceMapDeserializationCluster();
     case kCompressedStackMapsCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) CompressedStackMapsDeserializationCluster();
     case kExceptionHandlersCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) ExceptionHandlersDeserializationCluster();
     case kContextCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) ContextDeserializationCluster();
     case kContextScopeCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) ContextScopeDeserializationCluster();
     case kUnlinkedCallCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) UnlinkedCallDeserializationCluster();
     case kICDataCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) ICDataDeserializationCluster();
     case kMegamorphicCacheCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) MegamorphicCacheDeserializationCluster();
     case kSubtypeTestCacheCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) SubtypeTestCacheDeserializationCluster();
     case kLoadingUnitCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) LoadingUnitDeserializationCluster();
     case kLanguageErrorCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) LanguageErrorDeserializationCluster();
     case kUnhandledExceptionCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) UnhandledExceptionDeserializationCluster();
     case kLibraryPrefixCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) LibraryPrefixDeserializationCluster();
     case kTypeCid:
+      ASSERT(is_deeply_immutable);
       return new (Z)
           TypeDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kFunctionTypeCid:
+      ASSERT(is_deeply_immutable);
       return new (Z)
           FunctionTypeDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kRecordTypeCid:
+      ASSERT(is_deeply_immutable);
       return new (Z)
           RecordTypeDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kTypeParameterCid:
+      ASSERT(is_deeply_immutable);
       return new (Z)
           TypeParameterDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kClosureCid:
-      return new (Z) ClosureDeserializationCluster(is_canonical, is_immutable,
-                                                   !is_non_root_unit_);
+      return new (Z) ClosureDeserializationCluster(
+          is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kMintCid:
-      return new (Z) MintDeserializationCluster(is_canonical, is_immutable,
-                                                !is_non_root_unit_);
+      ASSERT(is_deeply_immutable);
+      return new (Z)
+          MintDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kDoubleCid:
-      return new (Z) DoubleDeserializationCluster(is_canonical, is_immutable,
-                                                  !is_non_root_unit_);
+      ASSERT(is_deeply_immutable);
+      return new (Z)
+          DoubleDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kInt32x4Cid:
     case kFloat32x4Cid:
     case kFloat64x2Cid:
-      return new (Z) Simd128DeserializationCluster(
-          cid, is_canonical, is_immutable, !is_non_root_unit_);
+      ASSERT(is_deeply_immutable);
+      return new (Z)
+          Simd128DeserializationCluster(cid, is_canonical, !is_non_root_unit_);
     case kGrowableObjectArrayCid:
       ASSERT(!is_canonical);
-      return new (Z) GrowableObjectArrayDeserializationCluster();
+      return new (Z) GrowableObjectArrayDeserializationCluster(
+          is_canonical, is_deeply_immutable);
     case kRecordCid:
-      return new (Z) RecordDeserializationCluster(is_canonical, is_immutable,
-                                                  !is_non_root_unit_);
+      return new (Z) RecordDeserializationCluster(
+          is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kStackTraceCid:
       ASSERT(!is_canonical);
-      return new (Z) StackTraceDeserializationCluster();
+      return new (Z) StackTraceDeserializationCluster(is_deeply_immutable);
     case kRegExpCid:
       ASSERT(!is_canonical);
-      return new (Z) RegExpDeserializationCluster();
+      return new (Z) RegExpDeserializationCluster(is_deeply_immutable);
     case kWeakPropertyCid:
       ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
       return new (Z) WeakPropertyDeserializationCluster();
     case kMapCid:
       // We do not have mutable hash maps in snapshots.
       UNREACHABLE();
     case kConstMapCid:
       return new (Z) MapDeserializationCluster(
-          kConstMapCid, is_canonical, is_immutable, !is_non_root_unit_);
+          kConstMapCid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kSetCid:
       // We do not have mutable hash sets in snapshots.
       UNREACHABLE();
     case kConstSetCid:
       return new (Z) SetDeserializationCluster(
-          kConstSetCid, is_canonical, is_immutable, !is_non_root_unit_);
+          kConstSetCid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kArrayCid:
       return new (Z) ArrayDeserializationCluster(
-          kArrayCid, is_canonical, is_immutable, !is_non_root_unit_);
+          kArrayCid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kImmutableArrayCid:
-      return new (Z) ArrayDeserializationCluster(
-          kImmutableArrayCid, is_canonical, is_immutable, !is_non_root_unit_);
+      return new (Z)
+          ArrayDeserializationCluster(kImmutableArrayCid, is_canonical,
+                                      is_deeply_immutable, !is_non_root_unit_);
     case kWeakArrayCid:
       return new (Z) WeakArrayDeserializationCluster();
     case kStringCid:
+      ASSERT(is_deeply_immutable);
       return new (Z) StringDeserializationCluster(
           is_canonical,
           !is_non_root_unit_ && isolate_group() != Dart::vm_isolate_group());
@@ -9203,7 +9381,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
       CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
 #undef CASE_FFI_CID
       return new (Z) InstanceDeserializationCluster(
-          cid, is_canonical, is_immutable, !is_non_root_unit_);
+          cid, is_canonical, is_deeply_immutable, !is_non_root_unit_);
     case kDeltaEncodedTypedDataCid:
       return new (Z) DeltaEncodedTypedDataDeserializationCluster();
     default:

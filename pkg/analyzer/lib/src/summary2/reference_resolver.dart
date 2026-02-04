@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/record_type_builder.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Recursive visitor of LinkedNodes that resolves explicit type annotations
 /// in outlines.  This includes resolving element references in identifiers
@@ -84,7 +85,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.namePart.accept(this);
+    node.namePart.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
@@ -92,6 +93,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
+    node.namePart
+        .tryCast<PrimaryConstructorDeclaration>()
+        ?.formalParameters
+        .accept(this);
     node.body.accept(this);
     nodesToBuildType.addDeclaration(node);
 
@@ -163,20 +168,27 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.namePart.accept(this);
+    node.namePart.typeParameters?.accept(this);
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
     scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
+    node.namePart
+        .tryCast<PrimaryConstructorDeclaration>()
+        ?.formalParameters
+        .accept(this);
     node.body.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     for (var field in fragment.fields) {
-      var node = linker.elementNodes[field];
-      if (node != null) {
-        LinkingNodeContext(node, scope);
+      var isExplicitField = field.isOriginDeclaration && !field.isEnumConstant;
+      if (!isExplicitField) {
+        var node = linker.elementNodes[field];
+        if (node != null) {
+          LinkingNodeContext(node, scope);
+        }
       }
     }
 
@@ -234,12 +246,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.primaryConstructor.accept(this);
+    node.primaryConstructor.typeParameters?.accept(this);
     node.implementsClause?.accept(this);
 
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
+    node.primaryConstructor.formalParameters.accept(this);
     node.body.accept(this);
     nodesToBuildType.addDeclaration(node);
 
@@ -247,9 +260,26 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     node.metadata.accept(this);
-    node.fields.accept(this);
+
+    var outerScope = scope;
+    try {
+      if (!node.isStatic && node.fields.lateKeyword == null) {
+        var primaryConstructor = node.parent?.parent
+            .tryCast<Declaration>()
+            ?.declaredFragment!
+            .element
+            .tryCast<InterfaceElementImpl>()
+            ?.primaryConstructor;
+        if (primaryConstructor != null) {
+          scope = ConstructorInitializerScope(scope, primaryConstructor);
+        }
+      }
+      node.fields.accept(this);
+    } finally {
+      scope = outerScope;
+    }
   }
 
   @override
@@ -503,7 +533,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {}
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    LinkingNodeContext(node, scope);
+  }
 
   @override
   void visitPrimaryConstructorDeclaration(

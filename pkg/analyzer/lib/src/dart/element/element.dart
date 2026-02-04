@@ -2804,6 +2804,18 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
+  String? get documentationComment {
+    if (isOriginDeclaringFormalParameter) {
+      if (declaringFormalParameter case var declaringFormalParameter?) {
+        return declaringFormalParameter.documentationComment;
+      }
+    }
+
+    return super.documentationComment;
+  }
+
+  @override
   @trackedIncludedInId
   InstanceElementImpl get enclosingElement {
     return _firstFragment.enclosingFragment.element;
@@ -2950,6 +2962,12 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   @trackedIncludedInId
   MetadataImpl get metadata {
+    if (isOriginDeclaringFormalParameter) {
+      if (declaringFormalParameter case var declaringFormalParameter?) {
+        return declaringFormalParameter.metadata;
+      }
+    }
+
     var annotations = <ElementAnnotationImpl>[];
     for (var fragment in _fragments) {
       annotations.addAll(fragment.metadata.annotations);
@@ -4912,6 +4930,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
     _mixins = mixins.cast();
   }
 
+  @override
   @trackedIndirectly
   ConstructorElementImpl? get primaryConstructor {
     var result = constructors.firstOrNull;
@@ -5141,7 +5160,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
     );
     return inheritanceManager
         .getInherited(this, Name.forLibrary(library, methodName))
-        .ifTypeOrNull();
+        .tryCast();
   }
 
   /// Return the static getter with the [name], accessible to the [library].
@@ -5158,7 +5177,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
         .firstWhereOrNull(
           (element) => element.isStatic && element.isAccessibleIn(library),
         )
-        .ifTypeOrNull();
+        .tryCast();
   }
 
   /// Return the static method with the [name], accessible to the [library].
@@ -5190,7 +5209,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
         .firstWhereOrNull(
           (element) => element.isStatic && element.isAccessibleIn(library),
         )
-        .ifTypeOrNull();
+        .tryCast();
   }
 
   @trackedInternal
@@ -6555,6 +6574,47 @@ class LibraryElementImplInternal {
 
   InheritanceManager3 get inheritanceManager {
     return _library._session.inheritanceManager;
+  }
+
+  List<Uri> allUnitSourceUris() {
+    var unitUris = <Uri>{};
+
+    void appendUnitUris(
+      LibraryFragmentImpl? fragment,
+      DirectiveUri? partDirectiveUri,
+    ) {
+      // We start with a fragment, but recurse with a directive URI.
+      fragment =
+          fragment ??
+          (partDirectiveUri is DirectiveUriWithUnitImpl
+              ? partDirectiveUri.libraryFragment
+              : null);
+
+      // If there is a `Source`, bundle reader will resolve its URI.
+      // Even if there is no valid fragment for this source.
+      Source source;
+      if (fragment != null) {
+        source = fragment.source;
+      } else if (partDirectiveUri is DirectiveUriWithSourceImpl) {
+        source = partDirectiveUri.source;
+      } else {
+        return;
+      }
+
+      if (!unitUris.add(source.uri)) {
+        return;
+      }
+
+      // If we have a fragment (usually), recurse into parts.
+      if (fragment != null) {
+        for (var partInclude in fragment.partIncludes) {
+          appendUnitUris(null, partInclude.uri);
+        }
+      }
+    }
+
+    appendUnitUris(_library._firstFragment, null);
+    return unitUris.toList();
   }
 }
 

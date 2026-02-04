@@ -297,8 +297,6 @@ class OSThread : public BaseThread {
 #if defined(DART_INCLUDE_PROFILER)
   // Thread interrupts disabled by default.
   RelaxedAtomic<uintptr_t> thread_interrupt_disabled_ = {1};
-  bool prepared_for_interrupts_ = false;
-  void* thread_interrupter_state_ = nullptr;
 #endif  // defined(DART_INCLUDE_PROFILER)
 
   Log* log_;

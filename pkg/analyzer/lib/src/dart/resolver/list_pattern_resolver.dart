@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 class ListPatternResolver {
@@ -24,10 +25,10 @@ class ListPatternResolver {
       // Check that we have exactly one type argument.
       var length = typeArguments.arguments.length;
       if (length != 1) {
-        resolverVisitor.diagnosticReporter.atNode(
-          typeArguments,
-          diag.expectedOneListPatternTypeArguments,
-          arguments: [length],
+        resolverVisitor.diagnosticReporter.report(
+          diag.expectedOneListPatternTypeArguments
+              .withArguments(count: length)
+              .at(typeArguments),
         );
       }
     }

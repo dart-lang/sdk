@@ -271,7 +271,17 @@ B get b => .new(A());
 ''');
   }
 
-  test_cannotBeConst_explicitTypeArgument_typeVariable() async {
+  test_cannotBeConst_explicitTypeArgument_typeVariable_constructorDeclaration() async {
+    await assertNoDiagnostics(r'''
+class A<T> {
+  const A({required List<T> p});
+
+  factory A.named() => A(p: <T>[]);
+}
+''');
+  }
+
+  test_cannotBeConst_explicitTypeArgument_typeVariable_functionDeclaration() async {
     await assertNoDiagnostics(r'''
 class A<T> {
   const A();

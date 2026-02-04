@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object {
+  field core::int a = let final core::int #t1 = self::value in let final void #t2 = self::value = #t1.{core::num::+}(1){(core::num) → core::int} in #t1;
+  field core::int b = let final core::int #t3 = self::value in let final void #t4 = self::value = #t3.{core::num::+}(1){(core::num) → core::int} in #t3;
+  field core::int c = let final core::int #t5 = self::value in let final void #t6 = self::value = #t5.{core::num::+}(1){(core::num) → core::int} in #t5;
+  synthetic constructor •() → self::C0
+    : super core::Object::•()
+    ;
+}
+class C1 extends core::Object {
+  field core::int a;
+  field core::int b;
+  field core::int c;
+  constructor •() → self::C1
+    : self::C1::a = let final core::int #t7 = self::value in let final void #t8 = self::value = #t7.{core::num::+}(1){(core::num) → core::int} in #t7, self::C1::b = let final core::int #t9 = self::value in let final void #t10 = self::value = #t9.{core::num::+}(1){(core::num) → core::int} in #t9, self::C1::c = let final core::int #t11 = self::value in let final void #t12 = self::value = #t11.{core::num::+}(1){(core::num) → core::int} in #t11, super core::Object::•()
+    ;
+}
+static field core::int value = 0;
+static method main() → dynamic {
+  self::C0 c0 = new self::C0::•();
+  self::expect(0, c0.{self::C0::a}{core::int});
+  self::expect(1, c0.{self::C0::b}{core::int});
+  self::expect(2, c0.{self::C0::c}{core::int});
+  self::C1 c1 = new self::C1::•();
+  self::expect(3, c1.{self::C1::a}{core::int});
+  self::expect(4, c1.{self::C1::b}{core::int});
+  self::expect(5, c1.{self::C1::c}{core::int});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
+    throw "Expected ${expected}, actual ${actual}";
+  }
+}

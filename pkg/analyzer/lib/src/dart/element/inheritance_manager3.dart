@@ -30,6 +30,33 @@ class Conflict {
   Conflict({required this.name});
 }
 
+/// The extension type inherits a method and a setter with the same name,
+/// and does not preclude them.
+class ExtensionTypeConflictingInheritedMethodAndSetterConflict
+    extends Conflict {
+  final InternalMethodElement method;
+  final InternalSetterElement setter;
+
+  ExtensionTypeConflictingInheritedMethodAndSetterConflict({
+    required super.name,
+    required this.method,
+    required this.setter,
+  });
+}
+
+/// The extension type has a static member that conflicts with an inherited
+/// instance member.
+class ExtensionTypeConflictingStaticAndInstanceConflict extends Conflict {
+  final InternalExecutableElement declared;
+  final InternalExecutableElement inherited;
+
+  ExtensionTypeConflictingStaticAndInstanceConflict({
+    required super.name,
+    required this.declared,
+    required this.inherited,
+  });
+}
+
 /// Failure because of a getter and a method from direct superinterfaces.
 class GetterMethodConflict extends Conflict {
   final InternalExecutableElement getter;
@@ -268,9 +295,6 @@ class InheritanceManager3 {
     Name name,
   ) {
     var interface = getInterface(element);
-    if (element is ExtensionTypeElementImpl) {
-      return interface.redeclared[name];
-    }
     return interface.overridden[name];
   }
 
@@ -843,6 +867,87 @@ class InheritanceManager3 {
       implemented[name] = combinedSignature;
     }
 
+    // Check for conflicting static and instance members.
+    for (var member in [
+      ...element.methods,
+      ...element.getters,
+      ...element.setters,
+    ]) {
+      if (!member.isStatic) {
+        continue;
+      }
+
+      var getterName = Name.forElement(member)?.forGetter;
+      if (getterName == null) {
+        continue;
+      }
+
+      if (redeclared[getterName]?.firstOrNull case var inherited?) {
+        conflicts.add(
+          ExtensionTypeConflictingStaticAndInstanceConflict(
+            name: getterName,
+            declared: member,
+            inherited: inherited,
+          ),
+        );
+        continue;
+      }
+
+      var setterName = getterName.forSetter;
+      if (redeclared[setterName]?.firstOrNull case var inherited?) {
+        conflicts.add(
+          ExtensionTypeConflictingStaticAndInstanceConflict(
+            name: setterName,
+            declared: member,
+            inherited: inherited,
+          ),
+        );
+      }
+    }
+
+    // Inherited method and setter with the same name.
+    for (var redeclaredEntry in redeclared.entries) {
+      var methodName = redeclaredEntry.key;
+      if (methodName.isSetter) {
+        continue;
+      }
+
+      // We are looking for a conflict between an inherited method and an
+      // inherited setter. If either is precluded by a declaration in the
+      // extension type, there is no conflict.
+      var setterName = methodName.forSetter;
+      if (precludedNames.contains(methodName) ||
+          precludedMethods.contains(methodName) ||
+          precludedNames.contains(setterName) ||
+          precludedSetters.contains(setterName)) {
+        continue;
+      }
+
+      // Choose any method.
+      var methodCandidates = redeclaredEntry.value
+          .whereType<InternalMethodElement>();
+      var method = methodCandidates.firstOrNull;
+      if (method == null) {
+        continue;
+      }
+
+      // Choose any corresponding setter.
+      var setterCandidates = redeclared[setterName]
+          ?.whereType<InternalSetterElement>();
+      var setter = setterCandidates?.firstOrNull;
+      if (setter == null) {
+        continue;
+      }
+
+      conflicts.add(
+        ExtensionTypeConflictingInheritedMethodAndSetterConflict(
+          name: methodName,
+          method: method,
+          setter: setter,
+        ),
+      );
+    }
+
     var uniqueRedeclared = <Name, List<InternalExecutableElement>>{};
     for (var entry in redeclared.entries) {
       var name = entry.key;
@@ -1360,7 +1465,7 @@ class Name {
   Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
 
   Name get forGetter {
-    if (name.endsWith('=')) {
+    if (isSetter) {
       var getterName = name.substring(0, name.length - 1);
       return Name(libraryUri, getterName);
     } else {
@@ -1369,11 +1474,16 @@ class Name {
   }
 
   Name get forSetter {
-    if (name.endsWith('=')) {
+    if (isSetter) {
       return this;
     } else {
       return Name(libraryUri, '$name=');
     }
+  }
+
+  bool get isSetter {
+    return name.endsWith('=') &&
+        !const {'[]=', '==', '<=', '>='}.contains(name);
   }
 
   @override

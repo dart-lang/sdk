@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/type_inference/inference_results.dart';
 import 'package:front_end/src/type_inference/object_access_target.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
@@ -1997,7 +1998,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      bool isExtensionOrExtensionType = false;
+      bool isExtensionOrExtensionTypeInstanceMember = false;
       String? extensionName;
       if (usedMethodName != null) {
         int indexOfDot = usedMethodName.indexOf(".");
@@ -2023,16 +2024,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
-            isExtensionOrExtensionType = true;
             offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
-                isStatic = false;
+                isExtensionOrExtensionTypeInstanceMember = true;
               }
             }
           } else if (builder is ExtensionTypeDeclarationBuilder) {
-            isExtensionOrExtensionType = true;
             offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
@@ -2060,7 +2059,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   usedDefinitions[syntheticThisName] = substitution
                       .substituteType(positionals.first.type);
                 }
-                isStatic = false;
+                isExtensionOrExtensionTypeInstanceMember = true;
               }
             }
           }
@@ -2072,8 +2071,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (TypeParameter typeParam in typeDefinitions) {
         if (!isLegalIdentifier(typeParam.name!)) {
           lastGoodKernelTarget.loader.addProblem(
-            codeIncrementalCompilerIllegalTypeParameter.withArgumentsOld(
-              '$typeParam',
+            diag.incrementalCompilerIllegalTypeParameter.withArguments(
+              typeParameterName: '$typeParam',
             ),
             typeParam.fileOffset,
             0,
@@ -2085,14 +2084,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (String name in usedDefinitions.keys) {
         if (isLegalIdentifier(name)) continue;
         if (isExtensionThisName(name) &&
-            !isStatic &&
-            isExtensionOrExtensionType) {
-          // Accept  #this for extensions and extension types.
+            isExtensionOrExtensionTypeInstanceMember) {
+          // Accept  #this for "instance members" on extensions and
+          // extension types.
           continue;
         }
 
         lastGoodKernelTarget.loader.addProblem(
-          codeIncrementalCompilerIllegalParameter.withArgumentsOld(name),
+          diag.incrementalCompilerIllegalParameter.withArguments(
+            parameterName: name,
+          ),
           // TODO: pass variable declarations instead of
           // parameter names for proper location detection.
           // https://github.com/dart-lang/sdk/issues/44158
@@ -2226,8 +2227,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             type: def.value,
           )..fileOffset = offsetToUse ?? libraryBuilder.library.fileOffset;
 
-          if (isExtensionOrExtensionType &&
-              !isStatic &&
+          if (isExtensionOrExtensionTypeInstanceMember &&
               isExtensionThisName(def.key) &&
               extensionThis == null) {
             // The `#this` variable is special.
@@ -2605,8 +2605,8 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
       problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: node,
-        message: codeExpressionEvaluationKnownVariableUnavailable
-            .withArgumentsOld(variable.cosmeticName!),
+        message: diag.expressionEvaluationKnownVariableUnavailable
+            .withArguments(variableName: variable.cosmeticName!),
         fileUri: fileUri,
         fileOffset: node.fileOffset,
         length: variable.cosmeticName!.length,
@@ -3010,27 +3010,27 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
         }
         if (e is CanonicalNameError) {
           Message message = gzInitializedFrom != null
-              ? codeInitializeFromDillNotSelfContained.withArgumentsOld(
-                  initializeFromDillUri.toString(),
-                  gzInitializedFrom,
+              ? diag.initializeFromDillNotSelfContained.withArguments(
+                  previousCompilationUri: initializeFromDillUri.toString(),
+                  gzFileUri: gzInitializedFrom,
                 )
-              : codeInitializeFromDillNotSelfContainedNoDump.withArgumentsOld(
-                  initializeFromDillUri.toString(),
+              : diag.initializeFromDillNotSelfContainedNoDump.withArguments(
+                  previousCompilationUri: initializeFromDillUri.toString(),
                 );
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         } else {
           // Unknown error: Report problem as such.
           Message message = gzInitializedFrom != null
-              ? codeInitializeFromDillUnknownProblem.withArgumentsOld(
-                  initializeFromDillUri.toString(),
-                  "$e",
-                  "$st",
-                  gzInitializedFrom,
+              ? diag.initializeFromDillUnknownProblem.withArguments(
+                  previousCompilationUri: initializeFromDillUri.toString(),
+                  exception: "$e",
+                  stackTrace: "$st",
+                  gzFileUri: gzInitializedFrom,
                 )
-              : codeInitializeFromDillUnknownProblemNoDump.withArgumentsOld(
-                  initializeFromDillUri.toString(),
-                  "$e",
-                  "$st",
+              : diag.initializeFromDillUnknownProblemNoDump.withArguments(
+                  previousCompilationUri: initializeFromDillUri.toString(),
+                  exception: "$e",
+                  stackTrace: "$st",
                 );
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         }

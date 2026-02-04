@@ -35,14 +35,13 @@ class ConvertToIfCaseStatement extends ResolvedCorrectionProducer {
       return;
     }
 
-    var location = ifStatement.locationInBlock;
+    var location = ifStatement.statementLocation;
     if (location == null) {
       return;
     }
 
     // The statement before `if` declares exactly one variable.
-    var previousStatement = location.previous;
-    var declaredVariable = previousStatement?.asSingleVariableDeclaration;
+    var declaredVariable = location.previous?.asSingleVariableDeclaration;
     if (declaredVariable == null) {
       return;
     }
@@ -209,21 +208,11 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _StatementInBlock {
-  final Block block;
-  final int index;
+class _StatementLocation {
+  final Statement? previous;
+  final Iterable<Statement> following;
 
-  _StatementInBlock({required this.block, required this.index});
-
-  Iterable<Statement> get following {
-    return statements.skip(index + 1);
-  }
-
-  Statement? get previous {
-    return index > 0 ? statements[index - 1] : null;
-  }
-
-  List<Statement> get statements => block.statements;
+  _StatementLocation({required this.previous, required this.following});
 }
 
 extension on Statement {
@@ -257,16 +246,18 @@ extension on Statement {
     );
   }
 
-  _StatementInBlock? get locationInBlock {
-    var block = parent;
-    if (block is! Block) {
-      return null;
+  _StatementLocation? get statementLocation {
+    switch (parent) {
+      case Block(:var statements):
+      case SwitchPatternCase(:var statements):
+      case SwitchDefault(:var statements):
+        var index = statements.indexOf(this);
+        return _StatementLocation(
+          previous: index > 0 ? statements[index - 1] : null,
+          following: statements.skip(index + 1),
+        );
+      default:
+        return null;
     }
-
-    var parentStatements = block.statements;
-    return _StatementInBlock(
-      block: block,
-      index: parentStatements.indexOf(this),
-    );
   }
 }

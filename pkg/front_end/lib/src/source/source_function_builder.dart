@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
-import '../base/messages.dart'
-    show codeRequiredNamedParameterHasDefaultValueError;
 import '../builder/formal_parameter_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
@@ -79,8 +78,8 @@ void buildTypeParametersAndFormals(
       // Required named parameters can't have default values.
       if (formal.isRequiredNamed && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
-          codeRequiredNamedParameterHasDefaultValueError.withArgumentsOld(
-            formal.name,
+          diag.requiredNamedParameterHasDefaultValueError.withArguments(
+            parameterName: formal.name,
           ),
           formal.fileOffset,
           formal.name.length,

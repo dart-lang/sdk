@@ -37,14 +37,17 @@ import 'reference_extensions.dart';
 import 'serialization.dart';
 import 'static_dispatch_table.dart';
 import 'symbols.dart';
+import 'table_based_globals.dart';
 import 'tags.dart';
 import 'types.dart';
 import 'util.dart' as util;
+import 'wasm_annotations.dart';
 
 /// Options controlling the translation.
 class TranslatorOptions {
   bool enableAsserts = false;
   bool importSharedMemory = false;
+  bool uniqueConstantNames = true;
   int optimizationLevel = 1;
   bool? inliningOverride;
   bool jsCompatibility = false;
@@ -146,11 +149,9 @@ class Translator with KernelNodes {
 
   final Symbols symbols;
 
-  final ExportNamer exportNamer;
   late final Exporter exporter;
 
   // Kernel input and context.
-  @override
   final Component component;
   final List<Library> libraries;
   @override
@@ -194,10 +195,12 @@ class Translator with KernelNodes {
   final LibraryIndex index;
   late final ClosureLayouter closureLayouter;
   late final ClassInfoCollector classInfoCollector;
-  late final StaticDispatchTables staticTablesPerType;
+  late final CrossModuleFunctionTable crossModuleFunctionTable;
+  late final TableBasedGlobals tableBasedGlobals;
   late final DispatchTable dispatchTable;
   DispatchTable? dynamicMainModuleDispatchTable;
   late final Globals globals;
+  late final DartGlobals dartGlobals;
   late final Constants constants;
   late final Types types;
   late final ExceptionTags _exceptionTags;
@@ -212,10 +215,15 @@ class Translator with KernelNodes {
   /// [ClassInfo]s of classes in the compilation unit and the [ClassInfo] for
   /// the `#Top` struct. Indexed by class ID. Entries added by
   /// [ClassInfoCollector].
+  ///
+  /// Because anonymous mixin application classes don't have class IDs, they're
+  /// not in this list.
   late final List<ClassInfo> classes;
 
-  /// Same as [classes] but ordered such that info for class at index I
-  /// will have class info for superlass/superinterface at <I).
+  /// Same as [classes] but ordered such that info for class at index I will
+  /// have class info for superlass/superinterface at <I).
+  ///
+  /// This also includes anonymous mixin application classes.
   late final List<ClassInfo> classesSupersFirst;
 
   late final ClassIdNumbering classIdNumbering;
@@ -245,6 +253,7 @@ class Translator with KernelNodes {
   // Lazily import FFI memory if used.
   late final w.Memory ffiMemory = mainModule.memories.import("ffi", "memory",
       options.importSharedMemory, 0, options.sharedMemoryMaxPages);
+  final Map<Procedure, w.Memory> _memories = {};
 
   /// Maps record shapes to the record class for the shape. Classes generated
   /// by `record_class_generator` library.
@@ -355,6 +364,7 @@ class Translator with KernelNodes {
     wasmI64Class: w.NumType.i64,
     wasmF32Class: w.NumType.f32,
     wasmF64Class: w.NumType.f64,
+    wasmV128Class: w.NumType.v128,
     wasmAnyRefClass: const w.RefType.any(nullable: false),
     wasmExternRefClass: const w.RefType.extern(nullable: false),
     wasmI31RefClass: const w.RefType.i31(nullable: false),
@@ -505,7 +515,6 @@ class Translator with KernelNodes {
       {bool enableDynamicModules = false,
       required MainModuleMetadata mainModuleMetadata})
       : symbols = Symbols(options.minify),
-        exportNamer = ExportNamer(options.minify),
         libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
@@ -516,7 +525,8 @@ class Translator with KernelNodes {
     subtypes = hierarchy.computeSubtypesInformation();
     closureLayouter = ClosureLayouter(this);
     classInfoCollector = ClassInfoCollector(this);
-    staticTablesPerType = StaticDispatchTables(this);
+    crossModuleFunctionTable = CrossModuleFunctionTable(this);
+    tableBasedGlobals = TableBasedGlobals(this);
     dispatchTable = DispatchTable(isDynamicSubmoduleTable: isDynamicSubmodule)
       ..translator = this;
     if (isDynamicSubmodule) {
@@ -534,7 +544,7 @@ class Translator with KernelNodes {
             ?.mapping[component] ??= DynamicModuleConstants();
 
     exporter =
-        Exporter(exportNamer, mainModuleMetadata, dynamicModuleConstants);
+        Exporter(options.minify, mainModuleMetadata, dynamicModuleConstants);
   }
 
   void _initModules(Uri Function(String moduleName)? sourceMapUrlGenerator) {
@@ -550,25 +560,27 @@ class Translator with KernelNodes {
       _outputToBuilder[outputModule] = builder;
       _builderToOutput[builder] = outputModule;
       moduleToBuilder[builder.module] = builder;
-      final thisModuleSetter = builder.functions.define(
-          typesBuilder.defineFunction(
-              const [w.RefType.extern(nullable: false)], const []),
-          "setThisModule");
-      builder.exports.export("\$setThisModule", thisModuleSetter);
-      final ib = thisModuleSetter.body;
-      ib.local_get(thisModuleSetter.locals[0]);
-      ib.global_set(getThisModuleGlobal(builder));
-      ib.end();
     }
   }
 
   w.Global getThisModuleGlobal(w.ModuleBuilder module) {
     return _thisModuleGlobals.putIfAbsent(module, () {
-      final global =
-          module.globals.define(w.GlobalType(w.RefType.extern(nullable: true)));
-      final ib = global.initializer;
-      ib.ref_null(w.HeapType.extern);
-      ib.end();
+      final global = module.globals
+          .define(w.GlobalType(w.RefType.extern(nullable: true)), 'thisModule');
+      final gb = global.initializer;
+      gb.ref_null(w.HeapType.extern);
+      gb.end();
+
+      final thisModuleSetter = module.functions.define(
+          typesBuilder.defineFunction(
+              const [w.RefType.extern(nullable: false)], const []),
+          "setThisModule");
+      module.exports.export("\$setThisModule", thisModuleSetter);
+      final fb = thisModuleSetter.body;
+      fb.local_get(thisModuleSetter.locals[0]);
+      fb.global_set(global);
+      fb.end();
+
       return global;
     });
   }
@@ -589,6 +601,7 @@ class Translator with KernelNodes {
     classInfoCollector.collect();
 
     globals = Globals(this);
+    dartGlobals = DartGlobals(this);
     constants = Constants(this);
 
     dispatchTable.build();
@@ -609,7 +622,8 @@ class Translator with KernelNodes {
 
     constructorClosures.clear();
     dispatchTable.output();
-    staticTablesPerType.outputTables();
+    crossModuleFunctionTable.output();
+    tableBasedGlobals.outputTables();
 
     for (ConstantInfo info in constants.constantInfo.values) {
       info.printInitializer((function) {
@@ -624,6 +638,27 @@ class Translator with KernelNodes {
       });
     }
     _printFunction(initFunction, "init");
+
+    // Remove empty modules.
+    _outputToBuilder.removeWhere((outputModule, moduleBuilder) {
+      if (moduleBuilder == mainModule) {
+        assert(!moduleBuilder.hasNoEffect);
+        return false;
+      }
+      return moduleBuilder.hasNoEffect;
+    });
+
+    // Now that we know which modules we're going to emit, let's prune the
+    // loading map to only contain those modules.
+    for (final loadList in loadingMap.moduleMap) {
+      loadList.removeWhere(
+          (moduleMetadata) => !_outputToBuilder.containsKey(moduleMetadata));
+    }
+
+    // Ensure non-empty modules expose `$setThisModule` function.
+    for (final moduleBuilder in _outputToBuilder.values) {
+      getThisModuleGlobal(moduleBuilder);
+    }
 
     // This getter will be null if we pass e.g. `--load-ids=<uri>` as the
     // runtime code will then be pruned to call out to embedder instead of
@@ -640,6 +675,7 @@ class Translator with KernelNodes {
         _patchLoadingMapGetter(function);
       }
     }
+
     // If original program uses deferred loading this will be non-null.
     final loadingMapNamesGetter = dartInternalLoadingMapNamesGetter;
     if (loadingMapNamesGetter != null) {
@@ -759,6 +795,8 @@ class Translator with KernelNodes {
 
   late final WasmFunctionImporter _importedFunctions =
       WasmFunctionImporter(this, 'func');
+  late final WasmMemoryImporter _importedMemories =
+      WasmMemoryImporter(this, 'memory');
 
   /// Generates a set of instructions to call [function] adding indirection
   /// if the call crosses a module boundary. Calls the function directly if it
@@ -769,16 +807,10 @@ class Translator with KernelNodes {
     final targetModuleBuilder = moduleToBuilder[function.enclosingModule]!;
     if (targetModuleBuilder == b.moduleBuilder) {
       b.call(function);
-    } else if (isMainModule(targetModuleBuilder)) {
-      final importedFunction =
-          _importedFunctions.get(function, b.moduleBuilder);
-      b.call(importedFunction);
     } else {
-      final staticTable = staticTablesPerType.getTableForType(function.type);
-      b.i32_const(staticTable.indexForFunction(function));
-      b.table_get(staticTable.getWasmTable(b.moduleBuilder));
-      b.ref_as_non_null();
-      b.call_ref(function.type);
+      b.i32_const(crossModuleFunctionTable.indexForFunction(function));
+      b.call_indirect(function.type,
+          crossModuleFunctionTable.getWasmTable(b.moduleBuilder));
     }
     return b.emitUnreachableIfNoResult(function.type.outputs);
   }
@@ -1839,7 +1871,18 @@ class Translator with KernelNodes {
   }
 
   w.ValueType translateTypeOfLocalVariable(VariableDeclaration node) {
-    return translateType(_inferredTypeOfLocalVariable(node) ?? node.type);
+    DartType dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
+    if (dartType is InterfaceType) {
+      final info = classInfo[dartType.classNode];
+      if (info != null && info.isCyclic) {
+        // Cyclic types can't be instantiated, so locals with cyclic types won't
+        // be assigned and we can give them a more general type. Returning a
+        // nullable type here makes dummy initialization of the variable
+        // shorter, with just a `ref.null`.
+        return topType;
+      }
+    }
+    return translateType(dartType);
   }
 
   DartType? _inferredTypeOfParameterVariable(VariableDeclaration node) {
@@ -1931,7 +1974,7 @@ class Translator with KernelNodes {
       if (target == member.setterReference) return true;
 
       // Implicit getter for static fields may invoke lazy static initializer.
-      if (globals.getConstantInitializer(member) != null) {
+      if (dartGlobals.getConstantInitializer(member) != null) {
         // This global will get it's initializer eagerly set, so no lazy init
         // function to be called.
         return true;
@@ -2113,6 +2156,51 @@ class Translator with KernelNodes {
     }
     _internalizedStringGlobals[(module, s)] = internalizedString;
     return internalizedString;
+  }
+
+  w.Memory findMemory(
+      Procedure topLevelExternalMemoryGetter, w.ModuleBuilder moduleBuilder) {
+    final inMain = _findMemoryForMainModule(topLevelExternalMemoryGetter);
+    if (moduleBuilder == mainModule) {
+      return inMain;
+    }
+
+    return _importedMemories.get(inMain, moduleBuilder);
+  }
+
+  w.Memory _findMemoryForMainModule(Procedure topLevelExternalMemoryGetter) {
+    return _memories.putIfAbsent(topLevelExternalMemoryGetter, () {
+      final limits =
+          MemoryLimits.readAnnotation(this, topLevelExternalMemoryGetter)!;
+      final exportName = getExportName(topLevelExternalMemoryGetter.reference);
+      final import =
+          util.getWasmImportPragma(coreTypes, topLevelExternalMemoryGetter);
+
+      w.Memory memory;
+      if (import != null) {
+        memory = mainModule.memories.import(import.moduleName, import.itemName,
+            false, limits.minSize, limits.maxSize);
+      } else {
+        memory =
+            mainModule.memories.define(false, limits.minSize, limits.maxSize);
+      }
+
+      if (exportName != null) {
+        mainModule.exports.export(exportName, memory);
+      }
+      return memory;
+    });
+  }
+
+  /// If the member with the reference [target] is exported, get the export
+  /// name.
+  String? getExportName(Reference target) {
+    final member = target.asMember;
+    if (member.reference == target) {
+      return util.getWasmExportPragma(coreTypes, member) ??
+          util.getWasmWeakExportPragma(coreTypes, member);
+    }
+    return null;
   }
 }
 
@@ -3083,6 +3171,10 @@ class DummyValuesCollector {
 
   final Map<w.FunctionType, w.BaseFunction> _dummyFunctions = {};
   final Map<w.HeapType, w.Global> _dummyValues = {};
+
+  /// A global with type `ref struct`, initialized as an empty struct.
+  ///
+  /// This can be used as the dummy value for contexts.
   late final w.Global dummyStructGlobal;
 
   DummyValuesCollector(this.translator, this.module) {
@@ -3103,50 +3195,53 @@ class DummyValuesCollector {
     dummyStructGlobal = dummyStructGlobalInit;
   }
 
-  w.Global? prepareDummyValue(w.ModuleBuilder module, w.ValueType type) {
-    if (type is w.RefType && !type.nullable) {
-      w.HeapType heapType = type.heapType;
-      return _dummyValues.putIfAbsent(heapType, () {
-        if (heapType is w.DefType) {
-          if (heapType is w.StructType) {
-            for (w.FieldType field in heapType.fields) {
-              prepareDummyValue(module, field.type.unpacked);
-            }
-            final global =
-                module.globals.define(w.GlobalType(type, mutable: false));
-            final ib = global.initializer;
-            for (w.FieldType field in heapType.fields) {
-              instantiateDummyValue(ib, field.type.unpacked);
-            }
-            ib.struct_new(heapType);
-            ib.end();
-            return global;
-          } else if (heapType is w.ArrayType) {
-            final global =
-                module.globals.define(w.GlobalType(type, mutable: false));
-            final ib = global.initializer;
-            ib.array_new_fixed(heapType, 0);
-            ib.end();
-            return global;
-          } else if (heapType is w.FunctionType) {
-            final global =
-                module.globals.define(w.GlobalType(type, mutable: false));
-            final ib = global.initializer;
-            ib.ref_func(getDummyFunction(heapType));
-            ib.end();
-            return global;
-          }
-        }
-        throw 'Unexpected heapType: $heapType';
-      });
-    }
+  /// When [type] is a non-nullable reference type, create a global in [module]
+  /// for its dummy value.
+  ///
+  /// Nullable references and non-reference types don't need dummy values. This
+  /// function returns [null] for nullable references and non-reference types.
+  w.Global? _prepareDummyValueGlobal(w.ModuleBuilder module, w.ValueType type) {
+    if (type is! w.RefType || type.nullable) return null;
 
-    return null;
+    final w.HeapType heapType = type.heapType;
+    return _dummyValues.putIfAbsent(heapType, () {
+      if (heapType is w.DefType) {
+        if (heapType is w.StructType) {
+          for (w.FieldType field in heapType.fields) {
+            _prepareDummyValueGlobal(module, field.type.unpacked);
+          }
+          final global =
+              module.globals.define(w.GlobalType(type, mutable: false));
+          final ib = global.initializer;
+          for (w.FieldType field in heapType.fields) {
+            instantiateDummyValue(ib, field.type.unpacked);
+          }
+          ib.struct_new(heapType);
+          ib.end();
+          return global;
+        } else if (heapType is w.ArrayType) {
+          final global =
+              module.globals.define(w.GlobalType(type, mutable: false));
+          final ib = global.initializer;
+          ib.array_new_fixed(heapType, 0);
+          ib.end();
+          return global;
+        } else if (heapType is w.FunctionType) {
+          final global =
+              module.globals.define(w.GlobalType(type, mutable: false));
+          final ib = global.initializer;
+          ib.ref_func(getDummyFunction(heapType));
+          ib.end();
+          return global;
+        }
+      }
+      throw 'Unexpected heapType: $heapType';
+    });
   }
 
   /// Produce a dummy value of any Wasm type. For non-nullable reference types,
-  /// the value is constructed in a global initializer, and the instantiation
-  /// of the value merely reads the global.
+  /// the value is constructed in a global initializer, and the instantiation of
+  /// the value merely reads the global.
   void instantiateDummyValue(w.InstructionsBuilder b, w.ValueType type) {
     switch (type) {
       case w.NumType.i32:
@@ -3167,8 +3262,8 @@ class DummyValuesCollector {
           if (type.nullable) {
             b.ref_null(heapType.bottomType);
           } else {
-            translator.globals
-                .readGlobal(b, prepareDummyValue(b.moduleBuilder, type)!);
+            translator.globals.readGlobal(
+                b, _prepareDummyValueGlobal(b.moduleBuilder, type)!);
           }
         } else {
           throw "Unsupported global type $type ($type)";
@@ -3266,6 +3361,17 @@ class WasmGlobalImporter extends _WasmImporter<w.Global> {
         importingModule.globals.import(moduleName, importName, definition.type);
     global.globalName = definition.globalName;
     return global;
+  }
+}
+
+class WasmMemoryImporter extends _WasmImporter<w.Memory> {
+  WasmMemoryImporter(super._translator, super._exportPrefix);
+
+  @override
+  w.Memory _import(w.ModuleBuilder importingModule, w.Memory definition,
+      String moduleName, String importName) {
+    return importingModule.memories.import(moduleName, importName,
+        definition.shared, definition.minSize, definition.maxSize);
   }
 }
 

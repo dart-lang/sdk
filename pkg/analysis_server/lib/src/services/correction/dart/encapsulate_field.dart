@@ -5,8 +5,10 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -170,32 +172,41 @@ class EncapsulateField extends ResolvedCorrectionProducer {
     String name,
     String fieldTypeCode,
   ) {
+    // Update any field formal parameter that refers to the field.
     for (var parameter in constructor.parameters.parameters) {
       var identifier = parameter.name;
-      var parameterElement = parameter.declaredFragment?.element;
-      if (identifier != null &&
-          parameterElement is FieldFormalParameterElement &&
-          parameterElement.field == fieldElement) {
-        if (parameter.isNamed && parameter is DefaultFormalParameter) {
-          var normalParam = parameter.parameter;
-          if (normalParam is FieldFormalParameter) {
-            var start = normalParam.thisKeyword;
-            builder.addSimpleReplacement(
-              range.startEnd(start, normalParam.period),
-              fieldTypeCode.isNotEmpty ? '$fieldTypeCode ' : '',
-            );
+      if (identifier == null) continue;
 
-            var previous = constructor.separator ?? constructor.parameters;
-            var replacement = constructor.initializers.isEmpty
-                ? ' : _$name = $name'
-                : ' _$name = $name,';
-            builder.addSimpleInsertion(previous.end, replacement);
-            break;
-          }
+      var parameterElement = parameter.declaredFragment?.element;
+      // TODO(rnystrom): Also include declaring parameters here.
+      if (parameterElement is! FieldFormalParameterElement) continue;
+      if (parameterElement.field != fieldElement) continue;
+
+      // If the parameter is named and we're in a library that doesn't allow
+      // private named parameters, then keep the public name for the parameter
+      // and initialize the field from it in the initializer list.
+      if (parameter.isNamed && !isEnabled(Feature.private_named_parameters)) {
+        var normalParam = parameter.notDefault;
+        if (normalParam is FieldFormalParameter) {
+          var start = normalParam.thisKeyword;
+          builder.addSimpleReplacement(
+            range.startEnd(start, normalParam.period),
+            fieldTypeCode.isNotEmpty ? '$fieldTypeCode ' : '',
+          );
+
+          var previous = constructor.separator ?? constructor.parameters;
+          var replacement = constructor.initializers.isEmpty
+              ? ' : _$name = $name'
+              : ' _$name = $name,';
+          builder.addSimpleInsertion(previous.end, replacement);
         }
+      } else {
+        // Rename the parameter.
         builder.addSimpleReplacement(range.token(identifier), '_$name');
       }
     }
+
+    // If the field already has an explicit initializer, update its name.
     for (var initializer in constructor.initializers) {
       if (initializer is ConstructorFieldInitializer &&
           initializer.fieldName.element == fieldElement) {

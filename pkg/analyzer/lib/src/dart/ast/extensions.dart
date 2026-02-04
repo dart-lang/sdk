@@ -178,12 +178,13 @@ extension FormalParameterExtension on FormalParameter {
     return thisOrAncestorOfType<FunctionBody>() != null;
   }
 
-  FormalParameter get notDefault {
-    var self = this;
-    if (self is DefaultFormalParameter) {
-      return self.parameter;
+  NormalFormalParameter get notDefault {
+    switch (this) {
+      case DefaultFormalParameter self:
+        return self.parameter;
+      case NormalFormalParameter self:
+        return self;
     }
-    return self;
   }
 
   FormalParameterList get parentFormalParameterList {
@@ -283,18 +284,6 @@ extension IndexExpressionExtension on IndexExpression {
 extension ListOfFormalParameterExtension on List<FormalParameter> {
   Iterable<FormalParameterImpl> get asImpl {
     return cast<FormalParameterImpl>();
-  }
-}
-
-extension MethodDeclarationExtension on MethodDeclaration {
-  bool get hasObjectMemberName {
-    return const {
-      '==',
-      'hashCode',
-      'toString',
-      'runtimeType',
-      'noSuchMethod',
-    }.contains(name.lexeme);
   }
 }
 

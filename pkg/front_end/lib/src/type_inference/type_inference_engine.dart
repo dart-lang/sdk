@@ -17,6 +17,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/extension_scope.dart';
+import '../kernel/assigned_variables_impl.dart';
 import '../kernel/benchmarker.dart' show Benchmarker;
 import '../kernel/exhaustiveness.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
@@ -374,13 +375,26 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     required ExtensionScope extensionScope,
     InferenceDataForTesting? dataForTesting,
   }) {
-    AssignedVariables<TreeNode, ExpressionVariable> assignedVariables;
+    AssignedVariablesImpl assignedVariables;
+    bool isClosureContextLoweringEnabled = libraryBuilder
+        .loader
+        .target
+        .backendTarget
+        .flags
+        .isClosureContextLoweringEnabled;
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
-      assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
+      dataForTesting.flowAnalysisResult.assignedVariables =
           new AssignedVariablesForTesting<TreeNode, ExpressionVariable>();
+      assignedVariables = new AssignedVariablesImpl(
+        dataForTesting.flowAnalysisResult.assignedVariables!,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      );
     } else {
-      assignedVariables = new AssignedVariables<TreeNode, ExpressionVariable>();
+      assignedVariables = new AssignedVariablesImpl(
+        new AssignedVariables<TreeNode, ExpressionVariable>(),
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      );
     }
     if (benchmarker == null) {
       return new TypeInferrerImpl(

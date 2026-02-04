@@ -347,10 +347,6 @@ intptr_t RuntimeEntry::argument_count() const {
 
 namespace target {
 
-const word kPageSize = dart::kPageSize;
-const word kPageSizeInWords = dart::kPageSize / kWordSize;
-const word kPageMask = dart::kPageMask;
-
 static word TranslateOffsetInWordsToHost(word offset) {
   RELEASE_ASSERT((offset % kCompressedWordSize) == 0);
   return (offset / kCompressedWordSize) * dart::kCompressedWordSize;
@@ -368,12 +364,10 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
          dart::UntaggedObject::NewOrEvacuationCandidateBit::encode(true) |
          dart::UntaggedObject::AlwaysSetBit::encode(true) |
          dart::UntaggedObject::NotMarkedBit::encode(true) |
-         dart::UntaggedObject::ImmutableBit::encode(
-             dart::Object::ShouldHaveImmutabilityBitSet(cid));
-}
-
-word Object::tags_offset() {
-  return 0;
+         dart::UntaggedObject::ShallowImmutableBit::encode(
+             dart::Object::ShouldHaveShallowImmutabilityBitSet(cid)) |
+         dart::UntaggedObject::DeeplyImmutableBit::encode(
+             dart::Object::ShouldHaveDeeplyImmutabilityBitSet(cid));
 }
 
 const word UntaggedObject::kCardRememberedBit =
@@ -391,8 +385,11 @@ const word UntaggedObject::kOldAndNotRememberedBit =
 const word UntaggedObject::kNotMarkedBit =
     dart::UntaggedObject::NotMarkedBit::shift();
 
-const word UntaggedObject::kImmutableBit =
-    dart::UntaggedObject::ImmutableBit::shift();
+const word UntaggedObject::kShallowImmutableBit =
+    dart::UntaggedObject::ShallowImmutableBit::shift();
+
+const word UntaggedObject::kDeeplyImmutableBit =
+    dart::UntaggedObject::DeeplyImmutableBit::shift();
 
 const word UntaggedObject::kSizeTagPos =
     dart::UntaggedObject::SizeTagBits::shift();
@@ -554,10 +551,6 @@ intptr_t Class::TypeArgumentsFieldOffset(const dart::Class& klass) {
 
 bool Class::TraceAllocation(const dart::Class& klass) {
   return klass.TraceAllocation(dart::IsolateGroup::Current());
-}
-
-word Instance::first_field_offset() {
-  return TranslateOffsetInWords(dart::Instance::NextFieldOffset());
 }
 
 word Instance::native_fields_array_offset() {

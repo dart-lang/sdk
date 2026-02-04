@@ -86,11 +86,7 @@ bool checkFileWriteable(String destPath) {
   final file = File(destPath);
   final exists = file.existsSync();
   try {
-    file.writeAsStringSync(
-      '',
-      mode: FileMode.append,
-      flush: true,
-    );
+    file.writeAsStringSync('', mode: FileMode.append, flush: true);
     // Don't leave empty files around.
     if (!exists) {
       file.deleteSync();
@@ -109,7 +105,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
   final ArgParser argParser = ArgParser.allowAnything();
 
   CompileJSCommand({bool verbose = false})
-      : super(cmdName, 'Compile Dart to JavaScript.', verbose);
+    : super(cmdName, 'Compile Dart to JavaScript.', verbose);
 
   @override
   String get invocation => '${super.invocation} <dart entry point>';
@@ -162,12 +158,12 @@ class CompileDDCCommand extends CompileSubcommandCommand {
   // This command is an internal developer command used by tools and is
   // hidden in the help message.
   CompileDDCCommand({bool verbose = false})
-      : super(
-          cmdName,
-          'Compile Dart to JavaScript using ddc.',
-          verbose,
-          hidden: true,
-        );
+    : super(
+        cmdName,
+        'Compile Dart to JavaScript using ddc.',
+        verbose,
+        hidden: true,
+      );
 
   @override
   String get invocation => '${super.invocation} <dart entry point>';
@@ -209,12 +205,12 @@ class CompileDDCCommand extends CompileSubcommandCommand {
 
 class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
   static const commandName = 'kernel';
-  static const help = 'Compile Dart to a kernel snapshot.\n'
+  static const help =
+      'Compile Dart to a kernel snapshot.\n'
       'To run the snapshot use: dart run <kernel file>';
 
-  CompileKernelSnapshotCommand({
-    bool verbose = false,
-  }) : super(commandName, help, verbose) {
+  CompileKernelSnapshotCommand({bool verbose = false})
+    : super(commandName, help, verbose) {
     argParser
       ..addOption(
         outputFileOption.flag,
@@ -237,7 +233,8 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
       )
       ..addFlag(
         'link-platform',
-        help: 'Includes the platform kernel in the resulting kernel file. '
+        help:
+            'Includes the platform kernel in the resulting kernel file. '
             "Required for use with 'dart compile exe' or 'dart compile aot-snapshot'.",
         defaultsTo: true,
       )
@@ -306,7 +303,8 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
     final bool soundNullSafety = args.flag('sound-null-safety');
     if (!soundNullSafety) {
       log.stdout(
-          'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
+        'Error: the flag --no-sound-null-safety is not supported in Dart 3.',
+      );
       return compileErrorExitCode;
     }
 
@@ -336,13 +334,13 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
 }
 
 class CompileJitSnapshotCommand extends CompileSubcommandCommand {
-  static const help = 'Compile Dart to a JIT snapshot.\n'
+  static const help =
+      'Compile Dart to a JIT snapshot.\n'
       'The executable will be run once to snapshot a warm JIT.\n'
       'To run the snapshot use: dart run <JIT file>';
 
-  CompileJitSnapshotCommand({
-    bool verbose = false,
-  }) : super('jit-snapshot', help, verbose) {
+  CompileJitSnapshotCommand({bool verbose = false})
+    : super('jit-snapshot', help, verbose) {
     argParser
       ..addOption(
         outputFileOption.flag,
@@ -374,10 +372,12 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
         negatable: false,
         help: enableAssertsOption.help,
       )
-      ..addFlag(soundNullSafetyOption.flag,
-          help: soundNullSafetyOption.help,
-          defaultsTo: soundNullSafetyOption.flagDefaultsTo,
-          hide: true)
+      ..addFlag(
+        soundNullSafetyOption.flag,
+        help: soundNullSafetyOption.help,
+        defaultsTo: soundNullSafetyOption.flagDefaultsTo,
+        hide: true,
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -433,7 +433,8 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
     final bool soundNullSafety = args.flag('sound-null-safety');
     if (!soundNullSafety) {
       log.stdout(
-          'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
+        'Error: the flag --no-sound-null-safety is not supported in Dart 3.',
+      );
       return compileErrorExitCode;
     }
 
@@ -479,7 +480,7 @@ class CompileNativeCommand extends CompileSubcommandCommand {
     Target.linuxArm,
     Target.linuxArm64,
     Target.linuxRiscv64,
-    Target.linuxX64
+    Target.linuxX64,
   };
 
   final String commandName;
@@ -525,10 +526,12 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         valueHelp: packagesOption.valueHelp,
         help: packagesOption.help,
       )
-      ..addFlag(soundNullSafetyOption.flag,
-          help: soundNullSafetyOption.help,
-          defaultsTo: soundNullSafetyOption.flagDefaultsTo,
-          hide: true)
+      ..addFlag(
+        soundNullSafetyOption.flag,
+        help: soundNullSafetyOption.help,
+        defaultsTo: soundNullSafetyOption.flagDefaultsTo,
+        hide: true,
+      )
       ..addOption(
         'save-debugging-info',
         abbr: 'S',
@@ -554,16 +557,22 @@ Remove debugging information from the output and save it separately to the speci
         hide: true,
         valueHelp: 'opt1,opt2,...',
       )
-      ..addOption('target-os',
-          help: 'Compile to a specific target operating system.',
-          allowed: TargetOS.names)
-      ..addOption('target-arch',
-          help: 'Compile to a specific target architecture.',
-          allowed: Architecture.values.map((v) => v.name).toList())
-      ..addOption('target-sanitizer',
-          help:
-              'Compile to a specific target sanitizer. Sanitizers are not offered with single-file executables because the sanitizers cannot symbolize embedded snapshots.',
-          allowed: availableSanitizers())
+      ..addOption(
+        'target-os',
+        help: 'Compile to a specific target operating system.',
+        allowed: TargetOS.names,
+      )
+      ..addOption(
+        'target-arch',
+        help: 'Compile to a specific target architecture.',
+        allowed: Architecture.values.map((v) => v.name).toList(),
+      )
+      ..addOption(
+        'target-sanitizer',
+        help:
+            'Compile to a specific target sanitizer. Sanitizers are not offered with single-file executables because the sanitizers cannot symbolize embedded snapshots.',
+        allowed: availableSanitizers(),
+      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -594,7 +603,8 @@ Remove debugging information from the output and save it separately to the speci
     // executable only supports AOT runtimes, so these commands are disabled.
     if (Platform.version.contains('ia32')) {
       stderr.write(
-          "'dart compile $commandName' is not supported on x86 architectures.\n");
+        "'dart compile $commandName' is not supported on x86 architectures.\n",
+      );
       return 64;
     }
     // Kernel is always generated using the host's dartaotruntime and
@@ -617,7 +627,8 @@ Remove debugging information from the output and save it separately to the speci
 
     if (!args.flag('sound-null-safety')) {
       log.stdout(
-          'Error: the flag --no-sound-null-safety is not supported in Dart 3.');
+        'Error: the flag --no-sound-null-safety is not supported in Dart 3.',
+      );
       return compileErrorExitCode;
     }
 
@@ -629,8 +640,10 @@ Remove debugging information from the output and save it separately to the speci
     if (target != null) {
       if (!supportedTargetPlatforms.contains(target)) {
         stderr.writeln('Unsupported target platform $target.');
-        stderr.writeln('Supported target platforms: '
-            '${supportedTargetPlatforms.join(', ')}');
+        stderr.writeln(
+          'Supported target platforms: '
+          '${supportedTargetPlatforms.join(', ')}',
+        );
         return crossCompileErrorExitCode;
       }
 
@@ -639,21 +652,31 @@ Remove debugging information from the output and save it separately to the speci
         cacheDir = Directory(path.join(cacheDir.path, 'dartdev', 'sdk_cache'));
       } else {
         cacheDir = Directory.systemTemp.createTempSync();
-        log.stdout('Cannot get dart storage directory. '
-            'Using temp dir ${cacheDir.path}');
+        log.stdout(
+          'Cannot get dart storage directory. '
+          'Using temp dir ${cacheDir.path}',
+        );
       }
       final httpClient = http.Client();
       try {
         final cache = SdkCache(
-            directory: cacheDir.path, verbose: verbose, httpClient: httpClient);
+          directory: cacheDir.path,
+          verbose: verbose,
+          httpClient: httpClient,
+        );
         final archiveFolder = await cache.resolveVersion(
-            version: Runtime.runtime.version,
-            revision: sdk.revision ?? '',
-            channelName: Runtime.runtime.channel ?? 'unknown');
+          version: Runtime.runtime.version,
+          revision: sdk.revision ?? '',
+          channelName: Runtime.runtime.channel ?? 'unknown',
+        );
         genSnapshotBinary = await cache.ensureGenSnapshot(
-            archiveFolder: archiveFolder, target: target);
+          archiveFolder: archiveFolder,
+          target: target,
+        );
         dartAotRuntimeBinary = await cache.ensureDartAotRuntime(
-            archiveFolder: archiveFolder, target: target);
+          archiveFolder: archiveFolder,
+          target: target,
+        );
       } finally {
         httpClient.close();
       }
@@ -663,8 +686,9 @@ Remove debugging information from the output and save it separately to the speci
       Directory.current.uri,
     );
     if (packageConfigUri != null) {
-      final packageConfig =
-          await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
+      final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
+        packageConfigUri,
+      );
       if (packageConfig == null) {
         return compileErrorExitCode;
       }
@@ -673,23 +697,28 @@ Remove debugging information from the output and save it separately to the speci
       );
       if (runPackageName != null) {
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
-            packageConfigUri);
+          packageConfigUri,
+        );
         final builder = DartNativeAssetsBuilder(
-            pubspecUri: pubspecUri,
-            packageConfigUri: packageConfigUri,
-            packageConfig: packageConfig,
-            runPackageName: runPackageName,
-            includeDevDependencies: false,
-            dataAssetsExperimentEnabled: false,
-            verbose: verbose,
-            target: target);
+          pubspecUri: pubspecUri,
+          packageConfigUri: packageConfigUri,
+          packageConfig: packageConfig,
+          runPackageName: runPackageName,
+          includeDevDependencies: false,
+          dataAssetsExperimentEnabled: false,
+          verbose: verbose,
+          target: target,
+        );
         if (!nativeAssetsExperimentEnabled) {
           if (await builder.warnOnNativeAssets()) {
             return 255;
           }
         } else if (await builder.hasHooks()) {
+          final packages = (await builder.packagesWithBuildHooks()).join(', ');
           stderr.writeln(
-              "'dart compile' does not support build hooks, use 'dart build' instead.");
+            "'dart compile' does not support build hooks, use 'dart build' instead.\n"
+            'Packages with build hooks: $packages.',
+          );
           return 255;
         }
       }
@@ -704,10 +733,7 @@ Remove debugging information from the output and save it separately to the speci
         kind: format,
         sourceFile: sourcePath,
         outputFile: args.option('output'),
-        defines: [
-          ...sanitizer.defines,
-          ...args.multiOption(defineOption.flag),
-        ],
+        defines: [...sanitizer.defines, ...args.multiOption(defineOption.flag)],
         packages: args.option('packages'),
         enableExperiment: args.enabledExperiments.join(','),
         enableAsserts: args.flag(enableAssertsOption.flag),
@@ -775,7 +801,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
   static const String help = 'Compile Dart to a WebAssembly/WasmGC module.';
 
   CompileWasmCommand({bool verbose = false})
-      : super(commandName, help, verbose) {
+    : super(commandName, help, verbose) {
     argParser
       ..addOption(
         outputFileOption.flag,
@@ -785,7 +811,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       ..addFlag(
         'minify',
         negatable: true,
-        help: 'Minify names that are needed at runtime (such as class names). '
+        help:
+            'Minify names that are needed at runtime (such as class names). '
             'Affects e.g. `<obj>.runtimeType.toString()`). If passed, this '
             'takes precedence over the optimization-level option.',
         hide: !verbose,
@@ -823,19 +850,23 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       )
       ..addOption(
         'shared-memory',
-        help: 'Import a shared memory buffer.'
+        help:
+            'Import a shared memory buffer.'
             ' The max number of pages must be passed.',
         valueHelp: 'page count',
         hide: !verbose,
       )
-      ..addMultiOption('phases',
-          help: 'Specifies which phases of the dart2wasm compiler to run. Each '
-              'phase will emit a partial result that is then the input to the '
-              'next phase.',
-          allowed: ['cfe', 'tfa', 'codegen', 'opt'],
-          defaultsTo: ['cfe', 'tfa', 'codegen', 'opt'],
-          hide: !verbose,
-          splitCommas: true)
+      ..addMultiOption(
+        'phases',
+        help:
+            'Specifies which phases of the dart2wasm compiler to run. Each '
+            'phase will emit a partial result that is then the input to the '
+            'next phase.',
+        allowed: ['cfe', 'tfa', 'codegen', 'opt'],
+        defaultsTo: ['cfe', 'tfa', 'codegen', 'opt'],
+        hide: !verbose,
+        splitCommas: true,
+      )
       ..addMultiOption(
         'extra-compiler-option',
         abbr: 'E',
@@ -846,7 +877,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       ..addOption(
         'optimization-level',
         abbr: 'O',
-        help: 'Controls optimizations that can help reduce code-size and '
+        help:
+            'Controls optimizations that can help reduce code-size and '
             'improve performance of the generated code.',
         allowed: ['0', '1', '2', '3', '4'],
         defaultsTo: '1',
@@ -858,11 +890,14 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         help: 'Generate a source map file.',
         defaultsTo: true,
       )
-      ..addFlag('enable-deferred-loading',
-          help: 'Emit multiple modules based on the Dart program\'s deferred '
-              'import graph.',
-          hide: !verbose,
-          defaultsTo: false)
+      ..addFlag(
+        'enable-deferred-loading',
+        help:
+            'Emit multiple modules based on the Dart program\'s deferred '
+            'import graph.',
+        hide: !verbose,
+        defaultsTo: false,
+      )
       ..addOption(
         packagesOption.flag,
         abbr: packagesOption.abbr,
@@ -901,8 +936,9 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     }
     final String sourcePath = args.rest[0];
     final extraCompilerOptions = args.multiOption('extra-compiler-option');
-    final isMultiRoot =
-        extraCompilerOptions.any((e) => e.contains('multi-root'));
+    final isMultiRoot = extraCompilerOptions.any(
+      (e) => e.contains('multi-root'),
+    );
 
     // If we know the source file doesn't exist, we want to abort early with an
     // obvious error message. We can't resolve the actual path here if the input
@@ -932,7 +968,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       maxPages = int.tryParse(args.option('shared-memory')!);
       if (maxPages == null) {
         usageException(
-            'Error: The --shared-memory flag must specify a number!');
+          'Error: The --shared-memory flag must specify a number!',
+        );
       }
     }
 
@@ -943,7 +980,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       optimizationLevel = int.tryParse(args.option('optimization-level')!);
       if (optimizationLevel == null) {
         usageException(
-            'Error: The --optimization-level flag must specify a number!');
+          'Error: The --optimization-level flag must specify a number!',
+        );
       }
       if (optimizationLevel == 0) {
         if (!args.wasParsed('phases')) {
@@ -1000,7 +1038,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     final mjsFile = '$outputFileBasename.mjs';
     log.stdout(
-        "Generated wasm module '$outputFile', and JS init file '$mjsFile'.");
+      "Generated wasm module '$outputFile', and JS init file '$mjsFile'.",
+    );
     return 0;
   }
 }
@@ -1039,19 +1078,26 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
   );
 
   late final Option packagesOption = Option(
-      flag: 'packages',
-      abbr: 'p',
-      valueHelp: 'path',
-      help:
-          '''Get package locations from the specified file instead of .dart_tool/package_config.json.
+    flag: 'packages',
+    abbr: 'p',
+    valueHelp: 'path',
+    help:
+        '''Get package locations from the specified file instead of .dart_tool/package_config.json.
 <path> can be relative or absolute.
-For example: dart compile $name --packages=/tmp/pkgs.json main.dart''');
+For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
+  );
 
-  final Option enableAssertsOption =
-      Option(flag: 'enable-asserts', help: 'Enable assert statements.');
+  final Option enableAssertsOption = Option(
+    flag: 'enable-asserts',
+    help: 'Enable assert statements.',
+  );
 
-  CompileSubcommandCommand(super.name, super.description, super.verbose,
-      {super.hidden});
+  CompileSubcommandCommand(
+    super.name,
+    super.description,
+    super.verbose, {
+    super.hidden,
+  });
 }
 
 class CompileCommand extends DartdevCommand {
@@ -1065,21 +1111,26 @@ class CompileCommand extends DartdevCommand {
     addSubcommand(CompileDDCCommand(verbose: verbose));
     addSubcommand(CompileJitSnapshotCommand(verbose: verbose));
     addSubcommand(CompileKernelSnapshotCommand(verbose: verbose));
-    addSubcommand(CompileNativeCommand(
-      commandName: CompileNativeCommand.exeCmdName,
-      help: 'to a self-contained executable.',
-      format: Kind.exe,
-      verbose: verbose,
-      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
-    ));
-    addSubcommand(CompileNativeCommand(
-      commandName: CompileNativeCommand.aotSnapshotCmdName,
-      help: 'to an AOT snapshot.\n'
-          'To run the snapshot use: dartaotruntime <AOT snapshot file>',
-      format: Kind.aot,
-      verbose: verbose,
-      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
-    ));
+    addSubcommand(
+      CompileNativeCommand(
+        commandName: CompileNativeCommand.exeCmdName,
+        help: 'to a self-contained executable.',
+        format: Kind.exe,
+        verbose: verbose,
+        nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
+      ),
+    );
+    addSubcommand(
+      CompileNativeCommand(
+        commandName: CompileNativeCommand.aotSnapshotCmdName,
+        help:
+            'to an AOT snapshot.\n'
+            'To run the snapshot use: dartaotruntime <AOT snapshot file>',
+        format: Kind.aot,
+        verbose: verbose,
+        nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
+      ),
+    );
     addSubcommand(CompileWasmCommand(verbose: verbose));
   }
 

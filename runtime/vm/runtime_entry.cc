@@ -4687,7 +4687,7 @@ DEFINE_RUNTIME_ENTRY(CheckedStoreIntoShared, 2) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
-  FfiCallbackMetadata::EnsureTriviallyImmutable(zone, value);
+  value.EnsureDeeplyImmutable(zone);
 
   field.SetStaticValue(value);
   arguments.SetReturn(field);
@@ -5231,7 +5231,11 @@ DEFINE_LEAF_RUNTIME_ENTRY(PropagateError,
                           DLRT_PropagateError);
 
 DEFINE_RUNTIME_ENTRY(InitializeSharedField, 1) {
-  SafepointWriteRwLocker locker(
+  // Running the initializer means running arbitrary Dart code that might yield
+  // to a reload safepoint or have its active mutator slot stolen. Make sure we
+  // likewise yield while waiting for the lock to avoid the holder of the lock
+  // being blocked on locker-waiters for reload or a mutator slot.
+  ReloadableStealableWriteRwLocker locker(
       thread, thread->isolate_group()->shared_field_initializer_rwlock());
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   Object& result = Object::Handle(zone, field.StaticValue());
@@ -5243,6 +5247,13 @@ DEFINE_RUNTIME_ENTRY(InitializeSharedField, 1) {
     ASSERT(result.ptr() != Object::sentinel().ptr());
   }
   arguments.SetReturn(result);
+}
+
+// Throw if the value is not immutable.
+//   Arg0: Value to check.
+DEFINE_RUNTIME_ENTRY(EnsureDeeplyImmutable, 1) {
+  const Instance& value = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  value.EnsureDeeplyImmutable(zone);
 }
 
 #if defined(USING_MEMORY_SANITIZER)

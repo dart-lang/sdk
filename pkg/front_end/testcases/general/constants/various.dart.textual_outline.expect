@@ -2,7 +2,8 @@ const bool barFromEnv = const bool.fromEnvironment("bar");
 
 const bool hasBarEnv = const bool.hasEnvironment("bar");
 
-const bool barFromEnvOrNull = const bool.fromEnvironment("bar", defaultValue: null);
+const bool barFromEnvOrNull =
+    const bool.fromEnvironment("bar", defaultValue: null);
 
 const bool notBarFromEnvOrNull = !barFromEnvOrNull;
 
@@ -30,25 +31,32 @@ const bool orOnNull4 = false || barFromEnvOrNull;
 
 const String barFromEnvString = const String.fromEnvironment("bar");
 
-const String barFromEnvOrNullString = const String.fromEnvironment("bar", defaultValue: null);
+const String barFromEnvOrNullString =
+    const String.fromEnvironment("bar", defaultValue: null);
 
-const String barFromEnvOrActualString = const String.fromEnvironment("bar", defaultValue: "hello");
+const String barFromEnvOrActualString =
+    const String.fromEnvironment("bar", defaultValue: "hello");
 
-const String nullFromEnvString = const String.fromEnvironment(barFromEnvOrNullString);
+const String nullFromEnvString =
+    const String.fromEnvironment(barFromEnvOrNullString);
 
 const bool barFromEnvBool = const bool.fromEnvironment("bar");
 
-const bool barFromEnvOrNullBool = const bool.fromEnvironment("bar", defaultValue: null);
+const bool barFromEnvOrNullBool =
+    const bool.fromEnvironment("bar", defaultValue: null);
 
-const bool barFromEnvOrActualBool = const bool.fromEnvironment("bar", defaultValue: true);
+const bool barFromEnvOrActualBool =
+    const bool.fromEnvironment("bar", defaultValue: true);
 
 const bool nullFromEnvBool = const bool.fromEnvironment(barFromEnvOrNullString);
 
 const int barFromEnvInt = const int.fromEnvironment("bar");
 
-const int barFromEnvOrNullInt = const int.fromEnvironment("bar", defaultValue: null);
+const int barFromEnvOrNullInt =
+    const int.fromEnvironment("bar", defaultValue: null);
 
-const int barFromEnvOrActualInt = const int.fromEnvironment("bar", defaultValue: 42);
+const int barFromEnvOrActualInt =
+    const int.fromEnvironment("bar", defaultValue: 42);
 
 const int nullFromEnvInt = const int.fromEnvironment(barFromEnvOrNullString);
 
@@ -88,7 +96,8 @@ const binaryOnIntWithDoubleOK = willBeInt + willBeDouble;
 
 const binaryOnIntWithString = willBeInt << "hello";
 
-const dynamic willBeString = const bool.fromEnvironment("foo") ? 42.42 : "hello";
+const dynamic willBeString =
+    const bool.fromEnvironment("foo") ? 42.42 : "hello";
 
 const binaryOnStringWithStringOK = willBeString + " world";
 
@@ -123,7 +132,8 @@ abstract class AbstractClassWithConstructor {
   int foo();
 }
 
-AbstractClassWithConstructor abstractClassWithConstructor = const AbstractClassWithConstructor();
+AbstractClassWithConstructor abstractClassWithConstructor =
+    const AbstractClassWithConstructor();
 
 class NotAbstractClass {
   @AbstractClass()
@@ -135,14 +145,19 @@ class NotAbstractClass {
 class Foo {
   final int x;
   final int y;
-  const Foo(int x) : this.x = x, this.y = "hello".length;
+  const Foo(int x)
+      : this.x = x,
+        this.y = "hello".length;
 }
 
 class FooWithHashCodeField {
   final int x;
   final int y;
   final int hashCode;
-  const FooWithHashCodeField(int x) : this.x = x, this.y = "hello".length, this.hashCode = x * 42;
+  const FooWithHashCodeField(int x)
+      : this.x = x,
+        this.y = "hello".length,
+        this.hashCode = x * 42;
 }
 
 class ExtendsFoo1 extends Foo {}
@@ -163,13 +178,17 @@ const bool foosIdentical = identical(foo1, foo2);
 
 const bool foosEqual = foo1 == foo2;
 
-const FooWithHashCodeField fooWithHashCodeField1 = const FooWithHashCodeField(42);
+const FooWithHashCodeField fooWithHashCodeField1 =
+    const FooWithHashCodeField(42);
 
-const FooWithHashCodeField fooWithHashCodeField2 = const FooWithHashCodeField(42);
+const FooWithHashCodeField fooWithHashCodeField2 =
+    const FooWithHashCodeField(42);
 
-const bool fooWithHashCodeFieldIdentical = identical(fooWithHashCodeField1, fooWithHashCodeField2);
+const bool fooWithHashCodeFieldIdentical =
+    identical(fooWithHashCodeField1, fooWithHashCodeField2);
 
-const bool fooWithHashCodeFieldEqual = fooWithHashCodeField1 == fooWithHashCodeField2;
+const bool fooWithHashCodeFieldEqual =
+    fooWithHashCodeField1 == fooWithHashCodeField2;
 
 const Symbol barFoo = const Symbol("Foo");
 
@@ -195,23 +214,28 @@ class ConstClassWithFailingAssertWithEmptyMessage {
   const ConstClassWithFailingAssertWithEmptyMessage() : assert(false, "");
 }
 
-ConstClassWithFailingAssertWithEmptyMessage failedAssertEmptyMessage = const ConstClassWithFailingAssertWithEmptyMessage();
+ConstClassWithFailingAssertWithEmptyMessage failedAssertEmptyMessage =
+    const ConstClassWithFailingAssertWithEmptyMessage();
 
 class ClassWithTypeArguments<E, F, G> {
   const ClassWithTypeArguments(E e, F f, G g);
 }
 
-const ClassWithTypeArguments classWithTypeArguments1 = const ClassWithTypeArguments<int, int, int>(42, 42, 42);
+const ClassWithTypeArguments classWithTypeArguments1 =
+    const ClassWithTypeArguments<int, int, int>(42, 42, 42);
 
-const ClassWithTypeArguments classWithTypeArguments2 = const ClassWithTypeArguments(42, 42, 42);
+const ClassWithTypeArguments classWithTypeArguments2 =
+    const ClassWithTypeArguments(42, 42, 42);
 
-const bool classWithTypeArgumentsIdentical = identical(classWithTypeArguments1, classWithTypeArguments2);
+const bool classWithTypeArgumentsIdentical =
+    identical(classWithTypeArguments1, classWithTypeArguments2);
 
 class ClassWithNonEmptyConstConstructor {
   const ClassWithNonEmptyConstConstructor() {}
 }
 
-ClassWithNonEmptyConstConstructor classWithNonEmptyConstConstructor = const ClassWithNonEmptyConstConstructor();
+ClassWithNonEmptyConstConstructor classWithNonEmptyConstConstructor =
+    const ClassWithNonEmptyConstConstructor();
 
 class ConstClassWithFinalFields1 {
   const ConstClassWithFinalFields1();
@@ -225,7 +249,8 @@ class ConstClassWithFinalFields2 {
   final z2 = x;
 }
 
-ConstClassWithFinalFields2 constClassWithFinalFields = const ConstClassWithFinalFields2();
+ConstClassWithFinalFields2 constClassWithFinalFields =
+    const ConstClassWithFinalFields2();
 
 const zeroPointZeroIdentical = identical(0.0, 0.0);
 
@@ -249,9 +274,11 @@ T id2<T>(T t) => t;
 
 const dynamic willBecomeNull = const bool.fromEnvironment("foo") ? id1 : null;
 
-const int Function(int) willBecomeNullToo = const bool.fromEnvironment("foo") ? id1 : willBecomeNull;
+const int Function(int) willBecomeNullToo =
+    const bool.fromEnvironment("foo") ? id1 : willBecomeNull;
 
-const int Function(int) partialInstantiation = const bool.fromEnvironment("foo") ? willBecomeNull : id1;
+const int Function(int) partialInstantiation =
+    const bool.fromEnvironment("foo") ? willBecomeNull : id1;
 
 const bool yBool = true;
 

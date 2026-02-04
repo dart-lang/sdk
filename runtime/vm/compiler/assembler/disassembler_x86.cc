@@ -1602,7 +1602,7 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     // bt? immediate instruction
     int r = (*current >> 3) & 7;
     static const char* const names[4] = {"bt", "bts", "btr", "btc"};
-    Print("%s ", names[r - 4]);
+    Print("%s%s ", names[r - 4], operand_size_code());
     current += PrintRightOperand(current);
     uint8_t bit = *current++;
     Print(",%d", bit);

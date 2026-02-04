@@ -233,7 +233,7 @@ class A {
     await assertHasFix(
       '''
 class A {
-  A({int? other, required int foo}) : _foo = foo;
+  A({int? other, required this._foo});
 
   final int _foo;
 }
@@ -275,7 +275,7 @@ class A {
     await assertHasFix(
       '''
 class A {
-  A({int? other, required int foo}) : _foo = foo, assert(true);
+  A({int? other, required this._foo}) : assert(true);
 
   final int _foo;
 }
@@ -306,6 +306,143 @@ class C {
     );
   }
 
+  Future<void> test_privateField_reserved() async {
+    await resolveTestCode('''
+class C {
+  C();
+
+  final int _for;
+}
+''');
+    await assertHasFix(
+      '''
+class C {
+  C({required int pfor}) : _for = pfor;
+
+  final int _for;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void> test_privateField_withoutPrivateNamedParams() async {
+    await resolveTestCode('''
+// @dart=3.10
+class A {
+  A({int? other});
+
+  final int _foo;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.10
+class A {
+  A({int? other, required int foo}) : _foo = foo;
+
+  final int _foo;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void>
+  test_privateField_withoutPrivateNamedParams_alphaNumeric() async {
+    await resolveTestCode('''
+// @dart=3.10
+class C {
+  C();
+
+  final int _1to1;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.10
+class C {
+  C({required int p1to1}) : _1to1 = p1to1;
+
+  final int _1to1;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void> test_privateField_withoutPrivateNamedParams_initializer() async {
+    await resolveTestCode('''
+// @dart=3.10
+class A {
+  A({int? other}) : assert(true);
+
+  final int _foo;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.10
+class A {
+  A({int? other, required int foo}) : _foo = foo, assert(true);
+
+  final int _foo;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void> test_privateField_withoutPrivateNamedParams_numeric() async {
+    await resolveTestCode('''
+// @dart=3.10
+class C {
+  C();
+
+  final int _3;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.10
+class C {
+  C({required int p3}) : _3 = p3;
+
+  final int _3;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void> test_privateField_withoutPrivateNamedParams_reserved() async {
+    await resolveTestCode('''
+// @dart=3.10
+class C {
+  C();
+
+  final int _for;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.10
+class C {
+  C({required int pfor}) : _for = pfor;
+
+  final int _for;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
   Future<void> test_privateFields() async {
     await resolveTestCode('''
 class A {
@@ -317,6 +454,31 @@ class A {
 ''');
     await assertHasFix(
       '''
+class A {
+  A({int? other, required this._foo, required this._bar});
+
+  final int _foo;
+  final String _bar;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor2,
+    );
+  }
+
+  Future<void> test_privateFields_withoutPrivateNamedParams() async {
+    await resolveTestCode('''
+// @dart=3.10
+class A {
+  A({int? other});
+
+  final int _foo;
+  final String _bar;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.10
 class A {
   A({int? other, required int foo, required String bar}) : _foo = foo, _bar = bar;
 
@@ -477,6 +639,29 @@ class Test {
   Test(this.a, this.c);
 }
 ''');
+  }
+
+  Future<void> test_privateFields() async {
+    await resolveTestCode('''
+class Test {
+  final int _a;
+  final int _1alpha;
+  final int _123;
+  final int _for;
+
+  Test();
+}
+''');
+    await assertHasFix('''
+class Test {
+  final int _a;
+  final int _1alpha;
+  final int _123;
+  final int _for;
+
+  Test(this._a, this._1alpha, this._123, this._for);
+}
+''', filter: (diagnostic) => diagnostic.diagnosticCode != diag.unusedField);
   }
 
   Future<void> test_synthetic_field() async {

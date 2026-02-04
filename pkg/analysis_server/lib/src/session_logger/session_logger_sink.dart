@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
+import 'package:language_server_protocol/protocol_special.dart' show Either2;
 
 /// A sink for a session logger that will write entries to a file.
 class SessionLoggerFileSink extends SessionLoggerSink {
@@ -32,6 +33,14 @@ class SessionLoggerFileSink extends SessionLoggerSink {
 }
 
 /// A sink for a session logger that will write entries to an in-memory buffer.
+///
+/// This class has been designed to allow a user to enable the capturing of log
+/// entries at an arbitrary time, and then retrieve the captured entries at some
+/// future time. To support this, the sink caches entries related to
+/// - server initialization,
+/// - workspace configuration, and
+/// - text documents
+/// until capturing is enabled.
 class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// The maximum number of entries stored in the [_sessionBuffer].
   int maxBufferLength;
@@ -46,6 +55,16 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// The buffer in which initialization related entries are stored.
   final List<LogEntry> _initializationBuffer = [];
 
+  /// The buffer in which workspace configuration related entries are stored.
+  ///
+  /// This buffer is cleared every time a new workspace configuration is
+  /// requested.
+  final List<LogEntry> _configurationBuffer = [];
+
+  /// A set of buffers, indexed by text document URI, for entries related to
+  /// that text document.
+  final Map<String, List<LogEntry>> _textDocumentBuffers = {};
+
   /// The buffer in which normal entries are stored.
   final List<LogEntry> _sessionBuffer = [];
 
@@ -57,7 +76,12 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// The list includes necessary initialization entries that might have
   /// occurred before the capture was started.
   List<LogEntry> get capturedEntries {
-    return [..._initializationBuffer, ..._sessionBuffer];
+    return [
+      ..._initializationBuffer,
+      ..._configurationBuffer,
+      ..._textDocumentBuffers.values.expand((buffer) => buffer),
+      ..._sessionBuffer,
+    ];
   }
 
   /// Whether entries are currently being captured in the buffer.
@@ -93,29 +117,101 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
       }
       _sessionBuffer.add(logEntry);
     } else {
-      // TODO(brianwilkerson): We also need to collect the most recent messages
-      //  related to which directories are open in the workspace and which files
-      //  are priority files. These should be in separate lists so that we can
-      //  flush messages that are no longer required in order to reproduce the
-      //  captured messages.
+      if (_isConfigurationEntry(logEntry)) {
+        if (_configurationBuffer.length > 1) {
+          // We only need to keep the last request/response pair.
+          _configurationBuffer.clear();
+        }
+        _configurationBuffer.add(logEntry);
+      } else if (_isTextDocumentEntry(logEntry)) {
+        var message = logEntry.message;
+        var textDocumentUri = message.textDocument;
+        if (textDocumentUri != null) {
+          // This could also provide special handling for `textDocument/didSave`
+          // notifications. When the file is saved the player no longer needs to
+          // apply any previous edits, so those notifications (and the `didSave`
+          // notification itself) could be discarded.
+          if (message.isDidClose) {
+            _textDocumentBuffers.remove(textDocumentUri);
+          } else {
+            var buffer = _textDocumentBuffers.putIfAbsent(
+              textDocumentUri,
+              () => [],
+            );
+            buffer.add(logEntry);
+          }
+        }
+      }
     }
+  }
+
+  /// Returns the request ids of the messages in the given list of [entries].
+  ///
+  /// This assumes that the entries are all from the same process. If that isn't
+  /// true, then the returned list may contain duplicate ids.
+  List<Either2<int, String>> _getRequestIds(List<LogEntry> entries) {
+    return entries
+        .where((entry) => entry.isMessage)
+        .map((entry) => entry.message.id)
+        .nonNulls
+        .toList();
+  }
+
+  /// Returns whether the [entry] is a configuration entry.
+  ///
+  /// A configuration entry is defined as an entry that records the
+  /// configuration of the workspace.
+  ///
+  /// Configuration entries are captured even when [captureEntries] is `false`.
+  bool _isConfigurationEntry(LogEntry entry) {
+    // TODO(brianwilkerson): Make this method support the legacy protocol.
+    if (entry.isMessage) {
+      var message = entry.message;
+      if (message.isWorkspaceConfiguration) {
+        return true;
+      }
+      for (var requestId in _getRequestIds(_configurationBuffer)) {
+        if (message.isResponseTo(requestId)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /// Returns whether the [entry] is an initialization entry.
   ///
-  /// An initialization entry is defined as an entry that would need to be
-  /// replayed in order to make the captured entries make sense.
+  /// An initialization entry is defined as an entry that records the
+  /// initialization process.
   ///
   /// Initialization entries are captured even when [captureEntries] is `false`.
   bool _isInitializationEntry(LogEntry entry) {
+    // TODO(brianwilkerson): Make this method support the legacy protocol.
     if (entry.isCommandLine) return true;
     if (entry.isMessage) {
-      // TODO(brianwilkerson): This list is incomplete in two ways.
-      //  1. It does not support the legacy protocol.
-      //  2. It does not capture entries that indicate the state of either the
-      //     workspace or the priority files.
       var message = entry.message;
-      return message.isInitialize || message.isInitialized;
+      if (message.isInitializeRequest || message.isInitialized) {
+        return true;
+      }
+      for (var requestId in _getRequestIds(_initializationBuffer)) {
+        if (message.isResponseTo(requestId)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Returns whether the [entry] is a text document entry.
+  ///
+  /// A text document entry is defined as an entry that records an operation
+  /// on a text document.
+  ///
+  /// Text document entries are captured even when [captureEntries] is `false`.
+  bool _isTextDocumentEntry(LogEntry entry) {
+    if (entry.isMessage) {
+      var message = entry.message;
+      return message.isDidChange || message.isDidClose || message.isDidOpen;
     }
     return false;
   }

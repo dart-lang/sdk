@@ -93,13 +93,13 @@ class _GetExpressionInfo extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    var type = h.typeAnalyzer.analyzeExpression(
+    var analysisResult = h.typeAnalyzer.analyzeExpression(
       target,
       h.operations.unknownType,
     );
     h.flow.forwardExpression(this, target);
     callback(h.flow.expressionInfoForTesting(this));
-    return new ExpressionTypeAnalysisResult(type: type);
+    return analysisResult;
   }
 }
 
@@ -138,13 +138,13 @@ class _WhyNotPromoted extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    var type = h.typeAnalyzer.analyzeExpression(
+    var analysisResult = h.typeAnalyzer.analyzeExpression(
       target,
       h.operations.unknownType,
     );
     h.flow.forwardExpression(this, target);
     callback(h.flow.whyNotPromoted(this)());
-    return new ExpressionTypeAnalysisResult(type: type);
+    return analysisResult;
   }
 }
 

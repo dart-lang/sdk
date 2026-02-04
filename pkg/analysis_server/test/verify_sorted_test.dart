@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_testing/package_root.dart';
+import 'package:args/args.dart';
 import 'package:test/test.dart';
 
 /// The purpose of this test is to validate that all elements
@@ -19,40 +20,37 @@ import 'package:test/test.dart';
 /// Pass `--update` as argument to this script to have the sorted files
 /// written back.
 void main([List<String> args = const <String>[]]) {
-  if (args.contains('--update')) {
+  var parsed = argParser.parse(args);
+  if (parsed.flag('update')) {
     updateUnsorted = true;
   }
+  var sources = parsed.multiOption('source');
 
-  group('analysis_server', () {
-    buildTestsForAnalysisServer();
-  });
+  group('analysis_server', () => buildTestsForAnalysisServer(sources));
 
-  group('analyzer', () {
-    buildTestsForAnalyzer();
-  });
+  group('analyzer', () => buildTestsForAnalyzer(sources));
 
-  group('analyzer_cli', () {
-    buildTestsForAnalyzerCli();
-  });
+  group('analyzer_cli', () => buildTestsForAnalyzerCli(sources));
 
-  group('analyzer_plugin', () {
-    buildTestsForAnalyzerPlugin();
-  });
+  group('analyzer_plugin', () => buildTestsForAnalyzerPlugin(sources));
 
-  group('analyzer_utilities', () {
-    buildTestsForAnalyzerPlugin();
-  });
-
-  group('linter', () {
-    buildTestsForLinter();
-  });
+  group('linter', () => buildTestsForLinter(sources));
 }
+
+final argParser = ArgParser()
+  ..addFlag('update', help: 'Writes the sorted files')
+  ..addMultiOption(
+    'source',
+    abbr: 's',
+    help: 'Absolute paths to sources to check',
+  );
 
 bool updateUnsorted = false;
 
 void buildTests({
   required String packagePath,
   required List<String> excludedPaths,
+  required List<String> explicitSources,
 }) {
   var provider = PhysicalResourceProvider.INSTANCE;
   var pkgRootPath = provider.pathContext.normalize(packageRoot);
@@ -73,11 +71,12 @@ void buildTests({
       packagePath,
       excludedPaths,
       provider.getFolder(packagePath),
+      explicitSources,
     );
   }
 }
 
-void buildTestsForAnalysisServer() {
+void buildTestsForAnalysisServer(List<String> explicitSources) {
   var excludedPaths = <String>[
     // TODO(brianwilkerson): Fix the generator to sort the generated files and
     //  remove these exclusions.
@@ -90,10 +89,14 @@ void buildTestsForAnalysisServer() {
     'lib/src/services/kythe/schema.dart',
   ];
 
-  buildTests(packagePath: 'analysis_server', excludedPaths: excludedPaths);
+  buildTests(
+    packagePath: 'analysis_server',
+    excludedPaths: excludedPaths,
+    explicitSources: explicitSources,
+  );
 }
 
-void buildTestsForAnalyzer() {
+void buildTestsForAnalyzer(List<String> explicitSources) {
   buildTests(
     packagePath: 'analyzer',
     excludedPaths: [
@@ -102,14 +105,19 @@ void buildTestsForAnalyzer() {
       'lib/src/wolf/ir/ir.g.dart',
       'test/generated/test_all.dart',
     ],
+    explicitSources: explicitSources,
   );
 }
 
-void buildTestsForAnalyzerCli() {
-  buildTests(packagePath: 'analyzer_cli', excludedPaths: ['test/data']);
+void buildTestsForAnalyzerCli(List<String> explicitSources) {
+  buildTests(
+    packagePath: 'analyzer_cli',
+    excludedPaths: ['test/data'],
+    explicitSources: explicitSources,
+  );
 }
 
-void buildTestsForAnalyzerPlugin() {
+void buildTestsForAnalyzerPlugin(List<String> explicitSources) {
   // TODO(brianwilkerson): Fix the generator to sort the generated files and
   //  remove these exclusions.
   var excludedPaths = <String>[
@@ -119,11 +127,19 @@ void buildTestsForAnalyzerPlugin() {
     'test/integration/support/protocol_matchers.dart',
   ];
 
-  buildTests(packagePath: 'analyzer_plugin', excludedPaths: excludedPaths);
+  buildTests(
+    packagePath: 'analyzer_plugin',
+    excludedPaths: excludedPaths,
+    explicitSources: explicitSources,
+  );
 }
 
-void buildTestsForLinter() {
-  buildTests(packagePath: 'linter', excludedPaths: ['test_data']);
+void buildTestsForLinter(List<String> explicitSources) {
+  buildTests(
+    packagePath: 'linter',
+    excludedPaths: ['test_data'],
+    explicitSources: explicitSources,
+  );
 }
 
 void buildTestsIn(
@@ -131,6 +147,7 @@ void buildTestsIn(
   String testDirPath,
   List<String> excludedPath,
   Folder directory,
+  List<String> explicitSources,
 ) {
   var pathContext = session.resourceProvider.pathContext;
   var children = directory.getChildren();
@@ -138,11 +155,20 @@ void buildTestsIn(
   for (var child in children) {
     if (child is Folder) {
       if (!excludedPath.contains(child.path)) {
-        buildTestsIn(session, testDirPath, excludedPath, child);
+        buildTestsIn(
+          session,
+          testDirPath,
+          excludedPath,
+          child,
+          explicitSources,
+        );
       }
     } else if (child is File && child.shortName.endsWith('.dart')) {
       var path = child.path;
       if (excludedPath.contains(path)) {
+        continue;
+      }
+      if (explicitSources.isNotEmpty && !explicitSources.contains(child.path)) {
         continue;
       }
       var relativePath = pathContext.relative(path, from: testDirPath);

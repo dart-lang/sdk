@@ -65,9 +65,6 @@ class AnalysisSessionImpl implements AnalysisSession {
     inheritanceManager = InheritanceManager3();
   }
 
-  @deprecated
-  driver.AnalysisDriver getDriver() => _driver;
-
   @override
   Future<SomeErrorsResult> getErrors(String path) async {
     checkConsistency();

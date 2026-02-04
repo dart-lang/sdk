@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -46,6 +47,7 @@ import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart';
+import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder.dart';
 import 'body_builder_context.dart';
@@ -98,6 +100,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     List<int> indicesOfAnnotationsToBeInferred = [];
 
@@ -176,6 +181,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildEnumConstantResult? result;
     ActualArguments arguments;
@@ -255,6 +263,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildFieldInitializerResult result = bodyBuilder.buildFieldInitializer(
       startToken: startToken,
@@ -293,16 +304,27 @@ class Resolver {
       inferenceDataForTesting: inferenceDataForTesting,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
+    List<FormalParameterBuilder>? primaryConstructorInitializerScopeParameters =
+        bodyBuilderContext.primaryConstructorInitializerScopeParameters;
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildFieldsResult result = bodyBuilder.buildFields(
       startToken: startToken,
       metadata: metadata,
       isTopLevel: isTopLevel,
+    );
+    _declareFormals(
+      typeInferrer: context.typeInferrer,
+      bodyBuilderContext: bodyBuilderContext,
+      thisVariable: null,
+      formals: primaryConstructorInitializerScopeParameters,
     );
     for (MapEntry<Identifier, Expression?> entry
         in result.fieldInitializers.entries) {
@@ -373,15 +395,14 @@ class Resolver {
         problemReporting: problemReporting,
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
-        formals: result.formals,
-        asyncModifier: result.asyncModifier,
+        asyncMarker: result.asyncMarker,
         body: result.body,
         fileUri: fileUri,
         bodyBuilderContext: bodyBuilderContext,
         thisVariable: functionBodyBuildingContext.thisVariable,
         initializers: result.initializers,
         constantContext: constantContext,
-        needsImplicitSuperInitializer: result.needsImplicitSuperInitializer,
+        internalThisVariable: bodyBuilder.internalThisVariable,
       );
       context.performBacklog(result.annotations);
     }
@@ -418,22 +439,21 @@ class Resolver {
     CompilerContext compilerContext = libraryBuilder.loader.target.context;
     ProblemReporting problemReporting = libraryBuilder;
     LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
-    ConstantContext constantContext = isConst
-        ? ConstantContext.required
-        : ConstantContext.none;
+    ConstantContext constantContext = bodyBuilderContext.constantContext;
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
       scope: typeParameterScope,
       constantContext: constantContext,
       formalParameterScope: formalParameterScope,
+      thisVariable: null,
+      thisTypeParameters: null,
     );
     constructorBuilder.inferFormalTypes(_classHierarchy);
     BuildInitializersResult result = bodyBuilder.buildInitializers(
       beginInitializers: beginInitializers,
     );
     List<Initializer> initializers = result.initializers;
-    bool needsImplicitSuperInitializer = result.needsImplicitSuperInitializer;
     if (isConst) {
       List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
       _SuperParameterArguments? superParameterArguments =
@@ -445,6 +465,7 @@ class Resolver {
         typeInferrer: context.typeInferrer,
         bodyBuilderContext: bodyBuilderContext,
         thisVariable: null,
+        formals: bodyBuilderContext.formals,
       );
       _finishConstructor(
         context: context,
@@ -457,7 +478,6 @@ class Resolver {
         body: null,
         superParameterArguments: superParameterArguments,
         fileUri: fileUri,
-        needsImplicitSuperInitializer: needsImplicitSuperInitializer,
         constantContext: constantContext,
         initializers: initializers,
       );
@@ -489,6 +509,10 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: typeParameterScope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      // TODO(johnniwinther): Should we provide this?
+      formalParameterScope: null,
     );
     return bodyBuilder.buildInitializersUnfinished(
       beginInitializers: beginInitializers,
@@ -517,6 +541,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildMetadataListResult result = bodyBuilder.buildMetadataList(
       metadata: metadata,
@@ -563,6 +590,9 @@ class Resolver {
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
+      thisVariable: null,
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     BuildParameterInitializerResult result = bodyBuilder
         .buildParameterInitializer(initializerToken: initializerToken);
@@ -581,6 +611,7 @@ class Resolver {
     required FunctionBodyBuildingContext functionBodyBuildingContext,
     required Uri fileUri,
     required Token startToken,
+    required bool finishFunction,
   }) {
     _benchmarker
     // Coverage-ignore(suite): Not run.
@@ -618,23 +649,100 @@ class Resolver {
     try {
       BuildPrimaryConstructorResult result = bodyBuilder
           .buildPrimaryConstructor(startToken: startToken);
-      FormalParameters? formals = result.formals;
+      if (finishFunction) {
+        _finishFunction(
+          context: context,
+          compilerContext: compilerContext,
+          problemReporting: problemReporting,
+          libraryBuilder: libraryBuilder,
+          libraryFeatures: libraryFeatures,
+          asyncMarker: AsyncMarker.Sync,
+          body: null,
+          fileUri: fileUri,
+          bodyBuilderContext: bodyBuilderContext,
+          thisVariable: functionBodyBuildingContext.thisVariable,
+          initializers: result.initializers,
+          constantContext: constantContext,
+          internalThisVariable: bodyBuilder.internalThisVariable,
+        );
+
+        context.performBacklog(result.annotations);
+      }
+    }
+    // Coverage-ignore(suite): Not run.
+    on DebugAbort {
+      rethrow;
+    } catch (e, s) {
+      throw new Crash(fileUri, startToken.charOffset, e, s);
+    }
+    _benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.endSubdivide();
+  }
+
+  void buildPrimaryConstructorBody({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+    required FunctionBodyBuildingContext functionBodyBuildingContext,
+    required Uri fileUri,
+    required Token startToken,
+    required Token? metadata,
+  }) {
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.beginSubdivide(
+      BenchmarkSubdivides.diet_listener_buildPrimaryConstructorBody,
+    );
+
+    ExtensionScope extensionScope = functionBodyBuildingContext.extensionScope;
+    LookupScope typeParameterScope =
+        functionBodyBuildingContext.typeParameterScope;
+    LocalScope formalParameterScope =
+        functionBodyBuildingContext.formalParameterScope;
+    BodyBuilderContext bodyBuilderContext = functionBodyBuildingContext
+        .createBodyBuilderContext();
+    _ResolverContext context = new _ResolverContext(
+      typeInferenceEngine: _typeInferenceEngine,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      extensionScope: extensionScope,
+      fileUri: fileUri,
+    );
+
+    CompilerContext compilerContext = libraryBuilder.loader.target.context;
+    ProblemReporting problemReporting = libraryBuilder;
+    LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
+    ConstantContext constantContext = bodyBuilderContext.constantContext;
+    BodyBuilder bodyBuilder = _createBodyBuilder(
+      context: context,
+      bodyBuilderContext: bodyBuilderContext,
+      scope: typeParameterScope,
+      constantContext: constantContext,
+      formalParameterScope: formalParameterScope,
+      thisVariable: functionBodyBuildingContext.thisVariable,
+      thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
+    );
+    constructorBuilder.inferFormalTypes(_classHierarchy);
+    try {
+      BuildPrimaryConstructorBodyResult result = bodyBuilder
+          .buildPrimaryConstructorBody(
+            startToken: startToken,
+            metadata: metadata,
+          );
       _finishFunction(
         context: context,
         compilerContext: compilerContext,
         problemReporting: problemReporting,
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
-        formals: formals,
-        asyncModifier: AsyncMarker.Sync,
-        body: null,
-        fileUri: fileUri,
         bodyBuilderContext: bodyBuilderContext,
-        thisVariable: functionBodyBuildingContext.thisVariable,
-        initializers: result.initializers,
+        asyncMarker: result.asyncMarker,
+        body: result.body,
+        fileUri: fileUri,
         constantContext: constantContext,
-        needsImplicitSuperInitializer: bodyBuilderContext
-            .needsImplicitSuperInitializer(_coreTypes),
+        initializers: result.initializers,
+        thisVariable: functionBodyBuildingContext.thisVariable,
+        internalThisVariable: bodyBuilder.internalThisVariable,
       );
       context.performBacklog(result.annotations);
     }
@@ -724,6 +832,9 @@ class Resolver {
       scope: scope,
       thisVariable: extensionThis,
       constantContext: constantContext,
+      // TODO(johnniwinther): Should we provide these?
+      thisTypeParameters: null,
+      formalParameterScope: null,
     );
     int fileOffset = token.charOffset;
 
@@ -758,14 +869,21 @@ class Resolver {
                 wildcardVariableIndex++;
               }
               return new FormalParameterBuilder(
-                FormalParameterKind.requiredPositional,
-                Modifiers.empty,
-                const ImplicitTypeBuilder(),
-                formalName,
-                formal.fileOffset,
+                kind: FormalParameterKind.requiredPositional,
+                modifiers: Modifiers.empty,
+                type: const ImplicitTypeBuilder(),
+                name: formalName,
+                nameOffset: null,
+                fileOffset: formal.fileOffset,
                 fileUri: fileUri,
                 hasImmediatelyDeclaredInitializer: false,
                 isWildcard: isWildcard,
+                isClosureContextLoweringEnabled: libraryBuilder
+                    .loader
+                    .target
+                    .backendTarget
+                    .flags
+                    .isClosureContextLoweringEnabled,
               )..variable = formal;
             },
             growable: false,
@@ -799,6 +917,17 @@ class Resolver {
 
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
+    // TODO(cstefantsova): Remove special-casing over
+    // ExpressionCompilerProcedureBodyBuildContext below by computing formals in
+    // it.
+    List<VariableDeclaration> formalParameters =
+        bodyBuilderContext is ExpressionCompilerProcedureBodyBuildContext
+        ? []
+        : <VariableDeclaration>[
+            for (FormalParameterBuilder formal
+                in bodyBuilderContext.formals ?? [])
+              formal.variable!,
+          ];
     InferredFunctionBody inferredFunctionBody = context.typeInferrer
         .inferFunctionBody(
           fileUri: fileUri,
@@ -807,6 +936,8 @@ class Resolver {
           asyncMarker: AsyncMarker.Sync,
           body: fakeReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
+          parameters: formalParameters,
+          internalThisVariable: bodyBuilder.internalThisVariable,
         );
     assert(
       fakeReturn == inferredFunctionBody.body,
@@ -845,7 +976,7 @@ class Resolver {
       if (!target.isConst) {
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeNonConstConstructor,
+          message: diag.nonConstConstructor,
           fileUri: fileUri,
           fileOffset: fileOffset,
           length: noLength,
@@ -875,7 +1006,7 @@ class Resolver {
       if (!procedure.isConst) {
         return problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: codeNonConstConstructor,
+          message: diag.nonConstConstructor,
           fileUri: fileUri,
           fileOffset: fileOffset,
           length: noLength,
@@ -914,8 +1045,8 @@ class Resolver {
     if (periodIndex != -1) {
       length -= periodIndex + 1;
     }
-    LocatedMessage message = codeConstructorNotFound
-        .withArgumentsOld(name)
+    LocatedMessage message = diag.constructorNotFound
+        .withArguments(name: name)
         .withLocation(fileUri, fileOffset, length);
     return problemReporting.buildProblem(
       compilerContext: compilerContext,
@@ -932,9 +1063,9 @@ class Resolver {
     required BodyBuilderContext bodyBuilderContext,
     required LookupScope scope,
     required ConstantContext constantContext,
-    VariableDeclaration? thisVariable,
-    List<TypeParameter>? thisTypeParameters,
-    LocalScope? formalParameterScope,
+    required VariableDeclaration? thisVariable,
+    required List<TypeParameter>? thisTypeParameters,
+    required LocalScope? formalParameterScope,
   }) {
     _benchmarker
     // Coverage-ignore(suite): Not run.
@@ -1048,6 +1179,7 @@ class Resolver {
     required TypeInferrer typeInferrer,
     required BodyBuilderContext bodyBuilderContext,
     required VariableDeclaration? thisVariable,
+    required List<FormalParameterBuilder>? formals,
   }) {
     if (thisVariable != null && bodyBuilderContext.isConstructor) {
       // `thisVariable` usually appears in `_context.formals`, but for a
@@ -1058,391 +1190,25 @@ class Resolver {
         initialized: true,
       );
     }
-    List<FormalParameterBuilder>? formals = bodyBuilderContext.formals;
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
         VariableDeclaration variable = parameter.variable!;
-        typeInferrer.flowAnalysis.declare(
-          variable,
-          new SharedTypeView(variable.type),
-          initialized: true,
-        );
-      }
-    }
-  }
-
-  void _finishInitializers({
-    required CompilerContext compilerContext,
-    required ProblemReporting problemReporting,
-    required SourceLibraryBuilder libraryBuilder,
-    required LibraryFeatures libraryFeatures,
-    required BodyBuilderContext bodyBuilderContext,
-    required TypeInferrer typeInferrer,
-    required Uri fileUri,
-    required List<Initializer> initializers,
-    required _SuperParameterArguments? superParameterArguments,
-    required bool needsImplicitSuperInitializer,
-    required AsyncMarker asyncModifier,
-    required int? asyncModifierFileOffset,
-  }) {
-    FunctionNode function = bodyBuilderContext.function;
-    _InitializerBuilder initializerBuilder = new _InitializerBuilder();
-
-    if (initializers.isNotEmpty) {
-      if (bodyBuilderContext.isMixinClass) {
-        // Report an error if a mixin class has a constructor with an
-        // initializer.
-        problemReporting.buildProblem(
-          compilerContext: compilerContext,
-          message: codeIllegalMixinDueToConstructors.withArgumentsOld(
-            bodyBuilderContext.className,
-          ),
-          fileUri: fileUri,
-          fileOffset: bodyBuilderContext.memberNameOffset,
-          length: noLength,
-        );
-      }
-      Initializer last = initializers.last;
-      if (last is InternalSuperInitializer) {
-        if (bodyBuilderContext.isEnumClass) {
-          initializers[initializers.length - 1] = _buildInvalidInitializer(
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: codeEnumConstructorSuperInitializer,
-              fileUri: fileUri,
-              fileOffset: last.fileOffset,
-              length: noLength,
-            ),
-          )..parent = last.parent;
-          needsImplicitSuperInitializer = false;
-        } else if (superParameterArguments != null) {
-          bool insertNamedOnly = false;
-          ActualArguments arguments = last.arguments;
-          if (superParameterArguments.positionalCount > 0) {
-            if (arguments.positionalCount > 0) {
-              problemReporting.addProblem(
-                codePositionalSuperParametersAndArguments,
-                arguments.fileOffset,
-                noLength,
-                fileUri,
-                context: <LocatedMessage>[
-                  codeSuperInitializerParameter.withLocation(
-                    fileUri,
-                    superParameterArguments.firstPositionalOffset,
-                    noLength,
-                  ),
-                ],
-              );
-              insertNamedOnly = true;
-            }
-          }
-          if (insertNamedOnly) {
-            /// Error case: Don't insert positional argument when  positional
-            /// arguments already exist.
-            arguments.prependArguments(
-              superParameterArguments.arguments
-                  .whereType<NamedArgument>()
-                  .toList(),
-              positionalCount: 0,
-            );
-          } else {
-            arguments.prependArguments(
-              superParameterArguments.arguments,
-              positionalCount: superParameterArguments.positionalCount,
-            );
-          }
-        }
-      } else if (last is InternalRedirectingInitializer) {
-        if (bodyBuilderContext.isEnumClass &&
-            libraryFeatures.enhancedEnums.isEnabled) {
-          ActualArguments arguments = last.arguments;
-          List<Expression> enumSyntheticArguments = [
-            new VariableGet(function.positionalParameters[0])
-              ..parent = last.arguments,
-            new VariableGet(function.positionalParameters[1])
-              ..parent = last.arguments,
-          ];
-          arguments.prependArguments([
-            new PositionalArgument(enumSyntheticArguments[0]),
-            new PositionalArgument(enumSyntheticArguments[1]),
-          ], positionalCount: 2);
-        }
-      }
-
-      List<InitializerInferenceResult> inferenceResults =
-          new List<InitializerInferenceResult>.generate(
-            initializers.length,
-            (index) => bodyBuilderContext.inferInitializer(
-              typeInferrer: typeInferrer,
-              fileUri: fileUri,
-              initializer: initializers[index],
-            ),
-            growable: false,
+        // TODO(62401): Ensure `variable` is an InternalExpressionVariable.
+        if (variable
+            case InternalExpressionVariable(
+                  astVariable: ExpressionVariable variable,
+                ) ||
+                // Coverage-ignore(suite): Not run.
+                ExpressionVariable variable) {
+          typeInferrer.flowAnalysis.declare(
+            variable,
+            new SharedTypeView(variable.type),
+            initialized: true,
           );
-
-      if (!bodyBuilderContext.isExternalConstructor) {
-        for (InitializerInferenceResult result in inferenceResults) {
-          if (!initializerBuilder.addInitializer(
-            compilerContext,
-            problemReporting,
-            bodyBuilderContext,
-            result,
-            fileUri: fileUri,
-          )) {
-            // Erroneous initializer, implicit super call is not needed.
-            needsImplicitSuperInitializer = false;
-          }
         }
       }
     }
-
-    if (asyncModifier != AsyncMarker.Sync) {
-      initializers.add(
-        _buildInvalidInitializer(
-          problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: codeConstructorNotSync,
-            fileUri: fileUri,
-            fileOffset: asyncModifierFileOffset!,
-            length: noLength,
-          ),
-        ),
-      );
-      needsImplicitSuperInitializer = false;
-    }
-    if (needsImplicitSuperInitializer) {
-      /// >If no superinitializer is provided, an implicit superinitializer
-      /// >of the form super() is added at the end of the constructor's
-      /// >initializer list, unless the enclosing class is class Object.
-      Initializer? initializer;
-      ActualArguments arguments;
-      List<Argument>? argumentsOriginalOrder;
-      int positionalCount = 0;
-      if (superParameterArguments != null) {
-        argumentsOriginalOrder = superParameterArguments.arguments;
-        positionalCount += superParameterArguments.positionalCount;
-      }
-      if (bodyBuilderContext.isEnumClass) {
-        assert(
-          function.positionalParameters.length >= 2 &&
-              function.positionalParameters[0].name == "#index" &&
-              function.positionalParameters[1].name == "#name",
-        );
-        Expression indexExpression = new VariableGet(
-          function.positionalParameters[0],
-        );
-        Expression nameExpression = new VariableGet(
-          function.positionalParameters[1],
-        );
-        (argumentsOriginalOrder ??= []).insertAll(0, [
-          new PositionalArgument(indexExpression),
-          new PositionalArgument(nameExpression),
-        ]);
-        positionalCount += 2;
-      }
-
-      int argumentsOffset = -1;
-      if (superParameterArguments != null) {
-        for (Argument argument in superParameterArguments.arguments) {
-          int currentArgumentOffset = argument.expression.fileOffset;
-          argumentsOffset = argumentsOffset <= currentArgumentOffset
-              ? argumentsOffset
-              : currentArgumentOffset;
-        }
-      }
-      SuperInitializer? explicitSuperInitializer;
-      if (initializers case [..., SuperInitializer superInitializer]
-          when argumentsOffset == // Coverage-ignore(suite): Not run.
-              -1) {
-        // Coverage-ignore-block(suite): Not run.
-        argumentsOffset = superInitializer.fileOffset;
-        explicitSuperInitializer = superInitializer;
-      }
-      if (argumentsOffset == -1) {
-        argumentsOffset = bodyBuilderContext.memberNameOffset;
-      }
-
-      const Forest forest = const Forest();
-      if (argumentsOriginalOrder != null) {
-        arguments = forest.createArguments(
-          argumentsOffset,
-          arguments: argumentsOriginalOrder,
-          hasNamedBeforePositional: false,
-          positionalCount: positionalCount,
-        );
-      } else {
-        arguments = forest.createArgumentsEmpty(argumentsOffset);
-      }
-
-      MemberLookupResult? result = bodyBuilderContext.lookupSuperConstructor(
-        '',
-        libraryBuilder.nameOriginBuilder,
-      );
-      Constructor? superTarget;
-      if (result != null) {
-        if (result.isInvalidLookup) {
-          int length = bodyBuilderContext.memberNameLength;
-          if (length == 0) {
-            length = bodyBuilderContext.className.length;
-          }
-          initializer = _buildInvalidInitializer(
-            LookupResult.createDuplicateExpression(
-              result,
-              context: compilerContext,
-              name: '',
-              fileUri: fileUri,
-              fileOffset: bodyBuilderContext.memberNameOffset,
-              length: noLength,
-            ),
-          );
-          needsImplicitSuperInitializer = false;
-        } else {
-          MemberBuilder? memberBuilder = result.getable;
-          Member? member = memberBuilder?.invokeTarget;
-          if (member is Constructor) {
-            superTarget = member;
-          }
-        }
-      }
-      if (initializer == null) {
-        if (superTarget == null) {
-          String superclass = bodyBuilderContext.superClassName;
-          int length = bodyBuilderContext.memberNameLength;
-          if (length == 0) {
-            length = bodyBuilderContext.className.length;
-          }
-          initializer = _buildInvalidInitializer(
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: codeSuperclassHasNoDefaultConstructor.withArgumentsOld(
-                superclass,
-              ),
-              fileUri: fileUri,
-              fileOffset: bodyBuilderContext.memberNameOffset,
-              length: length,
-            ),
-          );
-          needsImplicitSuperInitializer = false;
-        } else if (problemReporting.checkArgumentsForFunction(
-              function: superTarget.function,
-              explicitTypeArguments: null,
-              arguments: arguments,
-              fileOffset: bodyBuilderContext.memberNameOffset,
-              fileUri: fileUri,
-              typeParameters: const <TypeParameter>[],
-            )
-            case LocatedMessage argumentIssue) {
-          Initializer? errorMessageInitializer;
-          if (superParameterArguments != null) {
-            int positionalSuperParameterCount =
-                superTarget.function.positionalParameters.length;
-            Set<String> superTargetNamedParameterNames = {
-              for (VariableDeclaration namedParameter
-                  in superTarget.function.namedParameters)
-                ?namedParameter // Coverage-ignore(suite): Not run.
-                    .name,
-            };
-            int positionalIndex = 0;
-            for (Argument argument in superParameterArguments.arguments) {
-              switch (argument) {
-                case PositionalArgument():
-                  if (positionalIndex >= positionalSuperParameterCount) {
-                    InvalidExpression errorMessageExpression = problemReporting
-                        .buildProblem(
-                          compilerContext: compilerContext,
-                          message:
-                              codeMissingPositionalSuperConstructorParameter,
-                          fileUri: fileUri,
-                          fileOffset: argument.expression.fileOffset,
-                          length: noLength,
-                        );
-                    errorMessageInitializer ??= _buildInvalidInitializer(
-                      errorMessageExpression,
-                    );
-                    needsImplicitSuperInitializer = false;
-                  }
-                  positionalIndex++;
-                case NamedArgument():
-                  if (!superTargetNamedParameterNames.contains(
-                    argument.namedExpression.name,
-                  )) {
-                    InvalidExpression errorMessageExpression = problemReporting
-                        .buildProblem(
-                          compilerContext: compilerContext,
-                          message: codeMissingNamedSuperConstructorParameter,
-                          fileUri: fileUri,
-                          fileOffset: argument.namedExpression.fileOffset,
-                          length: noLength,
-                        );
-                    errorMessageInitializer ??= _buildInvalidInitializer(
-                      errorMessageExpression,
-                    );
-                    needsImplicitSuperInitializer = false;
-                  }
-              }
-            }
-          }
-          if (explicitSuperInitializer == null) {
-            errorMessageInitializer ??= _buildInvalidInitializer(
-              problemReporting.buildProblem(
-                compilerContext: compilerContext,
-                message: codeImplicitSuperInitializerMissingArguments
-                    .withArgumentsOld(superTarget.enclosingClass.name),
-                fileUri: fileUri,
-                fileOffset: argumentIssue.charOffset,
-                length: argumentIssue.length,
-              ),
-            );
-            needsImplicitSuperInitializer = false;
-          }
-          // Coverage-ignore-block(suite): Not run.
-          errorMessageInitializer ??= _buildInvalidInitializer(
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: argumentIssue.messageObject,
-              fileUri: fileUri,
-              fileOffset: argumentIssue.charOffset,
-              length: argumentIssue.length,
-            ),
-          );
-          needsImplicitSuperInitializer = false;
-          initializer = errorMessageInitializer;
-        } else {
-          if (bodyBuilderContext.isConstConstructor && !superTarget.isConst) {
-            problemReporting.addProblem(
-              codeConstConstructorWithNonConstSuper,
-              bodyBuilderContext.memberNameOffset,
-              superTarget.name.text.length,
-              fileUri,
-            );
-          }
-          initializer = new InternalSuperInitializer(
-            superTarget,
-            arguments,
-            isSynthetic: true,
-          )..fileOffset = bodyBuilderContext.memberNameOffset;
-          needsImplicitSuperInitializer = false;
-        }
-      }
-      InitializerInferenceResult inferenceResult = bodyBuilderContext
-          .inferInitializer(
-            typeInferrer: typeInferrer,
-            fileUri: fileUri,
-            initializer: initializer,
-          );
-      if (!initializerBuilder.addInitializer(
-        compilerContext,
-        problemReporting,
-        bodyBuilderContext,
-        inferenceResult,
-        fileUri: fileUri,
-      )) {
-        // Erroneous initializer, implicit super call is not needed.
-        needsImplicitSuperInitializer = false;
-      }
-    }
-    bodyBuilderContext.registerInitializers(initializerBuilder.initializers);
   }
 
   void _finishConstructor({
@@ -1456,22 +1222,23 @@ class Resolver {
     required Statement? body,
     required _SuperParameterArguments? superParameterArguments,
     required Uri fileUri,
-    required bool needsImplicitSuperInitializer,
     required ConstantContext constantContext,
     required List<Initializer> initializers,
   }) {
-    _finishInitializers(
+    _InitializerBuilder initializerBuilder = new _InitializerBuilder(
       compilerContext: compilerContext,
       problemReporting: problemReporting,
-      libraryBuilder: libraryBuilder,
-      libraryFeatures: libraryFeatures,
       bodyBuilderContext: bodyBuilderContext,
       typeInferrer: context.typeInferrer,
+      coreTypes: _coreTypes,
       fileUri: fileUri,
-      initializers: initializers,
+    );
+    initializerBuilder.processInitializers(
+      libraryBuilder: libraryBuilder,
+      libraryFeatures: libraryFeatures,
       superParameterArguments: superParameterArguments,
-      needsImplicitSuperInitializer: needsImplicitSuperInitializer,
-      asyncModifier: asyncModifier,
+      initializers: initializers,
+      asyncMarker: asyncModifier,
       asyncModifierFileOffset: body?.fileOffset,
     );
 
@@ -1487,8 +1254,8 @@ class Resolver {
       // body.
       problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: codeIllegalMixinDueToConstructors.withArgumentsOld(
-          bodyBuilderContext.className,
+        message: diag.illegalMixinDueToConstructors.withArguments(
+          className: bodyBuilderContext.className,
         ),
         fileUri: fileUri,
         fileOffset: bodyBuilderContext.memberNameOffset,
@@ -1503,15 +1270,14 @@ class Resolver {
     required ProblemReporting problemReporting,
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
-    required FormalParameters? formals,
-    required AsyncMarker asyncModifier,
+    required AsyncMarker asyncMarker,
     required Statement? body,
     required Uri fileUri,
     required BodyBuilderContext bodyBuilderContext,
     required VariableDeclaration? thisVariable,
     required List<Initializer> initializers,
     required ConstantContext constantContext,
-    required bool needsImplicitSuperInitializer,
+    required ThisVariable? internalThisVariable,
   }) {
     const Forest forest = const Forest();
     AssignedVariables assignedVariables = context.assignedVariables;
@@ -1522,19 +1288,21 @@ class Resolver {
     _SuperParameterArguments? superParameterArguments =
         _createSuperParameterArguments(
           assignedVariables: assignedVariables,
-          formals: formals?.parameters,
+          formals: bodyBuilderContext.formals,
         );
     assignedVariables.finish();
 
-    FunctionNode function = bodyBuilderContext.function;
     _declareFormals(
       typeInferrer: context.typeInferrer,
       bodyBuilderContext: bodyBuilderContext,
       thisVariable: thisVariable,
+      formals: bodyBuilderContext.formals,
     );
-    if (formals?.parameters != null) {
-      for (int i = 0; i < formals!.parameters!.length; i++) {
-        FormalParameterBuilder parameter = formals.parameters![i];
+    if (bodyBuilderContext.formals != null) {
+      // TODO(johnniwinther): Avoid the need for this.
+      int declaredParameterIndex = 0;
+      for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
+        if (parameter.isExtensionThis) continue;
         Expression? initializer = parameter.variable!.initializer;
         bool inferInitializer;
         if (parameter.isSuperInitializingFormal) {
@@ -1554,8 +1322,7 @@ class Resolver {
               // https://github.com/dart-lang/sdk/issues/32289
               noLocation,
             );
-            VariableDeclaration originParameter = bodyBuilderContext
-                .getFormalParameter(i);
+            VariableDeclaration originParameter = parameter.variable!;
             initializer = context.typeInferrer.inferParameterInitializer(
               fileUri: fileUri,
               initializer: initializer,
@@ -1569,7 +1336,7 @@ class Resolver {
             parameter.initializerWasInferred = true;
           }
           VariableDeclaration? tearOffParameter = bodyBuilderContext
-              .getTearOffParameter(i);
+              .getTearOffParameter(declaredParameterIndex);
           if (tearOffParameter != null) {
             Expression tearOffInitializer = _simpleCloner.cloneInContext(
               initializer!,
@@ -1580,6 +1347,7 @@ class Resolver {
                 parameter.variable!.isErroneouslyInitialized;
           }
         }
+        declaredParameterIndex++;
       }
     }
 
@@ -1591,16 +1359,25 @@ class Resolver {
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
         bodyBuilderContext: bodyBuilderContext,
-        asyncModifier: asyncModifier,
+        asyncModifier: asyncMarker,
         body: body,
         superParameterArguments: superParameterArguments,
         fileUri: fileUri,
-        needsImplicitSuperInitializer: needsImplicitSuperInitializer,
         constantContext: constantContext,
         initializers: initializers,
       );
-    } else if (body != null) {
-      bodyBuilderContext.setAsyncModifier(asyncModifier);
+    }
+
+    DartType returnType = bodyBuilderContext.returnTypeContext;
+    if (bodyBuilderContext.returnTypeBuilder is! OmittedTypeBuilder) {
+      problemReporting.checkAsyncReturnType(
+        libraryBuilder: libraryBuilder,
+        typeEnvironment: context.typeInferrer.typeSchemaEnvironment,
+        asyncMarker: asyncMarker,
+        returnType: returnType,
+        returnTypeBuilder: bodyBuilderContext.returnTypeBuilder,
+        fileUri: fileUri,
+      );
     }
 
     InferredFunctionBody? inferredFunctionBody;
@@ -1608,89 +1385,32 @@ class Resolver {
       inferredFunctionBody = context.typeInferrer.inferFunctionBody(
         fileUri: fileUri,
         fileOffset: bodyBuilderContext.memberNameOffset,
-        returnType: bodyBuilderContext.returnTypeContext,
-        asyncMarker: asyncModifier,
+        returnType: returnType,
+        asyncMarker: asyncMarker,
         body: body,
+        parameters: <VariableDeclaration>[
+          for (FormalParameterBuilder formal
+              in bodyBuilderContext.formals ?? [])
+            formal.variable!,
+        ],
+        internalThisVariable: internalThisVariable,
       );
       body = inferredFunctionBody.body;
-      function.emittedValueType = inferredFunctionBody.emittedValueType;
-      assert(
-        function.asyncMarker == AsyncMarker.Sync ||
-            function.emittedValueType != null,
-      );
+    } else {
+      // Normalize abstract members markers to sync.
+      asyncMarker = AsyncMarker.Sync;
     }
 
-    if (bodyBuilderContext.returnType is! OmittedTypeBuilder) {
-      problemReporting.checkAsyncReturnType(
-        libraryBuilder: libraryBuilder,
-        typeEnvironment: context.typeInferrer.typeSchemaEnvironment,
-        asyncModifier: asyncModifier,
-        returnType: function.returnType,
-        fileUri: fileUri,
-        fileOffset: bodyBuilderContext.memberNameOffset,
-        length: bodyBuilderContext.memberNameLength,
-      );
-    }
-
-    if (bodyBuilderContext.isSetter) {
-      if (formals?.parameters == null ||
-          formals!.parameters!.length != 1 ||
-          formals.parameters!.single.isOptionalPositional) {
-        int charOffset =
-            formals?.charOffset ??
-            // Coverage-ignore(suite): Not run.
-            body?.fileOffset ??
-            // Coverage-ignore(suite): Not run.
-            bodyBuilderContext.memberNameOffset;
-        if (body == null) {
-          body = new EmptyStatement()..fileOffset = charOffset;
-        }
-        if (bodyBuilderContext.formals != null) {
-          // Illegal parameters were removed by the function builder.
-          // Add them as local variable to put them in scope of the body.
-          List<Statement> statements = <Statement>[];
-          List<FormalParameterBuilder> formals = bodyBuilderContext.formals!;
-          for (int i = 0; i < formals.length; i++) {
-            FormalParameterBuilder parameter = formals[i];
-            VariableDeclaration variable = parameter.variable!;
-            // #this should not be redeclared.
-            if (i == 0 && identical(variable, thisVariable)) {
-              continue;
-            }
-            statements.add(parameter.variable!);
-          }
-          statements.add(body);
-          body = forest.createBlock(charOffset, noLocation, statements);
-        }
-        body = forest.createBlock(charOffset, noLocation, <Statement>[
-          forest.createExpressionStatement(
-            noLocation,
-            // This error is added after type inference is done, so we
-            // don't need to wrap errors in SyntheticExpressionJudgment.
-            problemReporting.buildProblem(
-              compilerContext: compilerContext,
-              message: codeSetterWithWrongNumberOfFormals,
-              fileUri: fileUri,
-              fileOffset: charOffset,
-              length: noLength,
-            ),
-          ),
-          body,
-        ]);
-      }
-    }
     // No-such-method forwarders get their bodies injected during outline
     // building, so we should skip them here.
-    bool isNoSuchMethodForwarder =
-        (function.parent is Procedure &&
-        (function.parent as Procedure).isNoSuchMethodForwarder);
+    bool isNoSuchMethodForwarder = bodyBuilderContext.isNoSuchMethodForwarder;
     if (body != null) {
       if (bodyBuilderContext.isExternalFunction || isNoSuchMethodForwarder) {
         body = new Block(<Statement>[
           new ExpressionStatement(
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: codeExternalMethodWithBody,
+              message: diag.externalMethodWithBody,
               fileUri: fileUri,
               fileOffset: body.fileOffset,
               length: noLength,
@@ -1699,12 +1419,21 @@ class Resolver {
           body,
         ])..fileOffset = body.fileOffset;
       }
-      bodyBuilderContext.registerFunctionBody(body);
     }
-  }
-
-  Initializer _buildInvalidInitializer(InvalidExpression expression) {
-    return new InvalidInitializer(expression.message)
-      ..fileOffset = expression.fileOffset;
+    DartType? emittedValueType = inferredFunctionBody?.emittedValueType;
+    assert(
+      !(asyncMarker == AsyncMarker.Sync && emittedValueType != null),
+      "Unexpected emitted value type for sync function.",
+    );
+    assert(
+      !(asyncMarker != AsyncMarker.Sync && emittedValueType == null),
+      "Missing emitted value type for non-sync function.",
+    );
+    bodyBuilderContext.registerFunctionBody(
+      body: body,
+      scopeProviderInfo: inferredFunctionBody?.scopeProviderInfo,
+      asyncMarker: asyncMarker,
+      emittedValueType: emittedValueType,
+    );
   }
 }

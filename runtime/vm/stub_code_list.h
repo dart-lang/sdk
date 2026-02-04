@@ -193,6 +193,7 @@ namespace dart {
   V(FfiAsyncCallbackSend)                                                      \
   V(CheckIsolateFieldAccess)                                                   \
   V(CheckedStoreIntoShared)                                                    \
+  V(EnsureDeeplyImmutable)                                                     \
   V(UnknownDartCode)
 
 }  // namespace dart

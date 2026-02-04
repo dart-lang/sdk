@@ -36,6 +36,8 @@ class NotObject {}
     newFile('${skyEngineLib.path}/ui/ui.dart', r'''
 library dart.ui;
 part 'text.dart';
+// Intentionally missing to test missing part handling (issue 62422).
+part 'does_not_exist.dart';
 class Offset {}
 ''');
     newFile('${skyEngineLib.path}/ui/text.dart', r'''

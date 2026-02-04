@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:dartdev/src/commands/create.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/templates.dart' as templates;
+import 'package:dartdev/src/utils.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -25,9 +26,7 @@ void defineCreateTests() {
     expect(result.stdout, contains('Create a new Dart project.'));
     expect(
       result.stdout,
-      contains(
-        'Usage: dart create [arguments] <directory>',
-      ),
+      contains('Usage: dart create [arguments] <directory>'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -40,17 +39,17 @@ void defineCreateTests() {
     expect(result.stdout, contains('Create a new Dart project.'));
     expect(
       result.stdout,
-      contains(
-        'Usage: dart [vm-options] create [arguments] <directory>',
-      ),
+      contains('Usage: dart [vm-options] create [arguments] <directory>'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
 
   test('default template exists', () async {
-    expect(CreateCommand.legalTemplateIds(),
-        contains(CreateCommand.defaultTemplateId));
+    expect(
+      CreateCommand.legalTemplateIds(),
+      contains(CreateCommand.defaultTemplateId),
+    );
   });
 
   test('no templates IDs overlap', () async {
@@ -90,8 +89,12 @@ void defineCreateTests() {
   test('directory already exists', () async {
     final p = project();
 
-    ProcessResult result = await p.run(
-        ['create', '--template', CreateCommand.defaultTemplateId, p.dir.path]);
+    ProcessResult result = await p.run([
+      'create',
+      '--template',
+      CreateCommand.defaultTemplateId,
+      p.dir.path,
+    ]);
     expect(result.exitCode, 73);
   });
 
@@ -101,10 +104,11 @@ void defineCreateTests() {
       final p = project();
       final projectDir = Directory.fromUri(tempDir.uri.resolve('foo/'))
         ..createSync();
-      final result = await p.run(
-        ['create', '--force', '.'],
-        workingDir: projectDir.path,
-      );
+      final result = await p.run([
+        'create',
+        '--force',
+        '.',
+      ], workingDir: projectDir.path);
       expect(result.stderr, isEmpty);
       expect(result.stdout, contains('Created project foo in .!'));
       expect(result.exitCode, 0);
@@ -113,16 +117,58 @@ void defineCreateTests() {
     }
   });
 
-  test('project with normalized package name', () async {
+  test('project with normalized package name, with -', () async {
     final p = project();
-    final result =
-        await p.run(['create', '--no-pub', 'requires-normalization']);
+    final result = await p.run([
+      'create',
+      '--no-pub',
+      'requires-normalization',
+    ]);
     expect(result.stderr, isEmpty);
     expect(
-        result.stdout,
-        contains(
-            'Created project requires_normalization in requires-normalization!'));
+      result.stdout,
+      contains(
+        'Created project requires_normalization in requires-normalization!',
+      ),
+    );
     expect(result.exitCode, 0);
+  });
+
+  test('project with normalized package name, with camel case', () async {
+    final p = project();
+    final result = await p.run(['create', '--no-pub', 'RequiresNormalization']);
+    expect(result.stderr, isEmpty);
+    expect(
+      result.stdout,
+      contains(
+        'Created project requires_normalization in RequiresNormalization!',
+      ),
+    );
+    expect(result.exitCode, 0);
+  });
+
+  test('project with normalized package name, all upper case', () async {
+    final p = project();
+    final result = await p.run(['create', '--no-pub', 'HTML']);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('Created project html in HTML!'));
+    expect(result.exitCode, 0);
+  });
+
+  test('project name to lower case', () {
+    expect(projectNameToLowerCase('lower_case'), 'lower_case');
+    expect(projectNameToLowerCase('camelCase'), 'camel_case');
+    expect(projectNameToLowerCase('PascalCase'), 'pascal_case');
+    expect(projectNameToLowerCase('already_snake_case'), 'already_snake_case');
+    expect(
+      projectNameToLowerCase('mixedCamel_AndPascal_and_snake'),
+      'mixed_camel_and_pascal_and_snake',
+    );
+    expect(projectNameToLowerCase('with123Numbers'), 'with123_numbers');
+    expect(
+      projectNameToLowerCase('CONSECUTIVE_UPPER_CASE'),
+      'consecutive_upper_case',
+    );
   });
 
   test('project with an invalid package name', () async {
@@ -141,14 +187,20 @@ void defineCreateTests() {
   test('bad template id', () async {
     final p = project();
 
-    ProcessResult result = await p
-        .run(['create', '--no-pub', '--template', 'foo-bar', p.dir.path]);
+    ProcessResult result = await p.run([
+      'create',
+      '--no-pub',
+      '--template',
+      'foo-bar',
+      p.dir.path,
+    ]);
     expect(result.exitCode, isNot(0));
   });
 
   // Create tests for each template.
-  for (String templateId
-      in CreateCommand.legalTemplateIds(includeDeprecated: true)) {
+  for (String templateId in CreateCommand.legalTemplateIds(
+    includeDeprecated: true,
+  )) {
     test(templateId, () async {
       final p = project();
       const projectName = 'template_project';
@@ -166,8 +218,11 @@ void defineCreateTests() {
       entry = entry.replaceAll('__projectName__', projectName);
       File entryFile = File(path.join(p.dir.path, projectName, entry));
 
-      expect(entryFile.existsSync(), true,
-          reason: 'File not found: ${entryFile.path}');
+      expect(
+        entryFile.existsSync(),
+        true,
+        reason: 'File not found: ${entryFile.path}',
+      );
     });
   }
 

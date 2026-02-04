@@ -10,7 +10,8 @@ import '../utilities/git.dart';
 import 'project_generator.dart';
 
 /// A [ProjectGenerator] that creates a new git working tree for an already
-/// cloned local repo, checked out at a specific [ref] (commit sha, tag, or branch name).
+/// cloned local repo, checked out at a specific [ref] (commit sha, tag, or
+/// branch name).
 class GitWorktreeProjectGenerator implements ProjectGenerator {
   /// The Directory containing the local git repo.
   final Directory originalRepo;
@@ -22,13 +23,15 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
   /// up a bit differently.
   final bool isSdkRepo;
 
-  /// The root temp dir to clean up, if it isn't the same as the project dir.
-  Directory? tmpDir;
+  /// Relative paths to the sub-directories of the repo that should be open in
+  /// this workspace.
+  final Iterable<String>? openSubdirs;
 
   GitWorktreeProjectGenerator(
     this.originalRepo,
     this.ref, {
     this.isSdkRepo = false,
+    this.openSubdirs,
   });
 
   @override
@@ -36,45 +39,47 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
       'Creating git worktree for "${originalRepo.path}" at ref "$ref"';
 
   @override
-  Future<Iterable<Directory>> setUp() async {
-    var projectDir = await Directory.systemTemp.createTemp('as_git_worktree');
-    if (isSdkRepo) {
-      if (tmpDir != null) {
-        throw StateError(
-          'Project already set up, must wait for tearDown to complete to call '
-          'setUp again',
-        );
-      }
-      tmpDir = projectDir;
-      projectDir = Directory(p.join(projectDir.path, 'sdk'));
-    }
+  Future<Workspace> setUp() async {
+    var tmpDir = await Directory.systemTemp.createTemp('as_git_worktree');
+    var projectDir = isSdkRepo ? Directory(p.join(tmpDir.path, 'sdk')) : tmpDir;
     await runGitCommand([
       'worktree',
       'add',
       '-d',
       projectDir.path,
+      ref,
     ], originalRepo);
     if (isSdkRepo) {
       await _setUpSdk(projectDir);
-    } else {
-      await runPubGet(projectDir);
     }
-    return [projectDir];
+    return Workspace(
+      contextRoots: await initializeContextRoots(
+        projectDir.path,
+        isSdk: isSdkRepo,
+      ).toList(),
+      workspaceDirectories: [
+        if (openSubdirs case var openSubdirs?) ...[
+          for (var subdir in openSubdirs)
+            Directory(p.join(projectDir.path, subdir)),
+        ] else
+          projectDir,
+      ],
+      rootDirectories: [tmpDir],
+    );
   }
 
   @override
-  Future<void> tearDown(Iterable<Directory> workspaceDirs) async {
-    if (workspaceDirs.length != 1) {
-      throw StateError('Expected exactly one workspace directory');
-    }
+  Future<void> tearDown(Workspace workspace) async {
+    var rootDir = workspace.rootDirectories.single;
     await runGitCommand([
       'worktree',
       'remove',
       '-f',
-      workspaceDirs.single.path,
+      isSdkRepo ? p.join(rootDir.path, 'sdk') : rootDir.path,
     ], originalRepo);
-    await tmpDir?.delete(recursive: true);
-    tmpDir = null;
+    if (rootDir.existsSync()) {
+      await rootDir.delete(recursive: true);
+    }
   }
 
   Future<void> _setUpSdk(Directory projectDir) async {

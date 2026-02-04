@@ -687,6 +687,422 @@ void main() {
     );
   }
 
+  test_privateClass_otherLibrary_constructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class _Private {
+  _Private.named();
+  _Private();
+}
+
+typedef Public = _Private;
+final Public p = _Private();
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart';
+void main() {
+  var x = p;
+  x = .new();
+  x = .named();
+  print(x);
+}
+''',
+      [
+        error(diag.dotShorthandUndefinedInvocation, 51, 3),
+        error(diag.dotShorthandUndefinedInvocation, 65, 5),
+      ],
+    );
+  }
+
+  test_privateClass_otherLibrary_invocation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class _Private {
+  static _Private instance() => _Private();
+}
+
+typedef Public = _Private;
+final Public p = _Private();
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart';
+void main() {
+  var x = p;
+  x = .instance();
+  print(x);
+}
+''',
+      [error(diag.dotShorthandUndefinedInvocation, 51, 8)],
+    );
+  }
+
+  test_privateClass_sameLibrary_constructor() async {
+    await assertNoErrorsInCode(r'''
+class _Private {
+  _Private();
+}
+
+typedef Public = _Private;
+final Public p = _Private();
+
+void main() {
+  var x = p;
+  x = .new();
+  print(x);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibrary>::@class::_Private::@constructor::new
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticType: _Private
+''',
+    );
+  }
+
+  test_privateClass_sameLibrary_invocation() async {
+    await assertNoErrorsInCode(r'''
+class _Private {
+  static _Private instance() => _Private();
+}
+
+typedef Public = _Private;
+final Public p = _Private();
+
+void main() {
+  var x = p;
+  x = .instance();
+  print(x);
+}
+''');
+
+    assertResolvedNodeText(findNode.singleDotShorthandInvocation, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: instance
+    element: <testLibrary>::@class::_Private::@method::instance
+    staticType: _Private Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: _Private Function()
+  staticType: _Private
+''');
+  }
+
+  test_privateEnum_otherLibrary_constructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum _Private {
+  one;
+  factory _Private.a() => one;
+}
+
+typedef Public = _Private;
+final Public p = _Private.one;
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart';
+void main() {
+  var x = p;
+  x = .a();
+  print(x);
+}
+''',
+      [error(diag.dotShorthandUndefinedInvocation, 51, 1)],
+    );
+  }
+
+  test_privateEnum_otherLibrary_invocation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum _Private {
+  one;
+  static _Private instance() => one;
+}
+
+typedef Public = _Private;
+final Public p = _Private.one;
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart';
+void main() {
+  var x = p;
+  x = .instance();
+  print(x);
+}
+''',
+      [error(diag.dotShorthandUndefinedInvocation, 51, 8)],
+    );
+  }
+
+  test_privateEnum_sameLibrary_constructor() async {
+    await assertNoErrorsInCode(r'''
+enum _Private {
+  one;
+  factory _Private.a() => one;
+}
+
+typedef Public = _Private;
+final Public p = _Private.one;
+
+void main() {
+  var x = p;
+  x = .a();
+  print(x);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@enum::_Private::@constructor::a
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticType: _Private
+''',
+    );
+  }
+
+  test_privateEnum_sameLibrary_invocation() async {
+    await assertNoErrorsInCode(r'''
+enum _Private {
+  one;
+  static _Private instance() => one;
+}
+
+typedef Public = _Private;
+final Public p = _Private.one;
+
+void main() {
+  var x = p;
+  x = .instance();
+  print(x);
+}
+''');
+
+    assertResolvedNodeText(findNode.singleDotShorthandInvocation, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: instance
+    element: <testLibrary>::@enum::_Private::@method::instance
+    staticType: _Private Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: _Private Function()
+  staticType: _Private
+''');
+  }
+
+  test_privateExtensionType_otherLibrary_constructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type _Private(int i) {
+  _Private.named(this.i);
+}
+
+typedef Public = _Private;
+final Public p = _Private(1);
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart';
+void main() {
+  var x = p;
+  x = .new(1);
+  x = .named(1);
+  print(x);
+}
+''',
+      [
+        error(diag.dotShorthandUndefinedInvocation, 51, 3),
+        error(diag.dotShorthandUndefinedInvocation, 66, 5),
+      ],
+    );
+  }
+
+  test_privateExtensionType_otherLibrary_invocation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type _Private(int it) {
+  static _Private instance() => _Private(0);
+}
+
+typedef Public = _Private;
+final Public p = _Private(1);
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart';
+void main() {
+  var x = p;
+  x = .instance();
+  print(x);
+}
+''',
+      [error(diag.dotShorthandUndefinedInvocation, 51, 8)],
+    );
+  }
+
+  test_privateExtensionType_sameLibrary_constructor() async {
+    await assertNoErrorsInCode(r'''
+extension type _Private(int i) {}
+
+typedef Public = _Private;
+final Public p = _Private(1);
+
+void main() {
+  var x = p;
+  x = .new(1);
+  print(x);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  period: .
+  constructorName: SimpleIdentifier
+    token: new
+    element: <testLibrary>::@extensionType::_Private::@constructor::new
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@extensionType::_Private::@constructor::new::@formalParameter::i
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticType: _Private
+''',
+    );
+  }
+
+  test_privateExtensionType_sameLibrary_invocation() async {
+    await assertNoErrorsInCode(r'''
+extension type _Private(int it) {
+  static _Private instance() => _Private(0);
+}
+
+typedef Public = _Private;
+final Public p = _Private(1);
+
+void main() {
+  var x = p;
+  x = .instance();
+  print(x);
+}
+''');
+
+    assertResolvedNodeText(findNode.singleDotShorthandInvocation, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: instance
+    element: <testLibrary>::@extensionType::_Private::@method::instance
+    staticType: _Private Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: _Private Function()
+  staticType: _Private
+''');
+  }
+
+  test_privateMixin_otherLibrary_invocation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin _Private {
+  static int instance() => 0;
+}
+
+class C with _Private {}
+typedef Public = _Private;
+final Public p = C();
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart';
+void main() {
+  var x = p;
+  x = .instance();
+  print(x);
+}
+''',
+      [error(diag.dotShorthandUndefinedInvocation, 51, 8)],
+    );
+  }
+
+  test_privateMixin_sameLibrary_invocation() async {
+    await assertNoErrorsInCode(r'''
+mixin _Private {
+  static _Private instance() => C();
+}
+
+class C with _Private {}
+typedef Public = _Private;
+final Public p = C();
+
+void main() {
+  var x = p;
+  x = .instance();
+  print(x);
+}
+''');
+
+    assertResolvedNodeText(findNode.singleDotShorthandInvocation, r'''
+DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: instance
+    element: <testLibrary>::@mixin::_Private::@method::instance
+    staticType: _Private Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: _Private Function()
+  staticType: _Private
+''');
+  }
+
   test_requiredParameters_missing() async {
     await assertErrorsInCode(
       r'''

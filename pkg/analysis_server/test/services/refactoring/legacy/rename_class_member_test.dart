@@ -13,6 +13,9 @@ import 'abstract_rename.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameClassMemberClassTest);
+    defineReflectiveTests(
+      RenameClassMemberClassTest_WithoutPrivateNamedParameters,
+    );
     defineReflectiveTests(RenameClassMemberEnumTest);
     defineReflectiveTests(RenameClassMemberExtensionTypeTest);
   });
@@ -87,18 +90,18 @@ class B extends A {
 ''');
     createRenameRefactoring();
     // check status
-    refactoring.newName = '_foo';
+    refactoring.newName = '_rename';
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
     await assertSuccessfulRefactoring('''
 class A {
-  final int _foo;
+  final int _rename;
 
-  A({int foo = 0}) : _foo = foo;
+  A({this._rename = 0});
 }
 
 class B extends A {
-  B({super.foo});
+  B({super.rename});
 }
 ''');
   }
@@ -144,6 +147,131 @@ class A {
 
 class B extends A {
   B(super.foo);
+}
+''');
+  }
+
+  Future<void> test_atConstructor_privateNamed() async {
+    await indexTestUnit('''
+class C {
+  int? _foo;
+  C({this._foo}) : assert(_foo != null);
+}
+
+void main() {
+  var c = C(foo: 1);
+  print(c._foo);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('_foo})');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    refactoring.newName = '_renamed';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class C {
+  int? _renamed;
+  C({this._renamed}) : assert(_renamed != null);
+}
+
+void main() {
+  var c = C(renamed: 1);
+  print(c._renamed);
+}
+''');
+  }
+
+  Future<void> test_atConstructor_privateNamed_fromPublicNamed() async {
+    await indexTestUnit('''
+class C {
+  int? foo;
+  C({this.foo}) : assert(foo != null);
+}
+
+void main() {
+  var c = C(foo: 1);
+  print(c.foo);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('foo})');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    refactoring.newName = '_renamed';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class C {
+  int? _renamed;
+  C({this._renamed}) : assert(_renamed != null);
+}
+
+void main() {
+  var c = C(renamed: 1);
+  print(c._renamed);
+}
+''');
+  }
+
+  Future<void>
+  test_atConstructor_privateNamed_noCorrespondingPublicName() async {
+    await indexTestUnit('''
+class C {
+  int? _foo;
+  C({this._foo}) : assert(_foo != null);
+}
+
+void main() {
+  var c = C(foo: 1);
+  print(c._foo);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('_foo})');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    refactoring.newName = '_if';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class C {
+  int? _if;
+  C({this._if}) : assert(_if != null);
+}
+
+void main() {
+  var c = C(_if: 1);
+  print(c._if);
+}
+''');
+  }
+
+  Future<void> test_atConstructor_privateNamed_toPublicNamed() async {
+    await indexTestUnit('''
+class C {
+  int? _foo;
+  C({this._foo}) : assert(_foo != null);
+}
+
+void main() {
+  var c = C(foo: 1);
+  print(c._foo);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('_foo})');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    refactoring.newName = 'renamed';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class C {
+  int? renamed;
+  C({this.renamed}) : assert(renamed != null);
+}
+
+void main() {
+  var c = C(renamed: 1);
+  print(c.renamed);
 }
 ''');
   }
@@ -1210,7 +1338,7 @@ void f() {
 class A {
   /*[0*/test/*0]*/() {}
 }
-void f(var a) {
+void f(a) {
   a./*[1*/test/*1]*/();
   new A().test();
   a./*[2*/test/*2]*/();
@@ -1226,7 +1354,7 @@ void f(var a) {
 class A {
   newName() {}
 }
-void f(var a) {
+void f(a) {
   a.newName();
   new A().newName();
   a.newName();
@@ -1255,7 +1383,7 @@ class A {
   t^est() {}
 }
 
-void f(var a) {
+void f(a) {
   a.test();
 }
 ''');
@@ -1272,7 +1400,7 @@ class A {
   newName() {}
 }
 
-void f(var a) {
+void f(a) {
   a.newName();
 }
 ''');
@@ -1292,7 +1420,7 @@ void f(p) {
 class A {
   _te^st() {}
 }
-void f(var a) {
+void f(a) {
   a._test();
   new A()._test();
 }
@@ -1307,7 +1435,7 @@ void f(var a) {
 class A {
   newName() {}
 }
-void f(var a) {
+void f(a) {
   a.newName();
   new A().newName();
 }
@@ -1852,6 +1980,109 @@ class A {
 }
 
 @reflectiveTest
+class RenameClassMemberClassTest_WithoutPrivateNamedParameters
+    extends RenameRefactoringTest {
+  Future<void> test_atConstructor_named_subclasses_toPrivate() async {
+    await indexTestUnit('''
+// @dart=3.9
+class A {
+  final int foo;
+
+  A({this.f^oo = 0});
+}
+
+class B extends A {
+  B({super.foo});
+}
+''');
+    createRenameRefactoring();
+    // check status
+    refactoring.newName = '_rename';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+    await assertSuccessfulRefactoring('''
+// @dart=3.9
+class A {
+  final int _rename;
+
+  A({int foo = 0}) : _rename = foo;
+}
+
+class B extends A {
+  B({super.foo});
+}
+''');
+  }
+
+  Future<void> test_atConstructor_toPrivateNamed() async {
+    await indexTestUnit('''
+// @dart=3.9
+class C {
+  int? foo;
+  C({this.foo}) : assert(foo != null);
+}
+
+void main() {
+  var c = C(foo: 1);
+  print(c.foo);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('foo})');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    refactoring.newName = '_renamed';
+    // validate change
+    return assertSuccessfulRefactoring('''
+// @dart=3.9
+class C {
+  int? _renamed;
+  C({int? foo}) : _renamed = foo, assert(foo != null);
+}
+
+void main() {
+  var c = C(foo: 1);
+  print(c._renamed);
+}
+''');
+  }
+
+  Future<void> test_createChange_FieldElement_private_initializer() async {
+    await indexTestUnit('''
+// @dart=3.9
+class C {
+  int? field;
+  int? other;
+  C({this.field}) : other = field;
+}
+void f() {
+  var c = C(field: 0);
+  c.field = 1;
+}
+''');
+    // configure refactoring
+    var element = findElement2.field('field');
+    createRenameRefactoringForElement2(element);
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.oldName, 'field');
+    refactoring.newName = '_field';
+    // validate change
+    return assertSuccessfulRefactoring('''
+// @dart=3.9
+class C {
+  int? _field;
+  int? other;
+  C({int? field}) : _field = field, other = field;
+}
+void f() {
+  var c = C(field: 0);
+  c._field = 1;
+}
+''');
+  }
+}
+
+@reflectiveTest
 class RenameClassMemberEnumTest extends RenameRefactoringTest {
   Future<void> test_checkFinalConditions_classNameConflict_sameClass() async {
     await indexTestUnit('''
@@ -2321,7 +2552,7 @@ void f() {
 class C {
   int? _field;
   int? other;
-  C({int? field}) : _field = field, other = field;
+  C({this._field}) : other = _field;
 }
 void f() {
   var c = C(field: 0);

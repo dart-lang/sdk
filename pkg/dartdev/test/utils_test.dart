@@ -96,18 +96,24 @@ void main() {
     });
 
     test('twoLines_exactLength', () {
-      expect(wrapText('one two three four', width: 10),
-          equals('one two\nthree four'));
+      expect(
+        wrapText('one two three four', width: 10),
+        equals('one two\nthree four'),
+      );
     });
 
     test('twoLines_exactLength_minusOne', () {
-      expect(wrapText('one two three fou', width: 10),
-          equals('one two\nthree fou'));
+      expect(
+        wrapText('one two three fou', width: 10),
+        equals('one two\nthree fou'),
+      );
     });
 
     test('twoLines_exactLength_plusOne', () {
-      expect(wrapText('one two three fourr', width: 10),
-          equals('one two\nthree\nfourr'));
+      expect(
+        wrapText('one two three fourr', width: 10),
+        equals('one two\nthree\nfourr'),
+      );
     });
 
     test('twoLines_lastLineEndsWithSpace', () {
@@ -116,7 +122,9 @@ void main() {
 
     test('twoLines_multipleSpacesAtSplit', () {
       expect(
-          wrapText('one two.  Three', width: 10), equals('one two. \nThree'));
+        wrapText('one two.  Three', width: 10),
+        equals('one two. \nThree'),
+      );
     });
 
     test('twoLines_noSpaceLastLine', () {
@@ -124,13 +132,17 @@ void main() {
     });
 
     test('twoLines_wordLongerThanLine_firstLine', () {
-      expect(wrapText('http://long-url word', width: 10),
-          equals('http://long-url\nword'));
+      expect(
+        wrapText('http://long-url word', width: 10),
+        equals('http://long-url\nword'),
+      );
     });
 
     test('twoLines_wordLongerThanLine_lastLine', () {
-      expect(wrapText('word http://long-url', width: 10),
-          equals('word\nhttp://long-url'));
+      expect(
+        wrapText('word http://long-url', width: 10),
+        equals('word\nhttp://long-url'),
+      );
     });
   });
 
@@ -150,14 +162,17 @@ void main() {
           ..cell('bar ' * foo);
       }
       var result = table.finish();
-      expect(result, equals('''
+      expect(
+        result,
+        equals('''
 | Number | Value | Words            |
 | ------ | ----- | ---------------- |
 | one    |   1.0 | bar              |
 | two    |   2.0 | bar bar          |
 | three  |   3.0 | bar bar bar      |
 | four   |   4.0 | bar bar bar bar  |
-'''));
+'''),
+      );
     });
   });
 }

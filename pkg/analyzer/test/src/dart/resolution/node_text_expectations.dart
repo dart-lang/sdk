@@ -208,6 +208,11 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'SearchTest',
+      methodName: 'assertSubTypesText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'SearchTest',
       methodName: 'assertUnresolvedMemberReferencesText',
       argument: _ArgumentIndex(1),
     ),

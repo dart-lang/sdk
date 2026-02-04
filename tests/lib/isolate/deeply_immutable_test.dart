@@ -9,28 +9,53 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:expect/expect.dart';
+
 void main() {
   testInstantiateDeeplyImmutable();
+  testOnlyFinalCanBeCaptured();
+  testOnlyTriviallyImmutableCanBeCaptured();
+  testCaptureGlobal();
+  testCaptureEmptyContext();
+}
+
+@pragma('vm:deeply-immutable')
+final class DeeplyImmutableFoo {
+  final Function() closure;
+
+  DeeplyImmutableFoo(this.closure);
+}
+
+testOnlyFinalCanBeCaptured() {
+  List<String> list = <String>["Hello", "world"];
+  Expect.throws(() {
+    final foo = DeeplyImmutableFoo(() { list.add("abc"); return list; } );
+    print(foo.closure());
+  }, (e) => e is ArgumentError && e.toString().contains("Only final not-late"));
+}
+
+testOnlyTriviallyImmutableCanBeCaptured() {
+  final List<String> list = <String>["Hello", "world"];
+  Expect.throws(() {
+    final foo = DeeplyImmutableFoo(() { list.add("abc"); return list; } );
+    print(foo.closure());
+  }, (e) => e is ArgumentError &&
+            e.toString().contains("Only trivially-immutable values"));
+}
+
+final List<String> globalList = <String>["Hello", "world"];
+testCaptureGlobal() {
+  final foo = DeeplyImmutableFoo(() { globalList.add("abc"); return globalList; });
+  print(foo.closure());
+}
+
+testCaptureEmptyContext() {
+  final foo = DeeplyImmutableFoo(() => 42);
+  print(foo.closure());
 }
 
 @pragma('vm:deeply-immutable')
 final class EmptyClass {}
-
-@pragma('vm:deeply-immutable')
-final class Class1 {
-  Class1(this.a);
-
-  int a;
-  //  ^
-  // [cfe] Deeply immutable classes must only have final non-late instance fields.
-}
-
-@pragma('vm:deeply-immutable')
-final class Class2 {
-  late final int a;
-  //             ^
-  // [cfe] Deeply immutable classes must only have final non-late instance fields.
-}
 
 @pragma('vm:deeply-immutable')
 final class Class3 {
@@ -55,15 +80,6 @@ final class NotDeeplyImmutable {
   late int a;
 }
 
-@pragma('vm:deeply-immutable')
-final class Class6 {
-  Class6(this.a);
-
-  final NotDeeplyImmutable a;
-  //                       ^
-  // [cfe] Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`.
-}
-
 void testInstantiateDeeplyImmutable() {
   Class7(
     someString: 'someString',
@@ -86,8 +102,10 @@ void testInstantiateDeeplyImmutable() {
       someFloat64x2: Float64x2(4.4, 5.5),
       someClass7: null,
       somePointer: Pointer.fromAddress(0x8badf00d),
+      someClosure: () => 31,
     ),
     somePointer: Pointer.fromAddress(0xdeadbeef),
+    someClosure: () => 42
   );
 }
 
@@ -104,6 +122,7 @@ final class Class7 {
   final Float64x2 someFloat64x2;
   final Class7? someClass7;
   final Pointer somePointer;
+  final Function() someClosure;
 
   // Note that UnmodifiableUint8ListView has been deprecated. Which means there
   // currently is no way to intentionally have a typed data as a field in a
@@ -125,6 +144,7 @@ final class Class7 {
     required this.someFloat64x2,
     required this.someClass7,
     required this.somePointer,
+    required this.someClosure,
   });
 }
 
@@ -174,37 +194,8 @@ final class Class10 implements DeeplyImmutableInterface {}
 sealed class Class11 {}
 
 @pragma('vm:deeply-immutable')
-class NotSealedOrFinalClass {}
-//    ^
-// [cfe] Deeply immutable classes must be final or sealed.
-
-final class Class12 extends DeeplyImmutableInterface {}
-//          ^
-// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
-
-final class Class13 implements DeeplyImmutableInterface {
-  //        ^
-  // [cfe] Subtypes of deeply immutable classes must be deeply immutable.
-}
-
-@pragma('vm:deeply-immutable')
 final class Class14<T extends DeeplyImmutableInterface> {
   final T deeplyImmutable;
 
   Class14({required this.deeplyImmutable});
 }
-
-@pragma('vm:deeply-immutable')
-final class Class15<T extends NotDeeplyImmutable> {
-  final T notDeeplyImmutable;
-  //      ^
-  // [cfe] Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', and classes annotated with `@pragma('vm:deeply-immutable')`.
-
-  Class15({required this.notDeeplyImmutable});
-}
-
-@pragma('vm:deeply-immutable')
-abstract mixin class Class17 {}
-//                   ^
-// [cfe] Deeply immutable classes must be final or sealed.
-

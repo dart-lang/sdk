@@ -45,7 +45,6 @@ class ArgumentsDescriptor : public ValueObject {
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
   StringPtr NameAt(intptr_t i) const;
   intptr_t PositionAt(intptr_t i) const;
-  bool MatchesNameAt(intptr_t i, const String& other) const;
   // Returns array of argument names in the arguments order.
   ArrayPtr GetArgumentNames() const;
   void PrintTo(BaseTextBuffer* buffer, bool show_named_positions = false) const;
@@ -319,11 +318,6 @@ class DartLibraryCalls : public AllStatic {
 
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr DrainMicrotaskQueue();
-
-  // Ensures that the isolate's _pendingImmediateCallback is set to
-  // _startMicrotaskLoop from dart:async.
-  // Returns null on success, an ErrorPtr on failure.
-  static ObjectPtr EnsureScheduleImmediate();
 
   // Runs the `_rehashObjects()` function in `dart:compact_hash`.
   static ObjectPtr RehashObjectsInDartCompactHash(

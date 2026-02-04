@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -101,6 +102,24 @@ class FindElement2 extends _FindElementBase {
       throw StateError('Not found: $name');
     }
     return result!;
+  }
+
+  LibraryFragmentImpl libraryFragmentByUri(String targetUri) {
+    LibraryFragment? result;
+
+    for (var fragment in libraryElement.fragments) {
+      if ('${fragment.source.uri}' == targetUri) {
+        if (result != null) {
+          throw StateError('Not unique: $targetUri');
+        }
+        result = fragment;
+      }
+    }
+
+    if (result != null) {
+      return result as LibraryFragmentImpl;
+    }
+    throw StateError('Not found: $targetUri');
   }
 
   LocalFunctionElement localFunction(String name) {
@@ -205,6 +224,13 @@ class FindElement2 extends _FindElementBase {
       findInExecutables(extension_.getters);
       findInExecutables(extension_.setters);
       findInExecutables(extension_.methods);
+    }
+
+    for (var typeAlias in libraryElement.typeAliases) {
+      var aliasedType = typeAlias.aliasedType;
+      if (aliasedType is FunctionType) {
+        findIn(aliasedType.formalParameters);
+      }
     }
 
     unit.accept(

@@ -1561,16 +1561,6 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
     const intptr_t process_id,
     const intptr_t trace_id,
     const char* thread_name) {
-  ASSERT(FLAG_timeline_recorder != nullptr);
-  if (strcmp("none", FLAG_timeline_recorder) == 0 ||
-      strcmp("callback", FLAG_timeline_recorder) == 0 ||
-      strcmp("systrace", FLAG_timeline_recorder) == 0 ||
-      FLAG_systrace_timeline) {
-    // There is no way to retrieve track metadata when a no-op, callback, or
-    // systrace recorder is in use, so we don't need to update the map in these
-    // cases.
-    return;
-  }
   MutexLocker ml(&track_uuid_to_track_metadata_lock_);
 
   void* key = reinterpret_cast<void*>(trace_id);
@@ -1985,13 +1975,37 @@ void TimelineEventEmbedderCallbackRecorder::OnEvent(TimelineEvent* event) {
   callback(&recorder_event);
 }
 
+void TimelineEventEmbedderCallbackRecorder::AddTrackMetadataBasedOnThread(
+    const intptr_t process_id,
+    const intptr_t trace_id,
+    const char* thread_name) {
+  // This information can not be retrieved or written out in this format.
+  // Do nothing.
+}
+
 void TimelineEventNopRecorder::OnEvent(TimelineEvent* event) {
+  // Do nothing.
+}
+
+void TimelineEventNopRecorder::AddTrackMetadataBasedOnThread(
+    const intptr_t process_id,
+    const intptr_t trace_id,
+    const char* thread_name) {
+  // This information can not be retrieved or written out in this format.
   // Do nothing.
 }
 
 TimelineEventPlatformRecorder::TimelineEventPlatformRecorder() {}
 
 TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
+
+void TimelineEventPlatformRecorder::AddTrackMetadataBasedOnThread(
+    const intptr_t process_id,
+    const intptr_t trace_id,
+    const char* thread_name) {
+  // This information can not be retrieved or written out in this format.
+  // Do nothing.
+}
 
 #ifndef PRODUCT
 void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
@@ -2501,7 +2515,7 @@ bool Timeline::StreamTo(const char* recorder_kind,
   is_streaming_timeline.store(true);
 
 #if defined(DART_INCLUDE_PROFILER) && defined(SUPPORT_PERFETTO)
-  if (FLAG_profiler && (strcmp(recorder_kind, "perfettofile") == 0)) {
+  if (Profiler::IsRunning() && (strcmp(recorder_kind, "perfettofile") == 0)) {
     Profiler::SetProfileProcessorCallback([](auto& profile) {
       RecorderSynchronizationLockScope ls;
       if (recorder_ != nullptr && ls.IsActive() &&

@@ -330,6 +330,7 @@ bot
 both
 bottom
 bound
+boundaries
 boundary
 bounded
 boundedness
@@ -456,6 +457,7 @@ checkpoints
 checks
 child
 children
+children's
 choice
 choose
 chooses
@@ -850,6 +852,7 @@ deprecate
 deprecated
 depromotes
 depth
+depths
 dereferenced
 derivation
 derive
@@ -1455,6 +1458,7 @@ header
 headers
 heading
 heavier
+held
 help
 helper
 helpers
@@ -2231,6 +2235,7 @@ overwritten
 own
 owned
 owner
+owns
 package
 packaged
 packages
@@ -2554,6 +2559,7 @@ recovered
 recovering
 recovers
 recovery
+recreated
 recurse
 recursing
 recursive
@@ -3319,6 +3325,7 @@ unassignable
 unassigned
 unbalanced
 unbind
+uncaptured
 uncertain
 unchanged
 unchecked

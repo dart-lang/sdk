@@ -239,11 +239,14 @@ class AvoidFinalParametersTest extends LintRuleTest {
   // With primary constructors, this lint is disabled.
   // No need to repeat all the tests; one will do.
   test_constructorSimple_final() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 class C {
   // Would be flagged.
   C(final int p);
 }
-''');
+''',
+      [error(diag.extraneousModifier, 37, 5)],
+    );
   }
 }

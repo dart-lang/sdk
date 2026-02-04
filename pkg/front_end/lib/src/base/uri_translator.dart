@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability, TargetLibrariesSpecification;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:package_config/package_config.dart';
 
 import '../codes/cfe_codes.dart';
@@ -80,7 +81,10 @@ class UriTranslator {
       // https://github.com/dart-lang/package_config/issues/40 is fixed.
       if (reportMessage) {
         options.reportWithoutLocation(
-          codeInvalidPackageUri.withArgumentsOld(uri, "${e.message}"),
+          diag.invalidPackageUri.withArguments(
+            uri: uri,
+            details: "${e.message}",
+          ),
           CfeSeverity.error,
         );
       }
@@ -91,7 +95,7 @@ class UriTranslator {
   Uri? _packageUriNotFound(Uri uri) {
     String name = uri.pathSegments.first;
     options.reportWithoutLocation(
-      codePackageNotFound.withArgumentsOld(name, uri),
+      diag.packageNotFound.withArguments(packageName: name, uri: uri),
       CfeSeverity.error,
     );
     // TODO(sigmund, ahe): ensure we only report an error once,

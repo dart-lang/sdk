@@ -8,7 +8,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
-import '../base/identifiers.dart' show Identifier;
 import '../base/local_scope.dart';
 import '../base/lookup_result.dart';
 import '../builder/builder.dart';
@@ -27,6 +26,7 @@ import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
+import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
@@ -134,33 +134,22 @@ abstract class BodyBuilderContext {
   /// Returns `true` if the enclosing entity is an extension.
   bool get isExtensionDeclaration => declarationContext.isExtensionDeclaration;
 
-  /// Returns the [FormalParameterBuilder] by the given [name] declared in the
-  /// member whose body is being built.
-  FormalParameterBuilder? getFormalParameterByName(Identifier identifier) {
+  /// Returns the [FormalParameterBuilder] by the given [nameOffset] declared in
+  /// the member whose body is being built.
+  FormalParameterBuilder? getFormalParameterByNameOffset(int nameOffset) {
     if (formals != null) {
       List<FormalParameterBuilder> formals = this.formals!;
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
-        if (formal.isWildcard &&
-            identifier.name == '_' &&
-            formal.fileOffset == identifier.nameOffset) {
-          return formal;
-        }
-        if (formal.name == identifier.name &&
-            formal.fileOffset == identifier.nameOffset) {
+        if (formal.nameOffset == nameOffset) {
           return formal;
         }
       }
       // Coverage-ignore(suite): Not run.
       // If we have any formals we should find the one we're looking for.
-      assert(false, "$identifier not found in $formals");
+      assert(false, "Formal @ $nameOffset not found in $formals");
     }
     return null;
-  }
-
-  /// Returns the [FunctionNode] for the function body currently being built.
-  FunctionNode get function {
-    throw new UnsupportedError('${runtimeType}.function');
   }
 
   /// Returns `true` if the member whose body is being built is a non-factory
@@ -176,10 +165,6 @@ abstract class BodyBuilderContext {
   /// Returns `true` if the member whose body is being built is a constructor,
   /// factory, method, getter, or setter marked as `external`.
   bool get isExternalFunction => false;
-
-  /// Returns `true` if the member whose body is being built is a setter
-  /// declaration.
-  bool get isSetter => false;
 
   // Coverage-ignore(suite): Not run.
   /// Returns `true` if the member whose body is being built is a non-factory
@@ -228,6 +213,7 @@ abstract class BodyBuilderContext {
     }
   }
 
+  // Coverage-ignore(suite): Not run.
   /// Returns `true` if the constructor whose initializers is being built, needs
   /// to include an implicit super initializer.
   bool needsImplicitSuperInitializer(CoreTypes coreTypes) => false;
@@ -296,13 +282,6 @@ abstract class BodyBuilderContext {
   }
 
   /// Returns the [VariableDeclaration] for the [index]th formal parameter
-  /// declared in the constructor, factory, method, or setter currently being
-  /// built.
-  VariableDeclaration getFormalParameter(int index) {
-    throw new UnsupportedError('${runtimeType}.getFormalParameter');
-  }
-
-  /// Returns the [VariableDeclaration] for the [index]th formal parameter
   /// declared in the constructor, factory, or method tear-off currently being
   /// built.
   VariableDeclaration? getTearOffParameter(int index) {
@@ -317,7 +296,7 @@ abstract class BodyBuilderContext {
 
   /// Returns the return type of the constructor, factory, method, getter or
   /// setter currently being built.
-  TypeBuilder get returnType {
+  TypeBuilder get returnTypeBuilder {
     throw new UnsupportedError('${runtimeType}.returnType');
   }
 
@@ -328,6 +307,10 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError('${runtimeType}.formals');
   }
 
+  /// Returns `true` if the member whose body is currently being built is a
+  /// noSuchMethod forwarder.
+  bool get isNoSuchMethodForwarder => false;
+
   /// Computes the scope containing the initializing formals or super
   /// parameters of the constructor currently being built, using [parent] as
   /// the parent scope.
@@ -336,6 +319,19 @@ abstract class BodyBuilderContext {
   LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
     throw new UnsupportedError(
       '${runtimeType}.computeFormalParameterInitializerScope',
+    );
+  }
+
+  /// Returns the primary constructor parameters available in the initializer
+  /// scope for instance field initializers.
+  ///
+  /// If a non-late instance field is not currently being built, or if the
+  /// enclosing declaration doesn't have any primary constructor with
+  /// parameters, `null` is returned.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    throw new UnsupportedError(
+      '${runtimeType}.primaryConstructorInitializerScopeParameters',
     );
   }
 
@@ -350,7 +346,10 @@ abstract class BodyBuilderContext {
 
   /// This registers [initializers] as the fully resolved initializers of a
   /// constructor.
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
     throw new UnsupportedError('${runtimeType}.initializers');
   }
 
@@ -376,15 +375,13 @@ abstract class BodyBuilderContext {
     return null;
   }
 
-  /// Sets the [asyncModifier] of the function currently being built.
-  // TODO(johnniwinther): Do we need this? Isn't this already available from the
-  // outline?
-  void setAsyncModifier(AsyncMarker asyncModifier) {
-    throw new UnsupportedError("${runtimeType}.setAsyncModifier");
-  }
-
   /// Registers [body] as the result of the body building.
-  void registerFunctionBody(Statement body) {
+  void registerFunctionBody({
+    required Statement? body,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
     throw new UnsupportedError("${runtimeType}.registerFunctionBody");
   }
 

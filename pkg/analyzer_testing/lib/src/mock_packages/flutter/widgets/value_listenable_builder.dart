@@ -7,6 +7,8 @@ import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 final widgetsValueListenableBuilderLibrary = MockLibraryUnit(
   'lib/src/widgets/value_listenable_builder.dart',
   r'''
+import 'package:flutter/foundation.dart';
+
 import 'framework.dart';
 
 typedef ValueWidgetBuilder<T> =

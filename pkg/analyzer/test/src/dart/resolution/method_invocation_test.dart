@@ -1975,7 +1975,7 @@ FunctionExpressionInvocation
 
   test_error_invocationOfNonFunction_parameter_dynamic() async {
     await assertNoErrorsInCode(r'''
-main(var foo) {
+main(foo) {
   foo();
 }
 ''');
@@ -3065,7 +3065,7 @@ main() {
   foo<int>();
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 29, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 29, 5)],
     );
 
     var node = findNode.methodInvocation('foo<int>()');
@@ -3100,7 +3100,7 @@ main() {
   foo<int>();
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 67, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 67, 5)],
     );
 
     var node = findNode.methodInvocation('foo<int>()');
@@ -8347,7 +8347,7 @@ main() {
   foo<int, double>();
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 32, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 32, 13)],
     );
 
     var node = findNode.methodInvocation('foo<int, double>();');

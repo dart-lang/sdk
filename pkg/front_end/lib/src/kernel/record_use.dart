@@ -7,9 +7,9 @@
 /// A static method to be recorded can be annotated with `@RecordUse()`.
 library;
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
-import '../base/messages.dart' show codeRecordUseCannotBePlacedHere;
 import 'constant_evaluator.dart' show ErrorReporter;
 
 /// Get all of the `@RecordUse` annotations from `package:meta`
@@ -67,7 +67,7 @@ void validateRecordUseDeclaration(
       !node.constructors.any((constructor) => constructor.isConst);
   if (onNonStaticMethod && onClassWithoutConstConstructor) {
     errorReporter.report(
-      codeRecordUseCannotBePlacedHere.withLocation(
+      diag.recordUseCannotBePlacedHere.withLocation(
         node.location!.file,
         node.fileOffset,
         1,

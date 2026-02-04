@@ -1029,6 +1029,91 @@ void main() {
     );
   }
 
+  test_privateClass_otherLibrary_constConstructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class _Private {
+  const _Private.named();
+}
+
+typedef Public = _Private;
+const Public p = _Private.named();
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart';
+void main() {
+  var x = p;
+  x = const .named();
+  print(x);
+}
+''',
+      [error(diag.dotShorthandMissingContext, 50, 14)],
+    );
+  }
+
+  test_privateClass_otherLibrary_constConstructor_withUnresolvedArg() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class _Private {
+  const _Private.named(int a);
+}
+
+typedef Public = _Private;
+const Public p = _Private.named(0);
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'a.dart';
+void main() {
+  var x = p;
+  x = const .named(unknown);
+  print(x);
+}
+''',
+      [
+        error(diag.dotShorthandMissingContext, 50, 21),
+        error(diag.undefinedIdentifier, 63, 7),
+      ],
+    );
+  }
+
+  test_privateClass_sameLibrary_constConstructor() async {
+    await assertNoErrorsInCode(r'''
+class _Private {
+  const _Private.named();
+}
+
+typedef Public = _Private;
+const Public p = _Private.named();
+
+void main() {
+  var x = p;
+  x = const .named();
+  print(x);
+}
+''');
+
+    assertResolvedNodeText(
+      findNode.singleDotShorthandConstructorInvocation,
+      r'''
+DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibrary>::@class::_Private::@constructor::named
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticType: _Private
+''',
+    );
+  }
+
   test_requiredParameters_missing() async {
     await assertErrorsInCode(
       r'''

@@ -197,7 +197,7 @@ class _Latin1DecoderSink extends ByteConversionSink {
 }
 
 class _Latin1AllowInvalidDecoderSink extends _Latin1DecoderSink {
-  _Latin1AllowInvalidDecoderSink(StringConversionSink sink) : super(sink);
+  _Latin1AllowInvalidDecoderSink(StringConversionSink super.sink);
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
     RangeError.checkValidRange(start, end, source.length);

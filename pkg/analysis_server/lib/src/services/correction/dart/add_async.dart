@@ -44,9 +44,7 @@ class AddAsync extends ResolvedCorrectionProducer {
         switch (node) {
           case FunctionDeclaration():
             body = node.functionExpression.body;
-            if (node.declaredFragment?.element case var declaredElement?) {
-              returnType = declaredElement.returnType;
-            } else if (node.declaredFragment case var declaredFragment?) {
+            if (node.declaredFragment case var declaredFragment?) {
               returnType = declaredFragment.element.returnType;
             } else {
               return;

@@ -35,12 +35,13 @@ StaticInvocation createStaticInvocation(
 
 /// Creates a super method invocation of [target] with the given arguments.
 SuperMethodInvocation createSuperMethodInvocation(
+  Expression receiver,
   Name name,
   Procedure target,
   Arguments arguments, {
   required int fileOffset,
 }) {
-  return new SuperMethodInvocation(name, arguments, target)
+  return new SuperMethodInvocation(receiver, name, arguments, target)
     ..fileOffset = fileOffset;
 }
 

@@ -179,7 +179,7 @@ class ContextManagerImpl implements ContextManager {
 
   /// The path to the package config file override.
   /// If `null`, then the default discovery mechanism is used.
-  final String? packagesFile;
+  final String? packageConfigFile;
 
   /// The storage for cached results.
   final ByteStore _byteStore;
@@ -273,7 +273,7 @@ class ContextManagerImpl implements ContextManager {
   ContextManagerImpl(
     this.resourceProvider,
     this.sdkManager,
-    this.packagesFile,
+    this.packageConfigFile,
     this._enabledExperiments,
     this._byteStore,
     this._fileContentCache,
@@ -603,7 +603,7 @@ class ContextManagerImpl implements ContextManager {
           resourceProvider: resourceProvider,
           scheduler: _scheduler,
           sdkPath: sdkManager.defaultSdkDirectory,
-          packagesFile: packagesFile,
+          packageConfigFile: packageConfigFile,
           fileContentCache: _fileContentCache,
           unlinkedUnitStore: _unlinkedUnitStore,
           enabledExperiments: _enabledExperiments,

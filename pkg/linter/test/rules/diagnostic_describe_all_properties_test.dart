@@ -34,7 +34,6 @@ class MyWidget with Diagnosticable {
 
   test_field_collectionOfWidgets() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 class MyWidget with Diagnosticable {
   List<Widget> p = [];
@@ -110,7 +109,6 @@ class MyWidget with Diagnosticable {
 
   test_field_widget() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 class MyWidget with Diagnosticable {
   Widget? p;
@@ -132,7 +130,6 @@ class MyWidget with Diagnosticable {
 
   test_getter_widget() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 class MyWidget with Diagnosticable {
   Widget? get p => null;

@@ -1,0 +1,7 @@
+extension type ET1(int a) {
+  this {}
+}
+
+extension type ET2<T>(T a) {
+  this {}
+}

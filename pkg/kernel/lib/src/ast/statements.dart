@@ -420,11 +420,14 @@ abstract interface class LoopStatement implements Statement {
   abstract Statement body;
 }
 
-class WhileStatement extends Statement implements LoopStatement {
+class WhileStatement extends Statement implements LoopStatement, ScopeProvider {
   Expression condition;
 
   @override
   Statement body;
+
+  @override
+  Scope? scope;
 
   WhileStatement(this.condition, this.body) {
     condition.parent = this;

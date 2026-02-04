@@ -32,14 +32,10 @@ class ThreadState : public BaseThread {
 
   // OSThread corresponding to this thread.
   OSThread* os_thread() const { return os_thread_; }
-  NO_SANITIZE_THREAD
-  OSThread* os_thread_ignore_race() const { return os_thread_; }
   void set_os_thread(OSThread* os_thread) { os_thread_ = os_thread; }
 
   // The topmost zone used for allocation in this thread.
   Zone* zone() const { return zone_; }
-
-  bool ZoneIsOwnedByThread(Zone* zone) const;
 
   StackResource* top_resource() const { return top_resource_; }
   void set_top_resource(StackResource* value) { top_resource_ = value; }

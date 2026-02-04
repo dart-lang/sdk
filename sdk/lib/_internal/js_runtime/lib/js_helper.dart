@@ -3265,7 +3265,6 @@ String? _getEventLog() {
 /// Loads a deferred library. The compiler generates a call to this method to
 /// implement `import.loadLibrary()`. The [priority] argument is the argument
 /// to the 'dart2js:priority' pragma on the import or the `loadLibrary` call.
-@pragma('dart2js:resource-identifier')
 Future<Null> loadDeferredLibrary(String loadId, String priority) {
   // For each loadId there is a list of parts to load. The parts are represented
   // by an index. There are two arrays, one that maps the index into a Uri and

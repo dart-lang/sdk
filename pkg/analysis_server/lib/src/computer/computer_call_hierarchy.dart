@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -245,7 +244,7 @@ class DartCallHierarchyComputer {
     // Group results by their container, since we only want to return a single
     // entry for a body, with a set of ranges within.
     var resultsByContainer = <Element, CallHierarchyCalls>{};
-    // We may need to fetch parsed results for the other files, reuse them
+    // We may need to fetch parsed results for the other files; reuse them
     // across calls.
     var parsedUnits = <String, SomeParsedUnitResult?>{};
     for (var reference in references) {
@@ -285,10 +284,17 @@ class DartCallHierarchyComputer {
       return [];
     }
 
+    // If invoked on a primary constructor declaration, we need to visit the
+    // body to find outgoing calls.
+    if (node case PrimaryConstructorDeclaration(:var body?)) {
+      node = body;
+    }
+
     // Don't look for outbound calls in things that aren't functions.
     if (!(node is FunctionDeclaration ||
         node is ConstructorDeclaration ||
-        node is MethodDeclaration)) {
+        node is MethodDeclaration ||
+        node is PrimaryConstructorBody)) {
       return [];
     }
 
@@ -340,16 +346,24 @@ class DartCallHierarchyComputer {
     // constructor for unnamed constructor (since we use the constructors name
     // as the target otherwise).
     return switch (node) {
-      // Type name in a named constructor reference, not considered a call.
+      // Type name in a named constructor reference; not considered a call.
       NamedType(parent: ConstructorName(:var name?))
           when offset < name.offset =>
         null,
-      // Type name in a named constructor declaration, not considered a call.
+      // Type name in a named constructor declaration; not considered a call.
       Identifier(parent: ConstructorDeclaration(:var name?))
           when offset < name.offset =>
         null,
-      // Type name in an unnamed constructor declaration, use the constructor.
+      // Type name in an unnamed constructor declaration, or constructor name in
+      // a named constructor; use the constructor.
       Identifier(parent: ConstructorDeclaration(name: null)) => node.parent,
+      // Type name in a named primary constructor declaration; not considered a
+      // call.
+      PrimaryConstructorDeclaration(:var constructorName?)
+          when offset < constructorName.name.offset =>
+        null,
+      // Primary constructor name; use the constructor.
+      PrimaryConstructorName() => node.parent,
       _ => node,
     };
   }
@@ -374,6 +388,13 @@ class DartCallHierarchyComputer {
     }
 
     var element = ElementLocator.locate(node);
+
+    // For primary constructor declarations, ElementLocator will return the
+    // class on `class Fo^o() {}` but for call hierarchy we want to treat this
+    // as the constructor.
+    if (element is ClassElement && node is PrimaryConstructorDeclaration) {
+      element = element.primaryConstructor;
+    }
 
     // Don't consider synthetic getter/setter for a field to be executable
     // since they don't contain any executable code.

@@ -31,7 +31,7 @@ class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
     int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.IndexRelationKind.values.length
         ? idl.IndexRelationKind.values[index]
-        : idl.IndexRelationKind.IS_ANCESTOR_OF;
+        : idl.IndexRelationKind.IS_EXTENDED_BY;
   }
 }
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' show File, Directory, Platform;
+import 'dart:io' show Directory, File, Platform;
 
 import 'package:compiler/compiler_api.dart' as api show OutputType;
 import 'package:compiler/compiler_api.dart';
@@ -11,18 +11,21 @@ import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:expect/expect.dart' show Expect;
 import 'package:path/path.dart' as path;
-import 'package:record_use/record_use.dart';
+import 'package:record_use/record_use_internal.dart';
+import 'package:test/test.dart';
 
 /// Options to pass to the compiler such as
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
-const List<String> compilerOptions = [Flags.writeResources];
+const List<String> compilerOptions = [Flags.writeRecordedUses, Flags.testMode];
 
 /// Run `dart --define=updateExpectations=true pkg/compiler/test/record_use/record_use_test.dart`
 /// to update.
+/// Run `dart -DupdateExpectations=true pkg/vm/test/transformations/record_use_test.dart`
+/// to update the shared expectations to the VM output.
 Future<void> main() async {
-  final dataDirectory = Directory.fromUri(Platform.script.resolve('data'));
   final vmTestCases = Directory('pkg/vm/testcases/transformations/record_use');
-  final testFiles = [...dataDirectory.listSync(), ...vmTestCases.listSync()]
+  final jsTestCases = Directory.fromUri(Platform.script.resolve('data'));
+  final testFiles = [...jsTestCases.listSync(), ...vmTestCases.listSync()]
       .whereType<File>()
       .where((file) => file.path.endsWith('.dart'))
       .map(
@@ -36,36 +39,46 @@ Future<void> main() async {
 
   final allFiles = {for (final file in testFiles) file.uri.path: file.contents};
   for (final testFile in testFiles.where((element) => element.hasMain)) {
-    final recordedUsages = await compileWithUsages(
-      entryPoint: testFile.uri,
-      memorySourceFiles: allFiles,
-    );
-    final goldenFile = File(
-      path.join(
-        // TODO(https://github.com/dart-lang/native/issues/2885): Share test
-        // expectations with the VM.
-        Platform.script.resolve('golden').path,
-        path.setExtension(testFile.basename, '.json.expect'),
-      ),
-    );
-    const update = bool.fromEnvironment('updateExpectations');
-    if (!goldenFile.existsSync() || update) {
-      await goldenFile.create();
-      await goldenFile.writeAsString(recordedUsages);
-    } else {
-      final actual = RecordedUsages.fromJson(jsonDecode(recordedUsages));
-      final goldenContents = await goldenFile.readAsString();
-      final golden = RecordedUsages.fromJson(jsonDecode(goldenContents));
-      final semanticEquals = actual == golden;
-      if (!semanticEquals) {
-        // Print the error message based on string representation.
-        Expect.stringEquals(
-          recordedUsages.trim(),
-          goldenContents.trim(),
-          'Recorded usages for ${testFile.uri} do not match golden file.',
+    test(
+      '${testFile.file.path}',
+      skip: dart2jsNotSupported.contains(testFile.basename),
+      () async {
+        final recordedUsages = await compileWithUsages(
+          entryPoint: testFile.uri,
+          memorySourceFiles: allFiles,
         );
-      }
-    }
+        final goldenFile = File(testFile.file.path + '.json.expect');
+        const update = bool.fromEnvironment('updateExpectations');
+        if (!goldenFile.existsSync() || update) {
+          await goldenFile.create();
+          await goldenFile.writeAsString(recordedUsages);
+        } else {
+          final actual = Recordings.fromJson(jsonDecode(recordedUsages));
+          final goldenContents = await goldenFile.readAsString();
+          final golden = Recordings.fromJson(jsonDecode(goldenContents));
+          final semanticEquals = actual.semanticEquals(
+            golden,
+            allowMetadataMismatch: true,
+            allowMoreConstArguments: true,
+            // Ensure test coverage of tear offs, add pragmas to prevent
+            // optimiations if necessary.
+            allowTearOffToStaticPromotion: false,
+            uriMapping: (String uri) =>
+                uri.replaceFirst('memory:sdk/tests/web/native/', ''),
+            loadingUnitMapping: (String unit) =>
+                const <String, String>{'out': '1', 'out_1': '2'}[unit] ?? unit,
+          );
+          if (!semanticEquals) {
+            // Print the error message based on string representation.
+            Expect.stringEquals(
+              recordedUsages.trim(),
+              goldenContents.trim(),
+              'Recorded usages for ${testFile.uri} do not match golden file.',
+            );
+          }
+        }
+      },
+    );
   }
 }
 
@@ -97,11 +110,11 @@ Future<String> compileWithUsages({
     entryPoint: entryPoint,
     memorySourceFiles: memorySourceFiles,
     outputProvider: outputProvider,
-    options: [Flags.writeResources],
+    options: [Flags.writeRecordedUses],
   );
   Expect.isTrue(result.isSuccess);
 
-  return outputProvider.outputMap[OutputType.resourceIdentifiers]!.values.first
+  return outputProvider.outputMap[OutputType.recordedUses]!.values.first
       .toString();
 }
 
@@ -110,3 +123,16 @@ Future<String> compileWithUsages({
 Uri _createUri(String fileName) {
   return Uri.parse('memory:sdk/tests/web/native/$fileName');
 }
+
+const dart2jsNotSupported = {
+  // No support for instance constants.
+  // https://github.com/dart-lang/native/issues/2893
+  'instance_class.dart',
+  'instance_complex.dart',
+  'instance_duplicates.dart',
+  'instance_method.dart',
+  'instance_not_annotation.dart',
+  'nested.dart',
+  'record_enum.dart',
+  'record_instance_constant_empty.dart',
+};

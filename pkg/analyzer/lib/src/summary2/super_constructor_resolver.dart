@@ -15,20 +15,24 @@ class SuperConstructorResolver {
 
   void perform() {
     for (var builder in _linker.builders.values) {
-      for (var classElement in builder.element.classes) {
-        for (var constructorElement in classElement.constructors) {
-          _constructor(classElement, constructorElement);
+      for (var interfaceElement in <InterfaceElementImpl>[
+        ...builder.element.classes,
+        ...builder.element.enums,
+      ]) {
+        for (var constructorElement in interfaceElement.constructors) {
+          _constructor(interfaceElement, constructorElement);
         }
       }
     }
   }
 
   void _constructor(
-    ClassElementImpl classElement,
+    InterfaceElementImpl interfaceElement,
     ConstructorElementImpl element,
   ) {
     // Constructors of mixin applications are already configured.
-    if (classElement.isMixinApplication) {
+    if (interfaceElement is ClassElementImpl &&
+        interfaceElement.isMixinApplication) {
       return;
     }
 
@@ -38,26 +42,34 @@ class SuperConstructorResolver {
     }
 
     var invokesDefaultSuperConstructor = true;
+
+    void handleInitializers(List<ConstructorInitializer> initializers) {
+      for (var initializer in initializers) {
+        if (initializer is RedirectingConstructorInvocation) {
+          invokesDefaultSuperConstructor = false;
+        } else if (initializer is SuperConstructorInvocation) {
+          invokesDefaultSuperConstructor = false;
+          var name = initializer.constructorName?.name ?? 'new';
+          element.superConstructor = interfaceElement.supertype
+              ?.getNamedConstructor(name);
+        }
+      }
+    }
+
     for (var fragment in element.fragments) {
       var node = _linker.getLinkingNode2(fragment);
       if (node is ConstructorDeclaration) {
-        for (var initializer in node.initializers) {
-          if (initializer is RedirectingConstructorInvocation) {
-            invokesDefaultSuperConstructor = false;
-          } else if (initializer is SuperConstructorInvocation) {
-            invokesDefaultSuperConstructor = false;
-            var name = initializer.constructorName?.name ?? 'new';
-            element.superConstructor = classElement.supertype
-                ?.getNamedConstructor(name);
-          }
+        handleInitializers(node.initializers);
+      } else if (node is PrimaryConstructorDeclaration) {
+        if (node.body case var body?) {
+          handleInitializers(body.initializers);
         }
       }
     }
 
     if (invokesDefaultSuperConstructor) {
-      element.superConstructor = classElement.supertype?.getNamedConstructor(
-        'new',
-      );
+      element.superConstructor = interfaceElement.supertype
+          ?.getNamedConstructor('new');
     }
   }
 }

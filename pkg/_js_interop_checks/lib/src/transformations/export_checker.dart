@@ -7,12 +7,8 @@
 import 'package:_js_interop_checks/js_interop_checks.dart'
     show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show
-        codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
-        codeJsInteropExportDisallowedMember,
-        codeJsInteropExportMemberCollision,
-        codeJsInteropExportNoExportableMembers;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 enum ExportStatus { exportError, exportable, nonExportable }
@@ -118,7 +114,7 @@ class ExportChecker {
 
     if (classHasJSExport && js_interop.getJSExportName(cls).isNotEmpty) {
       _diagnosticReporter.report(
-        codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue
+        diag.jsInteropExportDartInterfaceHasNonEmptyJSExportValue
             .withArgumentsOld(cls.name),
         cls.fileOffset,
         cls.name.length,
@@ -180,9 +176,9 @@ class ExportChecker {
       var sortedExistingMembers =
           existingMembers.map((member) => member.toString()).toList()..sort();
       _diagnosticReporter.report(
-        codeJsInteropExportMemberCollision.withArgumentsOld(
-          exportName,
-          sortedExistingMembers.join(', '),
+        diag.jsInteropExportMemberCollision.withArguments(
+          exportName: exportName,
+          members: sortedExistingMembers.join(', '),
         ),
         cls.fileOffset,
         cls.name.length,
@@ -193,7 +189,9 @@ class ExportChecker {
 
     if (exports.isEmpty) {
       _diagnosticReporter.report(
-        codeJsInteropExportNoExportableMembers.withArgumentsOld(cls.name),
+        diag.jsInteropExportNoExportableMembers.withArguments(
+          className: cls.name,
+        ),
         cls.fileOffset,
         cls.name.length,
         cls.location?.file,
@@ -215,7 +213,7 @@ class ExportChecker {
         String name = member.name.text;
         if (name.isEmpty) name = '<unnamed>';
         _diagnosticReporter.report(
-          codeJsInteropExportDisallowedMember.withArgumentsOld(name),
+          diag.jsInteropExportDisallowedMember.withArgumentsOld(name),
           member.fileOffset,
           member.name.text.length,
           member.location?.file,

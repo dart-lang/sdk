@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io' show File, Directory, Process, ProcessResult;
 import 'dart:typed_data';
 
@@ -16,6 +17,7 @@ import 'package:kernel/kernel.dart'
 import 'package:path/path.dart' as path;
 
 import 'compiler_options.dart';
+import 'source_map_utils.dart';
 
 class CompilerPhaseInputOutputManager {
   final FileSystem fileSystem;
@@ -107,6 +109,21 @@ class CompilerPhaseInputOutputManager {
     final wasmOutName =
         _moduleNameToWasmFile(options.outputFile, outputModuleName);
     final wasmInName = _moduleNameToWasmFile(mainWasmModule, inputModuleName);
+    final sourceMapInName =
+        _moduleNameToSourceMapFile(mainWasmModule, inputModuleName);
+    final sourceMapOutName =
+        _moduleNameToSourceMapFile(options.outputFile, outputModuleName);
+
+    // wasm-opt drops custom sections and reorders names section, read custom
+    // section for deobfuscating class names before wasm-opt, add them back
+    // after.
+    List<String?>? classNames;
+    if (options.translatorOptions.generateSourceMaps &&
+        moduleId == WasmCompilerOptions.mainModuleId) {
+      classNames = getMinifiedClassNames(
+          jsonDecode(await File(sourceMapInName).readAsString()));
+    }
+
     final args = [
       ...flags,
       wasmInName,
@@ -114,9 +131,11 @@ class CompilerPhaseInputOutputManager {
       wasmOutName,
       if (options.translatorOptions.generateSourceMaps) ...[
         '-ism',
-        _moduleNameToSourceMapFile(mainWasmModule, inputModuleName),
+        sourceMapInName,
         '-osm',
-        _moduleNameToSourceMapFile(options.outputFile, outputModuleName),
+        sourceMapOutName,
+        '-osu',
+        _moduleNameToRelativeSourceMapUri(outputModuleName).toString(),
       ],
       if (!options.stripWasm) '-g',
     ];
@@ -136,6 +155,13 @@ class CompilerPhaseInputOutputManager {
           'wasm-opt failed on module $inputModuleName with exit code ${result.exitCode}:'
           '\n${result.stdout}\n${result.stderr}');
     }
+
+    if (classNames != null) {
+      final Map<String, Object?> sourceMapJson =
+          jsonDecode(await File(sourceMapOutName).readAsString());
+      addMinifiedClassNames(sourceMapJson, classNames);
+      await File(sourceMapOutName).writeAsString(jsonEncode(sourceMapJson));
+    }
   }
 
   Future<ProcessResult> _runProcess(
@@ -143,25 +169,20 @@ class CompilerPhaseInputOutputManager {
     return await Process.run(executable, args);
   }
 
-  Future<int> getModuleCount(String mainWasmFile) async {
-    final files = (await Directory(path.dirname(mainWasmFile)).list().toList());
-    final prefix = path.basenameWithoutExtension(mainWasmFile);
-    bool isMultiModule = false;
-    int maxModuleId = 0;
+  Future<Set<int>> getModuleIds(String mainWasmFilePath) async {
+    final files =
+        (await Directory(path.dirname(mainWasmFilePath)).list().toList());
+    final mainWasmFilename = path.basename(mainWasmFilePath);
+    final moduleIds = <int>{};
     for (final file in files) {
       if (file is! File) continue;
-      final fileBase = path.basename(file.path);
-      if (!fileBase.startsWith(prefix)) continue;
-      if (path.extension(fileBase) != '.wasm') continue;
-      final fileSuffix =
-          path.setExtension(fileBase, '').substring(prefix.length);
-      if (!fileSuffix.startsWith('_module')) continue;
-      isMultiModule = true;
-      final moduleId = int.tryParse(fileSuffix.substring('_module'.length));
-      if (moduleId == null) continue;
-      maxModuleId = moduleId > maxModuleId ? moduleId : maxModuleId;
+      final moduleId =
+          options.idForModuleName(mainWasmFilename, path.basename(file.path));
+      if (moduleId != null) {
+        moduleIds.add(moduleId);
+      }
     }
-    return isMultiModule ? maxModuleId + 1 : 1;
+    return moduleIds;
   }
 
   Future<Uint8List> readMainDynModuleMetadataBytes() async {

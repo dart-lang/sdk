@@ -1018,37 +1018,41 @@ class AsCheckerCodeGenerator implements CodeGenerator {
             testedAgainstType, checkArguments, operandIsNullable),
         forceInline: forceInline);
     b.br_if(asCheckBlock);
-
-    if (checkArguments) {
-      final testedAgainstClassId =
-          translator.classInfo[testedAgainstType.classNode]!.classId;
-      b.local_get(b.locals[0]);
-      b.i32_const(encodedNullability(testedAgainstType));
-      b.pushClassIdToStack(translator, testedAgainstClassId);
-      if (argumentCount == 1) {
-        b.local_get(b.locals[1]);
-        translator.callReference(
-            translator.throwInterfaceTypeAsCheckError1.reference, b);
-      } else if (argumentCount == 2) {
-        b.local_get(b.locals[1]);
-        b.local_get(b.locals[2]);
-        translator.callReference(
-            translator.throwInterfaceTypeAsCheckError2.reference, b);
-      } else {
-        for (int i = 0; i < argumentCount; ++i) {
-          b.local_get(b.locals[1 + i]);
-        }
-        b.array_new_fixed(translator.types.typeArrayArrayType, argumentCount);
-        translator.callReference(
-            translator.throwInterfaceTypeAsCheckError.reference, b);
-      }
+    if (translator.options.minify) {
+      translator.callReference(
+          translator.throwErrorWithoutDetails.reference, b);
     } else {
-      b.local_get(b.locals[0]);
-      translator.constants.instantiateConstant(
-          b,
-          TypeLiteralConstant(testedAgainstType),
-          translator.types.nonNullableTypeType);
-      translator.callReference(translator.throwAsCheckError.reference, b);
+      if (checkArguments) {
+        final testedAgainstClassId =
+            translator.classInfo[testedAgainstType.classNode]!.classId;
+        b.local_get(b.locals[0]);
+        b.i32_const(encodedNullability(testedAgainstType));
+        b.pushClassIdToStack(translator, testedAgainstClassId);
+        if (argumentCount == 1) {
+          b.local_get(b.locals[1]);
+          translator.callReference(
+              translator.throwInterfaceTypeAsCheckError1.reference, b);
+        } else if (argumentCount == 2) {
+          b.local_get(b.locals[1]);
+          b.local_get(b.locals[2]);
+          translator.callReference(
+              translator.throwInterfaceTypeAsCheckError2.reference, b);
+        } else {
+          for (int i = 0; i < argumentCount; ++i) {
+            b.local_get(b.locals[1 + i]);
+          }
+          b.array_new_fixed(translator.types.typeArrayArrayType, argumentCount);
+          translator.callReference(
+              translator.throwInterfaceTypeAsCheckError.reference, b);
+        }
+      } else {
+        b.local_get(b.locals[0]);
+        translator.constants.instantiateConstant(
+            b,
+            TypeLiteralConstant(testedAgainstType),
+            translator.types.nonNullableTypeType);
+        translator.callReference(translator.throwAsCheckError.reference, b);
+      }
     }
     b.unreachable();
 
@@ -1249,6 +1253,8 @@ class RuntimeTypeInformation {
         InterfaceType(translator.typeClass, Nullability.nonNullable);
     final arrayOfType = InterfaceType(
         translator.wasmArrayClass, Nullability.nonNullable, [typeType]);
+    final wasmI16 =
+        InterfaceType(translator.wasmI16Class, Nullability.nonNullable);
     final wasmI32 =
         InterfaceType(translator.wasmI32Class, Nullability.nonNullable);
 
@@ -1260,17 +1266,21 @@ class RuntimeTypeInformation {
 
     rows.sort((Row a, Row b) => -weight(a).compareTo(weight(b)));
     final table = buildRowDisplacementTable(rows, firstAvailable: 1);
+    const invalidClassId = 0;
     final typeRowDisplacementTable = translator.constants.makeArrayOf(wasmI32, [
       for (final entry in table)
-        translator.constants.makeWasmI32(entry == null
-            ? 0
-            : (entry.$2 == noSubstitutionIndex ? -entry.$1 : entry.$1)),
+        translator.constants
+            .makeWasmI32(entry == null ? invalidClassId : entry.$1),
     ]);
     final typeRowDisplacementSubstTable =
-        translator.constants.makeArrayOf(arrayOfType, [
+        translator.constants.makeArrayOf(wasmI16, [
       for (final entry in table)
-        _substitutionTableByIndex[
-            entry == null ? noSubstitutionIndex : entry.$2],
+        translator.constants
+            .makeWasmI32(entry == null ? noSubstitutionIndex : entry.$2),
+    ]);
+    final canonicalSubstitutionTable =
+        translator.constants.makeArrayOf(arrayOfType, [
+      for (final sustitution in _substitutionTableByIndex) sustitution,
     ]);
 
     final typeRowDisplacementOffsets =
@@ -1288,8 +1298,9 @@ class RuntimeTypeInformation {
       translator.moduleRttOffsets.fieldReference: typeRowDisplacementOffsets,
       translator.moduleRttDisplacementTable.fieldReference:
           typeRowDisplacementTable,
-      translator.moduleRttSubstTable.fieldReference:
+      translator.moduleRttDisplacementSubstTable.fieldReference:
           typeRowDisplacementSubstTable,
+      translator.moduleRttSubstTable.fieldReference: canonicalSubstitutionTable,
       translator.moduleRttTypeNames.fieldReference: typeNames,
     });
   }

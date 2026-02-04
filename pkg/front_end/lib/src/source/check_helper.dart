@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    show FormalParameterKind;
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
+    show correspondingPublicName;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
@@ -19,7 +25,9 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../base/uri_offset.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/type_builder.dart';
 import '../kernel/internal_ast.dart';
 import 'source_library_builder.dart';
 
@@ -69,8 +77,9 @@ extension CheckHelper on ProblemReporting {
       int length = noLength;
       if (member is Constructor && member.isSynthetic) {
         offset = member.enclosingClass.fileOffset;
-        contextMessage = codeCandidateFoundIsDefaultConstructor
-            .withArgumentsOld(member.enclosingClass.name);
+        contextMessage = diag.candidateFoundIsDefaultConstructor.withArguments(
+          name: member.enclosingClass.name,
+        );
       } else {
         if (member is Constructor) {
           if (member.name.text == '') {
@@ -83,7 +92,7 @@ extension CheckHelper on ProblemReporting {
         } else {
           length = name.length;
         }
-        contextMessage = codeCandidateFound;
+        contextMessage = diag.candidateFound;
       }
       context = [contextMessage.withLocation(uri, offset, length)];
     }
@@ -131,13 +140,19 @@ extension CheckHelper on ProblemReporting {
       typeParameterCount -= extension.typeParameters.length;
     }
     if (positionalArgumentsCount < requiredParameterCount) {
-      return codeTooFewArguments
-          .withArgumentsOld(requiredParameterCount, positionalArgumentsCount)
+      return diag.tooFewArguments
+          .withArguments(
+            requiredParameterCount: requiredParameterCount,
+            actualArgumentCount: positionalArgumentsCount,
+          )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
     if (positionalArgumentsCount > positionalParameterCount) {
-      return codeTooManyArguments
-          .withArgumentsOld(positionalParameterCount, positionalArgumentsCount)
+      return diag.tooManyArguments
+          .withArguments(
+            allowedParameterCount: positionalParameterCount,
+            actualArgumentCount: positionalArgumentsCount,
+          )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
     Set<String> argumentNames = {};
@@ -152,8 +167,8 @@ extension CheckHelper on ProblemReporting {
             String name = namedExpression.name;
             argumentNames.add(name);
             if (!parameterNames.contains(name)) {
-              return codeNoSuchNamedParameter
-                  .withArgumentsOld(name)
+              return diag.noSuchNamedParameter
+                  .withArguments(name: name)
                   .withLocation(
                     fileUri,
                     namedExpression.fileOffset,
@@ -168,9 +183,9 @@ extension CheckHelper on ProblemReporting {
     if (function.namedParameters.isNotEmpty) {
       for (int i = 0; i < function.namedParameters.length; i++) {
         VariableDeclaration parameter = function.namedParameters[i];
-        if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-          return codeValueForRequiredParameterNotProvidedError
-              .withArgumentsOld(parameter.name!)
+        if (parameter.isRequired && !argumentNames.contains(parameter.name!)) {
+          return diag.valueForRequiredParameterNotProvidedError
+              .withArguments(parameterName: parameter.name!)
               .withLocation(fileUri, arguments.fileOffset, noLength);
         }
       }
@@ -180,8 +195,8 @@ extension CheckHelper on ProblemReporting {
       if (typeParameterCount != explicitTypeArguments.types.length) {
         // A wrong (non-zero) amount of type arguments given. That's an error.
         // TODO(jensj): Position should be on type arguments instead.
-        return codeTypeArgumentMismatch
-            .withArgumentsOld(typeParameterCount)
+        return diag.typeArgumentMismatch
+            .withArguments(expectedCount: typeParameterCount)
             .withLocation(fileUri, fileOffset, noLength);
       }
     }
@@ -201,19 +216,19 @@ extension CheckHelper on ProblemReporting {
     int positionalParameterCountToReport = function.positionalParameters.length;
     int positionalArgumentCountToReport = arguments.positionalCount;
     if (positionalArgumentCountToReport < function.requiredParameterCount) {
-      return codeTooFewArguments
-          .withArgumentsOld(
-            requiredPositionalParameterCountToReport,
-            positionalArgumentCountToReport,
+      return diag.tooFewArguments
+          .withArguments(
+            requiredParameterCount: requiredPositionalParameterCountToReport,
+            actualArgumentCount: positionalArgumentCountToReport,
           )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
     if (positionalArgumentCountToReport >
         function.positionalParameters.length) {
-      return codeTooManyArguments
-          .withArgumentsOld(
-            positionalParameterCountToReport,
-            positionalArgumentCountToReport,
+      return diag.tooManyArguments
+          .withArguments(
+            allowedParameterCount: positionalParameterCountToReport,
+            actualArgumentCount: positionalArgumentCountToReport,
           )
           .withLocation(fileUri, arguments.fileOffset, noLength);
     }
@@ -229,8 +244,8 @@ extension CheckHelper on ProblemReporting {
             String name = namedExpression.name;
             argumentNames.add(name);
             if (!names.contains(name)) {
-              return codeNoSuchNamedParameter
-                  .withArgumentsOld(name)
+              return diag.noSuchNamedParameter
+                  .withArguments(name: name)
                   .withLocation(
                     fileUri,
                     namedExpression.fileOffset,
@@ -246,8 +261,8 @@ extension CheckHelper on ProblemReporting {
       for (int i = 0; i < function.namedParameters.length; i++) {
         NamedType parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-          return codeValueForRequiredParameterNotProvidedError
-              .withArgumentsOld(parameter.name)
+          return diag.valueForRequiredParameterNotProvidedError
+              .withArguments(parameterName: parameter.name)
               .withLocation(fileUri, arguments.fileOffset, noLength);
         }
       }
@@ -257,8 +272,8 @@ extension CheckHelper on ProblemReporting {
         typeParameters.length != explicitTypeArguments.types.length) {
       // A wrong (non-zero) amount of type arguments given. That's an error.
       // TODO(jensj): Position should be on type arguments instead.
-      return codeTypeArgumentMismatch
-          .withArgumentsOld(typeParameters.length)
+      return diag.typeArgumentMismatch
+          .withArguments(expectedCount: typeParameters.length)
           .withLocation(fileUri, fileOffset, noLength);
     }
 
@@ -268,11 +283,10 @@ extension CheckHelper on ProblemReporting {
   void checkAsyncReturnType({
     required SourceLibraryBuilder libraryBuilder,
     required TypeEnvironment typeEnvironment,
-    required AsyncMarker asyncModifier,
+    required AsyncMarker asyncMarker,
     required DartType returnType,
+    required TypeBuilder returnTypeBuilder,
     required Uri fileUri,
-    required int fileOffset,
-    required int length,
   }) {
     // For async, async*, and sync* functions with declared return types, we
     // need to determine whether those types are valid.
@@ -283,32 +297,32 @@ extension CheckHelper on ProblemReporting {
 
     // We use [problem == null] to signal success.
     Message? problem;
-    switch (asyncModifier) {
+    switch (asyncMarker) {
       case AsyncMarker.Async:
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
         if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
-          problem = codeIllegalAsyncReturnType;
+          problem = diag.illegalAsyncReturnType;
         }
         break;
 
       case AsyncMarker.AsyncStar:
         DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
         if (returnType is VoidType) {
-          problem = codeIllegalAsyncGeneratorVoidReturnType;
+          problem = diag.illegalAsyncGeneratorVoidReturnType;
         } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType)) {
-          problem = codeIllegalAsyncGeneratorReturnType;
+          problem = diag.illegalAsyncGeneratorReturnType;
         }
         break;
 
       case AsyncMarker.SyncStar:
         DartType iterableBottomType = libraryBuilder.loader.iterableOfBottom;
         if (returnType is VoidType) {
-          problem = codeIllegalSyncGeneratorVoidReturnType;
+          problem = diag.illegalSyncGeneratorVoidReturnType;
         } else if (!typeEnvironment.isSubtypeOf(
           iterableBottomType,
           returnType,
         )) {
-          problem = codeIllegalSyncGeneratorReturnType;
+          problem = diag.illegalSyncGeneratorReturnType;
         }
         break;
 
@@ -317,10 +331,14 @@ extension CheckHelper on ProblemReporting {
     }
 
     if (problem != null) {
-      // TODO(hillerstrom): once types get annotated with location
-      // information, we can improve the quality of the error message by
-      // using the offset of [returnType] (and the length of its name).
-      addProblem(problem, fileOffset, length, fileUri);
+      TypeName? typeName = returnTypeBuilder.typeName;
+      addProblem(
+        problem,
+        typeName?.fullNameOffset ?? // Coverage-ignore(suite): Not run.
+            returnTypeBuilder.charOffset!,
+        typeName?.fullNameLength ?? noLength,
+        fileUri,
+      );
     }
   }
 
@@ -655,9 +673,9 @@ extension CheckHelper on ProblemReporting {
       DartType unaliased = type.unalias;
       if (hasGenericFunctionTypeAsTypeArgument(unaliased)) {
         addProblem(
-          codeGenericFunctionTypeAsTypeArgumentThroughTypedef.withArgumentsOld(
-            unaliased,
-            type,
+          diag.genericFunctionTypeAsTypeArgumentThroughTypedef.withArguments(
+            genericFunctionType: unaliased,
+            aliasType: type,
           ),
           fileOffset,
           noLength,
@@ -687,16 +705,16 @@ extension CheckHelper on ProblemReporting {
       bool isValid = typeEnvironment.isSubtypeOf(getterType, setterType);
       if (!isValid) {
         addProblem2(
-          codeInvalidGetterSetterType.withArgumentsOld(
-            getterType,
-            getterName,
-            setterType,
-            setterName,
+          diag.invalidGetterSetterType.withArguments(
+            getterType: getterType,
+            getterName: getterName,
+            setterType: setterType,
+            setterName: setterName,
           ),
           getterUriOffset,
           context: [
-            codeInvalidGetterSetterTypeSetterContext
-                .withArgumentsOld(setterName)
+            diag.invalidGetterSetterTypeSetterContext
+                .withArguments(setterName: setterName)
                 .withLocation2(setterUriOffset),
           ],
         );
@@ -722,9 +740,9 @@ extension CheckHelper on ProblemReporting {
             formal.variable!.type.isPotentiallyNonNullable &&
             !formal.hasDeclaredInitializer) {
           addProblem(
-            codeOptionalNonNullableWithoutInitializerError.withArgumentsOld(
-              formal.name,
-              formal.variable!.type,
+            diag.optionalNonNullableWithoutInitializerError.withArguments(
+              parameterName: formal.name,
+              parameterType: formal.variable!.type,
             ),
             formal.fileOffset,
             formal.name.length,
@@ -793,7 +811,7 @@ extension CheckHelper on ProblemReporting {
         fieldType.isPotentiallyNonNullable &&
         !hasInitializer) {
       addProblem(
-        codeFieldNonNullableWithoutInitializerError.withArgumentsOld(
+        diag.fieldNonNullableWithoutInitializerError.withArgumentsOld(
           name,
           fieldType,
         ),
@@ -821,7 +839,7 @@ extension CheckHelper on ProblemReporting {
       // It looks like when parameters come from augmentation libraries, they
       // don't have a reportable location.
       (context ??= <LocatedMessage>[]).add(
-        codeIncorrectTypeArgumentVariable.withLocation(
+        diag.incorrectTypeArgumentVariable.withLocation(
           typeParameter.location!.file,
           typeParameter.fileOffset,
           noLength,
@@ -831,8 +849,11 @@ extension CheckHelper on ProblemReporting {
     if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
       // Coverage-ignore-block(suite): Not run.
       (context ??= <LocatedMessage>[]).add(
-        codeSuperBoundedHint
-            .withArgumentsOld(superBoundedAttempt, superBoundedAttemptInverted)
+        diag.superBoundedHint
+            .withArguments(
+              attemptedType: superBoundedAttempt,
+              invertedType: superBoundedAttemptInverted,
+            )
             .withLocation(fileUri, fileOffset, noLength),
       );
     }
@@ -911,7 +932,7 @@ extension CheckHelper on ProblemReporting {
       // It looks like when parameters come from augmentation libraries, they
       // don't have a reportable location.
       (context ??= <LocatedMessage>[]).add(
-        codeIncorrectTypeArgumentVariable.withLocation(
+        diag.incorrectTypeArgumentVariable.withLocation(
           typeParameter.location!.file,
           typeParameter.fileOffset,
           noLength,
@@ -922,10 +943,10 @@ extension CheckHelper on ProblemReporting {
       (context ??= // Coverage-ignore(suite): Not run.
               <LocatedMessage>[])
           .add(
-            codeSuperBoundedHint
-                .withArgumentsOld(
-                  superBoundedAttempt,
-                  superBoundedAttemptInverted,
+            diag.superBoundedHint
+                .withArguments(
+                  attemptedType: superBoundedAttempt,
+                  invertedType: superBoundedAttemptInverted,
                 )
                 .withLocation(fileUri, fileOffset, noLength),
           );
@@ -949,48 +970,48 @@ extension CheckHelper on ProblemReporting {
       Message message;
       if (issue.isGenericTypeAsArgumentIssue) {
         if (inferred) {
-          message = codeGenericFunctionTypeInferredAsActualTypeArgument
-              .withArgumentsOld(argument);
+          message = diag.genericFunctionTypeInferredAsActualTypeArgument
+              .withArguments(type: argument);
         } else {
-          message = codeGenericFunctionTypeUsedAsActualTypeArgument;
+          message = diag.genericFunctionTypeUsedAsActualTypeArgument;
         }
         typeParameter = null;
       } else {
         if (issue.enclosingType == null && targetReceiver != null) {
           if (targetName != null) {
             if (inferred) {
-              message = codeIncorrectTypeArgumentQualifiedInferred
-                  .withArgumentsOld(
-                    argument,
-                    typeParameter.bound,
-                    typeParameter.name!,
-                    targetReceiver,
-                    targetName,
+              message = diag.incorrectTypeArgumentQualifiedInferred
+                  .withArguments(
+                    typeArgument: argument,
+                    typeParameterBound: typeParameter.bound,
+                    typeParameterName: typeParameter.name!,
+                    receiverType: targetReceiver,
+                    targetName: targetName,
                   );
             } else {
-              message = codeIncorrectTypeArgumentQualified.withArgumentsOld(
-                argument,
-                typeParameter.bound,
-                typeParameter.name!,
-                targetReceiver,
-                targetName,
+              message = diag.incorrectTypeArgumentQualified.withArguments(
+                typeArgument: argument,
+                typeParameterBound: typeParameter.bound,
+                typeParameterName: typeParameter.name!,
+                receiverType: targetReceiver,
+                targetName: targetName,
               );
             }
           } else {
             if (inferred) {
-              message = codeIncorrectTypeArgumentInstantiationInferred
-                  .withArgumentsOld(
-                    argument,
-                    typeParameter.bound,
-                    typeParameter.name!,
-                    targetReceiver,
+              message = diag.incorrectTypeArgumentInstantiationInferred
+                  .withArguments(
+                    typeArgument: argument,
+                    typeParameterBound: typeParameter.bound,
+                    typeParameterName: typeParameter.name!,
+                    receiverType: targetReceiver,
                   );
             } else {
-              message = codeIncorrectTypeArgumentInstantiation.withArgumentsOld(
-                argument,
-                typeParameter.bound,
-                typeParameter.name!,
-                targetReceiver,
+              message = diag.incorrectTypeArgumentInstantiation.withArguments(
+                typeArgument: argument,
+                typeParameterBound: typeParameter.bound,
+                typeParameterName: typeParameter.name!,
+                receiverType: targetReceiver,
               );
             }
           }
@@ -999,18 +1020,18 @@ extension CheckHelper on ProblemReporting {
               ? targetName!
               : getGenericTypeName(issue.enclosingType!);
           if (inferred) {
-            message = codeIncorrectTypeArgumentInferred.withArgumentsOld(
-              argument,
-              typeParameter.bound,
-              typeParameter.name!,
-              enclosingName,
+            message = diag.incorrectTypeArgumentInferred.withArguments(
+              typeArgument: argument,
+              typeParameterBound: typeParameter.bound,
+              typeParameterName: typeParameter.name!,
+              enclosingName: enclosingName,
             );
           } else {
-            message = codeIncorrectTypeArgument.withArgumentsOld(
-              argument,
-              typeParameter.bound,
-              typeParameter.name!,
-              enclosingName,
+            message = diag.incorrectTypeArgument.withArguments(
+              typeArgument: argument,
+              typeParameterBound: typeParameter.bound,
+              typeParameterName: typeParameter.name!,
+              enclosingName: enclosingName,
             );
           }
         }
@@ -1031,5 +1052,74 @@ extension CheckHelper on ProblemReporting {
             : issue.invertedType,
       );
     }
+  }
+
+  /// Checks that [parameterName] has a corresponding public name.
+  ///
+  /// If [parameterName] is private an error is reported if [parameterName]
+  /// does not have corresponding public name or if the private named parameter
+  /// feature is not enabled.
+  ///
+  /// If [parameterName] has a corresponding public name, this is returned.
+  /// Otherwise `null` is returned, including the case where [parameterName] is
+  /// not private.
+  String? checkPublicName({
+    required SourceCompilationUnit compilationUnit,
+    required FormalParameterKind kind,
+    required String parameterName,
+    required Token nameToken,
+    required Token? thisKeyword,
+    required LibraryFeatures libraryFeatures,
+    required Uri fileUri,
+  }) {
+    // If we're building a private named parameter, then calculate the
+    // corresponding public name. The variable declared by the parameter will
+    // use that name instead.
+    String? publicName;
+    if (kind.isNamed && parameterName.startsWith('_')) {
+      // TODO(rnystrom): Also handle declaring field parameters.
+      bool refersToField = thisKeyword != null;
+
+      if (libraryFeatures.privateNamedParameters.isEnabled) {
+        if (!refersToField) {
+          addProblem(
+            diag.privateNamedNonFieldParameter,
+            nameToken.charOffset,
+            nameToken.length,
+            fileUri,
+          );
+        } else {
+          publicName = correspondingPublicName(parameterName);
+
+          // Only report the error for no corresponding public name if this
+          // is a parameter that could be private and named.
+          if (publicName == null) {
+            addProblem(
+              diag.privateNamedParameterWithoutPublicName,
+              nameToken.charOffset,
+              nameToken.length,
+              fileUri,
+            );
+          }
+        }
+      } else {
+        if (refersToField) {
+          compilationUnit.reportFeatureNotEnabled(
+            libraryFeatures.privateNamedParameters,
+            fileUri,
+            nameToken.charOffset,
+            nameToken.length,
+          );
+        } else {
+          addProblem(
+            diag.privateNamedParameter,
+            nameToken.charOffset,
+            nameToken.length,
+            fileUri,
+          );
+        }
+      }
+    }
+    return publicName;
   }
 }

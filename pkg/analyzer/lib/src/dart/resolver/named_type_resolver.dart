@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -15,7 +14,9 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
@@ -114,10 +115,10 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      diagnosticReporter.atToken(
-        prefixToken,
-        diag.prefixShadowedByLocalDeclaration,
-        arguments: [prefixName],
+      diagnosticReporter.report(
+        diag.prefixShadowedByLocalDeclaration
+            .withArguments(prefix: prefixName)
+            .at(prefixToken),
       );
       node.type = InvalidTypeImpl.instance;
     } else {
@@ -135,16 +136,21 @@ class NamedTypeResolver with ScopeHelpers {
   List<TypeImpl> _buildTypeArguments(
     NamedType node,
     TypeArgumentList argumentList,
-    int parameterCount,
-  ) {
+    int parameterCount, {
+    required TypeInstantiationTarget target,
+  }) {
     var arguments = argumentList.arguments;
+
     var argumentCount = arguments.length;
 
     if (argumentCount != parameterCount) {
-      diagnosticReporter.atNode(
-        node,
-        diag.wrongNumberOfTypeArguments,
-        arguments: [node.name.lexeme, parameterCount, argumentCount],
+      diagnosticReporter.report(
+        target
+            .wrongNumberOfTypeArgumentsError(
+              typeParameterCount: parameterCount,
+              typeArgumentCount: argumentCount,
+            )
+            .at(node),
       );
       return List.filled(parameterCount, InvalidTypeImpl.instance);
     }
@@ -217,6 +223,7 @@ class NamedTypeResolver with ScopeHelpers {
           node,
           argumentList,
           element.typeParameters.length,
+          target: TypeInstantiationTargetInterfaceElement(element),
         );
         return element.instantiateImpl(
           typeArguments: typeArguments,
@@ -227,6 +234,7 @@ class NamedTypeResolver with ScopeHelpers {
           node,
           argumentList,
           element.typeParameters.length,
+          target: TypeInstantiationTargetTypeAliasElement(element),
         );
         var type = element.instantiateImpl(
           typeArguments: typeArguments,
@@ -237,13 +245,28 @@ class NamedTypeResolver with ScopeHelpers {
         _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
         return InvalidTypeImpl.instance;
       } else if (element is DynamicElementImpl) {
-        _buildTypeArguments(node, argumentList, 0);
+        _buildTypeArguments(
+          node,
+          argumentList,
+          0,
+          target: const TypeInstantiationTargetDynamicTypeElement(),
+        );
         return DynamicTypeImpl.instance;
       } else if (element is NeverElementImpl) {
-        _buildTypeArguments(node, argumentList, 0);
+        _buildTypeArguments(
+          node,
+          argumentList,
+          0,
+          target: const TypeInstantiationTargetNeverTypeElement(),
+        );
         return _instantiateElementNever(nullability);
       } else if (element is TypeParameterElementImpl) {
-        _buildTypeArguments(node, argumentList, 0);
+        _buildTypeArguments(
+          node,
+          argumentList,
+          0,
+          target: TypeInstantiationTargetTypeParameterElement(element),
+        );
         return element.instantiate(nullabilitySuffix: nullability);
       } else {
         _ErrorHelper(
@@ -353,10 +376,13 @@ class NamedTypeResolver with ScopeHelpers {
         constructorName.name == null) {
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
-        diagnosticReporter.atNode(
-          typeArguments,
-          diag.wrongNumberOfTypeArgumentsConstructor,
-          arguments: [importPrefix.name.lexeme, nameToken.lexeme],
+        diagnosticReporter.report(
+          diag.wrongNumberOfTypeArgumentsConstructor
+              .withArguments(
+                className: importPrefix.name.lexeme,
+                constructorName: nameToken.lexeme,
+              )
+              .at(typeArguments),
         );
         var instanceCreation = constructorName.parent;
         if (instanceCreation is InstanceCreationExpressionImpl) {
@@ -399,21 +425,25 @@ class NamedTypeResolver with ScopeHelpers {
       var fragment = element?.firstFragment;
       var source = fragment?.libraryFragment?.source;
       var nameOffset = fragment?.nameOffset;
-      diagnosticReporter.atOffset(
-        offset: importPrefix.offset,
-        length: nameToken.end - importPrefix.offset,
-        diagnosticCode: diag.notAType,
-        arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
-        contextMessages: [
-          if (source != null && nameOffset != null)
-            DiagnosticMessageImpl(
-              filePath: source.fullName,
-              message: "The declaration of '$name' is here.",
-              offset: nameOffset,
-              length: name.length,
-              url: null,
+      diagnosticReporter.report(
+        diag.notAType
+            .withArguments(
+              name: '${importPrefix.name.lexeme}.${nameToken.lexeme}',
+            )
+            .withContextMessages([
+              if (source != null && nameOffset != null)
+                DiagnosticMessageImpl(
+                  filePath: source.fullName,
+                  message: "The declaration of '$name' is here.",
+                  offset: nameOffset,
+                  length: name.length,
+                  url: null,
+                ),
+            ])
+            .atOffset(
+              offset: importPrefix.offset,
+              length: nameToken.end - importPrefix.offset,
             ),
-        ],
       );
     }
   }
@@ -477,7 +507,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
 
       // Report if this type is used as a class in hierarchy.
-      DiagnosticCode? diagnosticCode;
+      LocatableDiagnostic? diagnosticCode;
       if (parent is ExtendsClause) {
         diagnosticCode = diag.extendsTypeAliasExpandsToTypeParameter;
       } else if (parent is ImplementsClause) {
@@ -489,10 +519,11 @@ class NamedTypeResolver with ScopeHelpers {
       }
       if (diagnosticCode != null) {
         var errorRange = _ErrorHelper._getErrorRange(node);
-        diagnosticReporter.atOffset(
-          offset: errorRange.offset,
-          length: errorRange.length,
-          diagnosticCode: diagnosticCode,
+        diagnosticReporter.report(
+          diagnosticCode.atOffset(
+            offset: errorRange.offset,
+            length: errorRange.length,
+          ),
         );
         hasErrorReported = true;
         return InvalidTypeImpl.instance;
@@ -533,11 +564,10 @@ class _ErrorHelper {
           // TODO(johnniwinther): We could report "Undefined prefix 'x'." when
           // we know it can only be a prefix, for instance in `x.y.z()`.
           String prefixOrClassName = importPrefix.name.lexeme;
-          diagnosticReporter.atOffset(
-            offset: errorRange.offset,
-            length: errorRange.length,
-            diagnosticCode: diag.undefinedIdentifier,
-            arguments: [prefixOrClassName],
+          diagnosticReporter.report(
+            diag.undefinedIdentifier
+                .withArguments(name: prefixOrClassName)
+                .atOffset(offset: errorRange.offset, length: errorRange.length),
           );
         } else {
           String className = node.name.lexeme;
@@ -562,22 +592,20 @@ class _ErrorHelper {
 
     if (node.name.lexeme == 'boolean') {
       var errorRange = _getErrorRange(node, skipImportPrefix: true);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.undefinedClassBoolean,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.undefinedClassBoolean
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
 
     if (_isTypeInCatchClause(node)) {
       var errorRange = _getErrorRange(node);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.nonTypeInCatchClause,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.nonTypeInCatchClause
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
@@ -595,18 +623,16 @@ class _ErrorHelper {
     if (_isTypeInIsExpression(node)) {
       var errorRange = _getErrorRange(node);
       if (element != null) {
-        diagnosticReporter.atOffset(
-          offset: errorRange.offset,
-          length: errorRange.length,
-          diagnosticCode: diag.typeTestWithNonType,
-          arguments: [node.name.lexeme],
+        diagnosticReporter.report(
+          diag.typeTestWithNonType
+              .withArguments(name: node.name.lexeme)
+              .atOffset(offset: errorRange.offset, length: errorRange.length),
         );
       } else {
-        diagnosticReporter.atOffset(
-          offset: errorRange.offset,
-          length: errorRange.length,
-          diagnosticCode: diag.typeTestWithUndefinedName,
-          arguments: [node.name.lexeme],
+        diagnosticReporter.report(
+          diag.typeTestWithUndefinedName
+              .withArguments(name: node.name.lexeme)
+              .atOffset(offset: errorRange.offset, length: errorRange.length),
         );
       }
       return;
@@ -614,22 +640,20 @@ class _ErrorHelper {
 
     if (_isRedirectingConstructor(node)) {
       var errorRange = _getErrorRange(node);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.redirectToNonClass,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.redirectToNonClass
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
 
     if (_isTypeInTypeArgumentList(node)) {
       var errorRange = _getErrorRange(node);
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.nonTypeAsTypeArgument,
-        arguments: [node.name.lexeme],
+      diagnosticReporter.report(
+        diag.nonTypeAsTypeArgument
+            .withArguments(name: node.name.lexeme)
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
@@ -648,7 +672,7 @@ class _ErrorHelper {
     }
 
     if (element is LocalVariableElement || element is LocalFunctionElement) {
-      diagnosticReporter.reportError(
+      diagnosticReporter.report(
         DiagnosticFactory().referencedBeforeDeclaration(
           diagnosticReporter.source,
           nameToken: node.name,
@@ -664,21 +688,20 @@ class _ErrorHelper {
       var fragment = element.firstFragment;
       var source = fragment.libraryFragment?.source;
       var nameOffset = fragment.nameOffset;
-      diagnosticReporter.atOffset(
-        offset: errorRange.offset,
-        length: errorRange.length,
-        diagnosticCode: diag.notAType,
-        arguments: [name],
-        contextMessages: [
-          if (source != null && nameOffset != null)
-            DiagnosticMessageImpl(
-              filePath: source.fullName,
-              message: "The declaration of '$name' is here.",
-              offset: nameOffset,
-              length: name.length,
-              url: null,
-            ),
-        ],
+      diagnosticReporter.report(
+        diag.notAType
+            .withArguments(name: name)
+            .withContextMessages([
+              if (source != null && nameOffset != null)
+                DiagnosticMessageImpl(
+                  filePath: source.fullName,
+                  message: "The declaration of '$name' is here.",
+                  offset: nameOffset,
+                  length: name.length,
+                  url: null,
+                ),
+            ])
+            .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
       return;
     }
@@ -689,11 +712,10 @@ class _ErrorHelper {
     }
 
     var errorRange = _getErrorRange(node);
-    diagnosticReporter.atOffset(
-      offset: errorRange.offset,
-      length: errorRange.length,
-      diagnosticCode: diag.undefinedClass,
-      arguments: [node.name.lexeme],
+    diagnosticReporter.report(
+      diag.undefinedClass
+          .withArguments(name: node.name.lexeme)
+          .atOffset(offset: errorRange.offset, length: errorRange.length),
     );
   }
 

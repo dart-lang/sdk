@@ -2909,7 +2909,7 @@ class ChildEntity {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassBody implements AstNode {}
 
-abstract final class ClassBodyImpl extends AstNodeImpl implements ClassBody {
+sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
   List<ClassMemberImpl> get members;
 }
 
@@ -4820,6 +4820,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   ConstructorFragmentImpl? declaredFragment;
 
+  /// The fields that are not initialized by the constructor.
+  List<FieldElement>? notInitializedFields;
+
   @generated
   ConstructorDeclarationImpl({
     required super.comment,
@@ -4886,6 +4889,10 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
       return name;
     }
     return parameters.beginToken;
+  }
+
+  bool get isGenerative {
+    return factoryKeyword == null;
   }
 
   /// Whether this is a trivial constructor.
@@ -9089,7 +9096,7 @@ final class ExtensionTypeDeclarationImpl
   /// But could be `null` in invalid code.
   SimpleFormalParameterImpl? get representationFormalParameter {
     var formalParameters = primaryConstructor.formalParameters;
-    return formalParameters.parameters.firstOrNull.ifTypeOrNull();
+    return formalParameters.parameters.firstOrNull.tryCast();
   }
 
   @Deprecated('Use body instead')
@@ -10178,6 +10185,29 @@ sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
   FormalParameterFragmentImpl? declaredFragment;
+
+  Token? get finalOrVarKeyword {
+    Token? finalOrVarKeyword(Token? token) {
+      if (token != null) {
+        var keyword = token.keyword;
+        if (keyword == Keyword.FINAL || keyword == Keyword.VAR) {
+          return token;
+        }
+      }
+      return null;
+    }
+
+    switch (this) {
+      case DefaultFormalParameterImpl self:
+        return self.parameter.finalOrVarKeyword;
+      case FunctionTypedFormalParameterImpl self:
+        return finalOrVarKeyword(self.keyword);
+      case SimpleFormalParameterImpl self:
+        return finalOrVarKeyword(self.keyword);
+      default:
+        return null;
+    }
+  }
 
   @override
   bool get isNamed => kind.isNamed;
@@ -15280,6 +15310,10 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
 
 /// Additional information about local variables within a function or method
 /// produced at resolution time.
+///
+/// The owner of this data structure is a [FunctionBodyImpl]. The set of local
+/// variables for which extra information is stored is the set of local
+/// variables declared in that function body or any enclosing function body.
 class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
@@ -16896,7 +16930,7 @@ final class NamedExpressionImpl extends ExpressionImpl
 
   @override
   InternalFormalParameterElement? get element {
-    return _name.label.element?.ifTypeOrNull();
+    return _name.label.element?.tryCast();
   }
 
   @generated
@@ -19632,6 +19666,11 @@ abstract final class PrimaryConstructorBody implements ClassMember {
   /// are no initializers.
   Token? get colon;
 
+  /// The declaration of the primary constructor, or `null` if the class
+  /// does not have the primary constructor declaration (can happen in
+  /// erroneous code).
+  PrimaryConstructorDeclaration? get declaration;
+
   /// The initializers associated with the constructor.
   NodeList<ConstructorInitializer> get initializers;
 
@@ -19690,18 +19729,22 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     _body = _becomeParentOf(body);
   }
 
+  @override
   PrimaryConstructorDeclarationImpl? get declaration {
     switch (parent?.parent) {
       case ClassDeclarationImpl parent:
-        return parent.namePart.ifTypeOrNull();
+        return parent.namePart.tryCast();
       case EnumDeclarationImpl parent:
-        return parent.namePart.ifTypeOrNull();
+        return parent.namePart.tryCast();
       case ExtensionTypeDeclarationImpl parent:
         return parent.primaryConstructor;
       default:
         return null;
     }
   }
+
+  @override
+  Null get declaredFragment => null;
 
   @generated
   @override
@@ -19727,9 +19770,6 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPrimaryConstructorBody(this);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @generated
   @override
@@ -19759,6 +19799,10 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
 /// The declaration of a primary constructor.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
+  /// The body of this primary constructor, or `null` if the class members
+  /// don't have the body.
+  PrimaryConstructorBody? get body;
+
   /// The token for the `const` keyword, or `null` if the primary constructor
   /// isn't a const constructor.
   Token? get constKeyword;
@@ -19777,7 +19821,7 @@ abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('constKeyword'),
+    GenerateNodeProperty('constKeyword', isTokenFinal: false),
     GenerateNodeProperty('typeName'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('constructorName'),
@@ -19788,7 +19832,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     implements PrimaryConstructorDeclaration {
   @generated
   @override
-  final Token? constKeyword;
+  Token? constKeyword;
 
   @generated
   @override
@@ -19805,6 +19849,9 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @override
   ConstructorFragmentImpl? declaredFragment;
+
+  /// The fields that are not initialized by the constructor.
+  List<FieldElement>? notInitializedFields;
 
   @generated
   PrimaryConstructorDeclarationImpl({
@@ -19830,6 +19877,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     return typeName;
   }
 
+  @override
   PrimaryConstructorBodyImpl? get body =>
       parent.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
 
@@ -19855,6 +19903,20 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   @generated
   set formalParameters(FormalParameterListImpl formalParameters) {
     _formalParameters = _becomeParentOf(formalParameters);
+  }
+
+  /// Whether this is a trivial constructor.
+  ///
+  /// A trivial primary constructor declares no parameters, has no initializer
+  /// list, and has no body (or an empty one).
+  bool get isTrivial {
+    if (formalParameters.parameters.isNotEmpty) {
+      return false;
+    }
+    if (body case var body?) {
+      return body.initializers.isEmpty && body.body is EmptyFunctionBody;
+    }
+    return true;
   }
 
   @generated

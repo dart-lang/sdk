@@ -20,12 +20,12 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' show Version;
 
 import '../api_prototype/experimental_flags.dart'
     show ExperimentalFeaturesFromVersion;
 import '../base/messages.dart' show Message;
-import '../codes/cfe_codes.dart' show codeNativeClauseShouldBeAnnotation;
 
 abstract class _Chunk implements Comparable<_Chunk> {
   late int originalPosition;
@@ -372,6 +372,11 @@ abstract class _ProcedureEtcChunk extends _SortableChunk {
       skipContentOnEndGroupUntilToToken: true,
     );
   }
+}
+
+class _PrimaryConstructorBodyChunk extends _ProcedureEtcChunk {
+  _PrimaryConstructorBodyChunk(Token startToken, Token endToken)
+    : super(startToken, endToken);
 }
 
 class _ClassMethodChunk extends _ProcedureEtcChunk {
@@ -829,6 +834,18 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _PrimaryConstructorBodyChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
@@ -1133,7 +1150,7 @@ class TextualOutlineListener extends Listener {
     Token endToken,
   ) {
     // We ignore this message, as done by stack_listener.dart.
-    if (message.code == codeNativeClauseShouldBeAnnotation) {
+    if (message.code == diag.nativeClauseShouldBeAnnotation) {
       return;
     }
     // Coverage-ignore-block(suite): Not run.

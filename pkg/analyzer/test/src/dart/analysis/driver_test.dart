@@ -4918,6 +4918,82 @@ class B2 {}
 ''');
   }
 
+  test_produceErrors_duplicatePart_sameUri() async {
+    withFineDependencies = true;
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+part 'b.dart';
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    // First time: resolve files.
+    {
+      var driver = driverFor(a);
+      var collector = DriverEventCollector(driver);
+      driver.addFile2(a);
+      driver.addFile2(b);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+    errors
+      20 +8 DUPLICATE_PART
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/a.dart
+[status] idle
+''');
+      await disposeAnalysisContextCollection();
+    }
+
+    // Second time: read cached errors.
+    {
+      var driver = driverFor(a);
+      var collector = DriverEventCollector(driver);
+      driver.addFile2(a);
+      driver.addFile2(b);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ErrorsResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+    errors
+      20 +8 DUPLICATE_PART
+[operation] getErrorsFromBytes
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isPart
+[status] idle
+''');
+    }
+  }
+
   test_removeFile_addFile() async {
     var a = newFile('$testPackageLibPath/a.dart', '');
 
@@ -59876,6 +59952,172 @@ class C extends B {
     );
   }
 
+  test_manifest_class_field_initializer_primaryFormalParameter() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class const A(int foo. int bar) {
+  final a = foo;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M1
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: foo
+              tokenLengthList: [3]
+              elementIndexList
+                2 = formalParameter 0
+        declaredGetters
+          a: #M2
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M3
+          map
+            a: #M2
+          implemented
+            a: #M2
+    exportMapId: #M4
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class const A(int foo, int bar) {
+  final a = bar;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M5
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: bar
+              tokenLengthList: [3]
+              elementIndexList
+                18 = formalParameter 1
+        declaredGetters
+          a: #M2
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M3
+          map
+            a: #M2
+          implemented
+            a: #M2
+    exportMapId: #M4
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_field_initializer_primaryFormalParameter_noChange() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class const A(int foo) {
+  final a = foo;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M1
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: foo
+              tokenLengthList: [3]
+              elementIndexList
+                2 = formalParameter 0
+        declaredGetters
+          a: #M2
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M3
+          map
+            a: #M2
+          implemented
+            a: #M2
+    exportMapId: #M4
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class const A(int foo) {
+  final a = foo;
+  final b = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isSimplyBounded
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M1
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: foo
+              tokenLengthList: [3]
+              elementIndexList
+                2 = formalParameter 0
+          b: #M5
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: 0
+              tokenLengthList: [1]
+        declaredGetters
+          a: #M2
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+          b: #M6
+            flags: isOriginVariable isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M7
+          map
+            a: #M2
+            b: #M6
+          implemented
+            a: #M2
+            b: #M6
+    exportMapId: #M4
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
   test_manifest_class_field_initializer_type() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -92064,6 +92306,69 @@ class B {}
       A: #M2
       A=: #M2
       B: #M3
+''',
+    );
+  }
+
+  test_manifest_topConflict_classTypeAlias_classTypeAlias() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.named();
+}
+class M {}
+class B {}
+class B = A with M;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredConflicts
+      B: #M0
+      B=: #M0
+    declaredClasses
+      A: #M1
+        declaredConstructors
+          named: #M2
+        interface: #M3
+      M: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      A: #M1
+      B: #M0
+      B=: #M0
+      M: #M4
+''',
+      updatedCode: r'''
+class A {
+  A.named();
+}
+class M {}
+class B = A with M;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M1
+        declaredConstructors
+          named: #M2
+        interface: #M3
+      B: #M7
+        inheritedConstructors
+          named: #M2
+        interface: #M8
+      M: #M4
+        interface: #M5
+    exportMapId: #M9
+    exportMap
+      A: #M1
+      B: #M7
+      M: #M4
 ''',
     );
   }

@@ -3,15 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for checking potentially nullable dereferences.
@@ -31,42 +30,26 @@ class NullableDereferenceVerifier {
        _resolver = resolver;
 
   bool expression(
-    DiagnosticCode diagnosticCode,
+    LocatableDiagnostic locatableDiagnostic,
     Expression expression, {
     DartType? type,
   }) {
     type ??= expression.typeOrThrow;
-    return _check(diagnosticCode, expression, type);
+    return _check(locatableDiagnostic, expression, type);
   }
 
   void report(
-    DiagnosticCode diagnosticCode,
+    LocatableDiagnostic locatableDiagnostic,
     SyntacticEntity errorEntity,
     DartType receiverType, {
-    List<String> arguments = const <String>[],
-    List<DiagnosticMessage>? messages,
+    List<DiagnosticMessage> messages = const [],
   }) {
     if (receiverType == _typeSystem.typeProvider.nullType) {
-      diagnosticCode = diag.invalidUseOfNullValue;
-      arguments = [];
+      locatableDiagnostic = diag.invalidUseOfNullValue;
     }
-    if (errorEntity is AstNode) {
-      _diagnosticReporter.atNode(
-        errorEntity,
-        diagnosticCode,
-        arguments: arguments,
-        contextMessages: messages,
-      );
-    } else if (errorEntity is Token) {
-      _diagnosticReporter.atToken(
-        errorEntity,
-        diagnosticCode,
-        arguments: arguments,
-        contextMessages: messages,
-      );
-    } else {
-      throw StateError('Syntactic entity must be AstNode or Token to report.');
-    }
+    _diagnosticReporter.report(
+      locatableDiagnostic.withContextMessages(messages).at(errorEntity),
+    );
   }
 
   /// If the [receiverType] is potentially nullable, report it.
@@ -76,7 +59,7 @@ class NullableDereferenceVerifier {
   ///
   /// Returns whether [receiverType] was reported.
   bool _check(
-    DiagnosticCode diagnosticCode,
+    LocatableDiagnostic locatableDiagnostic,
     AstNode errorNode,
     DartType receiverType,
   ) {
@@ -86,14 +69,14 @@ class NullableDereferenceVerifier {
       return false;
     }
 
-    List<DiagnosticMessage>? messages;
+    List<DiagnosticMessage> messages = const [];
     if (errorNode is ExpressionImpl) {
       messages = _resolver.computeWhyNotPromotedMessages(
         errorNode,
         _resolver.flowAnalysis.flow?.whyNotPromoted(errorNode)(),
       );
     }
-    report(diagnosticCode, errorNode, receiverType, messages: messages);
+    report(locatableDiagnostic, errorNode, receiverType, messages: messages);
     return true;
   }
 }

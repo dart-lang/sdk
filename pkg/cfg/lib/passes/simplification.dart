@@ -4,6 +4,7 @@
 
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/misc.dart';
@@ -148,6 +149,25 @@ final class Simplification extends Pass
   Instruction visitInterfaceCall(InterfaceCall instr) => instr;
 
   @override
+  Instruction visitClosureCall(ClosureCall instr) {
+    final closure = instr.closure;
+    if (closure is AllocateClosure) {
+      final replacement = DirectCall(
+        graph,
+        instr.sourcePosition,
+        closure.function,
+        instr.type,
+        inputCount: instr.inputCount,
+      );
+      for (int i = 0, n = instr.inputCount; i < n; ++i) {
+        replacement.setInputAt(i, instr.inputDefAt(i));
+      }
+      return replacement;
+    }
+    return instr;
+  }
+
+  @override
   Instruction visitDynamicCall(DynamicCall instr) => instr;
 
   @override
@@ -175,6 +195,15 @@ final class Simplification extends Pass
   Instruction visitThrow(Throw instr) => instr;
 
   @override
+  Instruction visitNullCheck(NullCheck instr) {
+    final operand = instr.operand;
+    if (!operand.type.isNullable) {
+      return operand;
+    }
+    return instr;
+  }
+
+  @override
   Instruction visitTypeParameters(TypeParameters instr) => instr;
 
   @override
@@ -199,7 +228,55 @@ final class Simplification extends Pass
   Instruction visitTypeArguments(TypeArguments instr) => instr;
 
   @override
+  Instruction visitTypeLiteral(TypeLiteral instr) => instr;
+
+  @override
   Instruction visitAllocateObject(AllocateObject instr) => instr;
+
+  @override
+  Instruction visitAllocateClosure(AllocateClosure instr) => instr;
+
+  @override
+  Instruction visitAllocateListLiteral(AllocateListLiteral instr) => instr;
+
+  @override
+  Instruction visitAllocateMapLiteral(AllocateMapLiteral instr) => instr;
+
+  @override
+  Instruction visitStringInterpolation(StringInterpolation instr) {
+    final buf = _StringInterpolationBuffer(constantFolding);
+    buf.addStringInterpolation(instr);
+    if (buf.inputs.length == 1) {
+      final input = buf.inputs.single;
+      if (input is String) {
+        return graph.getConstant(ConstantValue.fromString(input));
+      } else if ((input as Definition).type is StringType) {
+        return input;
+      }
+    }
+    if (!buf.optimized) {
+      return instr;
+    }
+    final replacement = StringInterpolation(
+      graph,
+      instr.sourcePosition,
+      inputCount: buf.inputs.length,
+    );
+    for (int i = 0, n = buf.inputs.length; i < n; ++i) {
+      final input = buf.inputs[i];
+      final inputDef = input is String
+          ? graph.getConstant(ConstantValue.fromString(input))
+          : input as Definition;
+      replacement.setInputAt(i, inputDef);
+    }
+    return replacement;
+  }
+
+  @override
+  Instruction visitAllocateList(AllocateList instr) => instr;
+
+  @override
+  Instruction visitSetListElement(SetListElement instr) => instr;
 
   @override
   Instruction visitParallelMove(ParallelMove instr) => instr;
@@ -498,5 +575,74 @@ final class Simplification extends Pass
       }
     }
     return instr;
+  }
+
+  @override
+  Instruction visitUnaryBoolOp(UnaryBoolOp instr) {
+    final operand = instr.operand;
+    // Constant folding.
+    if (operand is Constant) {
+      ConstantValue? result = constantFolding.unaryBoolOp(
+        instr.op,
+        operand.value,
+      );
+      if (result != null) {
+        return graph.getConstant(result);
+      }
+    }
+    return instr;
+  }
+}
+
+/// Collects strings participating in the string interpolation.
+class _StringInterpolationBuffer {
+  final ConstantFolding constantFolding;
+
+  // Contains either String or Definition.
+  final List<Object> inputs = [];
+
+  bool optimized = false;
+
+  _StringInterpolationBuffer(this.constantFolding);
+
+  void addString(String str) {
+    // Skip empty strings.
+    if (str.isEmpty) {
+      optimized = true;
+      return;
+    }
+    // Append string to the last string, if any.
+    if (inputs.isNotEmpty) {
+      final last = inputs.last;
+      if (last is String) {
+        inputs.last = last + str;
+        optimized = true;
+        return;
+      }
+    }
+    inputs.add(str);
+  }
+
+  void addStringInterpolation(StringInterpolation instr) {
+    for (int i = 0, n = instr.inputCount; i < n; ++i) {
+      final input = instr.inputDefAt(i);
+      switch (input) {
+        case Constant():
+          final str = constantFolding.computeToString(input.value);
+          if (str != null) {
+            addString(str);
+          } else {
+            inputs.add(input);
+          }
+          break;
+        case StringInterpolation() when input.singleUser == instr:
+          addStringInterpolation(input);
+          input.removeFromGraph();
+          optimized = true;
+          break;
+        default:
+          inputs.add(input);
+      }
+    }
   }
 }

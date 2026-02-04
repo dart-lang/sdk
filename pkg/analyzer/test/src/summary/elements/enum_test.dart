@@ -153,6 +153,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable aaa
           reference: <testLibrary>::@enum::E::@getter::aaa
@@ -271,6 +272,7 @@ library
             #E0 requiredPositional _
               firstFragment: #F5
               type: Object
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -416,6 +418,7 @@ library
             #E1 requiredPositional a
               firstFragment: #F7
               type: T
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable int
           reference: <testLibrary>::@enum::E::@getter::int
@@ -513,6 +516,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable _name
           reference: <testLibrary>::@enum::E::@getter::_name
@@ -633,6 +637,7 @@ library
             #E1 requiredPositional a
               firstFragment: #F6
               type: T
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -724,6 +729,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable _
           reference: <testLibrary>::@enum::E::@getter::_
@@ -825,6 +831,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -1018,6 +1025,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -1122,6 +1130,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@enum::E::@constructor::named
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
         factory isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
@@ -1243,6 +1252,7 @@ library
                   firstFragment: #F7
                   type: double
               field: <testLibrary>::@enum::E::@field::x
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -1370,6 +1380,7 @@ library
               firstFragment: #F7
               type: int
               field: <testLibrary>::@enum::E::@field::x::@def::0
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -1481,6 +1492,7 @@ library
               firstFragment: #F5
               type: dynamic
               field: <null>
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -1607,6 +1619,7 @@ library
                 fragment: #F6
                 expression: expression_2
               field: <testLibrary>::@enum::E::@field::x
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -1723,6 +1736,7 @@ library
               firstFragment: #F6
               type: int
               field: <testLibrary>::@enum::E::@field::x
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -1839,6 +1853,7 @@ library
               firstFragment: #F6
               type: int
               field: <testLibrary>::@enum::E::@field::x
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -1955,6 +1970,7 @@ library
               firstFragment: #F6
               type: dynamic
               field: <testLibrary>::@enum::E::@field::x
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -2070,6 +2086,7 @@ library
             #E0 requiredPositional a
               firstFragment: #F5
               type: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -2174,6 +2191,7 @@ library
             #E0 requiredPositional a
               firstFragment: #F5
               type: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -2317,6 +2335,7 @@ library
               expression: IntegerLiteral
                 literal: 0 @70
                 staticType: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -2420,6 +2439,7 @@ library
         isOriginDeclaration named
           reference: <testLibrary>::@enum::E::@constructor::named
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -2518,6 +2538,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@enum::E::@constructor::named
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -2611,6 +2632,7 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -2704,6 +2726,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -2797,6 +2820,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -2905,6 +2929,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -3037,6 +3062,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -3151,6 +3177,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -3405,6 +3432,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -3529,6 +3557,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -3765,6 +3794,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -3876,6 +3906,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -3970,6 +4001,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::0::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::0::@getter::v
@@ -4067,6 +4099,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -4311,6 +4344,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -4433,6 +4467,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -4542,6 +4577,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -4647,6 +4683,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -4714,6 +4751,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
@@ -4786,6 +4824,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
@@ -4848,6 +4887,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
@@ -4909,6 +4949,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
@@ -4970,6 +5011,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
@@ -5031,6 +5073,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
@@ -5100,6 +5143,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::E::@getter::values
@@ -5131,6 +5175,7 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration a (nameOffset:32) (firstTokenOffset:11) (offset:32)
               element: <testLibrary>::@enum::E::@field::a
+              documentationComment: /**\n   * aaa\n   */
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5145,6 +5190,7 @@ library
                   staticType: E
             #F3 hasInitializer isOriginDeclaration b (nameOffset:47) (firstTokenOffset:37) (offset:47)
               element: <testLibrary>::@enum::E::@field::b
+              documentationComment: /// bbb
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5193,6 +5239,7 @@ library
         static const enumConstant hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
+          documentationComment: /**\n   * aaa\n   */
           type: E
           constantInitializer
             fragment: #F2
@@ -5201,6 +5248,7 @@ library
         static const enumConstant hasImplicitType hasInitializer isOriginDeclaration b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
+          documentationComment: /// bbb
           type: E
           constantInitializer
             fragment: #F3
@@ -5218,6 +5266,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable a
           reference: <testLibrary>::@enum::E::@getter::a
@@ -5264,6 +5313,7 @@ library
           fields
             #F2 hasInitializer isOriginDeclaration a (nameOffset:46) (firstTokenOffset:11) (offset:46)
               element: <testLibrary>::@enum::E::@field::a
+              documentationComment: /**\n   * aaa\n   */
               metadata
                 Annotation
                   atSign: @ @32
@@ -5286,6 +5336,7 @@ library
                   staticType: E
             #F3 hasInitializer isOriginDeclaration b (nameOffset:75) (firstTokenOffset:51) (offset:75)
               element: <testLibrary>::@enum::E::@field::b
+              documentationComment: /// bbb
               metadata
                 Annotation
                   atSign: @ @61
@@ -5352,6 +5403,7 @@ library
         static const enumConstant hasImplicitType hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
+          documentationComment: /**\n   * aaa\n   */
           metadata
             Annotation
               atSign: @ @32
@@ -5368,6 +5420,7 @@ library
         static const enumConstant hasImplicitType hasInitializer isOriginDeclaration b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
+          documentationComment: /// bbb
           metadata
             Annotation
               atSign: @ @61
@@ -5393,6 +5446,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable a
           reference: <testLibrary>::@enum::E::@getter::a
@@ -5530,6 +5584,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -5650,6 +5705,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::E::@getter::v1
@@ -5780,6 +5836,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E1::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::E1::@getter::v1
@@ -5816,6 +5873,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E2::@constructor::new
           firstFragment: #F10
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v2
           reference: <testLibrary>::@enum::E2::@getter::v2
@@ -6083,6 +6141,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F19
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable a
           reference: <testLibrary>::@enum::E::@getter::a
@@ -6206,6 +6265,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -6477,6 +6537,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F11
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable a
           reference: <testLibrary>::@enum::E::@getter::a
@@ -6595,6 +6656,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -6716,6 +6778,7 @@ library
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -6846,6 +6909,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -7032,6 +7096,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -7191,6 +7256,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -7303,6 +7369,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -7437,6 +7504,7 @@ library
               firstFragment: #F6
               type: int?
               field: <testLibrary>::@enum::A::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -7554,6 +7622,7 @@ library
               firstFragment: #F6
               type: int?
               field: <testLibrary>::@enum::A::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -7678,6 +7747,7 @@ library
               firstFragment: #F6
               type: int
               field: <testLibrary>::@enum::A::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -7698,8 +7768,15 @@ library
   }
 
   test_primaryConstructor_declaringFormalParameter_requiredPositional_functionTyped_final() async {
-    var library = await buildLibrary('''
-enum A(final int foo()) {v(0)}
+    var library = await buildLibrary(r'''
+enum A(
+  /// first
+  /// second
+  @deprecated
+  final void foo(),
+) {
+  v();
+}
 ''');
     checkElementText(library, r'''
 library
@@ -7711,7 +7788,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer isOriginDeclaration v (nameOffset:25) (firstTokenOffset:25) (offset:25)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:73) (firstTokenOffset:73) (offset:73)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7722,12 +7799,8 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @26
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @27
-                        staticType: int
-                    rightParenthesis: ) @28
+                    leftParenthesis: ( @74
+                    rightParenthesis: ) @75
                   staticType: A
             #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -7749,10 +7822,19 @@ library
               typeName: A
               typeNameOffset: 5
               formalParameters
-                #F6 requiredPositional final this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
+                #F6 requiredPositional final this.foo (nameOffset:60) (firstTokenOffset:35) (offset:60)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+                  documentationComment: /// first\n/// second
+                  metadata
+                    Annotation
+                      atSign: @ @35
+                      name: SimpleIdentifier
+                        token: deprecated @36
+                        element: dart:core::@getter::deprecated
+                        staticType: null
+                      element: dart:core::@getter::deprecated
           getters
-            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -7783,7 +7865,16 @@ library
         synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
-          type: int Function()
+          documentationComment: /// first\n/// second
+          metadata
+            Annotation
+              atSign: @ @35
+              name: SimpleIdentifier
+                token: deprecated @36
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          type: void Function()
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
       constructors
@@ -7793,8 +7884,18 @@ library
           formalParameters
             #E0 requiredPositional final declaring this.foo
               firstFragment: #F6
-              type: int Function()
+              type: void Function()
+              documentationComment: /// first\n/// second
+              metadata
+                Annotation
+                  atSign: @ @35
+                  name: SimpleIdentifier
+                    token: deprecated @36
+                    element: dart:core::@getter::deprecated
+                    staticType: null
+                  element: dart:core::@getter::deprecated
               field: <testLibrary>::@enum::A::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -7809,14 +7910,21 @@ library
         synthetic isOriginVariable foo
           reference: <testLibrary>::@enum::A::@getter::foo
           firstFragment: #F9
-          returnType: int Function()
+          returnType: void Function()
           variable: <testLibrary>::@enum::A::@field::foo
 ''');
   }
 
   test_primaryConstructor_declaringFormalParameter_requiredPositional_simple_final() async {
-    var library = await buildLibrary('''
-enum A(final int foo) {v(0)}
+    var library = await buildLibrary(r'''
+enum A(
+  /// first
+  /// second
+  @deprecated
+  final int foo,
+) {
+  v(0)
+}
 ''');
     checkElementText(library, r'''
 library
@@ -7828,7 +7936,7 @@ library
         #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::A
           fields
-            #F2 hasInitializer isOriginDeclaration v (nameOffset:23) (firstTokenOffset:23) (offset:23)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:70) (firstTokenOffset:70) (offset:70)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -7839,12 +7947,12 @@ library
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
-                    leftParenthesis: ( @24
+                    leftParenthesis: ( @71
                     arguments
                       IntegerLiteral
-                        literal: 0 @25
+                        literal: 0 @72
                         staticType: int
-                    rightParenthesis: ) @26
+                    rightParenthesis: ) @73
                   staticType: A
             #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::values
@@ -7866,10 +7974,19 @@ library
               typeName: A
               typeNameOffset: 5
               formalParameters
-                #F6 requiredPositional final this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
+                #F6 requiredPositional final this.foo (nameOffset:59) (firstTokenOffset:35) (offset:59)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+                  documentationComment: /// first\n/// second
+                  metadata
+                    Annotation
+                      atSign: @ @35
+                      name: SimpleIdentifier
+                        token: deprecated @36
+                        element: dart:core::@getter::deprecated
+                        staticType: null
+                      element: dart:core::@getter::deprecated
           getters
-            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@enum::A::@getter::v
             #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
@@ -7900,6 +8017,15 @@ library
         synthetic final isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
+          documentationComment: /// first\n/// second
+          metadata
+            Annotation
+              atSign: @ @35
+              name: SimpleIdentifier
+                token: deprecated @36
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -7911,7 +8037,17 @@ library
             #E0 requiredPositional final declaring this.foo
               firstFragment: #F6
               type: int
+              documentationComment: /// first\n/// second
+              metadata
+                Annotation
+                  atSign: @ @35
+                  name: SimpleIdentifier
+                    token: deprecated @36
+                    element: dart:core::@getter::deprecated
+                    staticType: null
+                  element: dart:core::@getter::deprecated
               field: <testLibrary>::@enum::A::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -8036,6 +8172,7 @@ library
               firstFragment: #F6
               type: int
               field: <testLibrary>::@enum::A::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -8201,6 +8338,7 @@ library
               firstFragment: #F10
               type: int
               field: <testLibrary>::@enum::B::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::B::@getter::v
@@ -8327,6 +8465,7 @@ library
               firstFragment: #F7
               type: T
               field: <testLibrary>::@enum::A::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -8434,6 +8573,7 @@ library
             #E0 requiredPositional foo
               firstFragment: #F5
               type: int Function()
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -8535,6 +8675,7 @@ library
             #E0 requiredPositional foo
               firstFragment: #F5
               type: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -8649,6 +8790,7 @@ library
               firstFragment: #F6
               type: int
               field: <testLibrary>::@enum::A::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -8750,6 +8892,7 @@ library
         const declaring isOriginDeclaration isPrimary named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -8846,6 +8989,7 @@ library
         const declaring isOriginDeclaration isPrimary named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -8856,6 +9000,328 @@ library
           reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F6
           returnType: List<A>
+          variable: <testLibrary>::@enum::A::@field::values
+''');
+  }
+
+  test_primaryConstructor_scopes() async {
+    var library = await buildLibrary('''
+const foo = 0;
+enum E<@foo T>([@foo int x = foo]) {
+  v;
+  static const foo = 1;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:20) (firstTokenOffset:15) (offset:20)
+          element: <testLibrary>::@enum::E
+          typeParameters
+            #F2 T (nameOffset:27) (firstTokenOffset:22) (offset:27)
+              element: #E0 T
+              metadata
+                Annotation
+                  atSign: @ @22
+                  name: SimpleIdentifier
+                    token: foo @23
+                    element: <testLibrary>::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@getter::foo
+          fields
+            #F3 hasInitializer isOriginDeclaration v (nameOffset:54) (firstTokenOffset:54) (offset:54)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: ConstructorMember
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E<dynamic>
+                  rightBracket: ] @0
+                  staticType: List<E<dynamic>>
+            #F5 hasInitializer isOriginDeclaration foo (nameOffset:72) (firstTokenOffset:72) (offset:72)
+              element: <testLibrary>::@enum::E::@field::foo
+              initializer: expression_2
+                IntegerLiteral
+                  literal: 1 @78
+                  staticType: int
+          constructors
+            #F6 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:20) (offset:20)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 20
+              formalParameters
+                #F7 optionalPositional x (nameOffset:40) (firstTokenOffset:31) (offset:40)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
+                  metadata
+                    Annotation
+                      atSign: @ @31
+                      name: SimpleIdentifier
+                        token: foo @32
+                        element: <testLibrary>::@enum::E::@getter::foo
+                        staticType: null
+                      element: <testLibrary>::@enum::E::@getter::foo
+                  initializer: expression_3
+                    SimpleIdentifier
+                      token: foo @44
+                      element: <testLibrary>::@enum::E::@getter::foo
+                      staticType: int
+          getters
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+              element: <testLibrary>::@enum::E::@getter::foo
+      topLevelVariables
+        #F11 hasInitializer isOriginDeclaration foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_4
+            IntegerLiteral
+              literal: 0 @12
+              staticType: int
+      getters
+        #F12 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::foo
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @22
+              name: SimpleIdentifier
+                token: foo @23
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F3
+          type: E<dynamic>
+          constantInitializer
+            fragment: #F3
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F4
+          type: List<E<dynamic>>
+          constantInitializer
+            fragment: #F4
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        static const hasImplicitType hasInitializer isOriginDeclaration foo
+          reference: <testLibrary>::@enum::E::@field::foo
+          firstFragment: #F5
+          type: int
+          constantInitializer
+            fragment: #F5
+            expression: expression_2
+          getter: <testLibrary>::@enum::E::@getter::foo
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E1 optionalPositional hasDefaultValue x
+              firstFragment: #F7
+              type: int
+              metadata
+                Annotation
+                  atSign: @ @31
+                  name: SimpleIdentifier
+                    token: foo @32
+                    element: <testLibrary>::@enum::E::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@enum::E::@getter::foo
+              constantInitializer
+                fragment: #F7
+                expression: expression_3
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F8
+          returnType: E<dynamic>
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F9
+          returnType: List<E<dynamic>>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic static isOriginVariable foo
+          reference: <testLibrary>::@enum::E::@getter::foo
+          firstFragment: #F10
+          returnType: int
+          variable: <testLibrary>::@enum::E::@field::foo
+  topLevelVariables
+    const hasImplicitType hasInitializer isOriginDeclaration foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F11
+      type: int
+      constantInitializer
+        fragment: #F11
+        expression: expression_4
+      getter: <testLibrary>::@getter::foo
+  getters
+    synthetic static isOriginVariable foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F12
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_primaryConstructor_typeParameters() async {
+    var library = await buildLibrary('''
+enum A<T extends U, U extends num>(T t, U u) {
+  v(0, 0);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::A
+          typeParameters
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
+              element: #E0 T
+            #F3 U (nameOffset:20) (firstTokenOffset:20) (offset:20)
+              element: #E1 U
+          fields
+            #F4 hasInitializer isOriginDeclaration v (nameOffset:49) (firstTokenOffset:49) (offset:49)
+              element: <testLibrary>::@enum::A::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<int, int>
+                    element: ConstructorMember
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int, U: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @50
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @51
+                        staticType: int
+                      IntegerLiteral
+                        literal: 0 @54
+                        staticType: int
+                    rightParenthesis: ) @55
+                  staticType: A<int, int>
+            #F5 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::A::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::A::@getter::v
+                      staticType: A<int, int>
+                  rightBracket: ] @0
+                  staticType: List<A<num, num>>
+          constructors
+            #F6 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::A::@constructor::new
+              typeName: A
+              typeNameOffset: 5
+              formalParameters
+                #F7 requiredPositional t (nameOffset:37) (firstTokenOffset:35) (offset:37)
+                  element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::t
+                #F8 requiredPositional u (nameOffset:42) (firstTokenOffset:40) (offset:42)
+                  element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::u
+          getters
+            #F9 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+              element: <testLibrary>::@enum::A::@getter::v
+            #F10 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::A::@getter::values
+  enums
+    notSimplyBounded enum A
+      reference: <testLibrary>::@enum::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          bound: U
+        #E1 U
+          firstFragment: #F3
+          bound: num
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::A::@field::v
+          firstFragment: #F4
+          type: A<int, int>
+          constantInitializer
+            fragment: #F4
+            expression: expression_0
+          getter: <testLibrary>::@enum::A::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::A::@field::values
+          firstFragment: #F5
+          type: List<A<num, num>>
+          constantInitializer
+            fragment: #F5
+            expression: expression_1
+          getter: <testLibrary>::@enum::A::@getter::values
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::A::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E2 requiredPositional t
+              firstFragment: #F7
+              type: T
+            #E3 requiredPositional u
+              firstFragment: #F8
+              type: U
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::A::@getter::v
+          firstFragment: #F9
+          returnType: A<int, int>
+          variable: <testLibrary>::@enum::A::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::A::@getter::values
+          firstFragment: #F10
+          returnType: List<A<num, num>>
           variable: <testLibrary>::@enum::A::@field::values
 ''');
   }
@@ -8936,6 +9402,7 @@ library
         const declaring isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -9026,6 +9493,7 @@ library
         const declaring isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -9128,6 +9596,7 @@ library
                 literal: true @32
                 staticType: bool
               rightParenthesis: ) @36
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -9242,6 +9711,7 @@ library
               expression: IntegerLiteral
                 literal: 0 @44
                 staticType: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -9392,6 +9862,7 @@ library
               expression: IntegerLiteral
                 literal: 0 @63
                 staticType: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -9519,6 +9990,7 @@ library
             #E0 requiredPositional x
               firstFragment: #F5
               type: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -9627,6 +10099,7 @@ library
                 literal: true @46
                 staticType: bool
               rightParenthesis: ) @50
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -9719,6 +10192,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -9821,6 +10295,7 @@ library
                 literal: true @32
                 staticType: bool
               rightParenthesis: ) @36
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -9943,6 +10418,7 @@ library
                 staticInvokeType: bool Function(num)
                 staticType: bool
               rightParenthesis: ) @45
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -10053,6 +10529,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -10280,6 +10757,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -10409,6 +10887,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@def::0::@constructor::new
           firstFragment: #F3
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@def::0::@getter::values
@@ -10445,6 +10924,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@def::1::@constructor::new
           firstFragment: #F10
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@def::1::@getter::v
@@ -10531,6 +11011,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F4
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable values
           reference: <testLibrary>::@enum::A::@getter::values
@@ -10665,6 +11146,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
@@ -10838,6 +11320,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
@@ -10999,6 +11482,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
@@ -11181,6 +11665,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
@@ -11361,6 +11846,7 @@ library
             #E0 requiredPositional value
               firstFragment: #F8
               type: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v1
           reference: <testLibrary>::@enum::A::@getter::v1
@@ -11623,6 +12109,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -11761,6 +12248,7 @@ library
             #E1 requiredPositional a
               firstFragment: #F10
               type: T
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -11870,9 +12358,11 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
         const isOriginDeclaration named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F8
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -11975,6 +12465,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -12084,9 +12575,11 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -12212,6 +12705,7 @@ library
               firstFragment: #F10
               type: int
               field: <testLibrary>::@enum::A::@field::f
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -12340,6 +12834,7 @@ library
               expression: IntegerLiteral
                 literal: 0 @74
                 staticType: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -12472,6 +12967,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -12621,6 +13117,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -12766,6 +13263,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -12913,6 +13411,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -13055,6 +13554,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -13192,6 +13692,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -13322,6 +13823,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -13463,6 +13965,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -13618,6 +14121,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -13756,6 +14260,7 @@ library
               firstFragment: #F6
               type: int
               field: <testLibrary>::@enum::A::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -13885,6 +14390,7 @@ library
               expression: IntegerLiteral
                 literal: 0 @34
                 staticType: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -14012,6 +14518,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -14167,6 +14674,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -14302,6 +14810,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -14443,6 +14952,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -14574,6 +15084,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -14705,6 +15216,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -14839,6 +15351,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -15087,6 +15600,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F9
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -15240,6 +15754,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F11
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -15399,6 +15914,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F12
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -15550,6 +16066,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F12
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -15658,6 +16175,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -15777,6 +16295,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -15902,6 +16421,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -16026,6 +16546,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -16153,6 +16674,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -16281,6 +16803,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -16415,6 +16938,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -16557,6 +17081,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -16672,6 +17197,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -16837,6 +17363,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -16991,6 +17518,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -17135,6 +17663,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -17265,6 +17794,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -17411,6 +17941,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -17790,6 +18321,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -17906,6 +18438,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -18015,6 +18548,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v
@@ -18133,6 +18667,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::B::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::B::@getter::v
@@ -18260,6 +18795,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::B::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::B::@getter::v
@@ -18387,6 +18923,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::B::@constructor::new
           firstFragment: #F5
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::B::@getter::v
@@ -18407,6 +18944,668 @@ library
               firstFragment: #F9
               type: String
           returnType: int
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance() async {
+    var library = await buildLibrary(r'''
+enum E(int foo) {
+  v(0);
+  final bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:20) (firstTokenOffset:20) (offset:20)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 hasInitializer isOriginDeclaration bar (nameOffset:34) (firstTokenOffset:34) (offset:34)
+              element: <testLibrary>::@enum::E::@field::bar
+              initializer: expression_2
+                SimpleIdentifier
+                  token: foo @40
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                  staticType: int
+          constructors
+            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F6 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F9 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F4
+          type: int
+          constantInitializer
+            fragment: #F4
+            expression: expression_2
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F6
+              type: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F7
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F8
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F9
+          returnType: int
+          variable: <testLibrary>::@enum::E::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_declaringFormal() async {
+    var library = await buildLibrary(r'''
+enum E(final int foo) {
+  v(0);
+  final bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @27
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @28
+                        staticType: int
+                    rightParenthesis: ) @29
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 synthetic isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::foo
+            #F5 hasInitializer isOriginDeclaration bar (nameOffset:40) (firstTokenOffset:40) (offset:40)
+              element: <testLibrary>::@enum::E::@field::bar
+              initializer: expression_2
+                SimpleIdentifier
+                  token: foo @46
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                  staticType: int
+          constructors
+            #F6 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F7 requiredPositional final this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F8 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F9 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F10 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::foo
+            #F11 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        synthetic final isOriginDeclaringFormalParameter foo
+          reference: <testLibrary>::@enum::E::@field::foo
+          firstFragment: #F4
+          type: int
+          getter: <testLibrary>::@enum::E::@getter::foo
+          declaringFormalParameter: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+        final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F5
+          type: int
+          constantInitializer
+            fragment: #F5
+            expression: expression_2
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional final declaring this.foo
+              firstFragment: #F7
+              type: int
+              field: <testLibrary>::@enum::E::@field::foo
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F8
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F9
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic isOriginVariable foo
+          reference: <testLibrary>::@enum::E::@getter::foo
+          firstFragment: #F10
+          returnType: int
+          variable: <testLibrary>::@enum::E::@field::foo
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F11
+          returnType: int
+          variable: <testLibrary>::@enum::E::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_late() async {
+    var library = await buildLibrary(r'''
+enum E(int foo) {
+  v(0);
+  late final bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:20) (firstTokenOffset:20) (offset:20)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 hasInitializer isOriginDeclaration bar (nameOffset:39) (firstTokenOffset:39) (offset:39)
+              element: <testLibrary>::@enum::E::@field::bar
+              initializer: expression_2
+                SimpleIdentifier
+                  token: foo @45
+                  element: <null>
+                  staticType: InvalidType
+          constructors
+            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F6 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F9 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        late final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F4
+          type: InvalidType
+          constantInitializer
+            fragment: #F4
+            expression: expression_2
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F6
+              type: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F7
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F8
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F9
+          returnType: InvalidType
+          variable: <testLibrary>::@enum::E::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_typePromotion() async {
+    var library = await buildLibrary(r'''
+enum E(int? foo) {
+  v(0);
+  final bar = foo != null ? foo : 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:21) (firstTokenOffset:21) (offset:21)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @22
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @23
+                        staticType: int
+                    rightParenthesis: ) @24
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 hasInitializer isOriginDeclaration bar (nameOffset:35) (firstTokenOffset:35) (offset:35)
+              element: <testLibrary>::@enum::E::@field::bar
+              initializer: expression_2
+                ConditionalExpression
+                  condition: BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: foo @41
+                      element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                      staticType: int?
+                    operator: != @45
+                    rightOperand: NullLiteral
+                      literal: null @48
+                      staticType: Null
+                    element: dart:core::@class::num::@method::==
+                    staticInvokeType: bool Function(Object)
+                    staticType: bool
+                  question: ? @53
+                  thenExpression: SimpleIdentifier
+                    token: foo @55
+                    element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                    staticType: int
+                  colon: : @59
+                  elseExpression: IntegerLiteral
+                    literal: 0 @61
+                    staticType: int
+                  staticType: int
+          constructors
+            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F6 requiredPositional foo (nameOffset:12) (firstTokenOffset:7) (offset:12)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F9 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F4
+          type: int
+          constantInitializer
+            fragment: #F4
+            expression: expression_2
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F6
+              type: int?
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F7
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F8
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F9
+          returnType: int
+          variable: <testLibrary>::@enum::E::@field::bar
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_static() async {
+    var library = await buildLibrary(r'''
+enum E(int foo) {
+  v(0);
+  static final bar = foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:20) (firstTokenOffset:20) (offset:20)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @21
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @22
+                        staticType: int
+                    rightParenthesis: ) @23
+                  staticType: E
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+            #F4 hasInitializer isOriginDeclaration bar (nameOffset:41) (firstTokenOffset:41) (offset:41)
+              element: <testLibrary>::@enum::E::@field::bar
+          constructors
+            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 5
+              formalParameters
+                #F6 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+          getters
+            #F7 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F8 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+            #F9 synthetic isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+              element: <testLibrary>::@enum::E::@getter::bar
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const isOriginEnumValues values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+        static final hasImplicitType hasInitializer isOriginDeclaration bar
+          reference: <testLibrary>::@enum::E::@field::bar
+          firstFragment: #F4
+          type: InvalidType
+          getter: <testLibrary>::@enum::E::@getter::bar
+      constructors
+        const declaring isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional foo
+              firstFragment: #F6
+              type: int
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        synthetic static isOriginVariable v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F7
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static isOriginVariable values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F8
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+        synthetic static isOriginVariable bar
+          reference: <testLibrary>::@enum::E::@getter::bar
+          firstFragment: #F9
+          returnType: InvalidType
+          variable: <testLibrary>::@enum::E::@field::bar
 ''');
   }
 
@@ -18525,6 +19724,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F9
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable v
           reference: <testLibrary>::@enum::A::@getter::v

@@ -9,14 +9,22 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
+
+typedef SubtypeOfStructDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({
+        required String subclassName,
+        required String superclassName,
+      })
+    >;
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -167,7 +175,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // No classes from the FFI may be explicitly implemented.
     void checkSupertype(
       NamedType typename,
-      DiagnosticCode subtypeOfStructCode,
+      SubtypeOfStructDiagnosticCode subtypeOfStructCode,
     ) {
       var superName = typename.element?.name;
       if (superName == _allocatorClassName ||
@@ -175,10 +183,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return;
       }
       if (typename.isCompoundSubtype || typename.isAbiSpecificIntegerSubtype) {
-        _diagnosticReporter.atNode(
-          typename,
-          subtypeOfStructCode,
-          arguments: [node.namePart.typeName.lexeme, typename.name.lexeme],
+        _diagnosticReporter.report(
+          subtypeOfStructCode
+              .withArguments(
+                subclassName: node.namePart.typeName.lexeme,
+                superclassName: typename.name.lexeme,
+              )
+              .at(typename),
         );
       }
     }

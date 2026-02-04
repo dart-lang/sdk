@@ -65,6 +65,8 @@ class MyState extends State {
   int _count1 = 0;
   int _count2 = 0;
 
+  Widget build(BuildContext context) => throw 'unimplemented';
+
   void increment() {
     [!++_count1;
     ++_count2;!]
@@ -77,6 +79,8 @@ import 'package:flutter/widgets.dart';
 class MyState extends State {
   int _count1 = 0;
   int _count2 = 0;
+
+  Widget build(BuildContext context) => throw 'unimplemented';
 
   void increment() {
     setState(() {

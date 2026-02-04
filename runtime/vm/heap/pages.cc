@@ -175,10 +175,10 @@ void PageSpace::RemoveExecPageLocked(Page* page, Page* previous_page) {
 Page* PageSpace::AllocatePage(bool is_exec, bool link) {
   {
     MutexLocker ml(&pages_lock_);
-    if (!CanIncreaseCapacityInWordsLocked(kPageSizeInWords)) {
+    if (!CanIncreaseCapacityInWordsLocked(Page::kPageSizeInWords)) {
       return nullptr;
     }
-    IncreaseCapacityInWordsLocked(kPageSizeInWords);
+    IncreaseCapacityInWordsLocked(Page::kPageSizeInWords);
   }
   uword flags = 0;
   if (is_exec) {
@@ -187,10 +187,10 @@ Page* PageSpace::AllocatePage(bool is_exec, bool link) {
   if ((heap_ != nullptr) && (heap_->is_vm_isolate())) {
     flags |= Page::kVMIsolate;
   }
-  Page* page = Page::Allocate(kPageSize, flags);
+  Page* page = Page::Allocate(Page::kPageSize, flags);
   if (page == nullptr) {
     RELEASE_ASSERT(!FLAG_abort_on_oom);
-    IncreaseCapacityInWords(-kPageSizeInWords);
+    IncreaseCapacityInWords(-Page::kPageSizeInWords);
     return nullptr;
   }
 
@@ -323,14 +323,14 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
   if (growth_policy != kForceGrowth) {
     ASSERT(!Thread::Current()->force_growth());
     heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
-                                  kPageSize);
+                                  Page::kPageSize);
   }
 
   uword result = 0;
   SpaceUsage after_allocation = GetCurrentUsage();
   after_allocation.used_in_words += size >> kWordSizeLog2;
   // Can we grow by one page?
-  after_allocation.capacity_in_words += kPageSizeInWords;
+  after_allocation.capacity_in_words += Page::kPageSizeInWords;
   if (growth_policy == kForceGrowth ||
       !page_space_controller_.ReachedHardThreshold(after_allocation)) {
     Page* page = AllocatePage(is_exec);
@@ -464,7 +464,7 @@ void PageSpace::YieldConcurrentMarking() {
   }
 }
 
-class BasePageIterator : ValueObject {
+class BasePageIterator : public ValueObject {
  public:
   explicit BasePageIterator(const PageSpace* space) : space_(space) {}
 
@@ -760,7 +760,7 @@ void PageSpace::PrintHeapMapToJSONStream(IsolateGroup* isolate_group,
   heap_map.AddProperty("freeClassId", static_cast<intptr_t>(kFreeListElement));
   heap_map.AddProperty("unitSizeBytes",
                        static_cast<intptr_t>(kObjectAlignment));
-  heap_map.AddProperty("pageSizeBytes", kPageSizeInWords * kWordSize);
+  heap_map.AddProperty("pageSizeBytes", Page::kPageSizeInWords * kWordSize);
   {
     JSONObject class_list(&heap_map, "classList");
     isolate_group->class_table()->PrintToJSONObject(&class_list);
@@ -854,8 +854,9 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
 
   // Discount two pages to account for the newest data and code pages, whose
   // partial use doesn't indicate fragmentation.
-  const intptr_t excess_in_words =
-      usage_.capacity_in_words - usage_.used_in_words - 2 * kPageSizeInWords;
+  const intptr_t excess_in_words = usage_.capacity_in_words -
+                                   usage_.used_in_words -
+                                   2 * Page::kPageSizeInWords;
   const double excess_ratio = static_cast<double>(excess_in_words) /
                               static_cast<double>(usage_.capacity_in_words);
   const bool fragmented = excess_ratio > 0.05;
@@ -1651,7 +1652,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
         (static_cast<intptr_t>(after.CombinedUsedInWords() /
                                desired_utilization_) -
          (after.CombinedUsedInWords())) /
-        kPageSizeInWords;
+        Page::kPageSizeInWords;
     if (garbage_ratio == 0) {
       // No garbage in the previous cycle so it would be hard to compute a
       // growth_in_pages size based on estimated garbage so we use growth ratio
@@ -1682,7 +1683,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       while (min < max) {
         local_growth_in_pages = (max + min) / 2;
         const intptr_t limit = after.CombinedUsedInWords() +
-                               (local_growth_in_pages * kPageSizeInWords);
+                               (local_growth_in_pages * Page::kPageSizeInWords);
         const intptr_t allocated_before_next_gc =
             limit - (after.CombinedUsedInWords());
         const double estimated_garbage = k * allocated_before_next_gc;
@@ -1712,7 +1713,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     ASSERT(growth_in_pages >= 0);
     // Fraction of asymptote used.
     double f = static_cast<double>(after.CombinedUsedInWords() +
-                                   (kPageSizeInWords * growth_in_pages)) /
+                                   (Page::kPageSizeInWords * growth_in_pages)) /
                static_cast<double>(max_capacity_in_words);
     ASSERT(f >= 0.0);
     // Increase weight at the high end.
@@ -1723,7 +1724,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     // Discount growth more the closer we get to the desired asymptote.
     growth_in_pages = static_cast<intptr_t>(growth_in_pages * f);
     // Minimum growth step after reaching the asymptote.
-    intptr_t min_step = (2 * MB) / kPageSize;
+    intptr_t min_step = (2 * MB) / Page::kPageSize;
     growth_in_pages = Utils::Maximum(min_step, growth_in_pages);
   }
 
@@ -1740,11 +1741,11 @@ void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
     growth_in_pages = (static_cast<intptr_t>(after.CombinedUsedInWords() /
                                              desired_utilization_) -
                        (after.CombinedUsedInWords())) /
-                      kPageSizeInWords;
+                      Page::kPageSizeInWords;
   }
 
   // Apply growth cap.
-  intptr_t heap_growth_min = FLAG_new_gen_semi_max_size * MB / kPageSize;
+  intptr_t heap_growth_min = FLAG_new_gen_semi_max_size * MB / Page::kPageSize;
   growth_in_pages =
       Utils::Maximum(static_cast<intptr_t>(heap_growth_min), growth_in_pages);
   growth_in_pages =
@@ -1759,7 +1760,7 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
                                        const char* reason) {
   // Save final threshold compared before growing.
   intptr_t threshold =
-      after.CombinedUsedInWords() + (kPageSizeInWords * growth_in_pages);
+      after.CombinedUsedInWords() + (Page::kPageSizeInWords * growth_in_pages);
 
   bool concurrent_mark = FLAG_concurrent_mark && (FLAG_marker_tasks != 0);
   if (concurrent_mark) {
@@ -1772,7 +1773,7 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
 
   // Set a tight idle threshold.
   idle_gc_threshold_in_words_ =
-      after.CombinedUsedInWords() + (2 * kPageSizeInWords);
+      after.CombinedUsedInWords() + (2 * Page::kPageSizeInWords);
 
 #if defined(SUPPORT_TIMELINE)
   Thread* thread = Thread::Current();

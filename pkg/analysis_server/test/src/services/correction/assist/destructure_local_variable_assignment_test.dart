@@ -114,7 +114,7 @@ class A {
 
 A f() => A();
 
-m(var c) {
+m(c) {
   var ^obj = f();
   var b = 0;
   print(obj.a);
@@ -132,7 +132,7 @@ class A {
 
 A f() => A();
 
-m(var c) {
+m(c) {
   var A(:a, b: b2, c: c2) = f();
   var b = 0;
   print(a);
@@ -246,14 +246,14 @@ m() {
     await resolveTestCode(r'''
 (int, String) f() => (1, '');
 
-m(var $1) {
+m($1) {
   var ^rec = f();
 }
 ''');
     await assertHasAssist(r'''
 (int, String) f() => (1, '');
 
-m(var $1) {
+m($1) {
   var ($1a, $2) = f();
 }
 ''');

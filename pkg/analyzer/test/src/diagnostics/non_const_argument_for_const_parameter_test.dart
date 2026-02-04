@@ -61,6 +61,28 @@ class A {
     );
   }
 
+  test_binaryOperator_fails_inAssignment() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+void f(A a) {
+  var b = A();
+  a += b;
+}
+
+class A {
+  A operator +(@mustBeConst A other) => this;
+}
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 87, 1),
+        error(diag.experimentalMemberUse, 119, 11),
+      ],
+    );
+  }
+
   test_binaryOperator_succeeds() async {
     await assertErrorsInCode(
       r'''
@@ -80,6 +102,29 @@ class A {
       [
         error(diag.experimentalMemberUse, 37, 11),
         error(diag.experimentalMemberUse, 137, 11),
+      ],
+    );
+  }
+
+  test_binaryOperator_succeeds_inAssignment() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+void f(A a) {
+  const b = A();
+  a += b;
+}
+
+class A {
+  const A();
+
+  A operator +(@mustBeConst A other) => this;
+}
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 135, 11),
       ],
     );
   }
@@ -120,6 +165,25 @@ class C {
       [
         error(diag.experimentalMemberUse, 37, 11),
         error(diag.experimentalMemberUse, 83, 11),
+      ],
+    );
+  }
+
+  test_constructor_extensionType() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+final v = 3;
+
+final c = C(v);
+
+extension type C(@mustBeConst int it) {}
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 77, 1),
+        error(diag.experimentalMemberUse, 100, 11),
       ],
     );
   }
@@ -458,6 +522,40 @@ void g([@mustBeConst int? value]) {}
         error(diag.experimentalMemberUse, 37, 11),
         error(diag.nonConstArgumentForConstParameter, 79, 1),
         error(diag.experimentalMemberUse, 93, 11),
+      ],
+    );
+  }
+
+  test_primaryConstructor_constantLiteral_succeeds() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+final c = C(3);
+
+class C(@mustBeConst int i);
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 77, 11),
+      ],
+    );
+  }
+
+  test_primaryConstructor_variable_fails() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart' show mustBeConst;
+
+final f = 3;
+final c = C(f);
+
+class C(@mustBeConst int i);
+''',
+      [
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 76, 1),
+        error(diag.experimentalMemberUse, 90, 11),
       ],
     );
   }

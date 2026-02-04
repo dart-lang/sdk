@@ -18,8 +18,9 @@ mixin class MixinClassNamed {
   final int foo;
 
   MixinClassNamed.named(this.foo);
-  // [error column 3, length 15]
+  // [error column 3, length 21]
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+  // [error column 3, length 15]
   // [cfe] Can't use 'MixinClassNamed' as a mixin because it has constructors.
 }
 
@@ -27,15 +28,17 @@ mixin class MixinClassRedirect {
   int foo = 0;
 
   MixinClassRedirect.named(int f) {
-  // [error column 3, length 18]
+  // [error column 3, length 24]
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+  // [error column 3, length 18]
   // [cfe] Can't use 'MixinClassRedirect' as a mixin because it has constructors.
     this.foo = f;
   }
 
   MixinClassRedirect.x(int f) : this.named(f);
-  // [error column 3, length 18]
+  // [error column 3, length 20]
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+  // [error column 3, length 18]
   // [cfe] Can't use 'MixinClassRedirect' as a mixin because it has constructors.
 }
 

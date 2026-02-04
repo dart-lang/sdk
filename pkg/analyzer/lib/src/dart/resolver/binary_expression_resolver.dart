@@ -68,10 +68,10 @@ class BinaryExpressionResolver {
 
     // Report an error if not already reported by the parser.
     if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
-      _diagnosticReporter.atToken(
-        node.operator,
-        diag.notBinaryOperator,
-        arguments: [operator.lexeme],
+      _diagnosticReporter.report(
+        diag.notBinaryOperator
+            .withArguments(name: operator.lexeme)
+            .at(node.operator),
       );
     }
 
@@ -85,8 +85,9 @@ class BinaryExpressionResolver {
   }) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
-      diagnosticCode: diag.nonBoolOperand,
-      arguments: [operator],
+      locatableDiagnostic: diag.nonBoolOperand.withArguments(
+        operator: operator,
+      ),
       whyNotPromoted: whyNotPromoted,
     );
   }
@@ -123,13 +124,15 @@ class BinaryExpressionResolver {
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
-      flow?.equalityOperation_end(
+      flow?.storeExpressionInfo(
         node,
-        leftInfo,
-        SharedTypeView(left.typeOrThrow),
-        flow.equalityOperand_end(right),
-        SharedTypeView(right.typeOrThrow),
-        notEqual: notEqual,
+        flow.equalityOperation_end(
+          leftInfo,
+          SharedTypeView(left.typeOrThrow),
+          flow.equalityOperand_end(right),
+          SharedTypeView(right.typeOrThrow),
+          notEqual: notEqual,
+        ),
       );
     }
 
@@ -150,10 +153,8 @@ class BinaryExpressionResolver {
           ? diag.unnecessaryNullComparisonAlwaysNullFalse
           : diag.unnecessaryNullComparisonAlwaysNullTrue;
       var offset = start.offset;
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: end.end - offset,
-        diagnosticCode: diagnosticCode,
+      _diagnosticReporter.report(
+        diagnosticCode.atOffset(offset: offset, length: end.end - offset),
       );
     }
 
@@ -258,7 +259,11 @@ class BinaryExpressionResolver {
     left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
-    flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
+    flow?.logicalBinaryOp_rightBegin(
+      flow.getExpressionInfo(left),
+      node,
+      isAnd: true,
+    );
     _resolver.checkUnreachableNode(right);
 
     _resolver.analyzeExpression(
@@ -271,7 +276,10 @@ class BinaryExpressionResolver {
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
-    flow?.logicalBinaryOp_end(node, right, isAnd: true);
+    flow?.storeExpressionInfo(
+      node,
+      flow.logicalBinaryOp_end(flow.getExpressionInfo(right), isAnd: true),
+    );
 
     _checkNonBoolOperand(left, '&&', whyNotPromoted: leftWhyNotPromoted);
     _checkNonBoolOperand(right, '&&', whyNotPromoted: rightWhyNotPromoted);
@@ -292,7 +300,11 @@ class BinaryExpressionResolver {
     left = _resolver.popRewrite()!;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
-    flow?.logicalBinaryOp_rightBegin(left, node, isAnd: false);
+    flow?.logicalBinaryOp_rightBegin(
+      flow.getExpressionInfo(left),
+      node,
+      isAnd: false,
+    );
     _resolver.checkUnreachableNode(right);
 
     _resolver.analyzeExpression(
@@ -305,7 +317,10 @@ class BinaryExpressionResolver {
     );
 
     _resolver.nullSafetyDeadCodeVerifier.flowEnd(right);
-    flow?.logicalBinaryOp_end(node, right, isAnd: false);
+    flow?.storeExpressionInfo(
+      node,
+      flow.logicalBinaryOp_end(flow.getExpressionInfo(right), isAnd: false),
+    );
 
     _checkNonBoolOperand(left, '||', whyNotPromoted: leftWhyNotPromoted);
     _checkNonBoolOperand(right, '||', whyNotPromoted: rightWhyNotPromoted);
@@ -403,10 +418,13 @@ class BinaryExpressionResolver {
       if (member == null) {
         // Extension overrides can only be used with named extensions so it is
         // safe to assume `extension.name` is non-`null`.
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedExtensionOperator,
-          arguments: [methodName, extension.name!],
+        _diagnosticReporter.report(
+          diag.undefinedExtensionOperator
+              .withArguments(
+                operator: methodName,
+                extensionName: extension.name!,
+              )
+              .at(node.operator),
         );
       }
       node.element = member;
@@ -441,16 +459,16 @@ class BinaryExpressionResolver {
     node.staticInvokeType = result.getter2?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedSuperOperator,
-          arguments: [methodName, leftType],
+        _diagnosticReporter.report(
+          diag.undefinedSuperOperator
+              .withArguments(operator: methodName, type: leftType)
+              .at(node.operator),
         );
       } else {
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedOperator,
-          arguments: [methodName, leftType],
+        _diagnosticReporter.report(
+          diag.undefinedOperator
+              .withArguments(operator: methodName, type: leftType)
+              .at(node.operator),
         );
       }
     }

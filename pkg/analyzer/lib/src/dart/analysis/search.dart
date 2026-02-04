@@ -726,6 +726,12 @@ class Search {
   ) async {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element, searchedFiles, const {
+      IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
+      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+      IndexRelationKind.IS_READ_BY: SearchResultKind.READ,
+      IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
+      IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT:
+          SearchResultKind.REFERENCE_BY_NAMED_ARGUMENT,
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
     });
     return results;
@@ -931,8 +937,7 @@ class Search {
 
     // Prepare the enclosing node.
     var enclosingNode = node.thisOrAncestorMatching(
-      (node) =>
-          isRootNode(node) || node is ClassMember || node is CompilationUnit,
+      (node) => isRootNode(node) || node is CompilationUnit,
     );
     assert(
       enclosingNode != null && enclosingNode is! CompilationUnit,
@@ -951,20 +956,18 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Parameter(
-    FormalParameterElement parameter,
+    FormalParameterElement element,
     SearchedFiles searchedFiles,
   ) async {
     List<SearchResult> results = <SearchResult>[];
-    results.addAll(
-      await _searchReferences_Local(parameter, (AstNode node) {
-        var parent = node.parent;
-        return parent is ClassDeclaration || parent is CompilationUnit;
-      }, searchedFiles),
-    );
-    if (parameter.isNamed ||
-        parameter.isOptionalPositional ||
-        parameter.enclosingElement is ConstructorElement) {
-      results.addAll(await _searchReferences(parameter, searchedFiles));
+    if (element.enclosingElement is LocalFunctionElement) {
+      results.addAll(
+        await _searchReferences_Local(element, (node) {
+          return node is Block || node.parent is CompilationUnit;
+        }, searchedFiles),
+      );
+    } else {
+      results.addAll(await _searchReferences(element, searchedFiles));
     }
     return results;
   }
@@ -1134,6 +1137,7 @@ enum SearchResultKind {
   DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION,
   DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF,
   REFERENCE,
+  REFERENCE_BY_NAMED_ARGUMENT,
   REFERENCE_IN_PATTERN_FIELD,
   REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
   REFERENCE_IN_EXTENDS_CLAUSE,
@@ -1330,10 +1334,6 @@ class _FindLibraryDeclarations {
       throw const _MaxNumberOfDeclarationsError();
     }
 
-    if (matcher.score(name) < 0) {
-      return;
-    }
-
     var enclosing = element.enclosingElement;
 
     String? className;
@@ -1344,6 +1344,14 @@ class _FindLibraryDeclarations {
       mixinName = enclosing.name;
     } else if (enclosing is InterfaceElement) {
       className = enclosing.name;
+    }
+
+    // For constructors, include the class name as part of the searched name.
+    var filteredName = element is ConstructorElement
+        ? element.displayName
+        : name;
+    if (matcher.score(filteredName) < 0) {
+      return;
     }
 
     var kind = _getSearchElementKind(element);
@@ -1753,7 +1761,11 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
       } else if (element is VariableElement) {
         bool isGet = node.inGetterContext();
         bool isSet = node.inSetterContext();
-        if (isGet && isSet) {
+        if (element is FormalParameterElement &&
+            parent is Label &&
+            parent.parent is NamedExpression) {
+          kind = SearchResultKind.REFERENCE_BY_NAMED_ARGUMENT;
+        } else if (isGet && isSet) {
           kind = SearchResultKind.READ_WRITE;
         } else if (isGet) {
           if (parent is MethodInvocation && parent.methodName == node) {

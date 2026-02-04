@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
@@ -152,7 +153,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       ConstructorBuilder constructorBuilder = constructorIterator.current;
       if (!constructorBuilder.isConst) {
         libraryBuilder.addProblem(
-          codeEnumNonConstConstructor,
+          diag.enumNonConstConstructor,
           constructorBuilder.fileOffset,
           noLength,
           fileUri,
@@ -247,8 +248,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
           customIndexDeclaration = customIndexDeclaration?.next;
         }
         libraryBuilder.addProblem(
-          codeEnumContainsRestrictedInstanceDeclaration.withArgumentsOld(
-            restrictedInstanceMemberName,
+          diag.enumContainsRestrictedInstanceDeclaration.withArguments(
+            memberName: restrictedInstanceMemberName,
           ),
           customIndexDeclaration!.fileOffset,
           customIndexDeclaration.fullNameForErrors.length,
@@ -270,29 +271,42 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
     if (needsSynthesizedDefaultConstructor) {
+      bool isClosureContextLoweringEnabled = libraryBuilder
+          .loader
+          .target
+          .backendTarget
+          .flags
+          .isClosureContextLoweringEnabled;
       ConstructorEncodingStrategy encodingStrategy =
-          new ConstructorEncodingStrategy(this);
+          new ConstructorEncodingStrategy(
+            this,
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          );
 
       FormalParameterBuilder nameFormalParameterBuilder =
           new FormalParameterBuilder(
-            FormalParameterKind.requiredPositional,
-            Modifiers.empty,
-            libraryBuilder.loader.target.stringType,
-            "#name",
-            fileOffset,
+            kind: FormalParameterKind.requiredPositional,
+            modifiers: Modifiers.empty,
+            type: libraryBuilder.loader.target.stringType,
+            name: "#name",
+            nameOffset: null,
+            fileOffset: fileOffset,
             fileUri: fileUri,
             hasImmediatelyDeclaredInitializer: false,
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
           );
 
       FormalParameterBuilder indexFormalParameterBuilder =
           new FormalParameterBuilder(
-            FormalParameterKind.requiredPositional,
-            Modifiers.empty,
-            libraryBuilder.loader.target.intType,
-            "#index",
-            fileOffset,
+            kind: FormalParameterKind.requiredPositional,
+            modifiers: Modifiers.empty,
+            type: libraryBuilder.loader.target.intType,
+            name: "#index",
+            nameOffset: null,
+            fileOffset: fileOffset,
             fileUri: fileUri,
             hasImmediatelyDeclaredInitializer: false,
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
           );
 
       ConstructorDeclaration constructorDeclaration =
@@ -439,7 +453,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // sources. (We should add a correct message. We no longer depend on
           // Object here.)
           libraryBuilder.addProblem(
-            codeNoUnnamedConstructorInObject,
+            diag.noUnnamedConstructorInObject,
             objectClass.fileOffset,
             objectClass.name.length,
             objectClass.fileUri,
@@ -533,13 +547,16 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     if (toStringSuperTarget != null) {
       // Coverage-ignore-block(suite): Not run.
       _procedure.transformerFlags |= TransformerFlag.superCalls;
-      _procedure.function.body = new ReturnStatement(
-        new SuperMethodInvocation(
-          toStringName,
-          new Arguments([]),
-          toStringSuperTarget,
+      _procedure.function.registerFunctionBody(
+        new ReturnStatement(
+          new SuperMethodInvocation(
+            new ThisExpression(),
+            toStringName,
+            new Arguments([]),
+            toStringSuperTarget,
+          ),
         ),
-      )..parent = _procedure.function;
+      );
     } else {
       ClassBuilder enumClass =
           _underscoreEnumTypeBuilder.declaration as ClassBuilder;
@@ -549,18 +566,20 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
       assert(nameFieldBuilder != null);
       Field nameField = nameFieldBuilder!.readTarget as Field;
 
-      _procedure.function.body = new ReturnStatement(
-        new StringConcatenation([
-          new StringLiteral("${_enumBuilder.cls.demangledName}."),
-          new InstanceGet.byReference(
-            InstanceAccessKind.Instance,
-            new ThisExpression(),
-            nameField.name,
-            interfaceTargetReference: nameField.getterReference,
-            resultType: nameField.getterType,
-          ),
-        ]),
-      )..parent = _procedure.function;
+      _procedure.function.registerFunctionBody(
+        new ReturnStatement(
+          new StringConcatenation([
+            new StringLiteral("${_enumBuilder.cls.demangledName}."),
+            new InstanceGet.byReference(
+              InstanceAccessKind.Instance,
+              new ThisExpression(),
+              nameField.name,
+              interfaceTargetReference: nameField.getterReference,
+              resultType: nameField.getterType,
+            ),
+          ]),
+        ),
+      );
     }
   }
 
@@ -920,6 +939,13 @@ class _EnumValuesFieldDeclaration
     PropertyReferences references,
   ) {
     return [references.getterReference];
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      "${runtimeType}.takePrimaryConstructorFieldInitializer",
+    );
   }
 }
 

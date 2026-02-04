@@ -24,6 +24,15 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
     InstanceCreationExpression child,
     bool parentHadSingleChild,
   ) async {
+    // Find the expression that corresponds to the child.
+    NamedExpression? childArgumentInParent;
+    for (var arg in parent.argumentList.arguments) {
+      if (arg is NamedExpression && arg.expression == child) {
+        childArgumentInParent = arg;
+        break;
+      }
+    }
+
     // The child must have its own single child.
     AstNode stableChild;
     if (_singleChildInChildren(child) case var first?) {
@@ -73,7 +82,8 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
         // Write all arguments of the parent.
         // Don't write its child/children.
         for (var argument in parentArgs.arguments) {
-          if (!argument.isChildArgument && !argument.isChildrenArgument) {
+          if (argument != childArgumentInParent &&
+              !argument.isChildrenArgument) {
             var text = utils.getNodeText(argument);
             text = utils.replaceSourceIndent(text, parentIndent, childIndent);
             builder.write(childIndent);
@@ -94,7 +104,12 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
           builder.write(childIndent);
           builder.write('  ');
           if (parentHadSingleChild) {
-            builder.write('child: ');
+            if (childArgumentInParent != null) {
+              builder.write(childArgumentInParent.name.label.name);
+              builder.write(': ');
+            } else {
+              builder.write('child: ');
+            }
           } else {
             builder.write('children: [');
             builder.writeln();

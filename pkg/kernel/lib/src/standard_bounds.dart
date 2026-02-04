@@ -434,14 +434,14 @@ mixin StandardBounds {
           when isSubtypeOf(
               greatestClosureForLowerBound(type1WithoutNullabilityMarker),
               greatestClosureForLowerBound(type2WithoutNullabilityMarker)):
-        return type1.withDeclaredNullability(intersectNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
+        return type1.withDeclaredNullability(
+            intersectNullabilities(type1.nullability, type2.nullability));
       case (_, _)
           when isSubtypeOf(
               greatestClosureForLowerBound(type2WithoutNullabilityMarker),
               greatestClosureForLowerBound(type1WithoutNullabilityMarker)):
-        return type2.withDeclaredNullability(intersectNullabilities(
-            type2.declaredNullability, type1.declaredNullability));
+        return type2.withDeclaredNullability(
+            intersectNullabilities(type2.nullability, type1.nullability));
 
       // See
       // https://github.com/dart-lang/sdk/issues/37439#issuecomment-519654959.

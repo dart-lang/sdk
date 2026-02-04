@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -20,6 +19,7 @@ import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
@@ -204,10 +204,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.element = element;
 
     if (element == null) {
-      _diagnosticReporter.atToken(
-        node.name,
-        diag.undefinedIdentifier,
-        arguments: [name],
+      _diagnosticReporter.report(
+        diag.undefinedIdentifier.withArguments(name: name).at(node.name),
       );
     } else if (!(element is LocalVariableElement ||
         element is FormalParameterElement)) {
@@ -607,7 +605,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       _withNameScope(() {
         var typeParameters = node.primaryConstructor.typeParameters;
         _buildTypeParameterElements(typeParameters);
-        typeParameters?.accept(this);
 
         node.primaryConstructor.accept(this);
 
@@ -1212,9 +1209,30 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+    if (node.declaration case var declaration?) {
+      var fragment = declaration.declaredFragment!;
+      _withElementHolder(ElementHolder(fragment), () {
+        _withNameScope(() {
+          _defineFormalParameters(fragment.element.formalParameters);
+          _withElementWalker(null, () {
+            super.visitPrimaryConstructorBody(node);
+          });
+        });
+      });
+    } else {
+      _withElementWalker(null, () {
+        super.visitPrimaryConstructorBody(node);
+      });
+    }
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
+    node.typeParameters?.accept(this);
+
     var fragment = _elementWalker!.getConstructor();
     node.declaredFragment = fragment;
 
@@ -1752,7 +1770,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    DiagnosticCode? diagnosticCode;
+    LocatableDiagnostic? diagnosticCode;
     switch (clause) {
       case null:
         if (declaration is ClassTypeAlias) {
@@ -1781,10 +1799,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var firstToken = namedType.importPrefix?.name ?? namedType.name;
     var offset = firstToken.offset;
     var length = namedType.name.end - offset;
-    _diagnosticReporter.atOffset(
-      offset: offset,
-      length: length,
-      diagnosticCode: diagnosticCode,
+    _diagnosticReporter.report(
+      diagnosticCode.atOffset(offset: offset, length: length),
     );
   }
 
@@ -1859,10 +1875,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var typeSystem = _libraryElement.typeSystem;
 
     if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
-      _diagnosticReporter.atNode(
-        node,
-        diag.extensionTypeImplementsDisallowedType,
-        arguments: [type],
+      _diagnosticReporter.report(
+        diag.extensionTypeImplementsDisallowedType
+            .withArguments(type: type)
+            .at(node),
       );
       return;
     }
@@ -1881,25 +1897,25 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           declaredRepresentation,
           implementedRepresentation,
         )) {
-          _diagnosticReporter.atNode(
-            node,
-            diag.extensionTypeImplementsRepresentationNotSupertype,
-            arguments: [
-              implementedRepresentation,
-              type.element.name ?? '',
-              declaredRepresentation,
-              declaredFragment.name ?? '',
-            ],
+          _diagnosticReporter.report(
+            diag.extensionTypeImplementsRepresentationNotSupertype
+                .withArguments(
+                  implementedRepresentationType: implementedRepresentation,
+                  implementedExtensionTypeName: type.element.name ?? '',
+                  representationType: declaredRepresentation,
+                  extensionTypeName: declaredFragment.name ?? '',
+                )
+                .at(node),
           );
         }
         return;
       }
     }
 
-    _diagnosticReporter.atNode(
-      node,
-      diag.extensionTypeImplementsNotSupertype,
-      arguments: [type, declaredRepresentation],
+    _diagnosticReporter.report(
+      diag.extensionTypeImplementsNotSupertype
+          .withArguments(type: type, representationType: declaredRepresentation)
+          .at(node),
     );
   }
 
@@ -2062,10 +2078,10 @@ class _VariableBinderErrors
     required String name,
     required PromotableElementImpl variable,
   }) {
-    visitor._diagnosticReporter.atNode(
-      hasInLeft ? node.rightOperand : node.leftOperand,
-      diag.missingVariablePattern,
-      arguments: [name],
+    visitor._diagnosticReporter.report(
+      diag.missingVariablePattern
+          .withArguments(name: name)
+          .at(hasInLeft ? node.rightOperand : node.leftOperand),
     );
   }
 }

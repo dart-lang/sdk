@@ -3,7 +3,7 @@ name: analysis_server
 publish_to: none
 
 environment:
-  sdk: '^3.10.0'
+  sdk: "^3.10.0"
 
 resolution: workspace
 
@@ -26,6 +26,7 @@ dependencies:
   memory_usage: any
   meta: any
   path: any
+  perf_witness: any
   pub_semver: any
   stream_channel: any
   telemetry: any
@@ -40,9 +41,11 @@ dev_dependencies:
   analyzer_testing: any
   analyzer_utilities: any
   cli_util: any
+  glob: any
   lints: any
   logging: any
   matcher: any
+  package_config: any
   test: any
   test_descriptor: any
   test_reflective_loader: any

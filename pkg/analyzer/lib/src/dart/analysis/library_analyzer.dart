@@ -545,7 +545,7 @@ class LibraryAnalyzer {
     // Unused local elements.
     unit.accept(
       UnusedLocalElementsVerifier(
-        fileAnalysis.diagnosticListener,
+        fileAnalysis.diagnosticReporter,
         usedElements,
         _libraryElement,
       ),
@@ -718,10 +718,10 @@ class LibraryAnalyzer {
           errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state.importedLibrarySource == null) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.importOfNonLibrary,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          diag.importOfNonLibrary
+              .withArguments(uri: selectedUriStr)
+              .at(directive.uri),
         );
       }
     } else if (state is LibraryImportWithUriStr) {
@@ -929,10 +929,10 @@ class LibraryAnalyzer {
           errorCode.withArguments(uriStr: selectedUriStr).at(directive.uri),
         );
       } else if (state.exportedLibrarySource == null) {
-        diagnosticReporter.atNode(
-          directive.uri,
-          diag.exportOfNonLibrary,
-          arguments: [selectedUriStr],
+        diagnosticReporter.report(
+          diag.exportOfNonLibrary
+              .withArguments(uri: selectedUriStr)
+              .at(directive.uri),
         );
       }
     } else if (state is LibraryExportWithUriStr) {

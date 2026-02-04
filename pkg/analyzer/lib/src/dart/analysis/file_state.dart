@@ -30,7 +30,6 @@ import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/exception/exception.dart';
@@ -161,31 +160,6 @@ abstract class FileContent {
   String get contentHash;
 
   bool get exists;
-}
-
-/// [FileContentOverlay] is used to temporary override content of files.
-class FileContentOverlay {
-  final _map = <String, String>{};
-
-  /// Return the paths currently being overridden.
-  Iterable<String> get paths => _map.keys;
-
-  /// Return the content of the file with the given [path], or `null` the
-  /// overlay does not override the content of the file.
-  ///
-  /// The [path] must be absolute and normalized.
-  String? operator [](String path) => _map[path];
-
-  /// Return the new [content] of the file with the given [path].
-  ///
-  /// The [path] must be absolute and normalized.
-  void operator []=(String path, String? content) {
-    if (content == null) {
-      _map.remove(path);
-    } else {
-      _map[path] = content;
-    }
-  }
 }
 
 abstract class FileContentStrategy {
@@ -545,11 +519,6 @@ class FileState {
     return _driverUnlinkedUnit!.definedClassMemberNames;
   }
 
-  /// The top-level names defined by the file.
-  Set<String> get definedTopLevelNames {
-    return _driverUnlinkedUnit!.definedTopLevelNames;
-  }
-
   /// Return `true` if the file exists.
   bool get exists => _fileContent!.exists;
 
@@ -577,9 +546,6 @@ class FileState {
   UnlinkedUnit get unlinked2 => _unlinked2!;
 
   String get unlinkedKey => _unlinkedKey!;
-
-  /// The MD5 signature based on the content, feature sets, language version.
-  Uint8List get unlinkedSignature => _unlinkedSignature!;
 
   /// Return the [uri] string.
   String get uriStr => uri.toString();
@@ -614,8 +580,8 @@ class FileState {
     return performance.run('parseCode', (performance) {
       performance.getDataInt('length').add(code.length);
 
-      CharSequenceReader reader = CharSequenceReader(code);
-      Scanner scanner = Scanner(source, reader, diagnosticListener)
+      var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
+      Scanner scanner = Scanner(code, diagnosticReporter)
         ..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet.restrictToVersion(packageLanguageVersion),
@@ -628,8 +594,7 @@ class FileState {
       );
 
       Parser parser = Parser(
-        source,
-        diagnosticListener,
+        diagnosticReporter,
         featureSet: scanner.featureSet,
         lineInfo: lineInfo,
         languageVersion: languageVersion,
@@ -1187,6 +1152,7 @@ class FileStateTestView {
 
   FileStateTestView(this.file);
 
+  @visibleForTesting
   String get unlinkedKey => file._unlinkedKey!;
 }
 
@@ -1522,7 +1488,7 @@ class FileSystemState {
   }
 
   AnalysisOptionsImpl _getAnalysisOptions(File file) =>
-      _analysisOptionsMap.getOptions(file);
+      _analysisOptionsMap[file];
 
   FeatureSet _getFeatureSet(
     String path,
@@ -1870,7 +1836,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   /// The files extracted from [fileKinds].
   List<FileState> get files {
-    return fileKinds.map((kind) => kind.file).toList();
+    return fileKinds.map((kind) => kind.file).toSet().toList();
   }
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;

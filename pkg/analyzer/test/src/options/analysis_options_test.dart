@@ -6,6 +6,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
@@ -27,7 +28,9 @@ main() {
 
 @reflectiveTest
 class AnalysisOptionsTest {
-  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
+  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider(
+    SourceFactoryImpl([]),
+  );
 
   final resourceProvider = MemoryResourceProvider();
 
@@ -385,6 +388,38 @@ plugins:
     );
   }
 
+  test_plugins_dependency_overrides_versionConstraintHosted() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one: ^1.2.3
+  dependency_overrides:
+    some_package1:
+      version: ^3.2.1
+      hosted: https://example.com/packages/
+''');
+
+    var dependencyOverrides =
+        analysisOptions.pluginsOptions.dependencyOverrides;
+    expect(dependencyOverrides, isNotNull);
+    expect(dependencyOverrides, hasLength(1));
+
+    var packageOverride = dependencyOverrides!.entries.singleOrNull;
+    expect(packageOverride, isNotNull);
+    expect(packageOverride!.key, 'some_package1');
+    expect(
+      packageOverride.value,
+      isA<VersionedPluginSource>().having(
+        (e) => e.toYaml(name: 'some_package1'),
+        'toYaml',
+        '''
+  some_package1:
+    version: ^3.2.1
+    hosted: https://example.com/packages/
+''',
+      ),
+    );
+  }
+
   test_plugins_pathConstraint() {
     var analysisOptions = parseOptions('''
 plugins:
@@ -491,6 +526,50 @@ plugins:
         '  plugin_one: ^1.2.3\n',
       ),
     );
+  }
+
+  test_plugins_versionConstraintHosted() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    version: ^1.2.3
+    hosted: https://example.com/packages/
+''');
+
+    var configuration = analysisOptions.pluginConfigurations.single;
+    expect(configuration.isEnabled, isTrue);
+    expect(configuration.name, 'plugin_one');
+    expect(
+      configuration.source,
+      isA<VersionedPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '''
+  plugin_one:
+    version: ^1.2.3
+    hosted: https://example.com/packages/
+''',
+      ),
+    );
+  }
+
+  test_signature_differs_for_hosted_plugin() {
+    var options = parseOptions('''
+plugins:
+  plugin_one:
+    version: ^1.2.3
+    hosted: https://example.com/packages/
+''');
+    var sig1 = options.signature;
+
+    for (var i = 0; i < 10; i++) {
+      var options2 = parseOptions('''
+plugins:
+  plugin_one: ^1.2.3
+''');
+      var sig2 = options2.signature;
+      expect(sig1, isNot(sig2));
+    }
   }
 
   test_signature_on_different_error_ordering() {

@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -852,7 +853,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     }
 
     var constructorElement = node.constructorName.element?.baseElement
-        .ifTypeOrNull<ConstructorElementImpl>();
+        .tryCast<ConstructorElementImpl>();
     if (constructorElement == null) {
       return InvalidConstant.forEntity(
         entity: node,
@@ -2685,24 +2686,19 @@ class DartObjectComputer {
     var rawType = function.type;
     if (rawType is FunctionTypeImpl) {
       if (typeArguments.length != rawType.typeParameters.length) {
+        InvocationTarget? target;
         if (node is SimpleIdentifier) {
-          return InvalidConstant.forEntity(
-            entity: typeArgumentsErrorNode,
-            locatableDiagnostic: diag.wrongNumberOfTypeArgumentsFunction
-                .withArguments(
-                  functionName: node.name,
-                  typeParameterCount: rawType.typeParameters.length,
-                  typeArgumentCount: typeArguments.length,
-                ),
-          );
+          if (node.element case ExecutableElement e) {
+            target = InvocationTargetExecutableElement(e);
+          }
         }
+        target ??= InvocationTargetFunctionTypedExpression(rawType);
         return InvalidConstant.forEntity(
           entity: typeArgumentsErrorNode,
-          locatableDiagnostic: diag.wrongNumberOfTypeArgumentsAnonymousFunction
-              .withArguments(
-                typeParameterCount: rawType.typeParameters.length,
-                typeArgumentCount: typeArguments.length,
-              ),
+          locatableDiagnostic: target.wrongNumberOfTypeArgumentsError(
+            typeParameterCount: rawType.typeParameters.length,
+            typeArgumentCount: typeArguments.length,
+          ),
         );
       }
       var type = rawType.instantiate(typeArguments);
@@ -2987,11 +2983,15 @@ class _InstanceCreationEvaluator {
     var positionalIndex = 0;
     for (var parameter in _constructor.formalParameters) {
       if (parameter is SuperFormalParameterElement) {
+        var parameterName = _getParameterName(parameter);
+        if (parameterName == null) {
+          continue;
+        }
         var value =
             SimpleIdentifierImpl(
                 token: StringToken(
                   TokenType.STRING,
-                  parameter.name ?? '',
+                  parameterName,
                   parameter.firstFragment.nameOffset ?? -1,
                 ),
               )
@@ -3006,7 +3006,7 @@ class _InstanceCreationEvaluator {
                 label: SimpleIdentifierImpl(
                   token: StringToken(
                     TokenType.STRING,
-                    parameter.name ?? '',
+                    parameterName,
                     parameter.firstFragment.nameOffset ?? -1,
                   ),
                 )..element = parameter,
@@ -3116,15 +3116,6 @@ class _InstanceCreationEvaluator {
         switch (evaluationResult) {
           case DartObjectImpl():
             var fieldName = initializer.fieldName.name;
-            if (_fieldMap.containsKey(fieldName)) {
-              return _InitializersEvaluationResult(
-                InvalidConstant.forEntity(
-                  entity: _errorNode,
-                  locatableDiagnostic: diag.constEvalThrowsException,
-                ),
-                evaluationIsComplete: true,
-              );
-            }
             _fieldMap[fieldName] = evaluationResult;
             var getter = definingType.getGetter(fieldName);
             if (getter != null) {
@@ -3386,16 +3377,13 @@ class _InstanceCreationEvaluator {
               }
             }
             var fieldName = field.name ?? '';
-            if (_fieldMap.containsKey(fieldName)) {
-              return InvalidConstant.forEntity(
-                entity: _errorNode,
-                locatableDiagnostic: diag.constEvalThrowsException,
-              );
-            }
             _fieldMap[fieldName] = argumentValue;
           }
         }
-        _parameterMap[baseParameter.name ?? ''] = argumentValue;
+        var parameterName = _getParameterName(baseParameter);
+        if (parameterName != null) {
+          _parameterMap[parameterName] = argumentValue;
+        }
       }
     }
     return null;
@@ -3515,6 +3503,20 @@ class _InstanceCreationEvaluator {
         _typeParameterMap[typeParameter] = typeArgument;
       }
     }
+  }
+
+  String? _getParameterName(FormalParameterElement parameter) {
+    var name = parameter.name;
+    if (parameter case FieldFormalParameterElement(:var privateName?)) {
+      name = privateName;
+    }
+    if (name == '_') {
+      var index = _constructor.formalParameters.indexOf(
+        parameter as InternalFormalParameterElement,
+      );
+      return '_#$index';
+    }
+    return name;
   }
 
   /// Returns a context message that mimics a stack trace where [superConstructor] is

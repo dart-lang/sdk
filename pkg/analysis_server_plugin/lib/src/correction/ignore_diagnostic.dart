@@ -4,6 +4,7 @@
 
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
+import 'package:analysis_server_plugin/src/plugin_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -70,8 +71,19 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
     }
 
     await builder.addYamlFileEdit(analysisOptionsFile.path, (builder) {
-      var editor = YamlEditor(content);
-      var options = loadYamlNode(content);
+      YamlEditor editor;
+      try {
+        editor = YamlEditor(content);
+      } on YamlException {
+        // If the `analysis_options.yaml` does not have a valid format, a
+        // `YamlException` is thrown (e.g. a label without a value). In such
+        // case, do not suggest a fix.
+        //
+        // TODO(osaxma): check if the `analysis_options.yaml` is a valid before
+        // calling the builder to avoid unnecessary processing.
+        return;
+      }
+      var options = editor.parseAt([]);
       List<String> path;
       Object value;
       if (options is! YamlMap) {
@@ -96,13 +108,22 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 
       try {
         editor.update(path, value);
-      } on YamlException {
-        // If the `analysis_options.yaml` does not have a valid format, a
-        // `YamlException` is thrown (e.g. a label without a value). In such
-        // case, do not suggest a fix.
+      } on AssertionError {
+        // package:yaml_edit modifies the YAML source and it is known to have a
+        // few bugs. There is ongoing to work to fix these bugs, but in practice
+        // modifying YAML source can be fragile. Thus, YamlEditor will check if
+        // result is valid YAML and matches the semantic expectations.
+        // If not YamlEditor will throw an AssertionError, since this is an
+        // internal error.
         //
-        // TODO(osaxma): check if the `analysis_options.yaml` is a valid before
-        // calling the builder to avoid unnecessary processing.
+        // In the case of producing fixes, it's probably preferable to not
+        // suggest a fix, if we fail to produce one.
+        return;
+      } on YamlException {
+        // Same issue as above, remove when YamlEditor throws AssertionError
+        // instead of YamlException, which should never be thrown here.
+        // TODO(jonasfj): Remove this after landing and rolling to the Dart SDK:
+        //                https://github.com/dart-lang/tools/pull/2299
         return;
       }
 
@@ -253,7 +274,19 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   @override
   List<String> get fixArguments => [_code];
 
-  String get _code => diagnostic.diagnosticCode.lowerCaseName;
+  String get _code {
+    var code = diagnostic.diagnosticCode.lowerCaseName;
+    for (var entry in PluginServer.registries.entries) {
+      if (int.tryParse(entry.key) != null) {
+        // Skip numeric keys (we don't know the plugin name).
+        continue;
+      }
+      if (entry.value.codeMap.containsValue(diagnostic.diagnosticCode)) {
+        return '${entry.key}/$code';
+      }
+    }
+    return code;
+  }
 
   /// Returns `true` if any of the following is `true`:
   /// - `error.code` is present in the `cannot-ignore` list.

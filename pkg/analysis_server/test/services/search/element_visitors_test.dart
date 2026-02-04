@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,9 +26,9 @@ class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
   LibraryFragment get testUnitFragment => testUnit.declaredFragment!;
 
   @override
-  Future<void> resolveTestCode(String content) {
+  Future<void> resolveTestCode(String content, {List<DiagnosticCode>? ignore}) {
     code = TestCode.parseNormalized(content);
-    return super.resolveTestCode(code.code);
+    return super.resolveTestCode(code.code, ignore: ignore);
   }
 
   Future<void> test_class() async {

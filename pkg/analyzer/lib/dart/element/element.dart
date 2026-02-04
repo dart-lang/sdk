@@ -1219,7 +1219,7 @@ abstract class ExtensionTypeElement implements InterfaceElement {
   @override
   List<ExtensionTypeFragment> get fragments;
 
-  /// The primary constructor of this extension.
+  @override
   ConstructorElement get primaryConstructor;
 
   /// The representation of this extension.
@@ -1936,6 +1936,10 @@ abstract class InterfaceElement implements InstanceElement {
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
   List<InterfaceType> get mixins;
+
+  /// The primary constructor of this element, or `null` if this element has no
+  /// primary constructor.
+  ConstructorElement? get primaryConstructor;
 
   /// The superclass of this element.
   ///
@@ -3039,7 +3043,7 @@ abstract class PropertyInducingElement implements VariableElement {
 
   /// Whether the property is from a getter or setter.
   ///
-  /// When this is `true`, [isOriginGetterSetter] is `false`.
+  /// When this is `true`, [isOriginDeclaration] is `false`.
   bool get isOriginGetterSetter;
 
   @Deprecated('Use isOriginX instead')

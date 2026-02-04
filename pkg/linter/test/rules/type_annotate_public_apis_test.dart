@@ -7,8 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../rule_test_support.dart';
 
 void main() {
-  // TODO(srawlins): Add tests with constructor parameters, enums, unnamed
-  // extensions.
+  // TODO(srawlins): Add tests with enums, unnamed extensions.
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeAnnotatePublicApisTest);
   });
@@ -163,6 +162,108 @@ augment var x;
 
     await assertDiagnosticsInFile(a.path, [lint(20, 1)]);
     await assertNoDiagnosticsInFile(b.path);
+  }
+
+  test_enumConstructor_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+enum E {
+  one(0);
+
+  const E(p);
+}
+''');
+  }
+
+  test_instanceConstructor_namedParameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int? p});
+}
+''');
+  }
+
+  test_instanceConstructor_namedParameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A({p});
+}
+''',
+      [lint(15, 1)],
+    );
+  }
+
+  test_instanceConstructor_optionalPositionalParameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A([int? p]);
+}
+''');
+  }
+
+  test_instanceConstructor_optionalPositionalParameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A([p]);
+}
+''',
+      [lint(15, 1)],
+    );
+  }
+
+  test_instanceConstructor_parameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A(p);
+}
+''',
+      [lint(14, 1)],
+    );
+  }
+
+  test_instanceConstructor_positionalParameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int p);
+}
+''');
+  }
+
+  test_instanceConstructor_privateClass_publicUnnamed_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+class _A {
+  _A(p);
+}
+''');
+  }
+
+  test_instanceConstructor_privateNamed_parameterMissingType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A._(p);
+}
+''');
+  }
+
+  test_instanceConstructor_requiredNamedParameterHasType() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required int p});
+}
+''');
+  }
+
+  test_instanceConstructor_requiredNamedParameterMissingType() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A({required p});
+}
+''',
+      [lint(15, 10)],
+    );
   }
 
   test_instanceField_onClass_hasInitializer() async {
@@ -423,11 +524,12 @@ class A {
   test_staticMethod_onClass_parameterHasVar() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class A {
   static void m(var p) {}
 }
 ''',
-      [lint(26, 5)],
+      [lint(42, 5)],
     );
   }
 

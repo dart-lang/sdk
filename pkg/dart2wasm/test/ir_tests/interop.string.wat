@@ -4,98 +4,66 @@
   (type $JSStringImpl (sub final $#Top (struct
     (field $field0 i32)
     (field $_ref externref))))
-  (func $"dart2wasm._295 (import)" (import "dart2wasm" "_295") (param externref) (result externref))
-  (func $"dart2wasm._296 (import)" (import "dart2wasm" "_296") (param externref) (result externref))
+  (func $"dart2wasm._298 (import)" (import "dart2wasm" "_298") (param externref) (result externref))
+  (func $"dart2wasm._299 (import)" (import "dart2wasm" "_299") (param externref) (result externref))
   (global $.a (import "" "a") (ref extern))
   (global $"stringValueNullable initialized" (mut i32) <...>)
   (global $stringValueNullable (mut (ref null $JSStringImpl)) <...>)
-  (func $_throwArgumentNullError <noInline>  <...>)
   (func $ktrue implicit getter (result i32) <...>)
   (func $new JSStringImpl.fromRef (param $var0 externref) (result (ref $JSStringImpl)) <...>)
   (func $sinkString <noInline> (param $var0 (ref $JSStringImpl)) <...>)
   (func $sinkStringNullable <noInline> (param $var0 (ref null $JSStringImpl)) <...>)
   (func $stringValue implicit getter (result (ref $JSStringImpl)) <...>)
   (func $"testStringConstant <noInline>"
-    (local $var0 externref)
     global.get $.a
-    call $"dart2wasm._295 (import)"
-    local.tee $var0
-    call $isDartNull
-    if (result (ref $JSStringImpl))
-      call $"_throwArgumentNullError <noInline>"
-      unreachable
-    else
-      local.get $var0
-      call $"new JSStringImpl.fromRef"
-    end
+    call $"dart2wasm._298 (import)"
+    call $"new JSStringImpl.fromRef"
     call $"sinkString <noInline>"
   )
   (func $"testStringConstantNullable <noInline>"
-    (local $var0 externref)
     ref.null noextern
-    call $"dart2wasm._296 (import)"
-    local.tee $var0
-    call $isDartNull
-    if (result (ref null $JSStringImpl))
-      ref.null none
-    else
-      local.get $var0
-      call $"new JSStringImpl.fromRef"
-    end
+    call $"dart2wasm._299 (import)"
+    call $JSStringImpl.fromRefNullable
     call $"sinkStringNullable <noInline>"
   )
   (func $"testStringValue <noInline>"
-    (local $var0 externref)
     call $"stringValue implicit getter"
     struct.get $JSStringImpl $_ref
-    call $"dart2wasm._295 (import)"
-    local.tee $var0
-    call $isDartNull
-    if (result (ref $JSStringImpl))
-      call $"_throwArgumentNullError <noInline>"
-      unreachable
-    else
-      local.get $var0
-      call $"new JSStringImpl.fromRef"
-    end
+    call $"dart2wasm._298 (import)"
+    call $"new JSStringImpl.fromRef"
     call $"sinkString <noInline>"
   )
   (func $"testStringValueNullable <noInline>"
     (local $var0 (ref null $JSStringImpl))
-    (local $var1 externref)
+    (local $var1 (ref null $JSStringImpl))
     global.get $"stringValueNullable initialized"
-    i32.eqz
-    if
+    if (result (ref null $JSStringImpl))
+      global.get $stringValueNullable
+    else
       call $"ktrue implicit getter"
       if (result (ref null $JSStringImpl))
         call $"stringValue implicit getter"
       else
         ref.null none
       end
+      local.tee $var0
       global.set $stringValueNullable
       i32.const 1
       global.set $"stringValueNullable initialized"
+      local.get $var0
     end
-    global.get $stringValueNullable
-    local.tee $var0
+    local.tee $var1
     ref.is_null
     if (result externref)
       ref.null noextern
     else
-      local.get $var0
+      local.get $var1
       call $jsifyRaw
     end
-    call $"dart2wasm._296 (import)"
-    local.tee $var1
-    call $isDartNull
-    if (result (ref null $JSStringImpl))
-      ref.null none
-    else
-      local.get $var1
-      call $"new JSStringImpl.fromRef"
-    end
+    call $"dart2wasm._299 (import)"
+    call $JSStringImpl.fromRefNullable
     call $"sinkStringNullable <noInline>"
   )
-  (func $isDartNull (param $var0 externref) (result i32) <...>)
+  (func $JSStringImpl.fromRefNullable (param $var0 externref) (result (ref null $JSStringImpl)) <...>)
   (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
 )

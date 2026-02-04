@@ -490,14 +490,9 @@ class MultiTargetAnnotations {
 
 class BuildInitializersResult {
   final List<Initializer> initializers;
-  final bool needsImplicitSuperInitializer;
   final PendingAnnotations? annotations;
 
-  BuildInitializersResult(
-    this.initializers,
-    this.needsImplicitSuperInitializer,
-    this.annotations,
-  );
+  BuildInitializersResult(this.initializers, this.annotations);
 }
 
 class BuildParameterInitializerResult {
@@ -521,31 +516,36 @@ class BuildFieldsResult {
 }
 
 class BuildPrimaryConstructorResult {
-  final FormalParameters? formals;
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
-  BuildPrimaryConstructorResult(
-    this.formals,
-    this.initializers,
-    this.annotations,
-  );
+  BuildPrimaryConstructorResult(this.initializers, this.annotations);
 }
 
 class BuildFunctionBodyResult {
-  final FormalParameters? formals;
-  final AsyncMarker asyncModifier;
+  final AsyncMarker asyncMarker;
   final Statement? body;
   final List<Initializer> initializers;
-  final bool needsImplicitSuperInitializer;
   final PendingAnnotations? annotations;
 
   BuildFunctionBodyResult({
-    required this.formals,
-    required this.asyncModifier,
+    required this.asyncMarker,
     required this.body,
     required this.initializers,
-    required this.needsImplicitSuperInitializer,
+    required this.annotations,
+  });
+}
+
+class BuildPrimaryConstructorBodyResult {
+  final AsyncMarker asyncMarker;
+  final Statement? body;
+  final List<Initializer> initializers;
+  final PendingAnnotations? annotations;
+
+  BuildPrimaryConstructorBodyResult({
+    required this.asyncMarker,
+    required this.body,
+    required this.initializers,
     required this.annotations,
   });
 }

@@ -43,10 +43,41 @@ class PerfWitnessServer {
     this._recorderSocketPath,
   ) : _isRecordingTimelineWithAsyncSpans = calloc(ffi.sizeOf<ffi.Bool>());
 
-  static Future<void> start({String? tag}) async {
-    if (_instance != null) {
-      return;
+  /// Starts [PerfWitnessServer] instance if necessary.
+  ///
+  /// This does nothing if there is already another instance running in the
+  /// same process.
+  ///
+  /// If [inBackground] is `true` then server start will happen
+  /// concurrently in background and the returned [Future] will compelete
+  /// immediately, unless there is a recorder process monitoring start
+  /// of new processes.
+  static Future<void> start({String? tag, bool inBackground = false}) {
+    if (_instance == null) {
+      try {
+        final started = _startImpl(tag: tag);
+        if (inBackground && !_isRecorderProcessPossiblyActive) {
+          started.ignore();
+        } else {
+          return started;
+        }
+      } catch (_) {
+        // Ignore any issues with starting up.
+      }
     }
+
+    return Future.value();
+  }
+
+  static bool get _isRecorderProcessPossiblyActive {
+    if (recorderSocketPath case final path?) {
+      return io.FileSystemEntity.typeSync(path) == .unixDomainSock;
+    }
+    return false;
+  }
+
+  static Future<void> _startImpl({required String? tag}) async {
+    assert(_instance != null);
 
     if (controlSocketPath case final socketPath?) {
       if (io.FileSystemEntity.typeSync(socketPath) == .unixDomainSock) {
@@ -63,6 +94,7 @@ class PerfWitnessServer {
                   'process._isRecordingTimelineWithAsyncSpansAddr',
                 )
                 as Map<String, dynamic>;
+        client.close().ignore(); // Don't leave the client open.
         // Just double check that we are the very same process.
         if (pid != io.pid) {
           return;

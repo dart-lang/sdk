@@ -4,9 +4,9 @@
 
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/element_usage_detector.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 /// Normalizes a deprecation message in preparation for presenting it to the
 /// user.
@@ -46,16 +46,14 @@ class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
   }) {
     if (isInSamePackage) return;
     if (normalizeDeprecationMessage(tagInfo) case var message?) {
-      _diagnosticReporter.atEntity(
-        usageSite,
-        diag.deprecatedMemberUseWithMessage,
-        arguments: [displayName, message],
+      _diagnosticReporter.report(
+        diag.deprecatedMemberUseWithMessage
+            .withArguments(name: displayName, details: message)
+            .at(usageSite),
       );
     } else {
-      _diagnosticReporter.atEntity(
-        usageSite,
-        diag.deprecatedMemberUse,
-        arguments: [displayName],
+      _diagnosticReporter.report(
+        diag.deprecatedMemberUse.withArguments(name: displayName).at(usageSite),
       );
     }
   }

@@ -1,0 +1,11 @@
+library;
+import self as self;
+
+static method foo1(positional-parameter a) → dynamic
+  ;
+static method foo2(positional-parameter b) → dynamic
+  ;
+static method foo3({named-parameter required a}) → dynamic
+  ;
+static method foo4(positional-parameter b) → dynamic
+  ;

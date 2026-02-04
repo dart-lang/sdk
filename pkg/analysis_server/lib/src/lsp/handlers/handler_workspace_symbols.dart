@@ -100,6 +100,7 @@ class WorkspaceSymbolHandler
     var filePath = filePaths[declaration.fileIndex];
 
     var kind = declarationKindToSymbolKind(supportedKinds, declaration.kind);
+    var isConstructor = declaration.kind == search.DeclarationKind.CONSTRUCTOR;
     var range = toRange(
       declaration.lineInfo,
       declaration.codeOffset,
@@ -111,14 +112,24 @@ class WorkspaceSymbolHandler
     );
 
     var parameters = declaration.parameters;
-    var hasParameters = parameters != null && parameters.isNotEmpty;
-    var nameSuffix = hasParameters ? (parameters == '()' ? '()' : '(…)') : '';
+    var hasParams = parameters != null && parameters.isNotEmpty;
+    var paramString = hasParams ? (parameters == '()' ? '()' : '(…)') : '';
+
+    var name = declaration.name;
+    var containerName = declaration.className ?? declaration.mixinName;
+    // Constructors are always prefixed with the class name, and we never show
+    // 'new'.
+    var fullName = switch ((isConstructor, name)) {
+      (true, 'new') => '$containerName',
+      (true, _) => '$containerName.$name',
+      (_, _) => name,
+    };
 
     return SymbolInformation(
-      name: '${declaration.name}$nameSuffix',
+      name: '$fullName$paramString',
       kind: kind,
       location: location,
-      containerName: declaration.className ?? declaration.mixinName,
+      containerName: containerName,
     );
   }
 }

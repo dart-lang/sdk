@@ -1547,9 +1547,11 @@ package:analyzer/dart/ast/ast.dart:
   PrimaryConstructorBody (class extends Object implements ClassMember):
     body (getter: FunctionBody)
     colon (getter: Token?)
+    declaration (getter: PrimaryConstructorDeclaration?)
     initializers (getter: NodeList<ConstructorInitializer>)
     thisKeyword (getter: Token)
   PrimaryConstructorDeclaration (class extends Object implements ClassNamePart):
+    body (getter: PrimaryConstructorBody?)
     constKeyword (getter: Token?)
     constructorName (getter: PrimaryConstructorName?)
     declaredFragment (getter: ConstructorFragment?)
@@ -3774,6 +3776,7 @@ package:analyzer/dart/element/element.dart:
     interfaceMembers (getter: Map<Name, ExecutableElement>)
     interfaces (getter: List<InterfaceType>)
     mixins (getter: List<InterfaceType>)
+    primaryConstructor (getter: ConstructorElement?)
     supertype (getter: InterfaceType?)
     thisType (getter: InterfaceType)
     unnamedConstructor (getter: ConstructorElement?)
@@ -4004,6 +4007,7 @@ package:analyzer/dart/element/element.dart:
     forSetter (getter: Name)
     hashCode (getter: int)
     isPublic (getter: bool)
+    isSetter (getter: bool)
     libraryUri (getter: Uri?)
     name (getter: String)
     == (method: bool Function(Object))
@@ -4934,6 +4938,8 @@ package:analyzer/source/line_info.dart:
     getLocation (method: CharacterLocation Function(int))
     getOffsetOfLine (method: int Function(int))
     getOffsetOfLineAfter (method: int Function(int))
+    lineNumberDifference (method: int Function(int, int))
+    onSameLine (method: bool Function(int, int))
 package:analyzer/source/source.dart:
   Source (class extends Object):
     new (constructor: Source Function())

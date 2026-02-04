@@ -106,8 +106,6 @@ abstract class ExpressionGeneratorHelper {
     bool isTypeArgumentsInForest = false,
   });
 
-  Initializer buildInvalidInitializer(InvalidExpression expression);
-
   List<Initializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
@@ -274,6 +272,9 @@ abstract class ExpressionGeneratorHelper {
     required int invocationOffset,
     required bool inImplicitCreationContext,
   });
+
+  /// Registers a read of the internal variable representing `this`.
+  void readInternalThisVariable();
 }
 
 /// Checks that a generic [typedef] for a generic type declaration.

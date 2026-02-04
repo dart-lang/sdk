@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  const n = 1 << 12;
+  const n = 1 << 11;
   // TODO(https://github.com/dart-lang/sdk/issues/61310): n = 1 << 16
 
   print("class C {");

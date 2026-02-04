@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -15,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 
 /// State information captured by [NullSafetyDeadCodeVerifier.for_conditionEnd]
@@ -139,7 +139,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   void _checkCombinator(LibraryElementImpl library, Combinator combinator) {
     Namespace namespace = library.exportNamespace;
     NodeList<SimpleIdentifier> names;
-    DiagnosticCode warningCode;
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({
+        required String library,
+        required String name,
+      })
+    >
+    warningCode;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;
       warningCode = diag.undefinedHiddenName;
@@ -152,10 +158,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       Element? element = namespace.get2(nameStr);
       element ??= namespace.get2("$nameStr=");
       if (element == null) {
-        _diagnosticReporter.atNode(
-          name,
-          warningCode,
-          arguments: ['${library.uri}', nameStr],
+        _diagnosticReporter.report(
+          warningCode
+              .withArguments(library: '${library.uri}', name: nameStr)
+              .at(name),
         );
       }
     }
@@ -168,10 +174,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       f();
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
-        _diagnosticReporter.atNode(
-          label,
-          diag.unusedLabel,
-          arguments: [label.label.name],
+        _diagnosticReporter.report(
+          diag.unusedLabel.withArguments(name: label.label.name).at(label),
         );
       }
       _labelTracker = labelTracker.outerTracker;
@@ -376,16 +380,12 @@ class NullSafetyDeadCodeVerifier {
     var verifier = _CatchClausesVerifier(_typeSystem, (
       first,
       last,
-      diagnosticCode,
-      arguments,
+      locatableDiagnostic,
     ) {
       var offset = first.offset;
       var length = last.end - offset;
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: diagnosticCode,
-        arguments: arguments,
+      _diagnosticReporter.report(
+        locatableDiagnostic.atOffset(offset: offset, length: length),
       );
       _deadCatchClauseRanges.add(SourceRange(offset, length));
     }, node.catchClauses);
@@ -524,8 +524,7 @@ class _CatchClausesVerifier {
   final void Function(
     CatchClause first,
     CatchClause last,
-    DiagnosticCode,
-    List<Object> arguments,
+    LocatableDiagnostic locatableDiagnostic,
   )
   _reportDiagnostic;
   final List<CatchClause> catchClauses;
@@ -551,7 +550,6 @@ class _CatchClausesVerifier {
           catchClauses[index + 1],
           catchClauses.last,
           diag.deadCodeCatchFollowingCatch,
-          const [],
         );
         _done = true;
       }
@@ -565,8 +563,10 @@ class _CatchClausesVerifier {
         _reportDiagnostic(
           catchClause,
           catchClauses.last,
-          diag.deadCodeOnCatchSubtype,
-          [currentType, type],
+          diag.deadCodeOnCatchSubtype.withArguments(
+            subtype: currentType,
+            supertype: type,
+          ),
         );
         _done = true;
         return;

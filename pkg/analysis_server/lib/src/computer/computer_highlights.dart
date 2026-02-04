@@ -191,7 +191,8 @@ class DartUnitHighlightsComputer {
     if (parent is NamedType &&
         grandParent is ConstructorName &&
         grandParent.parent is InstanceCreationExpression) {
-      // new Class()
+      // new [!Class!]()
+      // new [!Class!].named()
       type = HighlightRegionType.CONSTRUCTOR;
       semanticType = SemanticTokenTypes.class_;
       semanticModifiers = {CustomSemanticTokenModifiers.constructor};
@@ -199,6 +200,8 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.ENUM;
     } else if (element is ExtensionTypeElement) {
       type = HighlightRegionType.EXTENSION_TYPE;
+    } else if (element is MixinElement) {
+      type = HighlightRegionType.MIXIN;
     } else {
       type = HighlightRegionType.CLASS;
       if (parent is ConstructorDeclaration) {
@@ -1102,13 +1105,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     computer._addRegion_token(node.typeKeyword, HighlightRegionType.BUILT_IN);
 
-    var primaryConstructor = node.primaryConstructor;
     computer._addRegion_token(
-      primaryConstructor.constKeyword,
-      HighlightRegionType.BUILT_IN,
-    );
-    computer._addRegion_token(
-      primaryConstructor.typeName,
+      node.primaryConstructor.typeName,
       HighlightRegionType.EXTENSION_TYPE,
       semanticTokenModifiers: {SemanticTokenModifiers.declaration},
     );
@@ -1594,6 +1592,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    computer._addRegion_token(node.thisKeyword, HighlightRegionType.KEYWORD);
+    super.visitPrimaryConstructorBody(node);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
+    super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
   void visitPrimaryConstructorName(PrimaryConstructorName node) {
     computer._addRegion_token(node.name, HighlightRegionType.CONSTRUCTOR);
     super.visitPrimaryConstructorName(node);
@@ -1672,6 +1682,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       node.requiredKeyword,
       HighlightRegionType.KEYWORD,
     );
+
+    computer._addRegion_token(
+      node.covariantKeyword,
+      HighlightRegionType.KEYWORD,
+    );
+
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
 
     var declaredElement = node.declaredFragment!.element;
     computer._addRegion_token(
@@ -1850,6 +1867,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         node.declaredFragment?.element,
       ),
     );
+    computer._addRegion_token(node.extendsKeyword, HighlightRegionType.KEYWORD);
     super.visitTypeParameter(node);
   }
 

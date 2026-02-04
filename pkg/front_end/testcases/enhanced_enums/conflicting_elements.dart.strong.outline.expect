@@ -221,4 +221,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements
 Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:50:6 -> ListConstant(const <E8>[const E8{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///conflicting_elements.dart:67:3 -> InstanceConstant(const E10{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///conflicting_elements.dart:66:6 -> ListConstant(const <E10>[const E10{_Enum.index: 0, _Enum._name: "element"}])
-Extra constant evaluation: evaluated: 83, effectively constant: 18
+Extra constant evaluation: evaluated: 87, effectively constant: 18

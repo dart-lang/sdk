@@ -19,11 +19,17 @@ class TargetKind {
 
   static const constructor = TargetKind._('constructors', 'constructor');
 
+  @Deprecated(
+      "Use a more specific TargetKind, like 'TargetKind.exportDirective',"
+      "'TargetKind.library', or 'TargetKind.partOfDirective'")
   static const directive = TargetKind._('directives', 'directive');
 
   static const enumType = TargetKind._('enums', 'enumType');
 
   static const enumValue = TargetKind._('enum values', 'enumValue');
+
+  static const exportDirective =
+      TargetKind._('export directives', 'exportDirective');
 
   static const extension = TargetKind._('extensions', 'extension');
 
@@ -41,17 +47,16 @@ class TargetKind {
 
   static const mixinType = TargetKind._('mixins', 'mixinType');
 
-  static const optionalParameter = TargetKind._(
-    'optional parameters',
-    'optionalParameter',
-  );
+  static const optionalParameter =
+      TargetKind._('optional parameters', 'optionalParameter');
 
-  static const overridableMember = TargetKind._(
-    'overridable members',
-    'overridableMember',
-  );
+  static const overridableMember =
+      TargetKind._('overridable members', 'overridableMember');
 
   static const parameter = TargetKind._('parameters', 'parameter');
+
+  static const partOfDirective =
+      TargetKind._('"part of" directives', 'partOfDirective');
 
   static const setter = TargetKind._('setters', 'setter');
 
@@ -75,6 +80,7 @@ class TargetKind {
     directive,
     enumType,
     enumValue,
+    exportDirective,
     extension,
     extensionType,
     field,
@@ -86,6 +92,7 @@ class TargetKind {
     optionalParameter,
     overridableMember,
     parameter,
+    partOfDirective,
     setter,
     topLevelVariable,
     type,

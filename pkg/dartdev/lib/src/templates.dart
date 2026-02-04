@@ -121,10 +121,7 @@ abstract class Generator implements Comparable<Generator> {
   /// [scriptPath] is the path of the default target script
   /// (e.g., bin/foo.dart) **without** an extension. If null, the implicit run
   /// command will be output by default (e.g., dart run).
-  String getInstallInstructions(
-    String directory, {
-    String? scriptPath,
-  }) {
+  String getInstallInstructions(String directory, {String? scriptPath}) {
     final buffer = StringBuffer();
     buffer.writeln('  cd ${p.relative(directory)}');
     if (scriptPath != null) {
@@ -217,9 +214,14 @@ class FileContents {
 String substituteVars(String str, Map<String, String> vars) {
   if (vars.keys.any((element) => element.contains(_nonValidSubstituteRegExp))) {
     throw ArgumentError.value(
-        vars, 'vars', 'vars.keys can only contain letters.');
+      vars,
+      'vars',
+      'vars.keys can only contain letters.',
+    );
   }
 
   return str.replaceAllMapped(
-      _substituteRegExp, (match) => vars[match[1]!] ?? match[0]!);
+    _substituteRegExp,
+    (match) => vars[match[1]!] ?? match[0]!,
+  );
 }

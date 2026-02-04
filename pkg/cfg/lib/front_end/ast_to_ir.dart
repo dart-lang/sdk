@@ -30,10 +30,6 @@ import 'package:kernel/type_environment.dart' show StaticTypeContext;
 ///  - stack overflow/interrupt checks;
 ///  - assert statements;
 ///  - async/async*/sync*/await/yield/yield*;
-///  - standalone logical expressions (||, &&, !);
-///  - null checks;
-///  - string concatenation;
-///  - list, set and map literals;
 ///  - record access and literals;
 ///  - deferred libraries.
 ///
@@ -380,6 +376,45 @@ class AstToIr extends ast.RecursiveVisitor {
   }
 
   @override
+  void visitTypeLiteral(ast.TypeLiteral node) {
+    final typeParameters = _typeParametersForType(node.type);
+    if (typeParameters != null) {
+      builder.addTypeLiteral(node.type, typeParameters: typeParameters);
+    } else {
+      builder.addConstant(ConstantValue(ast.TypeLiteralConstant(node.type)));
+    }
+  }
+
+  @override
+  void visitListLiteral(ast.ListLiteral node) {
+    assert(!node.isConst);
+    final inputCount = node.expressions.length + 1;
+    builder.addTypeArguments([
+      node.typeArgument,
+    ], typeParameters: _typeParametersForType(node.typeArgument));
+    _translateNodes(node.expressions);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addAllocateListLiteral(_staticType(node), inputCount);
+  }
+
+  @override
+  void visitMapLiteral(ast.MapLiteral node) {
+    assert(!node.isConst);
+    final inputCount = (node.entries.length << 1) + 1;
+    final typeArgs = <ast.DartType>[node.keyType, node.valueType];
+    builder.addTypeArguments(
+      typeArgs,
+      typeParameters: _typeParametersForTypes(typeArgs),
+    );
+    for (final entry in node.entries) {
+      _translateNode(entry.key);
+      _translateNode(entry.value);
+    }
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addAllocateMapLiteral(_staticType(node), inputCount);
+  }
+
+  @override
   void visitConstantExpression(ast.ConstantExpression node) {
     builder.addConstant(ConstantValue(node.constant));
   }
@@ -448,18 +483,36 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitStaticGet(ast.StaticGet node) {
-    final target = functionRegistry.getFunction(node.target, isGetter: true);
-    builder.addDirectCall(target, 0, _staticType(node));
+    final member = node.target;
+    if (member is ast.Field) {
+      final field = CField(member);
+      builder.addLoadStaticField(
+        field,
+        checkInitialized: field.isLate || field.hasInitializer,
+      );
+    } else {
+      final target = functionRegistry.getFunction(node.target, isGetter: true);
+      builder.addDirectCall(target, 0, _staticType(node));
+    }
   }
 
   @override
   void visitStaticSet(ast.StaticSet node) {
-    final target = functionRegistry.getFunction(node.target, isSetter: true);
     _translateNode(node.value);
     if (_handleUnreachableExpression(1)) return;
     final value = builder.stackTop;
-    builder.addDirectCall(target, 1, const TopType(const ast.VoidType()));
-    builder.pop();
+    final member = node.target;
+    if (member is ast.Field) {
+      final field = CField(member);
+      builder.addStoreStaticField(
+        field,
+        checkNotInitialized: field.isLate && field.isFinal,
+      );
+    } else {
+      final target = functionRegistry.getFunction(node.target, isSetter: true);
+      builder.addDirectCall(target, 1, const TopType(const ast.VoidType()));
+      builder.pop();
+    }
     builder.push(value);
   }
 
@@ -516,6 +569,17 @@ class AstToIr extends ast.RecursiveVisitor {
     );
     builder.pop();
     builder.push(value);
+  }
+
+  @override
+  void visitInstanceTearOff(ast.InstanceTearOff node) {
+    final interfaceTarget = functionRegistry.getFunction(
+      node.interfaceTarget,
+      isTearOff: true,
+    );
+    _translateNode(node.receiver);
+    if (_handleUnreachableExpression(1)) return;
+    builder.addInterfaceCall(interfaceTarget, 1, _staticType(node));
   }
 
   @override
@@ -1137,6 +1201,13 @@ class AstToIr extends ast.RecursiveVisitor {
   }
 
   @override
+  void visitNullCheck(ast.NullCheck node) {
+    _translateNode(node.operand);
+    if (_handleUnreachableExpression(1)) return;
+    builder.addNullCheck();
+  }
+
+  @override
   void visitIsExpression(ast.IsExpression node) {
     _translateNode(node.operand);
     if (_handleUnreachableExpression(1)) return;
@@ -1324,13 +1395,13 @@ class AstToIr extends ast.RecursiveVisitor {
 
     final args = node.arguments;
     final target = functionRegistry.getFunction(node.target);
-    TypeArguments? typeArguments;
+    Definition? typeArguments;
     if (args.types.isNotEmpty) {
-      typeArguments = builder.addTypeArguments(
+      builder.addTypeArguments(
         args.types,
         typeParameters: _typeParametersForTypes(args.types),
       );
-      builder.pop();
+      typeArguments = builder.pop();
     }
     final instance = builder.addAllocateObject(
       _typeTranslator.translate(node.constructedType),
@@ -1348,6 +1419,151 @@ class AstToIr extends ast.RecursiveVisitor {
     );
     builder.pop();
     builder.push(instance);
+  }
+
+  @override
+  void visitStringConcatenation(ast.StringConcatenation node) {
+    final inputCount = node.expressions.length;
+    _translateNodes(node.expressions);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addStringInterpolation(inputCount);
+  }
+
+  void _translateClosure(ast.LocalFunction node, CType type) {
+    final closureFunction =
+        functionRegistry.getFunction(function.member, localFunction: node)
+            as ClosureFunction;
+    // TODO: pass captured contexts and type parameters.
+    builder.addAllocateClosure(closureFunction, type, 0);
+  }
+
+  @override
+  void visitFunctionExpression(ast.FunctionExpression node) {
+    _translateClosure(node, _staticType(node));
+  }
+
+  @override
+  void visitFunctionDeclaration(ast.FunctionDeclaration node) {
+    final local = localVarIndexer.variableForDeclaration(node.variable);
+    _translateClosure(node, local.type);
+    builder.addStoreLocal(local);
+  }
+
+  @override
+  void visitFunctionInvocation(ast.FunctionInvocation node) {
+    final inputCount = _translateArguments(node.receiver, node.arguments);
+    if (_handleUnreachableExpression(inputCount)) return;
+    if (node.kind == ast.FunctionAccessKind.FunctionType) {
+      builder.addClosureCall(inputCount, _staticType(node));
+    } else {
+      builder.addDynamicCall(
+        ast.Name.callName,
+        DynamicCallKind.method,
+        inputCount,
+      );
+    }
+  }
+
+  @override
+  void visitLocalFunctionInvocation(ast.LocalFunctionInvocation node) {
+    final local = localVarIndexer.variableForDeclaration(node.variable);
+    builder.addLoadLocal(local);
+    final inputCount = _translateArguments(null, node.arguments);
+    if (_handleUnreachableExpression(inputCount + 1)) return;
+    builder.addClosureCall(inputCount + 1, _staticType(node));
+  }
+
+  /// Translate logical expression (!x, x || y, x && y) for value.
+  void _translateConditionForValue(ast.Expression node) {
+    // Created lazily, only if there are extra edges with true/false results.
+    JoinBlock? done;
+    late final resultVar = builder.declareLocalVariable(
+      '#temp',
+      null,
+      const BoolType(),
+    );
+
+    void addExtraEdges(bool result, List<Block> blocks) {
+      for (final block in blocks) {
+        builder.startBlock(block);
+        builder.addBoolConstant(result);
+        builder.addStoreLocal(resultVar);
+        builder.addGoto(done ??= builder.newJoinBlock());
+      }
+    }
+
+    var negated = false;
+    for (ast.Expression? expr = node; expr != null;) {
+      switch (expr) {
+        case ast.Not():
+          negated = !negated;
+          expr = expr.operand;
+          break;
+        case ast.LogicalExpression():
+          var (leftTrue, leftFalse) = _translateConditionForControl(expr.left);
+          var op = expr.operatorEnum;
+          if (negated) {
+            op = switch (op) {
+              .AND => .OR,
+              .OR => .AND,
+            };
+            final tmp = leftTrue;
+            leftTrue = leftFalse;
+            leftFalse = tmp;
+          }
+          switch (op) {
+            case .AND:
+              addExtraEdges(false, leftFalse);
+              if (leftTrue.isEmpty) {
+                expr = null;
+                break;
+              }
+              builder.startBlock(_joinBlocks(leftTrue));
+              expr = expr.right;
+            case .OR:
+              addExtraEdges(true, leftTrue);
+              if (leftFalse.isEmpty) {
+                expr = null;
+                break;
+              }
+              builder.startBlock(_joinBlocks(leftFalse));
+              expr = expr.right;
+          }
+          break;
+        case _:
+          _translateNode(expr);
+          if (builder.hasOpenBlock) {
+            if (negated) {
+              builder.addUnaryBoolOp(UnaryBoolOpcode.not);
+            }
+            if (done != null) {
+              builder.addStoreLocal(resultVar);
+              builder.addGoto(done!);
+            }
+          } else {
+            builder.drop(1);
+          }
+          expr = null;
+          break;
+      }
+    }
+
+    if (done != null) {
+      builder.startBlock(done!);
+      builder.addLoadLocal(resultVar);
+    } else {
+      _handleUnreachableExpression(0);
+    }
+  }
+
+  @override
+  void visitNot(ast.Not node) {
+    _translateConditionForValue(node);
+  }
+
+  @override
+  void visitLogicalExpression(ast.LogicalExpression node) {
+    _translateConditionForValue(node);
   }
 }
 

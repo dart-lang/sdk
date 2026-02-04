@@ -486,21 +486,6 @@ KernelLoader::KernelLoader(const KernelProgramInfo& kernel_program_info,
   H.InitFromKernelProgramInfo(kernel_program_info_);
 }
 
-bool KernelLoader::IsClassName(NameIndex name,
-                               const String& library,
-                               const String& klass) {
-  ASSERT(H.IsClass(name));
-  StringIndex class_name_index = H.CanonicalNameString(name);
-
-  if (!H.StringEquals(class_name_index, klass.ToCString())) {
-    return false;
-  }
-  ASSERT(H.IsLibrary(H.CanonicalNameParent(name)));
-  StringIndex library_name_index =
-      H.CanonicalNameString(H.CanonicalNameParent(name));
-  return H.StringEquals(library_name_index, library.ToCString());
-}
-
 ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
   SafepointWriteRwLocker ml(thread_, thread_->isolate_group()->program_lock());
   ASSERT(kernel_program_info_.constants() == Array::null());
@@ -1023,6 +1008,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.set_is_shared(SharedPragma::decode(pragma_bits));
     field.set_is_no_sanitize_thread(
         NoSanitizeThreadPragma::decode(pragma_bits));
+    field.set_has_deeply_immutable_type(
+        DeeplyImmutablePragma::decode(pragma_bits));
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
@@ -1040,7 +1027,7 @@ void KernelLoader::FinishTopLevelClassLoading(
       AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
       static_field_value_ = ReadInitialFieldValue(field, &field_helper);
     }
-    GenerateFieldAccessors(toplevel_class, field, &field_helper);
+    GenerateFieldAccessors(toplevel_class, field, &field_helper, pragma_bits);
     IG->RegisterStaticField(field, static_field_value_);
 
     if ((FLAG_enable_mirrors || HasPragma::decode(pragma_bits)) &&
@@ -1453,6 +1440,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_shared(SharedPragma::decode(pragma_bits));
       field.set_is_no_sanitize_thread(
           NoSanitizeThreadPragma::decode(pragma_bits));
+      field.set_has_deeply_immutable_type(
+          DeeplyImmutablePragma::decode(pragma_bits));
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       // Static fields with initializers are implicitly late.
@@ -1467,7 +1456,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
         AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
         static_field_value_ = ReadInitialFieldValue(field, &field_helper);
       }
-      GenerateFieldAccessors(klass, field, &field_helper);
+      GenerateFieldAccessors(klass, field, &field_helper, pragma_bits);
       if (field.is_static()) {
         IG->RegisterStaticField(field, static_field_value_);
       }
@@ -2033,7 +2022,8 @@ ObjectPtr KernelLoader::ReadInitialFieldValue(const Field& field,
 
 void KernelLoader::GenerateFieldAccessors(const Class& klass,
                                           const Field& field,
-                                          FieldHelper* field_helper) {
+                                          FieldHelper* field_helper,
+                                          uint32_t pragma_bits) {
   const bool needs_getter = field.NeedsGetter();
   const bool needs_setter = field.NeedsSetter();
 
@@ -2077,6 +2067,9 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     H.SetupFieldAccessorFunction(klass, getter, field_type);
     T.SetupUnboxingInfoMetadataForFieldAccessors(getter,
                                                  library_kernel_offset_);
+    getter.SetIsDynamicallyOverridden(
+        DynModuleCanBeOverriddenPragma::decode(pragma_bits) ||
+        DynModuleCanBeOverriddenImplicitlyPragma::decode(pragma_bits));
   }
 
   if (needs_setter) {
@@ -2106,6 +2099,9 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     H.SetupFieldAccessorFunction(klass, setter, field_type);
     T.SetupUnboxingInfoMetadataForFieldAccessors(setter,
                                                  library_kernel_offset_);
+    setter.SetIsDynamicallyOverridden(
+        DynModuleCanBeOverriddenPragma::decode(pragma_bits) ||
+        DynModuleCanBeOverriddenImplicitlyPragma::decode(pragma_bits));
   }
 }
 

@@ -58,7 +58,7 @@ abstract class VmInteropHandler {
       script,
       packageConfigOverride,
       markMainIsolateAsSystemIsolate,
-      argsList
+      argsList,
     ];
     port.send(message);
   }

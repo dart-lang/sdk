@@ -359,8 +359,8 @@ class FieldAccessErrorSlowPath : public ThrowErrorSlowPathCode {
 class CheckedStoreIntoSharedSlowPath
     : public TemplateSlowPathCode<StoreStaticFieldInstr> {
  public:
-  explicit CheckedStoreIntoSharedSlowPath(StoreStaticFieldInstr* instruction,
-                                          Register value)
+  CheckedStoreIntoSharedSlowPath(StoreStaticFieldInstr* instruction,
+                                 Register value)
       : TemplateSlowPathCode(instruction), value_(value) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
@@ -371,6 +371,20 @@ class CheckedStoreIntoSharedSlowPath
   FieldPtr OriginalField() const {
     return instruction()->AsStoreStaticField()->field().Original();
   }
+
+  Register value() const { return value_; }
+};
+
+class EnsureDeeplyImmutableSlowPath : public TemplateSlowPathCode<Instruction> {
+ public:
+  EnsureDeeplyImmutableSlowPath(CheckFieldImmutabilityInstr* instruction,
+                                Register value)
+      : TemplateSlowPathCode(instruction), value_(value) {}
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+ private:
+  Register value_;
 
   Register value() const { return value_; }
 };

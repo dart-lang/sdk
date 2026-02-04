@@ -317,6 +317,11 @@ class _Collector {
           nodes.add(node.propertyName);
         }
         return;
+      } else if (element is MethodElement) {
+        if (!element.isStatic) {
+          nodes.add(node.propertyName);
+        }
+        return;
       }
     }
 

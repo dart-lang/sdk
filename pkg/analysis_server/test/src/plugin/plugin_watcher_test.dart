@@ -5,9 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
+import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -29,7 +28,7 @@ class PluginWatcherTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     manager = TestPluginManager();
-    watcher = PluginWatcher(resourceProvider, manager);
+    watcher = PluginWatcher(resourceProvider, manager, pluginsAreEnabled: true);
   }
 
   Future<void> test_addedDriver() async {
@@ -57,11 +56,11 @@ analyzer:
 
     var driver = driverFor(testFile);
 
-    expect(manager.addedContextRoots, isEmpty);
+    expect(manager.contextRootPlugins, isEmpty);
     watcher.addedDriver(driver);
 
     await _waitForEvents();
-    expect(manager.addedContextRoots, hasLength(1));
+    expect(manager.contextRootPlugins, hasLength(1));
   }
 
   Future<void> test_addedDriver_missingPackage() async {
@@ -73,10 +72,10 @@ analyzer:
     var driver = driverFor(testFile);
 
     watcher.addedDriver(driver);
-    expect(manager.addedContextRoots, isEmpty);
+    expect(manager.contextRootPlugins, isEmpty);
 
     await _waitForEvents();
-    expect(manager.addedContextRoots, isEmpty);
+    expect(manager.contextRootPlugins, isEmpty);
   }
 
   void test_creation() {
@@ -86,10 +85,9 @@ analyzer:
 
   void test_removedDriver() {
     var driver = driverFor(testFile);
-    var contextRoot = driver.analysisContext!.contextRoot;
     watcher.addedDriver(driver);
     watcher.removedDriver(driver);
-    expect(manager.removedContextRoots, equals([contextRoot]));
+    expect(manager.contextRootPlugins, isEmpty);
   }
 
   /// Wait until the timer associated with the driver's FileSystemState is
@@ -97,35 +95,5 @@ analyzer:
   /// delivered.
   Future<void> _waitForEvents() async {
     await Future.delayed(Duration(seconds: 1));
-  }
-}
-
-class TestPluginManager implements PluginManager {
-  List<ContextRoot> addedContextRoots = <ContextRoot>[];
-
-  List<ContextRoot> removedContextRoots = <ContextRoot>[];
-
-  @override
-  Completer<void> initializedCompleter = Completer();
-
-  @override
-  final contextRootsWithNoPlugins = <String>{};
-
-  @override
-  Future<void> addPluginToContextRoot(
-    ContextRoot contextRoot,
-    String path, {
-    required bool isLegacyPlugin,
-  }) async {
-    addedContextRoots.add(contextRoot);
-    return;
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  void removedContextRoot(ContextRoot contextRoot) {
-    removedContextRoots.add(contextRoot);
   }
 }

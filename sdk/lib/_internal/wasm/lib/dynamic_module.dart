@@ -113,6 +113,8 @@ final nameParameterConstArray = WasmArrayConstCache();
 @pragma('dyn-module:callable')
 final i8ConstImmutableArray = WasmArrayConstCache();
 @pragma('dyn-module:callable')
+final i16ConstArray = WasmArrayConstCache();
+@pragma('dyn-module:callable')
 final i32ConstArray = WasmArrayConstCache();
 @pragma('dyn-module:callable')
 final i64ConstImmutableArray = WasmArrayConstCache();

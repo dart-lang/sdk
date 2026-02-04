@@ -841,6 +841,27 @@ void f(int x) {
 ''', filter: _ignoreDeadCode);
   }
 
+  Future<void> test_ifStatement_alwaysTrue_block_indentation() async {
+    await resolveTestCode('''
+void f(int x) {
+  if (x != 0) {
+    if (x is int) {
+      0;
+    }
+    1;
+  }
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  if (x != 0) {
+    0;
+    1;
+  }
+}
+''');
+  }
+
   Future<void> test_unnecessaryTypeCheck_false() async {
     await resolveTestCode('''
 void f(int a, int b) {

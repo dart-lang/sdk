@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
@@ -481,10 +482,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // TODO(ahe): We should probably use a context object here
     // instead of including URIs in this message.
-    Message message = codeDuplicatedExport.withArgumentsOld(
-      name,
-      firstUri,
-      secondUri,
+    Message message = diag.duplicatedExport.withArguments(
+      name: name,
+      uri: firstUri,
+      uri2: secondUri,
     );
     addProblem(message, uriOffset.fileOffset, noLength, uriOffset.fileUri);
     // We report the error lazily (setting errorHasBeenReported to false)

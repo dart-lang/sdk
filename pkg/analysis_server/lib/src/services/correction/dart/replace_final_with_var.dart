@@ -26,18 +26,18 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
       );
     }
 
-    var (finalKeyword, type) = switch (context.node) {
-      VariableDeclarationList node => (node.keyword, node.type),
-      PatternVariableDeclaration node => (node.keyword, null),
-      DeclaredIdentifier node => (node.keyword, node.type),
-      DeclaredVariablePattern node => (node.keyword, node.type),
-      _ => (null, null),
+    var (finalKeyword, removeFinal) = switch (context.node) {
+      VariableDeclarationList node => (node.keyword, node.type != null),
+      PatternVariableDeclaration node => (node.keyword, false),
+      DeclaredIdentifier node => (node.keyword, node.type != null),
+      DeclaredVariablePattern node => (node.keyword, node.type != null),
+      _ => (null, true),
     };
 
     return ReplaceFinalWithVar._(
       context: context,
       finalKeyword: finalKeyword,
-      removeFinal: type != null,
+      removeFinal: removeFinal,
     );
   }
 

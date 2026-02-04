@@ -4,16 +4,9 @@
 
 library _fe_analyzer_shared.stack_listener;
 
-import '../messages/codes.dart'
-    show
-        Code,
-        LocatedMessage,
-        Message,
-        codeBuiltInIdentifierInDeclaration,
-        codeCatchSyntaxExtraParameters,
-        codeNativeClauseShouldBeAnnotation,
-        codeInternalProblemStackNotEmpty,
-        codeInternalProblemUnhandled;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
+import '../messages/codes.dart' show Code, LocatedMessage, Message;
 
 import '../scanner/scanner.dart' show Token;
 
@@ -169,7 +162,10 @@ abstract class StackListener extends Listener with StackChecker {
   void push(Object? node) {
     if (node == null) {
       internalProblem(
-        codeInternalProblemUnhandled.withArgumentsOld("null", "push"),
+        diag.internalProblemUnhandled.withArguments(
+          what: "null",
+          where: "push",
+        ),
         /* charOffset = */ -1,
         uri,
       );
@@ -212,7 +208,10 @@ abstract class StackListener extends Listener with StackChecker {
   void logEvent(String name) {
     printEvent(name);
     internalProblem(
-      codeInternalProblemUnhandled.withArgumentsOld(name, "$runtimeType"),
+      diag.internalProblemUnhandled.withArguments(
+        what: name,
+        where: "$runtimeType",
+      ),
       /* charOffset = */ -1,
       uri,
     );
@@ -232,9 +231,9 @@ abstract class StackListener extends Listener with StackChecker {
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
       internalProblem(
-        codeInternalProblemStackNotEmpty.withArgumentsOld(
-          "${runtimeType}",
-          stack.values.join("\n  "),
+        diag.internalProblemStackNotEmpty.withArguments(
+          typeName: "${runtimeType}",
+          stackContents: stack.values.join("\n  "),
         ),
         charOffset,
         uri,
@@ -402,9 +401,9 @@ abstract class StackListener extends Listener with StackChecker {
       push(unescapeString(token.lexeme, token, this));
     } else {
       internalProblem(
-        codeInternalProblemUnhandled.withArgumentsOld(
-          "string interpolation",
-          "endLiteralString",
+        diag.internalProblemUnhandled.withArguments(
+          what: "string interpolation",
+          where: "endLiteralString",
         ),
         endToken.charOffset,
         uri,
@@ -457,14 +456,14 @@ abstract class StackListener extends Listener with StackChecker {
   }
 
   bool isIgnoredError(Code code, Token token) {
-    if (code == codeNativeClauseShouldBeAnnotation) {
+    if (code == diag.nativeClauseShouldBeAnnotation) {
       // TODO(danrubel): Ignore this error until we deprecate `native`
       // support.
       return true;
-    } else if (code == codeCatchSyntaxExtraParameters) {
+    } else if (code == diag.catchSyntaxExtraParameters) {
       // Ignored. This error is handled by the BodyBuilder.
       return true;
-    } else if (code == codeBuiltInIdentifierInDeclaration) {
+    } else if (code == diag.builtInIdentifierInDeclaration) {
       if (isDartLibrary) return true;
       return false;
     } else {

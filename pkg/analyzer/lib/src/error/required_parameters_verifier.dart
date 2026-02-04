@@ -7,9 +7,9 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:collection/collection.dart';
 
 /// Checks for missing arguments for required named parameters.
@@ -159,10 +159,10 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
             arguments,
             parameterName,
           );
-          _errorReporter.atEntity(
-            errorEntity,
-            diag.missingRequiredArgument,
-            arguments: [parameterName],
+          _errorReporter.report(
+            diag.missingRequiredArgument
+                .withArguments(name: parameterName)
+                .at(errorEntity),
           );
         }
       }
@@ -177,16 +177,16 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
           )) {
             var reason = annotation.getReason(strictCasts: true);
             if (reason != null) {
-              _errorReporter.atEntity(
-                errorEntity,
-                diag.missingRequiredParamWithDetails,
-                arguments: [parameterName, reason],
+              _errorReporter.report(
+                diag.missingRequiredParamWithDetails
+                    .withArguments(name: parameterName, details: reason)
+                    .at(errorEntity),
               );
             } else {
-              _errorReporter.atEntity(
-                errorEntity,
-                diag.missingRequiredParam,
-                arguments: [parameterName],
+              _errorReporter.report(
+                diag.missingRequiredParam
+                    .withArguments(name: parameterName)
+                    .at(errorEntity),
               );
             }
           }

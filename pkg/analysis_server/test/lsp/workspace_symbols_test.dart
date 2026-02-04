@@ -19,6 +19,23 @@ void main() {
 
 @reflectiveTest
 class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
+  Matcher isSymbol(
+    String name, {
+    String? containerName,
+    SymbolKind? kind,
+    Range? range,
+  }) {
+    return isA<SymbolInformation>()
+        .having((s) => s.name, 'name', name)
+        .having(
+          (s) => s.containerName,
+          'containerName',
+          containerName ?? anything,
+        )
+        .having((s) => s.kind, 'kind', kind ?? anything)
+        .having((s) => s.location.range, 'range', range ?? anything);
+  }
+
   Future<void> test_cancellation() async {
     const content = '''
 void f() {}
@@ -59,6 +76,192 @@ void f() {}
     var symbolsResponse2 = responses[2] as ResponseMessage;
     expect(symbolsResponse2.result, hasLength(greaterThanOrEqualTo(1)));
     expect(symbolsResponse2.error, isNull);
+  }
+
+  Future<void> test_constructor_primary_named_noBody() async {
+    const content = '''
+    /*[0*/class /*[1*/UniqueClassName.namedUnique(int a)/*1]*/;/*0]*/
+    ''';
+
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('UniqueClassName');
+    expect(
+      symbols,
+      unorderedEquals([
+        isSymbol(
+          'UniqueClassName',
+          kind: SymbolKind.Class,
+          range: code.ranges[0].range,
+        ),
+        isSymbol(
+          'UniqueClassName.namedUnique(…)',
+          kind: SymbolKind.Constructor,
+          range: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_constructor_primary_named_withBody() async {
+    const content = '''
+    /*[0*/class /*[1*/UniqueClassName.namedUnique(int a)/*1]*/ {
+      this {}
+    }/*0]*/
+    ''';
+
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('UniqueClassName');
+    expect(
+      symbols,
+      unorderedEquals([
+        isSymbol(
+          'UniqueClassName',
+          kind: SymbolKind.Class,
+          range: code.ranges[0].range,
+        ),
+        isSymbol(
+          'UniqueClassName.namedUnique(…)',
+          kind: SymbolKind.Constructor,
+          range: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_constructor_primary_noBody() async {
+    const content = '''
+    /*[0*/class /*[1*/UniqueClassName(int a)/*1]*/;/*0]*/
+    ''';
+
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('UniqueClassName');
+    expect(
+      symbols,
+      unorderedEquals([
+        isSymbol(
+          'UniqueClassName',
+          kind: SymbolKind.Class,
+          range: code.ranges[0].range,
+        ),
+        isSymbol(
+          'UniqueClassName(…)',
+          kind: SymbolKind.Constructor,
+          range: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_constructor_primary_withBody() async {
+    const content = '''
+    /*[0*/class /*[1*/UniqueClassName(int a)/*1]*/ {
+      this {}
+    }/*0]*/
+    ''';
+
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('UniqueClassName');
+    expect(
+      symbols,
+      unorderedEquals([
+        isSymbol(
+          'UniqueClassName',
+          kind: SymbolKind.Class,
+          range: code.ranges[0].range,
+        ),
+        isSymbol(
+          'UniqueClassName(…)',
+          kind: SymbolKind.Constructor,
+          range: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_constructors_doNotMatchNew() async {
+    const content = '''
+class UniqueClassName {
+  UniqueClassName.new(int a);
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('new');
+    expect(
+      symbols,
+      isNot(
+        anyOf([
+          contains(isSymbol('UniqueClassName(…)')),
+          // We never expect this format, but still ensure it never slips
+          // through.
+          contains(isSymbol('UniqueClassName.new(…)')),
+        ]),
+      ),
+    );
+  }
+
+  Future<void> test_constructors_matchClassName() async {
+    const content = '''
+class UniqueClassName {
+  UniqueClassName(int a);
+  UniqueClassName.named(int a);
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('UniqueClassName');
+    expect(
+      symbols,
+      unorderedEquals([
+        isSymbol('UniqueClassName', kind: SymbolKind.Class),
+        isSymbol(
+          'UniqueClassName(…)',
+          kind: SymbolKind.Constructor,
+          containerName: 'UniqueClassName',
+        ),
+        isSymbol(
+          'UniqueClassName.named(…)',
+          kind: SymbolKind.Constructor,
+          containerName: 'UniqueClassName',
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_constructors_matchConstructorName() async {
+    const content = '''
+class UniqueClassName {
+  UniqueClassName.uniqueConstructorName(int a);
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var symbols = await getWorkspaceSymbols('uniqueConstructorName');
+    expect(symbols, [
+      isSymbol(
+        'UniqueClassName.uniqueConstructorName(…)',
+        kind: SymbolKind.Constructor,
+        containerName: 'UniqueClassName',
+      ),
+    ]);
   }
 
   Future<void> test_dependencies_excluded() async {

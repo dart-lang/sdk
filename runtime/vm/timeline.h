@@ -138,7 +138,7 @@ class TimelineStream {
 
   // This field is accessed by generated code (intrinsic) and expects to see
   // 0 or 1. If this becomes a BitField, the generated code must be updated.
-  uintptr_t enabled_;
+  RelaxedAtomic<uintptr_t> enabled_;
 
 #if defined(DART_HOST_OS_FUCHSIA)
   trace_site_t trace_site_ = {};
@@ -1151,6 +1151,10 @@ class TimelineEventEmbedderCallbackRecorder
   TimelineEventEmbedderCallbackRecorder() {}
   virtual ~TimelineEventEmbedderCallbackRecorder() {}
 
+  virtual void AddTrackMetadataBasedOnThread(const intptr_t process_id,
+                                             const intptr_t trace_id,
+                                             const char* thread_name);
+
   virtual void OnEvent(TimelineEvent* event);
 };
 
@@ -1159,6 +1163,10 @@ class TimelineEventNopRecorder : public TimelineEventCallbackRecorder {
  public:
   TimelineEventNopRecorder() {}
   virtual ~TimelineEventNopRecorder() {}
+
+  virtual void AddTrackMetadataBasedOnThread(const intptr_t process_id,
+                                             const intptr_t trace_id,
+                                             const char* thread_name);
 
   virtual void OnEvent(TimelineEvent* event);
 };
@@ -1213,6 +1221,10 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   // Called when |event| is completed. It is unsafe to keep a reference to
   // |event| as it may be freed as soon as this function returns.
   virtual void OnEvent(TimelineEvent* event) = 0;
+
+  virtual void AddTrackMetadataBasedOnThread(const intptr_t process_id,
+                                             const intptr_t trace_id,
+                                             const char* thread_name);
 
   virtual const char* name() const = 0;
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -39,15 +40,28 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     for (VariableDeclaration field in node.fields.variables) {
       var fieldElement = field.declaredFragment?.element as FieldElement;
       if (fieldElement.metadata.hasOverride) {
-        var getter = fieldElement.getter;
-        if (getter != null && _isOverride(getter)) continue;
-
-        var setter = fieldElement.setter;
-        if (setter != null && _isOverride(setter)) continue;
-
-        _errorReporter.report(diag.overrideOnNonOverridingField.at(field.name));
+        _checkField(fieldElement, field.name);
       }
     }
+    super.visitFieldDeclaration(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    var element = node.declaredFragment!.element;
+    if (element.metadata.hasOverride) {
+      switch (element) {
+        case GetterElement():
+          _errorReporter.report(
+            diag.overrideOnNonOverridingGetter.at(node.name),
+          );
+        case SetterElement():
+          _errorReporter.report(
+            diag.overrideOnNonOverridingSetter.at(node.name),
+          );
+      }
+    }
+    super.visitFunctionDeclaration(node);
   }
 
   @override
@@ -69,6 +83,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
           );
       }
     }
+    super.visitMethodDeclaration(node);
   }
 
   @override
@@ -78,7 +93,31 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     _currentClass = null;
   }
 
-  /// Return `true` if the [member] overrides a member from a superinterface.
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    for (var parameter in node.formalParameters.parameters) {
+      var element = parameter.declaredFragment?.element;
+      if (element is! FieldFormalParameterElement) continue;
+      if (!element.metadata.hasOverride) continue;
+      if (!element.isDeclaring) continue;
+
+      var fieldElement = element.field;
+      if (fieldElement == null) continue;
+      _checkField(fieldElement, parameter.name!);
+    }
+  }
+
+  void _checkField(FieldElement fieldElement, Token errorNode) {
+    var getter = fieldElement.getter;
+    if (getter != null && _isOverride(getter)) return;
+
+    var setter = fieldElement.setter;
+    if (setter != null && _isOverride(setter)) return;
+
+    _errorReporter.report(diag.overrideOnNonOverridingField.at(errorNode));
+  }
+
+  /// Returns whether the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
     var currentClass = _currentClass?.firstFragment;
     if (currentClass == null) {

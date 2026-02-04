@@ -609,7 +609,7 @@ main() {
         typeAnalyzerOptions: h.computeTypeAnalyzerOptions(),
       );
       flow.ifStatement_conditionBegin();
-      flow.ifStatement_thenBegin(e, s);
+      flow.ifStatement_thenBegin(flow.getExpressionInfo(e), s);
       expect(() => flow.finish(), _asserts);
     });
 

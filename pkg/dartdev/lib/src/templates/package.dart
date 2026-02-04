@@ -8,31 +8,26 @@ import 'common.dart' as common;
 /// A generator for a simple command-line application.
 class PackageGenerator extends DefaultGenerator {
   PackageGenerator()
-      : super(
-          'package',
-          'Dart Package',
-          'A package containing shared Dart libraries.',
-          categories: const ['dart'],
-          alternateId: 'package-simple',
-        ) {
+    : super(
+        'package',
+        'Dart Package',
+        'A package containing shared Dart libraries.',
+        categories: const ['dart'],
+        alternateId: 'package-simple',
+      ) {
     addFile('.gitignore', _gitignore);
     addFile('analysis_options.yaml', common.analysisOptions);
     addFile('CHANGELOG.md', common.changelog);
     addFile('pubspec.yaml', _pubspec);
     addFile('README.md', _readme);
     addFile('example/__projectName___example.dart', _exampleDart);
-    setEntrypoint(
-      addFile('lib/__projectName__.dart', _libDart),
-    );
+    setEntrypoint(addFile('lib/__projectName__.dart', _libDart));
     addFile('lib/src/__projectName___base.dart', _libSrcDart);
     addFile('test/__projectName___test.dart', _testDart);
   }
 
   @override
-  String getInstallInstructions(
-    String directory, {
-    String? scriptPath,
-  }) =>
+  String getInstallInstructions(String directory, {String? scriptPath}) =>
       super.getInstallInstructions(
         directory,
         scriptPath: 'example/${scriptPath}_example',
@@ -49,7 +44,8 @@ final String _gitignore = '''
 pubspec.lock
 ''';
 
-final String _pubspec = '''
+final String _pubspec =
+    '''
 name: __projectName__
 description: A starting point for Dart libraries or applications.
 version: 1.0.0

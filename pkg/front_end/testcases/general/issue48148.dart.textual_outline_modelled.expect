@@ -11,7 +11,7 @@ abstract class Kind<HKT extends HKind> {}
 class HBaseChild<HKT extends HKindValid, CHILD extends HBase<HKT>>
     implements HBase<HKT> {
   const HBaseChild(
-    final this.child,
+    this.child,
   );
   final CHILD child;
 }
@@ -19,21 +19,21 @@ class HBaseChild<HKT extends HKindValid, CHILD extends HBase<HKT>>
 class HBaseComposite<HKT extends HKindValid, CHILD extends HBase<HKT>>
     implements HBase<HKT> {
   const HBaseComposite(
-    final this.children,
+    this.children,
   );
   final List<CHILD> children;
 }
 
 class HBaseError<HKT extends HKindInvalid> implements HBase<HKT> {
   const HBaseError(
-    final this.errorMessage,
+    this.errorMessage,
   );
   final String errorMessage;
 }
 
 class HBaseLeaf<HKT extends HKindValid> implements HBase<HKT> {
   const HBaseLeaf(
-    final this.data,
+    this.data,
   );
   final int data;
 }

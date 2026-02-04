@@ -17,10 +17,7 @@ import 'dart:io';
 /// The progress indicator is only animated if output is going to a terminal.
 /// When the [callback] completes, the progress indicator is stopped and the
 /// final time is shown.
-Future<T> progress<T>(
-  String message,
-  Future<T> Function() callback,
-) async {
+Future<T> progress<T>(String message, Future<T> Function() callback) async {
   final progress = _Progress(message);
   return callback().whenComplete(progress._stop);
 }

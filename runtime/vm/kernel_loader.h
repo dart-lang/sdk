@@ -247,8 +247,6 @@ class KernelLoader : public ValueObject {
                                   const Library& library,
                                   const LibraryIndex& library_index);
 
-  bool IsClassName(NameIndex name, const String& library, const String& klass);
-
   void ReadVMAnnotations(const Library& library,
                          intptr_t annotation_count,
                          uint32_t* pragma_bits,
@@ -340,7 +338,8 @@ class KernelLoader : public ValueObject {
   // Generates field getter and setter functions.
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
-                              FieldHelper* field_helper);
+                              FieldHelper* field_helper,
+                              uint32_t pragma_bits);
 
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);

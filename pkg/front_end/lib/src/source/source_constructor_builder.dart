@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -10,12 +11,13 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
-import '../base/messages.dart'
-    show codeCantInferTypeDueToCircularity, ProblemReporting;
+import '../base/messages.dart' show ProblemReporting;
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_signature.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
@@ -46,22 +48,7 @@ class InferableConstructor implements InferableMember {
 
   @override
   void reportCyclicDependency() {
-    // There is a cyclic dependency where inferring the types of the
-    // initializing formals of a constructor required us to infer the
-    // corresponding field type which required us to know the type of the
-    // constructor.
-    String name = _builder.declarationBuilder.name;
-    if (_builder.name.isNotEmpty) {
-      // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
-      // instead. However, `inferrer.helper` may be null.
-      name += ".${_builder.name}";
-    }
-    _builder.libraryBuilder.addProblem(
-      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
-      _builder.fileOffset,
-      name.length,
-      _builder.fileUri,
-    );
+    _builder._reportCyclicDependency();
   }
 }
 
@@ -119,6 +106,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   final ConstructorReferences _constructorReferences;
   final NameScheme _nameScheme;
 
+  final bool isPrimaryConstructor;
+
   SourceConstructorBuilder({
     required this.name,
     required this.libraryBuilder,
@@ -134,7 +123,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
        _nameScheme = nameScheme,
        _introductory = introductory,
        _augmentations = augmentations,
-       _memberName = nameScheme.getDeclaredName(name) {
+       _memberName = nameScheme.getDeclaredName(name),
+       isPrimaryConstructor = introductory.isPrimaryConstructor {
     if (augmentations.isEmpty) {
       _augmentedDeclarations = augmentations;
       _lastDeclaration = introductory;
@@ -142,6 +132,16 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       _augmentedDeclarations = [_introductory, ..._augmentations];
       _lastDeclaration = _augmentedDeclarations.removeLast();
     }
+  }
+
+  /// If this constructor is a primary constructor, returns the parameters
+  /// available in the initializer scope. Otherwise return `null`.
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    if (isPrimaryConstructor) {
+      return _lastDeclaration.primaryConstructorInitializerScopeParameters;
+    }
+    return null;
   }
 
   // TODO(johnniwinther): Add annotations to tear-offs.
@@ -159,7 +159,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  FunctionNode get function => _lastDeclaration.function;
+  FunctionSignature get signature => _lastDeclaration.signature;
 
   @override
   MemberBuilder get getable => this;
@@ -266,7 +266,13 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Reference? get writeTargetReference => null;
 
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
+    if (isErroneous) {
+      markAsErroneous();
+    }
     _lastDeclaration.registerInitializers(initializers);
   }
 
@@ -477,6 +483,24 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       // Coverage-ignore-block(suite): Not run.
       augmentation.markAsErroneous();
     }
+  }
+
+  void _reportCyclicDependency() {
+    // There is a cyclic dependency where inferring the types of the
+    // initializing formals of a constructor required us to infer the
+    // corresponding field type which required us to know the type of the
+    // constructor.
+    String constructorName = declarationBuilder.name;
+    if (name.isNotEmpty) {
+      constructorName += ".${name}";
+    }
+    libraryBuilder.addProblem(
+      diag.cantInferTypeDueToCircularity.withArguments(name: name),
+      fileOffset,
+      constructorName.length,
+      fileUri,
+    );
+    markAsErroneous();
   }
 }
 

@@ -7,6 +7,8 @@ import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 
 class NeedsPackageRule extends AnalysisRule {
@@ -132,6 +134,65 @@ class NoReferencesToStringsRule extends AnalysisRule {
   }
 }
 
+class NoTypeAnnotationsRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'no_type_annotations',
+    'No type annotations',
+    uniqueName: 'LintCode.no_type_annotations',
+  );
+
+  NoTypeAnnotationsRule()
+    : super(name: 'no_type_annotations', description: 'No type annotations');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _NoTypeAnnotationsVisitor(this);
+    registry.addNamedType(this, visitor);
+  }
+}
+
+// TODO(FMorschel): Remove this once there is a public way of instantiating
+//  DiagnosticMessage.
+// See https://github.com/dart-lang/sdk/issues/61949
+class _DiagnosticMessageImpl extends DiagnosticMessage {
+  @override
+  final String filePath;
+  @override
+  final int length;
+  final String _message;
+  @override
+  final int offset;
+  @override
+  final String? url;
+
+  _DiagnosticMessageImpl({
+    required this.filePath,
+    required this.length,
+    required String message,
+    required this.offset,
+    required this.url,
+  }) : _message = message;
+
+  @override
+  String messageText({required bool includeUrl}) {
+    if (includeUrl && url != null) {
+      StringBuffer result = StringBuffer(_message);
+      if (!_message.endsWith('.')) {
+        result.write('.');
+      }
+      result.write('  See $url');
+      return result.toString();
+    }
+    return _message;
+  }
+}
+
 class _NeedsPackageVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
@@ -179,5 +240,30 @@ class _NoReferencesToStringsVisitor extends SimpleAstVisitor<void> {
     if (node.staticType?.isDartCoreString ?? false) {
       rule.reportAtNode(node);
     }
+  }
+}
+
+class _NoTypeAnnotationsVisitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  _NoTypeAnnotationsVisitor(this.rule);
+
+  @override
+  void visitNamedType(NamedType node) {
+    var element = node.element;
+    if (element is! InstanceElement) return;
+    var fragment = element.firstFragment;
+    rule.reportAtNode(
+      node,
+      contextMessages: [
+        _DiagnosticMessageImpl(
+          filePath: fragment.libraryFragment.source.fullName,
+          length: fragment.name?.length ?? 1,
+          offset: fragment.nameOffset ?? fragment.offset,
+          message: 'Declared here',
+          url: null,
+        ),
+      ],
+    );
   }
 }

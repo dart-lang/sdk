@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        codeExperimentNotEnabled,
-        codeInternalProblemUnsupported;
+    show LocatedMessage, Message;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as fe_diag;
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
     show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -267,7 +264,7 @@ class MiniAstBuilder extends StackListener {
     debugEvent("ConditionalUris");
     if (count != 0) {
       internalProblem(
-        codeInternalProblemUnsupported.withArgumentsOld("Conditional URIs"),
+        fe_diag.internalProblemUnsupported.withArgumentsOld("Conditional URIs"),
         -1,
         null,
       );
@@ -732,7 +729,7 @@ class MiniAstBuilder extends StackListener {
       assert(optional('?', questionMark));
       var feature = ExperimentalFeatures.non_nullable;
       handleRecoverableError(
-        codeExperimentNotEnabled.withArgumentsOld(
+        fe_diag.experimentNotEnabled.withArgumentsOld(
           feature.enableString,
           _versionAsString(ExperimentStatus.currentVersion),
         ),
@@ -745,7 +742,7 @@ class MiniAstBuilder extends StackListener {
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
     var feature = ExperimentalFeatures.non_nullable;
     handleRecoverableError(
-      codeExperimentNotEnabled.withArgumentsOld(
+      fe_diag.experimentNotEnabled.withArgumentsOld(
         feature.enableString,
         _versionAsString(ExperimentStatus.currentVersion),
       ),

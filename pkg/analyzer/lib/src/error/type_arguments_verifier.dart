@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,7 +17,16 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
+
+typedef ExpectedTypeArgumentsDiagnosticCode =
+    DiagnosticWithArguments<LocatableDiagnostic Function({required int count})>;
+
+typedef InvalidTypeArgumentDiagnosticCode =
+    DiagnosticWithArguments<
+      LocatableDiagnostic Function({required String typeParameter})
+    >;
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
@@ -91,10 +99,14 @@ class TypeArgumentsVerifier {
         var errorNode = i < typeArgumentListLength
             ? typeArgumentList.arguments[i]
             : node;
-        _diagnosticReporter.atNode(
-          errorNode,
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [typeArgument, typeParameter.name!, bound],
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: typeArgument,
+                typeParameterName: typeParameter.name!,
+                bound: bound,
+              )
+              .at(errorNode),
         );
       }
     }
@@ -120,10 +132,13 @@ class TypeArgumentsVerifier {
     if (typeArgumentList != null &&
         typeArgumentNodes != null &&
         typeArgumentNodes.length != typeParameters.length) {
-      _diagnosticReporter.atNode(
-        typeArgumentList,
-        diag.wrongNumberOfTypeArgumentsEnum,
-        arguments: [typeParameters.length, typeArgumentNodes.length],
+      _diagnosticReporter.report(
+        diag.wrongNumberOfTypeArgumentsEnum
+            .withArguments(
+              typeParameterCount: typeParameters.length,
+              typeArgumentCount: typeArgumentNodes.length,
+            )
+            .at(typeArgumentList),
       );
     }
 
@@ -147,10 +162,14 @@ class TypeArgumentsVerifier {
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         var errorTarget = typeArgumentNodes?[i] ?? node.name;
-        _diagnosticReporter.atEntity(
-          errorTarget,
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [typeArgument, typeParameter.name!, bound],
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: typeArgument,
+                typeParameterName: typeParameter.name!,
+                bound: bound,
+              )
+              .at(errorTarget),
         );
       }
     }
@@ -280,7 +299,9 @@ class TypeArgumentsVerifier {
         // Do not report a "Strict raw type" warning in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
-        _diagnosticReporter.atNode(node, diag.strictRawType, arguments: [type]);
+        _diagnosticReporter.report(
+          diag.strictRawType.withArguments(type: type).at(node),
+        );
       }
     }
   }
@@ -367,7 +388,7 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    List<DiagnosticMessage>? buildContextMessages({
+    List<DiagnosticMessage> buildContextMessages({
       List<DartType>? invertedTypeArguments,
     }) {
       var messages = <DiagnosticMessage>[];
@@ -405,21 +426,21 @@ class TypeArgumentsVerifier {
         );
       }
 
-      return messages.isNotEmpty ? messages : null;
+      return messages;
     }
 
     // If not allowed to be super-bounded, report issues.
     if (!_shouldAllowSuperBoundedTypes(namedType)) {
       for (var issue in issues) {
-        _diagnosticReporter.atNode(
-          _typeArgumentErrorNode(namedType, issue.index),
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [
-            issue.argument,
-            issue.parameterName,
-            issue.parameterBound,
-          ],
-          contextMessages: buildContextMessages(),
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: issue.argument,
+                typeParameterName: issue.parameterName,
+                bound: issue.parameterBound,
+              )
+              .withContextMessages(buildContextMessages())
+              .at(_typeArgumentErrorNode(namedType, issue.index)),
         );
       }
       return;
@@ -459,13 +480,19 @@ class TypeArgumentsVerifier {
       bound = invertedSubstitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
-        _diagnosticReporter.atNode(
-          _typeArgumentErrorNode(namedType, i),
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [typeArgument, typeParameterName, bound],
-          contextMessages: buildContextMessages(
-            invertedTypeArguments: invertedTypeArguments,
-          ),
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: typeArgument,
+                typeParameterName: typeParameterName,
+                bound: bound,
+              )
+              .withContextMessages(
+                buildContextMessages(
+                  invertedTypeArguments: invertedTypeArguments,
+                ),
+              )
+              .at(_typeArgumentErrorNode(namedType, i)),
         );
       }
     }
@@ -532,10 +559,14 @@ class TypeArgumentsVerifier {
       var substitution = Substitution.fromPairs2(fnTypeParams, typeArgs);
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argType, bound)) {
-        _diagnosticReporter.atNode(
-          typeArgumentList[i],
-          diag.typeArgumentNotMatchingBounds,
-          arguments: [argType, fnTypeParamName, bound],
+        _diagnosticReporter.report(
+          diag.typeArgumentNotMatchingBounds
+              .withArguments(
+                nonConformingType: argType,
+                typeParameterName: fnTypeParamName,
+                bound: bound,
+              )
+              .at(typeArgumentList[i]),
         );
       }
     }
@@ -549,15 +580,15 @@ class TypeArgumentsVerifier {
   /// [diag.invalidTypeArgumentInConstSet].
   void _checkTypeArgumentConst(
     TypeAnnotation typeAnnotation,
-    DiagnosticCode diagnosticCode,
+    InvalidTypeArgumentDiagnosticCode diagnosticCode,
   ) {
     switch (typeAnnotation) {
       case NamedType(:var type, :var typeArguments):
         if (type is TypeParameterType) {
-          _diagnosticReporter.atNode(
-            typeAnnotation,
-            diagnosticCode,
-            arguments: [typeAnnotation.name.lexeme],
+          _diagnosticReporter.report(
+            diagnosticCode
+                .withArguments(typeParameter: typeAnnotation.name.lexeme)
+                .at(typeAnnotation),
           );
         } else if (typeArguments != null) {
           for (var argument in typeArguments.arguments) {
@@ -568,10 +599,10 @@ class TypeArgumentsVerifier {
         for (var parameter in parameters.parameters) {
           if (parameter case SimpleFormalParameter(type: var typeAnnotation?)) {
             if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
-              _diagnosticReporter.atNode(
-                typeAnnotation,
-                diagnosticCode,
-                arguments: [type],
+              _diagnosticReporter.report(
+                diagnosticCode
+                    .withArguments(typeParameter: type.getDisplayString())
+                    .at(typeAnnotation),
               );
             } else {
               _checkTypeArgumentConst(typeAnnotation, diagnosticCode);
@@ -583,10 +614,10 @@ class TypeArgumentsVerifier {
         }
         if (returnType case TypeAnnotation(:var type)) {
           if (type is TypeParameterType) {
-            _diagnosticReporter.atNode(
-              returnType,
-              diagnosticCode,
-              arguments: [type],
+            _diagnosticReporter.report(
+              diagnosticCode
+                  .withArguments(typeParameter: type.getDisplayString())
+                  .at(returnType),
             );
           } else {
             _checkTypeArgumentConst(returnType, diagnosticCode);
@@ -596,10 +627,10 @@ class TypeArgumentsVerifier {
         for (var field in fields) {
           var typeAnnotation = field.type;
           if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
-            _diagnosticReporter.atNode(
-              typeAnnotation,
-              diagnosticCode,
-              arguments: [type],
+            _diagnosticReporter.report(
+              diagnosticCode
+                  .withArguments(typeParameter: type.getDisplayString())
+                  .at(typeAnnotation),
             );
           } else {
             _checkTypeArgumentConst(typeAnnotation, diagnosticCode);
@@ -613,11 +644,13 @@ class TypeArgumentsVerifier {
   void _checkTypeArgumentCount(
     TypeArgumentList typeArguments,
     int expectedCount,
-    DiagnosticCode code,
+    ExpectedTypeArgumentsDiagnosticCode code,
   ) {
     int actualCount = typeArguments.arguments.length;
     if (actualCount != expectedCount) {
-      _diagnosticReporter.atNode(typeArguments, code, arguments: [actualCount]);
+      _diagnosticReporter.report(
+        code.withArguments(count: actualCount).at(typeArguments),
+      );
     }
   }
 

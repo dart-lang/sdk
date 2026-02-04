@@ -1,6 +1,16 @@
-## 1.18.0-dev
+## 1.18.1
+
+- Allow `@awaitNotRequired` to annotate a typedef.
+
+## 1.18.0
 
 - The `@redeclare` annotation is no longer considered experimental.
+- Two new TargetKinds are introduced: `TargetKind.exportDirective`, which
+  indicates an annotation is valid on an export directive, and
+  `TargetKind.partOfDirective`, which indicates an annnotation is valid on a
+  "part of" directive.
+- The `TargetKind.directive` value is deprecated in favor of the above new
+  TargetKinds and the existing `TargetKind.library`.
 
 ## 1.17.0
 

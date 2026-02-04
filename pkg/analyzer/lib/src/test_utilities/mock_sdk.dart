@@ -128,6 +128,8 @@ final _collectionLibrary = MockSdkLibrary('collection', [
   MockSdkLibraryUnit('collection/collection.dart', r'''
 library dart.collection;
 
+import 'dart:_internal';
+
 abstract final class HashMap<K, V> implements Map<K, V> {
   external factory HashMap({
     bool Function(K, K)? equals,
@@ -197,6 +199,10 @@ abstract final class LinkedHashSet<E> implements Set<E> {
 
 abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> {}
 
+abstract mixin class ListBase<E> implements List<E> {}
+
+class MapView<K, V> implements Map<K, V> {}
+
 abstract mixin class ListMixin<E> implements List<E> { }
 
 abstract mixin class MapMixin<K, V> implements Map<K, V> { }
@@ -206,6 +212,14 @@ abstract mixin class SetMixin<E> implements Set<E> { }
 abstract interface class Queue<E> implements Iterable<E> {
   bool remove(Object? value);
 }
+
+abstract mixin class SetBase<E> implements Set<E> {}
+
+class UnmodifiableListView<E> extends UnmodifiableListBase<E> {}
+
+class UnmodifiableMapView<K, V> extends MapView<K, V> {}
+
+class UnmodifiableSetView<E> extends SetBase<E> {}
 '''),
 ]);
 
@@ -446,7 +460,7 @@ class Error {
 }
 
 abstract interface class Exception {
-  factory Exception([var message]) => throw 0;
+  factory Exception([message]) => throw 0;
 }
 
 class FormatException implements Exception {}
@@ -500,6 +514,8 @@ abstract class Invocation {}
 
 abstract mixin class Iterable<E> {
   E get first;
+
+  E elementAt(int index);
 
   bool get isEmpty;
 
@@ -1567,6 +1583,9 @@ class Since {
 class Symbol implements core.Symbol {
   external const Symbol(String name);
 }
+
+abstract class UnmodifiableListBase<E> = ListBase<E>
+    with UnmodifiableListMixin<E>;
 '''),
 ]);
 

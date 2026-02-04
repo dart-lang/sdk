@@ -95,6 +95,68 @@ The `analysis_server_plugin` package must depend on the `analyzer` package with
 an _exact_ version constraint. It must also depend on the `analyzer_plugin`
 package with an _exact_ version constraint.
 
+## Workflow: Start a new minor version
+
+To start a new minor version for the analyzer and related packages, follow these steps.
+
+1. **Update `analyzer`**:
+    * Edit `pkg/analyzer/pubspec.yaml`.
+    * Set the version to the next minor `dev` version (e.g., `10.0.0` -> `10.1.0-dev`).
+    * Update `pkg/analyzer/CHANGELOG.md` to add a new section for the new version.
+    * Add "Internal changes only" as a placeholder.
+
+2. **Update `analyzer_plugin`**:
+    * Edit `pkg/analyzer_plugin/pubspec.yaml`.
+    * Set the version to the next patch `dev` version.
+    * Update the `analyzer` dependency to be the **exact** version from step 1 (e.g., `10.1.0-dev`).
+    * Update `pkg/analyzer_plugin/CHANGELOG.md` to add a new section for the new version.
+
+3. **Update `analyzer_testing`**:
+    * Edit `pkg/analyzer_testing/pubspec.yaml`.
+    * Update the `analyzer` dependency to be the **exact** version from step 1.
+    * Set the version to the next patch `dev` version.
+    * Update `pkg/analyzer_testing/CHANGELOG.md` to add a new section for the new version.
+
+4. **Update `analysis_server_plugin`**:
+    * Edit `pkg/analysis_server_plugin/pubspec.yaml`.
+    * Set the version to the next patch `dev` version.
+    * Update the `analyzer` dependency to be the **exact** version from step 1.
+    * Update the `analyzer_plugin` dependency to be the **exact** version from step 2.
+    * Update `pkg/analysis_server_plugin/CHANGELOG.md` to add a new section for the new version.
+
+## Workflow: Prepare a release
+
+To prepare the packages for publishing, follow these steps.
+
+1. **Update `_fe_analyzer_shared`**:
+    * Edit `pkg/_fe_analyzer_shared/pubspec.yaml`.
+    * Increment the major version (e.g., `92.0.0` -> `93.0.0`).
+
+2. **Update `analyzer`**:
+    * Edit `pkg/analyzer/pubspec.yaml`.
+    * Set the version to the release version (e.g., remove `-dev` or increment).
+    * Update the `_fe_analyzer_shared` dependency to match the new version from step 1 (e.g., `^93.0.0`).
+    * Update `pkg/analyzer/CHANGELOG.md` to set the version for the release entry.
+
+3. **Update `analyzer_plugin`**:
+    * Edit `pkg/analyzer_plugin/pubspec.yaml`.
+    * Set the version to the release version.
+    * Update the `analyzer` dependency to be the **exact** version from step 2 (e.g., `10.0.0`).
+    * Update `pkg/analyzer_plugin/CHANGELOG.md` to set the version for the release entry.
+
+4. **Update `analyzer_testing`**:
+    * Edit `pkg/analyzer_testing/pubspec.yaml`.
+    * Set the version to the release version.
+    * Update the `analyzer` dependency to be the **exact** version from step 2.
+    * Update `pkg/analyzer_testing/CHANGELOG.md` to set the version for the release entry.
+
+5. **Update `analysis_server_plugin`**:
+    * Edit `pkg/analysis_server_plugin/pubspec.yaml`.
+    * Set the version to the release version.
+    * Update the `analyzer` dependency to be the **exact** version from step 2.
+    * Update the `analyzer_plugin` dependency to be the **exact** version from step 3.
+    * Update `pkg/analysis_server_plugin/CHANGELOG.md` to set the version for the release entry.
+
 [_fe_analyzer_shared source]: https://github.com/dart-lang/sdk/tree/main/pkg/_fe_analyzer_shared
 [_fe_analyzer_shared pub package]: https://pub.dev/packages/_fe_analyzer_shared
 [analyzer source]: https://github.com/dart-lang/sdk/tree/main/pkg/analyzer

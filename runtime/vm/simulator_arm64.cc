@@ -1630,7 +1630,7 @@ typedef int64_t (*SimulatorLeafRuntimeCall)(int64_t r0,
 // SimulatorLeafRuntimeCall. We can call them all from here only because in
 // X64's calling conventions a function can be called with extra arguments
 // and the callee will see the first arguments and won't unbalance the stack.
-NO_SANITIZE_UNDEFINED("function")
+NO_SANITIZE_UNDEFINED_FUNCTION
 static int64_t InvokeLeafRuntime(SimulatorLeafRuntimeCall target,
                                  int64_t r0,
                                  int64_t r1,
@@ -1657,7 +1657,7 @@ typedef double (*SimulatorLeafFloatRuntimeCall)(double d0,
 // SimulatorFloatLeafRuntimeCall. We can call them all from here only because in
 // X64's calling conventions a function can be called with extra arguments
 // and the callee will see the first arguments and won't unbalance the stack.
-NO_SANITIZE_UNDEFINED("function")
+NO_SANITIZE_UNDEFINED_FUNCTION
 static double InvokeFloatLeafRuntime(SimulatorLeafFloatRuntimeCall target,
                                      double d0,
                                      double d1,

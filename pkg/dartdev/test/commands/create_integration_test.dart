@@ -21,8 +21,9 @@ void main() {
 
 void defineCreateTests() {
   // Create tests for each template.
-  for (String templateId
-      in CreateCommand.legalTemplateIds(includeDeprecated: true)) {
+  for (String templateId in CreateCommand.legalTemplateIds(
+    includeDeprecated: true,
+  )) {
     test(templateId, () async {
       const projectName = 'template_project';
       final p = project();
@@ -42,10 +43,10 @@ void defineCreateTests() {
 
       // Validate that the project analyzes cleanly.
       print('$templateId: analyzing generated project');
-      ProcessResult analyzeResult = await p.runAnalyze(
-        ['--fatal-infos', projectName],
-        workingDir: p.dir.path,
-      );
+      ProcessResult analyzeResult = await p.runAnalyze([
+        '--fatal-infos',
+        projectName,
+      ], workingDir: p.dir.path);
       expect(analyzeResult.exitCode, 0, reason: analyzeResult.stdout);
 
       // Validate that the code is well formatted.
@@ -61,21 +62,19 @@ void defineCreateTests() {
 
       // Process the execution instructions provided by the template.
       final runCommands = templateGenerator
-          .getInstallInstructions(
-            projectName,
-            scriptPath: projectName,
-          )
+          .getInstallInstructions(projectName, scriptPath: projectName)
           .split('\n')
           // Remove directory change instructions.
           .sublist(1)
           .map((command) => command.trim())
           .map((command) {
-        final commandParts = command.split(' ');
-        if (command.startsWith('dart ')) {
-          return commandParts.sublist(1);
-        }
-        return commandParts;
-      }).toList();
+            final commandParts = command.split(' ');
+            if (command.startsWith('dart ')) {
+              return commandParts.sublist(1);
+            }
+            return commandParts;
+          })
+          .toList();
 
       print('$templateId: running the following commands:');
       for (final command in runCommands) {
@@ -98,26 +97,25 @@ void defineCreateTests() {
           // The web template uses `webdev` to execute, not `dart`, so don't
           // run the test through the project utility method.
           process = await Process.start(
-              path.join(
-                p.pubCacheBinPath,
-                Platform.isWindows ? '${command.first}.bat' : command.first,
-              ),
-              [
-                ...command.sublist(1),
-                'web:0', // Allow for binding to a random available port.
-              ],
-              workingDirectory: workingDir,
-              environment: {
-                'PUB_CACHE': p.pubCachePath,
-                'PATH': path.dirname(Platform.resolvedExecutable) +
-                    (Platform.isWindows ? ';' : ':') +
-                    Platform.environment['PATH']!,
-              });
-        } else {
-          process = await p.start(
-            command,
-            workingDir: workingDir,
+            path.join(
+              p.pubCacheBinPath,
+              Platform.isWindows ? '${command.first}.bat' : command.first,
+            ),
+            [
+              ...command.sublist(1),
+              'web:0', // Allow for binding to a random available port.
+            ],
+            workingDirectory: workingDir,
+            environment: {
+              'PUB_CACHE': p.pubCachePath,
+              'PATH':
+                  path.dirname(Platform.resolvedExecutable) +
+                  (Platform.isWindows ? ';' : ':') +
+                  Platform.environment['PATH']!,
+            },
           );
+        } else {
+          process = await p.start(command, workingDir: workingDir);
         }
 
         if (isLastCommand && (isServerTemplate || isWebTemplate)) {
@@ -168,11 +166,13 @@ void defineCreateTests() {
           // If the sample should exit on its own, it should always result in
           // an exit code of 0.
           final duration = const Duration(seconds: 60);
-          final exitCode =
-              await process.exitCode.timeout(duration, onTimeout: () {
-            print('Command $command timed out');
-            return -1;
-          });
+          final exitCode = await process.exitCode.timeout(
+            duration,
+            onTimeout: () {
+              print('Command $command timed out');
+              return -1;
+            },
+          );
           if (exitCode != 0) {
             print('Command $command exited with code $exitCode');
             print('Output: \n${output.join('\n')}');

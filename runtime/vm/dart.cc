@@ -64,7 +64,6 @@ DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 Isolate* Dart::vm_isolate_ = nullptr;
 int64_t Dart::start_time_micros_ = 0;
 ThreadPool* Dart::thread_pool_ = nullptr;
-DebugInfo* Dart::pprof_symbol_generator_ = nullptr;
 ReadOnlyHandles* Dart::predefined_handles_ = nullptr;
 Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
 Dart_ThreadStartCallback Dart::thread_start_callback_ = nullptr;
@@ -531,7 +530,11 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     vm_isolate_group()->heap()->Verify("Dart::DartInit", kRequireMarked);
 #endif
   }
-  NOT_IN_PRODUCT(Profiler::Init());
+
+#if defined(DART_INCLUDE_PROFILER)
+  Profiler::Init();
+#endif
+
   // Allocate the "persistent" scoped handles for the predefined API
   // values (such as Dart_True, Dart_False and Dart_Null).
   Api::InitHandles();
@@ -676,13 +679,13 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
 
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
   if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down profiling\n",
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Stopping profiling\n",
                  UptimeMillis());
   }
-  Profiler::Cleanup();
-#endif  // !defined(PRODUCT)
+  Profiler::SetConfig({.enabled = false});
+#endif  // defined(DART_INCLUDE_PROFILER)
 
   NativeSymbolResolver::Cleanup();
 
@@ -749,6 +752,15 @@ char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done deleting thread pool\n",
                  UptimeMillis());
   }
+
+#if defined(DART_INCLUDE_PROFILER)
+  // Destroy profiler state.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Destroying profiler state\n",
+                 UptimeMillis());
+  }
+  Profiler::Cleanup();
+#endif  // defined(DART_INCLUDE_PROFILER)
 
   Api::Cleanup();
   delete predefined_handles_;

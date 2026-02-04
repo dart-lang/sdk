@@ -153,38 +153,38 @@ Future<String> _readLspMessage(Stream<List<int>> stream) {
   final completer = Completer<String>();
   final buffer = StringBuffer();
   late final StreamSubscription<String> inSubscription;
-  inSubscription = stream.transform<String>(utf8.decoder).listen(
-    (data) {
-      // Collect the output into the buffer.
-      buffer.write(data);
+  inSubscription = stream.transform<String>(utf8.decoder).listen((data) {
+    // Collect the output into the buffer.
+    buffer.write(data);
 
-      // Check whether the buffer has a complete message.
-      final bufferString = buffer.toString();
+    // Check whether the buffer has a complete message.
+    final bufferString = buffer.toString();
 
-      // If the buffer has what looks like the legacy banner, then just fail
-      // because we will never get an LSP message.
-      if (bufferString.contains('"event":"server.connected"')) {
-        completer.completeError(
-            'Expected LSP message but got legacy message: $bufferString');
+    // If the buffer has what looks like the legacy banner, then just fail
+    // because we will never get an LSP message.
+    if (bufferString.contains('"event":"server.connected"')) {
+      completer.completeError(
+        'Expected LSP message but got legacy message: $bufferString',
+      );
+    }
+
+    // To know if we have a complete message, we need to check we have the
+    // headers, extract the content-length, then check we have that many
+    // bytes in the body.
+    if (bufferString.contains(lspHeaderBodySeparator)) {
+      final parts = bufferString.split(lspHeaderBodySeparator);
+      final headers = parts[0];
+      final body = parts[1];
+      final length = int.parse(
+        contentLengthRegExp.firstMatch(headers)!.group(1)!,
+      );
+      // Check if we're already had the full payload.
+      if (body.length >= length) {
+        completer.complete(body.substring(0, length));
+        inSubscription.cancel();
       }
-
-      // To know if we have a complete message, we need to check we have the
-      // headers, extract the content-length, then check we have that many
-      // bytes in the body.
-      if (bufferString.contains(lspHeaderBodySeparator)) {
-        final parts = bufferString.split(lspHeaderBodySeparator);
-        final headers = parts[0];
-        final body = parts[1];
-        final length =
-            int.parse(contentLengthRegExp.firstMatch(headers)!.group(1)!);
-        // Check if we're already had the full payload.
-        if (body.length >= length) {
-          completer.complete(body.substring(0, length));
-          inSubscription.cancel();
-        }
-      }
-    },
-  );
+    }
+  });
 
   return completer.future;
 }

@@ -37,11 +37,13 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
   FixCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
     argParser
-      ..addFlag('dry-run',
-          abbr: 'n',
-          defaultsTo: false,
-          negatable: false,
-          help: 'Preview the proposed changes but make no changes.')
+      ..addFlag(
+        'dry-run',
+        abbr: 'n',
+        defaultsTo: false,
+        negatable: false,
+        help: 'Preview the proposed changes but make no changes.',
+      )
       ..addFlag(
         'apply',
         defaultsTo: false,
@@ -120,7 +122,8 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
     final targetName = path.basename(fixPath);
     Progress? computeFixesProgress = log.progress(
-        'Computing fixes in ${log.ansi.emphasized(targetName)}$modeText');
+      'Computing fixes in ${log.ansi.emphasized(targetName)}$modeText',
+    );
 
     var server = AnalysisServer(
       null,
@@ -128,6 +131,9 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       [target],
       commandName: 'fix',
       argResults: argResults,
+      // TODO(srawlins): Flip to `true` (or flag value) when plugins can bulk
+      // fix.
+      usePlugins: false,
       suppressAnalytics: suppressAnalytics,
       enabledExperiments: args.enabledExperiments,
       useAotSnapshot: args.flag(useAotSnapshotFlag),
@@ -169,8 +175,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       // If there are no more dart edits, check if there are any changes
       // to pubspec
       if (edits.isEmpty && detailsMap.isNotEmpty) {
-        var fixes = await server.requestBulkFixes(fixPath, inTestMode, [],
-            updatePubspec: true);
+        var fixes = await server.requestBulkFixes(
+          fixPath,
+          inTestMode,
+          [],
+          updatePubspec: true,
+        );
         _mergeDetails(detailsMap, fixes.details);
         edits = fixes.edits;
         _applyEdits(server, edits);
@@ -205,13 +215,17 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       var fileCount = detailsMap.length;
       var fixCount = detailsMap.values
           .expand((detail) => detail.fixes)
-          .fold<int>(0,
-              (int previousValue, fixes) => previousValue + fixes.occurrences);
+          .fold<int>(
+            0,
+            (int previousValue, fixes) => previousValue + fixes.occurrences,
+          );
 
       if (dryRun) {
         log.stdout('');
-        log.stdout('$fixCount proposed ${_pluralFix(fixCount)} '
-            'in $fileCount ${pluralize("file", fileCount)}.');
+        log.stdout(
+          '$fixCount proposed ${_pluralFix(fixCount)} '
+          'in $fileCount ${pluralize("file", fileCount)}.',
+        );
         _printDetails(detailsMap, dir);
         _printApplyFixDetails(detailsMap);
       } else {
@@ -219,8 +233,10 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         _writeFiles();
         applyFixesProgress.finish(showTiming: true);
         _printDetails(detailsMap, dir);
-        log.stdout('$fixCount ${_pluralFix(fixCount)} made in '
-            '$fileCount ${pluralize("file", fileCount)}.');
+        log.stdout(
+          '$fixCount ${_pluralFix(fixCount)} made in '
+          '$fileCount ${pluralize("file", fileCount)}.',
+        );
       }
     }
 
@@ -275,7 +291,8 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       if (expectFile == null) {
         result.failCount++;
         log.stdout(
-            'No corresponding expect file for the Dart file at "$filePath".');
+          'No corresponding expect file for the Dart file at "$filePath".',
+        );
         continue;
       }
       try {
@@ -303,7 +320,8 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         result.failCount++;
         log.stdout('Failed to process "$filePath".');
         log.stdout(
-            '  Ensure that the file and its expect file are both readable.');
+          '  Ensure that the file and its expect file are both readable.',
+        );
       }
     }
     //
@@ -312,7 +330,8 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     for (var unmatchedExpectPath in expectFileMap.keys) {
       result.failCount++;
       log.stdout(
-          'No corresponding Dart file for the expect file at "$unmatchedExpectPath".');
+        'No corresponding Dart file for the expect file at "$unmatchedExpectPath".',
+      );
     }
     return result;
   }
@@ -327,8 +346,9 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       usageException('Only one file or directory is expected.');
     }
 
-    var basePath =
-        argumentCount == 0 ? io.Directory.current.absolute.path : arguments[0];
+    var basePath = argumentCount == 0
+        ? io.Directory.current.absolute.path
+        : arguments[0];
     var normalizedPath = path.canonicalize(path.normalize(basePath));
     return io.FileSystemEntity.isDirectorySync(normalizedPath)
         ? io.Directory(normalizedPath)
@@ -348,7 +368,9 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   }
 
   void _mergeFixCounts(
-      List<BulkFixDetail> oldFixes, List<BulkFixDetail> newFixes) {
+    List<BulkFixDetail> oldFixes,
+    List<BulkFixDetail> newFixes,
+  ) {
     var originalOldLength = oldFixes.length;
     newFixLoop:
     for (var newFix in newFixes) {
@@ -396,16 +418,19 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     final bullet = log.ansi.bullet;
 
     var modifiedFilePaths = detailsMap.keys.toList();
-    modifiedFilePaths
-        .sort((first, second) => relative(first).compareTo(relative(second)));
+    modifiedFilePaths.sort(
+      (first, second) => relative(first).compareTo(relative(second)),
+    );
     for (var filePath in modifiedFilePaths) {
       var detail = detailsMap[filePath]!;
       log.stdout(relative(detail.path));
       final fixes = detail.fixes.toList();
       fixes.sort((a, b) => a.code.compareTo(b.code));
       for (var fix in fixes) {
-        log.stdout('  ${fix.code} $bullet '
-            '${fix.occurrences} ${_pluralFix(fix.occurrences)}');
+        log.stdout(
+          '  ${fix.code} $bullet '
+          '${fix.occurrences} ${_pluralFix(fix.occurrences)}',
+        );
       }
       log.stdout('');
     }
@@ -413,8 +438,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
   /// Report that the [actualCode] produced by applying fixes to the content of
   /// [filePath] did not match the [expectedCode].
-  void _reportFailure(String filePath, String actualCode, String expectedCode,
-      {required bool actualIsOriginal}) {
+  void _reportFailure(
+    String filePath,
+    String actualCode,
+    String expectedCode, {
+    required bool actualIsOriginal,
+  }) {
     log.stdout('Failed when applying fixes to $filePath');
     log.stdout('Expected:');
     log.stdout(expectedCode);
@@ -440,7 +469,7 @@ class _FixRequestResult {
   String message;
   Map<String, BulkFix> details;
   _FixRequestResult({this.message = '', Map<String, BulkFix>? details})
-      : details = details ?? {};
+    : details = details ?? {};
 }
 
 /// The result of running tests in a given directory.

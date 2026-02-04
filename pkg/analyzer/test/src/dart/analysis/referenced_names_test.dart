@@ -30,6 +30,26 @@ class U {
     expect(names, unorderedEquals(['A', 'B', 'C']));
   }
 
+  test_class_constructor_invocation() {
+    Set<String> names = _computeReferencedNames('''
+f() {
+  const A.foo();
+}
+''');
+    expect(names, unorderedEquals(['A', 'foo']));
+  }
+
+  test_class_constructor_invocation_prefixed() {
+    Set<String> names = _computeReferencedNames('''
+import 'a.dart' as p;
+
+f() {
+  const p.A();
+}
+''');
+    expect(names, unorderedEquals(['A']));
+  }
+
   test_class_constructor_parameters() {
     Set<String> names = _computeReferencedNames('''
 class U {

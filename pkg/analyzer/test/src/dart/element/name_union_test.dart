@@ -25,6 +25,7 @@ class MyClass {
   int get myGetter => 0;
   set mySetter(int _) {}
   void myMethod() {}
+  MyClass.myConstructor() {}
 }
 ''');
 
@@ -43,6 +44,9 @@ class MyClass {
 
     expect(nameUnion.contains('myMethod'), isTrue);
     expect(nameUnion.contains('NotMyMethod'), isFalse);
+
+    expect(nameUnion.contains('myConstructor'), isTrue);
+    expect(nameUnion.contains('notMyConstructor'), isFalse);
   }
 
   test_enum() async {

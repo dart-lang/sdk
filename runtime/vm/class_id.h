@@ -589,21 +589,15 @@ inline bool IsDeeplyImmutableCid(intptr_t predefined_cid) {
          predefined_cid == kSendPortCid || predefined_cid == kCapabilityCid ||
          predefined_cid == kRegExpCid || predefined_cid == kBoolCid ||
          predefined_cid == kNullCid || predefined_cid == kPointerCid ||
-         predefined_cid == kTypeCid || predefined_cid == kRecordTypeCid ||
-         predefined_cid == kFunctionTypeCid;
+         predefined_cid == kTypeCid || predefined_cid == kTypeArgumentsCid ||
+         predefined_cid == kTypeParameterCid ||
+         predefined_cid == kRecordTypeCid || predefined_cid == kFunctionTypeCid;
 }
 
 inline bool IsShallowlyImmutableCid(intptr_t predefined_cid) {
   ASSERT(predefined_cid < kNumPredefinedCids);
   return predefined_cid == kClosureCid ||
          IsUnmodifiableTypedDataViewClassId(predefined_cid);
-}
-
-// See documentation on ImmutableBit in raw_object.h
-inline bool ShouldHaveImmutabilityBitSetCid(intptr_t predefined_cid) {
-  ASSERT(predefined_cid < kNumPredefinedCids);
-  return IsDeeplyImmutableCid(predefined_cid) ||
-         IsShallowlyImmutableCid(predefined_cid);
 }
 
 inline bool IsFfiTypeClassId(intptr_t index) {

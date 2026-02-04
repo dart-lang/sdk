@@ -730,11 +730,11 @@ Page* SemiSpace::TryAllocatePageLocked(bool link) {
   if (capacity_in_words_ >= gc_threshold_in_words_) {
     return nullptr;  // Full.
   }
-  Page* page = Page::Allocate(kPageSize, Page::kNew);
+  Page* page = Page::Allocate(Page::kPageSize, Page::kNew);
   if (page == nullptr) {
     return nullptr;  // Out of memory;
   }
-  capacity_in_words_ += kPageSizeInWords;
+  capacity_in_words_ += Page::kPageSizeInWords;
   if (link) {
     if (head_ == nullptr) {
       head_ = tail_ = page;
@@ -813,7 +813,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
                                    GCReason reason) const {
   intptr_t num_mutators = heap_->isolate_group()->MutatorCount();
   bool grow = false;
-  if (2 * num_mutators > (old_size_in_words / kPageSizeInWords)) {
+  if (2 * num_mutators > (old_size_in_words / Page::kPageSizeInWords)) {
     // Not enough TLABs to give two to each mutator.
     grow = true;
   }
@@ -842,7 +842,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
   // Preserve old behavior when heap size is small.
   limit = Utils::Maximum(limit, max_semi_capacity_in_words_);
   // Align to TLAB size.
-  limit = Utils::RoundDown(limit, kPageSizeInWords);
+  limit = Utils::RoundDown(limit, Page::kPageSizeInWords);
 
   intptr_t growth_factor = grow ? FLAG_new_gen_growth_factor : 1;
   return Utils::Minimum(old_size_in_words * growth_factor, limit);

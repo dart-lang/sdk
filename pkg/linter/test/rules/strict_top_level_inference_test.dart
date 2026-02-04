@@ -35,11 +35,12 @@ class C {
   test_constructorParameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   C({final p1});
 }
 ''',
-      [lint(21, 2, correctionContains: 'Try adding a type annotation')],
+      [lint(37, 2, correctionContains: 'Try adding a type annotation')],
     );
   }
 
@@ -74,13 +75,14 @@ class C {
   test_constructorParameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   C({var p1});
 }
 ''',
       [
         lint(
-          19,
+          35,
           2,
           correctionContains: "Try replacing 'var' with a type annotation",
         ),
@@ -102,11 +104,12 @@ class C {
   test_constructorParameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   C(final p1);
 }
 ''',
-      [lint(20, 2, correctionContains: 'Try adding a type annotation')],
+      [lint(36, 2, correctionContains: 'Try adding a type annotation')],
     );
   }
 
@@ -141,13 +144,14 @@ class C {
   test_constructorParameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   C(var p1);
 }
 ''',
       [
         lint(
-          18,
+          34,
           2,
           correctionContains: "Try replacing 'var' with a type annotation",
         ),
@@ -297,24 +301,26 @@ class C {
   test_instanceMethod_parameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   void m({final p1}) {}
 }
 ''',
-      [lint(26, 2, correctionContains: 'Try adding a type annotation')],
+      [lint(42, 2, correctionContains: 'Try adding a type annotation')],
     );
   }
 
   test_instanceMethod_parameter_named_hasDefault() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   void m({var p1 = false}) {}
 }
 ''',
       [
         lint(
-          24,
+          40,
           2,
           correctionContains: "Try replacing 'var' with a type annotation",
         ),
@@ -341,13 +347,14 @@ class C {
   test_instanceMethod_parameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   void m({var p1}) {}
 }
 ''',
       [
         lint(
-          24,
+          40,
           2,
           correctionContains: "Try replacing 'var' with a type annotation",
         ),
@@ -441,24 +448,26 @@ class C {
   test_instanceMethod_parameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   void m(final p1) {}
 }
 ''',
-      [lint(25, 2, correctionContains: 'Try adding a type annotation')],
+      [lint(41, 2, correctionContains: 'Try adding a type annotation')],
     );
   }
 
   test_instanceMethod_parameter_positional_hasDefault() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   void m([var p1 = false]) {}
 }
 ''',
       [
         lint(
-          24,
+          40,
           2,
           correctionContains: "Try replacing 'var' with a type annotation",
         ),
@@ -507,13 +516,14 @@ class C {
   test_instanceMethod_parameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   void m(var p1) {}
 }
 ''',
       [
         lint(
-          23,
+          39,
           2,
           correctionContains: "Try replacing 'var' with a type annotation",
         ),
@@ -790,11 +800,12 @@ class C {
   test_staticMethod_parameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   static void m({final p1}) {}
 }
 ''',
-      [lint(33, 2, correctionContains: 'Try adding a type annotation')],
+      [lint(49, 2, correctionContains: 'Try adding a type annotation')],
     );
   }
 
@@ -809,13 +820,14 @@ class C {
   test_staticMethod_parameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   static void m({var p1}) {}
 }
 ''',
       [
         lint(
-          31,
+          47,
           2,
           correctionContains: "Try replacing 'var' with a type annotation.",
         ),
@@ -837,11 +849,12 @@ class C {
   test_staticMethod_parameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   static void m(final p1) {}
 }
 ''',
-      [lint(32, 2, correctionContains: 'Try adding a type annotation')],
+      [lint(48, 2, correctionContains: 'Try adding a type annotation')],
     );
   }
 
@@ -856,13 +869,14 @@ class C {
   test_staticMethod_parameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 class C {
   static void m(var p1) {}
 }
 ''',
       [
         lint(
-          30,
+          46,
           2,
           correctionContains: "Try replacing 'var' with a type annotation",
         ),
@@ -901,9 +915,10 @@ void m({p1}) {}
   test_topLevelFunction_parameter_named_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 void m({final p1}) {}
 ''',
-      [lint(14, 2, correctionContains: 'Try adding a type annotation')],
+      [lint(30, 2, correctionContains: 'Try adding a type annotation')],
     );
   }
 
@@ -916,11 +931,12 @@ void m({int? p1}) {}
   test_topLevelFunction_parameter_named_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 void m({var p1}) {}
 ''',
       [
         lint(
-          12,
+          28,
           2,
           correctionContains: "Try replacing 'var' with a type annotation.",
         ),
@@ -940,9 +956,10 @@ void m(p1) {}
   test_topLevelFunction_parameter_positional_final() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 void m(final p1) {}
 ''',
-      [lint(13, 2, correctionContains: 'Try adding a type annotation')],
+      [lint(29, 2, correctionContains: 'Try adding a type annotation')],
     );
   }
 
@@ -955,9 +972,10 @@ void m(int p1) {}
   test_topLevelFunction_parameter_positional_var() async {
     await assertDiagnostics(
       r'''
+// @dart = 3.10
 void m(var p1) {}
 ''',
-      [lint(11, 2)],
+      [lint(27, 2)],
     );
   }
 

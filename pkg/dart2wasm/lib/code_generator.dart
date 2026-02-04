@@ -13,6 +13,7 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'dispatch_table.dart';
 import 'dynamic_forwarders.dart';
+import 'globals.dart';
 import 'intrinsics.dart';
 import 'param_info.dart';
 import 'records.dart';
@@ -792,24 +793,34 @@ abstract class AstCodeGenerator
   void visitVariableDeclaration(VariableDeclaration node) {
     final w.ValueType type = translator.translateTypeOfLocalVariable(node);
     w.Local? local;
-    Capture? capture = closures.captures[node];
+    final Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {
+      // Variable is not captured, or never updated after initialization. Keep
+      // the value in a local.
       local = addLocal(type, name: node.name);
       locals[node] = local;
     }
 
-    // Handle variable initialization. Nullable variables have an implicit
-    // initializer.
+    // Handle variable initialization. Nullable variables don't get an
+    // initializer in kernel, but they still need to be initialized as `null`,
+    // to reset the variables in loops to the initial value, intead of reusing
+    // the last value from the previous iteration. This is tested in
+    // `tests/language/local_null_initialization.dart`.
     if (node.initializer != null ||
         node.type.nullability == Nullability.nullable) {
       Expression initializer =
           node.initializer ?? ConstantExpression(NullConstant());
       if (capture != null) {
-        w.ValueType expectedType = capture.written ? capture.type : local!.type;
+        // Type for the variable in context will always be nullable, to be able
+        // to allocate the context without creating dummy values. Nullability of
+        // the local's type will depend on the Dart type.
+        assert(
+            local == null || local.type.withNullability(true) == capture.type);
+        w.ValueType expectedType = local != null ? local.type : capture.type;
         b.local_get(capture.context.currentLocal);
         translateExpression(initializer, expectedType);
-        if (!capture.written) {
-          b.local_tee(local!);
+        if (local != null) {
+          b.local_tee(local);
         }
         b.struct_set(capture.context.struct, capture.fieldIndex);
       } else {
@@ -817,7 +828,8 @@ abstract class AstCodeGenerator
         b.local_set(local);
       }
     } else if (local != null && !local.type.defaultable) {
-      // Uninitialized variable
+      // Uninitialized variable. We don't need to update the context when the
+      // variable is captured as the context is already initialized.
       translator
           .getDummyValuesCollectorForModule(b.moduleBuilder)
           .instantiateDummyValue(b, local.type);
@@ -836,6 +848,8 @@ abstract class AstCodeGenerator
     w.Local? local;
     final Capture? capture = closures.captures[node];
     if (capture == null || !capture.written) {
+      // Variable is not captured, or never updated after initialization. Keep
+      // the value in a local.
       local = addLocal(type, name: node.name);
       locals[node] = local;
     }
@@ -843,8 +857,8 @@ abstract class AstCodeGenerator
     if (capture != null) {
       b.local_get(capture.context.currentLocal);
       pushInitialValue();
-      if (!capture.written) {
-        b.local_tee(local!);
+      if (local != null) {
+        b.local_tee(local);
       }
       b.struct_set(capture.context.struct, capture.fieldIndex);
     } else {
@@ -1571,11 +1585,20 @@ abstract class AstCodeGenerator
     if (intrinsicResult != null) return intrinsicResult;
 
     ClassInfo info = translator.classInfo[node.target.enclosingClass]!;
-    translator.functions.recordClassAllocation(info.classId);
 
     final target = node.targetReference;
     _visitArguments(node.arguments, translator.signatureForDirectCall(target),
         translator.paramInfoForDirectCall(target), 0);
+
+    if (info.isCyclic) {
+      // Cyclic types cannot be instantiated. Any code that tries to instantiate
+      // them will fail with stack overflow, which is a trap in Wasm. Here we
+      // replace one trap with another.
+      b.unreachable();
+      return expectedType;
+    }
+
+    translator.functions.recordClassAllocation(info.classId);
 
     return call(target).single;
   }
@@ -3141,6 +3164,11 @@ CodeGenerator getMemberCodeGenerator(Translator translator,
       translator, asyncMarker, functionBuilder.type, memberReference);
   if (codeGen != null) return codeGen;
 
+  final Class? memberClass = member.enclosingClass;
+  if (memberClass != null && translator.classInfo[memberClass]!.isCyclic) {
+    return UnreachableCodeGenerator(translator, functionBuilder.type, member);
+  }
+
   final procedure = member as Procedure;
 
   if (asyncMarker == AsyncMarker.SyncStar) {
@@ -3153,6 +3181,13 @@ CodeGenerator getMemberCodeGenerator(Translator translator,
 
 CodeGenerator getLambdaCodeGenerator(Translator translator, Lambda lambda,
     Member enclosingMember, Closures enclosingMemberClosures) {
+  final enclosingClass = enclosingMember.enclosingClass;
+  if (enclosingClass != null &&
+      translator.classInfo[enclosingClass]!.isCyclic) {
+    return UnreachableCodeGenerator(
+        translator, lambda.function.type, enclosingMember);
+  }
+
   final asyncMarker = lambda.functionNode.asyncMarker;
 
   if (asyncMarker == AsyncMarker.Async) {
@@ -3174,9 +3209,15 @@ CodeGenerator? getInlinableMemberCodeGenerator(Translator translator,
     AsyncMarker asyncMarker, w.FunctionType functionType, Reference reference) {
   final Member member = reference.asMember;
 
+  final Class? memberClass = member.enclosingClass;
+  if (memberClass != null && translator.classInfo[memberClass]!.isCyclic) {
+    return UnreachableCodeGenerator(translator, functionType, member);
+  }
+
   if (reference.isTearOffReference) {
     return TearOffCodeGenerator(translator, functionType, member);
   }
+
   if (reference.isTypeCheckerReference) {
     return TypeCheckerCodeGenerator(translator, functionType, member);
   }
@@ -3210,6 +3251,7 @@ CodeGenerator? getInlinableMemberCodeGenerator(Translator translator,
     return SynchronousProcedureCodeGenerator(
         translator, functionType, member, reference.entryKind);
   }
+
   assert(
       asyncMarker == AsyncMarker.SyncStar || asyncMarker == AsyncMarker.Async);
   return null;
@@ -4009,16 +4051,21 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     // Static field initializer function
     closures = translator.getClosures(field);
 
-    w.Global global = translator.globals.getGlobalForStaticField(field);
-    w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
-    translateExpression(field.initializer!, global.type.type);
-    translator.globals.writeGlobal(b, global);
+    final globalDefinition =
+        translator.dartGlobals.getDefinitionForStaticField(field);
+    final flag = globalDefinition.initializedFlag;
+
+    final local = b.addLocal(globalDefinition.type);
+    globalDefinition.write(translator, b, (b) {
+      translateExpression(field.initializer!, local.type);
+      b.local_tee(local);
+    });
+    b.local_get(local);
+    translator.convertType(b, local.type, outputs.single);
     if (flag != null) {
       b.i32_const(1);
       translator.globals.writeGlobal(b, flag);
     }
-    translator.globals.readGlobal(b, global);
-    translator.convertType(b, global.type.type, outputs.single);
     b.end();
   }
 }
@@ -4053,36 +4100,39 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
 
   @override
   void generateInternal() {
-    final global = translator.globals.getGlobalForStaticField(field);
-    final flag = translator.globals.getGlobalInitializedFlag(field);
+    final globalDefinition =
+        translator.dartGlobals.getDefinitionForStaticField(field);
     if (isImplicitGetter) {
       final initFunction =
           translator.functions.getExistingFunction(field.fieldReference);
-      _generateGetter(global, flag, initFunction);
+      _generateGetter(globalDefinition, initFunction);
     } else {
-      _generateSetter(global, flag);
+      _generateSetter(globalDefinition);
     }
     b.end();
   }
 
   void _generateGetter(
-      w.Global global, w.Global? flag, w.BaseFunction? initFunction) {
+      DartGlobalDefinition definition, w.BaseFunction? initFunction) {
+    final flag = definition.initializedFlag;
+
     if (initFunction == null) {
       // Statically initialized
-      translator.globals.readGlobal(b, global);
+      definition.read(translator, b);
+      // b.ref_cast(functionType.outputs.single as w.RefType);
     } else {
       if (flag != null) {
         // Explicit initialization flag
         translator.globals.readGlobal(b, flag);
-        b.if_(const [], [global.type.type]);
-        translator.globals.readGlobal(b, global);
+        b.if_(const [], [definition.type]);
+        definition.read(translator, b);
         b.else_();
         translator.callFunction(initFunction, b);
         b.end();
       } else {
         // Null signals uninitialized
         w.Label block = b.block(const [], [initFunction.type.outputs.single]);
-        translator.globals.readGlobal(b, global);
+        definition.read(translator, b);
         b.br_on_non_null(block);
         translator.callFunction(initFunction, b);
         b.end();
@@ -4090,9 +4140,11 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
     }
   }
 
-  void _generateSetter(w.Global global, w.Global? flag) {
-    b.local_get(paramLocals.single);
-    translator.globals.writeGlobal(b, global);
+  void _generateSetter(DartGlobalDefinition definition) {
+    definition.write(translator, b, (b) {
+      b.local_get(paramLocals.single);
+    });
+    final flag = definition.initializedFlag;
     if (flag != null) {
       b.i32_const(1); // true
       translator.globals.writeGlobal(b, flag);
@@ -4199,6 +4251,16 @@ class SynchronousLambdaCodeGenerator extends AstCodeGenerator {
 
     translateStatement(lambda.functionNode.body!);
     _implicitReturn();
+    b.end();
+  }
+}
+
+class UnreachableCodeGenerator extends AstCodeGenerator {
+  UnreachableCodeGenerator(super.translator, super.functionType, super.member);
+
+  @override
+  void generateInternal() {
+    b.unreachable();
     b.end();
   }
 }

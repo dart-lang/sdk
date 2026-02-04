@@ -203,11 +203,13 @@ final class DocCommentBuilder {
           // `null`.
           var openingTag = builder.openingTag;
           if (openingTag != null) {
-            _diagnosticReporter?.atOffset(
-              offset: openingTag.offset,
-              length: openingTag.end - openingTag.offset,
-              diagnosticCode: diag.docDirectiveMissingClosingTag,
-              arguments: [openingTag.type.opposingName!],
+            _diagnosticReporter?.report(
+              diag.docDirectiveMissingClosingTag
+                  .withArguments(tagName: openingTag.type.opposingName!)
+                  .atOffset(
+                    offset: openingTag.offset,
+                    length: openingTag.end - openingTag.offset,
+                  ),
             );
           }
           higherDirective.push(builder.build());
@@ -220,11 +222,13 @@ final class DocCommentBuilder {
     }
 
     // No matching opening tag was found.
-    _diagnosticReporter?.atOffset(
-      offset: closingTag.offset,
-      length: closingTag.end - closingTag.offset,
-      diagnosticCode: diag.docDirectiveMissingOpeningTag,
-      arguments: [closingTag.type.name],
+    _diagnosticReporter?.report(
+      diag.docDirectiveMissingOpeningTag
+          .withArguments(tagName: closingTag.type.name)
+          .atOffset(
+            offset: closingTag.offset,
+            length: closingTag.end - closingTag.offset,
+          ),
     );
     _pushDocDirective(SimpleDocDirective(closingTag));
   }
@@ -302,11 +306,13 @@ final class DocCommentBuilder {
       // `null`.
       var openingTag = builder.openingTag;
       if (openingTag != null) {
-        _diagnosticReporter?.atOffset(
-          offset: openingTag.offset,
-          length: openingTag.end - openingTag.offset,
-          diagnosticCode: diag.docDirectiveMissingClosingTag,
-          arguments: [openingTag.type.opposingName!],
+        _diagnosticReporter?.report(
+          diag.docDirectiveMissingClosingTag
+              .withArguments(tagName: openingTag.type.opposingName!)
+              .atOffset(
+                offset: openingTag.offset,
+                length: openingTag.end - openingTag.offset,
+              ),
         );
       }
       _pushBlockDocDirectiveAndInnerDirectives(builder);
@@ -393,11 +399,13 @@ final class DocCommentBuilder {
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.youtube));
         return true;
     }
-    _diagnosticReporter?.atOffset(
-      offset: _characterSequence._offset + nameIndex,
-      length: nameEnd - nameIndex,
-      diagnosticCode: diag.docDirectiveUnknown,
-      arguments: [name],
+    _diagnosticReporter?.report(
+      diag.docDirectiveUnknown
+          .withArguments(directive: name)
+          .atOffset(
+            offset: _characterSequence._offset + nameIndex,
+            length: nameEnd - nameIndex,
+          ),
     );
     return false;
   }
@@ -1112,7 +1120,6 @@ final class _DirectiveParser {
       _end = _offset + index;
     }
     var (positionalArguments, namedArguments) = _parseArguments();
-    _readClosingCurlyBrace();
     return DocDirectiveTag(
       offset: _offset,
       end: _end!,
@@ -1222,52 +1229,6 @@ final class _DirectiveParser {
       ),
     );
     return (positionalArguments, namedArguments);
-  }
-
-  /// Reads the closing curly brace (`}`) expected at the end of a doc
-  /// directive.
-  ///
-  /// Reports any extra, unexpected arguments that are found.
-  ///
-  /// Reports a warning if EOL is reached before a closing curly brace is found.
-  void _readClosingCurlyBrace() {
-    if (_end != null) {
-      return;
-    }
-    if (index >= _length) {
-      // No extra arguments or closing brace.
-      _end = _offset + _length;
-      return;
-    }
-    if (_isRightCurlyBrace(content.codeUnitAt(index))) {
-      index++;
-      _end = _offset + index;
-      return;
-    }
-
-    var extraArgumentsOffset = _offset + index;
-
-    while (!_isRightCurlyBrace(content.codeUnitAt(index))) {
-      index++;
-      if (index == _length) {
-        // Found extra arguments and no closing brace.
-        _diagnosticReporter?.report(
-          diag.docDirectiveMissingClosingBrace.atOffset(
-            offset: _offset + index - 1,
-            length: 1,
-          ),
-        );
-        break;
-      }
-    }
-
-    var errorLength = _offset + index - extraArgumentsOffset;
-    _diagnosticReporter?.atOffset(
-      offset: extraArgumentsOffset,
-      length: errorLength,
-      diagnosticCode: diag.docDirectiveHasExtraArguments,
-    );
-    _end = _offset + index;
   }
 }
 

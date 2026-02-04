@@ -7,8 +7,10 @@ import 'dart:async';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
+import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analysis_server_plugin/src/plugin_server.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
@@ -27,34 +29,109 @@ import 'plugin_server_test_base.dart';
 
 void main() {
   defineReflectiveTests(PluginServerTest);
+  defineReflectiveTests(PluginServerMapTest);
 }
 
 @reflectiveTest
-class PluginServerTest extends PluginServerTestBase {
-  protocol.ContextRoot get contextRoot => protocol.ContextRoot(packagePath, []);
+class PluginServerMapTest extends PluginServerTestBase
+    with PluginServerTestMixin {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
 
-  String get file2Path => join(packagePath, 'lib', 'test2.dart');
-
-  String get filePath => join(packagePath, 'lib', 'test.dart');
-
-  String get packagePath => convertPath('/package1');
-
-  String get testFilePath => join(packagePath, 'test', 'test.dart');
-
-  StreamQueue<protocol.AnalysisErrorsParams> get _analysisErrorsParams {
-    return StreamQueue(
-      channel.notifications
-          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
-          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-          .where(
-            (p) =>
-                p.file == filePath ||
-                p.file == file2Path ||
-                p.file == testFilePath,
-          ),
+    pluginServer = PluginServer.new2(
+      resourceProvider: resourceProvider,
+      plugins: {
+        'other_plugin': _OtherPlugin(),
+        'no_literals': _NoLiteralsPlugin(),
+      },
     );
+    await startPlugin();
   }
 
+  Future<void> test_warningsCanBeIgnored_correctPlugin() async {
+    // See https://github.com/dart-lang/sdk/issues/62173
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, '''
+// ignore: no_literals/no_bools
+bool b = false;
+''');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  void writeAnalysisOptionsWithPlugin([
+    Map<String, String> diagnosticConfiguration = const {},
+  ]) {
+    var buffer = StringBuffer('''
+plugins:
+  other_plugin:
+    path: some/other/path
+  no_literals:
+    path: some/path
+''');
+    for (var MapEntry(key: diagnosticName, value: enablement)
+        in diagnosticConfiguration.entries) {
+      buffer.writeln('      $diagnosticName: $enablement');
+    }
+    newAnalysisOptionsYamlFile(packagePath, buffer.toString());
+  }
+
+  Future<void> test_ignoreFixes() async {
+    writeAnalysisOptionsWithPlugin();
+    var fileContent = 'bool b = false;';
+    newFile(filePath, fileContent);
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var result = await pluginServer.handleEditGetFixes(
+      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
+    );
+    var fixes = result.fixes.single.fixes;
+    for (var fix in fixes) {
+      if (fix.change.id == ignoreErrorLineKind.id) {
+        expect(
+          fix.change.message,
+          "Ignore 'no_literals/no_bools' for this line",
+        );
+        var resultCode = protocol.SourceEdit.applySequence(
+          fileContent,
+          fix.change.edits.first.edits,
+        );
+        expect(
+          resultCode,
+          normalizeNewlinesForPlatform('''
+// ignore: no_literals/no_bools
+bool b = false;'''),
+        );
+      } else if (fix.change.id == ignoreErrorFileKind.id) {
+        expect(
+          fix.change.message,
+          "Ignore 'no_literals/no_bools' for the whole file",
+        );
+        var resultCode = protocol.SourceEdit.applySequence(
+          fileContent,
+          fix.change.edits.first.edits,
+        );
+        expect(
+          resultCode,
+          normalizeNewlinesForPlatform('''
+// ignore_for_file: no_literals/no_bools
+
+bool b = false;'''),
+        );
+      }
+    }
+  }
+}
+
+@reflectiveTest
+class PluginServerTest extends PluginServerTestBase with PluginServerTestMixin {
   @override
   Future<void> setUp() async {
     await super.setUp();
@@ -177,6 +254,48 @@ bool b = [!false!];
     expect(fixes.fixes, hasLength(4));
   }
 
+  Future<void> test_ignoreFixes() async {
+    writeAnalysisOptionsWithPlugin();
+    var fileContent = 'bool b = false;';
+    newFile(filePath, fileContent);
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var result = await pluginServer.handleEditGetFixes(
+      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
+    );
+    var fixes = result.fixes.single.fixes;
+    for (var fix in fixes) {
+      if (fix.change.id == ignoreErrorLineKind.id) {
+        expect(fix.change.message, "Ignore 'no_bools' for this line");
+        var resultCode = protocol.SourceEdit.applySequence(
+          fileContent,
+          fix.change.edits.first.edits,
+        );
+        expect(
+          resultCode,
+          normalizeNewlinesForPlatform('''
+// ignore: no_bools
+bool b = false;'''),
+        );
+      } else if (fix.change.id == ignoreErrorFileKind.id) {
+        expect(fix.change.message, "Ignore 'no_bools' for the whole file");
+        var resultCode = protocol.SourceEdit.applySequence(
+          fileContent,
+          fix.change.edits.first.edits,
+        );
+        expect(
+          resultCode,
+          normalizeNewlinesForPlatform('''
+// ignore_for_file: no_bools
+
+bool b = false;'''),
+        );
+      }
+    }
+  }
+
   Future<void> test_handleEditGetFixes_afterLine() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;\n\n');
@@ -295,6 +414,34 @@ bool b = ^false;
     _expectAnalysisError(params.errors.single, message: 'No doubles message');
   }
 
+  Future<void> test_partDiagnosticContextMessage() async {
+    writeAnalysisOptionsWithPlugin({'no_type_annotations': 'enable'});
+    newFile(file2Path, '''
+part of 'test.dart';
+
+class C {}
+''');
+    var code = TestCode.parseNormalized('''
+part 'test2.dart';
+
+C? c;
+''');
+    newFile(filePath, code.code);
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1), reason: 'Expected one diagnostic.');
+    var diagnostic = params.errors.single;
+    _expectAnalysisError(diagnostic, message: 'No type annotations');
+    expect(
+      diagnostic.contextMessages,
+      hasLength(1),
+      reason: 'Expected one context message.',
+    );
+  }
+
   Future<void> test_pluginDetails() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
@@ -312,6 +459,7 @@ bool b = ^false;
         'no_doubles',
         'no_doubles_custom_severity',
         'no_references_to_strings',
+        'no_type_annotations',
       ]),
     );
     expect(details.warningRules, unorderedEquals(['no_bools']));
@@ -698,6 +846,32 @@ plugins:
   }
 }
 
+mixin PluginServerTestMixin on PluginServerTestBase {
+  protocol.ContextRoot get contextRoot => protocol.ContextRoot(packagePath, []);
+
+  String get file2Path => join(packagePath, 'lib', 'test2.dart');
+
+  String get filePath => join(packagePath, 'lib', 'test.dart');
+
+  String get packagePath => convertPath('/package1');
+
+  String get testFilePath => join(packagePath, 'test', 'test.dart');
+
+  StreamQueue<protocol.AnalysisErrorsParams> get _analysisErrorsParams {
+    return StreamQueue(
+      channel.notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+          .where(
+            (p) =>
+                p.file == filePath ||
+                p.file == file2Path ||
+                p.file == testFilePath,
+          ),
+    );
+  }
+}
+
 class _InvertBoolean extends ResolvedCorrectionProducer {
   static const _invertBooleanKind = AssistKind(
     'dart.fix.invertBoolean',
@@ -736,8 +910,19 @@ class _NoLiteralsPlugin extends Plugin {
     registry.registerLintRule(NoDoublesRule());
     registry.registerLintRule(NoDoublesCustomSeverityRule());
     registry.registerLintRule(NoReferencesToStringsRule());
+    registry.registerLintRule(NoTypeAnnotationsRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
     registry.registerAssist(_InvertBoolean.new);
+  }
+}
+
+class _OtherPlugin extends Plugin {
+  @override
+  String get name => 'Other Plugin';
+
+  @override
+  void register(PluginRegistry registry) {
+    // No-op.
   }
 }
 

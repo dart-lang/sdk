@@ -36,6 +36,14 @@ class A {
 ''');
   }
 
+  test_class_instance_field_declaredInPrimaryConstructor() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A(@mustBeOverridden var int f);
+''');
+  }
+
   test_class_instance_getter() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -173,6 +181,30 @@ mixin M {
   void m() {}
 }
 ''');
+  }
+
+  test_parameter_declaredInPrimaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+class A(@mustBeOverridden int f);
+''',
+      [error(diag.invalidAnnotationTarget, 43, 16)],
+    );
+  }
+
+  test_parameter_fieldFormal_declaredInPrimaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+class A(@mustBeOverridden this.f) {
+  final int f;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 43, 16)],
+    );
   }
 
   test_topLevel() async {
@@ -593,7 +625,8 @@ class C {}
   }
 
   void test_constructor_classWithPrimaryConstructor() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -603,7 +636,9 @@ class A {
 
 @A()
 class C(final int i);
-''');
+''',
+      [error(diag.invalidAnnotationTarget, 100, 1)],
+    );
   }
 
   void test_constructor_constructor() async {
@@ -622,7 +657,8 @@ class C {
   }
 
   void test_constructor_enumWithPrimaryConstructor() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -634,11 +670,14 @@ class A {
 enum C(int i) {
   a(1), b(2), c(3);
 }
-''');
+''',
+      [error(diag.invalidAnnotationTarget, 100, 1)],
+    );
   }
 
   void test_constructor_extensionType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 import 'package:meta/meta_meta.dart';
 
 @Target({TargetKind.constructor})
@@ -648,7 +687,9 @@ class A {
 
 @A()
 extension type C(int i);
-''');
+''',
+      [error(diag.invalidAnnotationTarget, 100, 1)],
+    );
   }
 
   void test_constructor_method() async {
@@ -669,11 +710,29 @@ class C {
     );
   }
 
+  void test_constructor_primaryConstructorBody() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+
+class C(final int i) {
+  @A()
+  this;
+}
+''');
+  }
+
   void test_directive_class() async {
     await assertErrorsInCode(
       '''
 import 'package:meta/meta_meta.dart';
 
+// ignore: deprecated_member_use
 @Target({TargetKind.directive})
 class A {
   const A();
@@ -682,7 +741,7 @@ class A {
 @A()
 class C {}
 ''',
-      [error(diag.invalidAnnotationTarget, 98, 1)],
+      [error(diag.invalidAnnotationTarget, 131, 1)],
     );
   }
 
@@ -693,6 +752,7 @@ import 'package:meta/meta_meta.dart';
 @A()
 import 'dart:core';
 
+// ignore: deprecated_member_use
 @Target({TargetKind.directive})
 class A {
   const A();
@@ -764,6 +824,37 @@ class C {
     );
   }
 
+  void test_exportDirective_exportDirective() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@A()
+export 'dart:core';
+
+@Target({TargetKind.exportDirective})
+class A {
+  const A();
+}
+''');
+  }
+
+  void test_exportDirective_importDirective() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@A()
+import 'dart:core';
+
+@Target({TargetKind.exportDirective})
+class A {
+  const A();
+}
+''',
+      [error(diag.invalidAnnotationTarget, 40, 1)],
+    );
+  }
+
   void test_extension_class() async {
     await assertErrorsInCode(
       '''
@@ -822,6 +913,19 @@ class C {
   @A()
   int f = 0;
 }
+''');
+  }
+
+  void test_field_field_declaredInPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.field})
+class A {
+  const A();
+}
+
+class C(@A() final int f);
 ''');
   }
 
@@ -889,6 +993,25 @@ class A {
 set x(_x) {}
 ''',
       [error(diag.invalidAnnotationTarget, 97, 1)],
+    );
+  }
+
+  void test_getter_field() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.getter})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  int x = 0;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 107, 1)],
     );
   }
 
@@ -1480,6 +1603,74 @@ typedef bool predicate(Object o);
     );
   }
 
+  void test_override_field() async {
+    await assertNoErrorsInCode('''
+class C {
+  int a = 0;
+}
+class D extends C {
+  @override
+  int a = 0;
+}
+''');
+  }
+
+  void test_override_getter() async {
+    await assertNoErrorsInCode('''
+class C {
+  int get a => 0;
+}
+class D extends C {
+  @override
+  int get a => 0;
+}
+''');
+  }
+
+  void test_override_method() async {
+    await assertNoErrorsInCode('''
+class C {
+  void m() {}
+}
+class D extends C {
+  @override
+  void m() {}
+}
+''');
+  }
+
+  void test_override_setter() async {
+    await assertNoErrorsInCode('''
+class C {
+  set a(int p) {}
+}
+class D extends C {
+  @override
+  set a(int p) {}
+}
+''');
+  }
+
+  void test_override_topLevelField() async {
+    await assertErrorsInCode(
+      '''
+@override
+int a = 1;
+''',
+      [error(diag.invalidAnnotationTarget, 1, 8)],
+    );
+  }
+
+  void test_override_topLevelFunction() async {
+    await assertErrorsInCode(
+      '''
+@override
+class C {}
+''',
+      [error(diag.invalidAnnotationTarget, 1, 8)],
+    );
+  }
+
   void test_parameter_function() async {
     await assertErrorsInCode(
       '''
@@ -1508,6 +1699,79 @@ class A {
 
 void f(@A() int x) {}
 ''');
+  }
+
+  void test_partOfDirective_importDirective() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@A()
+import 'dart:core';
+
+@Target({TargetKind.partOfDirective})
+class A {
+  const A();
+}
+''',
+      [error(diag.invalidAnnotationTarget, 40, 1)],
+    );
+  }
+
+  void test_partOfDirective_partOfDirective() async {
+    newFile('$testPackageLibPath/b.dart', '''
+import 'package:meta/meta_meta.dart';
+
+part 'test.dart';
+''');
+    await assertNoErrorsInCode('''
+
+@A()
+part of 'b.dart';
+
+@Target({TargetKind.partOfDirective})
+class A {
+  const A();
+}
+''');
+  }
+
+  void test_setter_field_final() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.setter})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  final int x = 0;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 107, 1)],
+    );
+  }
+
+  void test_setter_field_mutable() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.setter})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  int x = 0;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 107, 1)],
+    );
   }
 
   void test_setter_getter() async {

@@ -49,7 +49,9 @@ class StackFrame;
 namespace module_snapshot {
 class CodeDeserializationCluster;
 class Deserializer;
+class InterfaceTypeDeserializationCluster;
 class ObjectPoolDeserializationCluster;
+class TypeArgumentsDeserializationCluster;
 }  // namespace module_snapshot
 
 #define DEFINE_CONTAINS_COMPRESSED(type)                                       \
@@ -226,12 +228,15 @@ class UntaggedObject {
   // The bit is also used to make typed data stores efficient. 2.a.
   //
   // See also Class::kIsDeeplyImmutableBit.
-  using ImmutableBit =
+  using ShallowImmutableBit =
       BitField<decltype(tags_), bool, OldAndNotRememberedBit::kNextBit>;
+
+  using DeeplyImmutableBit =
+      BitField<decltype(tags_), bool, ShallowImmutableBit::kNextBit>;
 
   // The rest of the initial byte is currently reserved, so the next bitfield
   // starts at the byte boundary.
-  COMPILE_ASSERT(ImmutableBit::kNextBit <= kBitsPerInt8);
+  COMPILE_ASSERT(DeeplyImmutableBit::kNextBit <= kBitsPerInt8);
   using SizeTagBits = BitField<decltype(tags_), intptr_t, kBitsPerInt8, 4>;
 
   // Encodes the object size in the tag in units of object alignment.
@@ -299,7 +304,7 @@ class UntaggedObject {
   }
 
   uword tags() const { return tags_; }
-  uword tags_ignore_race() const { return tags_.load_ignore_race(); }
+  uword tags_no_sanitize() const { return tags_.load_no_sanitize(); }
 
   // Support for GC marking bit. Marked objects are either grey (not yet
   // visited) or black (already visited).
@@ -357,9 +362,17 @@ class UntaggedObject {
   void SetCanonical() { tags_.UpdateBool<CanonicalBit>(true); }
   void ClearCanonical() { tags_.UpdateBool<CanonicalBit>(false); }
 
-  bool IsImmutable() const { return tags_.Read<ImmutableBit>(); }
-  void SetImmutable() { tags_.UpdateBool<ImmutableBit>(true); }
-  void ClearImmutable() { tags_.UpdateBool<ImmutableBit>(false); }
+  bool IsShallowImmutable() const { return tags_.Read<ShallowImmutableBit>(); }
+  void SetShallowImmutable() { tags_.UpdateBool<ShallowImmutableBit>(true); }
+  void ClearShallowImmutable() { tags_.UpdateBool<ShallowImmutableBit>(false); }
+
+  bool IsDeeplyImmutable() const { return tags_.Read<DeeplyImmutableBit>(); }
+  void SetDeeplyImmutable() { tags_.UpdateBool<DeeplyImmutableBit>(true); }
+  void ClearDeeplyImmutable() { tags_.UpdateBool<DeeplyImmutableBit>(false); }
+
+  bool IsImmutable() const {
+    return IsShallowImmutable() || IsDeeplyImmutable();
+  }
 
   bool InVMIsolateHeap() const;
 
@@ -1312,6 +1325,7 @@ class UntaggedClass : public UntaggedObject {
   friend class CidRewriteVisitor;
   friend class FinalizeVMIsolateVisitor;
   friend class Api;
+  friend class module_snapshot::ObjectPoolDeserializationCluster;
 };
 
 class UntaggedPatchClass : public UntaggedObject {
@@ -1874,9 +1888,6 @@ class UntaggedLibrary : public UntaggedObject {
   // True if debugger can stop in library.
   using DebuggableBit =
       BitField<decltype(flags_), bool, DartSchemeBit::kNextBit>;
-  // True if library is in a full snapshot.
-  using InFullSnapshotBit =
-      BitField<decltype(flags_), bool, DebuggableBit::kNextBit>;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   uint32_t kernel_library_index_;
@@ -2895,6 +2906,7 @@ class UntaggedTypeArguments : public UntaggedInstance {
 
   friend class Object;
   friend class Interpreter;
+  friend class module_snapshot::TypeArgumentsDeserializationCluster;
 };
 
 class UntaggedTypeParameters : public UntaggedObject {
@@ -2953,6 +2965,7 @@ class UntaggedAbstractType : public UntaggedInstance {
   friend class Interpreter;
   friend class ObjectStore;
   friend class StubCode;
+  friend class module_snapshot::InterfaceTypeDeserializationCluster;
 };
 
 class UntaggedType : public UntaggedAbstractType {
@@ -2981,6 +2994,7 @@ class UntaggedType : public UntaggedAbstractType {
   friend class CidRewriteVisitor;
   friend class Interpreter;
   friend class UntaggedTypeArguments;
+  friend class module_snapshot::InterfaceTypeDeserializationCluster;
 };
 
 class UntaggedFunctionType : public UntaggedAbstractType {

@@ -102,6 +102,18 @@ class ImportLibrary extends MultiCorrectionProducer {
     };
   }
 
+  DartType? _getTypeForPattern(AstNode node) {
+    var parent = node.parent;
+    while (parent is DartPattern || parent?.parent is DartPattern) {
+      if (parent is ObjectPattern) {
+        return parent.type.type;
+      }
+      parent = parent?.parent;
+    }
+    // We don't know how to answer this.
+    return null;
+  }
+
   Future<(_ImportLibraryCombinator?, _ImportLibraryCombinatorMultiple?)>
   _importEditCombinators(
     LibraryImport import,
@@ -215,7 +227,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var producers = <ResolvedCorrectionProducer>[];
     // Maybe there is an existing import, but it is with prefix and we don't use
     // this prefix.
-    var alreadyImportedWithPrefix = <LibraryElement>{};
+    var alreadyImported = <LibraryElement>{};
     for (var importDirective
         in unitResult.unit.directives.whereType<ImportDirective>()) {
       // Prepare the element.
@@ -262,7 +274,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         );
         continue;
       } else if (combinatorProducer != null) {
-        alreadyImportedWithPrefix.add(libraryElement);
+        alreadyImported.add(libraryElement);
         producers.add(combinatorProducer);
         if (combinatorProducerMultiple != null) {
           producers.add(combinatorProducerMultiple);
@@ -280,7 +292,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       // Check the source.
-      if (alreadyImportedWithPrefix.contains(libraryElement)) {
+      if (alreadyImported.contains(libraryElement)) {
         continue;
       }
       // Check that the import doesn't end with '.template.dart'.
@@ -442,6 +454,15 @@ class ImportLibrary extends MultiCorrectionProducer {
           node.operator.type == TokenType.TILDE) {
         targetType = node.operand.staticType;
       }
+    } else if (node is PatternFieldName) {
+      memberName = node.name?.lexeme ?? '';
+      if (memberName.isEmpty) {
+        return const [];
+      }
+      targetType = _getTypeForPattern(node);
+    } else if (node is DeclaredVariablePattern) {
+      memberName = node.name.lexeme;
+      targetType = _getTypeForPattern(node);
     } else {
       return const [];
     }

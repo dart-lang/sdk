@@ -9,6 +9,7 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/codes/cfe_codes.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/util/bytes_sink.dart' show BytesSink;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart'
@@ -450,7 +451,7 @@ class ProcessedOptionsTest {
     expect(uriTranslator.packages.packages, isEmpty);
     expect(
       (errors.single as FormattedMessage).locatedMessage.code,
-      codeCantReadFile,
+      diag.cantReadFile,
     );
   }
 
@@ -466,7 +467,7 @@ class ProcessedOptionsTest {
     var result = await options.validateOptions();
     expect(
       (errors.single as FormattedMessage).problemMessage,
-      codeMissingInput.problemMessage,
+      diag.missingInput.problemMessage,
     );
     expect(result, isFalse);
   }
@@ -531,7 +532,7 @@ class ProcessedOptionsTest {
     expect(await options.validateOptions(), isFalse);
     expect(
       (errors.first as FormattedMessage).locatedMessage.code,
-      codeSdkRootNotFound,
+      diag.sdkRootNotFound,
     );
   }
 
@@ -573,7 +574,7 @@ class ProcessedOptionsTest {
     expect(await options.validateOptions(), isFalse);
     expect(
       (errors.single as FormattedMessage).locatedMessage.code,
-      codeSdkSummaryNotFound,
+      diag.sdkSummaryNotFound,
     );
   }
 
@@ -621,7 +622,7 @@ class ProcessedOptionsTest {
     expect(await options.validateOptions(), isFalse);
     expect(
       (errors.single as FormattedMessage).locatedMessage.code,
-      codeSdkSummaryNotFound,
+      diag.sdkSummaryNotFound,
     );
   }
 }

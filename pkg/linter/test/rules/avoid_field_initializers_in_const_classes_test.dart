@@ -41,6 +41,18 @@ class C {
     );
   }
 
+  test_constClass_constructorInitializer_primary() async {
+    await assertDiagnostics(
+      r'''
+class const C(int a) {
+  final a;
+  this : this.a = 0;
+}
+''',
+      [lint(43, 10)],
+    );
+  }
+
   test_constClass_constructorInitializer_usingParameter() async {
     await assertNoDiagnostics(r'''
 class C {

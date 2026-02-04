@@ -78,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool skipForDiagnostic({Element? element, DartType? type, Token? name}) =>
-      name.isPrivate || _isOverridingMember(element) || isWidgetProperty(type);
+      name.isPrivate || _isOverridingMember(element) || type.isWidgetProperty;
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

@@ -8,7 +8,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart' as codes;
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart'
     show AsyncModifier;
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
@@ -39,6 +38,7 @@ import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/builder/compilation_unit.dart';
 import 'package:front_end/src/builder/library_builder.dart';
 import 'package:front_end/src/codes/cfe_codes.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/dill/dill_library_builder.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/kernel/utils.dart';
@@ -791,8 +791,8 @@ List<Test> extractTestsFromComment(
                   identical(")", nextSeparator.next!.stringValue)))) {
         int position =
             commentsData.charOffset + scanOffset + nextSeparator.charOffset;
-        Message message = codes.codeExpectedButGot.withArgumentsOld(
-          i < expressionCount ? "," : ")",
+        Message message = diag.expectedButGot.withArguments(
+          expected: i < expressionCount ? "," : ")",
         );
         return new TestParseError(
           _createParseErrorMessage(

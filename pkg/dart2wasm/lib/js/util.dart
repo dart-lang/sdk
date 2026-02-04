@@ -129,42 +129,92 @@ class CoreTypesUtil {
     coreTypes.functionClass: jsifyFunction,
   };
 
-  late final Map<Class, Procedure> _dartifyMap = {
+  /// Conversion functions from `WasmExternRef?`. These functions should check
+  /// for `null` and `undefined` values, and types to prevent nulls from flowing
+  /// into non-nullable Dart values or wrapping references with incorrect types.
+  /// (e.g. a `String` as `Uint8list`)
+  ///
+  /// Return values should be non-nullable.
+  late final Map<Class, Procedure> _dartifyNonNullableMap = {
     coreTypes.boolClass:
         coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartBool'),
     coreTypes.intClass:
-        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'dartifyInt'),
+        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartInt'),
     coreTypes.doubleClass:
-        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartNumber'),
+        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartDouble'),
     coreTypes.numClass:
-        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartNumber'),
+        coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartDouble'),
     coreTypes.stringClass:
         coreTypes.index.getProcedure('dart:_string', 'JSStringImpl', 'fromRef'),
     coreTypes.listClass:
         coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartList'),
     coreTypes.index.getClass('dart:typed_data', 'Int8List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSInt8ArrayImpl', 'fromArrayRef'),
+        .getProcedure('dart:_js_types', 'JSInt8ArrayImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'Uint8List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSUint8ArrayImpl', 'fromArrayRef'),
-    coreTypes.index.getClass('dart:typed_data', 'Uint8ClampedList'):
-        coreTypes.index.getProcedure(
-            'dart:_js_types', 'JSUint8ClampedArrayImpl', 'fromArrayRef'),
+        .getProcedure('dart:_js_types', 'JSUint8ArrayImpl', 'fromRef'),
+    coreTypes.index.getClass('dart:typed_data', 'Uint8ClampedList'): coreTypes
+        .index
+        .getProcedure('dart:_js_types', 'JSUint8ClampedArrayImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'Int16List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSInt16ArrayImpl', 'fromArrayRef'),
+        .getProcedure('dart:_js_types', 'JSInt16ArrayImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'Uint16List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSUint16ArrayImpl', 'fromArrayRef'),
+        .getProcedure('dart:_js_types', 'JSUint16ArrayImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'Int32List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSInt32ArrayImpl', 'fromArrayRef'),
+        .getProcedure('dart:_js_types', 'JSInt32ArrayImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'Uint32List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSUint32ArrayImpl', 'fromArrayRef'),
+        .getProcedure('dart:_js_types', 'JSUint32ArrayImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'Float32List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSFloat32ArrayImpl', 'fromArrayRef'),
+        .getProcedure('dart:_js_types', 'JSFloat32ArrayImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'Float64List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSFloat64ArrayImpl', 'fromArrayRef'),
+        .getProcedure('dart:_js_types', 'JSFloat64ArrayImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'ByteBuffer'): coreTypes.index
         .getProcedure('dart:_js_types', 'JSArrayBufferImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'ByteData'): coreTypes.index
         .getProcedure('dart:_js_types', 'JSDataViewImpl', 'fromRef'),
+  };
+
+  /// Similar to [_dartifyNonNullableMap], but return values should be nullable.
+  ///
+  /// These shouldn't throw on `null` or `undefined` arguments and instead
+  /// return Dart `null`.
+  late final Map<Class, Procedure> _dartifyNullableMap = {
+    coreTypes.boolClass: coreTypes.index
+        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableBool'),
+    coreTypes.intClass: coreTypes.index
+        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableInt'),
+    coreTypes.doubleClass: coreTypes.index
+        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableDouble'),
+    coreTypes.numClass: coreTypes.index
+        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableDouble'),
+    coreTypes.stringClass: coreTypes.index
+        .getProcedure('dart:_string', 'JSStringImpl', 'fromRefNullable'),
+    coreTypes.listClass: coreTypes.index
+        .getTopLevelProcedure('dart:_js_helper', 'toDartNullableList'),
+    coreTypes.index.getClass('dart:typed_data', 'Int8List'): coreTypes.index
+        .getProcedure('dart:_js_types', 'JSInt8ArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'Uint8List'): coreTypes.index
+        .getProcedure('dart:_js_types', 'JSUint8ArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'Uint8ClampedList'):
+        coreTypes.index.getProcedure(
+            'dart:_js_types', 'JSUint8ClampedArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'Int16List'): coreTypes.index
+        .getProcedure('dart:_js_types', 'JSInt16ArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'Uint16List'): coreTypes.index
+        .getProcedure('dart:_js_types', 'JSUint16ArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'Int32List'): coreTypes.index
+        .getProcedure('dart:_js_types', 'JSInt32ArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'Uint32List'): coreTypes.index
+        .getProcedure('dart:_js_types', 'JSUint32ArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'Float32List'): coreTypes.index
+        .getProcedure(
+            'dart:_js_types', 'JSFloat32ArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'Float64List'): coreTypes.index
+        .getProcedure(
+            'dart:_js_types', 'JSFloat64ArrayImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'ByteBuffer'): coreTypes.index
+        .getProcedure('dart:_js_types', 'JSArrayBufferImpl', 'fromRefNullable'),
+    coreTypes.index.getClass('dart:typed_data', 'ByteData'): coreTypes.index
+        .getProcedure('dart:_js_types', 'JSDataViewImpl', 'fromRefNullable'),
   };
 
   CoreTypesUtil(this.coreTypes, this.extensionIndex)
@@ -367,6 +417,9 @@ class CoreTypesUtil {
       );
 
   /// Cast the [invocation] if needed to conform to the expected [expectedType].
+  ///
+  /// [expectedType] is the return type of the interop function, as written by
+  /// the user.
   Expression castInvocationForReturn(
       Expression invocation, DartType expectedType) {
     Expression expression;
@@ -381,9 +434,6 @@ class CoreTypesUtil {
     }
 
     if (isJSValueType(expectedType)) {
-      // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
-      // code after migrating existing users of js interop on Dart2Wasm.
-      // expression = _createJSValue(invocation);
       // Casts are expensive, so we stick to a null-assertion if needed. If
       // the nullability can't be determined, cast.
       expression = invokeOneArg(jsValueBoxTarget, invocation);
@@ -396,27 +446,16 @@ class CoreTypesUtil {
     } else {
       final expectedTypeExtensionTypeErasure =
           expectedType.extensionTypeErasure;
-      final expectNullable =
-          expectedTypeExtensionTypeErasure.isPotentiallyNullable;
       final conversionProcedure =
           _dartConversionProcedure(expectedTypeExtensionTypeErasure);
       final invocationValueVar = VariableDeclaration('#jsInvocation',
           initializer: invocation,
           type: nullableWasmExternRefType,
           isSynthesized: true);
-      expression = Let(
-        invocationValueVar,
-        ConditionalExpression(
-          StaticInvocation(
-              isDartNullTarget, Arguments([VariableGet(invocationValueVar)])),
-          expectNullable
-              ? NullLiteral()
-              : StaticInvocation(throwArgumentNullErrorTarget, Arguments([])),
-          invokeOneArg(conversionProcedure, VariableGet(invocationValueVar)),
-          expectedType,
-        ),
-      );
+      expression = Let(invocationValueVar,
+          invokeOneArg(conversionProcedure, VariableGet(invocationValueVar)));
     }
+
     return expression;
   }
 
@@ -505,12 +544,13 @@ class CoreTypesUtil {
   /// type.
   ///
   /// The value passed to the returned conversion function should be an
-  /// `externref` and should be tested for `null` and `undefined`. The returned
-  /// procedures do not handle `null`s and `undefined`s.
+  /// `externref`.
   Procedure _dartConversionProcedure(DartType expectedType) {
     Procedure? conversionProcedure;
     if (expectedType is InterfaceType) {
-      conversionProcedure = _dartifyMap[expectedType.classNode];
+      conversionProcedure = expectedType.isPotentiallyNullable
+          ? _dartifyNullableMap[expectedType.classNode]
+          : _dartifyNonNullableMap[expectedType.classNode];
     }
     return conversionProcedure ?? dartifyRawTarget;
   }

@@ -11,6 +11,7 @@ import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class EncodeContext {
   final LinkedElementFactory elementFactory;
@@ -54,6 +55,19 @@ class EncodeContext {
         _formalParameters.remove(formalParameter);
       }
     }
+  }
+
+  T withPrimaryInitializerScope<T>(
+    FieldElementImpl element,
+    T Function() operation,
+  ) {
+    var primaryConstructor = element.enclosingElement
+        .tryCast<InterfaceElementImpl>()
+        ?.primaryConstructor;
+    return withFormalParameters(
+      primaryConstructor?.formalParameters ?? [],
+      operation,
+    );
   }
 
   T withTypeParameters<T>(
@@ -332,6 +346,19 @@ class MatchContext {
         _formalParameters.remove(formalParameter);
       }
     }
+  }
+
+  T withPrimaryInitializerScope<T>(
+    FieldElementImpl element,
+    T Function() operation,
+  ) {
+    var primaryConstructor = element.enclosingElement
+        .tryCast<InterfaceElementImpl>()
+        ?.primaryConstructor;
+    return withFormalParameters(
+      primaryConstructor?.formalParameters ?? [],
+      operation,
+    );
   }
 
   T withTypeParameters<T>(

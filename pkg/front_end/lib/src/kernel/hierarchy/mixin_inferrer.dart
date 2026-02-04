@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/type_algebra.dart';
 
-import '../../base/messages.dart'
-    show Message, codeMixinInferenceNoMatchingClass;
+import '../../base/messages.dart' show Message;
 import '../../base/problems.dart' show unexpected, unimplemented, unsupported;
 import '../../source/source_class_builder.dart';
 import '../../type_inference/type_schema.dart';
@@ -112,10 +112,10 @@ class BuilderMixinInferrer {
       );
       if (supertype == null) {
         reportProblem(
-          codeMixinInferenceNoMatchingClass.withArgumentsOld(
-            mixinClass.name,
-            baseType.classNode.name,
-            mixinSupertype.asInterfaceType,
+          diag.mixinInferenceNoMatchingClass.withArguments(
+            mixinName: mixinClass.name,
+            baseTypeName: baseType.classNode.name,
+            supertypeConstraint: mixinSupertype.asInterfaceType,
           ),
           mixinClass,
         );
@@ -151,10 +151,10 @@ class BuilderMixinInferrer {
     if (_mixinInferenceSolution.isUnsolvable) {
       // Coverage-ignore-block(suite): Not run.
       reportProblem(
-        codeMixinInferenceNoMatchingClass.withArgumentsOld(
-          mixinClass.name,
-          baseType.classNode.name,
-          mixinSupertype.asInterfaceType,
+        diag.mixinInferenceNoMatchingClass.withArguments(
+          mixinName: mixinClass.name,
+          baseTypeName: baseType.classNode.name,
+          supertypeConstraint: mixinSupertype.asInterfaceType,
         ),
         mixinClass,
       );

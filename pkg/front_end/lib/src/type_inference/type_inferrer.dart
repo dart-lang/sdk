@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -11,11 +10,13 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../base/extension_scope.dart';
+import '../kernel/assigned_variables_impl.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'closure_context.dart';
+import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'inference_visitor_base.dart';
@@ -40,7 +41,7 @@ abstract class TypeInferrer {
   FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
   get flowAnalysis;
 
-  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables;
+  AssignedVariablesImpl get assignedVariables;
 
   /// Performs full type inference on the given field initializer.
   ExpressionInferenceResult inferFieldInitializer({
@@ -56,6 +57,8 @@ abstract class TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   });
 
@@ -114,7 +117,7 @@ class TypeInferrerImpl implements TypeInferrer {
   );
 
   @override
-  final AssignedVariables<TreeNode, ExpressionVariable> assignedVariables;
+  final AssignedVariablesImpl assignedVariables;
 
   final InferenceDataForTesting? dataForTesting;
 
@@ -163,6 +166,13 @@ class TypeInferrerImpl implements TypeInferrer {
         soundFlowAnalysisEnabled:
             libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled,
       );
+
+  bool get isClosureContextLoweringEnabled => libraryBuilder
+      .loader
+      .target
+      .backendTarget
+      .flags
+      .isClosureContextLoweringEnabled;
 
   InferenceVisitorBase _createInferenceVisitor({
     required Uri fileUri,
@@ -219,6 +229,8 @@ class TypeInferrerImpl implements TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
@@ -231,10 +243,20 @@ class TypeInferrerImpl implements TypeInferrer {
       returnType,
       false,
     );
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
+      scopeProviderInfo = visitor.beginFunctionBodyInference(
+        parameters,
+        internalThisVariable: internalThisVariable,
+      );
+    }
     StatementInferenceResult result = visitor.inferStatement(
       body,
       closureContext,
     );
+    if (scopeProviderInfo != null) {
+      visitor.endFunctionBodyInference(scopeProviderInfo);
+    }
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       if (!flowAnalysis.isReachable) {
@@ -256,6 +278,7 @@ class TypeInferrerImpl implements TypeInferrer {
     return new InferredFunctionBody(
       result.hasChanged ? result.statement : body,
       emittedValueType,
+      scopeProviderInfo,
     );
   }
 
@@ -387,7 +410,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     InterfaceType? thisType,
     SourceLibraryBuilder libraryBuilder,
     this.extensionScope,
-    AssignedVariables<TreeNode, ExpressionVariable> assignedVariables,
+    AssignedVariablesImpl assignedVariables,
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,
   ) : impl = new TypeInferrerImpl(
@@ -400,8 +423,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       );
 
   @override
-  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables =>
-      impl.assignedVariables;
+  AssignedVariablesImpl get assignedVariables => impl.assignedVariables;
 
   @override
   FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
@@ -433,6 +455,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required DartType returnType,
     required AsyncMarker asyncMarker,
     required Statement body,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
@@ -443,6 +467,8 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       asyncMarker: asyncMarker,
       body: body,
       expressionEvaluationHelper: expressionEvaluationHelper,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
     );
     benchmarker.endSubdivide();
     return result;
@@ -525,6 +551,11 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
 class InferredFunctionBody {
   final Statement body;
   final DartType? emittedValueType;
+  final ScopeProviderInfo? scopeProviderInfo;
 
-  InferredFunctionBody(this.body, this.emittedValueType);
+  InferredFunctionBody(
+    this.body,
+    this.emittedValueType,
+    this.scopeProviderInfo,
+  );
 }

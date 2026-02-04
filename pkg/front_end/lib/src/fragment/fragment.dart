@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -38,6 +39,7 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
@@ -61,7 +63,6 @@ import '../source/source_type_parameter_builder.dart';
 import '../source/type_parameter_factory.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
-import '../type_inference/type_inferrer.dart';
 import 'constructor/declaration.dart';
 import 'factory/declaration.dart';
 import 'field/declaration.dart';
@@ -90,6 +91,7 @@ part 'method.dart';
 part 'mixin.dart';
 part 'named_mixin_application.dart';
 part 'primary_constructor.dart';
+part 'primary_constructor_body.dart';
 part 'primary_constructor_field.dart';
 part 'setter.dart';
 part 'type_parameter.dart';
@@ -101,6 +103,9 @@ sealed class Fragment {
   ///
   /// For unnamed extensions this is
   /// [UnnamedExtensionName.unnamedExtensionSentinel].
+  ///
+  /// For primary constructor bodies this is
+  /// [PrimaryConstructorBodyFragment.nameSentinel].
   ///
   /// For setters this is the name without `=`.
   ///

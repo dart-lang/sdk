@@ -9,8 +9,6 @@ import 'package:kernel/library_index.dart';
 /// Kernel nodes for classes and members referenced specifically by the
 /// compiler.
 mixin KernelNodes {
-  Component get component;
-
   LibraryIndex get index;
 
   CoreTypes get coreTypes;
@@ -129,8 +127,10 @@ mixin KernelNodes {
       index.getField("dart:core", "_ModuleRtt", "typeRowDisplacementOffsets");
   late final Field moduleRttDisplacementTable =
       index.getField("dart:core", "_ModuleRtt", "typeRowDisplacementTable");
-  late final Field moduleRttSubstTable = index.getField(
+  late final Field moduleRttDisplacementSubstTable = index.getField(
       "dart:core", "_ModuleRtt", "typeRowDisplacementSubstTable");
+  late final Field moduleRttSubstTable =
+      index.getField("dart:core", "_ModuleRtt", "canonicalSubstitutionTable");
   late final Field moduleRttTypeNames =
       index.getField("dart:core", "_ModuleRtt", "typeNames");
   late final Procedure registerModuleRtt =
@@ -175,6 +175,7 @@ mixin KernelNodes {
   late final wasmI64Class = index.getClass("dart:_wasm", "WasmI64");
   late final wasmF32Class = index.getClass("dart:_wasm", "WasmF32");
   late final wasmF64Class = index.getClass("dart:_wasm", "WasmF64");
+  late final wasmV128Class = index.getClass("dart:_wasm", "WasmV128");
   late final Class wasmAnyRefClass = index.getClass("dart:_wasm", "WasmAnyRef");
   late final Class wasmExternRefClass =
       index.getClass("dart:_wasm", "WasmExternRef");
@@ -201,6 +202,14 @@ mixin KernelNodes {
       "dart:_compact_hash", "_uninitializedHashBaseIndex");
   late final Field wasmI64ValueField =
       index.getField("dart:_wasm", "WasmI64", "_value");
+
+  late final Class wasmMemoryClass = index.getClass('dart:_wasm', 'Memory');
+  late final Class wasmMemoryTypeClass =
+      index.getClass('dart:_wasm', 'MemoryType');
+  late final Field wasmLimitsMinimum =
+      index.getField('dart:_wasm', 'Limits', 'minimum');
+  late final Field wasmLimitsMaximum =
+      index.getField('dart:_wasm', 'Limits', 'maximum');
 
   // dart:_js_helper procedures
   late final Procedure getInternalizedString =
@@ -296,6 +305,8 @@ mixin KernelNodes {
       "dart:core", "_TypeError", "_throwNullCheckErrorWithCurrentStack");
   late final Procedure throwAsCheckError =
       index.getProcedure("dart:core", "_TypeError", "_throwAsCheckError");
+  late final Procedure throwErrorWithoutDetails =
+      index.getTopLevelProcedure("dart:core", "_throwErrorWithoutDetails");
   late final Procedure throwInterfaceTypeAsCheckError1 = index
       .getTopLevelProcedure("dart:core", "_throwInterfaceTypeAsCheckError1");
   late final Procedure throwInterfaceTypeAsCheckError2 = index
@@ -432,6 +443,8 @@ mixin KernelNodes {
       index.getTopLevelField('dart:_internal', 'i8ConstImmutableArray');
   late final Field i32ConstArrayCache =
       index.getTopLevelField('dart:_internal', 'i32ConstArray');
+  late final Field i16ConstArrayCache =
+      index.getTopLevelField('dart:_internal', 'i16ConstArray');
   late final Field i64ConstImmutableArrayCache =
       index.getTopLevelField('dart:_internal', 'i64ConstImmutableArray');
   late final Field boxedIntImmutableArrayCache =
@@ -462,6 +475,7 @@ mixin KernelNodes {
     _makeElementType(namedParameterClass): namedParameterConstArrayCache,
     _makeElementType(coreTypes.stringClass): stringConstArrayCache,
     _makeElementType(wasmI32Class): i32ConstArrayCache,
+    _makeElementType(wasmI16Class): i16ConstArrayCache,
     _makeElementType(wasmArrayClass,
         typeArguments: [_makeElementType(typeClass)]): typeArrayConstArrayCache,
   };

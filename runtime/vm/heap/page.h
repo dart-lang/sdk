@@ -20,21 +20,6 @@ class ObjectPointerVisitor;
 class Thread;
 class UnwindingRecords;
 
-// Pages are allocated with kPageSize alignment so that the Page of any object
-// can be computed by masking the object with kPageMask. This does not apply to
-// image pages, whose address is chosen by the system loader rather than the
-// Dart VM.
-static constexpr intptr_t kPageSize = 512 * KB;
-static constexpr intptr_t kPageSizeInWords = kPageSize / kWordSize;
-static constexpr intptr_t kPageMask = ~(kPageSize - 1);
-
-// See ForwardingBlock and CountingBlock.
-static constexpr intptr_t kBitVectorWordsPerBlock = 1;
-static constexpr intptr_t kBlockSize =
-    kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
-static constexpr intptr_t kBlockMask = ~(kBlockSize - 1);
-static constexpr intptr_t kBlocksPerPage = kPageSize / kBlockSize;
-
 // Simplify initialization in allocation stubs by ensuring it is safe
 // to overshoot the object end by up to kAllocationRedZoneSize. (Just as the
 // stack red zone allows one to overshoot the stack pointer.)
@@ -60,6 +45,21 @@ static constexpr intptr_t kAllocationRedZoneSize = kObjectAlignment;
 // +----------------------+  <- memory_->end()
 class Page {
  public:
+  // Pages are allocated with kPageSize alignment so that the Page of any
+  // object can be computed by masking the object with kPageMask.
+  // This does not apply to image pages, whose address is chosen by the system
+  // loader rather than the Dart VM.
+  static constexpr intptr_t kPageSize = 512 * KB;
+  static constexpr intptr_t kPageSizeInWords = kPageSize / kWordSize;
+  static constexpr intptr_t kPageMask = ~(kPageSize - 1);
+
+  // See ForwardingBlock and CountingBlock.
+  static constexpr intptr_t kBitVectorWordsPerBlock = 1;
+  static constexpr intptr_t kBlockSize =
+      kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
+  static constexpr intptr_t kBlockMask = ~(kBlockSize - 1);
+  static constexpr intptr_t kBlocksPerPage = kPageSize / kBlockSize;
+
   static void Init();
   static void ClearCache();
   static intptr_t CachedSize();

@@ -118,10 +118,6 @@ extension IterableOfStringExtension on Iterable<String> {
   }
 }
 
-extension Pluralized on String {
-  String pluralized(int count) => count == 1 ? toString() : '${toString()}s';
-}
-
 extension StringExtension on String {
   String? get nullIfEmpty {
     return isNotEmpty ? this : null;
@@ -145,6 +141,8 @@ extension StringExtension on String {
   String ifNotEmptyOrElse(String orElse) {
     return isNotEmpty ? this : orElse;
   }
+
+  String pluralized(int count) => count == 1 ? this : '${this}s';
 
   String removePrefixOrSelf(String prefix) {
     if (startsWith(prefix)) {

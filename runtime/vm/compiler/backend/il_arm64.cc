@@ -1960,19 +1960,19 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(representation() == Boxing::NativeRepresentation(rep));
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     const Register result = locs()->out(0).reg();
-    __ ldr(result, element_address, RepresentationUtils::OperandSize(rep));
+    __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     const VRegister result = locs()->out(0).fpu_reg();
     if (rep == kUnboxedFloat) {
       // Load single precision float.
-      __ fldrs(result, element_address);
+      __ LoadS(result, element_address);
     } else if (rep == kUnboxedDouble) {
       // Load double precision float.
-      __ fldrd(result, element_address);
+      __ LoadD(result, element_address);
     } else {
       ASSERT(rep == kUnboxedInt32x4 || rep == kUnboxedFloat32x4 ||
              rep == kUnboxedFloat64x2);
-      __ fldrq(result, element_address);
+      __ LoadQ(result, element_address);
     }
   } else {
     const Register result = locs()->out(0).reg();
@@ -2175,10 +2175,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         value = 0;
       }
       if (value == 0) {
-        __ str(ZR, element_address, compiler::kUnsignedByte);
+        __ Store(ZR, element_address, compiler::kUnsignedByte);
       } else {
         __ LoadImmediate(TMP, static_cast<int8_t>(value));
-        __ str(TMP, element_address, compiler::kUnsignedByte);
+        __ Store(TMP, element_address, compiler::kUnsignedByte);
       }
     } else {
       const Register value = locs()->in(2).reg();
@@ -2186,36 +2186,35 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ CompareImmediate(value, 0xFF);
       __ csetm(TMP, GT);             // TMP = value > 0xFF ? -1 : 0.
       __ csel(TMP, value, TMP, LS);  // TMP = value in range ? value : TMP.
-      __ str(TMP, element_address, compiler::kUnsignedByte);
+      __ Store(TMP, element_address, compiler::kUnsignedByte);
     }
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
     if (locs()->in(2).IsConstant()) {
       ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-      __ str(ZR, element_address, RepresentationUtils::OperandSize(rep));
+      __ Store(ZR, element_address, RepresentationUtils::OperandSize(rep));
     } else {
-      __ str(locs()->in(2).reg(), element_address,
-             RepresentationUtils::OperandSize(rep));
+      __ Store(locs()->in(2).reg(), element_address,
+               RepresentationUtils::OperandSize(rep));
     }
   } else if (RepresentationUtils::IsUnboxed(rep)) {
     if (rep == kUnboxedFloat) {
       if (locs()->in(2).IsConstant()) {
         ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-        __ str(ZR, element_address, compiler::kFourBytes);
+        __ Store(ZR, element_address, compiler::kFourBytes);
       } else {
-        __ fstrs(locs()->in(2).fpu_reg(), element_address);
+        __ StoreS(locs()->in(2).fpu_reg(), element_address);
       }
     } else if (rep == kUnboxedDouble) {
       if (locs()->in(2).IsConstant()) {
         ASSERT(locs()->in(2).constant_instruction()->HasZeroRepresentation());
-        __ str(ZR, element_address, compiler::kEightBytes);
+        __ Store(ZR, element_address, compiler::kEightBytes);
       } else {
-        __ fstrd(locs()->in(2).fpu_reg(), element_address);
+        __ StoreD(locs()->in(2).fpu_reg(), element_address);
       }
     } else {
       ASSERT(rep == kUnboxedInt32x4 || rep == kUnboxedFloat32x4 ||
              rep == kUnboxedFloat64x2);
-      const VRegister value_reg = locs()->in(2).fpu_reg();
-      __ fstrq(value_reg, element_address);
+      __ StoreQ(locs()->in(2).fpu_reg(), element_address);
     }
   } else if (class_id() == kArrayCid) {
     ASSERT(!ShouldEmitStoreBarrier());  // Specially treated above.
@@ -2510,8 +2509,10 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      FLAG_experimental_shared_data && field().is_shared() ? 2 : 1;
+  const bool need_extra_temp = FLAG_experimental_shared_data &&
+                               field().is_shared() &&
+                               !field().has_deeply_immutable_type();
+  const intptr_t kNumTemps = need_extra_temp ? 2 : 1;
   const bool can_call_to_throw = FLAG_experimental_shared_data;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
@@ -2520,7 +2521,7 @@ LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(
       0, Location::RegisterLocation(CheckedStoreIntoSharedStubABI::kValueReg));
   locs->set_temp(0, Location::RequiresRegister());
-  if (FLAG_experimental_shared_data && field().is_shared()) {
+  if (need_extra_temp) {
     locs->set_temp(1, Location::RegisterLocation(
                           CheckedStoreIntoSharedStubABI::kFieldReg));
   }
@@ -2542,32 +2543,26 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ LoadIsolate(temp);
       __ BranchIfZero(temp, slow_path->entry_label());
     } else {
-      // TODO(dartbug.com/61078): use field static type information to decide
-      // whether the following value check is needed or not.
-      checked_store_into_shared_slow_path =
-          new CheckedStoreIntoSharedSlowPath(this, value);
-      compiler->AddSlowPathCode(checked_store_into_shared_slow_path);
+      if (!field().has_deeply_immutable_type()) {
+        checked_store_into_shared_slow_path =
+            new CheckedStoreIntoSharedSlowPath(this, value);
+        compiler->AddSlowPathCode(checked_store_into_shared_slow_path);
 
-      compiler::Label allow_store;
-      __ BranchIfSmi(value, &allow_store, compiler::Assembler::kNearJump);
-      __ ldr(temp,
-             compiler::FieldAddress(value,
-                                    compiler::target::Object::tags_offset()),
-             compiler::kUnsignedByte);
-      // If canonical bit is set, no need for runtime check.
-      __ tbnz(&allow_store, temp,
-              compiler::target::UntaggedObject::kCanonicalBit);
-      // If immutability bit is not set, go to runtime.
-      __ tbz(checked_store_into_shared_slow_path->entry_label(), temp,
-             compiler::target::UntaggedObject::kImmutableBit);
+        compiler::Label allow_store;
+        __ BranchIfSmi(value, &allow_store, compiler::Assembler::kNearJump);
+        __ ldr(temp,
+               compiler::FieldAddress(value,
+                                      compiler::target::Object::tags_offset()),
+               compiler::kUnsignedByte);
+        // If canonical bit is set, no need for runtime check.
+        __ tbnz(&allow_store, temp,
+                compiler::target::UntaggedObject::kCanonicalBit);
+        // If immutability bit is not set, go to runtime.
+        __ tbz(checked_store_into_shared_slow_path->entry_label(), temp,
+               compiler::target::UntaggedObject::kDeeplyImmutableBit);
 
-      // If immutability bit is set, skip runtime unless it's a Closure
-      // (see raw_object.h ImmutableBit description for deep vs  shallow).
-      __ LoadClassId(temp, value);
-      __ CompareImmediate(temp, kClosureCid);
-      __ b(checked_store_into_shared_slow_path->entry_label(), EQ);
-
-      __ Bind(&allow_store);
+        __ Bind(&allow_store);
+      }
     }
   }
 
@@ -2586,9 +2581,43 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      compiler::target::FieldTable::OffsetOf(field()));
   }
 
-  if (FLAG_experimental_shared_data && field().is_shared()) {
+  if (FLAG_experimental_shared_data && field().is_shared() &&
+      !field().has_deeply_immutable_type()) {
     __ Bind(checked_store_into_shared_slow_path->exit_label());
   }
+}
+
+LocationSummary* CheckFieldImmutabilityInstr::MakeLocationSummary(
+    Zone* zone,
+    bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(
+      0, Location::RegisterLocation(EnsureDeeplyImmutableStubABI::kValueReg));
+  summary->set_temp(
+      0, Location::RegisterLocation(EnsureDeeplyImmutableStubABI::kTempReg));
+  return summary;
+}
+
+void CheckFieldImmutabilityInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const Register temp = locs()->temp(0).reg();
+
+  auto slow_path = new EnsureDeeplyImmutableSlowPath(this, value);
+  compiler->AddSlowPathCode(slow_path);
+
+  __ BranchIfSmi(value, slow_path->exit_label(),
+                 compiler::Assembler::kNearJump);
+  __ ldr(temp,
+         compiler::FieldAddress(value, compiler::target::Object::tags_offset()),
+         compiler::kUnsignedByte);
+  // If immutability bit is not set, go to runtime.
+  __ tbz(slow_path->entry_label(), temp,
+         compiler::target::UntaggedObject::kDeeplyImmutableBit);
+
+  __ Bind(slow_path->exit_label());
 }
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
@@ -5337,9 +5366,12 @@ void CheckWritableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 compiler::target::Object::tags_offset()),
          compiler::kUnsignedByte);
   // In the first byte.
-  ASSERT(compiler::target::UntaggedObject::kImmutableBit < 8);
-  __ tbnz(slow_path->entry_label(), TMP,
-          compiler::target::UntaggedObject::kImmutableBit);
+  ASSERT(compiler::target::UntaggedObject::kDeeplyImmutableBit < 8);
+  ASSERT(compiler::target::UntaggedObject::kShallowImmutableBit < 8);
+  __ TestImmediate(
+      TMP, 1 << compiler::target::UntaggedObject::kDeeplyImmutableBit |
+               1 << compiler::target::UntaggedObject::kShallowImmutableBit);
+  __ b(slow_path->entry_label(), NOT_ZERO);
 }
 
 class Int64DivideSlowPath : public ThrowErrorSlowPathCode {

@@ -360,6 +360,14 @@ abstract class FragmentFactory {
     required bool isConst,
   });
 
+  void addPrimaryConstructorBody({
+    required OffsetMap offsetMap,
+    required Token beginToken,
+    required List<MetadataBuilder>? metadata,
+    required int endOffset,
+    required Token? beginInitializers,
+  });
+
   void addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
     required Modifiers modifiers,
@@ -460,17 +468,17 @@ abstract class FragmentFactory {
     List<FieldInfo> fieldInfos,
   );
 
-  FormalParameterBuilder addFormalParameter(
-    List<MetadataBuilder>? metadata,
-    FormalParameterKind kind,
-    Modifiers modifiers,
-    TypeBuilder type,
-    String name,
-    String? publicName,
-    bool hasThis,
-    bool hasSuper,
-    int charOffset,
-    Token? initializerToken, {
+  FormalParameterBuilder addFormalParameter({
+    required List<MetadataBuilder>? metadata,
+    required FormalParameterKind kind,
+    required Modifiers modifiers,
+    required TypeBuilder type,
+    required String name,
+    required String? publicName,
+    required bool hasThis,
+    required bool hasSuper,
+    required int nameOffset,
+    required Token? initializerToken,
     bool lowerWildcard = false,
   });
 
@@ -543,6 +551,7 @@ class SynthesizedExtensionSignature {
     required TypeParameterFactory typeParameterFactory,
     required Uri fileUri,
     required int fileOffset,
+    required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
         .copyTypeParameters(
@@ -561,14 +570,16 @@ class SynthesizedExtensionSignature {
     }
 
     FormalParameterBuilder thisFormal = new FormalParameterBuilder(
-      FormalParameterKind.requiredPositional,
-      Modifiers.Final,
-      thisType,
-      syntheticThisName,
-      fileOffset,
+      kind: FormalParameterKind.requiredPositional,
+      modifiers: Modifiers.Final,
+      type: thisType,
+      name: syntheticThisName,
+      nameOffset: null,
+      fileOffset: fileOffset,
       fileUri: fileUri,
       isExtensionThis: true,
       hasImmediatelyDeclaredInitializer: false,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
     return new SynthesizedExtensionSignature._(
       clonedDeclarationTypeParameters,
@@ -594,6 +605,7 @@ class SynthesizedExtensionTypeSignature {
     required TypeParameterFactory typeParameterFactory,
     required Uri fileUri,
     required int fileOffset,
+    required bool isClosureContextLoweringEnabled,
   }) {
     NominalParameterCopy? nominalVariableCopy = typeParameterFactory
         .copyTypeParameters(
@@ -629,14 +641,16 @@ class SynthesizedExtensionTypeSignature {
     }
 
     FormalParameterBuilder thisFormal = new FormalParameterBuilder(
-      FormalParameterKind.requiredPositional,
-      Modifiers.Final,
-      thisType,
-      syntheticThisName,
-      fileOffset,
+      kind: FormalParameterKind.requiredPositional,
+      modifiers: Modifiers.Final,
+      type: thisType,
+      name: syntheticThisName,
+      nameOffset: null,
+      fileOffset: fileOffset,
       fileUri: fileUri,
       isExtensionThis: true,
       hasImmediatelyDeclaredInitializer: false,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
 
     return new SynthesizedExtensionTypeSignature._(

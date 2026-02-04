@@ -2,87 +2,47 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:yaml/yaml.dart';
 
+/// The name of the embedder files being searched for.
+const String _embedderFileName = '_embedder.yaml';
+
+/// Given the lib directory  of a 'sky_engine' package, locates an
+/// `_embedder.yaml` file.
+///
+/// If the file can be found, and contains a top level [YamlMap], then
+/// the [YamlMap] is returned. Otherwise, `null`` is returned.
+YamlMap? locateEmbedderYamlFor(Folder libFolder) {
+  File file = libFolder.getChildAssumingFile(_embedderFileName);
+  try {
+    var embedderYaml = file.readAsStringSync();
+    try {
+      if (loadYaml(embedderYaml) case YamlMap yaml) {
+        return yaml;
+      }
+    } on Exception {
+      // TODO(srawlins): If we ever get a malformed `_embedder.yaml` file, we
+      // completely suppress the parse exception. We could instead wire up an
+      // ErrorListener for the call to `loadYaml` above, and/or catch different
+      // exceptions and write them to the instrumentation log.
+    }
+    return null;
+  } on FileSystemException {
+    // File can't be read.
+    return null;
+  }
+}
+
 /// Given a package map, check in each package's lib directory for the existence
-/// of an `_embedder.yaml` file. If the file contains a top level YamlMap, it
+/// of an `_embedder.yaml` file. If the file contains a top level [YamlMap], it
 /// will be added to the [embedderYamls] map.
 class EmbedderYamlLocator {
-  /// The name of the embedder files being searched for.
-  static const String _embedderFileName = '_embedder.yaml';
-
-  /// A mapping from a package's library directory to the parsed YamlMap.
-  final Map<Folder, YamlMap> embedderYamls = HashMap<Folder, YamlMap>();
-
-  /// Initialize a newly created locator by processing the packages in the given
-  /// [packageMap].
-  EmbedderYamlLocator(Map<String, List<Folder>>? packageMap) {
-    if (packageMap != null) {
-      _processPackageMap(packageMap);
-    }
-  }
+  /// A mapping from a package's library directory to the parsed [YamlMap].
+  final Map<Folder, YamlMap> embedderYamls;
 
   /// Initialize with the given [libFolder] of `sky_engine` package.
-  EmbedderYamlLocator.forLibFolder(Folder libFolder) {
-    _processPackage([libFolder]);
-  }
-
-  /// Programmatically add an `_embedder.yaml` mapping.
-  void addEmbedderYaml(Folder libDir, String embedderYaml) {
-    _processEmbedderYaml(libDir, embedderYaml);
-  }
-
-  /// Refresh the map of located files to those found by processing the given
-  /// [packageMap].
-  void refresh(Map<String, List<Folder>>? packageMap) {
-    // Clear existing.
-    embedderYamls.clear();
-    if (packageMap != null) {
-      _processPackageMap(packageMap);
-    }
-  }
-
-  /// Given the yaml for an embedder ([embedderYaml]) and a folder ([libDir]),
-  /// setup the uri mapping.
-  void _processEmbedderYaml(Folder libDir, String embedderYaml) {
-    try {
-      var yaml = loadYaml(embedderYaml);
-      if (yaml is YamlMap) {
-        embedderYamls[libDir] = yaml;
-      }
-    } catch (_) {
-      // Ignored
-    }
-  }
-
-  /// Given a package list of folders ([libDirs]), process any
-  /// `_embedder.yaml` files that are found in any of the folders.
-  void _processPackage(List<Folder> libDirs) {
-    for (Folder libDir in libDirs) {
-      String? embedderYaml = _readEmbedderYaml(libDir);
-      if (embedderYaml != null) {
-        _processEmbedderYaml(libDir, embedderYaml);
-      }
-    }
-  }
-
-  /// Process each of the entries in the [packageMap].
-  void _processPackageMap(Map<String, List<Folder>> packageMap) {
-    packageMap.values.forEach(_processPackage);
-  }
-
-  /// Read and return the contents of [libDir]/[_embedderFileName], or `null`
-  /// if the file doesn't exist.
-  String? _readEmbedderYaml(Folder libDir) {
-    var file = libDir.getChildAssumingFile(_embedderFileName);
-    try {
-      return file.readAsStringSync();
-    } on FileSystemException {
-      // File can't be read.
-      return null;
-    }
-  }
+  @Deprecated("Use 'locateEmbedderYamlFor' instead.")
+  EmbedderYamlLocator.forLibFolder(Folder libFolder)
+    : embedderYamls = {libFolder: ?locateEmbedderYamlFor(libFolder)};
 }

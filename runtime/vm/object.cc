@@ -1016,6 +1016,7 @@ void Object::Init(IsolateGroup* isolate_group) {
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     empty_array_->untag()->set_length(Smi::New(0));
     empty_array_->SetCanonical();
+    empty_array_->SetDeeplyImmutable();
   }
   {
     uword address = heap->Allocate(thread, Array::InstanceSize(0), Heap::kOld);
@@ -1024,6 +1025,7 @@ void Object::Init(IsolateGroup* isolate_group) {
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     mutable_empty_array_->untag()->set_length(Smi::New(0));
     mutable_empty_array_->SetCanonical();
+    mutable_empty_array_->SetDeeplyImmutable();
   }
 
   Smi& smi = Smi::Handle();
@@ -1765,6 +1767,121 @@ void Object::RegisterPrivateClass(const Class& cls,
   str = lib.PrivateName(public_class_name);
   cls.set_name(str);
   lib.AddClass(cls);
+}
+
+class WorkSet : public StackResource {
+ public:
+  explicit WorkSet(Thread* thread, Zone* zone)
+      : StackResource(thread),
+        thread_(thread),
+        list_(GrowableObjectArray::Handle(zone)),
+        stack_(GrowableObjectArray::Handle(zone)) {
+    ASSERT(thread->forward_table_new() == nullptr);
+    set_ = new WeakTable();
+    list_ = GrowableObjectArray::New(16);
+    stack_ = GrowableObjectArray::New(16);
+    thread->set_forward_table_new(set_);
+  }
+
+  ~WorkSet() {
+    thread_->set_forward_table_new(nullptr);
+    set_ = nullptr;
+  }
+
+  void Add(const Object& object) {
+    if (!IsMarked(object.ptr())) {
+      Mark(object.ptr());
+      list_.Add(object);
+    }
+  }
+
+  bool TakeAndPush(Object* object) {
+    if (list_.Length() == 0) {
+      return false;
+    }
+    *object = list_.RemoveLast();
+    stack_.Add(*object);  // Push
+    return true;
+  }
+
+  void PopAndProcessCompletedClosuresAndContexts(Object* object) {
+    if (stack_.Length() > 0) {
+      *object = stack_.RemoveLast();  // Pop
+      // Are we done processing nested context or closures?
+      while (stack_.Length() > 0) {
+        *object = stack_.At(stack_.Length() - 1);
+        if (object->IsContext()) {
+          stack_.RemoveLast();
+        } else if (object->IsClosure()) {
+          object->SetDeeplyImmutable();
+          stack_.RemoveLast();
+        }
+      }
+    }
+  }
+
+  intptr_t StackLength() { return stack_.Length(); }
+
+ private:
+  bool IsMarked(ObjectPtr object) {
+    return set_->GetValueExclusive(object) != 0;
+  }
+  void Mark(ObjectPtr object) { set_->SetValueExclusive(object, 1); }
+
+  Thread* thread_;
+  WeakTable* set_;
+  GrowableObjectArray& list_;
+  // Stack of objects that are currently being processed
+  GrowableObjectArray& stack_;
+};
+
+void Object::EnsureDeeplyImmutable(Zone* zone) const {
+  WorkSet workset(Thread::Current(), zone);
+  workset.Add(*this);
+
+  Object& current = Object::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Object& obj = Object::Handle(zone);
+
+  while (workset.TakeAndPush(&current)) {
+    if (current.IsSmi() || current.IsNull() || current.IsCanonical() ||
+        current.IsDeeplyImmutable() ||
+        IsTypedDataBaseClassId(current.GetClassId())) {
+      workset.PopAndProcessCompletedClosuresAndContexts(&obj);
+      continue;
+    }
+
+    if (current.IsClosure()) {
+      const Closure& closure = Closure::Cast(current);
+      function = closure.function();
+      if (!function.IsImplicitClosureFunction() &&
+          !function.captures_only_final_not_late_vars()) {
+        Exceptions::ThrowArgumentError(String::Handle(String::New(
+            "Only final not-late variables can be captured here.")));
+        UNREACHABLE();
+      }
+      obj = closure.RawContext();
+      workset.Add(obj);
+      continue;
+    }
+
+    if (current.IsContext()) {
+      const Context& context = Context::Cast(current);
+      // Iterate through all elements of the context.
+      for (intptr_t i = 0; i < context.num_variables(); i++) {
+        obj = context.At(i);
+        workset.Add(obj);
+      }
+      continue;
+    }
+
+    Exceptions::ThrowArgumentError(String::Handle(
+        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                             current.ToCString())));
+    UNREACHABLE();
+  }
+
+  RELEASE_ASSERT(workset.StackLength() == 0);
 }
 
 // Initialize a new isolate from source or from a snapshot.
@@ -2741,9 +2858,16 @@ StringPtr Object::DictionaryName() const {
   return String::null();
 }
 
-bool Object::ShouldHaveImmutabilityBitSet(classid_t class_id) {
+bool Object::ShouldHaveShallowImmutabilityBitSet(classid_t class_id) {
   if (class_id < kNumPredefinedCids) {
-    return ShouldHaveImmutabilityBitSetCid(class_id);
+    return IsShallowlyImmutableCid(class_id);
+  }
+  return false;
+}
+
+bool Object::ShouldHaveDeeplyImmutabilityBitSet(classid_t class_id) {
+  if (class_id < kNumPredefinedCids) {
+    return IsDeeplyImmutableCid(class_id);
   } else {
     return Class::IsDeeplyImmutable(
         IsolateGroup::Current()->class_table()->At(class_id));
@@ -2842,23 +2966,7 @@ void Object::InitializeObject(uword address,
     }
 #endif
   }
-  uword tags = 0;
-  ASSERT(class_id != kIllegalCid);
-  tags = UntaggedObject::ClassIdTag::update(class_id, tags);
-  tags = UntaggedObject::SizeTag::update(size, tags);
-  const bool is_old =
-      (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
-  tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
-  tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
-  tags = UntaggedObject::ImmutableBit::update(
-      Object::ShouldHaveImmutabilityBitSet(class_id), tags);
-#if defined(HASH_IN_OBJECT_HEADER)
-  tags = UntaggedObject::HashTag::update(0, tags);
-#endif
-
-  reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
+  InitializeHeader(address, class_id, size);
 #if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
   StoreStoreFence();
 #endif
@@ -3145,12 +3253,6 @@ ClassPtr Class::Mixin() const {
     return mixin_type.type_class();
   }
   return ptr();
-}
-
-bool Class::IsInFullSnapshot() const {
-  NoSafepointScope no_safepoint;
-  return UntaggedLibrary::InFullSnapshotBit::decode(
-      untag()->library()->untag()->flags_);
 }
 
 TypePtr Class::RareType() const {
@@ -7309,26 +7411,6 @@ TypeArgumentsPtr TypeArguments::Prepend(Zone* zone,
   return result.Canonicalize(Thread::Current());
 }
 
-TypeArgumentsPtr TypeArguments::ConcatenateTypeParameters(
-    Zone* zone,
-    const TypeArguments& other) const {
-  ASSERT(!IsNull() && !other.IsNull());
-  const intptr_t this_len = Length();
-  const intptr_t other_len = other.Length();
-  const auto& result = TypeArguments::Handle(
-      zone, TypeArguments::New(this_len + other_len, Heap::kNew));
-  auto& type = AbstractType::Handle(zone);
-  for (intptr_t i = 0; i < this_len; ++i) {
-    type = TypeAt(i);
-    result.SetTypeAt(i, type);
-  }
-  for (intptr_t i = 0; i < other_len; ++i) {
-    type = other.TypeAt(i);
-    result.SetTypeAt(this_len + i, type);
-  }
-  return result.ptr();
-}
-
 InstantiationMode TypeArguments::GetInstantiationMode(Zone* zone,
                                                       const Function* function,
                                                       const Class* cls) const {
@@ -8641,20 +8723,6 @@ void Function::set_implicit_static_closure(const Closure& closure) const {
     return;
   }
   UNREACHABLE();
-}
-
-ScriptPtr Function::eval_script() const {
-  const Object& obj = Object::Handle(untag()->data());
-  if (obj.IsScript()) {
-    return Script::Cast(obj).ptr();
-  }
-  return Script::null();
-}
-
-void Function::set_eval_script(const Script& script) const {
-  ASSERT(token_pos() == TokenPosition::kMinSource);
-  ASSERT(untag()->data() == Object::null());
-  set_data(script);
 }
 
 FunctionPtr Function::extracted_method_closure() const {
@@ -11451,14 +11519,6 @@ ScriptPtr Function::script() const {
     return Script::RawCast(
         fdata.At(static_cast<intptr_t>(EvalFunctionData::kScript)));
   }
-  if (token_pos() == TokenPosition::kMinSource) {
-    // Testing for position 0 is an optimization that relies on temporary
-    // eval functions having token position 0.
-    const Script& script = Script::Handle(eval_script());
-    if (!script.IsNull()) {
-      return script.ptr();
-    }
-  }
   const Object& obj = Object::Handle(untag()->owner());
   if (obj.IsPatchClass()) {
     return PatchClass::Cast(obj).script();
@@ -12728,11 +12788,6 @@ int32_t Field::SourceFingerprint() const {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-StringPtr Field::InitializingExpression() const {
-  UNREACHABLE();
-  return String::null();
-}
-
 const char* Field::UserVisibleNameCString() const {
   NoSafepointScope no_safepoint;
   if (FLAG_show_internal_names) {
@@ -12824,45 +12879,6 @@ const char* Field::ToCString() const {
   const char* cls_name = String::Handle(cls.Name()).ToCString();
   return OS::SCreate(Thread::Current()->zone(), "Field <%s.%s>:%s%s%s%s%s",
                      cls_name, field_name, kF0, kF1, kF2, kF3, kF4);
-}
-
-// Build a closure object that gets (or sets) the contents of a static
-// field f and cache the closure in a newly created static field
-// named #f (or #f= in case of a setter).
-InstancePtr Field::AccessorClosure(bool make_setter) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  ASSERT(is_static());
-  const Class& field_owner = Class::Handle(zone, Owner());
-
-  String& closure_name = String::Handle(zone, this->name());
-  closure_name = Symbols::FromConcat(thread, Symbols::HashMark(), closure_name);
-  if (make_setter) {
-    closure_name =
-        Symbols::FromConcat(thread, Symbols::HashMark(), closure_name);
-  }
-
-  Field& closure_field = Field::Handle(zone);
-  closure_field = field_owner.LookupStaticField(closure_name);
-  if (!closure_field.IsNull()) {
-    ASSERT(closure_field.is_static());
-    const Instance& closure =
-        Instance::Handle(zone, Instance::RawCast(closure_field.StaticValue()));
-    ASSERT(!closure.IsNull());
-    ASSERT(closure.IsClosure());
-    return closure.ptr();
-  }
-
-  UNREACHABLE();
-  return Instance::null();
-}
-
-InstancePtr Field::GetterClosure() const {
-  return AccessorClosure(false);
-}
-
-InstancePtr Field::SetterClosure() const {
-  return AccessorClosure(true);
 }
 
 WeakArrayPtr Field::dependent_code() const {
@@ -13497,7 +13513,7 @@ void Field::SetStaticValue(const Object& value) const {
   ASSERT(id >= 0);
 
   if (FLAG_experimental_shared_data && is_shared()) {
-    FfiCallbackMetadata::EnsureTriviallyImmutable(thread->zone(), value);
+    value.EnsureDeeplyImmutable(thread->zone());
   }
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_shared()) {
@@ -15078,7 +15094,6 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_native_entry_symbol_resolver(nullptr);
   result.set_ffi_native_resolver(nullptr);
   result.set_flags(0);
-  result.set_is_in_fullsnapshot(false);
   // This logic is also in the DAP debug adapter in DDS to avoid needing
   // to call setLibraryDebuggable for every library for every isolate.
   // If these defaults change, the same should be done there in
@@ -17325,29 +17340,6 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
   if (reason <= kLastRecordedDeoptReason) {
     untag()->state_bits_.FetchOr<DeoptReasonBits>(1 << reason);
   }
-}
-
-const char* ICData::RebindRuleToCString(RebindRule r) {
-  switch (r) {
-#define RULE_CASE(Name)                                                        \
-  case RebindRule::k##Name:                                                    \
-    return #Name;
-    FOR_EACH_REBIND_RULE(RULE_CASE)
-#undef RULE_CASE
-    default:
-      return nullptr;
-  }
-}
-
-bool ICData::ParseRebindRule(const char* str, RebindRule* out) {
-#define RULE_CASE(Name)                                                        \
-  if (strcmp(str, #Name) == 0) {                                               \
-    *out = RebindRule::k##Name;                                                \
-    return true;                                                               \
-  }
-  FOR_EACH_REBIND_RULE(RULE_CASE)
-#undef RULE_CASE
-  return false;
 }
 
 ICData::RebindRule ICData::rebind_rule() const {
@@ -21509,6 +21501,7 @@ InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
   }
   ASSERT(result.IsOld());
   result.SetCanonical();
+  result.SetDeeplyImmutable();
   return cls.InsertCanonicalConstant(zone, result);
 }
 
@@ -25834,7 +25827,7 @@ void Array::Truncate(intptr_t new_len) const {
   intptr_t old_size = Array::InstanceSize(old_len);
   intptr_t new_size = Array::InstanceSize(new_len);
 
-  NoSafepointScope no_safepoint;
+  NoSafepointScope no_safepoint(thread);
 
   // If there is any left over space fill it with either an Array object or
   // just a plain object (depending on the amount of left over space) so
@@ -25844,13 +25837,9 @@ void Array::Truncate(intptr_t new_len) const {
   // Update the size in the header field and length of the array object.
   // These release operations are balanced by acquire operations in the
   // concurrent sweeper.
-  uword old_tags = array.untag()->tags_;
-  uword new_tags;
-  ASSERT(kArrayCid == UntaggedObject::ClassIdTag::decode(old_tags));
-  do {
-    new_tags = UntaggedObject::SizeTag::update(new_size, old_tags);
-  } while (!array.untag()->tags_.compare_exchange_weak(
-      old_tags, new_tags, std::memory_order_release));
+  array.untag()
+      ->tags_.Update<UntaggedObject::SizeTag, std::memory_order_release>(
+          new_size);
 
   // Between the CAS of the header above and the SetLength below, the array is
   // temporarily in an inconsistent state. The header is considered the

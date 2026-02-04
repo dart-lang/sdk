@@ -12,6 +12,7 @@ import 'package:analysis_server/src/computer/computer_color.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
 import 'package:analysis_server/src/utilities/extensions/element.dart';
+import 'package:analysis_server_plugin/src/utilities/diagnostic_messages.dart';
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
@@ -195,7 +196,14 @@ AnalysisError newAnalysisError_fromEngine(
   List<DiagnosticMessage>? contextMessages;
   if (diagnostic.contextMessages.isNotEmpty) {
     contextMessages = diagnostic.contextMessages
-        .map((message) => newDiagnosticMessage(result, message))
+        .map(
+          (message) => newDiagnosticMessage(
+            message,
+            result.session,
+            lineInfo: message.filePath == result.path ? result.lineInfo : null,
+          ),
+        )
+        .nonNulls
         .toList();
   }
   var correction = diagnostic.correctionMessage;
@@ -214,48 +222,6 @@ AnalysisError newAnalysisError_fromEngine(
     // TODO(srawlins): Remove it.
     hasFix: false,
     url: url,
-  );
-}
-
-/// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
-DiagnosticMessage newDiagnosticMessage(
-  engine.AnalysisResultWithDiagnostics result,
-  engine.DiagnosticMessage message,
-) {
-  var file = message.filePath;
-  var offset = message.offset;
-  var length = message.length;
-
-  var lineInfo = result.lineInfo;
-  if (result.path != message.filePath) {
-    var messageResult = result.session.getFile(message.filePath);
-    // If we can't get a result for the file then we will return bogus start and
-    // end positions, but that's probably better than not returning the
-    // diagnostic.
-    if (messageResult is engine.FileResult) {
-      lineInfo = messageResult.lineInfo;
-    }
-  }
-
-  var startLocation = lineInfo.getLocation(offset);
-  var startLine = startLocation.lineNumber;
-  var startColumn = startLocation.columnNumber;
-
-  var endLocation = lineInfo.getLocation(offset + length);
-  var endLine = endLocation.lineNumber;
-  var endColumn = endLocation.columnNumber;
-
-  return DiagnosticMessage(
-    message.messageText(includeUrl: true),
-    Location(
-      file,
-      offset,
-      length,
-      startLine,
-      startColumn,
-      endLine: endLine,
-      endColumn: endColumn,
-    ),
   );
 }
 

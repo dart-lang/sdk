@@ -11,8 +11,8 @@ import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     as constantEvaluator show ConstantEvaluator;
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show codeWasmImportOrExportInUserCode;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -36,6 +36,8 @@ import 'ffi_native_address_transformer.dart' as wasmFfiNativeAddressTrans;
 import 'ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'records.dart' show RecordShape;
 import 'transformers.dart' as wasmTrans;
+import 'util.dart' as util;
+import 'wasm_library_checks.dart' as wasmChecks;
 
 enum Mode {
   regular,
@@ -365,6 +367,8 @@ class WasmTarget extends Target {
     }
 
     wasmTrans.transformLibraries(libraries, coreTypes, hierarchy);
+    wasmChecks.checkDartWasmApiUseIfImported(
+        libraries, coreTypes, diagnosticReporter);
 
     awaitTrans.transformLibraries(libraries, hierarchy, coreTypes);
   }
@@ -552,8 +556,6 @@ class WasmVerification extends Verification {
   }
 }
 
-final _dartCoreUri = Uri.parse('dart:core');
-
 /// Check that `wasm:import` and `wasm:export` pragmas are only used in `dart:`
 /// libraries and in tests, with the exception of
 /// `reject_import_export_pragmas` test.
@@ -569,31 +571,15 @@ void _checkWasmImportExportPragmas(List<Library> libraries, CoreTypes coreTypes,
     }
 
     for (Member member in library.members) {
-      for (Expression annotation in member.annotations) {
-        if (annotation is! ConstantExpression) {
-          continue;
-        }
-        final annotationConstant = annotation.constant;
-        if (annotationConstant is! InstanceConstant) {
-          continue;
-        }
-        final cls = annotationConstant.classNode;
-        if (cls.name == 'pragma' &&
-            cls.enclosingLibrary.importUri == _dartCoreUri) {
-          final pragmaName = annotationConstant
-              .fieldValues[coreTypes.pragmaName.fieldReference];
-          if (pragmaName is StringConstant) {
-            if (pragmaName.value == 'wasm:import' ||
-                pragmaName.value == 'wasm:export') {
-              diagnosticReporter.report(
-                codeWasmImportOrExportInUserCode,
-                annotation.fileOffset,
-                0,
-                library.fileUri,
-              );
-            }
-          }
-        }
+      if (util.hasWasmImportPragma(coreTypes, member) ||
+          util.hasWasmExportPragma(coreTypes, member) ||
+          util.hasWasmWeakExportPragma(coreTypes, member)) {
+        diagnosticReporter.report(
+          diag.wasmImportOrExportInUserCode,
+          member.fileOffset,
+          0,
+          library.fileUri,
+        );
       }
     }
   }

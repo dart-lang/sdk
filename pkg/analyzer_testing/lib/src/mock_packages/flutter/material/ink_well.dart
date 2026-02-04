@@ -8,6 +8,7 @@ final materialInkWellLibrary = MockLibraryUnit(
   'lib/src/material/ink_well.dart',
   r'''
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 class InkResponse extends StatelessWidget {

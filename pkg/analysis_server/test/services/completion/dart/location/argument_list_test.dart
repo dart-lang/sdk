@@ -405,6 +405,25 @@ suggestions
 ''');
   }
 
+  Future<void> test_field_afterThis_constructor() async {
+    allowedIdentifiers = {'a', 'b'};
+    await computeSuggestions('''
+class C {
+  final int a;
+  final int? b;
+  C({
+    required this.a,
+    required int this.^,
+  });
+}
+''');
+    assertResponse(r'''
+suggestions
+  b
+    kind: field
+''');
+  }
+
   Future<void> test_functionTearoff() async {
     identifierRegExp = RegExp(r'^myFunction');
     await computeSuggestions('''
@@ -545,6 +564,61 @@ suggestions
 ''');
   }
 
+  Future<void> test_required_beforeRequired_constructor() async {
+    allowedIdentifiers = {'required'};
+    await computeSuggestions('''
+class C {
+  final int a;
+  C({
+    re^
+    required this.a,
+  });
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  required
+    kind: keyword
+''');
+  }
+
+  Future<void> test_required_beforeRequired_function() async {
+    allowedIdentifiers = {'required'};
+    await computeSuggestions('''
+void f({re^ required int a}) {}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  required
+    kind: keyword
+''');
+  }
+
+  Future<void> test_required_beforeThis_constructor() async {
+    allowedIdentifiers = {'required'};
+    await computeSuggestions('''
+class C {
+  final int a;
+  final int? b;
+  C({
+    required this.a,
+    re^ this.b,
+  });
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  required
+    kind: keyword
+''');
+  }
+
   Future<void> test_staticMethod_constConstructor_const() async {
     allowedIdentifiers = {'new', 'other', 'staticMethod'};
     await computeSuggestions('''
@@ -565,6 +639,86 @@ suggestions
     kind: constructor
   staticMethod
     kind: method
+''');
+  }
+
+  Future<void> test_type_beforeThis_constructor() async {
+    allowedIdentifiers = {'required', 'int'};
+    await computeSuggestions('''
+class C {
+  final int a;
+  final int? b;
+  C({
+    required this.a,
+    ^ this.b,
+  });
+}
+''');
+    assertResponse(r'''
+suggestions
+  int
+    kind: class
+  this
+    kind: keyword
+  void
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  required
+    kind: keyword
+  super
+    kind: keyword
+''');
+  }
+
+  Future<void> test_type_betweenRequiredAndThis_constructor() async {
+    allowedIdentifiers = {'required', 'int'};
+    await computeSuggestions('''
+class C {
+  final int a;
+  final int? b;
+  C({
+    required this.a,
+    required ^ this.b,
+  });
+}
+''');
+    assertResponse(r'''
+suggestions
+  int
+    kind: class
+''');
+  }
+
+  Future<void> test_typeParameters_constructor() async {
+    allowedIdentifiers = {'LocalType'};
+    await computeSuggestions('''
+class C<LocalType> {
+  final int a;
+  C({
+    ^
+    this.a,
+  });
+}
+''');
+    assertResponse(r'''
+suggestions
+  this
+    kind: keyword
+  void
+    kind: keyword
+  LocalType
+    kind: typeParameter
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  required
+    kind: keyword
+  super
+    kind: keyword
 ''');
   }
 }

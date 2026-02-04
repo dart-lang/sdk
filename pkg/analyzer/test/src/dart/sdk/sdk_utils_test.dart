@@ -230,13 +230,10 @@ void testGetImportUriIfMatchesRelativeSdkPathSlowAdditionalTests() {
 }
 
 void testGetRelativePathIfInside() {
-  for (List<dynamic> osData in [
-    ["C:\\windowspaths\\", "\\", pathos.windows],
-    ["/posixpaths/", "/", pathos.posix],
+  for (var (prefix, separator, context) in [
+    ("C:\\windowspaths\\", "\\", pathos.windows),
+    ("/posixpaths/", "/", pathos.posix),
   ]) {
-    var prefix = osData[0] as String;
-    var separator = osData[1] as String;
-    var context = osData[2] as pathos.Context;
     var resourceProvider = MemoryResourceProvider(context: context);
 
     for (var libraryPath in getPaths(

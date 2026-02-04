@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
 import '../base/compiler_context.dart';
-import '../base/messages.dart'
-    show noLength, codeExpectedAfterButGot, ProblemReporting;
+import '../base/messages.dart' show noLength, ProblemReporting;
 import '../base/problems.dart' show getFileUri, unsupported;
 import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
@@ -396,6 +396,12 @@ class ForInElement extends ControlFlowElement with ControlFlowElementMixin {
   Expression body;
   Expression? problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
+
+  /// Variable [Scope] of this [ForInElement].
+  ///
+  /// Since [ForInElement] is desugared, its [scope] is passed on to other
+  /// [ScopeProvider] nodes in the output.
+  Scope? scope;
 
   ForInElement(
     this.expressionVariable,
@@ -1097,6 +1103,12 @@ class ForInMapEntry extends TreeNode
   Expression? problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
+  /// Variable [Scope] of this [ForInMapEntry].
+  ///
+  /// Since [ForInMapEntry] is desugared, its [scope] is passed on to other
+  /// [ScopeProvider] nodes in the output.
+  Scope? scope;
+
   ForInMapEntry(
     this.expressionVariable,
     this.iterable,
@@ -1422,7 +1434,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
   return new MapLiteralEntry(
     problemReporting.buildProblem(
       compilerContext: compilerContext,
-      message: codeExpectedAfterButGot.withArgumentsOld(':'),
+      message: diag.expectedAfterButGot.withArguments(expected: ':'),
       fileUri: fileUri,
       fileOffset: element.fileOffset,
       // TODO(danrubel): what is the length of the expression?

@@ -109,6 +109,8 @@ class AnnotationVerifier {
           errorNode: variable,
         );
       }
+    } else if (parent case GenericTypeAlias(functionType: var type?)) {
+      checkType(type.returnType?.type);
     } else {
       // Warning reported by `_checkKinds`.
     }
@@ -289,10 +291,10 @@ class AnnotationVerifier {
     }
     var returnType = parent.returnType?.type;
     if (returnType is VoidType) {
-      _diagnosticReporter.atToken(
-        parent.name,
-        diag.invalidFactoryMethodDecl,
-        arguments: [parent.name.lexeme],
+      _diagnosticReporter.report(
+        diag.invalidFactoryMethodDecl
+            .withArguments(name: parent.name.lexeme)
+            .at(parent.name),
       );
       return;
     }
@@ -319,10 +321,10 @@ class AnnotationVerifier {
       }
     }
 
-    _diagnosticReporter.atToken(
-      parent.name,
-      diag.invalidFactoryMethodImpl,
-      arguments: [parent.name.lexeme],
+    _diagnosticReporter.report(
+      diag.invalidFactoryMethodImpl
+          .withArguments(name: parent.name.lexeme)
+          .at(parent.name),
     );
   }
 
@@ -331,7 +333,7 @@ class AnnotationVerifier {
   void _checkInternal(Annotation node) {
     var parent = node.parent;
     var parentElement = parent
-        .ifTypeOrNull<Declaration>()
+        .tryCast<Declaration>()
         ?.declaredFragment
         ?.element;
     var parentElementIsPrivate = parentElement?.isPrivate ?? false;
@@ -369,7 +371,17 @@ class AnnotationVerifier {
   }
 
   void _checkKinds(Annotation node, AstNode parent, ElementAnnotation element) {
-    var kinds = element.targetKinds;
+    // As `@override` is declared in the Dart SDK, `TargetKind` is unavailable
+    // to it.
+    var kinds = element.isOverride
+        ? {
+            TargetKind.field,
+            TargetKind.getter,
+            TargetKind.method,
+            TargetKind.setter,
+          }
+        : element.targetKinds;
+
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
         var invokedElement = element.element!;
@@ -385,10 +397,10 @@ class AnnotationVerifier {
         var kindNames = kinds.map((kind) => kind.displayString).toList()
           ..sort();
         var validKinds = kindNames.commaSeparatedWithOr;
-        _diagnosticReporter.atNode(
-          node.name,
-          diag.invalidAnnotationTarget,
-          arguments: [name!, validKinds],
+        _diagnosticReporter.report(
+          diag.invalidAnnotationTarget
+              .withArguments(annotationName: name!, validTargets: validKinds)
+              .at(node.name),
         );
         return;
       }
@@ -399,12 +411,14 @@ class AnnotationVerifier {
   /// `@literal` annotation.
   void _checkLiteral(Annotation node) {
     var parent = node.parent;
-    if (parent is! ConstructorDeclaration) {
-      // Reported elsewhere.
-      return;
-    }
-    if (parent.constKeyword == null) {
-      _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+    if (parent is ConstructorDeclaration) {
+      if (parent.constKeyword == null) {
+        _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+      }
+    } else if (parent is PrimaryConstructorBody) {
+      if (parent.declaration?.constKeyword == null) {
+        _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+      }
     }
   }
 
@@ -431,10 +445,13 @@ class AnnotationVerifier {
     if (parent2 is! BlockClassBody ||
         parent3 is! ExtensionTypeDeclaration ||
         parent is MethodDeclaration && parent.isStatic) {
-      _diagnosticReporter.atNode(
-        node.name,
-        diag.invalidAnnotationTarget,
-        arguments: [node.name.name, 'instance members of extension types'],
+      _diagnosticReporter.report(
+        diag.invalidAnnotationTarget
+            .withArguments(
+              annotationName: node.name.name,
+              validTargets: 'instance members of extension types',
+            )
+            .at(node.name),
       );
     }
   }
@@ -510,10 +527,14 @@ class AnnotationVerifier {
         var parameterName = undefinedParameter is SimpleStringLiteral
             ? undefinedParameter.value
             : undefinedParameter.correspondingParameter?.name;
-        _diagnosticReporter.atNode(
-          undefinedParameter,
-          diag.undefinedReferencedParameter,
-          arguments: [parameterName ?? undefinedParameter, name],
+        _diagnosticReporter.report(
+          diag.undefinedReferencedParameter
+              .withArguments(
+                undefinedParameterName:
+                    parameterName ?? undefinedParameter.toString(),
+                targetedMemberName: name,
+              )
+              .at(undefinedParameter),
         );
       }
     }
@@ -532,10 +553,10 @@ class AnnotationVerifier {
     void reportInvalidAnnotation(String name) {
       // This method is only called on named elements, so it is safe to
       // assume that `declaredElement.name` is non-`null`.
-      _diagnosticReporter.atNode(
-        node.name,
-        diag.invalidVisibilityAnnotation,
-        arguments: [name, node.name.name],
+      _diagnosticReporter.report(
+        diag.invalidVisibilityAnnotation
+            .withArguments(memberName: name, annotationName: node.name.name)
+            .at(node.name),
       );
     }
 
@@ -704,15 +725,34 @@ class AnnotationVerifier {
           return true;
         }
       }
+      if (target is FormalParameter) {
+        var element = target.declaredFragment?.element;
+        if (element is FieldFormalParameterElement && element.isDeclaring) {
+          return true;
+        }
+      }
     }
 
-    if (kinds.contains(TargetKind.constructor)) {
-      if (target is ConstructorDeclaration) return true;
+    if (target is FormalParameter) {
+      var element = target.declaredFragment?.element;
+      if (element is FieldFormalParameterElement && element.isDeclaring) {
+        if (kinds.contains(TargetKind.field)) return true;
+      }
+    }
 
-      if (target
-          case ClassDeclaration(namePart: PrimaryConstructorDeclaration()) ||
-              EnumDeclaration(namePart: PrimaryConstructorDeclaration()) ||
-              ExtensionTypeDeclaration()) {
+    // Handle the case of the deprecated `TargetKind.directive` before handling
+    // the Directive subclasses below.
+    // ignore: deprecated_member_use
+    if (kinds.contains(TargetKind.directive) && target is Directive) {
+      return true;
+    }
+
+    // To support Dart language versions where unnamed libraries did not exist,
+    // we allow annotating the first directive, if the annotation is intended for
+    // a library directive.
+    if (kinds.contains(TargetKind.library)) {
+      if (target is Directive &&
+          (target.parent as CompilationUnit).directives.first == target) {
         return true;
       }
     }
@@ -722,13 +762,11 @@ class AnnotationVerifier {
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
       ClassTypeAlias() =>
         kinds.contains(TargetKind.classType) || kinds.contains(TargetKind.type),
-      Directive() =>
-        kinds.contains(TargetKind.directive) ||
-            (target.parent as CompilationUnit).directives.first == target &&
-                kinds.contains(TargetKind.library),
+      ConstructorDeclaration() => kinds.contains(TargetKind.constructor),
       EnumConstantDeclaration() => kinds.contains(TargetKind.enumValue),
       EnumDeclaration() =>
         kinds.contains(TargetKind.enumType) || kinds.contains(TargetKind.type),
+      ExportDirective() => kinds.contains(TargetKind.exportDirective),
       ExtensionTypeDeclaration() => kinds.contains(TargetKind.extensionType),
       ExtensionDeclaration() => kinds.contains(TargetKind.extension),
       FieldDeclaration() => kinds.contains(TargetKind.field),
@@ -740,6 +778,8 @@ class AnnotationVerifier {
       MethodDeclaration() => kinds.contains(TargetKind.method),
       MixinDeclaration() =>
         kinds.contains(TargetKind.mixinType) || kinds.contains(TargetKind.type),
+      PartOfDirective() => kinds.contains(TargetKind.partOfDirective),
+      PrimaryConstructorBody() => kinds.contains(TargetKind.constructor),
       FormalParameter() =>
         kinds.contains(TargetKind.parameter) ||
             (target.isOptional && kinds.contains(TargetKind.optionalParameter)),

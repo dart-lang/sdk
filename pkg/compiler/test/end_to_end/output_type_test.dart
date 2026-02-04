@@ -146,7 +146,7 @@ main() {
       [
         'pkg/compiler/test/deferred/data/deferred_helper.dart',
         '--csp',
-        Flags.writeResources,
+        Flags.writeRecordedUses,
         ...additionOptionals,
       ],
       [...expectedOutput, 'out.js.resources.json'],

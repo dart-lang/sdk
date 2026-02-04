@@ -4,7 +4,7 @@
 
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 
-/// The set of compilation units that make up the mock 'ui' package.
+/// The set of compilation units that make up the mock 'dart:ui' library.
 final List<MockLibraryUnit> units = [_uiLibrary];
 
 final _uiLibrary = MockLibraryUnit('lib/ui.dart', r'''
@@ -20,6 +20,14 @@ class Radius {
   const Radius.circular(double radius) : this.elliptical(radius, radius);
 
   const Radius.elliptical(this.x, this.y);
+}
+
+class Size {
+  final double width;
+
+  final double height;
+
+  const Size(this.width, this.height);
 }
 
 enum BlendMode {
@@ -201,11 +209,33 @@ class FontWeight {
   String toString() => throw 0;
 }
 
+class Locale {}
+
+class StrutStyle {}
+
+class Shadow {}
+
+final class Paint {}
+
+class FontFeature {}
+
+class FontVariation {}
+
 enum TextAlign { left, right, center, justify, start, end }
 
 enum TextBaseline { alphabetic, ideographic }
 
 enum TextDirection { rtl, ltr }
+
+enum TextLeadingDistribution { proportional, even }
+
+class TextDecoration {}
+
+enum TextDecorationStyle { solid, double, dotted, dashed, wavy }
+
+enum Clip { none, hardEdge, antiAlias, antiAliasWithSaveLayer }
+
+class TextHeightBehavior {}
 
 typedef VoidCallback = void Function();
 ''');

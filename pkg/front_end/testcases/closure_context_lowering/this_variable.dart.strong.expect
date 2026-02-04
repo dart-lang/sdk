@@ -1,0 +1,532 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field self::A a = new self::A::•();
+  field self::A? aNull = null;
+  field core::int n = 0;
+  field core::Object? field = null;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method method() → dynamic/* scope=[
+    #ctx1: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {}
+  method call() → core::Object?/* scope=[
+    #ctx2: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */
+    return null;
+  operator [](positional-parameter index) → core::Object?/* scope=[
+    #ctx3: not-captured VariableContext([
+      this-variable this-variable;
+      positional-parameter index;
+    ]),
+  ] */
+    return null;
+  operator []=(positional-parameter index, positional-parameter value) → void/* scope=[
+    #ctx4: not-captured VariableContext([
+      this-variable this-variable;
+      positional-parameter index;
+      positional-parameter value;
+    ]),
+  ] */ {}
+  operator +(positional-parameter other) → self::A/* scope=[
+    #ctx5: not-captured VariableContext([
+      this-variable this-variable;
+      positional-parameter other;
+    ]),
+  ] */
+    return this-variable;
+  operator unary-() → self::A/* scope=[
+    #ctx6: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */
+    return this-variable;
+  method notCapturedMethodCall() → dynamic/* scope=[
+    #ctx7: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::method}(){() → dynamic};
+  }
+  method notCapturedExpression() → dynamic/* scope=[
+    #ctx8: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable;
+  }
+  method notCapturedPropertyGet() → dynamic/* scope=[
+    #ctx9: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::field}{core::Object?};
+  }
+  method notCapturedPropertySet() → dynamic/* scope=[
+    #ctx10: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::field} = null;
+  }
+  method notCapturedCall() → dynamic/* scope=[
+    #ctx11: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::call}(){() → core::Object?};
+  }
+  method notCapturedIndexGet() → dynamic/* scope=[
+    #ctx12: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::[]}(0){(core::int) → core::Object?};
+  }
+  method notCapturedIndexSet() → dynamic/* scope=[
+    #ctx13: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::[]=}(0, null){(core::int, core::Object?) → void};
+  }
+  method notCapturedUnary() → dynamic/* scope=[
+    #ctx14: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::unary-}(){() → self::A};
+  }
+  method notCapturedBinary() → dynamic/* scope=[
+    #ctx15: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::+}(this-variable){(self::A) → self::A};
+  }
+  method notCapturedPropertyCall() → dynamic/* scope=[
+    #ctx16: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::a}{self::A}.{self::A::call}(){() → core::Object?};
+  }
+  method notCapturedPropertyPrefix() → dynamic/* scope=[
+    #ctx17: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    let final self::A #t1 = this-variable in #t1.{self::A::n} = #t1.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
+  }
+  method notCapturedPropertyPostfix() → dynamic/* scope=[
+    #ctx18: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    let final self::A #t2 = this-variable in #t2.{self::A::n} = #t2.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
+  }
+  method notCapturedPropertyIndexGet() → dynamic/* scope=[
+    #ctx19: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::a}{self::A}.{self::A::[]}(0){(core::int) → core::Object?};
+  }
+  method notCapturedPropertyIndexSet() → dynamic/* scope=[
+    #ctx20: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::a}{self::A}.{self::A::[]=}(0, null){(core::int, core::Object?) → void};
+  }
+  method notCapturedPropertyIfNullAssignment() → dynamic/* scope=[
+    #ctx21: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::aNull}{self::A?} == null ?{self::A?} this-variable.{self::A::aNull} = new self::A::•() : null;
+  }
+  method notCapturedPropertyCompoundAssignment() → dynamic/* scope=[
+    #ctx22: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    this-variable.{self::A::a} = this-variable.{self::A::a}{self::A}.{self::A::+}(new self::A::•()){(self::A) → self::A};
+  }
+  method capturedMethodCall() → dynamic/* scope=[
+    #ctx23: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx23 */ → dynamic => this-variable.{self::A::method}(){() → dynamic};
+  }
+  method capturedExpression() → dynamic/* scope=[
+    #ctx24: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx24 */ → self::A => this-variable;
+  }
+  method capturedPropertyGet() → dynamic/* scope=[
+    #ctx25: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx25 */ → core::Object? => this-variable.{self::A::field}{core::Object?};
+  }
+  method capturedPropertySet() → dynamic/* scope=[
+    #ctx26: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx26 */ → Null {
+      this-variable.{self::A::field} = null;
+    };
+  }
+  method capturedCall() → dynamic/* scope=[
+    #ctx27: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx27 */ → core::Object? => this-variable.{self::A::call}(){() → core::Object?};
+  }
+  method capturedIndexGet() → dynamic/* scope=[
+    #ctx28: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx28 */ → core::Object? => this-variable.{self::A::[]}(0){(core::int) → core::Object?};
+  }
+  method capturedIndexSet() → dynamic/* scope=[
+    #ctx29: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx29 */ → Null {
+      this-variable.{self::A::[]=}(0, null){(core::int, core::Object?) → void};
+    };
+  }
+  method capturedUnary() → dynamic/* scope=[
+    #ctx30: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx30 */ → self::A => this-variable.{self::A::unary-}(){() → self::A};
+  }
+  method capturedBinary() → dynamic/* scope=[
+    #ctx31: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx31 */ → self::A => this-variable.{self::A::+}(this-variable){(self::A) → self::A};
+  }
+  method capturedPropertyCall() → dynamic/* scope=[
+    #ctx32: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx32 */ → core::Object? => this-variable.{self::A::a}{self::A}.{self::A::call}(){() → core::Object?};
+  }
+  method capturedPropertyPrefix() → dynamic/* scope=[
+    #ctx33: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx33 */ → core::int => let final self::A #t3 = this-variable in #t3.{self::A::n} = #t3.{self::A::n}{core::int}.{core::num::+}(1){(core::num) → core::int};
+  }
+  method capturedPropertyPostfix() → dynamic/* scope=[
+    #ctx34: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx34 */ → core::int => let final self::A #t4 = this-variable in let final core::int #t5 = #t4.{self::A::n}{core::int} in let final void #t6 = #t4.{self::A::n} = #t5.{core::num::+}(1){(core::num) → core::int} in #t5;
+  }
+  method capturedPropertyIndexGet() → dynamic/* scope=[
+    #ctx35: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx35 */ → core::Object? => this-variable.{self::A::a}{self::A}.{self::A::[]}(0){(core::int) → core::Object?};
+  }
+  method capturedPropertyIndexSet() → dynamic/* scope=[
+    #ctx36: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx36 */ → Null => let final self::A #t7 = this-variable.{self::A::a}{self::A} in let final core::int #t8 = 0 in let final has-declared-initializer Null #t9 = null in let final void #t10 = #t7.{self::A::[]=}(#t8, #t9){(core::int, core::Object?) → void} in #t9;
+  }
+  method capturedPropertyIfNullAssignment() → dynamic/* scope=[
+    #ctx37: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx37 */ → self::A => let final self::A? #t11 = this-variable.{self::A::aNull}{self::A?} in #t11 == null ?{self::A} this-variable.{self::A::aNull} = new self::A::•() : #t11{self::A};
+  }
+  method capturedPropertyCompoundAssignment() → dynamic/* scope=[
+    #ctx38: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx38 */ → self::A => this-variable.{self::A::a} = this-variable.{self::A::a}{self::A}.{self::A::+}(new self::A::•()){(self::A) → self::A};
+  }
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  @#C1
+  method notCapturedMethodCall() → dynamic/* scope=[
+    #ctx39: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::method}();
+  }
+  @#C1
+  method notCapturedPropertyGet() → dynamic/* scope=[
+    #ctx40: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::field};
+  }
+  @#C1
+  method notCapturedPropertySet() → dynamic/* scope=[
+    #ctx41: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::field} = null;
+  }
+  @#C1
+  method notCapturedCall() → dynamic/* scope=[
+    #ctx42: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::call}();
+  }
+  @#C1
+  method notCapturedIndexGet() → dynamic/* scope=[
+    #ctx43: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::[]}(0);
+  }
+  @#C1
+  method notCapturedIndexSet() → dynamic/* scope=[
+    #ctx44: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::[]=}(0, null);
+  }
+  @#C1
+  method notCapturedUnary() → dynamic/* scope=[
+    #ctx45: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::unary-}();
+  }
+  @#C1
+  method notCapturedBinary() → dynamic/* scope=[
+    #ctx46: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::+}(this-variable);
+  }
+  @#C1
+  method notCapturedPropertyCall() → dynamic/* scope=[
+    #ctx47: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::a}.{self::A::call}(){() → core::Object?};
+  }
+  @#C1
+  method notCapturedPropertyPrefix() → dynamic/* scope=[
+    #ctx48: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::n} = super{this-variable}.{self::A::n}.{core::num::+}(1){(core::num) → core::int};
+  }
+  @#C1
+  method notCapturedPropertyPostfix() → dynamic/* scope=[
+    #ctx49: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::n} = super{this-variable}.{self::A::n}.{core::num::+}(1){(core::num) → core::int};
+  }
+  @#C1
+  method notCapturedPropertyIndexGet() → dynamic/* scope=[
+    #ctx50: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::a}.{self::A::[]}(0){(core::int) → core::Object?};
+  }
+  @#C1
+  method notCapturedPropertyIndexSet() → dynamic/* scope=[
+    #ctx51: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::a}.{self::A::[]=}(0, null){(core::int, core::Object?) → void};
+  }
+  @#C1
+  method notCapturedPropertyIfNullAssignment() → dynamic/* scope=[
+    #ctx52: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::aNull} == null ?{self::A?} super{this-variable}.{self::A::aNull} = new self::A::•() : null;
+  }
+  @#C1
+  method notCapturedPropertyCompoundAssignment() → dynamic/* scope=[
+    #ctx53: not-captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    super{this-variable}.{self::A::a} = super{this-variable}.{self::A::a}.{self::A::+}(new self::A::•()){(self::A) → self::A};
+  }
+  @#C1
+  method capturedMethodCall() → dynamic/* scope=[
+    #ctx54: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx54 */ → dynamic => super{this-variable}.{self::A::method}();
+  }
+  @#C1
+  method capturedPropertyGet() → dynamic/* scope=[
+    #ctx55: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx55 */ → core::Object? => super{this-variable}.{self::A::field};
+  }
+  @#C1
+  method capturedPropertySet() → dynamic/* scope=[
+    #ctx56: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx56 */ → Null {
+      super{this-variable}.{self::A::field} = null;
+    };
+  }
+  @#C1
+  method capturedCall() → dynamic/* scope=[
+    #ctx57: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx57 */ → core::Object? => super{this-variable}.{self::A::call}();
+  }
+  @#C1
+  method capturedIndexGet() → dynamic/* scope=[
+    #ctx58: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx58 */ → core::Object? => super{this-variable}.{self::A::[]}(0);
+  }
+  @#C1
+  method capturedIndexSet() → dynamic/* scope=[
+    #ctx59: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx59 */ → Null {
+      super{this-variable}.{self::A::[]=}(0, null);
+    };
+  }
+  @#C1
+  method capturedUnary() → dynamic/* scope=[
+    #ctx60: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx60 */ → self::A => super{this-variable}.{self::A::unary-}();
+  }
+  @#C1
+  method capturedBinary() → dynamic/* scope=[
+    #ctx61: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx61 */ → self::A => super{this-variable}.{self::A::+}(this-variable);
+  }
+  @#C1
+  method capturedPropertyCall() → dynamic/* scope=[
+    #ctx62: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx62 */ → core::Object? => super{this-variable}.{self::A::a}.{self::A::call}(){() → core::Object?};
+  }
+  @#C1
+  method capturedPropertyPrefix() → dynamic/* scope=[
+    #ctx63: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx63 */ → core::int => super{this-variable}.{self::A::n} = super{this-variable}.{self::A::n}.{core::num::+}(1){(core::num) → core::int};
+  }
+  @#C1
+  method capturedPropertyPostfix() → dynamic/* scope=[
+    #ctx64: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx64 */ → core::int => let final core::int #t12 = super{this-variable}.{self::A::n} in let final void #t13 = super{this-variable}.{self::A::n} = #t12.{core::num::+}(1){(core::num) → core::int} in #t12;
+  }
+  @#C1
+  method capturedPropertyIndexGet() → dynamic/* scope=[
+    #ctx65: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx65 */ → core::Object? => super{this-variable}.{self::A::a}.{self::A::[]}(0){(core::int) → core::Object?};
+  }
+  @#C1
+  method capturedPropertyIndexSet() → dynamic/* scope=[
+    #ctx66: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx66 */ → Null => let final self::A #t14 = super{this-variable}.{self::A::a} in let final core::int #t15 = 0 in let final has-declared-initializer Null #t16 = null in let final void #t17 = #t14.{self::A::[]=}(#t15, #t16){(core::int, core::Object?) → void} in #t16;
+  }
+  @#C1
+  method capturedPropertyIfNullAssignment() → dynamic/* scope=[
+    #ctx67: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx67 */ → self::A => let final self::A? #t18 = super{this-variable}.{self::A::aNull} in #t18 == null ?{self::A} super{this-variable}.{self::A::aNull} = new self::A::•() : #t18{self::A};
+  }
+  @#C1
+  method capturedPropertyCompoundAssignment() → dynamic/* scope=[
+    #ctx68: captured VariableContext([
+      this-variable this-variable;
+    ]),
+  ] */ {
+    return () /* #ctx68 */ → self::A => super{this-variable}.{self::A::a} = super{this-variable}.{self::A::a}.{self::A::+}(new self::A::•()){(self::A) → self::A};
+  }
+}
+
+constants  {
+  #C1 = core::_Override {}
+}

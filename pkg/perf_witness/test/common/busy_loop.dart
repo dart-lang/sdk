@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -14,11 +15,10 @@ import 'package:perf_witness/src/common.dart';
 final parser = ArgParser()
   ..addOption('tag', abbr: 't', help: 'Tag for the process')
   ..addFlag(
-    'start-isolate',
-    abbr: 'i',
-    help: 'Start test isolate',
-    defaultsTo: false,
-  );
+    'start-in-background',
+    help: 'Start PerfWitnessServer server in background',
+  )
+  ..addFlag('start-isolate', abbr: 'i', help: 'Start test isolate');
 
 bool shouldStop = false;
 
@@ -50,7 +50,11 @@ void main(List<String> args) async {
 
   final parsedArgs = parser.parse(args);
   final tag = parsedArgs['tag'] as String?;
-  await PerfWitnessServer.start(tag: tag);
+  await PerfWitnessServer.start(
+    tag: tag,
+    inBackground: parsedArgs['start-in-background'],
+  );
+  Timeline.instantSync('ImportantStartupEvent');
   if (parsedArgs.flag('start-isolate')) {
     Isolate.run(() async {
       await PerfWitnessServer.start(tag: tag);

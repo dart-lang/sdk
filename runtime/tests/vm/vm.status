@@ -52,6 +52,12 @@ dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
 dart/regress32597_2_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 dart/regress38467_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 
+[ $builder_tag == dwarf ]
+dart/language/bool_check_stack_traces_test/01: SkipByDesign # Relies on symbolic stack traces
+dart/language/bool_check_stack_traces_test/02: SkipByDesign # Relies on symbolic stack traces
+dart/language/bool_check_stack_traces_test/none: SkipByDesign # Relies on symbolic stack traces
+dart/language/type_cast_vm_test: SkipByDesign # Relies on symbolic stack traces
+
 [ $builder_tag == obfuscated ]
 dart/heapsnapshot_cli_test: SkipByDesign # Relies on symbol names
 dart/isolate_exit_unsendable_test: SkipByDesign # Relies on symbol names
@@ -67,6 +73,7 @@ dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_co
 [ $compiler == app_jitk ]
 dart/isolates/many_isolates_blocked_at_process_run_sync_test: Skip # App snapshot creation needs regular isolate shutdown
 dart/isolates/many_isolates_blocked_at_sleep_test: Skip # App snapshot creation needs regular isolate shutdown
+dart/language/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
 dart/snapshot_version_test: RuntimeError
 
 [ $compiler == dart2bytecode ]
@@ -184,6 +191,7 @@ cc/LoadOptimizer_RedundantStoreAOT: SkipByDesign # Sanitizers build different fl
 cc/TypePropagator_NonNullableLoadStaticField: SkipByDesign # Sanitizers build different flow graphs
 cc/TypePropagator_RecordFieldAccess: SkipByDesign # Sanitizers build different flow graphs
 dart/exported_symbols_test: SkipByDesign # Sanitizers add extra symbols.
+dart/heap_snapshot_referrers_test: Pass, Slow
 
 [ $sanitizer == tsan ]
 dart/analyze_snapshot_binary_test: SkipSlow
@@ -298,15 +306,27 @@ dart/transferable_test: Skip # This is performance test and somehow debug win ia
 dart/extension_names_test: SkipByDesign # No demangling (obfuscated).
 dart/extension_unnamed_names_test: SkipByDesign # No demangling (obfuscated).
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/44215: This test relies on non-obfuscated library uris.
+dart/language/no_such_args_error_message_vm_test: SkipByDesign # Looks for function name in error message
+dart/language/no_such_method_error_message_callable_vm_test: SkipByDesign # Expects unobfuscated method names
+dart/language/no_such_method_error_message_vm_test: SkipByDesign # Looks for unobfuscated name in error message
 dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
 dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
 dart/regress_37382_test: SkipByDesign # Matches the type arguments names
 
 [ $compiler == dartk && $mode == product && $runtime == vm ]
 cc/CorelibIsolateStartup: Timeout, Pass
+dart/language/lazy_async_exception_stack2_test: SkipByDesign
+dart/language/lazy_async_exception_stack_test: SkipByDesign
 
 [ $compiler == dartk && $mode == release && $runtime == vm ]
 cc/CorelibIsolateStartup: Timeout, Pass
+
+[ $compiler == dartk && $runtime == dart_precompiled ]
+dart/language/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
+dart/language/lazy_async_exception_stack2_test: SkipByDesign
+dart/language/lazy_async_exception_stack_test: SkipByDesign
+dart/language/regress_27671_test: Skip # Unsupported
+dart/language/regress_29145_test: Skip # Issue 29145
 
 [ $compiler == dartk && $runtime == vm ]
 cc/DartAPI_LoadLibrary: Fail, Crash # Issue 33048.
@@ -319,6 +339,8 @@ cc/DebuggerAPI_ScriptGetTokenInfo_MultiLineInterpolation: Fail
 cc/Debugger_PrintBreakpointsToJSONArray: Fail
 cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
+dart/language/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
+dart/language/regress_29145_test: Skip # Issue 29145
 dart/spawn_shutdown_test: SkipSlow
 
 [ $compiler == dartk && $runtime == vm && $system == macos ]
@@ -362,6 +384,9 @@ dart/use_dwarf_stack_traces_flag_deferred_test: SkipSlow
 dart/use_dwarf_stack_traces_flag_test: SkipSlow
 dart/use_macho_reduce_padding_flag_test: SkipSlow
 
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
+dart/language/precompiled_static_initializer_test: Slow, Pass
+
 [ $compiler == dartkp && $simulator ]
 dart/awaiter_stacks/stream_methods_test/1: Pass, Slow
 dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
@@ -381,6 +406,9 @@ cc/DartAPI_IsolateSetCheckedMode: Fail, OK # Checked mode disabled in product mo
 
 [ $runtime == dart_precompiled && $minified ]
 dart/inline_stack_frame_test: Skip
+dart/language/no_such_args_error_message_vm_test: SkipByDesign # Looks for function name in error message
+dart/language/no_such_method_error_message_callable_vm_test: SkipByDesign # Expects unobfuscated method names
+dart/language/no_such_method_error_message_vm_test: SkipByDesign # Looks for unobfuscated name in error message
 dart/optimized_stacktrace_line_test: Skip
 
 [ $runtime != dart_precompiled && $runtime != vm ]

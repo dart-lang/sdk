@@ -26,7 +26,7 @@ import '../js_model/elements.dart';
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
 import '../universe/feature.dart';
-import '../universe/resource_identifier.dart' show ResourceIdentifier;
+import '../universe/recorded_use.dart' show RecordedUse;
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
@@ -799,7 +799,7 @@ class JsNodeTags {
   static const String deferredHolderExpression = 'js-deferredHolderExpression';
 }
 
-enum JsAnnotationKind { string, resourceIdentifier }
+enum JsAnnotationKind { string, recordUse }
 
 /// Visitor that serializes a [js.Node] into a [DataSinkWriter].
 ///
@@ -864,8 +864,8 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     if (annotation is String) {
       sink.writeEnum(JsAnnotationKind.string);
       sink.writeString(annotation);
-    } else if (annotation is ResourceIdentifier) {
-      sink.writeEnum(JsAnnotationKind.resourceIdentifier);
+    } else if (annotation is RecordedUse) {
+      sink.writeEnum(JsAnnotationKind.recordUse);
       annotation.writeToDataSink(sink);
     } else {
       throw UnsupportedError(
@@ -1998,8 +1998,7 @@ class JsNodeDeserializer {
   Object _readAnnotation() {
     return switch (source.readEnum(JsAnnotationKind.values)) {
       JsAnnotationKind.string => source.readString(),
-      JsAnnotationKind.resourceIdentifier =>
-        ResourceIdentifier.readFromDataSource(source),
+      JsAnnotationKind.recordUse => RecordedUse.readFromDataSource(source),
     };
   }
 }

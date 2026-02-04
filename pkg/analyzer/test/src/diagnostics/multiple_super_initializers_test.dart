@@ -15,7 +15,19 @@ main() {
 
 @reflectiveTest
 class MultipleSuperInitializersTest extends PubPackageResolutionTest {
-  test_oneSuperInitializer() async {
+  test_primary_twoSuperInitializers() async {
+    await assertErrorsInCode(
+      '''
+class A {}
+class B() extends A {
+  this : super(), super();
+}
+''',
+      [error(diag.multipleSuperInitializers, 51, 5)],
+    );
+  }
+
+  test_typeName_oneSuperInitializer() async {
     await assertNoErrorsInCode('''
 class A {}
 class B extends A {
@@ -24,7 +36,7 @@ class B extends A {
 ''');
   }
 
-  test_twoSuperInitializers() async {
+  test_typeName_twoSuperInitializers() async {
     await assertErrorsInCode(
       '''
 class A {}

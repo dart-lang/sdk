@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:js_interop';
-import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:source_maps/parser.dart';
+
+import 'utils.dart';
 
 final isMinified = const bool.fromEnvironment('dart.tool.dart2wasm.minify');
 
@@ -84,20 +84,10 @@ void testMain(
   }
 }
 
-String getFilename(String testName, int moduleId) {
-  final compilationDir = const String.fromEnvironment("TEST_COMPILATION_DIR");
-  if (moduleId == 0) {
-    return '$compilationDir/${testName}_test.wasm.map';
-  } else {
-    return '$compilationDir/${testName}_test_module$moduleId.wasm.map';
-  }
-}
-
 Mapping getSourceMapping(String testName) {
   final allMappings = MappingBundle();
   // Read source map of the current program.
-  final compilationDir = const String.fromEnvironment("TEST_COMPILATION_DIR");
-  final mainFilename = getFilename(testName, 0);
+  final mainFilename = getSourceMapFilePath(testName, 0);
   final mainSourceMapFile = readfile(mainFilename);
   final mainSourceMap = parse(utf8.decode(mainSourceMapFile)) as SingleMapping;
   mainSourceMap.targetUrl = mainFilename;
@@ -108,7 +98,7 @@ Mapping getSourceMapping(String testName) {
     // All the modules will have consecutive names. Keep reading them until we
     // fail to find one.
     try {
-      final filename = getFilename(testName, i);
+      final filename = getSourceMapFilePath(testName, i);
       final fileContents = readfile(filename);
       final sourceMap = parse(utf8.decode(fileContents)) as SingleMapping;
       sourceMap.targetUrl = filename;
@@ -150,7 +140,7 @@ List<(String?, int?, int?, String?)?> parseStack(
     final moduleId = isMinified
         ? parseMinifiedModule(moduleIdString)
         : int.parse(moduleIdString.replaceAll('module', ''));
-    final uri = getFilename(testName, moduleId);
+    final uri = getSourceMapFilePath(testName, moduleId);
     final span = mapping.spanFor(0, offset, uri: uri);
     if (span == null) {
       print('Stack frame "$line" does not have a source mapping');
@@ -171,20 +161,11 @@ int parseMinifiedModule(String moduleName) {
   int result = 0;
   int power = 1;
   for (final codeUnit in codeUnits) {
-    result += codeUnit * power;
-    power *= 128;
+    result += (codeUnit - 35) * power;
+    power *= 92;
   }
   return result - 1;
 }
-
-/// Read the file at the given [path].
-///
-/// This relies on the `readbuffer` function provided by d8.
-@JS()
-external JSArrayBuffer readbuffer(JSString path);
-
-/// Read the file at the given [path].
-Uint8List readfile(String path) => Uint8List.view(readbuffer(path.toJS).toDart);
 
 final stackTraceHexOffsetRegExp = RegExp(r'wasm-function.*(0x[0-9a-fA-F]+)\)$');
 final stackTraceModuleNameRegExp = RegExp(r'wasm/(.*)-[0-9a-z]+:');

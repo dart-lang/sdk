@@ -13,6 +13,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/undefined_behavior_sanitizer.h"
 
 namespace dart {
 
@@ -387,18 +388,11 @@ class Utils {
            (static_cast<Unsigned>(value) << ((width - rotate) & (width - 1)));
   }
 
-#ifdef __GNUC__
-  __attribute__((no_sanitize("float-divide-by-zero")))
-#endif
-  static inline float DivideAllowZero(float a, float b) {
-    return a / b;
-  }
-#ifdef __GNUC__
-  __attribute__((no_sanitize("float-divide-by-zero")))
-#endif
-  static inline double DivideAllowZero(double a, double b) {
-    return a / b;
-  }
+  NO_SANITIZE_UNDEFINED("float-divide-by-zero")
+  static inline float DivideAllowZero(float a, float b) { return a / b; }
+
+  NO_SANITIZE_UNDEFINED("float-divide-by-zero")
+  static inline double DivideAllowZero(double a, double b) { return a / b; }
 
   // Utility functions for converting values from host endianness to
   // big or little endian values.

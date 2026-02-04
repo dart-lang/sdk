@@ -21,6 +21,7 @@ abstract interface class InstructionVisitor<R> {
   R visitConstant(Constant instr);
   R visitDirectCall(DirectCall instr);
   R visitInterfaceCall(InterfaceCall instr);
+  R visitClosureCall(ClosureCall instr);
   R visitDynamicCall(DynamicCall instr);
   R visitParameter(Parameter instr);
   R visitLoadLocal(LoadLocal instr);
@@ -30,17 +31,26 @@ abstract interface class InstructionVisitor<R> {
   R visitLoadStaticField(LoadStaticField instr);
   R visitStoreStaticField(StoreStaticField instr);
   R visitThrow(Throw instr);
+  R visitNullCheck(NullCheck instr);
   R visitTypeParameters(TypeParameters instr);
   R visitTypeCast(TypeCast instr);
   R visitTypeTest(TypeTest instr);
   R visitTypeArguments(TypeArguments instr);
+  R visitTypeLiteral(TypeLiteral instr);
   R visitAllocateObject(AllocateObject instr);
+  R visitAllocateClosure(AllocateClosure instr);
+  R visitAllocateListLiteral(AllocateListLiteral instr);
+  R visitAllocateMapLiteral(AllocateMapLiteral instr);
+  R visitStringInterpolation(StringInterpolation instr);
   R visitBinaryIntOp(BinaryIntOp instr);
   R visitUnaryIntOp(UnaryIntOp instr);
   R visitBinaryDoubleOp(BinaryDoubleOp instr);
   R visitUnaryDoubleOp(UnaryDoubleOp instr);
+  R visitUnaryBoolOp(UnaryBoolOp instr);
   // Back-end specific instructions.
   R visitCompareAndBranch(CompareAndBranch instr);
+  R visitAllocateList(AllocateList instr);
+  R visitSetListElement(SetListElement instr);
   R visitParallelMove(ParallelMove instr);
 }
 
@@ -73,6 +83,7 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitConstant(Constant instr) => defaultInstruction(instr);
   R visitDirectCall(DirectCall instr) => defaultInstruction(instr);
   R visitInterfaceCall(InterfaceCall instr) => defaultInstruction(instr);
+  R visitClosureCall(ClosureCall instr) => defaultInstruction(instr);
   R visitDynamicCall(DynamicCall instr) => defaultInstruction(instr);
   R visitParameter(Parameter instr) => defaultInstruction(instr);
   R visitLoadLocal(LoadLocal instr) => defaultInstruction(instr);
@@ -84,17 +95,30 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitLoadStaticField(LoadStaticField instr) => defaultInstruction(instr);
   R visitStoreStaticField(StoreStaticField instr) => defaultInstruction(instr);
   R visitThrow(Throw instr) => defaultInstruction(instr);
+  R visitNullCheck(NullCheck instr) => defaultInstruction(instr);
   R visitTypeParameters(TypeParameters instr) => defaultInstruction(instr);
   R visitTypeCast(TypeCast instr) => defaultInstruction(instr);
   R visitTypeTest(TypeTest instr) => defaultInstruction(instr);
   R visitTypeArguments(TypeArguments instr) => defaultInstruction(instr);
+  R visitTypeLiteral(TypeLiteral instr) => defaultInstruction(instr);
   R visitAllocateObject(AllocateObject instr) => defaultInstruction(instr);
+  R visitAllocateClosure(AllocateClosure instr) => defaultInstruction(instr);
+  R visitAllocateListLiteral(AllocateListLiteral instr) =>
+      defaultInstruction(instr);
+  R visitAllocateMapLiteral(AllocateMapLiteral instr) =>
+      defaultInstruction(instr);
+  R visitStringInterpolation(StringInterpolation instr) =>
+      defaultInstruction(instr);
   R visitBinaryIntOp(BinaryIntOp instr) => defaultInstruction(instr);
   R visitUnaryIntOp(UnaryIntOp instr) => defaultInstruction(instr);
   R visitBinaryDoubleOp(BinaryDoubleOp instr) => defaultInstruction(instr);
   R visitUnaryDoubleOp(UnaryDoubleOp instr) => defaultInstruction(instr);
+  R visitUnaryBoolOp(UnaryBoolOp instr) => defaultInstruction(instr);
   // Back-end specific instructions.
   R visitCompareAndBranch(CompareAndBranch instr) =>
+      defaultBackendInstruction(instr);
+  R visitAllocateList(AllocateList instr) => defaultBackendInstruction(instr);
+  R visitSetListElement(SetListElement instr) =>
       defaultBackendInstruction(instr);
   R visitParallelMove(ParallelMove instr) => defaultBackendInstruction(instr);
 }

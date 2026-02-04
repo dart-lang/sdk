@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -215,6 +216,27 @@ class B extends A {
   B.b() : super.a(boat: 3);
 }
 ''');
+  }
+
+  Future<void> test_privateNamed() async {
+    await resolveTestCode('''
+class A {
+  int? _boat;
+  A({this._boat});
+}
+f() {
+  A(boot: 0);
+}
+''');
+    await assertHasFix('''
+class A {
+  int? _boat;
+  A({this._boat});
+}
+f() {
+  A(boat: 0);
+}
+''', filter: (d) => d.diagnosticCode != diag.unusedField);
   }
 
   Future<void> test_tooDistant_constructor() async {

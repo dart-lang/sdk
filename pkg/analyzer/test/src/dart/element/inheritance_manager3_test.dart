@@ -13,6 +13,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../../summary/elements_base.dart';
 import '../resolution/context_collection_resolution.dart';
@@ -2341,7 +2342,7 @@ extension type B(A it) implements A {
 
     var element = library.getExtensionType('B')!;
     _assertGetOverridden(element, 'foo', r'''
-A.foo: void Function()
+<null>
 ''');
   }
 
@@ -3104,9 +3105,9 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
   void assertInterfaceText(InterfaceElementImpl element, String expected) {
     var actual = _interfaceText(element);
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
     expect(actual, expected);
   }

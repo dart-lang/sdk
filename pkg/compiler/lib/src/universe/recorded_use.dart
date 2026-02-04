@@ -1,0 +1,240 @@
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// This library contains data structures that loosely represent the data
+/// structures in `package:record_use`. However these data structures are
+/// different in the following ways:
+/// * [ConstantValue] is used for constants, to enable serialization of
+///   composite constants.
+/// * [Entity] is used for definitions, so that it can be used in the last stage
+///   of the compiler to see in which loading unit it ended up.
+/// * [SourceLocation] is used for source locations instead of
+///   [record_use.Location] to keep the serialization smaller.
+///
+/// Please keep this library in sync with `package:record_use`.
+library;
+
+import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/io/source_information.dart';
+import 'package:record_use/record_use_internal.dart' as record_use;
+
+import '../serialization/serialization.dart';
+
+enum RecordedUseKind { call, tearOff }
+
+/// Dart2js version of [record_use.CallReference], but with the [identifier]
+/// nested for easy serialization.
+sealed class RecordedUse {
+  static const String tag = 'record-use';
+
+  final FunctionEntity function;
+
+  final SourceInformation sourceInformation;
+
+  RecordedUseKind get kind;
+
+  RecordedUse({required this.function, required this.sourceInformation});
+
+  factory RecordedUse.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    RecordedUseKind kind = source.readEnum(RecordedUseKind.values);
+    final function = source.readMember() as FunctionEntity;
+    final sourceInformation = SourceInformation.readFromDataSource(source);
+    RecordedUse result;
+    switch (kind) {
+      case RecordedUseKind.call:
+        result = RecordedCallWithArguments._readFromDataSource(
+          function,
+          sourceInformation,
+          source,
+        );
+        break;
+      case RecordedUseKind.tearOff:
+        result = RecordedTearOff._readFromDataSource(
+          function,
+          sourceInformation,
+          source,
+        );
+        break;
+    }
+    source.end(tag);
+    return result;
+  }
+
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.begin(tag);
+    sink.writeEnum(kind);
+    sink.writeMember(function);
+    SourceInformation.writeToDataSink(sink, sourceInformation);
+    _writeFieldsForKind(sink);
+    sink.end(tag);
+  }
+
+  void _writeFieldsForKind(DataSinkWriter sink);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! RecordedUse) return false;
+    return function == other.function &&
+        sourceInformation == other.sourceInformation;
+  }
+
+  @override
+  int get hashCode => Object.hash(function, sourceInformation);
+}
+
+/// Dart2js version of [record_use.CallWithArguments], with [ConstantValue]s
+/// instead of [record_use.Constant]s.
+class RecordedCallWithArguments extends RecordedUse {
+  final List<ConstantValue?> positionalArguments;
+  final Map<String, ConstantValue?> namedArguments;
+
+  /// Constant positional argument values in `package:record_use` format.
+  List<record_use.Constant?> positionalArgumentsInRecordUseFormat() =>
+      positionalArguments.map(_findValue).toList();
+
+  /// Constant named argument values in `package:record_use` format.
+  Map<String, record_use.Constant?> namedArgumentsInRecordUseFormat() =>
+      namedArguments.map((k, v) => MapEntry(k, _findValue(v)));
+
+  RecordedCallWithArguments({
+    required super.function,
+    required super.sourceInformation,
+    required this.positionalArguments,
+    required this.namedArguments,
+  });
+
+  @override
+  RecordedUseKind get kind => RecordedUseKind.call;
+
+  static RecordedCallWithArguments _readFromDataSource(
+    FunctionEntity function,
+    SourceInformation sourceInformation,
+    DataSourceReader source,
+  ) {
+    final positionalArguments = source.readList(source.readConstantOrNull);
+    final namedArguments = source.readStringMap(source.readConstantOrNull);
+    return RecordedCallWithArguments(
+      function: function,
+      sourceInformation: sourceInformation,
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
+    );
+  }
+
+  @override
+  void _writeFieldsForKind(DataSinkWriter sink) {
+    sink.writeList(positionalArguments, sink.writeConstantOrNull);
+    sink.writeStringMap(namedArguments, sink.writeConstantOrNull);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! RecordedCallWithArguments) return false;
+    if (positionalArguments.length != other.positionalArguments.length) {
+      return false;
+    }
+    for (var i = 0; i < positionalArguments.length; i++) {
+      if (positionalArguments[i] != other.positionalArguments[i]) return false;
+    }
+    return super == other;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(super.hashCode, Object.hashAll(positionalArguments));
+}
+
+/// Dart2js version of [record_use.CallTearOff].
+class RecordedTearOff extends RecordedUse {
+  RecordedTearOff({required super.function, required super.sourceInformation});
+
+  @override
+  RecordedUseKind get kind => RecordedUseKind.tearOff;
+
+  static RecordedTearOff _readFromDataSource(
+    FunctionEntity function,
+    SourceInformation sourceInformation,
+    DataSourceReader source,
+  ) {
+    // No specific fields to read.
+    return RecordedTearOff(
+      function: function,
+      sourceInformation: sourceInformation,
+    );
+  }
+
+  @override
+  void _writeFieldsForKind(DataSinkWriter sink) {
+    // No specific fields to write.
+  }
+}
+
+record_use.Constant? _findValue(ConstantValue? constant) {
+  return switch (constant) {
+    null => null, // not const.
+    NullConstantValue() => record_use.NullConstant(),
+    BoolConstantValue() => record_use.BoolConstant(constant.boolValue),
+    IntConstantValue() => record_use.IntConstant(constant.intValue.toInt()),
+    StringConstantValue() => record_use.StringConstant(constant.stringValue),
+    MapConstantValue() => _findMapValue(constant),
+    ListConstantValue() => _findListValue(constant),
+    ConstructedConstantValue() => _findInstanceValue(constant),
+    // TODO(https://github.com/dart-lang/native/issues/2899): Handle
+    // unsupported const types so that the values don't show up as non-const.
+    Object() => null,
+  };
+}
+
+record_use.MapConstant? _findMapValue(MapConstantValue constant) {
+  final result = <String, record_use.Constant>{};
+  for (var index = 0; index < constant.keys.length; index++) {
+    var keyConstantValue = constant.keys[index];
+    if (keyConstantValue is! StringConstantValue) {
+      // TODO(https://github.com/dart-lang/native/issues/2715): Support non
+      // string keys in maps.
+      return null;
+    }
+    final value = _findValue(constant.values[index]);
+    if (value == null) {
+      // TODO(https://github.com/dart-lang/native/issues/2899): Handle
+      // unsupported values.
+      return null;
+    }
+    result[keyConstantValue.stringValue] = value;
+  }
+  return record_use.MapConstant(result);
+}
+
+record_use.ListConstant? _findListValue(ListConstantValue constant) {
+  final result = <record_use.Constant>[];
+  for (final constantValue in constant.entries) {
+    final constant = _findValue(constantValue);
+    if (constant == null) {
+      // TODO(https://github.com/dart-lang/native/issues/2899): Handle
+      // unsupported values.
+      return null;
+    }
+    result.add(constant);
+  }
+  return record_use.ListConstant(result);
+}
+
+record_use.InstanceConstant? _findInstanceValue(
+  ConstructedConstantValue constant,
+) {
+  final fieldValues = <String, record_use.Constant>{};
+  for (final entry in constant.fields.entries) {
+    final name = entry.key.name;
+    final value = _findValue(entry.value);
+    if (name == null || value == null) {
+      // TODO(https://github.com/dart-lang/native/issues/2899): Handle
+      // unsupported fields.
+      return null;
+    }
+    fieldValues[name] = value;
+  }
+  return record_use.InstanceConstant(fields: fieldValues);
+}

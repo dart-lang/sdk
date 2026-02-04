@@ -4,8 +4,8 @@
 
 import 'package:front_end/src/api_prototype/front_end.dart'
     show CompilerOptions, CfeDiagnosticMessage;
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show FormattedMessage, codeMissingMain;
+import 'package:front_end/src/codes/cfe_codes.dart' show FormattedMessage;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:front_end/src/testing/compiler_common.dart'
     show
@@ -92,7 +92,7 @@ void main() {
       await compileScript('a() => print("hi");', options: options);
       expect(
         (errors.first as FormattedMessage).problemMessage,
-        codeMissingMain.problemMessage,
+        diag.missingMain.problemMessage,
       );
     });
 

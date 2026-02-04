@@ -516,7 +516,8 @@ class ImageWriter : public ValueObject {
   static uword GetMarkedTags(classid_t cid,
                              intptr_t size,
                              bool is_canonical = false,
-                             bool is_immutable = false);
+                             bool is_shallow_immutable = false,
+                             bool is_deeply_immutable = false);
   static uword GetMarkedTags(const Object& obj);
 
   void DumpInstructionStats();

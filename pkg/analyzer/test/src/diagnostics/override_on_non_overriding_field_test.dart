@@ -54,30 +54,83 @@ class B extends A {
     );
   }
 
+  test_class_extends_primaryConstructor() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int get foo;
+}
+class B(@override final int foo) extends A;
+''');
+  }
+
   test_class_implements() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int get a => 0;
-  void set b(_) {}
-  int c = 0;
 }
 class B implements A {
   @override
   final int a = 1;
+}''');
+  }
+
+  test_class_implements_overriddenSetter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  void set b(_) {}
+}
+class B implements A {
   @override
   int b = 0;
-  @override
-  int c = 0;
 }''',
       [
         error(
           diag.invalidOverrideSetter,
-          134,
+          72,
           1,
-          contextMessages: [message(testFile, 39, 1)],
+          contextMessages: [message(testFile, 21, 1)],
         ),
       ],
+    );
+  }
+
+  test_class_implements_overrideIsFinal() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int c = 0;
+}
+class B implements A {
+  @override
+  int c = 0;
+}''');
+  }
+
+  test_class_implements_primaryConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A(final int foo);
+class B(@override final int foo) implements A;
+''');
+  }
+
+  test_class_primaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+class A(@override final int foo);
+''',
+      [error(diag.overrideOnNonOverridingField, 28, 3)],
+    );
+  }
+
+  test_class_static() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  @override
+  static int foo = 1;
+}
+''',
+      [error(diag.overrideOnNonOverridingField, 35, 3)],
     );
   }
 

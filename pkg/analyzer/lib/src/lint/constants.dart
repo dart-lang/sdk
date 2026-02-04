@@ -115,3 +115,26 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
     }
   }
 }
+
+extension PrimaryConstructorDeclarationExtension
+    on PrimaryConstructorDeclaration {
+  bool get canBeConst {
+    var element = declaredFragment!.element;
+
+    var classElement = element.enclosingElement;
+    if (classElement is ClassElement && classElement.hasNonFinalField) {
+      return false;
+    }
+
+    var oldKeyword = constKeyword;
+    var self = this as PrimaryConstructorDeclarationImpl;
+    try {
+      temporaryConstConstructorElements[element] = true;
+      self.constKeyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      temporaryConstConstructorElements[element] = null;
+      self.constKeyword = oldKeyword;
+    }
+  }
+}

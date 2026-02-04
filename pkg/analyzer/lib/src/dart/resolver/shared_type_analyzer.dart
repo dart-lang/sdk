@@ -58,7 +58,7 @@ class SharedTypeAnalyzerErrors
     required covariant AssignedVariablePatternImpl original,
     required covariant AssignedVariablePatternImpl duplicate,
   }) {
-    _diagnosticReporter.reportError(
+    _diagnosticReporter.report(
       DiagnosticFactory().duplicateAssignmentPatternVariable(
         source: _diagnosticReporter.source,
         variable: variable,
@@ -78,7 +78,7 @@ class SharedTypeAnalyzerErrors
     if (objectOrRecordPattern is RecordPatternImpl) {
       objectOrRecordPattern.hasDuplicateNamedField = true;
     }
-    _diagnosticReporter.reportError(
+    _diagnosticReporter.report(
       DiagnosticFactory().duplicatePatternField(
         source: _diagnosticReporter.source,
         name: name,
@@ -94,7 +94,7 @@ class SharedTypeAnalyzerErrors
     required covariant RestPatternElementImpl original,
     required covariant RestPatternElementImpl duplicate,
   }) {
-    _diagnosticReporter.reportError(
+    _diagnosticReporter.report(
       DiagnosticFactory().duplicateRestElementInPattern(
         source: _diagnosticReporter.source,
         originalElement: original,

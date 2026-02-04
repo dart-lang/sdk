@@ -31,7 +31,7 @@ class BindToField extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.bindAllToFields;
+  AssistKind get assistKind => DartAssistKind.bindToField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -83,38 +83,43 @@ class BindToField extends ResolvedCorrectionProducer {
   ) async {
     var constructor = parameter.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructor == null) {
+      // Not a constructor.
       return;
     }
     if (constructor.childEntities.any(
       (element) => element is RedirectingConstructorInvocation,
     )) {
+      // A redirecting constructor.
       return;
     }
     if (constructor.factoryKeyword != null) {
+      // A factory constructor.
       return;
     }
     var container = constructor.thisOrAncestorOfType<CompilationUnitMember>();
-    if (container == null) {
-      return;
-    }
-    if (container is! ClassDeclaration && container is! EnumDeclaration) {
+    if (container == null ||
+        (container is! ClassDeclaration && container is! EnumDeclaration)) {
+      // Not a class or enum.
       return;
     }
     if (container is ClassDeclaration &&
         container.members2.any(
           (member) => switch (member) {
             ConstructorDeclaration() => false,
+            // Bind the parameter to the existing field
             FieldDeclaration() => false,
             MethodDeclaration() => member.name.lexeme == parameter.name?.lexeme,
             PrimaryConstructorBody() => false,
           },
         )) {
+      // Parameter is already a method.
       return;
     }
     if (container is EnumDeclaration &&
         container.body.constants.any(
           (constant) => constant.name.lexeme == parameter.name?.lexeme,
         )) {
+      // Parameter is already a constant.
       return;
     }
 

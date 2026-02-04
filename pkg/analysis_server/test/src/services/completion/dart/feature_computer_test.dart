@@ -526,6 +526,36 @@ void f() {
 ''', 'E');
   }
 
+  Future<void> test_dotShorthand_enum_ifCase() async {
+    await assertContextType('''
+enum E { e01, e02 }
+
+void foo(E e) {
+  if (e case .^) {}
+}
+''', 'E');
+  }
+
+  Future<void> test_dotShorthand_enum_ifCaseAnd() async {
+    await assertContextType('''
+enum E { e01, e02 }
+
+void foo(E e) {
+  if (e case .e01 && .^) {}
+}
+''', 'E');
+  }
+
+  Future<void> test_dotShorthand_enum_ifCaseOr() async {
+    await assertContextType('''
+enum E { e01, e02 }
+
+void foo(E e) {
+  if (e case .e01 || .^) {}
+}
+''', 'E');
+  }
+
   Future<void> test_dotShorthand_enumConstantCreation() async {
     await assertContextType('''
 enum E0 {
@@ -565,6 +595,17 @@ void f(E e) {
     case .^:
       break;
   }
+}
+''', 'E');
+  }
+
+  Future<void> test_dotShorthand_parenthesizedPattern() async {
+    await assertContextType('''
+enum E { a }
+int foo((E,) r) {
+  return switch (r) {
+    (.^) => 1,
+  };
 }
 ''', 'E');
   }

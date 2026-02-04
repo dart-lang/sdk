@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../messages/codes.dart' show Message, Template, codeExpectedIdentifier;
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
+import '../messages/codes.dart' show Message, Template;
 
 import '../scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
@@ -289,7 +291,8 @@ abstract class IdentifierContext {
   /// expressions are required.
   final bool allowedInConstantExpression;
 
-  final Template<_MessageWithArgument<Token>, Function> recoveryTemplate;
+  final Template<Function, Message Function({required Token lexeme})>
+  recoveryTemplate;
 
   const IdentifierContext(
     this._name, {
@@ -300,7 +303,7 @@ abstract class IdentifierContext {
     this.isScopeReference = false,
     this.isBuiltInIdentifierAllowed = true,
     bool? allowedInConstantExpression,
-    this.recoveryTemplate = codeExpectedIdentifier,
+    this.recoveryTemplate = diag.expectedIdentifier,
   }) : this.allowedInConstantExpression =
            // Generally, declarations are legal in constant expressions.  A
            // continuation doesn't affect constant expressions: if what it's
@@ -422,6 +425,3 @@ bool isOkNextValueInFormalParameter(Token token) =>
     token.isA(TokenType.CLOSE_PAREN) ||
     token.isA(TokenType.CLOSE_SQUARE_BRACKET) ||
     token.isA(TokenType.CLOSE_CURLY_BRACKET);
-
-// TODO(ahe): Remove when analyzer supports generalized function syntax.
-typedef _MessageWithArgument<T> = Message Function(T);

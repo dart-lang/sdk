@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -40,7 +41,6 @@ List<Diagnostic> analyzeAnalysisOptions(
     sourceFactory,
   );
   String? firstPluginName;
-  Map<Source, SourceSpan> includeChain = {};
 
   // TODO(srawlins): This code is getting quite complex, with multiple local
   // functions, and should be refactored to a class maintaining state, with less
@@ -78,7 +78,13 @@ List<Diagnostic> analyzeAnalysisOptions(
   }
 
   // Validates the specified options and any included option files.
-  void validate(Source source, YamlMap options, {required String contextRoot}) {
+  void validate(
+    Source source,
+    YamlMap options, {
+    required String contextRoot,
+    Map<Source, SourceSpan>? includeChain,
+  }) {
+    includeChain ??= {};
     var isSourcePrimary = initialIncludeSpan == null;
     var validationErrors = OptionsFileValidator(
       source,
@@ -107,7 +113,10 @@ List<Diagnostic> analyzeAnalysisOptions(
       return;
     }
 
-    void validateInclude(YamlNode includeNode) {
+    void validateInclude(
+      YamlNode includeNode,
+      Map<Source, SourceSpan> includeChain,
+    ) {
       var includeSpan = includeNode.span;
       initialIncludeSpan ??= includeSpan;
       var includeUri = includeSpan.text;
@@ -168,9 +177,14 @@ List<Diagnostic> analyzeAnalysisOptions(
 
       try {
         var includedOptions = optionsProvider.getOptionsFromString(
-          includedSource.contents.data,
+          includedSource.stringContents,
         );
-        validate(includedSource, includedOptions, contextRoot: contextRoot);
+        validate(
+          includedSource,
+          includedOptions,
+          contextRoot: contextRoot,
+          includeChain: includeChain,
+        );
         firstPluginName ??= _firstPluginName(includedOptions);
         // Validate the 'plugins' option in [options], taking into account any
         // plugins enabled by [includedOptions].
@@ -215,7 +229,7 @@ List<Diagnostic> analyzeAnalysisOptions(
         initialIncludeSpan = null;
         includeChain.clear();
       }
-      validateInclude(includeValue);
+      validateInclude(includeValue, {...includeChain});
     }
   }
 
@@ -531,53 +545,51 @@ class _EnableExperimentsValidator extends OptionsValidator {
 
 /// Builds error reports with value proposals.
 class _ErrorBuilder {
-  static DiagnosticCode get noProposalCode =>
-      diag.unsupportedOptionWithoutValues;
-
-  static DiagnosticCode get pluralProposalCode =>
-      diag.unsupportedOptionWithLegalValues;
-
-  static DiagnosticCode get singularProposalCode =>
-      diag.unsupportedOptionWithLegalValue;
-
-  final String proposal;
-
-  final DiagnosticCode code;
+  /// Report an unsupported `node` value, defined in the given `scopeName`.
+  void Function(DiagnosticReporter reporter, String scopeName, YamlNode node)
+  reportError;
 
   /// Create a builder for the given [supportedOptions].
   factory _ErrorBuilder(Set<String> supportedOptions) {
-    var proposal = supportedOptions.quotedAndCommaSeparatedWithAnd;
     if (supportedOptions.isEmpty) {
-      return _ErrorBuilder._(proposal: proposal, code: noProposalCode);
+      return _ErrorBuilder._(
+        reportError: (reporter, scopeName, node) => reporter.report(
+          diag.unsupportedOptionWithoutValues
+              .withArguments(
+                sectionName: scopeName,
+                optionKey: node.valueOrThrow.toString(),
+              )
+              .atSourceSpan(node.span),
+        ),
+      );
     } else if (supportedOptions.length == 1) {
-      return _ErrorBuilder._(proposal: proposal, code: singularProposalCode);
-    } else {
-      return _ErrorBuilder._(proposal: proposal, code: pluralProposalCode);
-    }
-  }
-
-  _ErrorBuilder._({required this.proposal, required this.code});
-
-  /// Report an unsupported [node] value, defined in the given [scopeName].
-  void reportError(
-    DiagnosticReporter reporter,
-    String scopeName,
-    YamlNode node,
-  ) {
-    if (proposal.isNotEmpty) {
-      reporter.atSourceSpan(
-        node.span,
-        code,
-        arguments: [scopeName, node.valueOrThrow, proposal],
+      return _ErrorBuilder._(
+        reportError: (reporter, scopeName, node) => reporter.report(
+          diag.unsupportedOptionWithLegalValue
+              .withArguments(
+                sectionName: scopeName,
+                optionKey: node.valueOrThrow.toString(),
+                legalValue: supportedOptions.single,
+              )
+              .atSourceSpan(node.span),
+        ),
       );
     } else {
-      reporter.atSourceSpan(
-        node.span,
-        code,
-        arguments: [scopeName, node.valueOrThrow],
+      return _ErrorBuilder._(
+        reportError: (reporter, scopeName, node) => reporter.report(
+          diag.unsupportedOptionWithLegalValues
+              .withArguments(
+                sectionName: scopeName,
+                optionKey: node.valueOrThrow.toString(),
+                legalValues: supportedOptions.quotedAndCommaSeparatedWithAnd,
+              )
+              .atSourceSpan(node.span),
+        ),
       );
     }
   }
+
+  _ErrorBuilder._({required this.reportError});
 }
 
 /// Validates `analyzer` error filter options.
@@ -1133,14 +1145,10 @@ class _TopLevelOptionValidator extends OptionsValidator {
   final String sectionName;
   final Set<String> supportedOptions;
   final String _valueProposal;
-  final DiagnosticCode _warningCode;
 
   _TopLevelOptionValidator(this.sectionName, this.supportedOptions)
     : assert(supportedOptions.isNotEmpty),
-      _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
-      _warningCode = supportedOptions.length == 1
-          ? diag.unsupportedOptionWithLegalValue
-          : diag.unsupportedOptionWithLegalValues;
+      _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd;
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
@@ -1159,11 +1167,19 @@ class _TopLevelOptionValidator extends OptionsValidator {
     node.nodes.forEach((k, v) {
       if (k is YamlScalar) {
         if (!supportedOptions.contains(k.value)) {
-          reporter.atSourceSpan(
-            k.span,
-            _warningCode,
-            arguments: [sectionName, k.valueOrThrow, _valueProposal],
-          );
+          var optionKey = k.valueOrThrow.toString();
+          var locatableDiagnostic = supportedOptions.length == 1
+              ? diag.unsupportedOptionWithLegalValue.withArguments(
+                  sectionName: sectionName,
+                  optionKey: optionKey,
+                  legalValue: _valueProposal,
+                )
+              : diag.unsupportedOptionWithLegalValues.withArguments(
+                  sectionName: sectionName,
+                  optionKey: optionKey,
+                  legalValues: _valueProposal,
+                );
+          reporter.report(locatableDiagnostic.atSourceSpan(k.span));
         }
       }
       // TODO(pq): consider an error if the node is not a Scalar.

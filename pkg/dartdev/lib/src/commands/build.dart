@@ -29,17 +29,22 @@ class BuildCommand extends DartdevCommand {
   final bool recordUseEnabled;
   final bool dataAssetsExperimentEnabled;
 
-  BuildCommand(
-      {bool verbose = false,
-      required this.recordUseEnabled,
-      required this.dataAssetsExperimentEnabled})
-      : super(cmdName, 'Build a Dart application including code assets.',
-            verbose) {
-    addSubcommand(BuildCliSubcommand(
-      verbose: verbose,
-      recordUseEnabled: recordUseEnabled,
-      dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
-    ));
+  BuildCommand({
+    bool verbose = false,
+    required this.recordUseEnabled,
+    required this.dataAssetsExperimentEnabled,
+  }) : super(
+         cmdName,
+         'Build a Dart application including code assets.',
+         verbose,
+       ) {
+    addSubcommand(
+      BuildCliSubcommand(
+        verbose: verbose,
+        recordUseEnabled: recordUseEnabled,
+        dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
+      ),
+    );
   }
 
   @override
@@ -59,13 +64,13 @@ class BuildCliSubcommand extends CompileSubcommandCommand {
 
   final bool dataAssetsExperimentEnabled;
 
-  BuildCliSubcommand(
-      {bool verbose = false,
-      required this.recordUseEnabled,
-      required this.dataAssetsExperimentEnabled})
-      : super(
-            cmdName,
-            '''Build a Dart application with a command line interface (CLI).
+  BuildCliSubcommand({
+    bool verbose = false,
+    required this.recordUseEnabled,
+    required this.dataAssetsExperimentEnabled,
+  }) : super(
+         cmdName,
+         '''Build a Dart application with a command line interface (CLI).
 
 The resulting CLI app bundle is structured in the following manner:
 
@@ -75,18 +80,23 @@ bundle/
   lib/
     <dynamic libraries>
 ''',
-            verbose) {
-    final binDirectory =
-        Directory.fromUri(Directory.current.uri.resolve('bin/'));
+         verbose,
+       ) {
+    final binDirectory = Directory.fromUri(
+      Directory.current.uri.resolve('bin/'),
+    );
 
-    final outputDirectoryDefault = Directory.fromUri(Directory.current.uri
-        .resolve('build/cli/${OS.current}_${Architecture.current}/'));
+    final outputDirectoryDefault = Directory.fromUri(
+      Directory.current.uri.resolve(
+        'build/cli/${OS.current}_${Architecture.current}/',
+      ),
+    );
     entryPoints = binDirectory.existsSync()
         ? binDirectory
-            .listSync()
-            .whereType<File>()
-            .where((e) => e.path.endsWith('dart'))
-            .toList()
+              .listSync()
+              .whereType<File>()
+              .where((e) => e.path.endsWith('dart'))
+              .toList()
         : [];
     argParser
       ..addOption(
@@ -110,8 +120,10 @@ If the "--target" option is omitted, and there is a single Dart file in bin/,
 then that is used instead.''',
         valueHelp: 'path',
         defaultsTo: entryPoints.length == 1
-            ? path.relative(entryPoints.single.path,
-                from: Directory.current.path)
+            ? path.relative(
+                entryPoints.single.path,
+                from: Directory.current.path,
+              )
             : null,
       )
       ..addOption(
@@ -149,8 +161,9 @@ then that is used instead.''',
       );
       return 255;
     }
-    final sourceUri =
-        File.fromUri(Uri.file(target).normalizePath()).absolute.uri;
+    final sourceUri = File.fromUri(
+      Uri.file(target).normalizePath(),
+    ).absolute.uri;
     if (!checkFile(sourceUri.toFilePath())) {
       return genericErrorExitCode;
     }
@@ -167,14 +180,12 @@ then that is used instead.''',
     final verbosity = args.option('verbosity')!;
     final enabledExperiments = args.enabledExperiments;
 
-    stdout.writeln('''The `dart build cli` command is in preview at the moment.
-See documentation on https://dart.dev/interop/c-interop#native-assets.
-''');
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       sourceUri,
     );
-    final pubspecUri =
-        await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfigUri);
+    final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
+      packageConfigUri,
+    );
     final executableName = path.basenameWithoutExtension(sourceUri.path);
 
     return await doBuild(
@@ -233,16 +244,18 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
     final binDirectory = Directory.fromUri(bundleDirectory.uri.resolve('bin/'));
     await binDirectory.create(recursive: true);
 
-    final packageConfig =
-        await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
+    final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
+      packageConfigUri,
+    );
     if (packageConfig == null) {
       return compileErrorExitCode;
     }
     final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
       executables.first.sourceEntryPoint,
     );
-    pubspecUri ??=
-        await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfigUri);
+    pubspecUri ??= await DartNativeAssetsBuilder.findWorkspacePubspec(
+      packageConfigUri,
+    );
     final builder = DartNativeAssetsBuilder(
       pubspecUri: pubspecUri,
       packageConfigUri: packageConfigUri,
@@ -257,10 +270,7 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
     final hasHooks = await builder.hasHooks();
     if (hasHooks) {
       buildResult = await (showProgress
-          ? progress(
-              'Running build hooks',
-              builder.buildNativeAssetsAOT,
-            )
+          ? progress('Running build hooks', builder.buildNativeAssetsAOT)
           : builder.buildNativeAssetsAOT());
       if (buildResult == null) {
         stderr.writeln('Running build hooks failed.');
@@ -326,8 +336,8 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
         final allAssets = [
           if (hasHooks) ...[
             ...buildResult!.encodedAssets,
-            ...linkResult!.encodedAssets
-          ]
+            ...linkResult!.encodedAssets,
+          ],
         ];
 
         final staticAssets = allAssets
@@ -336,8 +346,9 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
             .where((e) => e.linkMode == StaticLinking());
         if (staticAssets.isNotEmpty) {
           stderr.write(
-              """'dart build' does not yet support CodeAssets with static linking.
-Use linkMode as dynamic library instead.""");
+            """'dart build' does not yet support CodeAssets with static linking.
+Use linkMode as dynamic library instead.""",
+          );
           return 255;
         }
 
@@ -351,8 +362,10 @@ Use linkMode as dynamic library instead.""");
             relocatable: true,
             verbose: true,
           );
-          nativeAssetsYamlUri =
-              await writeNativeAssetsYaml(kernelAssets, tempDir.uri);
+          nativeAssetsYamlUri = await writeNativeAssetsYaml(
+            kernelAssets,
+            tempDir.uri,
+          );
         }
 
         await snapshotGenerator.generate(

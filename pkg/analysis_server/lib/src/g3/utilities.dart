@@ -13,7 +13,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' as p;
 import 'package:analyzer/src/string_source.dart';
@@ -54,12 +53,12 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
 }) {
   var source = StringSource(contents, fullName);
   var diagnosticListener = RecordingDiagnosticListener();
-  var reader = CharSequenceReader(contents);
   var featureSet = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [],
   );
-  var scanner = Scanner(source, reader, diagnosticListener)
+  var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
+  var scanner = Scanner(contents, diagnosticReporter)
     ..configureFeatures(
       featureSetForOverriding: FeatureSet.latestLanguageVersion(),
       featureSet: featureSet,
@@ -72,8 +71,7 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
   );
 
   var parser = p.Parser(
-    source,
-    diagnosticListener,
+    diagnosticReporter,
     featureSet: scanner.featureSet,
     lineInfo: lineInfo,
     languageVersion: languageVersion,

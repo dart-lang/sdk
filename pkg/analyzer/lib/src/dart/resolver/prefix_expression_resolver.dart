@@ -163,10 +163,13 @@ class PrefixExpressionResolver {
         if (member == null) {
           // Extension overrides always refer to named extensions, so we can
           // safely assume `element.name` is non-`null`.
-          _diagnosticReporter.atToken(
-            node.operator,
-            diag.undefinedExtensionOperator,
-            arguments: [methodName, element.name!],
+          _diagnosticReporter.report(
+            diag.undefinedExtensionOperator
+                .withArguments(
+                  operator: methodName,
+                  extensionName: element.name!,
+                )
+                .at(node.operator),
           );
         }
         node.element = member;
@@ -196,16 +199,16 @@ class PrefixExpressionResolver {
       node.element = result.getter2 as MethodElement?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
-          _diagnosticReporter.atToken(
-            operator,
-            diag.undefinedSuperOperator,
-            arguments: [methodName, readType],
+          _diagnosticReporter.report(
+            diag.undefinedSuperOperator
+                .withArguments(operator: methodName, type: readType)
+                .at(operator),
           );
         } else {
-          _diagnosticReporter.atToken(
-            operator,
-            diag.undefinedOperator,
-            arguments: [methodName, readType],
+          _diagnosticReporter.report(
+            diag.undefinedOperator
+                .withArguments(operator: methodName, type: readType)
+                .at(operator),
           );
         }
       }
@@ -240,11 +243,14 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.element;
           if (element is PromotableElementImpl) {
-            _resolver.flowAnalysis.flow?.write(
+            _resolver.flowAnalysis.flow?.storeExpressionInfo(
               node,
-              element,
-              SharedTypeView(staticType),
-              null,
+              _resolver.flowAnalysis.flow?.write(
+                node,
+                element,
+                SharedTypeView(staticType),
+                null,
+              ),
             );
           }
         }
@@ -270,6 +276,11 @@ class PrefixExpressionResolver {
 
     node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
 
-    _resolver.flowAnalysis.flow?.logicalNot_end(node, operand);
+    if (_resolver.flowAnalysis.flow case var flow?) {
+      flow.storeExpressionInfo(
+        node,
+        flow.logicalNot_end(flow.getExpressionInfo(operand)),
+      );
+    }
   }
 }

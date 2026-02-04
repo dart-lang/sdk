@@ -12,30 +12,24 @@
   (type $Object (sub $#Top (struct
     (field $field0 i32)
     (field $field1 (mut i32)))))
-  (type $type0 (func 
-    (param $var0 i32)
-    (result (ref $MyConstClass))))
-  (type $type2 (func 
-    (result (ref $MyConstClass))))
-  (table $static0-0 (export "static0-0") 2 (ref null $type0))
-  (table $static1-0 (export "static1-0") 1 (ref null $type2))
-  (global $"C381 \"bad\"" (ref $JSStringImpl) <...>)
+  (table $cross-module-funcs-0 (export "cross-module-funcs-0") 3 funcref)
+  (global $"\"bad\"" (ref $JSStringImpl) <...>)
   (func $"mainImpl <noInline>" (param $var0 i32)
     (local $var1 (ref $MyConstClass))
     i64.const 0
     call $checkLibraryIsLoadedFromLoadId
     local.get $var0
     i32.const 0
-    call_indirect $static0-0 (param i32) (result (ref $MyConstClass))
+    call_indirect $cross-module-funcs-0 (param i32) (result (ref $MyConstClass))
     i64.const 1
     call $checkLibraryIsLoadedFromLoadId
     local.get $var0
     i32.const 1
-    call_indirect $static0-0 (param i32) (result (ref $MyConstClass))
+    call_indirect $cross-module-funcs-0 (param i32) (result (ref $MyConstClass))
     ref.eq
     i32.eqz
     if
-      global.get $"C381 \"bad\""
+      global.get $"\"bad\""
       call $Error._throwWithCurrentStackTrace
       unreachable
     end

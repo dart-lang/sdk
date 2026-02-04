@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/names.dart' show indexSetName;
 import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
@@ -761,7 +762,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     if (uri == null) {
       // Coverage-ignore-block(suite): Not run.
       _problemReporting.addProblem(
-        codeExpectedUri,
+        diag.expectedUri,
         uriOffset,
         noLength,
         _compilationUnit.fileUri,
@@ -776,7 +777,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       // or to the initial quote if no position is given.
       // (Assumes the directive is using a single-line string.)
       _problemReporting.addProblem(
-        codeCouldNotParseUri.withArgumentsOld(uri, e.message),
+        diag.couldNotParseUri.withArguments(uri: uri, details: e.message),
         uriOffset +
             1 +
             (e.offset ?? // Coverage-ignore(suite): Not run.
@@ -860,7 +861,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     if (_scriptTokenOffset != null) {
       // Coverage-ignore-block(suite): Not run.
       _problemReporting.addProblem(
-        codeScriptTagInPartFile,
+        diag.scriptTagInPartFile,
         _scriptTokenOffset!,
         noLength,
         _compilationUnit.fileUri,
@@ -897,7 +898,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
     if (_scriptTokenOffset != null) {
       _problemReporting.addProblem(
-        codeScriptTagInPartFile,
+        diag.scriptTagInPartFile,
         _scriptTokenOffset!,
         noLength,
         _compilationUnit.fileUri,
@@ -944,7 +945,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     const String nativeExtensionScheme = "dart-ext:";
     if (uri.startsWith(nativeExtensionScheme)) {
       _problemReporting.addProblem(
-        codeUnsupportedDartExt,
+        diag.unsupportedDartExt,
         charOffset,
         noLength,
         _compilationUnit.fileUri,
@@ -1577,6 +1578,29 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
+  void addPrimaryConstructorBody({
+    required OffsetMap offsetMap,
+    required Token beginToken,
+    required List<MetadataBuilder>? metadata,
+    required int endOffset,
+    required Token? beginInitializers,
+  }) {
+    DeclarationFragmentImpl enclosingDeclaration =
+        _declarationFragments.current;
+    PrimaryConstructorBodyFragment fragment =
+        new PrimaryConstructorBodyFragment(
+          fileUri: _compilationUnit.fileUri,
+          thisOffset: beginToken.charOffset,
+          metadata: metadata,
+          enclosingScope: _declarationFragments.current.bodyScope,
+          enclosingDeclaration: enclosingDeclaration,
+          enclosingCompilationUnit: _compilationUnit,
+        );
+    _addFragment(fragment);
+    offsetMap.registerPrimaryConstructorBody(beginToken, fragment);
+  }
+
+  @override
   void addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
     required Modifiers modifiers,
@@ -1715,7 +1739,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       }
     } else {
       internalProblem(
-        codeInternalProblemOmittedTypeNameInConstructorReference,
+        diag.internalProblemOmittedTypeNameInConstructorReference,
         charOffset,
         _compilationUnit.fileUri,
       );
@@ -1776,13 +1800,13 @@ class FragmentFactoryImpl implements FragmentFactory {
         // Old style constructor.
       } else {
         _problemReporting.addProblem(
-          codeConstructorWithWrongName,
+          diag.constructorWithWrongName,
           fullNameOffset,
           prefix.length,
           _compilationUnit.fileUri,
           context: [
-            codeConstructorWithWrongNameContext
-                .withArgumentsOld(enclosingDeclaration.name)
+            diag.constructorWithWrongNameContext
+                .withArguments(name: enclosingDeclaration.name)
                 .withLocation2(enclosingDeclaration.uriOffset),
           ],
         );
@@ -1821,13 +1845,13 @@ class FragmentFactoryImpl implements FragmentFactory {
         fullName = '$className.$name';
       } else {
         _problemReporting.addProblem(
-          codeConstructorWithWrongName,
+          diag.constructorWithWrongName,
           fullNameOffset,
           fullNameLength,
           _compilationUnit.fileUri,
           context: [
-            codeConstructorWithWrongNameContext
-                .withArgumentsOld(enclosingDeclaration.name)
+            diag.constructorWithWrongNameContext
+                .withArguments(name: enclosingDeclaration.name)
                 .withLocation2(enclosingDeclaration.uriOffset),
           ],
         );
@@ -2186,17 +2210,17 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
-  FormalParameterBuilder addFormalParameter(
-    List<MetadataBuilder>? metadata,
-    FormalParameterKind kind,
-    Modifiers modifiers,
-    TypeBuilder type,
-    String name,
-    String? publicName,
-    bool hasThis,
-    bool hasSuper,
-    int charOffset,
-    Token? initializerToken, {
+  FormalParameterBuilder addFormalParameter({
+    required List<MetadataBuilder>? metadata,
+    required FormalParameterKind kind,
+    required Modifiers modifiers,
+    required TypeBuilder type,
+    required String name,
+    required String? publicName,
+    required bool hasThis,
+    required bool hasSuper,
+    required int nameOffset,
+    required Token? initializerToken,
     bool lowerWildcard = false,
   }) {
     assert(
@@ -2217,16 +2241,23 @@ class FragmentFactoryImpl implements FragmentFactory {
       wildcardVariableIndex++;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-      kind,
-      modifiers,
-      type,
-      formalName,
-      charOffset,
+      kind: kind,
+      modifiers: modifiers,
+      type: type,
+      name: formalName,
+      nameOffset: nameOffset,
+      fileOffset: nameOffset,
       fileUri: _compilationUnit.fileUri,
       initializerToken: initializerToken,
       hasImmediatelyDeclaredInitializer: initializerToken != null,
       isWildcard: isWildcard,
       publicName: publicName,
+      isClosureContextLoweringEnabled: _compilationUnit
+          .loader
+          .target
+          .backendTarget
+          .flags
+          .isClosureContextLoweringEnabled,
     );
     return formal;
   }
@@ -2282,7 +2313,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         if (builder.metadata != null) {
           if (!libraryFeatures.genericMetadata.isEnabled) {
             _problemReporting.addProblem(
-              codeAnnotationOnFunctionTypeTypeParameter,
+              diag.annotationOnFunctionTypeTypeParameter,
               builder.fileOffset,
               builder.name.length,
               builder.fileUri,
@@ -2309,13 +2340,13 @@ class FragmentFactoryImpl implements FragmentFactory {
       if (existing != null) {
         // Coverage-ignore-block(suite): Not run.
         _problemReporting.addProblem(
-          codeTypeParameterDuplicatedName,
+          diag.typeParameterDuplicatedName,
           tv.fileOffset,
           tv.name.length,
           _compilationUnit.fileUri,
           context: [
-            codeTypeParameterDuplicatedNameCause
-                .withArgumentsOld(tv.name)
+            diag.typeParameterDuplicatedNameCause
+                .withArguments(typeVariableName: tv.name)
                 .withLocation(
                   _compilationUnit.fileUri,
                   existing.fileOffset,

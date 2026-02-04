@@ -54,6 +54,8 @@ class ModuleSnapshot : public AllStatic {
     kClassRefs,
     kFieldRefs,
     kFunctionRefs,
+    kClosureFunctionRefs,
+    kClosureRefs,
     kInts,
     kDoubles,
     kArrays,
@@ -65,6 +67,28 @@ class ModuleSnapshot : public AllStatic {
     kCodes,
     kObjectPools,
     kNumPredefinedClusters,
+  };
+
+  // Function kinds in the module snapshot.
+  // Should match FunctionKind enum
+  // declared in pkg/native_compiler/lib/snapshot/snapshot.dart.
+  enum FunctionKind {
+    kRegular,
+    kGetter,
+    kSetter,
+    kGenerativeConstructor,
+    kFactoryConstructor,
+    kImplicitGetter,
+    kImplicitSetter,
+    kFieldInitializer,
+  };
+
+  // Object pool entry kinds in the module snapshots.
+  // Should match ObjectPoolEntryKind enum
+  // declared in pkg/native_compiler/lib/snapshot/snapshot.dart.
+  enum ObjectPoolEntryKind {
+    kObjectRef,
+    kNewObjectTags,
   };
 };
 
@@ -118,14 +142,15 @@ class Deserializer : public ThreadStackResource {
                                intptr_t cid,
                                intptr_t size,
                                bool is_canonical = false) {
-    InitializeHeader(raw, cid, size, is_canonical,
-                     ShouldHaveImmutabilityBitSetCid(cid));
+    InitializeHeader(raw, cid, size, is_canonical, IsShallowlyImmutableCid(cid),
+                     IsDeeplyImmutableCid(cid));
   }
   static void InitializeHeader(ObjectPtr raw,
                                intptr_t cid,
                                intptr_t size,
                                bool is_canonical,
-                               bool is_immutable);
+                               bool is_shallow_immutable,
+                               bool is_deeply_immutable);
 
   // Reads raw data (for basic types).
   // sizeof(T) must be in {1,2,4,8}.
@@ -208,6 +233,8 @@ class Deserializer : public ThreadStackResource {
 
     ObjectPtr ReadRef() { return Ref(ReadRefId()); }
 
+    ObjectPtr null() const { return null_; }
+
    private:
     Deserializer* const d_;
     const ArrayPtr refs_;
@@ -240,7 +267,8 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
                                     intptr_t class_id,
                                     intptr_t size,
                                     bool is_canonical,
-                                    bool is_immutable) {
+                                    bool is_shallow_immutable,
+                                    bool is_deeply_immutable) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword tags = 0;
   tags = UntaggedObject::ClassIdTag::update(class_id, tags);
@@ -250,7 +278,9 @@ void Deserializer::InitializeHeader(ObjectPtr raw,
   tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
   tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
-  tags = UntaggedObject::ImmutableBit::update(is_immutable, tags);
+  tags =
+      UntaggedObject::ShallowImmutableBit::update(is_shallow_immutable, tags);
+  tags = UntaggedObject::DeeplyImmutableBit::update(is_deeply_immutable, tags);
   raw->untag()->tags_ = tags;
 }
 
@@ -426,24 +456,59 @@ class FunctionRefDeserializationCluster : public DeserializationCluster {
       : DeserializationCluster("FunctionRef"),
         zone_(zone),
         owner_(Object::Handle(zone)),
+        class_name_(String::Handle(zone)),
         function_name_(String::Handle(zone)),
-        function_(Function::Handle(zone)) {}
+        function_(Function::Handle(zone)),
+        field_(Field::Handle(zone)) {}
   ~FunctionRefDeserializationCluster() {}
 
   void PreLoad(Deserializer* d) override {
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
+      const auto kind =
+          static_cast<ModuleSnapshot::FunctionKind>(d->ReadUnsigned());
       owner_ = d->ReadRef();
-      function_name_ = static_cast<StringPtr>(d->ReadRef());
       if (owner_.IsLibrary()) {
         owner_ = Library::Cast(owner_).toplevel_class();
       }
-      // TODO(alexmarkov): support method extractors and closures.
-      function_ =
-          Resolver::ResolveFunction(zone_, Class::Cast(owner_), function_name_);
-      if (function_.IsNull()) {
-        FATAL("Unable to find function %s in %s", function_name_.ToCString(),
-              owner_.ToCString());
+      function_name_ = static_cast<StringPtr>(d->ReadRef());
+      switch (kind) {
+        case ModuleSnapshot::kRegular:
+          break;
+        case ModuleSnapshot::kGetter:
+        case ModuleSnapshot::kImplicitGetter:
+          function_name_ = Field::GetterName(function_name_);
+          break;
+        case ModuleSnapshot::kSetter:
+        case ModuleSnapshot::kImplicitSetter:
+          function_name_ = Field::SetterName(function_name_);
+          break;
+        case ModuleSnapshot::kFieldInitializer:
+          field_ = Class::Cast(owner_).LookupField(function_name_);
+          if (field_.IsNull()) {
+            FATAL("Unable to find field %s in %s", function_name_.ToCString(),
+                  owner_.ToCString());
+          }
+          function_ = field_.EnsureInitializerFunction();
+          ASSERT(!function_.IsNull());
+          break;
+        case ModuleSnapshot::kGenerativeConstructor:
+        case ModuleSnapshot::kFactoryConstructor: {
+          class_name_ = Class::Cast(owner_).Name();
+          GrowableHandlePtrArray<const String> pieces(zone_, 3);
+          pieces.Add(class_name_);
+          pieces.Add(Symbols::Dot());
+          pieces.Add(function_name_);
+          function_name_ = Symbols::FromConcatAll(d->thread(), pieces);
+        } break;
+      }
+      if (kind != ModuleSnapshot::kFieldInitializer) {
+        function_ = Resolver::ResolveFunction(zone_, Class::Cast(owner_),
+                                              function_name_);
+        if (function_.IsNull()) {
+          FATAL("Unable to find function %s in %s", function_name_.ToCString(),
+                owner_.ToCString());
+        }
       }
       d->AssignRefPreLoad(function_);
     }
@@ -452,8 +517,139 @@ class FunctionRefDeserializationCluster : public DeserializationCluster {
  private:
   Zone* zone_;
   Object& owner_;
+  String& class_name_;
   String& function_name_;
   Function& function_;
+  Field& field_;
+};
+
+class ClosureFunctionRefDeserializationCluster : public DeserializationCluster {
+ public:
+  explicit ClosureFunctionRefDeserializationCluster(Zone* zone)
+      : DeserializationCluster("ClosureFunctionRef"),
+        function_(Function::Handle(zone)) {}
+  ~ClosureFunctionRefDeserializationCluster() {}
+
+  void PreLoad(Deserializer* d) override {
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const bool is_tear_off = d->ReadUnsigned() != 0;
+      function_ = static_cast<FunctionPtr>(d->ReadRef());
+      if (is_tear_off) {
+        function_ = function_.ImplicitClosureFunction();
+      } else {
+        // TODO(alexmarkov): support local functions
+        UNIMPLEMENTED();
+      }
+      d->AssignRefPreLoad(function_);
+    }
+  }
+
+ private:
+  Function& function_;
+};
+
+class ClosureRefDeserializationCluster : public DeserializationCluster {
+ public:
+  explicit ClosureRefDeserializationCluster(Zone* zone)
+      : DeserializationCluster("ClosureRef"),
+        function_(Function::Handle(zone)),
+        closure_(Closure::Handle(zone)) {}
+  ~ClosureRefDeserializationCluster() {}
+
+  void PreLoad(Deserializer* d) override {
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      function_ = static_cast<FunctionPtr>(d->ReadRef());
+      closure_ = function_.ImplicitStaticClosure();
+      d->AssignRefPreLoad(closure_);
+    }
+  }
+
+ private:
+  Function& function_;
+  Closure& closure_;
+};
+
+class TypeArgumentsDeserializationCluster : public DeserializationCluster {
+ public:
+  TypeArgumentsDeserializationCluster()
+      : DeserializationCluster("TypeArguments") {}
+  ~TypeArgumentsDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(TypeArguments::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      TypeArgumentsPtr type_args = static_cast<TypeArgumentsPtr>(d.Ref(id));
+      const intptr_t length = d.ReadUnsigned();
+      Deserializer::InitializeHeader(type_args, kTypeArgumentsCid,
+                                     TypeArguments::InstanceSize(length));
+      type_args->untag()->length_ = Smi::New(length);
+      type_args->untag()->hash_ = Smi::New(0);
+      type_args->untag()->nullability_ = Smi::New(0);
+      type_args->untag()->instantiations_ =
+          Object::empty_instantiations_cache_array().ptr();
+      for (intptr_t j = 0; j < length; j++) {
+        type_args->untag()->types()[j] =
+            static_cast<AbstractTypePtr>(d.ReadRef());
+      }
+    }
+  }
+};
+
+class InterfaceTypeDeserializationCluster : public DeserializationCluster {
+ public:
+  InterfaceTypeDeserializationCluster()
+      : DeserializationCluster("InterfaceType") {}
+  ~InterfaceTypeDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, Type::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      TypePtr type = static_cast<TypePtr>(d.Ref(id));
+      Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize());
+      type->untag()->type_test_stub_entry_point_.store(
+          0, std::memory_order_relaxed);
+      ClassPtr type_class = static_cast<ClassPtr>(d.ReadRef());
+      const intptr_t is_nullable = d.ReadUnsigned();
+      const intptr_t flags = UntaggedType::TypeClassIdBits::update(
+          type_class->untag()->id(),
+          UntaggedAbstractType::NullabilityBit::update(
+              is_nullable, UntaggedAbstractType::TypeStateBits::encode(
+                               UntaggedAbstractType::kAllocated)));
+      type->untag()->set_flags(flags);
+      type->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
+      type->untag()->hash_ = Smi::New(0);
+      type->untag()->arguments_ = static_cast<TypeArgumentsPtr>(d.ReadRef());
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) override {
+    Type& type = Type::Handle(d->zone());
+    Code& stub = Code::Handle(d->zone());
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      type ^= refs.At(id);
+      stub = TypeTestingStubGenerator::DefaultCodeForType(type);
+      type.InitializeTypeTestingStubNonAtomic(stub);
+      type.SetIsFinalized();
+    }
+  }
 };
 
 class CodeDeserializationCluster : public DeserializationCluster {
@@ -526,7 +722,11 @@ class CodeDeserializationCluster : public DeserializationCluster {
         }
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
       } else {
-        UNREACHABLE();
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+        if (FLAG_disassemble_stubs) {
+          Disassembler::DisassembleStub("", code);
+        }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
       }
 
 #if !defined(PRODUCT)
@@ -556,10 +756,14 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d_) override {
     Deserializer::Local d(d_);
 
-    const uint8_t entry_bits =
+    const uint8_t tagged_entry_bits =
         ObjectPool::EncodeBits(ObjectPool::EntryType::kTaggedObject,
-                               ObjectPool::Patchability::kPatchable,
-                               ObjectPool::SnapshotBehavior::kSnapshotable);
+                               ObjectPool::Patchability::kNotPatchable,
+                               ObjectPool::SnapshotBehavior::kNotSnapshotable);
+    const uint8_t immediate_entry_bits =
+        ObjectPool::EncodeBits(ObjectPool::EntryType::kImmediate,
+                               ObjectPool::Patchability::kNotPatchable,
+                               ObjectPool::SnapshotBehavior::kNotSnapshotable);
 
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       const intptr_t length = d.ReadUnsigned();
@@ -568,9 +772,46 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
                                      ObjectPool::InstanceSize(length));
       pool->untag()->length_ = length;
       for (intptr_t j = 0; j < length; j++) {
-        pool->untag()->entry_bits()[j] = entry_bits;
-        UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
-        entry.raw_obj_ = d.ReadRef();
+        const auto kind =
+            static_cast<ModuleSnapshot::ObjectPoolEntryKind>(d.ReadUnsigned());
+        switch (kind) {
+          case ModuleSnapshot::kObjectRef: {
+            pool->untag()->entry_bits()[j] = tagged_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_obj_ = d.ReadRef();
+            break;
+          }
+          case ModuleSnapshot::kNewObjectTags: {
+            ClassPtr cls = static_cast<ClassPtr>(d.ReadRef());
+            pool->untag()->entry_bits()[j] = immediate_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_value_ = compiler::target::MakeTagWordForNewSpaceObject(
+                cls->untag()->id_,
+                Object::RoundedAllocationSize(Class::host_instance_size(cls) *
+                                              kCompressedWordSize));
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) override {
+    ObjectPool& pool = ObjectPool::Handle(d->zone());
+    Object& obj = Object::Handle(d->zone());
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      pool ^= refs.At(id);
+
+      for (intptr_t i = 0, length = pool.Length(); i < length; ++i) {
+        if (pool.TypeAt(i) != ObjectPool::EntryType::kTaggedObject) {
+          continue;
+        }
+        obj = pool.ObjectAt(i);
+        if (obj.IsAbstractType() || obj.IsTypeArguments()) {
+          obj = Instance::Cast(obj).Canonicalize(d->thread());
+          pool.SetObjectAt(i, obj);
+        }
       }
     }
   }
@@ -646,14 +887,20 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) FieldRefDeserializationCluster(Z);
     case ModuleSnapshot::kFunctionRefs:
       return new (Z) FunctionRefDeserializationCluster(Z);
+    case ModuleSnapshot::kClosureFunctionRefs:
+      return new (Z) ClosureFunctionRefDeserializationCluster(Z);
+    case ModuleSnapshot::kClosureRefs:
+      return new (Z) ClosureRefDeserializationCluster(Z);
+    case ModuleSnapshot::kTypeArguments:
+      return new (Z) TypeArgumentsDeserializationCluster();
+    case ModuleSnapshot::kInterfaceTypes:
+      return new (Z) InterfaceTypeDeserializationCluster();
     case ModuleSnapshot::kInts:
     case ModuleSnapshot::kDoubles:
     case ModuleSnapshot::kArrays:
-    case ModuleSnapshot::kInterfaceTypes:
     case ModuleSnapshot::kFunctionTypes:
     case ModuleSnapshot::kRecordTypes:
     case ModuleSnapshot::kTypeParameterTypes:
-    case ModuleSnapshot::kTypeArguments:
       UNIMPLEMENTED();
       return nullptr;
     case ModuleSnapshot::kCodes:
@@ -699,10 +946,15 @@ void Deserializer::Deserialize() {
 
   clusters_ = new DeserializationCluster*[num_clusters_];
   refs_array_ = Array::New(num_objects_ + kFirstReference, Heap::kOld);
+  ObjectStore* object_store = thread()->isolate_group()->object_store();
 
   AddBaseObject(Object::null_object());
   AddBaseObject(Bool::True());
   AddBaseObject(Bool::False());
+  AddBaseObject(Object::dynamic_type());
+  AddBaseObject(Object::void_type());
+  AddBaseObject(Type::Handle(zone(), object_store->null_type()));
+  AddBaseObject(Type::Handle(zone(), object_store->never_type()));
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
     FATAL("Snapshot expects %" Pd

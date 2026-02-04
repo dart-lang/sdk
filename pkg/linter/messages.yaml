@@ -4239,7 +4239,6 @@ LinterLintCode:
       isn't added in the `debugFillProperties` method:
 
       ```dart
-      import 'package:flutter/foundation.dart';
       import 'package:flutter/material.dart';
 
       class C extends Widget {
@@ -4264,7 +4263,6 @@ LinterLintCode:
       `debugDescribeChildren` method:
 
       ```dart
-      import 'package:flutter/foundation.dart';
       import 'package:flutter/material.dart';
 
       class C extends Widget {
@@ -7112,6 +7110,8 @@ LinterLintCode:
         int x;
 
         MyState(this.x);
+
+        Widget build(BuildContext context) => MyWidget();
       }
       ```
 
@@ -7131,6 +7131,8 @@ LinterLintCode:
         int x = 0;
 
         MyState();
+
+        Widget build(BuildContext context) => MyWidget();
       }
       ```
     deprecatedDetails: |-
@@ -13426,9 +13428,9 @@ LinterLintCode:
   unnecessaryIgnore:
     type: lint
     parameters:
-      Object p0: undocumented
+      String name: The diagnostic name.
     sharedName: unnecessaryIgnore
-    problemMessage: "The diagnostic '#p0' isn't produced at this location so it doesn't need to be ignored."
+    problemMessage: "The diagnostic '#name' isn't produced at this location so it doesn't need to be ignored."
     correctionMessage: "Try removing the ignore comment."
     state:
       experimental: "3.8"
@@ -13462,25 +13464,25 @@ LinterLintCode:
   unnecessaryIgnoreFile:
     type: lint
     parameters:
-      Object p0: undocumented
+      String name: The diagnostic name.
     sharedName: unnecessaryIgnore
-    problemMessage: "The diagnostic '#p0' isn't produced in this file so it doesn't need to be ignored."
+    problemMessage: "The diagnostic '#name' isn't produced in this file so it doesn't need to be ignored."
     correctionMessage: "Try removing the ignore comment."
     hasPublishedDocs: false
   unnecessaryIgnoreName:
     type: lint
     parameters:
-      Object p0: undocumented
+      String name: The diagnostic name.
     sharedName: unnecessaryIgnore
-    problemMessage: "The diagnostic '#p0' isn't produced at this location so it doesn't need to be ignored."
+    problemMessage: "The diagnostic '#name' isn't produced at this location so it doesn't need to be ignored."
     correctionMessage: "Try removing the name from the list."
     hasPublishedDocs: false
   unnecessaryIgnoreNameFile:
     type: lint
     parameters:
-      Object p0: undocumented
+      String name: The diagnostic name.
     sharedName: unnecessaryIgnore
-    problemMessage: "The diagnostic '#p0' isn't produced in this file so it doesn't need to be ignored."
+    problemMessage: "The diagnostic '#name' isn't produced in this file so it doesn't need to be ignored."
     correctionMessage: "Try removing the name from the list."
     hasPublishedDocs: false
   unnecessaryLambdas:

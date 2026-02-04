@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -47,19 +48,17 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
       if (identifier == null) {
         return;
       }
+      var field = node.writeElement;
+      if (field == null) {
+        return;
+      }
 
       var preserveType = parameter.type?.type != node.writeType;
 
       await builder.addDartFileEdit(file, (builder) {
-        if (preserveType) {
-          builder.addSimpleInsertion(identifier.offset, 'this.');
-        } else {
-          builder.addSimpleReplacement(
-            range.node(parameter),
-            'this.${identifier.lexeme}',
-          );
-        }
+        _makeInitializingFormal(builder, parameter, field.name, preserveType);
 
+        // Remove the assignment.
         var statements = block.statements;
         var functionBody = block.parent;
         if (statements.length == 1 && functionBody is BlockFunctionBody) {
@@ -89,16 +88,14 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
       var preserveType = parameter.type?.type != fieldElement.type;
 
       await builder.addDartFileEdit(file, (builder) {
-        if (preserveType) {
-          builder.addSimpleInsertion(identifier.offset, 'this.');
-        } else {
-          var prefix = parameter.requiredKeyword != null ? 'required ' : '';
-          builder.addSimpleReplacement(
-            range.node(parameter),
-            '${prefix}this.${identifier.lexeme}',
-          );
-        }
+        _makeInitializingFormal(
+          builder,
+          parameter,
+          fieldElement.name,
+          preserveType,
+        );
 
+        // Remove the initializer.
         var initializers = constructor.initializers;
         if (initializers.length == 1) {
           builder.addDeletion(range.endEnd(constructor.parameters, node));
@@ -106,6 +103,35 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
           builder.addDeletion(range.nodeInList(initializers, node));
         }
       });
+    }
+  }
+
+  /// Convert [parameter] to an initializing formal for the field with name
+  /// [fieldName].
+  ///
+  /// If [preserveType] is `true`, keep any type annotation on the parameter.
+  /// Otherwise, remove it.
+  void _makeInitializingFormal(
+    DartFileEditBuilder builder,
+    SimpleFormalParameter parameter,
+    String? fieldName,
+    bool preserveType,
+  ) {
+    if (preserveType) {
+      var parameterName = parameter.name!;
+      builder.addSimpleInsertion(parameterName.offset, 'this.');
+
+      // If we're initializing a private field from a public parameter (which
+      // will always be named), then convert it to a private named parameter.
+      if (fieldName == '_${parameterName.lexeme}') {
+        builder.addSimpleInsertion(parameterName.offset, '_');
+      }
+    } else {
+      var prefix = parameter.requiredKeyword != null ? 'required ' : '';
+      builder.addSimpleReplacement(
+        range.node(parameter),
+        '${prefix}this.$fieldName',
+      );
     }
   }
 

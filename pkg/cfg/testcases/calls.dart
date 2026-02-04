@@ -52,6 +52,7 @@ void instanceCalls(A obj, A? obj2, int a, String b, double c) {
       obj.foo3 = c + v;
     }
   }
+  print(obj.foo1);
 }
 
 int sField = 42;
@@ -67,6 +68,18 @@ void dynamicCalls(dynamic x, dynamic y, dynamic z) {
   x.foo1(y, z);
   final v = y.bar;
   z.baz = v + 1;
+}
+
+void closureCalls(Function func1, int Function<T>(T, String) func2) {
+  func1(1, 'a');
+  func2<int>(2, 'b');
+
+  void func3(int x) => print(x);
+  func3(42);
+
+  () {
+    print('hey');
+  }();
 }
 
 void objectAllocation(int a) {

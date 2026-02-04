@@ -37,10 +37,6 @@ class A {
     );
   }
 
-  @FailingTest(
-    reason:
-        'https://github.com/dart-lang/linter/pull/4677#discussion_r1291784807',
-  )
   test_constructorDeclaration_new_alreadyDefined() async {
     await assertDiagnostics(
       r'''
@@ -51,16 +47,14 @@ class A {
 ''',
       [
         error(diag.duplicateConstructorDefault, 19, 5),
-        // A lint should likely not get reported here since we're already
-        // producing a compilation error.
+        // No lint, since we're already producing a compilation error.
       ],
     );
   }
 
   test_constructorTearoff_new() async {
     await assertNoDiagnostics(r'''
-class A {
-}
+class A {}
 var makeA = A.new;
 ''');
   }
@@ -123,5 +117,14 @@ var a = A.new();
 class A {}
 var aa = A();
 ''');
+  }
+
+  test_primaryConstructorDeclaration_new() async {
+    await assertDiagnostics(
+      r'''
+class A.new();
+''',
+      [lint(8, 3)],
+    );
   }
 }

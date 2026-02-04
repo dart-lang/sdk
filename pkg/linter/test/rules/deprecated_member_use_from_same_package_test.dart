@@ -470,6 +470,42 @@ void f(E e) { }
     );
   }
 
+  test_deprecatedField_inObjectPattern_explicitName() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  @Deprecated('')
+  final int foo = 0;
+}
+
+int f(Object x) =>
+  switch (x) {
+    A(foo: var bar) => bar,
+    _ => 0,
+  };
+''',
+      [lint(92, 3)],
+    );
+  }
+
+  test_deprecatedField_inObjectPattern_inferredName() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  @Deprecated('')
+  final int foo = 0;
+}
+
+int f(Object x) =>
+  switch (x) {
+    A(:var foo) => foo,
+    _ => 0,
+  };
+''',
+      [lint(97, 3)],
+    );
+  }
+
   test_deprecatedField_usedAsGetter() async {
     await assertDiagnostics(
       r'''
@@ -831,6 +867,15 @@ class C {
 ''',
       [lint(54, 1)],
     );
+  }
+
+  test_deprecatedParameterOfPrimaryConstructor_usedInDeclaringConstructorBody() async {
+    await assertNoDiagnostics(r'''
+class C({@deprecated int? p}) {
+  this : q = p;
+  int? q;
+}
+''');
   }
 
   test_deprecatedPositionalParameterOfFunction() async {

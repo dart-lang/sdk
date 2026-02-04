@@ -635,6 +635,80 @@ class Bar {
       ],
     );
   }
+
+  Future<void> test_primaryConstructor() async {
+    var code = TestCode.parse('''
+class Fo^o();
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  final foo = Foo();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+              otherCode,
+              RegExp(r'class Bar \{.*\}', dotAll: true),
+            ),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [rangeOfString(otherCode, 'Foo')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_primaryConstructor_named() async {
+    var code = TestCode.parse('''
+class Foo.nam^ed();
+''');
+
+    var otherCode = TestCode.parse('''
+import 'main.dart';
+
+class Bar {
+  final foo = Foo.named();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'other.dart',
+            kind: SymbolKind.Class,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+              otherCode,
+              RegExp(r'class Bar \{.*\}', dotAll: true),
+            ),
+            selectionRange: rangeOfString(otherCode, 'Bar'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [rangeOfString(otherCode, 'named')],
+        ),
+      ],
+    );
+  }
 }
 
 @reflectiveTest
@@ -680,6 +754,48 @@ import 'other.dart';
 
 class Foo {
   Fo^o() {
+    final b = Bar();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Bar {
+  Bar();
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'Bar',
+            kind: SymbolKind.Constructor,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'Bar();'),
+            selectionRange: rangeStartingAtString(
+              otherCode.code,
+              'Bar();',
+              'Bar',
+            ),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [rangeOfString(code, 'Bar')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_constructor_named_constructorName() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+class Foo {
+  Foo.na^med() {
     final b = Bar();
   }
 }
@@ -1227,6 +1343,126 @@ class Bar {
       ],
     );
   }
+
+  Future<void> test_primaryConstructor_body() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+class Foo() {
+  th^is {
+    final b = Bar();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Bar();
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'Bar',
+            kind: SymbolKind.Constructor,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'Bar()'),
+            selectionRange: rangeStartingAtString(
+              otherCode.code,
+              'Bar();',
+              'Bar',
+            ),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [rangeOfString(code, 'Bar')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+class Fo^o() {
+  this {
+    final b = Bar();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Bar();
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'Bar',
+            detail: 'Bar',
+            kind: SymbolKind.Constructor,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'Bar()'),
+            selectionRange: rangeStartingAtString(
+              otherCode.code,
+              'Bar();',
+              'Bar',
+            ),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [rangeOfString(code, 'Bar')],
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_primaryConstructor_named() async {
+    var code = TestCode.parse('''
+import 'other.dart';
+
+class Foo.na^med() {
+  this {
+    final b = Bar.named();
+  }
+}
+''');
+
+    var otherCode = TestCode.parse('''
+class Bar.named();
+''');
+
+    await expectResults(
+      mainCode: code,
+      otherCode: otherCode,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'Bar.named',
+            detail: 'Bar',
+            kind: SymbolKind.Constructor,
+            uri: otherFileUri,
+            range: rangeOfString(otherCode, 'Bar.named()'),
+            selectionRange: rangeStartingAtString(
+              otherCode.code,
+              'named();',
+              'named',
+            ),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [rangeStartingAtString(code.code, 'named();', 'named')],
+        ),
+      ],
+    );
+  }
 }
 
 @reflectiveTest
@@ -1308,6 +1544,58 @@ class Foo {
         uri: mainFileUri,
         range: rangeOfString(code, 'Foo(String a) {}'),
         selectionRange: code.range.range,
+      ),
+    );
+  }
+
+  Future<void> test_constructor_named_className() async {
+    var content = '''
+class Foo {
+  Fo^o.named(String a) {}
+}
+''';
+
+    await expectNullResults(content);
+  }
+
+  Future<void> test_constructor_named_declaration_constructorName() async {
+    var code = TestCode.parse('''
+class Foo {
+  Foo.[!nam^ed!](String a) {}
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      expectedResult: CallHierarchyItem(
+        name: 'Foo.named',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Constructor,
+        uri: mainFileUri,
+        range: rangeOfString(code, 'Foo.named(String a) {}'),
+        selectionRange: code.range.range,
+      ),
+    );
+  }
+
+  Future<void> test_constructor_named_invocation_constructorName() async {
+    var code = TestCode.parse('''
+class Foo {
+  /*[0*/Foo./*[1*/named/*1]*/() {
+    var f = Foo.nam^ed();
+  }/*0]*/
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      expectedResult: CallHierarchyItem(
+        name: 'Foo.named',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Constructor,
+        uri: mainFileUri,
+        range: code.ranges[0].range,
+        selectionRange: code.ranges[1].range,
       ),
     );
   }
@@ -1823,6 +2111,77 @@ class Foo {
         uri: otherFileUri,
         range: rangeOfString(otherCode, 'Foo.Bar();'),
         selectionRange: rangeOfString(otherCode, 'Bar'),
+      ),
+    );
+  }
+
+  Future<void> test_primaryConstructor_body() async {
+    var code = TestCode.parse('''
+class [!Foo!](String a) {
+  th^is {}
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      expectedResult: CallHierarchyItem(
+        name: 'Foo',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Constructor,
+        uri: mainFileUri,
+        range: rangeOfString(code, 'Foo(String a)'),
+        selectionRange: code.range.range,
+      ),
+    );
+  }
+
+  Future<void> test_primaryConstructor_declaration() async {
+    var code = TestCode.parse('''
+class [!Fo^o!](String a) {
+  this {}
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      expectedResult: CallHierarchyItem(
+        name: 'Foo',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Constructor,
+        uri: mainFileUri,
+        range: rangeOfString(code, 'Foo(String a)'),
+        selectionRange: code.range.range,
+      ),
+    );
+  }
+
+  Future<void> test_primaryConstructor_named_declaration_className() async {
+    var content = '''
+class Fo^o.named(String a) {
+  this {}
+}
+''';
+
+    await expectNullResults(content);
+  }
+
+  Future<void>
+  test_primaryConstructor_named_declaration_constructorName() async {
+    var code = TestCode.parse('''
+class Foo.[!nam^ed!](String a) {
+  this {}
+}
+''');
+
+    await expectResults(
+      mainCode: code,
+      expectedResult: CallHierarchyItem(
+        name: 'Foo.named',
+        detail: 'Foo', // Containing class name
+        kind: SymbolKind.Constructor,
+        uri: mainFileUri,
+        range: rangeOfString(code, 'Foo.named(String a)'),
+        selectionRange: code.range.range,
       ),
     );
   }

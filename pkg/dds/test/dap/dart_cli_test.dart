@@ -150,6 +150,39 @@ main() {
       }
     });
 
+    group('uses `dart run`', () {
+      test('by default', () async {
+        final responseCompleter = Completer<void>();
+        final request = MockRequest();
+        final args = DartLaunchRequestArguments(
+          program: 'foo.dart',
+          noDebug: true,
+        );
+
+        await adapter.configurationDoneRequest(request, null, () {});
+        await adapter.launchRequest(request, args, responseCompleter.complete);
+        await responseCompleter.future;
+
+        expect(adapter.processArgs, contains('run'));
+      });
+
+      test('if explicitly specified in toolArgs', () async {
+        final responseCompleter = Completer<void>();
+        final request = MockRequest();
+        final args = DartLaunchRequestArguments(
+          program: 'foo.dart',
+          toolArgs: ['run'],
+          noDebug: true,
+        );
+
+        await adapter.configurationDoneRequest(request, null, () {});
+        await adapter.launchRequest(request, args, responseCompleter.complete);
+        await responseCompleter.future;
+
+        expect(adapter.processArgs.where((arg) => arg == 'run'), hasLength(1));
+      });
+    });
+
     group('includes customTool', () {
       test('with no args replaced', () async {
         final responseCompleter = Completer<void>();

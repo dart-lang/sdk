@@ -17,19 +17,29 @@ void main() {
       });
 
       test('matching input', () {
-        _expect('foo __bar__ baz', {'bar': '__baz__', 'baz': 'foo'},
-            'foo __baz__ baz');
+        _expect('foo __bar__ baz', {
+          'bar': '__baz__',
+          'baz': 'foo',
+        }, 'foo __baz__ baz');
       });
 
       test('vars must be alpha + numeric', () {
-        expect(() => substituteVars('str', {'with space': 'noop'}),
-            throwsArgumentError);
-        expect(() => substituteVars('str', {'with!symbols': 'noop'}),
-            throwsArgumentError);
-        expect(() => substituteVars('str', {'with1numbers': 'noop'}),
-            throwsArgumentError);
-        expect(() => substituteVars('str', {'with_under': 'noop'}),
-            throwsArgumentError);
+        expect(
+          () => substituteVars('str', {'with space': 'noop'}),
+          throwsArgumentError,
+        );
+        expect(
+          () => substituteVars('str', {'with!symbols': 'noop'}),
+          throwsArgumentError,
+        );
+        expect(
+          () => substituteVars('str', {'with1numbers': 'noop'}),
+          throwsArgumentError,
+        );
+        expect(
+          () => substituteVars('str', {'with_under': 'noop'}),
+          throwsArgumentError,
+        );
       });
     });
   });

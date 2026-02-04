@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -14,6 +15,7 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Information to pass from declarations to augmentations.
 class DuplicationDefinitionContext {
@@ -38,20 +40,58 @@ class MemberDuplicateDefinitionVerifier {
   );
 
   void _checkClass(ClassDeclarationImpl node) {
-    _checkClassMembers(node.declaredFragment!, node.body.members);
+    _checkClassMembers(
+      node.declaredFragment!,
+      node.body.members,
+      primaryConstructor: node.namePart.tryCast(),
+    );
   }
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(
     InstanceFragmentImpl fragment,
-    List<ClassMemberImpl> members,
-  ) {
+    List<ClassMemberImpl> members, {
+    PrimaryConstructorDeclaration? primaryConstructor,
+  }) {
     var firstFragment = fragment.element.firstFragment;
 
     var elementContext = _getElementContext(firstFragment);
     var constructorNames = elementContext.constructorNames;
     var instanceScope = elementContext.instanceScope;
     var staticScope = elementContext.staticScope;
+
+    if (primaryConstructor != null) {
+      var element = primaryConstructor.declaredFragment!.element;
+      if (element.name case var primaryConstructorName?) {
+        elementContext.constructorNames.add(primaryConstructorName);
+      }
+
+      var formals = primaryConstructor.formalParameters.parameters;
+      for (var formalNode in formals) {
+        var formalFragment = formalNode.declaredFragment;
+        if (formalFragment is FieldFormalParameterFragmentImpl &&
+            formalFragment.isDeclaring) {
+          var fieldName = formalNode.name;
+          var fieldElement = formalFragment.element.field;
+          if (fieldName != null && fieldElement != null) {
+            _checkDuplicateIdentifier(
+              instanceScope,
+              fieldName,
+              fragment: fieldElement.getter!.firstFragment,
+              originFragment: formalFragment,
+            );
+            if (fieldElement.setter case var setter?) {
+              _checkDuplicateIdentifier(
+                instanceScope,
+                fieldName,
+                fragment: setter.firstFragment,
+                originFragment: formalFragment,
+              );
+            }
+          }
+        }
+      }
+    }
 
     for (var member in members) {
       switch (member) {
@@ -71,15 +111,16 @@ class MemberDuplicateDefinitionVerifier {
           var name = member.name?.lexeme ?? 'new';
           if (!constructorNames.add(name)) {
             if (name == 'new') {
-              _diagnosticReporter.atConstructorDeclaration(
-                member,
-                diag.duplicateConstructorDefault,
+              _diagnosticReporter.report(
+                diag.duplicateConstructorDefault.atSourceRange(
+                  member.errorRange,
+                ),
               );
             } else {
-              _diagnosticReporter.atConstructorDeclaration(
-                member,
-                diag.duplicateConstructorName,
-                arguments: [name],
+              _diagnosticReporter.report(
+                diag.duplicateConstructorName
+                    .withArguments(name: name)
+                    .atSourceRange(member.errorRange),
               );
             }
           }
@@ -320,7 +361,11 @@ class MemberDuplicateDefinitionVerifier {
       _checkValuesDeclarationInEnum(constant.name);
     }
 
-    _checkClassMembers(fragment, node.body.members);
+    _checkClassMembers(
+      fragment,
+      node.body.members,
+      primaryConstructor: node.namePart.tryCast(),
+    );
 
     for (var accessor in fragment.accessors) {
       if (accessor.isStatic) {
@@ -446,10 +491,10 @@ class MemberDuplicateDefinitionVerifier {
             var identifier = field.name;
             var name = identifier.lexeme;
             if (instanceScope.containsKey(name)) {
-              _diagnosticReporter.atToken(
-                identifier,
-                diag.extensionConflictingStaticAndInstance,
-                arguments: [name],
+              _diagnosticReporter.report(
+                diag.extensionConflictingStaticAndInstance
+                    .withArguments(name: name)
+                    .at(identifier),
               );
             }
           }
@@ -459,10 +504,10 @@ class MemberDuplicateDefinitionVerifier {
           var identifier = member.name;
           var name = identifier.lexeme;
           if (instanceScope.containsKey(name)) {
-            _diagnosticReporter.atToken(
-              identifier,
-              diag.extensionConflictingStaticAndInstance,
-              arguments: [name],
+            _diagnosticReporter.report(
+              diag.extensionConflictingStaticAndInstance
+                  .withArguments(name: name)
+                  .at(identifier),
             );
           }
         }
@@ -471,20 +516,11 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-    var firstFragment = element.firstFragment;
-    var primaryConstructorName = element.primaryConstructor.name!;
-    var representationGetter = element.representation.getter!;
-    var elementContext = _getElementContext(firstFragment);
-    elementContext.constructorNames.add(primaryConstructorName);
-    if (representationGetter.name case var getterName?) {
-      elementContext.instanceScope[getterName] = _ScopeEntryElement(
-        representationGetter,
-      );
-    }
-
-    _checkClassMembers(firstFragment, node.body.members);
+    _checkClassMembers(
+      node.declaredFragment!,
+      node.body.members,
+      primaryConstructor: node.primaryConstructor,
+    );
   }
 
   void _checkMixin(MixinDeclarationImpl node) {

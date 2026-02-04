@@ -1024,7 +1024,7 @@ ExtensionTypeDeclaration
       r'''
 extension type A(covariant int it) {}
 ''',
-      [error(diag.extraneousModifierInPrimaryConstructor, 17, 9)],
+      [error(diag.invalidCovariantModifierInPrimaryConstructor, 17, 9)],
     );
 
     var node = findNode.singleExtensionTypeDeclaration;
@@ -3021,6 +3021,123 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_primaryConstructor_scopes() async {
+    await assertNoErrorsInCode(r'''
+const foo = 0;
+extension type E<@foo T>([@foo int it = foo]) {
+  static const foo = 1;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: E
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@getter::foo
+              staticType: null
+            element: <testLibrary>::@getter::foo
+        name: T
+        declaredFragment: <testLibraryFragment> T@37
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: [
+    parameter: DefaultFormalParameter
+      parameter: SimpleFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@extensionType::E::@getter::foo
+              staticType: null
+            element: <testLibrary>::@extensionType::E::@getter::foo
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@50
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@extensionType::E::@field::it
+      separator: =
+      defaultValue: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@extensionType::E::@getter::foo
+        staticType: int
+      declaredFragment: <testLibraryFragment> it@50
+        element: isFinal isPublic
+          type: int
+          field: <testLibrary>::@extensionType::E::@field::it
+    rightDelimiter: ]
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::E::@constructor::new
+      type: E<T> Function([int])
+''');
+  }
+
+  test_primaryConstructor_typeParameters() async {
+    await assertNoErrorsInCode(r'''
+extension type E<T extends U, U extends num>(T it) {}
+''');
+
+    var node = findNode.singlePrimaryConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorDeclaration
+  typeName: E
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: U
+          element: #E0 U
+          type: U
+        declaredFragment: <testLibraryFragment> T@17
+          defaultType: num
+      TypeParameter
+        name: U
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> U@30
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: T
+        element: #E1 T
+        type: T
+      name: it
+      declaredFragment: <testLibraryFragment> it@47
+        element: isFinal isPublic
+          type: T
+          field: <testLibrary>::@extensionType::E::@field::it
+    rightParenthesis: )
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::E::@constructor::new
+      type: E<T, U> Function(T)
+''');
+  }
+
   test_primaryConstructorBody_duplicate() async {
     await assertNoErrorsInCode(r'''
 extension type A({bool it = false}) {
@@ -3100,6 +3217,31 @@ ExtensionTypeDeclaration
           semicolon: ;
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@15
+''');
+  }
+
+  test_primaryConstructorBody_metadata() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  @deprecated
+  this;
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: deprecated
+        element: dart:core::@getter::deprecated
+        staticType: null
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 

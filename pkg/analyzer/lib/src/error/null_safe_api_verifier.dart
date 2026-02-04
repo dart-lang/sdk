@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Verifies usages of `Future.value` and `Completer.complete`.
 ///
@@ -82,10 +82,13 @@ class NullSafeApiVerifier {
     var argumentIsNull = argument == null || _typeSystem.isNull(argumentType!);
 
     if (argumentIsNull) {
-      _diagnosticReporter.atNode(
-        argument ?? node,
-        diag.nullArgumentToNonNullType,
-        arguments: [memberName, type.getDisplayString()],
+      _diagnosticReporter.report(
+        diag.nullArgumentToNonNullType
+            .withArguments(
+              memberName: memberName,
+              typeArgumentName: type.getDisplayString(),
+            )
+            .at(argument ?? node),
       );
     }
   }

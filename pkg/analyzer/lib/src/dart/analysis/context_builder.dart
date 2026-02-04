@@ -9,7 +9,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
+import 'package:analyzer/src/context/builder.dart' show locateEmbedderYamlFor;
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
@@ -131,7 +131,6 @@ class ContextBuilderImpl {
     if (definedOptionsFile && optionsFile != null) {
       analysisOptionsMap = AnalysisOptionsMap.forSharedOptions(
         _getAnalysisOptions(
-          contextRoot,
           optionsFile,
           sourceFactory,
           sdk,
@@ -197,12 +196,6 @@ class ContextBuilderImpl {
   ) {
     var provider = AnalysisOptionsProvider(sourceFactory);
 
-    void updateOptions(AnalysisOptionsImpl options) {
-      if (updateAnalysisOptions != null) {
-        updateAnalysisOptions(analysisOptions: options, sdk: sdk);
-      }
-    }
-
     var optionsMappings = contextRoot.optionsFileMap.entries;
     for (var MapEntry(key: file, value: folders) in optionsMappings) {
       var options = AnalysisOptionsImpl.fromYaml(
@@ -212,11 +205,15 @@ class ContextBuilderImpl {
       );
 
       for (var folder in folders) {
-        _optionsMap.add(folder, options);
+        _optionsMap[folder] = options;
       }
     }
 
-    _optionsMap.forEachOptionsObject(updateOptions);
+    for (var options in _optionsMap.options) {
+      if (updateAnalysisOptions != null) {
+        updateAnalysisOptions(analysisOptions: options, sdk: sdk);
+      }
+    }
     return _optionsMap;
   }
 
@@ -258,12 +255,12 @@ class ContextBuilderImpl {
       if (embedderYamlSource != null) {
         var embedderYamlPath = embedderYamlSource.fullName;
         var libFolder = resourceProvider.getFile(embedderYamlPath).parent;
-        var locator = EmbedderYamlLocator.forLibFolder(libFolder);
-        var embedderMap = locator.embedderYamls;
-        if (embedderMap.isNotEmpty) {
-          return EmbedderSdk(
+        var embedderYaml = locateEmbedderYamlFor(libFolder);
+        if (embedderYaml != null) {
+          return EmbedderSdk.new2(
             resourceProvider,
-            embedderMap,
+            libFolder,
+            embedderYaml,
             languageVersion: folderSdk.languageVersion,
           );
         }
@@ -273,13 +270,11 @@ class ContextBuilderImpl {
     return folderSdk;
   }
 
-  /// Return the analysis options that should be used to analyze code in the
-  /// [contextRoot].
+  /// Return the analysis options from [optionsFile].
   ///
   // TODO(scheglov): We have already loaded it once in [ContextLocatorImpl].
   AnalysisOptionsImpl _getAnalysisOptions(
-    ContextRootImpl contextRoot,
-    File? optionsFile,
+    File optionsFile,
     SourceFactory sourceFactory,
     DartSdk sdk,
     void Function({
@@ -289,21 +284,20 @@ class ContextBuilderImpl {
     updateAnalysisOptions,
     List<String> enabledExperiments,
   ) {
-    AnalysisOptionsImpl? options;
+    AnalysisOptionsImpl options;
 
-    if (optionsFile != null) {
-      try {
-        var provider = AnalysisOptionsProvider(sourceFactory);
-        options = AnalysisOptionsImpl.fromYaml(
-          optionsMap: provider.getOptionsFromFile(optionsFile),
-          file: optionsFile,
-          resourceProvider: resourceProvider,
-        );
-      } catch (e) {
-        // Ignore exception.
-      }
+    try {
+      var provider = AnalysisOptionsProvider(sourceFactory);
+      options = AnalysisOptionsImpl.fromYaml(
+        optionsMap: provider.getOptionsFromFile(optionsFile),
+        file: optionsFile,
+        resourceProvider: resourceProvider,
+      );
+    } catch (e) {
+      // Ignore exception.
+      options = AnalysisOptionsImpl(file: optionsFile);
     }
-    options ??= AnalysisOptionsImpl(file: optionsFile);
+
     options.contextFeatures = FeatureSet.fromEnableFlags2(
       sdkLanguageVersion: sdk.languageVersion,
       flags: enabledExperiments,

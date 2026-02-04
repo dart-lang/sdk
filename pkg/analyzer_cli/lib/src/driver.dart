@@ -607,7 +607,7 @@ class _AnalysisContextProvider {
       byteStore: Driver.analysisDriverMemoryByteStore,
       includedPaths: _pathList,
       optionsFile: _commandLineOptions!.defaultAnalysisOptionsPath,
-      packagesFile: _commandLineOptions!.defaultPackagesPath,
+      packageConfigFile: _commandLineOptions!.defaultPackagesPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions!.dartSdkPath,
       updateAnalysisOptions4: _updateAnalysisOptions,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -17,6 +18,7 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
@@ -123,6 +125,8 @@ sealed class GetterEncoding implements InferredTypeListener {
   List<FormalParameterBuilder>? get formals;
   FunctionNode get function;
 
+  bool get isNoSuchMethodForwarder;
+
   Procedure get readTarget;
 
   List<TypeParameter>? get thisTypeParameters;
@@ -173,7 +177,12 @@ sealed class GetterEncoding implements InferredTypeListener {
     ClassHierarchyBase hierarchy,
   );
 
-  VariableDeclaration getFormalParameter(int index);
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  });
 }
 
 class RegularGetterEncoding extends GetterEncoding
@@ -195,6 +204,9 @@ class RegularGetterEncoding extends GetterEncoding
 
 mixin _DirectGetterEncodingMixin implements GetterEncoding {
   Procedure? _procedure;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -444,17 +456,33 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
-
-  @override
   void onInferredType(DartType type) {
     function.returnType = type;
+  }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
   }
 }
 
 mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   Procedure? _procedure;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -578,6 +606,11 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         typeParameters.add(t.parameter);
       }
     }
+    assert(
+      _thisFormal.kind == FormalParameterKind.requiredPositional ||
+          // Coverage-ignore(suite): Not run.
+          _thisFormal.kind == FormalParameterKind.optionalPositional,
+    );
     FunctionNode function =
         new FunctionNode(
             isAbstractOrExternal ? null : new EmptyStatement(),
@@ -771,12 +804,24 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
-
-  @override
   void onInferredType(DartType type) {
     function.returnType = type;
+  }
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
   }
 }

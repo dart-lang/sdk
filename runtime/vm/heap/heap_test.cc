@@ -1674,4 +1674,20 @@ VM_UNIT_TEST_CASE(MutatorMarkerRace_DetectInTLAB) {
       });
 }
 
+#if defined(DART_COMPRESSED_HEAP)
+TEST_CASE(CompressedHeapGuardLow, "Crash") {
+  void* base = VirtualMemoryCompressedHeap::GetRegion();
+  uword start = reinterpret_cast<uword>(base);
+  uword lowest_reach = start + kMinInt32 * sizeof(simd128_value_t);
+  *reinterpret_cast<volatile uint8*>(lowest_reach) = 0;
+}
+
+TEST_CASE(CompressedHeapGuardHigh, "Crash") {
+  void* base = VirtualMemoryCompressedHeap::GetRegion();
+  uword end = reinterpret_cast<uword>(base) + 4 * GB;
+  uword highest_reach = end + kMaxInt32 * sizeof(simd128_value_t);
+  *reinterpret_cast<volatile uint8*>(highest_reach) = 0;
+}
+#endif  // defined(DART_COMPRESSED_HEAP)
+
 }  // namespace dart

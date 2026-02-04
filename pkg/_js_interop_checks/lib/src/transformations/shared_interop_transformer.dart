@@ -7,15 +7,8 @@
 import 'package:_js_interop_checks/js_interop_checks.dart'
     show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
-import 'package:front_end/src/api_prototype/codes.dart'
-    show
-        codeJsInteropIsATearoff,
-        codeJsInteropExportClassNotMarkedExportable,
-        codeJsInteropExportInvalidInteropTypeArgument,
-        codeJsInteropExportInvalidTypeArgument,
-        codeJsInteropIsAInvalidTypeVariable,
-        codeJsInteropIsAObjectLiteralType,
-        codeJsInteropIsAPrimitiveExtensionType;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
@@ -208,7 +201,9 @@ class SharedInteropTransformer extends Transformer {
         if (!_inIsATearoff) {
           assert(interopType is TypeParameterType);
           _diagnosticReporter.report(
-            codeJsInteropIsAInvalidTypeVariable.withArgumentsOld(interopType),
+            diag.jsInteropIsAInvalidTypeVariable.withArguments(
+              type: interopType,
+            ),
             invocation.fileOffset,
             invocation.name.text.length,
             invocation.location?.file,
@@ -219,7 +214,7 @@ class SharedInteropTransformer extends Transformer {
     } else if (target == _isATearoff) {
       // Calling the generated tear-off is still bad, however.
       _diagnosticReporter.report(
-        codeJsInteropIsATearoff,
+        diag.jsInteropIsATearoff,
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -251,7 +246,7 @@ class SharedInteropTransformer extends Transformer {
   bool _verifyExportable(DartType dartType) {
     if (dartType is! InterfaceType) {
       _diagnosticReporter.report(
-        codeJsInteropExportInvalidTypeArgument.withArgumentsOld(dartType),
+        diag.jsInteropExportInvalidTypeArgument.withArguments(type: dartType),
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -263,8 +258,8 @@ class SharedInteropTransformer extends Transformer {
         js_interop.hasStaticInteropAnnotation(dartClass) ||
         js_interop.hasAnonymousAnnotation(dartClass)) {
       _diagnosticReporter.report(
-        codeJsInteropExportInvalidInteropTypeArgument.withArgumentsOld(
-          dartType,
+        diag.jsInteropExportInvalidInteropTypeArgument.withArguments(
+          type: dartType,
         ),
         invocation.fileOffset,
         invocation.name.text.length,
@@ -287,7 +282,7 @@ class SharedInteropTransformer extends Transformer {
     var exportStatus = _exportChecker.exportStatus[dartClass.reference];
     if (exportStatus == ExportStatus.nonExportable) {
       _diagnosticReporter.report(
-        codeJsInteropExportClassNotMarkedExportable.withArgumentsOld(
+        diag.jsInteropExportClassNotMarkedExportable.withArgumentsOld(
           dartClass.name,
         ),
         invocation.fileOffset,
@@ -595,7 +590,9 @@ class SharedInteropTransformer extends Transformer {
           if (descriptorNode is Procedure &&
               _extensionIndex.isLiteralConstructor(descriptorNode)) {
             _diagnosticReporter.report(
-              codeJsInteropIsAObjectLiteralType.withArgumentsOld(interopType),
+              diag.jsInteropIsAObjectLiteralType.withArguments(
+                type: interopType,
+              ),
               invocation.fileOffset,
               invocation.name.text.length,
               invocation.location?.file,
@@ -624,9 +621,9 @@ class SharedInteropTransformer extends Transformer {
     if (typeofString != null) {
       if (interopTypeDecl != jsType) {
         _diagnosticReporter.report(
-          codeJsInteropIsAPrimitiveExtensionType.withArgumentsOld(
-            interopType,
-            jsTypeName,
+          diag.jsInteropIsAPrimitiveExtensionType.withArguments(
+            interopType: interopType,
+            jsTypeName: jsTypeName,
           ),
           invocation.fileOffset,
           invocation.name.text.length,

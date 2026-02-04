@@ -14,8 +14,9 @@ import 'package:yaml/yaml.dart';
 /// Computes [DocumentLink]s for lint names in an 'analysis_options.yaml'.
 class AnalysisOptionLinkComputer {
   static const _lintsUrl = 'https://dart.dev/tools/linter-rules/';
+  final String pubHostedUrl;
 
-  AnalysisOptionLinkComputer();
+  AnalysisOptionLinkComputer(this.pubHostedUrl);
 
   List<DocumentLink> findLinks(String content) {
     YamlNode node;
@@ -30,7 +31,7 @@ class AnalysisOptionLinkComputer {
     var allRules = <YamlNode>[
       if (node.nodes['linter'] case YamlMap dependencies)
         ...switch (dependencies.nodes['rules']) {
-          YamlMap(:var nodes) => nodes.keys.map((node) => node as YamlNode),
+          YamlMap(:var nodes) => nodes.keys.cast<YamlNode>(),
           YamlList rules => rules.nodes,
           _ => const <YamlNode>[],
         },
@@ -46,6 +47,28 @@ class AnalysisOptionLinkComputer {
         links.add(DocumentLink(offset, length, packageLink));
       }
     }
+
+    var allPlugins = <YamlNode>[
+      if (node.nodes['analyzer'] case YamlMap analyzer)
+        if (analyzer.nodes['plugins'] case YamlNode plugins)
+          ...switch (plugins) {
+            YamlMap(:var nodes) => nodes.keys.cast<YamlNode>(),
+            YamlList plugins => plugins.nodes,
+            _ => const <YamlNode>[],
+          },
+    ];
+
+    for (final plugin in allPlugins) {
+      var pluginLink = _computePluginLink(plugin);
+
+      if (pluginLink != null) {
+        var offset = plugin.span.start.offset;
+        var length = plugin.span.length;
+        links.add(DocumentLink(offset, length, pluginLink));
+      }
+    }
+
+    links.sort((a, b) => a.offset.compareTo(b.offset));
 
     return links;
   }
@@ -64,6 +87,17 @@ class AnalysisOptionLinkComputer {
     }
 
     return Uri.tryParse(_lintsUrl + name);
+  }
+
+  /// Computes a link for the plugin named [plugin].
+  Uri? _computePluginLink(YamlNode plugin) {
+    if (plugin is! YamlScalar) return null;
+    var name = plugin.value;
+    if (name is! String || name.isEmpty) return null;
+
+    var separator = pubHostedUrl.endsWith('/') ? '' : '/';
+
+    return Uri.parse('$pubHostedUrl${separator}packages/$name');
   }
 }
 

@@ -4,6 +4,8 @@
 
 #include "vm/compiler/backend/linearscan.h"
 
+#include <algorithm>
+
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
@@ -2924,13 +2926,22 @@ static void AddToSortedListOfRanges(GrowableArray<LiveRange*>* list,
     return;
   }
 
-  for (intptr_t i = list->length() - 1; i >= 0; i--) {
-    if (ShouldBeAllocatedBefore(range, (*list)[i])) {
-      list->InsertAt(i + 1, range);
-      return;
-    }
+  intptr_t insertion_point = list->length();
+  if (!ShouldBeAllocatedBefore(range, (*list)[insertion_point - 1])) {
+    // Find smallest index i such that !ShouldBeAllocatedBefore(range, list[i]),
+    // inserting at such index guarantees that list will continue to be sorted
+    // in descending order according to ShouldBeAllocatedBefore.
+    //
+    // Note: because list is sorted in descending order according to
+    // |ShouldBeAllocatedBefore|, hence |a| and |b| flipped in the predicate
+    // below.
+    insertion_point = std::lower_bound(list->begin(), list->end(), range,
+                                       [](LiveRange* a, LiveRange* b) {
+                                         return ShouldBeAllocatedBefore(b, a);
+                                       }) -
+                      list->begin();
   }
-  list->InsertAt(0, range);
+  list->InsertAt(insertion_point, range);
 }
 
 void FlowGraphAllocator::AddToUnallocated(LiveRange* range) {

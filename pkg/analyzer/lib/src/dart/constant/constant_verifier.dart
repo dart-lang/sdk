@@ -29,8 +29,10 @@ import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -148,10 +150,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           matchedValueType = matchedValueType?.extensionTypeErasure;
           if (matchedValueType != null) {
             if (!_canBeEqual(constantType, matchedValueType)) {
-              _diagnosticReporter.atNode(
-                node,
-                diag.constantPatternNeverMatchesValueType,
-                arguments: [matchedValueType, constantType],
+              _diagnosticReporter.report(
+                diag.constantPatternNeverMatchesValueType
+                    .withArguments(
+                      matchedType: matchedValueType,
+                      constantType: constantType,
+                    )
+                    .at(node),
               );
               return;
             }
@@ -171,10 +176,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // [ErrorVerifier._checkForRecursiveFactoryRedirect].
       var element = node.declaredFragment!.element;
       if (!element.isCycleFree && !element.isFactory) {
-        _diagnosticReporter.atNode(
-          // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-          node.typeName!,
-          diag.recursiveConstantConstructor,
+        _diagnosticReporter.report(
+          diag.recursiveConstantConstructor.atSourceRange(node.errorRange),
         );
       }
 
@@ -340,7 +343,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
 
     for (var duplicateEntry in duplicateKeys.entries) {
-      _diagnosticReporter.reportError(
+      _diagnosticReporter.report(
         _diagnosticFactory.equalKeysInMapPattern(
           _diagnosticReporter.source,
           duplicateEntry.key,
@@ -402,7 +405,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           verifier.verify(element);
         }
         for (var duplicateEntry in config.duplicateElements.entries) {
-          _diagnosticReporter.reportError(
+          _diagnosticReporter.report(
             _diagnosticFactory.equalElementsInConstSet(
               _diagnosticReporter.source,
               duplicateEntry.key,
@@ -426,7 +429,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           verifier.verify(entry);
         }
         for (var duplicateEntry in config.duplicateKeys.entries) {
-          _diagnosticReporter.reportError(
+          _diagnosticReporter.report(
             _diagnosticFactory.equalKeysInConstMap(
               _diagnosticReporter.source,
               duplicateEntry.key,
@@ -563,7 +566,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// See [diag.constWithTypeParameters].
   void _checkForConstWithTypeParameters(
     TypeAnnotation type,
-    DiagnosticCode diagnosticCode, {
+    LocatableDiagnostic locatableDiagnostic, {
     Set<TypeParameterElement>? allowedTypeParameters,
   }) {
     allowedTypeParameters = {...?allowedTypeParameters};
@@ -571,7 +574,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // Should not be a type parameter.
       if (type.element is TypeParameterElement &&
           !allowedTypeParameters.contains(type.element)) {
-        _diagnosticReporter.atNode(type, diagnosticCode);
+        _diagnosticReporter.report(locatableDiagnostic.at(type));
         return;
       }
       // Check type arguments.
@@ -580,7 +583,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         for (var argument in typeArguments.arguments) {
           _checkForConstWithTypeParameters(
             argument,
-            diagnosticCode,
+            locatableDiagnostic,
             allowedTypeParameters: allowedTypeParameters,
           );
         }
@@ -598,7 +601,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           if (bound != null) {
             _checkForConstWithTypeParameters(
               bound,
-              diagnosticCode,
+              locatableDiagnostic,
               allowedTypeParameters: allowedTypeParameters,
             );
           }
@@ -608,7 +611,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (returnType != null) {
         _checkForConstWithTypeParameters(
           returnType,
-          diagnosticCode,
+          locatableDiagnostic,
           allowedTypeParameters: allowedTypeParameters,
         );
       }
@@ -620,7 +623,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           if (parameterType != null) {
             _checkForConstWithTypeParameters(
               parameterType,
-              diagnosticCode,
+              locatableDiagnostic,
               allowedTypeParameters: allowedTypeParameters,
             );
           }
@@ -739,11 +742,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           diag.constInitializedWithNonConstantValueFromDeferredLibrary,
         ) ||
         identical(diagnosticCode, diag.patternConstantFromDeferredLibrary) ||
-        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsFunction) ||
-        identical(
-          diagnosticCode,
-          diag.wrongNumberOfTypeArgumentsAnonymousFunction,
-        )) {
+        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsElement) ||
+        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsFunction)) {
       _diagnosticReporter.report(
         error.locatableDiagnostic.atOffset(
           offset: error.offset,
@@ -1031,24 +1031,24 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                   nonExhaustiveness.witnesses.every(
                     (witness) => witness.asWitness.contains('._'),
                   ))) {
-            diagnostic = _diagnosticReporter.atToken(
-              switchKeyword,
-              isSwitchExpression
-                  ? diag.nonExhaustiveSwitchExpressionPrivate
-                  : diag.nonExhaustiveSwitchStatementPrivate,
-              arguments: [scrutineeType],
+            diagnostic = _diagnosticReporter.report(
+              (isSwitchExpression
+                      ? diag.nonExhaustiveSwitchExpressionPrivate
+                      : diag.nonExhaustiveSwitchStatementPrivate)
+                  .withArguments(type: scrutineeType)
+                  .at(switchKeyword),
             );
           } else {
-            diagnostic = _diagnosticReporter.atToken(
-              switchKeyword,
-              isSwitchExpression
-                  ? diag.nonExhaustiveSwitchExpression
-                  : diag.nonExhaustiveSwitchStatement,
-              arguments: [
-                scrutineeType,
-                errorBuffer.toString(),
-                correctionTextBuffer.toString(),
-              ],
+            diagnostic = _diagnosticReporter.report(
+              (isSwitchExpression
+                      ? diag.nonExhaustiveSwitchExpression
+                      : diag.nonExhaustiveSwitchStatement)
+                  .withArguments(
+                    type: scrutineeType,
+                    unmatchedPattern: errorBuffer.toString(),
+                    suggestedPattern: correctionTextBuffer.toString(),
+                  )
+                  .at(switchKeyword),
             );
           }
           if (correctionData.isNotEmpty) {
@@ -1278,7 +1278,7 @@ class _ConstLiteralVerifier {
     if (notPotentiallyConstants.isEmpty) return true;
 
     for (var notConst in notPotentiallyConstants) {
-      DiagnosticCode diagnosticCode;
+      LocatableDiagnostic diagnosticCode;
       if (listElementType != null) {
         diagnosticCode = diag.nonConstantListElement;
       } else if (mapConfig != null) {
@@ -1302,7 +1302,7 @@ class _ConstLiteralVerifier {
       } else {
         throw UnimplementedError();
       }
-      verifier._diagnosticReporter.atNode(notConst, diagnosticCode);
+      verifier._diagnosticReporter.report(diagnosticCode.at(notConst));
     }
 
     return false;
@@ -1318,16 +1318,22 @@ class _ConstLiteralVerifier {
         value,
         verifier._typeSystem.makeNullable(listElementType),
       )) {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.listElementTypeNotAssignableNullability,
-          arguments: [value.type, listElementType],
+        verifier._diagnosticReporter.report(
+          diag.listElementTypeNotAssignableNullability
+              .withArguments(
+                actualType: value.type,
+                expectedType: listElementType,
+              )
+              .at(expression),
         );
       } else {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.listElementTypeNotAssignable,
-          arguments: [value.type, listElementType],
+        verifier._diagnosticReporter.report(
+          diag.listElementTypeNotAssignable
+              .withArguments(
+                actualType: value.type,
+                expectedType: listElementType,
+              )
+              .at(expression),
         );
       }
       return false;
@@ -1416,16 +1422,22 @@ class _ConstLiteralVerifier {
               keyValue,
               verifier._typeSystem.makeNullable(expectedKeyType),
             )) {
-          verifier._diagnosticReporter.atNode(
-            keyExpression,
-            diag.mapKeyTypeNotAssignableNullability,
-            arguments: [keyType, expectedKeyType],
+          verifier._diagnosticReporter.report(
+            diag.mapKeyTypeNotAssignableNullability
+                .withArguments(
+                  actualType: keyType,
+                  expectedType: expectedKeyType,
+                )
+                .at(keyExpression),
           );
         } else {
-          verifier._diagnosticReporter.atNode(
-            keyExpression,
-            diag.mapKeyTypeNotAssignable,
-            arguments: [keyType, expectedKeyType],
+          verifier._diagnosticReporter.report(
+            diag.mapKeyTypeNotAssignable
+                .withArguments(
+                  actualType: keyType,
+                  expectedType: expectedKeyType,
+                )
+                .at(keyExpression),
           );
         }
       }
@@ -1466,16 +1478,22 @@ class _ConstLiteralVerifier {
               valueValue,
               verifier._typeSystem.makeNullable(expectedValueType),
             )) {
-          verifier._diagnosticReporter.atNode(
-            valueExpression,
-            diag.mapValueTypeNotAssignableNullability,
-            arguments: [valueValue.type, expectedValueType],
+          verifier._diagnosticReporter.report(
+            diag.mapValueTypeNotAssignableNullability
+                .withArguments(
+                  actualType: valueValue.type,
+                  expectedType: expectedValueType,
+                )
+                .at(valueExpression),
           );
         } else {
-          verifier._diagnosticReporter.atNode(
-            valueExpression,
-            diag.mapValueTypeNotAssignable,
-            arguments: [valueValue.type, expectedValueType],
+          verifier._diagnosticReporter.report(
+            diag.mapValueTypeNotAssignable
+                .withArguments(
+                  actualType: valueValue.type,
+                  expectedType: expectedValueType,
+                )
+                .at(valueExpression),
           );
         }
       }
@@ -1524,16 +1542,22 @@ class _ConstLiteralVerifier {
         value,
         verifier._typeSystem.makeNullable(config.elementType),
       )) {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.setElementTypeNotAssignableNullability,
-          arguments: [value.type, config.elementType],
+        verifier._diagnosticReporter.report(
+          diag.setElementTypeNotAssignableNullability
+              .withArguments(
+                actualType: value.type,
+                expectedType: config.elementType,
+              )
+              .at(expression),
         );
       } else {
-        verifier._diagnosticReporter.atNode(
-          expression,
-          diag.setElementTypeNotAssignable,
-          arguments: [value.type, config.elementType],
+        verifier._diagnosticReporter.report(
+          diag.setElementTypeNotAssignable
+              .withArguments(
+                actualType: value.type,
+                expectedType: config.elementType,
+              )
+              .at(expression),
         );
       }
       return false;

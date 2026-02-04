@@ -59,6 +59,55 @@ T? getPragma<T>(CoreTypes coreTypes, Annotatable node, String name,
   return null;
 }
 
+bool hasWasmImportPragma(CoreTypes coreTypes, Member member) {
+  return hasPragma(coreTypes, member, "wasm:import");
+}
+
+ImportName? getWasmImportPragma(CoreTypes coreTypes, Member member) {
+  String? importName = getPragma(coreTypes, member, "wasm:import");
+  if (importName != null) {
+    int dot = importName.indexOf('.');
+    if (dot != -1) {
+      assert(!member.isInstanceMember);
+      String module = importName.substring(0, dot);
+      String name = importName.substring(dot + 1);
+      return ImportName(module, name);
+    }
+  }
+
+  return null;
+}
+
+final class ImportName {
+  final String moduleName;
+  final String itemName;
+
+  ImportName(this.moduleName, this.itemName);
+
+  @override
+  String toString() {
+    return '$moduleName.$itemName';
+  }
+}
+
+bool hasWasmExportPragma(CoreTypes coreTypes, Member member) {
+  return hasPragma(coreTypes, member, "wasm:export");
+}
+
+bool hasWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
+  return hasPragma(coreTypes, member, "wasm:weak-export");
+}
+
+String? getWasmExportPragma(CoreTypes coreTypes, Member member) {
+  return getPragma<String>(coreTypes, member, 'wasm:export',
+      defaultValue: member.name.text);
+}
+
+String? getWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
+  return getPragma<String>(coreTypes, member, 'wasm:weak-export',
+      defaultValue: member.name.text);
+}
+
 /// Add a `@pragma('wasm:entry-point')` annotation to an annotatable.
 T addWasmEntryPointPragma<T extends Annotatable>(T node, CoreTypes coreTypes) =>
     addPragma(node, 'wasm:entry-point', coreTypes);
@@ -96,9 +145,10 @@ String intToMinString(int i) {
   i += 1;
   final codeUnits = <int>[];
   while (i > 0) {
-    int remainder = i % 128;
-    i ~/= 128;
-    codeUnits.add(remainder);
+    // Stick to the 92 printable characters (starting after "), from 35 to 126.
+    int remainder = i % 92;
+    i ~/= 92;
+    codeUnits.add(remainder + 35);
   }
   return String.fromCharCodes(codeUnits);
 }

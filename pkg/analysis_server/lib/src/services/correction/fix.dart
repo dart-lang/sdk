@@ -905,12 +905,12 @@ abstract final class DartFixKind {
   );
   static const importLibraryCombinator = FixKind(
     'dart.fix.import.libraryCombinator',
-    DartFixKindPriority.standard + 6,
+    DartFixKindPriority.standard + 8,
     "Import '{0}' from {1}",
   );
   static const importLibraryCombinatorMultiple = FixKind(
     'dart.fix.import.libraryCombinatorMultiple',
-    DartFixKindPriority.standard + 6,
+    DartFixKindPriority.standard + 8,
     "Import '{0}' and {1} other{2} from {3}",
   );
   static const importLibraryHide = FixKind(
@@ -920,7 +920,7 @@ abstract final class DartFixKind {
   );
   static const importLibraryPrefix = FixKind(
     'dart.fix.import.libraryPrefix',
-    DartFixKindPriority.standard + 6,
+    DartFixKindPriority.standard + 8,
     "Use imported library '{0}' with prefix '{1}'",
   );
 
@@ -2175,6 +2175,11 @@ abstract final class DartFixKind {
     'dart.fix.replace.withUnicodeEscape',
     DartFixKindPriority.standard,
     'Replace with Unicode escape',
+  );
+  static const replaceWithIs = FixKind(
+    'dart.fix.replace.withIs',
+    DartFixKindPriority.standard,
+    "Replace '{0}' with 'is{1}'",
   );
   static const replaceWithVar = FixKind(
     'dart.fix.replace.withVar',

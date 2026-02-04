@@ -12,6 +12,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Helper for resolving [VariableDeclaration]s.
 class VariableDeclarationResolver {
@@ -44,8 +45,26 @@ class VariableDeclarationResolver {
     var isTopLevel =
         element is FieldElement || element is TopLevelVariableElement;
 
+    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
+    if (element is FieldElementImpl &&
+        element.isInstanceField &&
+        !element.isLate) {
+      inScopePrimaryConstructorParameters = element.enclosingElement
+          .tryCast<InterfaceElementImpl>()
+          ?.primaryConstructor
+          ?.formalParameters;
+    }
+
     if (isTopLevel) {
-      _resolver.flowAnalysis.bodyOrInitializer_enter(node, null);
+      _resolver.flowAnalysis.bodyOrInitializer_enter(
+        node,
+        inScopePrimaryConstructorParameters,
+      );
+      if (inScopePrimaryConstructorParameters != null) {
+        _resolver.flowAnalysis.declarePrimaryConstructorParameters(
+          inScopePrimaryConstructorParameters,
+        );
+      }
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }

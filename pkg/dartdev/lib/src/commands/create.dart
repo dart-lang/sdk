@@ -20,19 +20,19 @@ class CreateCommand extends DartdevCommand {
   static const String defaultTemplateId = 'console';
 
   static List<String> legalTemplateIds({bool includeDeprecated = false}) => [
-        for (var g in generators) ...[
-          if (includeDeprecated || !g.deprecated) g.id,
-          if (includeDeprecated && g.alternateId != null) g.alternateId!
-        ]
-      ];
+    for (var g in generators) ...[
+      if (includeDeprecated || !g.deprecated) g.id,
+      if (includeDeprecated && g.alternateId != null) g.alternateId!,
+    ],
+  ];
 
   static final Map<String, String> templateHelp = {
     for (var g in generators)
-      if (!g.deprecated) g.id: g.description
+      if (!g.deprecated) g.id: g.description,
   };
 
   CreateCommand({bool verbose = false})
-      : super(cmdName, 'Create a new Dart project.', verbose) {
+    : super(cmdName, 'Create a new Dart project.', verbose) {
     argParser.addOption(
       'template',
       allowed: legalTemplateIds(includeDeprecated: true),
@@ -41,9 +41,11 @@ class CreateCommand extends DartdevCommand {
       defaultsTo: defaultTemplateId,
       abbr: 't',
     );
-    argParser.addFlag('pub',
-        defaultsTo: true,
-        help: "Whether to run 'pub get' after the project has been created.");
+    argParser.addFlag(
+      'pub',
+      defaultsTo: true,
+      help: "Whether to run 'pub get' after the project has been created.",
+    );
     argParser.addFlag(
       'list-templates',
       negatable: false,
@@ -53,7 +55,8 @@ class CreateCommand extends DartdevCommand {
     argParser.addFlag(
       'force',
       negatable: false,
-      help: 'Force project generation, even if the target directory already '
+      help:
+          'Force project generation, even if the target directory already '
           'exists.',
     );
   }
@@ -97,8 +100,10 @@ class CreateCommand extends DartdevCommand {
     projectName = normalizeProjectName(projectName);
 
     if (!isValidPackageName(projectName)) {
-      log.stderr('"$projectName" is not a valid Dart project name.\n\n'
-          'See https://dart.dev/tools/pub/pubspec#name for more information.');
+      log.stderr(
+        '"$projectName" is not a valid Dart project name.\n\n'
+        'See https://dart.dev/tools/pub/pubspec#name for more information.',
+      );
       return 73;
     }
 
@@ -140,26 +145,25 @@ class CreateCommand extends DartdevCommand {
 
     log.stdout('');
     log.stdout(
-        'Created project $projectName in ${p.relative(dir)}! In order to get '
-        'started, run the following commands:');
+      'Created project $projectName in ${p.relative(dir)}! In order to get '
+      'started, run the following commands:',
+    );
     log.stdout('');
-    log.stdout(generator.getInstallInstructions(
-      dir,
-      scriptPath: projectName,
-    ));
+    log.stdout(generator.getInstallInstructions(dir, scriptPath: projectName));
     log.stdout('');
 
     return 0;
   }
 
   String _availableTemplatesJson() {
-    var items =
-        generators.where((g) => !g.deprecated).map((Generator generator) {
+    var items = generators.where((g) => !g.deprecated).map((
+      Generator generator,
+    ) {
       var m = {
         'name': generator.id,
         'label': generator.label,
         'description': generator.description,
-        'categories': generator.categories
+        'categories': generator.categories,
       };
 
       if (generator.entrypoint != null) {

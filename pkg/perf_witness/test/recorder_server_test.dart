@@ -26,7 +26,7 @@ Future<io.Process> runProcess(
   String executable,
   List<String> arguments, {
   String tag = '',
-  String? waitFor,
+  Pattern? waitFor,
   Map<String, String>? environment,
   List<String>? stdout,
 }) async {
@@ -37,6 +37,11 @@ Future<io.Process> runProcess(
     arguments,
     environment: environment,
   );
+  process.exitCode.whenComplete(() {
+    if (!ready.isCompleted) {
+      ready.complete();
+    }
+  });
   process.stdout.transform(Utf8Decoder()).transform(LineSplitter()).listen((
     line,
   ) {
@@ -81,26 +86,48 @@ class BusyLoopProcess {
     String tag,
     io.Directory tempDir, {
     bool startIsolate = false,
+    bool aot = false,
+    bool startInBackground = false,
   }) async {
-    final stdout = <String>[];
-    return BusyLoopProcess._(
-      await runProcess(
-        io.Platform.executable,
-        [
-          'run',
-          p.join(testsDir, 'common', 'busy_loop.dart'),
-          '--tag',
-          tag,
-          if (startIsolate) '--start-isolate',
-        ],
-        tag: 'busy-loop($tag)',
-        waitFor: 'BUSY LOOP READY',
-        environment: {'DART_DATA_HOME': tempDir.path},
-        stdout: stdout,
-      ),
+    final busyLoopArgs = [
+      '--tag',
       tag,
-      stdout,
+      if (startIsolate) '--start-isolate',
+      if (startInBackground) '--start-in-background',
+    ];
+
+    final stdout = <String>[];
+    final String executable;
+    if (aot) {
+      executable = p.join(tempDir.path, 'busyLoop.exe');
+      final result = await io.Process.run(io.Platform.executable, [
+        'compile',
+        'exe',
+        '-o',
+        executable,
+        p.join(testsDir, 'common', 'busy_loop.dart'),
+      ]);
+      if (result.exitCode != 0) {
+        throw 'Failed to compile busyLoop script to a binary';
+      }
+    } else {
+      executable = io.Platform.executable;
+      busyLoopArgs.insertAll(0, [
+        'run',
+        p.join(testsDir, 'common', 'busy_loop.dart'),
+      ]);
+    }
+
+    final process = await runProcess(
+      executable,
+      busyLoopArgs,
+      tag: 'busy-loop($tag)',
+      waitFor: 'BUSY LOOP READY',
+      environment: {'DART_DATA_HOME': tempDir.path},
+      stdout: stdout,
     );
+
+    return BusyLoopProcess._(process, tag, stdout);
   }
 
   int get pid {
@@ -122,20 +149,24 @@ class BusyLoopProcess {
 }
 
 class RecorderProcess {
+  final List<String> stdout;
   final io.Process process;
 
-  RecorderProcess._(this.process);
+  RecorderProcess._(this.process, this.stdout);
+
+  static final pressKeyPattern = RegExp(r'Press (Ctrl-C|Q) to exit');
 
   static Future<RecorderProcess> start(
     io.Directory tempDir,
     io.Directory outputDir, {
     String? tag,
     bool recordNewProcesses = false,
+    bool recordOnlyNewProcesses = false,
     bool enableAsyncSpans = false,
     bool enableProfiler = true,
     List<String> streams = const ['dart', 'gc'],
-    String? waitFor,
   }) async {
+    final stdout = <String>[];
     return RecorderProcess._(
       await runProcess(
         io.Platform.executable,
@@ -147,6 +178,7 @@ class RecorderProcess {
           if (tag != null) ...['--tag', tag],
           if (io.Platform.isWindows) '--wait-for-keypress',
           if (recordNewProcesses) '--record-new-processes',
+          if (recordOnlyNewProcesses) '--record-only-new-processes',
           if (enableAsyncSpans) '--enable-async-spans',
           if (!enableProfiler) '--no-enable-profiler',
           if (streams != const ['dart', 'gc']) ...[
@@ -156,8 +188,10 @@ class RecorderProcess {
         ],
         tag: 'recorder',
         environment: {'DART_DATA_HOME': tempDir.path},
-        waitFor: waitFor,
+        waitFor: pressKeyPattern,
+        stdout: stdout,
       ),
+      stdout,
     );
   }
 
@@ -184,7 +218,7 @@ void main() {
       tempDir.deleteSync(recursive: true);
     });
 
-    test('end-to-end test with recorder script', () async {
+    test('end-to-end test with recorder script (JIT)', () async {
       final outputDir = io.Directory('${tempDir.path}/output')..createSync();
 
       // Run the recorder in a separate process.
@@ -211,6 +245,47 @@ void main() {
       expect(trace.packet.any((p) => p.hasPerfSample()), isTrue);
       // Dart track should be enabled by default.
       expect(extractSeenEvents(trace), containsAll(['sleep']));
+    });
+
+    test('end-to-end test with recorder script (AOT)', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      final busyLoopAotProcess = await BusyLoopProcess.start(
+        'busy-loop-aot',
+        tempDir,
+        aot: true,
+      );
+
+      // Run the recorder in a separate process.
+      final recorder = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        tag: 'busy-loop-aot',
+      );
+      await Future.delayed(const Duration(seconds: 2));
+      await recorder.stop();
+
+      final timelineFiles = outputDir
+          .listSync()
+          .whereType<io.File>()
+          .where((file) => file.path.endsWith('.timeline'))
+          .toList();
+
+      final timelines = timelineFiles.map((e) => p.basename(e.path)).toList();
+      expect(
+        timelines,
+        equals(['${busyLoopAotProcess.pid}.timeline']),
+        reason: 'Expected timeline file to be created',
+      );
+
+      final trace = Trace()
+        ..mergeFromBuffer(timelineFiles.first.readAsBytesSync());
+      expect(trace.packet, isNotEmpty);
+      expect(trace.packet.any((p) => p.hasPerfSample()), isTrue);
+      // Dart track should be enabled by default.
+      expect(extractSeenEvents(trace), containsAll(['sleep']));
+
+      await busyLoopAotProcess.process.askToExit();
     });
 
     test('end-to-end test with recorder script - early exit', () async {
@@ -486,7 +561,6 @@ void main() {
         tempDir,
         outputDir,
         recordNewProcesses: true,
-        waitFor: 'Listening for new processes',
       );
 
       // Start a new process that should be recorded.
@@ -511,48 +585,161 @@ void main() {
           '${busyLoopProcess.pid}.timeline',
         ]),
       );
-    }, timeout: Timeout(Duration(seconds: 15)));
+    });
 
-    test(
-      'record new processes - specific tag',
-      () async {
-        final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+    test('record new processes - specific tag', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
 
-        // Run the recorder in a separate process.
-        final recorder = await RecorderProcess.start(
-          tempDir,
-          outputDir,
-          tag: 'new-process-tag',
-          recordNewProcesses: true,
-          waitFor: 'Listening for new processes',
-        );
+      // Run the recorder in a separate process.
+      final recorder = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        tag: 'new-process-tag',
+        recordNewProcesses: true,
+      );
+      // Start a new process that should be recorded.
+      final newProcess = await BusyLoopProcess.start(
+        'new-process-tag',
+        tempDir,
+      );
 
-        // Start a new process that should be recorded.
-        final newProcess = await BusyLoopProcess.start(
-          'new-process-tag',
-          tempDir,
-        );
+      // Start a new process that should NOT be recorded.
+      final ignoredProcess = await BusyLoopProcess.start(
+        'ignored-tag',
+        tempDir,
+      );
 
-        // Start a new process that should NOT be recorded.
-        final ignoredProcess = await BusyLoopProcess.start(
-          'ignored-tag',
-          tempDir,
-        );
+      await Future.delayed(const Duration(seconds: 2));
+      await recorder.stop();
 
-        await Future.delayed(const Duration(seconds: 2));
-        await recorder.stop();
+      newProcess.kill();
+      ignoredProcess.kill();
 
-        newProcess.kill();
-        ignoredProcess.kill();
+      final timelines = outputDir
+          .listSync()
+          .map((e) => p.basename(e.path))
+          .toList();
+      expect(timelines, unorderedEquals(['${newProcess.pid}.timeline']));
+    });
 
-        final timelines = outputDir
-            .listSync()
-            .map((e) => p.basename(e.path))
-            .toList();
-        expect(timelines, unorderedEquals(['${newProcess.pid}.timeline']));
-      },
-      timeout: Timeout(Duration(seconds: 15)),
-    );
+    test('record only new processes', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      // Run the recorder in a separate process with --record-only-new-processes
+      final recorder = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      // Start a new process that should be recorded.
+      final newProcess = await BusyLoopProcess.start(
+        'new-process-tag',
+        tempDir,
+      );
+
+      await Future.delayed(const Duration(seconds: 2));
+      await recorder.stop();
+
+      final timelines = outputDir
+          .listSync()
+          .map((e) => p.basename(e.path))
+          .toList();
+      expect(
+        timelines,
+        unorderedEquals(['${newProcess.pid}.timeline']),
+        reason: 'Expected only new process to be recorded',
+      );
+
+      await newProcess.process.askToExit();
+    });
+
+    test('detect already running recorder', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      final recorder1 = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      final recorder2 = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+      await recorder1.stop();
+
+      await expectLater(recorder1.process.exitCode, completes);
+      expect(
+        recorder2.stdout.join('\n'),
+        contains(
+          'another recorder process (pid ${recorder1.process.pid})'
+          ' is already running',
+        ),
+      );
+    });
+
+    test('delete stale control socket', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      // Start a recorder to create the socket.
+      final recorder1 = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      // Kill it forcibly so it leaves the socket.
+      recorder1.process.kill(io.ProcessSignal.sigkill);
+      await recorder1.process.exitCode;
+
+      // Start another recorder. It should detect stale socket, delete it,
+      // and start successfully.
+      final recorder2 = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      await recorder2.stop();
+    });
+
+    test('start(inBackground: true) does not miss startup events', () async {
+      final outputDir = io.Directory('${tempDir.path}/output')..createSync();
+
+      // Run the recorder in a separate process with --record-only-new-processes
+      final recorder = await RecorderProcess.start(
+        tempDir,
+        outputDir,
+        recordOnlyNewProcesses: true,
+      );
+
+      // Start a new process that should be recorded.
+      final newProcess = await BusyLoopProcess.start(
+        'new-process-tag',
+        tempDir,
+      );
+      await Future.delayed(const Duration(seconds: 1));
+      await recorder.stop();
+
+      final timelineFiles = outputDir.listSync().whereType<io.File>();
+
+      final timelines = timelineFiles.map((e) => p.basename(e.path)).toList();
+      expect(
+        timelines,
+        unorderedEquals(['${newProcess.pid}.timeline']),
+        reason: 'Expected only new process to be recorded',
+      );
+
+      final trace = Trace()
+        ..mergeFromBuffer(timelineFiles.first.readAsBytesSync());
+      expect(trace.packet, isNotEmpty);
+      final seenEvents = extractSeenEvents(trace);
+      expect(seenEvents, containsAll(['ImportantStartupEvent']));
+
+      await newProcess.process.askToExit();
+    });
   });
 }
 
@@ -569,6 +756,8 @@ class IncrementalState {
 Set<String> extractSeenEvents(Trace trace) {
   var state = IncrementalState();
   final seenEvents = <String>{};
+  final seenTracks = <int>{};
+  final seenTrackDescriptors = <int>{};
   for (var packet in trace.packet) {
     if ((packet.sequenceFlags &
             TracePacket_SequenceFlags.SEQ_INCREMENTAL_STATE_CLEARED.value) !=
@@ -582,12 +771,21 @@ Set<String> extractSeenEvents(Trace trace) {
 
     if (packet.hasTrackEvent()) {
       final trackEvent = packet.trackEvent;
-      if (trackEvent.type == TrackEvent_Type.TYPE_SLICE_BEGIN) {
+      if (trackEvent.type == TrackEvent_Type.TYPE_SLICE_BEGIN ||
+          trackEvent.type == TrackEvent_Type.TYPE_INSTANT) {
         final name = state.eventNames[packet.trackEvent.nameIid.toInt()]!;
         seenEvents.add(name);
       }
+      seenTracks.add(trackEvent.trackUuid.toInt());
+    }
+
+    if (packet.hasTrackDescriptor()) {
+      final trackDescriptor = packet.trackDescriptor;
+      seenTrackDescriptors.add(trackDescriptor.uuid.toInt());
     }
   }
+
+  expect(seenTrackDescriptors, containsAll(seenTracks));
 
   return seenEvents;
 }

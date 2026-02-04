@@ -540,9 +540,9 @@ class CompletionTarget {
           uri = containingNode;
           directive =
               // SimpleString -> Directive
-              containingNode.parent.ifTypeOrNull() ??
+              containingNode.parent.tryCast() ??
               // SimpleString -> Configuration -> Directive
-              containingNode.parent?.parent.ifTypeOrNull();
+              containingNode.parent?.parent.tryCast();
         } else if (containingNode is Comment) {
           for (var reference in containingNode.references) {
             if (reference.offset <= requestOffset &&

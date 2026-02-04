@@ -35,6 +35,66 @@ suggestions
 ''');
   }
 
+  Future<void> test_betweenCascadeDots() async {
+    await computeSuggestions('''
+class A {
+  A m01() => this;
+  A get f01 => this;
+}
+
+void foo(A a) {
+  a.m01().^.m01();
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: getter
+  m01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_betweenCascadeDots_static() async {
+    await computeSuggestions('''
+class A {
+  static A m01() => A();
+  static A get f01 => A();
+}
+
+void foo() {
+  A.^.m01();
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: getter
+  m01
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_betweenNullableCascadeDots() async {
+    await computeSuggestions('''
+class A {
+  A? m01() => this;
+  A get f01 => this;
+}
+
+void foo(A a) {
+  a.m01()?.^.m01();
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: getter
+  m01
+    kind: methodInvocation
+''');
+  }
+
   Future<void> test_privateExtendedClass_otherLibrary() async {
     allowedIdentifiers = const {'_privateMethod'};
     newFile(join(testPackageLibPath, 'lib.dart'), '''

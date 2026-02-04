@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -131,6 +132,19 @@ abstract class FieldDeclaration {
     Expression value, {
     required bool isSynthetic,
   });
+
+  /// Creates an [Initializer] for initializing this field with its declared
+  /// initializer value and removes the initializer expression from the field
+  /// itself.
+  ///
+  /// This is used to support access of primary constructor parameters in the
+  /// field initializers. For instance
+  ///
+  ///     class C(var int a, final int b, int c) {
+  ///       int d = a + b + c;
+  ///     }
+  ///
+  Initializer takePrimaryConstructorFieldInitializer();
 
   /// Ensures that the type of this field declaration has been computed.
   void ensureTypes(
@@ -275,35 +289,12 @@ class RegularFieldDeclaration
         // Coverage-ignore(suite): Not run.
         !_fragment.modifiers.isFinal) {
       internalProblem(
-        codeInternalProblemAlreadyInitialized,
+        diag.internalProblemAlreadyInitialized,
         nameOffset,
         fileUri,
       );
     }
     _encoding.createBodies(coreTypes, initializer);
-  }
-
-  @override
-  void buildFieldInitializer({
-    required TypeInferrer typeInferrer,
-    required CoreTypes coreTypes,
-    required Uri fileUri,
-    Expression? initializer,
-  }) {
-    if (initializer != null) {
-      if (!hasBodyBeenBuilt) {
-        initializer = typeInferrer
-            .inferFieldInitializer(
-              fileUri: fileUri,
-              declaredType: fieldType,
-              initializer: initializer,
-            )
-            .expression;
-        buildBody(coreTypes, initializer);
-      }
-    } else if (!hasBodyBeenBuilt) {
-      buildBody(coreTypes, null);
-    }
   }
 
   @override
@@ -786,6 +777,11 @@ class RegularFieldDeclaration
   ) {
     return hasSetter ? [references.setterReference] : const [];
   }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    return _encoding.takePrimaryConstructorFieldInitializer();
+  }
 }
 
 mixin FieldDeclarationMixin
@@ -953,7 +949,6 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
   Expression? get cachedFieldInitializer => _fieldInitializerCache;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void buildFieldInitializer({
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,

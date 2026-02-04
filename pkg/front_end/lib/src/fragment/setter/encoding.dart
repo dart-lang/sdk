@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -16,6 +18,7 @@ import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/internal_ast.dart';
+import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
@@ -139,6 +142,8 @@ sealed class SetterEncoding {
   List<FormalParameterBuilder>? get formals;
   FunctionNode get function;
 
+  bool get isNoSuchMethodForwarder;
+
   List<TypeParameter>? get thisTypeParameters;
 
   VariableDeclaration? get thisVariable;
@@ -188,11 +193,19 @@ sealed class SetterEncoding {
     ClassHierarchyBase hierarchy,
   );
 
-  VariableDeclaration getFormalParameter(int index);
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  });
 }
 
 mixin _DirectSetterEncodingMixin implements SetterEncoding {
   Procedure? _procedure;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -304,7 +317,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       );
       if (returnType is! VoidType) {
         problemReporting.addProblem(
-          codeNonVoidReturnSetter,
+          diag.nonVoidReturnSetter,
           _fragment.returnType.charOffset!,
           noLength,
           _fragment.fileUri,
@@ -462,12 +475,28 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
+  }
 }
 
 mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   Procedure? _procedure;
+
+  @override
+  bool get isNoSuchMethodForwarder => _procedure!.isNoSuchMethodForwarder;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -592,6 +621,11 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         typeParameters.add(t.parameter);
       }
     }
+    assert(
+      _thisFormal.kind == FormalParameterKind.requiredPositional ||
+          // Coverage-ignore(suite): Not run.
+          _thisFormal.kind == FormalParameterKind.optionalPositional,
+    );
     FunctionNode function =
         new FunctionNode(
             isAbstractOrExternal ? null : new EmptyStatement(),
@@ -636,7 +670,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       );
       if (returnType is! VoidType) {
         problemReporting.addProblem(
-          codeNonVoidReturnSetter,
+          diag.nonVoidReturnSetter,
           _fragment.returnType.charOffset!,
           noLength,
           _fragment.fileUri,
@@ -810,6 +844,19 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   }
 
   @override
-  VariableDeclaration getFormalParameter(int index) =>
-      _fragment.declaredFormals![index].variable!;
+  void registerFunctionBody({
+    required Statement? body,
+    required Scope? scope,
+    required AsyncMarker asyncMarker,
+    required DartType? emittedValueType,
+  }) {
+    if (body != null) {
+      function.registerFunctionBody(
+        body,
+        asyncMarker: asyncMarker,
+        emittedValueType: emittedValueType,
+      );
+    }
+    function.scope = scope;
+  }
 }

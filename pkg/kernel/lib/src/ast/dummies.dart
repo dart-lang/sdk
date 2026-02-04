@@ -374,6 +374,14 @@ final List<MapPatternEntry> emptyListOfMapPatternEntry =
 final VariableDeclaration dummyVariableDeclaration =
     new VariableDeclaration(null, isSynthesized: true);
 
+/// Non-nullable [PositionalParameter] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final PositionalParameter dummyPositionalParameter = new PositionalParameter(
+    cosmeticName: null, type: const DynamicType(), defaultValue: null);
+
 /// Non-nullable [TypeParameter] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be

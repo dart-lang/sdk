@@ -73,6 +73,7 @@ guarded
 guides
 h
 https
+import.memory
 int32x
 interact
 interop
@@ -89,6 +90,7 @@ list.filled
 loadlibrary
 macro
 member(s)
+memorytype
 migrate
 mocking
 modifier
@@ -158,6 +160,7 @@ unavailable
 unsound
 unsupportederror
 v
+webassembly
 wasm:export
 wasm:import
 x

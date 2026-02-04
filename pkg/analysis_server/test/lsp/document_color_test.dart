@@ -21,7 +21,7 @@ void main() {
 class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   late TestCode code;
   late String testFilePath;
-  final uiImportUri = 'package:ui/ui.dart';
+  final uiImportUri = 'dart:ui';
   Range get colorRange => code.range.range;
   set content(String content) => code = TestCode.parse(content);
   Uri get testFileUri => pathContext.toUri(testFilePath);
@@ -397,7 +397,7 @@ var white = [!Color.fromRGBO(191, 128, 64, 1)!];
     // allow a picker, but we want to ensure the generated code needs to add
     // an additional import to reference the `Color` class.
     content = '''
-import 'package:flutter/material.dart' show Colors;^
+^import 'package:flutter/material.dart' show Colors;
 
 const white = [!Colors.white!];
 ''';
@@ -409,7 +409,7 @@ const white = [!Colors.white!];
           start: code.position.position,
           end: code.position.position,
         ),
-        newText: "${eol}import '$uiImportUri';",
+        newText: "import '$uiImportUri';$eol$eol",
       ),
     ];
 
@@ -534,9 +534,11 @@ const red = [!Colors.red!];
 
     var color = colors[0];
     expect(color.range, code.range.range);
+
+    // Material red primary value is 0xFFF44336.
     expect(color.color.alpha, equals(1));
-    expect(color.color.red, equals(1));
-    expect(color.color.green, equals(0));
-    expect(color.color.blue, equals(0));
+    expect(color.color.red, inInclusiveRange(0xF3 / 0xFF, 0xF5 / 0xFF));
+    expect(color.color.green, inInclusiveRange(0x42 / 0xFF, 0x44 / 0xFF));
+    expect(color.color.blue, inInclusiveRange(0x35 / 0xFF, 0x37 / 0xFF));
   }
 }

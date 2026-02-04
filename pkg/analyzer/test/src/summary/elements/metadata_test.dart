@@ -4369,6 +4369,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable e1
           reference: <testLibrary>::@enum::E::@getter::e1
@@ -6956,6 +6957,7 @@ library
         synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
+          superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         synthetic static isOriginVariable a
           reference: <testLibrary>::@enum::E::@getter::a

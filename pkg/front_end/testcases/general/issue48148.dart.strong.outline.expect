@@ -13,25 +13,25 @@ abstract class HBase<HKT extends self::HKind> extends core::Object implements se
 }
 class HBaseComposite<HKT extends self::HKindValid, CHILD extends self::HBase<self::HBaseComposite::HKT> = self::HBase<self::HKindValid>> extends core::Object implements self::HBase<self::HBaseComposite::HKT> /*hasConstConstructor*/  {
   final field core::List<self::HBaseComposite::CHILD> children;
-  const constructor •(final core::List<self::HBaseComposite::CHILD> children) → self::HBaseComposite<self::HBaseComposite::HKT, self::HBaseComposite::CHILD>
+  const constructor •(core::List<self::HBaseComposite::CHILD> children) → self::HBaseComposite<self::HBaseComposite::HKT, self::HBaseComposite::CHILD>
     : self::HBaseComposite::children = children, super core::Object::•()
     ;
 }
 class HBaseChild<HKT extends self::HKindValid, CHILD extends self::HBase<self::HBaseChild::HKT> = self::HBase<self::HKindValid>> extends core::Object implements self::HBase<self::HBaseChild::HKT> /*hasConstConstructor*/  {
   final field self::HBaseChild::CHILD child;
-  const constructor •(final self::HBaseChild::CHILD child) → self::HBaseChild<self::HBaseChild::HKT, self::HBaseChild::CHILD>
+  const constructor •(self::HBaseChild::CHILD child) → self::HBaseChild<self::HBaseChild::HKT, self::HBaseChild::CHILD>
     : self::HBaseChild::child = child, super core::Object::•()
     ;
 }
 class HBaseLeaf<HKT extends self::HKindValid> extends core::Object implements self::HBase<self::HBaseLeaf::HKT> /*hasConstConstructor*/  {
   final field core::int data;
-  const constructor •(final core::int data) → self::HBaseLeaf<self::HBaseLeaf::HKT>
+  const constructor •(core::int data) → self::HBaseLeaf<self::HBaseLeaf::HKT>
     : self::HBaseLeaf::data = data, super core::Object::•()
     ;
 }
 class HBaseError<HKT extends self::HKindInvalid> extends core::Object implements self::HBase<self::HBaseError::HKT> /*hasConstConstructor*/  {
   final field core::String errorMessage;
-  const constructor •(final core::String errorMessage) → self::HBaseError<self::HBaseError::HKT>
+  const constructor •(core::String errorMessage) → self::HBaseError<self::HBaseError::HKT>
     : self::HBaseError::errorMessage = errorMessage, super core::Object::•()
     ;
 }

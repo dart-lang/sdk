@@ -321,11 +321,6 @@ abstract class DiagnosticMessage extends base.SummaryClass {
 /// Enum used to indicate the kind of an index relation.
 enum IndexRelationKind {
   /// Left: class.
-  ///   Is ancestor of (is extended or implemented, directly or indirectly).
-  /// Right: other class declaration.
-  IS_ANCESTOR_OF,
-
-  /// Left: class.
   ///   Is extended by.
   /// Right: other class declaration.
   IS_EXTENDED_BY,
@@ -382,6 +377,11 @@ enum IndexRelationKind {
   ///   the name of the constructor is required (`new` for unnamed).
   /// Right: location.
   IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF,
+
+  /// Left: a parameter.
+  ///   Is referenced by a named argument.
+  /// Right: named argument.
+  IS_REFERENCED_BY_NAMED_ARGUMENT,
 
   /// Left: unresolved member name.
   ///   Is read at.

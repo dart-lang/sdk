@@ -982,11 +982,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var contextType = _computeContextType(node);
       contextType = _resolveFutureOrType(contextType);
       if (contextType is! InterfaceType) return;
-      declarationHelper(
-        mustBeConstant: node.isConst,
-        suggestingDotShorthand: true,
-        suggestUnnamedAsNew: true,
-      ).addConstructorNamesForType(type: contextType);
+      if (contextType.element.isAccessibleIn(state.libraryElement)) {
+        declarationHelper(
+          mustBeConstant: node.isConst,
+          suggestingDotShorthand: true,
+          suggestUnnamedAsNew: true,
+        ).addConstructorNamesForType(type: contextType);
+      }
     }
   }
 
@@ -1000,12 +1002,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
       var element = contextType.element;
       if (element == null) return;
-
-      declarationHelper(
-        mustBeConstant: node.inConstantContext,
-        suggestingDotShorthand: true,
-        suggestUnnamedAsNew: true,
-      ).addStaticMembersOfElement(element);
+      if (element.isAccessibleIn(state.libraryElement)) {
+        declarationHelper(
+          mustBeConstant: node.inConstantContext,
+          suggestingDotShorthand: true,
+          suggestUnnamedAsNew: true,
+        ).addStaticMembersOfElement(element);
+      }
     }
   }
 
@@ -1021,14 +1024,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // Add all getters, methods, and constructors.
     // When the user needs completing with a `.` or a `.prefix`, the suggestions
     // can be any of the three.
-    declarationHelper(
-      suggestingDotShorthand: true,
-      mustBeConstant: node.inConstantContext,
-      preferNonInvocation:
-          element is InterfaceElement &&
-          state.request.shouldSuggestTearOff(element),
-      suggestUnnamedAsNew: true,
-    ).addStaticMembersOfElement(element);
+    if (element.isAccessibleIn(state.libraryElement)) {
+      declarationHelper(
+        suggestingDotShorthand: true,
+        mustBeConstant: node.inConstantContext,
+        preferNonInvocation:
+            element is InterfaceElement &&
+            state.request.shouldSuggestTearOff(element),
+        suggestUnnamedAsNew: true,
+      ).addStaticMembersOfElement(element);
+    }
   }
 
   @override
@@ -1403,7 +1408,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (declaredElement is FieldFormalParameterElement) {
         field = declaredElement.field;
       }
-      declarationHelper().addFieldsForInitializers(constructor, field);
+      if (node.thisKeyword.offset >= offset && node.requiredKeyword == null) {
+        keywordHelper.addKeyword(.REQUIRED);
+      }
+      if (node.thisKeyword.offset >= offset &&
+          (node.requiredKeyword == null ||
+              node.requiredKeyword!.end <= offset)) {
+        declarationHelper(mustBeType: true).addLexicalDeclarations(node);
+      }
+      if (node.period.end <= offset) {
+        declarationHelper().addFieldsForInitializers(constructor, field);
+      }
     }
   }
 
@@ -2059,7 +2074,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       return;
     }
-    if ((node.isCascaded && offset == operator.offset + 1) ||
+    if ((node.isCascaded && offset + 1 == operator.end) ||
         (offset >= operator.end && offset <= node.methodName.end)) {
       var target = node.realTarget;
       var type = target?.staticType;
@@ -2068,7 +2083,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
-          (!node.isCascaded || offset == operator.offset + 1)) {
+          (!node.isCascaded || offset + 1 == operator.end)) {
         var element = target.element;
         if (element is InterfaceElement || element is ExtensionTypeElement) {
           declarationHelper().addStaticMembersOfElement(element!);
@@ -2629,7 +2644,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       if ((type == null || type is InvalidType || type.isDartCoreType) &&
           target is Identifier &&
-          (!node.isCascaded || offset == operator.offset + 1)) {
+          (!node.isCascaded || offset + 1 == operator.end)) {
         var element = target.element;
         if (element is InterfaceElement || element is ExtensionTypeElement) {
           declarationHelper().addStaticMembersOfElement(element!);
@@ -3590,12 +3605,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   bool _computeMustBeAssignable(Expression node) {
     var request = state.request;
-    var lineInfo = request.fileState.lineInfo;
     if (node.parent case AssignmentExpression assignment) {
       if (assignment.leftHandSide == node) {
-        var requestLoc = lineInfo.getLocation(request.offset);
-        var opLoc = lineInfo.getLocation(assignment.operator.offset);
-        return requestLoc.lineNumber == opLoc.lineNumber;
+        return request.fileState.lineInfo.onSameLine(
+          request.offset,
+          assignment.operator.offset,
+        );
       }
     }
     return false;

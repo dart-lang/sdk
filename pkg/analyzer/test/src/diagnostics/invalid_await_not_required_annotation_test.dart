@@ -99,6 +99,17 @@ int x = 0;
     );
   }
 
+  test_invalid_typedef_intReturnType() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+@awaitNotRequired
+typedef Td = int Function();
+''',
+      [error(diag.invalidAwaitNotRequiredAnnotation, 34, 16)],
+    );
+  }
+
   test_valid_field_futureReturnType() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -116,6 +127,13 @@ class C {
   @awaitNotRequired
   var x = Future.value(7);
 }
+''');
+  }
+
+  test_valid_field_futureReturnType_originPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+class C(@awaitNotRequired final Future<int> x);
 ''');
   }
 
@@ -182,6 +200,14 @@ class D extends C {
 import 'package:meta/meta.dart';
 @awaitNotRequired
 Future<int> x = Future.value(7);
+''');
+  }
+
+  test_valid_typedef_futureReturnType() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+@awaitNotRequired
+typedef Td = Future<void> Function();
 ''');
   }
 }

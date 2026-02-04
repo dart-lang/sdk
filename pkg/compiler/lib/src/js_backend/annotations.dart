@@ -91,7 +91,7 @@ enum PragmaAnnotation {
   lateCheck('late:check'),
 
   loadLibraryPriority('load-priority', hasOption: true),
-  resourceIdentifier('resource-identifier'),
+  recordUse('record-use'),
 
   throwWithoutHelperFrame('stack-starts-at-throw'),
 
@@ -117,10 +117,11 @@ enum PragmaAnnotation {
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
     typesTrust: {parameterTrust, downcastTrust},
     typesCheck: {parameterCheck, downcastCheck},
+    recordUse: {noInline},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> excludes = {
     noInline: {tryInline},
-    tryInline: {noInline, resourceIdentifier},
+    tryInline: {noInline, recordUse},
     typesTrust: {typesCheck, parameterCheck, downcastCheck},
     typesCheck: {typesTrust, parameterTrust, downcastTrust},
     parameterTrust: {parameterCheck},
@@ -131,7 +132,7 @@ enum PragmaAnnotation {
     asCheck: {asTrust},
     lateTrust: {lateCheck},
     lateCheck: {lateTrust},
-    resourceIdentifier: {tryInline},
+    recordUse: {tryInline},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
     noThrows: {noInline},
@@ -143,6 +144,7 @@ enum PragmaAnnotation {
     // Aliases
     'never-inline': noInline,
     'prefer-inline': tryInline,
+    'resource-identifier': recordUse,
   };
 }
 
@@ -211,6 +213,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
   }
 
   Map<PragmaAnnotation, EnumSet<PragmaAnnotation>> reportedExclusions = {};
+  EnumSet<PragmaAnnotation> impliedAnnotations = EnumSet.empty();
   for (PragmaAnnotation annotation in annotations.iterable(
     PragmaAnnotation.values,
   )) {
@@ -227,6 +230,8 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
                   "@pragma('dart2js:${other.name}').",
             },
           );
+        } else {
+          impliedAnnotations = impliedAnnotations.add(other);
         }
       }
     }
@@ -269,7 +274,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
       }
     }
   }
-  return annotations;
+  return annotations.union(impliedAnnotations);
 }
 
 abstract class AnnotationsData {
@@ -360,8 +365,8 @@ abstract class AnnotationsData {
   /// loader.
   String getLoadLibraryPriority(ir.LoadLibrary node);
 
-  /// Determines whether [member] is annotated as a resource identifier.
-  bool methodIsResourceIdentifier(FunctionEntity member);
+  /// Determines whether [member] is annotated with `RecordUse()`.
+  bool shouldRecordMethodUses(FunctionEntity member);
 
   /// Is this node in a context requesting that the captured stack in a `throw`
   /// expression generates extra code to avoid having a runtime helper on the
@@ -493,11 +498,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.typesTrust)) {
-          return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
-          return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.parameterTrust)) {
+        if (annotations.contains(PragmaAnnotation.parameterTrust)) {
           return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.parameterCheck)) {
           return CheckPolicy.checked;
@@ -512,11 +513,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.typesTrust)) {
-          return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
-          return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.downcastTrust)) {
+        if (annotations.contains(PragmaAnnotation.downcastTrust)) {
           return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.downcastCheck)) {
           return CheckPolicy.checked;
@@ -531,11 +528,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.typesTrust)) {
-          return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
-          return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.downcastTrust)) {
+        if (annotations.contains(PragmaAnnotation.downcastTrust)) {
           return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.downcastCheck)) {
           return CheckPolicy.checked;
@@ -654,10 +647,10 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  bool methodIsResourceIdentifier(MemberEntity member) {
+  bool shouldRecordMethodUses(MemberEntity member) {
     EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
     if (annotations != null) {
-      if (annotations.contains(PragmaAnnotation.resourceIdentifier)) {
+      if (annotations.contains(PragmaAnnotation.recordUse)) {
         return true;
       }
     }

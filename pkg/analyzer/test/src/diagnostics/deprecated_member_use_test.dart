@@ -437,6 +437,7 @@ class A {
   @deprecated
   A();
 }
+void wantA(A _) {}
 ''');
 
     await assertErrorsInCode(
@@ -444,12 +445,13 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .new();
+  wantA(.new());
 }
 ''',
       [
-        error(diag.deprecatedMemberUse, 43, 1),
-        error(diag.unusedLocalVariable, 45, 1),
+        // TODO(srawlins): This seems like a wide range (`.new()`). Could be
+        // more specific.
+        error(diag.deprecatedMemberUse, 49, 6),
         error(diag.deprecatedMemberUse, 50, 3),
       ],
     );
@@ -461,6 +463,7 @@ void f() {
 class A {
   A();
 }
+void wantA(A _) {}
 ''');
 
     await assertErrorsInCode(
@@ -468,13 +471,10 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .new();
+  wantA(.new());
 }
 ''',
-      [
-        error(diag.deprecatedMemberUse, 43, 1),
-        error(diag.unusedLocalVariable, 45, 1),
-      ],
+      [error(diag.deprecatedMemberUse, 49, 6)],
     );
   }
 
@@ -484,6 +484,7 @@ void f() {
 class A {
   A.a();
 }
+void wantA(A _) {}
 ''');
 
     await assertErrorsInCode(
@@ -491,13 +492,10 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .a();
+  wantA(.a());
 }
 ''',
-      [
-        error(diag.deprecatedMemberUse, 43, 1),
-        error(diag.unusedLocalVariable, 45, 1),
-      ],
+      [error(diag.deprecatedMemberUse, 49, 4)],
     );
   }
 
@@ -508,14 +506,14 @@ class A {
   @deprecated
   A.named(int i) {}
 }
+void wantA(A _) {}
 ''',
       code: r'''
 f() {
-  A a = .named(1);
+  wantA(.named(1));
 }
 ''',
       [
-        error(diag.unusedLocalVariable, 39, 1),
         error(
           diag.deprecatedMemberUse,
           44,
@@ -532,6 +530,7 @@ class A {
   @deprecated
   A();
 }
+void wantA(A _) {}
 ''');
 
     await assertErrorsInCode(
@@ -539,13 +538,10 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .new();
+  wantA(.new());
 }
 ''',
-      [
-        error(diag.unusedLocalVariable, 45, 1),
-        error(diag.deprecatedMemberUse, 50, 3),
-      ],
+      [error(diag.deprecatedMemberUse, 50, 3)],
     );
   }
 
@@ -555,6 +551,7 @@ class A {
   @deprecated
   static A m() => A();
 }
+void wantA(A _) {}
 ''');
 
     await assertErrorsInCode(
@@ -562,13 +559,31 @@ class A {
 import 'package:aaa/a.dart';
 
 void f() {
-  A a = .m();
+  wantA(.m());
 }
 ''',
-      [
-        error(diag.unusedLocalVariable, 45, 1),
-        error(diag.deprecatedMemberUse, 50, 1),
-      ],
+      [error(diag.deprecatedMemberUse, 50, 1)],
+    );
+  }
+
+  test_dotShorthandPropertyAccess() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @deprecated
+  static A get x => A();
+}
+void wantA(A _) {}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  wantA(.x);
+}
+''',
+      [error(diag.deprecatedMemberUse, 50, 1)],
     );
   }
 
@@ -1318,15 +1333,35 @@ void f(A a) {
   }
 
   test_methodInvocation_inDeprecatedConstructor() async {
+    newFile('$testPackageLibPath/lib2.dart', r'''
+@deprecated
+void foo() {}
+''');
+
     await assertNoErrorsInCode(r'''
+import 'lib2.dart';
 class A {
   @deprecated
   A() {
     foo();
   }
+}
+''');
+  }
 
+  test_methodInvocation_inDeprecatedPrimaryConstructor() async {
+    newFile('$testPackageLibPath/lib2.dart', r'''
+@deprecated
+void foo() {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'lib2.dart';
+class A() {
   @deprecated
-  void foo() {}
+  this {
+    foo();
+  }
 }
 ''');
   }
@@ -1579,6 +1614,18 @@ void f(A a) {
     );
   }
 
+  test_parameter_namedInPrimaryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class A({@deprecated int x = 0});
+''',
+      code: '''
+var x = A(x: 7);
+''',
+      [error(diag.deprecatedMemberUse, 39, 1)],
+    );
+  }
+
   test_parameter_positionalOptional() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -1627,6 +1674,34 @@ void f(A a) {
     );
   }
 
+  test_parameter_positionalOptional_inDeprecatedPrimaryConstructor() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+void foo([@deprecated int x = 0]) {}
+''',
+      code: r'''
+class A() {
+  @deprecated
+  this {
+    foo(0);
+  }
+}
+''',
+    );
+  }
+
+  test_parameter_positionalOptionalInPrimaryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class A([@deprecated int x = 0]);
+''',
+      code: '''
+var x = A(7);
+''',
+      [error(diag.deprecatedMemberUse, 39, 1)],
+    );
+  }
+
   test_parameter_positionalRequired() async {
     await assertNoErrorsInCode2(
       externalCode: r'''
@@ -1658,6 +1733,25 @@ class B extends A {
 }
 ''',
       [error(diag.deprecatedMemberUse, 64, 1)],
+    );
+  }
+
+  test_parameterInSuper_explicitInvocation_inPrimaryConstructorBody() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B() extends A {
+  this : super(7);
+}
+''',
+      [error(diag.deprecatedMemberUse, 67, 1)],
     );
   }
 
@@ -1715,6 +1809,20 @@ class B extends A {
 ''');
   }
 
+  test_parameterInSuper_implicitArgument_alsoDeprecated_inPrimaryConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+class B([@deprecated super.p]) extends A;
+''');
+  }
+
   test_parameterInSuper_implicitArgument_explicitInvocation() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
@@ -1731,6 +1839,42 @@ class B extends A {
 }
 ''',
       [error(diag.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
+  test_parameterInSuper_implicitArgument_explicitInvocation_inPrimaryConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A.named([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B([super.p]) extends A {
+  this : super.named();
+}
+''',
+      [error(diag.deprecatedMemberUse, 39, 7)],
+    );
+  }
+
+  test_parameterInSuper_implicitArgument_inPrimaryConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B([super.p]) extends A;
+''',
+      [error(diag.deprecatedMemberUse, 39, 7)],
     );
   }
 
@@ -2087,6 +2231,30 @@ class B extends A {
           57,
           13,
           text: "'A.named' is deprecated and shouldn't be used.",
+        ),
+      ],
+    );
+  }
+
+  test_superConstructor_primaryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class A() {
+  @deprecated
+  this;
+}
+''',
+      code: r'''
+class B extends A {
+  B() : super();
+}
+''',
+      [
+        error(
+          diag.deprecatedMemberUse,
+          57,
+          7,
+          text: "'A' is deprecated and shouldn't be used.",
         ),
       ],
     );

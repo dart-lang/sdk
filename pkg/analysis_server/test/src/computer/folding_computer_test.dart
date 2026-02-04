@@ -314,6 +314,38 @@ void f() {
     expectRegions({0: FoldingKind.COMMENT}, onlyVerify: commentKinds);
   }
 
+  Future<void> test_constructor() async {
+    var content = '''
+// Content before
+
+class C/*[0*/ {
+  C/*[1*/() {
+    //
+  }/*1]*/
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.CLASS_BODY, 1: FoldingKind.FUNCTION_BODY});
+  }
+
+  Future<void> test_constructor_emptyBody_semicolon() async {
+    var content = '''
+// Content before
+
+class C/*[0*/ {
+  C();
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.CLASS_BODY});
+  }
+
   Future<void> test_constructor_invocations() async {
     var content = '''
 // Content before
@@ -327,6 +359,40 @@ final a = new Text(/*[0*/
 
     await _computeRegions(content);
     expectRegions({0: FoldingKind.INVOCATION});
+  }
+
+  Future<void> test_constructor_named() async {
+    var content = '''
+// Content before
+
+class C/*[0*/ {
+  C.foo/*[1*/() {
+    //
+  }/*1]*/
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.CLASS_BODY, 1: FoldingKind.FUNCTION_BODY});
+  }
+
+  Future<void> test_constructor_new() async {
+    var content = '''
+// Content before
+
+class C/*[0*/ {
+  new/*[1*/() {
+    //
+  }/*1]*/
+}/*0]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.CLASS_BODY, 1: FoldingKind.FUNCTION_BODY});
   }
 
   Future<void> test_extensionType() async {
@@ -1023,6 +1089,103 @@ class C/*[0*/ {
       1: FoldingKind.FUNCTION_BODY,
       2: FoldingKind.PARAMETERS,
     });
+  }
+
+  Future<void> test_primaryConstructor_constructorBody() async {
+    var content = '''
+// Content before
+
+class C(/*[0*/
+  var int x,
+  var int y,
+/*0]*/)/*[1*/ {
+  this/*[2*/ {
+    print('');
+  }/*2]*/
+}/*1]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.PARAMETERS,
+      1: FoldingKind.CLASS_BODY,
+      2: FoldingKind.FUNCTION_BODY,
+    });
+  }
+
+  Future<void> test_primaryConstructor_constructorInitializer() async {
+    var content = '''
+// Content before
+
+class C(/*[0*/
+  var int x,
+  var int y,
+/*0]*/)/*[1*/ {
+  this/*[2*/ : xPlus = x+1,
+    yPlus = y+1;/*2]*/
+}/*1]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.PARAMETERS,
+      1: FoldingKind.CLASS_BODY,
+      2: FoldingKind.FUNCTION_BODY,
+    });
+  }
+
+  Future<void> test_primaryConstructor_emptyClassBody_braces() async {
+    var content = '''
+// Content before
+
+class C(/*[0*/
+  var int x,
+  var int y,
+/*0]*/) extends Object {}
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.PARAMETERS});
+  }
+
+  Future<void> test_primaryConstructor_emptyClassBody_semicolon() async {
+    var content = '''
+// Content before
+
+class C(/*[0*/
+  var int x,
+  var int y,
+/*0]*/) extends Object;
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.PARAMETERS});
+  }
+
+  Future<void> test_primaryConstructor_nonEmptyClassBody() async {
+    var content = '''
+// Content before
+
+class C(/*[0*/
+  var int x,
+  var int y,
+/*0]*/)/*[1*/ {
+  //
+}/*1]*/
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({0: FoldingKind.PARAMETERS, 1: FoldingKind.CLASS_BODY});
   }
 
   Future<void> test_single_import_directives() async {

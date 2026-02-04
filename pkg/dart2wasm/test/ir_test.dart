@@ -63,6 +63,7 @@ void main(List<String> args) async {
         'bash',
         'pkg/dart2wasm/tool/compile_benchmark',
         for (final option in compilerOptions) '--extra-compiler-option=$option',
+        '--extra-compiler-option=--no-unique-constant-names',
         if (runFromSource) '--src',
         '--no-strip-wasm',
         '-o',

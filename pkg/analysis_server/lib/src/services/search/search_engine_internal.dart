@@ -344,46 +344,32 @@ class SearchMatchImpl implements SearchMatch {
   }
 
   static MatchKind toMatchKind(SearchResultKind kind) {
-    if (kind == SearchResultKind.READ) {
-      return MatchKind.READ;
-    }
-    if (kind == SearchResultKind.READ_WRITE) {
-      return MatchKind.READ_WRITE;
-    }
-    if (kind == SearchResultKind.WRITE) {
-      return MatchKind.WRITE;
-    }
-    if (kind == SearchResultKind.INVOCATION) {
-      return MatchKind.INVOCATION;
-    }
-    if (kind == SearchResultKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF) {
-      return MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF;
-    }
-    if (kind == SearchResultKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION) {
-      return MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION;
-    }
-    if (kind ==
-        SearchResultKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS) {
-      return MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS;
-    }
-    if (kind == SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF) {
-      return MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
-    }
-    if (kind == SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE) {
-      return MatchKind.REFERENCE_IN_EXTENDS_CLAUSE;
-    }
-    if (kind == SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE) {
-      return MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE;
-    }
-    if (kind == SearchResultKind.REFERENCE_IN_ON_CLAUSE) {
-      return MatchKind.REFERENCE_IN_ON_CLAUSE;
-    }
-    if (kind == SearchResultKind.REFERENCE_IN_WITH_CLAUSE) {
-      return MatchKind.REFERENCE_IN_WITH_CLAUSE;
-    }
-    if (kind == SearchResultKind.REFERENCE_IN_PATTERN_FIELD) {
-      return MatchKind.REFERENCE_IN_PATTERN_FIELD;
-    }
-    return MatchKind.REFERENCE;
+    return switch (kind) {
+      SearchResultKind.READ => MatchKind.READ,
+      SearchResultKind.READ_WRITE => MatchKind.READ_WRITE,
+      SearchResultKind.WRITE => MatchKind.WRITE,
+      SearchResultKind.INVOCATION => MatchKind.INVOCATION,
+      SearchResultKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF =>
+        MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF,
+      SearchResultKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION =>
+        MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION,
+      SearchResultKind.REFERENCE_BY_NAMED_ARGUMENT =>
+        MatchKind.REFERENCE_BY_NAMED_ARGUMENT,
+      SearchResultKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS =>
+        MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS,
+      SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF =>
+        MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+      SearchResultKind.REFERENCE_IN_EXTENDS_CLAUSE =>
+        MatchKind.REFERENCE_IN_EXTENDS_CLAUSE,
+      SearchResultKind.REFERENCE_IN_IMPLEMENTS_CLAUSE =>
+        MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE,
+      SearchResultKind.REFERENCE_IN_ON_CLAUSE =>
+        MatchKind.REFERENCE_IN_ON_CLAUSE,
+      SearchResultKind.REFERENCE_IN_WITH_CLAUSE =>
+        MatchKind.REFERENCE_IN_WITH_CLAUSE,
+      SearchResultKind.REFERENCE_IN_PATTERN_FIELD =>
+        MatchKind.REFERENCE_IN_PATTERN_FIELD,
+      _ => MatchKind.REFERENCE,
+    };
   }
 }

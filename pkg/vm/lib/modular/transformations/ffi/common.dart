@@ -9,17 +9,8 @@ library vm.transformations.ffi;
 
 // This imports 'codes/cfe_codes.dart' instead of 'api_prototype/codes.dart' to
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
-import 'package:front_end/src/codes/cfe_codes.dart'
-    show
-        codeFfiLeafCallMustNotReturnHandle,
-        codeFfiLeafCallMustNotTakeHandle,
-        codeFfiVariableLengthArrayNotLast,
-        codeNegativeVariableDimension,
-        codeNonPositiveArrayDimensions,
-        codeFfiSizeAnnotation,
-        codeFfiSizeAnnotationDimensions,
-        codeFfiTypeInvalid,
-        codeFfiTypeMismatch;
+
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -1477,7 +1468,9 @@ class FfiTransformer extends Transformer {
         variableLength = sizeAnnotations.single.$2;
         if (arrayDimensions(type) != dimensions.length) {
           diagnosticReporter.report(
-            codeFfiSizeAnnotationDimensions.withArgumentsOld(node.name.text),
+            diag.ffiSizeAnnotationDimensions.withArguments(
+              fieldName: node.name.text,
+            ),
             node.fileOffset,
             node.name.text.length,
             node.fileUri,
@@ -1486,7 +1479,7 @@ class FfiTransformer extends Transformer {
         if (variableLength) {
           if (!allowVariableLength) {
             diagnosticReporter.report(
-              codeFfiVariableLengthArrayNotLast,
+              diag.ffiVariableLengthArrayNotLast,
               node.fileOffset,
               node.name.text.length,
               node.fileUri,
@@ -1499,7 +1492,7 @@ class FfiTransformer extends Transformer {
             // Variable dimension can't be negative.
             if (dimensions[0] < 0) {
               diagnosticReporter.report(
-                codeNegativeVariableDimension,
+                diag.negativeVariableDimension,
                 node.fileOffset,
                 node.name.text.length,
                 node.fileUri,
@@ -1510,7 +1503,7 @@ class FfiTransformer extends Transformer {
 
           if (dimensions[i] <= 0) {
             diagnosticReporter.report(
-              codeNonPositiveArrayDimensions,
+              diag.nonPositiveArrayDimensions,
               node.fileOffset,
               node.name.text.length,
               node.fileUri,
@@ -1521,7 +1514,7 @@ class FfiTransformer extends Transformer {
       }
     } else {
       diagnosticReporter.report(
-        codeFfiSizeAnnotation.withArgumentsOld(node.name.text),
+        diag.ffiSizeAnnotation.withArguments(fieldName: node.name.text),
         node.fileOffset,
         node.name.text.length,
         node.fileUri,
@@ -1866,7 +1859,7 @@ class FfiTransformer extends Transformer {
       if (returnType is InterfaceType) {
         if (returnType.classNode == handleClass) {
           diagnosticReporter.report(
-            codeFfiLeafCallMustNotReturnHandle,
+            diag.ffiLeafCallMustNotReturnHandle,
             reportErrorOn.fileOffset,
             1,
             reportErrorOn.location?.file,
@@ -1878,7 +1871,7 @@ class FfiTransformer extends Transformer {
       for (DartType param in functionType.positionalParameters) {
         if ((param as InterfaceType).classNode == handleClass) {
           diagnosticReporter.report(
-            codeFfiLeafCallMustNotTakeHandle,
+            diag.ffiLeafCallMustNotTakeHandle,
             reportErrorOn.fileOffset,
             1,
             reportErrorOn.location?.file,
@@ -1951,10 +1944,10 @@ class FfiTransformer extends Transformer {
         }
     }
     diagnosticReporter.report(
-      codeFfiTypeMismatch.withArgumentsOld(
-        dartType,
-        correspondingDartType,
-        nativeType,
+      diag.ffiTypeMismatch.withArguments(
+        actualType: dartType,
+        expectedType: correspondingDartType,
+        nativeType: nativeType,
       ),
       reportErrorOn.fileOffset,
       1,
@@ -1979,7 +1972,7 @@ class FfiTransformer extends Transformer {
       allowVoid: allowVoid,
     )) {
       diagnosticReporter.report(
-        codeFfiTypeInvalid.withArgumentsOld(nativeType),
+        diag.ffiTypeInvalid.withArguments(type: nativeType),
         reportErrorOn.fileOffset,
         1,
         reportErrorOn.location?.file,

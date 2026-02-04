@@ -127,6 +127,16 @@ class LineInfo {
     return getOffsetOfLine(getLocation(offset).lineNumber);
   }
 
+  /// Return the difference in line numbers between [offset1] and [offset2].
+  int lineNumberDifference(int offset1, int offset2) {
+    return getLocation(offset2).lineNumber - getLocation(offset1).lineNumber;
+  }
+
+  /// Return whether both [offset1] and [offset2] are on the same line.
+  bool onSameLine(int offset1, int offset2) {
+    return lineNumberDifference(offset1, offset2) == 0;
+  }
+
   /// Get the offset of the 0-indexed line [line] in [content].
   ///
   /// If [line] does not exist it will return null.

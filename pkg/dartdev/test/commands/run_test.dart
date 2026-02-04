@@ -25,8 +25,9 @@ const devToolsMessagePrefix =
     'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
 const dartVMServiceMessagePrefix =
     'The Dart VM service is listening on http://127.0.0.1:';
-final dartVMServiceRegExp =
-    RegExp(r'The Dart VM service is listening on (http://127.0.0.1:.*)');
+final dartVMServiceRegExp = RegExp(
+  r'The Dart VM service is listening on (http://127.0.0.1:.*)',
+);
 const residentFrontendCompilerPrefix =
     'The Resident Frontend Compiler is listening at 127.0.0.1:';
 const dtdMessagePrefix = 'The Dart Tooling Daemon (DTD) is available at:';
@@ -104,8 +105,10 @@ void run() {
     p = project();
     var result = await p.run(['run', '--help']);
 
-    expect(result.stdout,
-        contains('Run a Dart program from a file or a local package.'));
+    expect(
+      result.stdout,
+      contains('Run a Dart program from a file or a local package.'),
+    );
     expect(result.stdout, contains('Debugging options:'));
     expect(
       result.stdout,
@@ -121,8 +124,10 @@ void run() {
     p = project();
     var result = await p.run(['run', '--help', '--verbose']);
 
-    expect(result.stdout,
-        contains('Run a Dart program from a file or a local package.'));
+    expect(
+      result.stdout,
+      contains('Run a Dart program from a file or a local package.'),
+    );
     expect(result.stdout, contains('Debugging options:'));
     expect(
       result.stdout,
@@ -145,8 +150,10 @@ void run() {
 
   test('no such file', () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
-    ProcessResult result =
-        await p.run(['run', 'no/such/file/${p.relativeFilePath}']);
+    ProcessResult result = await p.run([
+      'run',
+      'no/such/file/${p.relativeFilePath}',
+    ]);
 
     expect(result.stderr, isNotEmpty);
     expect(result.exitCode, isNot(0));
@@ -172,58 +179,61 @@ void run() {
 
     expect(result.stdout, isEmpty);
     expect(
-        result.stderr,
-        contains('Could not find `bin${path.separator}dartdev_temp.dart` in '
-            'package `dartdev_temp`.'));
+      result.stderr,
+      contains(
+        'Could not find `bin${path.separator}dartdev_temp.dart` in '
+        'package `dartdev_temp`.',
+      ),
+    );
     expect(result.exitCode, 255);
   });
 
-  test('experiments are enabled correctly', () async {
-    // TODO(bkonyi): find a more robust way to test experiments by exposing
-    // enabled experiments for an isolate (e.g., through dart:developer or the
-    // VM service).
-    //
-    // See https://github.com/dart-lang/sdk/issues/50230
-    p = project(sdkConstraint: VersionConstraint.parse('>=3.0.0-0 <4.0.0'));
-    p.file('main.dart', 'void main(args) { print("Record: \${(1, 2)}"); }');
-    ProcessResult result = await p.run([
-      'run',
-      '--enable-experiment=records',
-      'main.dart',
-    ]);
+  test(
+    'experiments are enabled correctly',
+    () async {
+      // TODO(bkonyi): find a more robust way to test experiments by exposing
+      // enabled experiments for an isolate (e.g., through dart:developer or the
+      // VM service).
+      //
+      // See https://github.com/dart-lang/sdk/issues/50230
+      p = project(sdkConstraint: VersionConstraint.parse('>=3.0.0-0 <4.0.0'));
+      p.file('main.dart', 'void main(args) { print("Record: \${(1, 2)}"); }');
+      ProcessResult result = await p.run([
+        'run',
+        '--enable-experiment=records',
+        'main.dart',
+      ]);
 
-    // The records experiment should be enabled.
-    expect(result.stdout, contains('Record: '));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
+      // The records experiment should be enabled.
+      expect(result.stdout, contains('Record: '));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
 
-    // Run again with the experiment disabled to make sure the test is actually
-    // working as expected.
-    result = await p.run([
-      'run',
-      'main.dart',
-    ]);
+      // Run again with the experiment disabled to make sure the test is actually
+      // working as expected.
+      result = await p.run(['run', 'main.dart']);
 
-    // The records experiment should not be enabled and the program should fail
-    // to run.
-    expect(result.stdout, isEmpty);
-    expect(result.stderr, isNotEmpty);
-    expect(result.exitCode, 254);
+      // The records experiment should not be enabled and the program should fail
+      // to run.
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isNotEmpty);
+      expect(result.exitCode, 254);
 
-    p.file('bin/main.dart', 'void main(args) { print("Record: \${(1, 2)}"); }');
-    // Run again with the package-syntax
-    result = await p.run([
-      'run',
-      '--enable-experiment=records',
-      ':main',
-    ]);
+      p.file(
+        'bin/main.dart',
+        'void main(args) { print("Record: \${(1, 2)}"); }',
+      );
+      // Run again with the package-syntax
+      result = await p.run(['run', '--enable-experiment=records', ':main']);
 
-    // The records experiment should not be enabled and the program should fail
-    // to run.
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Record: '));
-    expect(result.exitCode, 0);
-  }, skip: 'records are enabled by default in 3.0');
+      // The records experiment should not be enabled and the program should fail
+      // to run.
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('Record: '));
+      expect(result.exitCode, 0);
+    },
+    skip: 'records are enabled by default in 3.0',
+  );
 
   test('arguments are properly passed', () async {
     p = project();
@@ -321,7 +331,8 @@ void main(List<String> args) => print("$b $args");
     void onData1(event) {
       if (event.contains('The Dart VM service is listening on')) {
         final re = RegExp(
-            r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/[a-zA-Z0-9_-]+=\/.*');
+          r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/[a-zA-Z0-9_-]+=\/.*',
+        );
         expect(re.hasMatch(event), true);
         p.kill();
       }
@@ -344,7 +355,8 @@ void main(List<String> args) => print("$b $args");
     void onData2(event) {
       if (event.contains('The Dart VM service is listening on')) {
         final re = RegExp(
-            r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/');
+          r'The Dart VM service is listening on http:\/\/127.0.0.1:\d+\/',
+        );
         expect(re.hasMatch(event), true);
         p.kill();
       }
@@ -368,7 +380,8 @@ void main(List<String> args) => print("$b $args");
     void onData3(event) {
       if (event.contains('The Dart VM service is listening on')) {
         final re = RegExp(
-            r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/.*');
+          r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/.*',
+        );
         expect(re.hasMatch(event), true);
         p.kill();
       }
@@ -389,14 +402,19 @@ void main(List<String> args) => print("$b $args");
   });
 
   test('with VM environment declaration options specified', () async {
-    p = project(mainSrc: r'''
+    p = project(
+      mainSrc: r'''
     void main() {
       print(const bool.fromEnvironment('key'));
     }
-    ''');
+    ''',
+    );
 
-    final result =
-        await p.run(['run', '--define=key=true', p.relativeFilePath]);
+    final result = await p.run([
+      'run',
+      '--define=key=true',
+      p.relativeFilePath,
+    ]);
 
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('true'));
@@ -415,24 +433,28 @@ void main(List<String> args) => print("$b $args");
 
   test('with accepted VM flags related to the timeline', () async {
     p = project(
-        mainSrc: 'import "dart:developer";'
-            'void main() {'
-            'Timeline.startSync("sync");'
-            'Timeline.finishSync();'
-            '}');
+      mainSrc:
+          'import "dart:developer";'
+          'void main() {'
+          'Timeline.startSync("sync");'
+          'Timeline.finishSync();'
+          '}',
+    );
 
     final result = await p.run([
       'run',
       '--timeline-recorder=file',
       '--timeline-streams=Dart',
-      p.relativeFilePath
+      p.relativeFilePath,
     ]);
 
     expect(result.stderr, isEmpty);
     expect(result.stdout, isEmpty);
     expect(result.exitCode, 0);
-    expect(p.findFile('dart-timeline.json')!.readAsStringSync(),
-        contains('"name":"sync","cat":"Dart"'));
+    expect(
+      p.findFile('dart-timeline.json')!.readAsStringSync(),
+      contains('"name":"sync","cat":"Dart"'),
+    );
   });
 
   test('fails when provided verbose VM flags', () async {
@@ -573,27 +595,29 @@ void main(List<String> args) => print("$b $args");
     // Now wait for the process to terminate, if the issue is not fixed
     // the process will not terminate as it will be paused on the exception,
     // we timeout and return 255 in that case.
-    int exitCode = await process.exitCode.timeout(const Duration(seconds: 5),
-        onTimeout: () {
-      process.kill();
-      return 255;
-    });
+    int exitCode = await process.exitCode.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        process.kill();
+        return 255;
+      },
+    );
     expect(exitCode, 0);
   });
 
   test('without verbose CFE info', () async {
     final p = project(mainSrc: '''void main() {}''');
 
-    var result = await p.run(
-      [
-        'run',
-        '--verbosity=warning',
-        p.relativeFilePath,
-      ],
-    );
+    var result = await p.run([
+      'run',
+      '--verbosity=warning',
+      p.relativeFilePath,
+    ]);
 
-    expect(result.stdout,
-        predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
+    expect(
+      result.stdout,
+      predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)),
+    );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
@@ -619,13 +643,11 @@ void main(List<String> args) => print("$b $args");
     expect(result.stdout, isEmpty);
     expect(
       result.stderr,
-      stringContainsInOrder(
-        [
-          'Error encountered while parsing ',
-          'package_config.json:',
-          ' Duplicate package name',
-        ],
-      ),
+      stringContainsInOrder([
+        'Error encountered while parsing ',
+        'package_config.json:',
+        ' Duplicate package name',
+      ]),
     );
     printOnFailure(result.stderr);
     const int compileErrorExitCode = 254;
@@ -634,10 +656,11 @@ void main(List<String> args) => print("$b $args");
 
   test('workspace', () async {
     final p = project(
-        sdkConstraint: VersionConstraint.parse('^3.5.0-0'),
-        pubspecExtras: {
-          'workspace': ['pkgs/a', 'pkgs/b']
-        });
+      sdkConstraint: VersionConstraint.parse('^3.5.0-0'),
+      pubspecExtras: {
+        'workspace': ['pkgs/a', 'pkgs/b'],
+      },
+    );
     p.file('pkgs/a/pubspec.yaml', '''
 name: a
 environment:
@@ -662,62 +685,56 @@ main() => print('a:tool');
 main() => print('b:b');
 ''');
     expect(
-        await p
-            .run(['run', 'a'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
-        isA<ProcessResult>()
-            .having((r) => r.exitCode, 'exitCode', 0)
-            .having((r) => r.stdout, 'stdout', 'a:a$eol'));
+      await p.run(['run', 'a'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+      isA<ProcessResult>()
+          .having((r) => r.exitCode, 'exitCode', 0)
+          .having((r) => r.stdout, 'stdout', 'a:a$eol'),
+    );
     expect(
-        await p
-            .run(['run', 'a:a'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
-        isA<ProcessResult>()
-            .having((r) => r.exitCode, 'exitCode', 0)
-            .having((r) => r.stdout, 'stdout', 'a:a$eol'));
+      await p.run([
+        'run',
+        'a:a',
+      ], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+      isA<ProcessResult>()
+          .having((r) => r.exitCode, 'exitCode', 0)
+          .having((r) => r.stdout, 'stdout', 'a:a$eol'),
+    );
     expect(
-        await p.run(['run', ':tool'],
-            workingDir: path.join(p.dirPath, 'pkgs', 'a')),
-        isA<ProcessResult>()
-            .having((r) => r.exitCode, 'exitCode', 0)
-            .having((r) => r.stdout, 'stdout', 'a:tool$eol'));
+      await p.run([
+        'run',
+        ':tool',
+      ], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+      isA<ProcessResult>()
+          .having((r) => r.exitCode, 'exitCode', 0)
+          .having((r) => r.stdout, 'stdout', 'a:tool$eol'),
+    );
     expect(
-        await p
-            .run(['run', 'b'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
-        isA<ProcessResult>()
-            .having((r) => r.exitCode, 'exitCode', 0)
-            .having((r) => r.stdout, 'stdout', 'b:b$eol'));
+      await p.run(['run', 'b'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
+      isA<ProcessResult>()
+          .having((r) => r.exitCode, 'exitCode', 0)
+          .having((r) => r.stdout, 'stdout', 'b:b$eol'),
+    );
   });
 
   group('DDS', () {
     group('disable', () {
       test('dart run simple', () async {
         p = project(mainSrc: observeScript);
-        await p.runWithVmService(
-          [
-            'run',
-            '--no-dds',
-            '--enable-vm-service=0',
-            p.relativeFilePath,
-          ],
-          onVmServicesData(
-            p,
-            expectDevtoolsMsg: false,
-          ),
-        );
+        await p.runWithVmService([
+          'run',
+          '--no-dds',
+          '--enable-vm-service=0',
+          p.relativeFilePath,
+        ], onVmServicesData(p, expectDevtoolsMsg: false));
       });
 
       test('dart simple', () async {
         p = project(mainSrc: observeScript);
-        await p.runWithVmService(
-          [
-            '--no-dds',
-            '--enable-vm-service=0',
-            p.relativeFilePath,
-          ],
-          onVmServicesData(
-            p,
-            expectDevtoolsMsg: false,
-          ),
-        );
+        await p.runWithVmService([
+          '--no-dds',
+          '--enable-vm-service=0',
+          p.relativeFilePath,
+        ], onVmServicesData(p, expectDevtoolsMsg: false));
       });
     });
 
@@ -726,16 +743,13 @@ main() => print('b:b');
         p = project(mainSrc: observeScript);
         final tempDir = Directory.systemTemp.createTempSync('a');
         final serviceInfo = path.join(tempDir.path, 'service.json');
-        await p.runWithVmService(
-          [
-            'run',
-            '--dds',
-            '--enable-vm-service=0',
-            '--write-service-info=$serviceInfo',
-            p.relativeFilePath,
-          ],
-          onVmServicesData(p),
-        );
+        await p.runWithVmService([
+          'run',
+          '--dds',
+          '--enable-vm-service=0',
+          '--write-service-info=$serviceInfo',
+          p.relativeFilePath,
+        ], onVmServicesData(p));
         expect(File(serviceInfo).existsSync(), true);
       });
 
@@ -743,15 +757,12 @@ main() => print('b:b');
         p = project(mainSrc: observeScript);
         final tempDir = Directory.systemTemp.createTempSync('a');
         final serviceInfo = path.join(tempDir.path, 'service.json');
-        await p.runWithVmService(
-          [
-            '--dds',
-            '--enable-vm-service=0',
-            '--write-service-info=$serviceInfo',
-            p.relativeFilePath,
-          ],
-          onVmServicesData(p),
-        );
+        await p.runWithVmService([
+          '--dds',
+          '--enable-vm-service=0',
+          '--write-service-info=$serviceInfo',
+          p.relativeFilePath,
+        ], onVmServicesData(p));
         expect(File(serviceInfo).existsSync(), true);
       });
     });
@@ -769,26 +780,20 @@ main() => print('b:b');
 
     test('dart simple', () async {
       p = project(mainSrc: observeScript);
-      await p.runWithVmService(
-        [
-          '--enable-vm-service=0',
-          p.relativeFilePath,
-        ],
-        onVmServicesData(p),
-      );
+      await p.runWithVmService([
+        '--enable-vm-service=0',
+        p.relativeFilePath,
+      ], onVmServicesData(p));
     });
 
     test('dart run explicit', () async {
       p = project(mainSrc: observeScript);
-      await p.runWithVmService(
-        [
-          'run',
-          '--serve-devtools',
-          '--enable-vm-service=0',
-          p.relativeFilePath,
-        ],
-        onVmServicesData(p),
-      );
+      await p.runWithVmService([
+        'run',
+        '--serve-devtools',
+        '--enable-vm-service=0',
+        p.relativeFilePath,
+      ], onVmServicesData(p));
     });
 
     test('dart explicit', () async {
@@ -802,33 +807,21 @@ main() => print('b:b');
 
     test('dart run disabled', () async {
       p = project(mainSrc: observeScript);
-      await p.runWithVmService(
-        [
-          'run',
-          '--enable-vm-service=0',
-          '--no-serve-devtools',
-          p.relativeFilePath,
-        ],
-        onVmServicesData(
-          p,
-          expectDevtoolsMsg: false,
-        ),
-      );
+      await p.runWithVmService([
+        'run',
+        '--enable-vm-service=0',
+        '--no-serve-devtools',
+        p.relativeFilePath,
+      ], onVmServicesData(p, expectDevtoolsMsg: false));
     });
 
     test('dart disabled', () async {
       p = project(mainSrc: observeScript);
-      await p.runWithVmService(
-        [
-          '--enable-vm-service=0',
-          '--no-serve-devtools',
-          p.relativeFilePath,
-        ],
-        onVmServicesData(
-          p,
-          expectDevtoolsMsg: false,
-        ),
-      );
+      await p.runWithVmService([
+        '--enable-vm-service=0',
+        '--no-serve-devtools',
+        p.relativeFilePath,
+      ], onVmServicesData(p, expectDevtoolsMsg: false));
     });
 
     test('dart run VM service not enabled', () async {
@@ -857,9 +850,7 @@ main() => print('b:b');
           mainSrc:
               'void main() { print("ready"); int i = 0; while(true) { i++; } }',
         );
-        Process process = await p.start([
-          p.relativeFilePath,
-        ]);
+        Process process = await p.start([p.relativeFilePath]);
 
         final readyCompleter = Completer<void>();
         final completer = Completer<void>();
@@ -888,32 +879,21 @@ main() => print('b:b');
   group('--print-dtd', () {
     test('dart', () async {
       p = project(mainSrc: observeScript);
-      await p.runWithVmService(
-          [
-            '--enable-vm-service=0',
-            '--print-dtd',
-            p.relativeFilePath,
-          ],
-          onVmServicesData(
-            p,
-            expectDtdMsg: true,
-          ));
+      await p.runWithVmService([
+        '--enable-vm-service=0',
+        '--print-dtd',
+        p.relativeFilePath,
+      ], onVmServicesData(p, expectDtdMsg: true));
     });
 
     test('dart run', () async {
       p = project(mainSrc: observeScript);
-      await p.runWithVmService(
-        [
-          'run',
-          '--enable-vm-service=0',
-          '--print-dtd',
-          p.relativeFilePath,
-        ],
-        onVmServicesData(
-          p,
-          expectDtdMsg: true,
-        ),
-      );
+      await p.runWithVmService([
+        'run',
+        '--enable-vm-service=0',
+        '--print-dtd',
+        p.relativeFilePath,
+      ], onVmServicesData(p, expectDtdMsg: true));
     });
   });
 }
@@ -927,8 +907,9 @@ void residentRun() {
     serverInfoFile = path.join(serverInfoDirectory.dirPath, 'info');
 
     final cachedDillFile = File(
-      computeCachedDillAndCompilerOptionsPaths(serverInfoDirectory.mainPath)
-          .cachedDillPath,
+      computeCachedDillAndCompilerOptionsPaths(
+        serverInfoDirectory.mainPath,
+      ).cachedDillPath,
     );
     expect(cachedDillFile.existsSync(), false);
 
@@ -987,31 +968,28 @@ Future<void> main() async {
   });
 
   test(
-      'passing --resident is a prerequisite for passing --resident-compiler-info-file',
-      () async {
-    p = project(mainSrc: 'void main() {}');
-    final result = await p.run([
-      'run',
-      '--$residentCompilerInfoFileOption=$serverInfoFile',
-      p.relativeFilePath,
-    ]);
+    'passing --resident is a prerequisite for passing --resident-compiler-info-file',
+    () async {
+      p = project(mainSrc: 'void main() {}');
+      final result = await p.run([
+        'run',
+        '--$residentCompilerInfoFileOption=$serverInfoFile',
+        p.relativeFilePath,
+      ]);
 
-    expect(result.exitCode, 255);
-    expect(
-      result.stderr,
-      contains(
-        'Error: the --resident flag must be passed whenever the --resident-compiler-info-file option is passed.',
-      ),
-    );
-  });
+      expect(result.exitCode, 255);
+      expect(
+        result.stderr,
+        contains(
+          'Error: the --resident flag must be passed whenever the --resident-compiler-info-file option is passed.',
+        ),
+      );
+    },
+  );
 
   test('passing --resident is a prerequisite for passing --quiet', () async {
     p = project(mainSrc: 'void main() {}');
-    final result = await p.run([
-      'run',
-      '--$quietOption',
-      p.relativeFilePath,
-    ]);
+    final result = await p.run(['run', '--$quietOption', p.relativeFilePath]);
 
     expect(result.exitCode, 255);
     expect(
@@ -1042,10 +1020,7 @@ Future<void> main() async {
     ]);
 
     expect(result.exitCode, 0);
-    expect(
-      result.stdout,
-      isNot(contains(residentFrontendCompilerPrefix)),
-    );
+    expect(result.stdout, isNot(contains(residentFrontendCompilerPrefix)));
     expect(result.stderr, isEmpty);
   });
 
@@ -1106,66 +1081,69 @@ Future<void> main() async {
     cachedDillFile.deleteSync();
   });
 
-  test("'Hello World' with legacy --resident-server-info-file option",
-      () async {
-    p = project(mainSrc: "void main() { print('Hello World'); }");
+  test(
+    "'Hello World' with legacy --resident-server-info-file option",
+    () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
 
-    final cachedDillFile = File(
-      computeCachedDillAndCompilerOptionsPaths(p.mainPath).cachedDillPath,
-    );
-    expect(cachedDillFile.existsSync(), false);
+      final cachedDillFile = File(
+        computeCachedDillAndCompilerOptionsPaths(p.mainPath).cachedDillPath,
+      );
+      expect(cachedDillFile.existsSync(), false);
 
-    final result = await p.run([
-      'run',
-      '--resident',
-      '--resident-server-info-file=$serverInfoFile',
-      p.relativeFilePath,
-    ]);
+      final result = await p.run([
+        'run',
+        '--resident',
+        '--resident-server-info-file=$serverInfoFile',
+        p.relativeFilePath,
+      ]);
 
-    expect(result.exitCode, 0);
-    expect(
-      result.stdout,
-      allOf(
-        contains('Hello World'),
-        isNot(contains(residentFrontendCompilerPrefix)),
-      ),
-    );
-    expect(result.stderr, isEmpty);
-    expect(cachedDillFile.existsSync(), true);
-    cachedDillFile.deleteSync();
-  });
-
-  test('--resident-compiler-info-file handles relative paths correctly',
-      () async {
-    p = project(mainSrc: "void main() { print('Hello World'); }");
-
-    final cachedDillFile = File(
-      computeCachedDillAndCompilerOptionsPaths(p.mainPath).cachedDillPath,
-    );
-    expect(cachedDillFile.existsSync(), false);
-
-    final result = await p.run([
-      'run',
-      '--resident',
-      '--$residentCompilerInfoFileOption=${path.relative(serverInfoFile, from: p.dirPath)}',
-      p.relativeFilePath,
-    ]);
-
-    expect(result.exitCode, 0);
-    expect(
-      result.stdout,
-      allOf(
-        contains('Hello World'),
-        isNot(contains(residentFrontendCompilerPrefix)),
-      ),
-    );
-    expect(result.stderr, isEmpty);
-    expect(cachedDillFile.existsSync(), true);
-    cachedDillFile.deleteSync();
-  });
+      expect(result.exitCode, 0);
+      expect(
+        result.stdout,
+        allOf(
+          contains('Hello World'),
+          isNot(contains(residentFrontendCompilerPrefix)),
+        ),
+      );
+      expect(result.stderr, isEmpty);
+      expect(cachedDillFile.existsSync(), true);
+      cachedDillFile.deleteSync();
+    },
+  );
 
   test(
-      'a running resident compiler is restarted if the Dart SDK was '
+    '--resident-compiler-info-file handles relative paths correctly',
+    () async {
+      p = project(mainSrc: "void main() { print('Hello World'); }");
+
+      final cachedDillFile = File(
+        computeCachedDillAndCompilerOptionsPaths(p.mainPath).cachedDillPath,
+      );
+      expect(cachedDillFile.existsSync(), false);
+
+      final result = await p.run([
+        'run',
+        '--resident',
+        '--$residentCompilerInfoFileOption=${path.relative(serverInfoFile, from: p.dirPath)}',
+        p.relativeFilePath,
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(
+        result.stdout,
+        allOf(
+          contains('Hello World'),
+          isNot(contains(residentFrontendCompilerPrefix)),
+        ),
+      );
+      expect(result.stderr, isEmpty);
+      expect(cachedDillFile.existsSync(), true);
+      cachedDillFile.deleteSync();
+    },
+  );
+
+  test('a running resident compiler is restarted if the Dart SDK was '
       'upgraded or downgraded since it was started', () async {
     p = project(mainSrc: 'void main() {}');
 
@@ -1218,48 +1196,48 @@ Future<void> main() async {
     expect(File(serverInfoFile).existsSync(), true);
   });
 
-  test('when a connection to a running resident compiler cannot be established',
-      () async {
-    // When this occurs, the user should be informed that the resident frontend
-    // compiler will be restarted, and compilation will be retried.
-    p = project(mainSrc: 'void main() {}');
-    // Create a [testServerInfoFile] that contains an invalid port to guarantee
-    // that a connection will not be established.
-    final testServerInfoFile = File(path.join(p.dirPath, 'info'));
-    testServerInfoFile.createSync();
-    testServerInfoFile.writeAsStringSync(
-      'address:127.0.0.1 sdkHash:$sdkHashNull port:-12 ',
-    );
-    final result = await p.run([
-      'run',
-      '--resident',
-      '--$residentCompilerInfoFileOption=${testServerInfoFile.path}',
-      p.relativeFilePath,
-    ]);
+  test(
+    'when a connection to a running resident compiler cannot be established',
+    () async {
+      // When this occurs, the user should be informed that the resident frontend
+      // compiler will be restarted, and compilation will be retried.
+      p = project(mainSrc: 'void main() {}');
+      // Create a [testServerInfoFile] that contains an invalid port to guarantee
+      // that a connection will not be established.
+      final testServerInfoFile = File(path.join(p.dirPath, 'info'));
+      testServerInfoFile.createSync();
+      testServerInfoFile.writeAsStringSync(
+        'address:127.0.0.1 sdkHash:$sdkHashNull port:-12 ',
+      );
+      final result = await p.run([
+        'run',
+        '--resident',
+        '--$residentCompilerInfoFileOption=${testServerInfoFile.path}',
+        p.relativeFilePath,
+      ]);
 
-    expect(result.exitCode, 0);
-    expect(result.stdout, contains(residentFrontendCompilerPrefix));
-    expect(
-      result.stderr,
-      'Error: A connection to the Resident Frontend Compiler could not be '
-      'established. Restarting the Resident Frontend Compiler and retrying '
-      'compilation.\n',
-    );
-    expect(testServerInfoFile.existsSync(), true);
+      expect(result.exitCode, 0);
+      expect(result.stdout, contains(residentFrontendCompilerPrefix));
+      expect(
+        result.stderr,
+        'Error: A connection to the Resident Frontend Compiler could not be '
+        'established. Restarting the Resident Frontend Compiler and retrying '
+        'compilation.\n',
+      );
+      expect(testServerInfoFile.existsSync(), true);
 
-    await p.run([
-      'compilation-server',
-      'shutdown',
-      '--$residentCompilerInfoFileOption=${testServerInfoFile.path}',
-    ]);
-  });
+      await p.run([
+        'compilation-server',
+        'shutdown',
+        '--$residentCompilerInfoFileOption=${testServerInfoFile.path}',
+      ]);
+    },
+  );
 
   test('Handles experiments', () async {
     p = project(
       mainSrc: r"void main() { print(('hello','world').$1); }",
-      sdkConstraint: VersionConstraint.parse(
-        '^3.0.0',
-      ),
+      sdkConstraint: VersionConstraint.parse('^3.0.0'),
     );
 
     final (:cachedDillPath, :cachedCompilerOptionsPath) =
@@ -1280,10 +1258,7 @@ Future<void> main() async {
     expect(result.stderr, isEmpty);
     expect(
       result.stdout,
-      allOf(
-        contains('hello'),
-        isNot(contains(residentFrontendCompilerPrefix)),
-      ),
+      allOf(contains('hello'), isNot(contains(residentFrontendCompilerPrefix))),
     );
     expect(result.exitCode, 0);
 
@@ -1291,8 +1266,8 @@ Future<void> main() async {
     cachedDillFile.deleteSync();
 
     expect(cachedCompilerOptionsFile.existsSync(), true);
-    final cachedCompilerOptionsFileContents =
-        cachedCompilerOptionsFile.readAsStringSync();
+    final cachedCompilerOptionsFileContents = cachedCompilerOptionsFile
+        .readAsStringSync();
     cachedCompilerOptionsFile.deleteSync();
 
     // [cachedCompilerOptionsFileContents] should be a valid JSON list that
@@ -1326,17 +1301,11 @@ Future<void> main() async {
     expect(runResult1.exitCode, allOf(0, equals(runResult2.exitCode)));
     expect(
       runResult1.stdout,
-      allOf(
-        contains('1'),
-        isNot(contains(residentFrontendCompilerPrefix)),
-      ),
+      allOf(contains('1'), isNot(contains(residentFrontendCompilerPrefix))),
     );
     expect(
       runResult2.stdout,
-      allOf(
-        contains('2'),
-        isNot(contains(residentFrontendCompilerPrefix)),
-      ),
+      allOf(contains('2'), isNot(contains(residentFrontendCompilerPrefix))),
     );
   });
 
@@ -1452,7 +1421,8 @@ Future<void> main() async {
     void onData1(event) {
       if (event.contains('The Dart VM service is listening on')) {
         final re = RegExp(
-            r'The Dart VM service is listening on http:\/\/127.0.0.1:[0-9+]');
+          r'The Dart VM service is listening on http:\/\/127.0.0.1:[0-9+]',
+        );
         expect(re.hasMatch(event), true);
         sawVmServiceMsg = true;
       }
@@ -1461,7 +1431,8 @@ Future<void> main() async {
       }
       if (event.contains('The Resident Frontend Compiler is listening')) {
         final re = RegExp(
-            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+');
+          r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+',
+        );
         expect(re.hasMatch(event), true);
         sawCFEMsg = true;
       }
@@ -1518,7 +1489,8 @@ Future<void> main() async {
     void onData2(event) {
       if (event.contains('The Dart VM service is listening on')) {
         final re = RegExp(
-            r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/.*');
+          r'The Dart VM service is listening on http:\/\/\[::1\]:\d+\/[a-zA-Z0-9_-]+=\/.*',
+        );
         expect(re.hasMatch(event), true);
         sawVmServiceMsg = true;
       }
@@ -1527,7 +1499,8 @@ Future<void> main() async {
       }
       if (event.contains('The Resident Frontend Compiler is listening')) {
         final re = RegExp(
-            r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+');
+          r'The Resident Frontend Compiler is listening at 127.0.0.1:[0-9]+',
+        );
         expect(re.hasMatch(event), true);
         sawCFEMsg = true;
       }
@@ -1556,22 +1529,31 @@ Future<void> main() async {
   });
 
   test('custom package_config path', () async {
-    p = project(name: 'foo', mainSrc: '''
+    p = project(
+      name: 'foo',
+      mainSrc: '''
 import 'package:bar/main.dart';
 void main() {
   cmd();
 }
-''');
-    final bar1 = project(name: 'bar1', mainSrc: '''
+''',
+    );
+    final bar1 = project(
+      name: 'bar1',
+      mainSrc: '''
 cmd() {
   print('hi');
 }
-''');
-    final bar2 = project(name: 'bar2', mainSrc: '''
+''',
+    );
+    final bar2 = project(
+      name: 'bar2',
+      mainSrc: '''
 cmd() {
   print('bye');
 }
-''');
+''',
+    );
 
     p.file('custom_packages1.json', '''
 {

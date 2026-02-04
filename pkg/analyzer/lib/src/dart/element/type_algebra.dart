@@ -94,25 +94,6 @@ FunctionTypeImpl replaceTypeParameters(
   );
 }
 
-/// Returns a type where all occurrences of the given type parameters have been
-/// replaced with the corresponding types.
-///
-/// This will copy only the sub-terms of [type] that contain substituted
-/// variables; all other [DartType] objects will be reused.
-///
-/// In particular, if no type parameters were substituted, this is guaranteed
-/// to return the [type] instance (not a copy), so the caller may use
-/// [identical] to efficiently check if a distinct type was created.
-DartType substitute(
-  DartType type,
-  Map<TypeParameterElement, DartType> substitution,
-) {
-  if (substitution.isEmpty) {
-    return type;
-  }
-  return Substitution.fromMap(substitution).substituteType(type);
-}
-
 ///  1. Substituting T=X! into T! yields X!
 ///  3. Substituting T=X? into T! yields X?
 ///  7. Substituting T=X! into T? yields X?

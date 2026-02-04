@@ -1,0 +1,63 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method notCaptured(positional-parameter aNotCaptured) → dynamic/* scope=[
+  #ctx1: not-captured VariableContext([
+    positional-parameter aNotCaptured;
+  ]),
+] */ {
+  return;
+}
+static method directCaptured(positional-parameter aCaptured) → dynamic/* scope=[
+  #ctx2: captured VariableContext([
+    positional-parameter aCaptured;
+  ]),
+] */ {
+  return () /* #ctx2 */ → core::int => aCaptured;
+}
+static method assertCaptured1(positional-parameter aAssertCaptured1) → dynamic/* scope=[
+  #ctx3: assert-captured VariableContext([
+    positional-parameter aAssertCaptured1;
+  ]),
+] */ {
+  assert((() /* #ctx3 */ → core::bool => aAssertCaptured1 =={core::num::==}{(core::Object) → core::bool} 0)(){() → core::bool});
+  return;
+}
+static method assertCaptured2(positional-parameter aAssertCaptured2) → dynamic/* scope=[
+  #ctx4: assert-captured VariableContext([
+    positional-parameter aAssertCaptured2;
+  ]),
+] */ {
+  return () /* #ctx4 */ → Null {
+    assert((() /* #ctx4 */ → core::bool => aAssertCaptured2 =={core::num::==}{(core::Object) → core::bool} 0)(){() → core::bool});
+  };
+}
+static method directOverridingAssertCaptured1(positional-parameter aDirectOverridingAssertCaptured1) → dynamic/* scope=[
+  #ctx5: captured VariableContext([
+    positional-parameter aDirectOverridingAssertCaptured1;
+  ]),
+] */ {
+  assert((() /* #ctx5 */ → core::bool => aDirectOverridingAssertCaptured1 =={core::num::==}{(core::Object) → core::bool} 0)(){() → core::bool});
+  return () /* #ctx5 */ → core::int => aDirectOverridingAssertCaptured1;
+}
+static method directOverridingAssertCaptured2(positional-parameter aDirectOverridingAssertCaptured2) → dynamic/* scope=[
+  #ctx6: captured VariableContext([
+    positional-parameter aDirectOverridingAssertCaptured2;
+  ]),
+] */ {
+  return () /* #ctx6 */ → () → core::int {
+    assert((() /* #ctx6 */ → core::bool => aDirectOverridingAssertCaptured2 =={core::num::==}{(core::Object) → core::bool} 0)(){() → core::bool});
+    return () /* #ctx6 */ → core::int => aDirectOverridingAssertCaptured2;
+  };
+}
+static method directOverridingAssertCaptured3(positional-parameter aDirectOverridingAssertCaptured3) → dynamic/* scope=[
+  #ctx7: captured VariableContext([
+    positional-parameter aDirectOverridingAssertCaptured3;
+  ]),
+] */ {
+  return () /* #ctx7 */ → () → core::int {
+    assert(aDirectOverridingAssertCaptured3 =={core::num::==}{(core::Object) → core::bool} 0);
+    return () /* #ctx7 */ → core::int => aDirectOverridingAssertCaptured3;
+  };
+}

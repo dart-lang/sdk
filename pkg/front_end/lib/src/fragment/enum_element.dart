@@ -205,6 +205,13 @@ class EnumElementDeclaration
   }
 
   @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      "${runtimeType}.takePrimaryConstructorFieldInitializer",
+    );
+  }
+
+  @override
   void checkFieldTypes(
     ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
@@ -390,8 +397,8 @@ class EnumElementDeclaration
         assert(libraryBuilder.loader.hasSeenError);
         String text = libraryBuilder.loader.target.context
             .format(
-              codeConstructorNotFound
-                  .withArgumentsOld(fullConstructorNameForErrors)
+              diag.constructorNotFound
+                  .withArguments(name: fullConstructorNameForErrors)
                   .withLocation(fileUri, fileOffset, noLength),
               CfeSeverity.error,
             )

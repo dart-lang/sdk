@@ -65,7 +65,9 @@ class ConstructorFieldsVerifier {
       diagnosticReporter: diagnosticReporter,
       element: fragment.element,
       errorRange: node.errorRange,
+      isPrimary: false,
     );
+    constructorState.secondaryConstructors.add(node);
 
     if (!fragment.isAugmentation) {
       constructorState.updateWithParameters(node.parameters.parameters);
@@ -87,7 +89,9 @@ class ConstructorFieldsVerifier {
       diagnosticReporter: diagnosticReporter,
       element: fragment.element,
       errorRange: primaryConstructor.errorRange,
+      isPrimary: true,
     );
+    constructorState.primaryConstructors.add(primaryConstructor);
 
     constructorState.updateWithParameters(
       primaryConstructor.formalParameters.parameters,
@@ -108,6 +112,7 @@ class ConstructorFieldsVerifier {
     }
 
     var fieldMap = <FieldElement, _InitState>{};
+    var fieldNameCounts = <String, int>{};
 
     for (var field in element.fields) {
       if (field.isOriginGetterSetter) {
@@ -119,12 +124,19 @@ class ConstructorFieldsVerifier {
       fieldMap[field] = field.hasInitializer
           ? _InitState.initInDeclaration
           : _InitState.notInit;
+      if (field.name case var name?) {
+        fieldNameCounts.update(name, (count) => count + 1, ifAbsent: () => 1);
+      }
     }
 
     return _interfaces[element] = _Interface(
       typeSystem: typeSystem,
       element: element,
       fields: fieldMap,
+      duplicateFieldNames: {
+        for (var entry in fieldNameCounts.entries)
+          if (entry.value > 1) entry.key,
+      },
     );
   }
 }
@@ -134,6 +146,10 @@ class _Constructor {
   final DiagnosticReporter diagnosticReporter;
   final SourceRange errorRange;
   final Map<FieldElement, _InitState> fields;
+  final Set<String> duplicateFieldNames;
+  final bool isPrimary;
+  final List<PrimaryConstructorDeclarationImpl> primaryConstructors = [];
+  final List<ConstructorDeclarationImpl> secondaryConstructors = [];
 
   /// Set to `true` if the constructor redirects.
   bool hasRedirectingConstructorInvocation = false;
@@ -143,6 +159,8 @@ class _Constructor {
     required this.diagnosticReporter,
     required this.errorRange,
     required this.fields,
+    required this.duplicateFieldNames,
+    required this.isPrimary,
   });
 
   void report() {
@@ -161,6 +179,7 @@ class _Constructor {
 
       var name = field.name;
       if (name == null) return;
+      if (duplicateFieldNames.contains(name)) return;
 
       if (field.isFinal) {
         notInitFinalFields.add(_Field(field, name));
@@ -168,6 +187,17 @@ class _Constructor {
         notInitNonNullableFields.add(_Field(field, name));
       }
     });
+
+    var allNotInitialized = <FieldElement>[
+      for (var f in notInitFinalFields) f.element,
+      for (var f in notInitNonNullableFields) f.element,
+    ];
+    for (var node in primaryConstructors) {
+      node.notInitializedFields = allNotInitialized;
+    }
+    for (var node in secondaryConstructors) {
+      node.notInitializedFields = allNotInitialized;
+    }
 
     reportNotInitializedFinal(notInitFinalFields);
     reportNotInitializedNonNullable(notInitNonNullableFields);
@@ -181,16 +211,27 @@ class _Constructor {
     var names = notInitFinalFields.map((f) => f.name).toList();
     names.sort();
 
-    var (code, arguments) = switch (names.length) {
-      1 => (diag.finalNotInitializedConstructor1, names),
-      2 => (diag.finalNotInitializedConstructor2, names),
-      _ => (
-        diag.finalNotInitializedConstructor3Plus,
-        [names[0], names[1], names.length - 2],
-      ),
-    };
-
-    diagnosticReporter.atSourceRange(errorRange, code, arguments: arguments);
+    diagnosticReporter.report(
+      switch (names) {
+        // `names` can't be empty since its based on `notInitFinalFields`, which
+        // is not empty (see `if` test above).
+        [] => throw StateError('unexpectedly empty name list'),
+        [var name] => diag.finalNotInitializedConstructor1.withArguments(
+          name: name,
+        ),
+        [var name1, var name2] =>
+          diag.finalNotInitializedConstructor2.withArguments(
+            name1: name1,
+            name2: name2,
+          ),
+        [var name1, var name2, ...var remaining] =>
+          diag.finalNotInitializedConstructor3Plus.withArguments(
+            name1: name1,
+            name2: name2,
+            remainingCount: remaining.length,
+          ),
+      }.atSourceRange(errorRange),
+    );
   }
 
   void reportNotInitializedNonNullable(List<_Field> notInitNonNullableFields) {
@@ -202,10 +243,10 @@ class _Constructor {
     names.sort();
 
     for (var name in names) {
-      diagnosticReporter.atSourceRange(
-        errorRange,
-        diag.notInitializedNonNullableInstanceFieldConstructor,
-        arguments: [name],
+      diagnosticReporter.report(
+        diag.notInitializedNonNullableInstanceFieldConstructor
+            .withArguments(name: name)
+            .atSourceRange(errorRange),
       );
     }
   }
@@ -226,7 +267,7 @@ class _Constructor {
           if (state == _InitState.notInit) {
             fields[fieldElement] = _InitState.initInInitializer;
           } else if (state == _InitState.initInDeclaration) {
-            if (fieldElement.isFinal || fieldElement.isConst) {
+            if (isPrimary || fieldElement.isFinal || fieldElement.isConst) {
               diagnosticReporter.report(
                 diag.fieldInitializedInInitializerAndDeclaration.at(fieldName),
               );
@@ -237,10 +278,10 @@ class _Constructor {
               diag.fieldInitializedInParameterAndInitializer.at(fieldName),
             );
           } else if (state == _InitState.initInInitializer) {
-            diagnosticReporter.atNode(
-              fieldName,
-              diag.fieldInitializedByMultipleInitializers,
-              arguments: [fieldElement.displayName],
+            diagnosticReporter.report(
+              diag.fieldInitializedByMultipleInitializers
+                  .withArguments(name: fieldElement.displayName)
+                  .at(fieldName),
             );
           }
         }
@@ -264,10 +305,10 @@ class _Constructor {
         } else if (state == _InitState.initInDeclaration) {
           if (fieldElement.isFinal || fieldElement.isConst) {
             if (formalParameter.name case var name?) {
-              diagnosticReporter.atToken(
-                name,
-                diag.finalInitializedInDeclarationAndConstructor,
-                arguments: [fieldElement.displayName],
+              diagnosticReporter.report(
+                diag.finalInitializedInDeclarationAndConstructor
+                    .withArguments(name: fieldElement.displayName)
+                    .at(name),
               );
             }
           }
@@ -311,6 +352,7 @@ enum _InitState {
 class _Interface {
   final TypeSystemImpl typeSystem;
   final InterfaceElement element;
+  final Set<String> duplicateFieldNames;
 
   /// [_InitState.notInit] or [_InitState.initInDeclaration] for each field
   /// in [element]. This map works as the initial state for
@@ -323,18 +365,22 @@ class _Interface {
     required this.typeSystem,
     required this.element,
     required this.fields,
+    required this.duplicateFieldNames,
   });
 
   _Constructor forConstructor({
     required DiagnosticReporter diagnosticReporter,
     required SourceRange errorRange,
     required ConstructorElement element,
+    required bool isPrimary,
   }) {
     return constructors[element] ??= _Constructor(
       typeSystem: typeSystem,
       diagnosticReporter: diagnosticReporter,
       errorRange: errorRange,
       fields: {...fields},
+      duplicateFieldNames: duplicateFieldNames,
+      isPrimary: isPrimary,
     );
   }
 }

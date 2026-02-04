@@ -31,9 +31,10 @@ void command() {
   // For each command description, assert that the values are not empty, don't
   // have trailing white space and end with a period.
   test('description formatting', () {
-    DartdevRunner(['--suppress-analytics'])
-        .commands
-        .forEach((String commandKey, Command<int> command) {
+    DartdevRunner(['--suppress-analytics']).commands.forEach((
+      String commandKey,
+      Command<int> command,
+    ) {
       expect(commandKey, isNotEmpty);
       expect(command.description, isNotEmpty);
       expect(command.description.split('\n').first, endsWith('.'));
@@ -43,20 +44,25 @@ void command() {
 
   // Assert that all found usageLineLengths are the same and null
   test('argParser usageLineLength', () {
-    DartdevRunner(['--suppress-analytics'])
-        .commands
-        .forEach((String commandKey, Command<int> command) {
+    DartdevRunner(['--suppress-analytics']).commands.forEach((
+      String commandKey,
+      Command<int> command,
+    ) {
       if (command.name != 'help' &&
           command.name != 'format' &&
           command.name != 'pub' &&
           command.name != 'test') {
-        expect(command.argParser.usageLineLength,
-            stdout.hasTerminal ? stdout.terminalColumns : null);
+        expect(
+          command.argParser.usageLineLength,
+          stdout.hasTerminal ? stdout.terminalColumns : null,
+        );
       } else if (command.name == 'pub') {
         // TODO(sigurdm): Avoid special casing here.
         // https://github.com/dart-lang/pub/issues/2700
-        expect(command.argParser.usageLineLength,
-            stdout.hasTerminal ? stdout.terminalColumns : 80);
+        expect(
+          command.argParser.usageLineLength,
+          stdout.hasTerminal ? stdout.terminalColumns : 80,
+        );
       } else {
         expect(command.argParser.usageLineLength, isNull);
       }
@@ -83,8 +89,10 @@ void help() {
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout,
-        contains('The following options are only used for VM development'));
+    expect(
+      result.stdout,
+      contains('The following options are only used for VM development'),
+    );
   });
 
   test('--help -v', () async {
@@ -93,8 +101,10 @@ void help() {
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout,
-        contains('The following options are only used for VM development'));
+    expect(
+      result.stdout,
+      contains('The following options are only used for VM development'),
+    );
   });
 
   test('print Dart CLI help on usage error', () async {
@@ -121,8 +131,10 @@ void help() {
     var result = await p.run(['help', '--verbose']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout,
-        contains('Usage: dart [vm-options] <command|dart-file> [arguments]'));
+    expect(
+      result.stdout,
+      contains('Usage: dart [vm-options] <command|dart-file> [arguments]'),
+    );
   });
 
   test('help -v', () async {
@@ -130,8 +142,10 @@ void help() {
     var result = await p.run(['help', '-v']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout,
-        contains('Usage: dart [vm-options] <command|dart-file> [arguments]'));
+    expect(
+      result.stdout,
+      contains('Usage: dart [vm-options] <command|dart-file> [arguments]'),
+    );
   });
 }
 

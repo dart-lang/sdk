@@ -46,6 +46,10 @@ import 'convert_to_multiline_string_test.dart' as convert_to_multiline_string;
 import 'convert_to_normal_parameter_test.dart' as convert_to_normal_parameter;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
+import 'convert_to_primary_constructor_test.dart'
+    as convert_to_primary_constructor;
+import 'convert_to_secondary_constructor_test.dart'
+    as convert_to_secondary_constructor;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
@@ -152,6 +156,8 @@ void main() {
     convert_to_normal_parameter.main();
     convert_to_null_aware.main();
     convert_to_package_import.main();
+    convert_to_primary_constructor.main();
+    convert_to_secondary_constructor.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();

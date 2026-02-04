@@ -16,3 +16,13 @@ inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
 rasta/native_is_illegal: Pass # Issue 29763
+
+# Temporarily unimplemented binary serialization, see https://github.com/dart-lang/sdk/issues/61765
+closure_context_lowering/local_variables: ExpectationFileMismatchSerialized
+closure_context_lowering/parameters: ExpectationFileMismatchSerialized
+closure_context_lowering/this_variable: ExpectationFileMismatchSerialized
+closure_context_lowering/loop_depth_strategy: ExpectationFileMismatchSerialized
+closure_context_lowering/foo42: ExpectationFileMismatchSerialized
+closure_context_lowering/foo45: ExpectationFileMismatchSerialized
+closure_context_lowering/foo48: ExpectationFileMismatchSerialized
+closure_context_lowering/assert_captured_variables: ExpectationFileMismatchSerialized

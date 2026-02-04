@@ -83,6 +83,8 @@ class AstResolver {
   }
 
   void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
+    var element = node.declaredFragment!.element;
+
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
     // resolve initializers and/or a redirection.
@@ -95,15 +97,22 @@ class AstResolver {
     accept(_resolutionVisitor);
     accept(_scopeResolverVisitor);
 
-    _flowAnalysis.bodyOrInitializer_enter(node, node.parameters, visit: accept);
+    _flowAnalysis.bodyOrInitializer_enter(
+      node,
+      element.formalParameters,
+      visit: accept,
+    );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();
   }
 
+  /// If resolving the initializer of a non-late instance field, there
+  /// might be [inScopePrimaryConstructorParameters].
   void resolveExpression(
     ExpressionImpl Function() getNode, {
     TypeImpl contextType = UnknownInferredType.instance,
+    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
   }) {
     ExpressionImpl node = getNode();
     node.accept(_resolutionVisitor);
@@ -111,7 +120,10 @@ class AstResolver {
     node = getNode();
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(node.parent as AstNodeImpl, null);
+    _flowAnalysis.bodyOrInitializer_enter(
+      node.parent as AstNodeImpl,
+      inScopePrimaryConstructorParameters,
+    );
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
@@ -120,10 +132,12 @@ class AstResolver {
 
   void resolvePrimaryConstructor(
     PrimaryConstructorDeclarationImpl node,
-    PrimaryConstructorBodyImpl? body,
+    PrimaryConstructorBodyImpl body,
   ) {
+    var element = node.declaredFragment!.element;
+
     void accept(AstVisitor<Object?> visitor) {
-      body?.initializers.accept(visitor);
+      body.initializers.accept(visitor);
     }
 
     _prepareEnclosingDeclarations();
@@ -132,7 +146,7 @@ class AstResolver {
 
     _flowAnalysis.bodyOrInitializer_enter(
       node,
-      node.formalParameters,
+      element.formalParameters,
       visit: accept,
     );
     accept(_resolverVisitor);

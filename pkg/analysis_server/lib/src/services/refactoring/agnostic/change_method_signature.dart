@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -63,11 +64,48 @@ sealed class Available extends Availability {
 
   Available({required this.refactoringContext});
 
-  bool get hasPositionalParameters;
+  /// Whether there are any positional parameters and, if so, if all of them
+  /// can be converted to named parameters.
+  ///
+  /// Even if a parameter is positional, it may not be convertible if it has a
+  /// private name and isn't in a context where it could become a private named
+  /// parameter. If that case, this returns `false`.
+  bool get hasPositionalParametersToConvertToNamed {
+    var supportsPrivateNamedParameters = refactoringContext
+        .resolvedLibraryResult
+        .element
+        .featureSet
+        .isEnabled(Feature.private_named_parameters);
+
+    var hasPositional = false;
+    for (var parameter in _formalParameters) {
+      if (parameter.isNamed) continue;
+
+      hasPositional = true;
+
+      // If the parameter has a private name, we must be able to convert it to
+      // a private named parameter.
+      if (Identifier.isPrivateName(parameter.name!)) {
+        if (!supportsPrivateNamedParameters) {
+          return false;
+        }
+
+        // TODO(rnystrom): Check for primary constructor declaring parameter
+        // here once those are implemented.
+        if (parameter is! FieldFormalParameterElement) {
+          return false;
+        }
+      }
+    }
+
+    return hasPositional;
+  }
 
   bool get hasSelectedFormalParametersToConvertToNamed => false;
 
   bool get hasSelectedFormalParametersToMoveLeft => false;
+
+  List<FormalParameterElement> get _formalParameters;
 }
 
 /// The supertype return types from [computeSourceChange].
@@ -409,11 +447,6 @@ final class _AvailableWithDeclaration extends Available {
   });
 
   @override
-  bool get hasPositionalParameters {
-    return declaration.element.formalParameters.any((e) => e.isPositional);
-  }
-
-  @override
   bool get hasSelectedFormalParametersToConvertToNamed {
     var selected = declaration.selected;
     if (selected.isEmpty) {
@@ -472,6 +505,10 @@ final class _AvailableWithDeclaration extends Available {
 
     return true;
   }
+
+  @override
+  List<FormalParameterElement> get _formalParameters =>
+      declaration.element.formalParameters;
 }
 
 final class _AvailableWithExecutableElement extends Available {
@@ -483,9 +520,8 @@ final class _AvailableWithExecutableElement extends Available {
   });
 
   @override
-  bool get hasPositionalParameters {
-    return element.formalParameters.any((e) => e.isPositional);
-  }
+  List<FormalParameterElement> get _formalParameters =>
+      element.formalParameters;
 }
 
 /// The target method declaration.
@@ -854,27 +890,19 @@ class _SignatureUpdater {
       }
 
       var notDefault = existing.notDefault;
-      switch (notDefault) {
-        case NormalFormalParameter():
-          switch (update.kind) {
-            case FormalParameterKind.requiredPositional:
-              var text = withoutRequired(
-                notDefault,
-                withSuper: update.withSuper,
-              );
-              requiredPositionalWrites.add(text);
-            case FormalParameterKind.optionalPositional:
-              var text = withoutRequired(existing, withSuper: update.withSuper);
-              optionalPositionalWrites.add(text);
-            case FormalParameterKind.requiredNamed:
-              var text = withRequired(existing, withSuper: update.withSuper);
-              namedWrites.add(text);
-            case FormalParameterKind.optionalNamed:
-              var text = withoutRequired(existing, withSuper: update.withSuper);
-              namedWrites.add(text);
-          }
-        default:
-          return ChangeStatusFailure();
+      switch (update.kind) {
+        case FormalParameterKind.requiredPositional:
+          var text = withoutRequired(notDefault, withSuper: update.withSuper);
+          requiredPositionalWrites.add(text);
+        case FormalParameterKind.optionalPositional:
+          var text = withoutRequired(existing, withSuper: update.withSuper);
+          optionalPositionalWrites.add(text);
+        case FormalParameterKind.requiredNamed:
+          var text = withRequired(existing, withSuper: update.withSuper);
+          namedWrites.add(text);
+        case FormalParameterKind.optionalNamed:
+          var text = withoutRequired(existing, withSuper: update.withSuper);
+          namedWrites.add(text);
       }
     }
 

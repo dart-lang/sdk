@@ -155,6 +155,82 @@ void f() {
     await _assertNoRefactoring();
   }
 
+  Future<void> test_private_constructor() async {
+    addTestSource(r'''
+class C {
+  int? _a;
+  int? _b;
+
+  ^C(this._a, {this._b});
+}
+
+void f() {
+  C(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class C {
+  int? _a;
+  int? _b;
+
+  C({required this._a, this._b});
+}
+
+void f() {
+  C(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_private_constructor_unsupported() async {
+    addTestSource(r'''
+// @dart=3.10
+class C {
+  int? _a;
+  int? _b;
+
+  ^C(this._a, {int? b}) : _b = b;
+}
+
+void f() {
+  C(0, b: 1);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_private_function() async {
+    // Functions can't have private named parameters, so the refactoring can't
+    // be applied.
+    addTestSource(r'''
+^test(int _a, int _b) {}
+
+void f() {
+  test(0, 1);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_private_function_unsupported() async {
+    // Functions can't have private named parameters, so the refactoring can't
+    // be applied.
+    addTestSource(r'''
+// @dart=3.10
+^test(int _a, int _b) {}
+
+void f() {
+  test(0, 1);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
   Future<void> test_target_methodInvocation_name() async {
     addTestSource(r'''
 void test(int a) {}

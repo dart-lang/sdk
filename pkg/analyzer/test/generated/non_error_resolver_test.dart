@@ -973,25 +973,6 @@ const String B = A + 'b';
 ''');
   }
 
-  test_constNotInitialized_field() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  static const int x = 0;
-}
-''');
-  }
-
-  test_constNotInitialized_local() async {
-    await assertErrorsInCode(
-      r'''
-main() {
-  const int x = 0;
-}
-''',
-      [error(diag.unusedLocalVariable, 21, 1)],
-    );
-  }
-
   test_constRedirectSkipsSupertype() async {
     // Since C redirects to C.named, it doesn't implicitly refer to B's
     // unnamed constructor.  Therefore there is no cycle.
@@ -1193,33 +1174,6 @@ String f(num a, Object b) => '';
 ''');
   }
 
-  test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int x = 0;
-  A() : x = 1 {}
-}
-''');
-  }
-
-  test_fieldInitializedInInitializerAndDeclaration_finalFieldNotSet() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  final int x;
-  A() : x = 1 {}
-}
-''');
-  }
-
-  test_fieldInitializerOutsideConstructor() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int x;
-  A(this.x) {}
-}
-''');
-  }
-
   test_fieldInitializerOutsideConstructor_defaultParameters() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -1237,93 +1191,6 @@ class A {
 class B extends A {
   int x;
   B(this.x) : super();
-}
-''');
-  }
-
-  test_finalInitializedInDeclarationAndConstructor_initializer() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  final x;
-  A() : x = 1 {}
-}
-''');
-  }
-
-  test_finalInitializedInDeclarationAndConstructor_initializingFormal() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  final x;
-  A(this.x) {}
-}
-''');
-  }
-
-  test_finalNotInitialized_atDeclaration() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  final int x = 0;
-  A() {}
-}
-''');
-  }
-
-  test_finalNotInitialized_fieldFormal() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  final int x = 0;
-  A() {}
-}
-''');
-  }
-
-  test_finalNotInitialized_functionTypedFieldFormal() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  final Function x;
-  A(int this.x(int p)) {}
-}
-''');
-  }
-
-  test_finalNotInitialized_hasNativeClause_hasConstructor() async {
-    await assertErrorsInCode(
-      r'''
-class A native 'something' {
-  final int x;
-  A() {}
-}
-''',
-      [error(diag.nativeClauseInNonSdkCode, 8, 18)],
-    );
-  }
-
-  test_finalNotInitialized_hasNativeClause_noConstructor() async {
-    await assertErrorsInCode(
-      r'''
-class A native 'something' {
-  final int x;
-}
-''',
-      [error(diag.nativeClauseInNonSdkCode, 8, 18)],
-    );
-  }
-
-  test_finalNotInitialized_initializer() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  final int x;
-  A() : x = 0 {}
-}
-''');
-  }
-
-  test_finalNotInitialized_redirectingConstructor() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  final int x;
-  A(this.x);
-  A.named() : this (42);
 }
 ''');
   }
@@ -1801,15 +1668,6 @@ abstract class B {
 }
 class C implements A, B {
   x() {}
-}
-''');
-  }
-
-  test_initializingFormalForNonExistentField() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int x;
-  A(this.x) {}
 }
 ''');
   }

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
@@ -70,9 +71,9 @@ class FunctionExpressionInvocationResolver {
       );
       _resolve(
         node,
-        receiverType,
         whyNotPromotedArguments,
         contextType: contextType,
+        target: InvocationTargetFunctionTypedExpression(receiverType),
       );
       return;
     }
@@ -131,8 +132,12 @@ class FunctionExpressionInvocationResolver {
     }
 
     node.element = callElement;
-    var rawType = callElement.type;
-    _resolve(node, rawType, whyNotPromotedArguments, contextType: contextType);
+    _resolve(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+      target: InvocationTargetExecutableElement(callElement),
+    );
   }
 
   /// Check for situations where the result of a method or function is used,
@@ -159,22 +164,18 @@ class FunctionExpressionInvocationResolver {
 
   void _resolve(
     FunctionExpressionInvocationImpl node,
-    FunctionType rawType,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
+    required InvocationTarget target,
   }) {
-    var returnType =
-        FunctionExpressionInvocationInferrer(
-          resolver: _resolver,
-          node: node,
-          argumentList: node.argumentList,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          contextType: contextType,
-        ).resolveInvocation(
-          // TODO(paulberry): eliminate this cast by changing the type of
-          // `rawType`.
-          rawType: rawType as FunctionTypeImpl,
-        );
+    var returnType = FunctionExpressionInvocationInferrer(
+      resolver: _resolver,
+      node: node,
+      argumentList: node.argumentList,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+      contextType: contextType,
+      target: target,
+    ).resolveInvocation();
 
     node.recordStaticType(returnType, resolver: _resolver);
   }
@@ -193,10 +194,10 @@ class FunctionExpressionInvocationResolver {
     node.element = callElement;
 
     if (callElement == null) {
-      _diagnosticReporter.atNode(
-        function,
-        diag.invocationOfExtensionWithoutCall,
-        arguments: [function.name.lexeme],
+      _diagnosticReporter.report(
+        diag.invocationOfExtensionWithoutCall
+            .withArguments(name: function.name.lexeme)
+            .at(function),
       );
       return _unresolved(
         node,
@@ -212,8 +213,12 @@ class FunctionExpressionInvocationResolver {
       );
     }
 
-    var rawType = callElement.type;
-    _resolve(node, rawType, whyNotPromotedArguments, contextType: contextType);
+    _resolve(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+      target: InvocationTargetExecutableElement(callElement),
+    );
   }
 
   void _unresolved(
@@ -229,7 +234,8 @@ class FunctionExpressionInvocationResolver {
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(rawType: null);
+      target: null,
+    ).resolveInvocation();
     node.staticInvokeType = type;
     node.recordStaticType(type, resolver: _resolver);
   }

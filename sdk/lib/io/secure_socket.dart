@@ -834,6 +834,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void set readEventsEnabled(bool value) {
     _readEventsEnabled = value;
+    _socket.readEventsEnabled = value;
     _scheduleReadEvent();
   }
 
@@ -1084,7 +1085,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           _secureFilter = null;
           return;
         }
-        _socket.readEventsEnabled = true;
+        if (_readEventsEnabled) {
+          _socket.readEventsEnabled = true;
+        }
         if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
           // Checks for and handles all cases of partially closed sockets.
           shutdown(SocketDirection.send);

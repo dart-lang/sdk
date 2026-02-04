@@ -140,6 +140,21 @@ enum E {
 ''');
   }
 
+  Future<void> test_index_namedIndex_first_primaryConstructor() async {
+    await resolveTestCode('''
+class const ^_E(final int index, final String code) {
+  static const _E c0 = _E(0, 'a');
+  static const _E c1 = _E(1, 'b');
+}
+''');
+    await assertHasAssist('''
+enum _E(final String code) {
+  c0('a'),
+  c1('b')
+}
+''');
+  }
+
   Future<void> test_index_namedIndex_first_privateClass() async {
     await resolveTestCode('''
 class _^E {
@@ -257,6 +272,40 @@ enum _E {
 ''');
   }
 
+  Future<void>
+  test_index_namedIndex_only_privateClass_primaryConstructor() async {
+    await resolveTestCode('''
+class const _^E(final int index) {
+  static const _E c0 = _E(0);
+  static const _E c1 = _E(1);
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c0,
+  c1
+}
+''');
+  }
+
+  Future<void>
+  test_index_namedIndex_only_privateClass_primaryConstructor_nonDeclaring() async {
+    await resolveTestCode('''
+class const _^E(this.index) {
+  static const _E c0 = _E(0);
+  static const _E c1 = _E(1);
+
+  final int index;
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c0,
+  c1
+}
+''');
+  }
+
   Future<void> test_index_namedIndex_only_publicClass() async {
     await resolveTestCode('''
 class ^E {
@@ -274,6 +323,22 @@ enum E {
   c1._();
 
   const E._();
+}
+''');
+  }
+
+  Future<void>
+  test_index_namedIndex_only_publicClass_primaryConstructor() async {
+    await resolveTestCode('''
+class const ^E._(final int index) {
+  static const E c0 = E._(0);
+  static const E c1 = E._(1);
+}
+''');
+    await assertHasAssist('''
+enum E._() {
+  c0._(),
+  c1._()
 }
 ''');
   }
@@ -500,6 +565,15 @@ class _^E {
     await assertNoAssist();
   }
 
+  Future<void> test_invalid_nonConstPrimaryConstructor() async {
+    await resolveTestCode('''
+class _^E() {
+  static _E c = _E();
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_invalid_overrides_equal() async {
     await resolveTestCode('''
 class _^E {
@@ -539,6 +613,19 @@ sealed class ^E {
     await assertNoAssist();
   }
 
+  Future<void> test_minimal_primaryConstructor() async {
+    await resolveTestCode('''
+class const ^E._() {
+  static const E c = E._();
+}
+''');
+    await assertHasAssist('''
+enum E._() {
+  c._()
+}
+''');
+  }
+
   Future<void> test_minimal_privateClass() async {
     await resolveTestCode('''
 class _^E {
@@ -550,6 +637,127 @@ class _^E {
     await assertHasAssist('''
 enum _E {
   c
+}
+''');
+  }
+
+  Future<void> test_minimal_privateClass_constructorHasAnnotation() async {
+    await resolveTestCode('''
+class _^E {
+  static const _E c = _E();
+
+  @deprecated
+  const _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c;
+
+  @deprecated
+  const _E();
+}
+''');
+  }
+
+  Future<void> test_minimal_privateClass_constructorHasDocComment() async {
+    await resolveTestCode('''
+class _^E {
+  static const _E c = _E();
+
+  /// Doc comment.
+  const _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c;
+
+  /// Doc comment.
+  const _E();
+}
+''');
+  }
+
+  Future<void> test_minimal_privateClass_constructorHasInitializers() async {
+    await resolveTestCode('''
+class _^E {
+  static const _E c = _E();
+
+  const _E() : assert(1 == 1);
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c;
+
+  const _E() : assert(1 == 1);
+}
+''');
+  }
+
+  Future<void> test_minimal_privateClass_primaryConstructor() async {
+    await resolveTestCode('''
+class const _^E() {
+  static const _E c = _E();
+}
+''');
+    await assertHasAssist('''
+enum _E {
+  c
+}
+''');
+  }
+
+  Future<void> test_minimal_privateClass_primaryConstructor_generic() async {
+    await resolveTestCode('''
+class const _^E<T>() {
+  static const _E c = _E();
+}
+''');
+    await assertHasAssist('''
+enum _E<T> {
+  c
+}
+''');
+  }
+
+  Future<void>
+  test_minimal_privateClass_primaryConstructorHasAnnotation() async {
+    await resolveTestCode('''
+class const _^E() {
+  static const _E c = _E();
+
+  @deprecated
+  this;
+}
+''');
+    await assertHasAssist('''
+enum _E() {
+  c;
+
+  @deprecated
+  this;
+}
+''');
+  }
+
+  Future<void>
+  test_minimal_privateClass_primaryConstructorHasDocComment() async {
+    await resolveTestCode('''
+class const _^E() {
+  static const _E c = _E();
+
+  /// Doc comment.
+  this;
+}
+''');
+    await assertHasAssist('''
+enum _E() {
+  c;
+
+  /// Doc comment.
+  this;
 }
 ''');
   }
@@ -613,6 +821,21 @@ enum E {
   final int count;
 
   const E._(this.count);
+}
+''');
+  }
+
+  Future<void> test_noIndex_notInt_primaryConstructor() async {
+    await resolveTestCode('''
+class const ^E._(final String name) {
+  static const E c0 = E._('c0');
+  static const E c1 = E._('c1');
+}
+''');
+    await assertHasAssist('''
+enum E._(final String name) {
+  c0._('c0'),
+  c1._('c1')
 }
 ''');
   }

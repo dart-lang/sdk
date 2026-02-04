@@ -164,7 +164,7 @@ typedef ConstantCodeGeneratorLazy = bool Function(
 class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
-  w.DataSegmentBuilder? int32Segment;
+  w.DataSegmentBuilder? byteSegment;
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
   late final _constantAccessor = _ConstantAccessor(translator);
@@ -888,25 +888,40 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         // This can be a little bit larger than individual array stores, but the
         // data section will compress better, so for app.wasm.gz it'a a win and
         // will cause much faster validation & faster initialization.
-        if (arrayType.elementType.type == w.NumType.i32) {
+        final fieldType = arrayType.elementType.type;
+        final isI32 = fieldType == w.NumType.i32;
+        final isI16 = fieldType == w.PackedType.i16;
+        if (isI32 || isI16) {
           // Initialize array contents from passive data segment.
           final w.DataSegmentBuilder segment =
-              constants.int32Segment ??= b.moduleBuilder.dataSegments.define();
-
+              constants.byteSegment ??= b.moduleBuilder.dataSegments.define();
           final field = translator.wasmI32Value.fieldReference;
 
-          final list = Uint32List(elements.length);
-          for (int i = 0; i < list.length; ++i) {
-            // The constant is a `const WasmI32 {WasmI32._value: <XXX>}`
-            final constant = elements[i] as InstanceConstant;
-            assert(constant.classNode == translator.wasmI32Class);
-            list[i] = (constant.fieldValues[field] as IntConstant).value;
+          Uint8List bytes;
+          if (isI16) {
+            final list = Uint16List(elements.length);
+            for (int i = 0; i < list.length; ++i) {
+              // The constant is a `const WasmI32 {WasmI32._value: <XXX>}`
+              final constant = elements[i] as InstanceConstant;
+              assert(constant.classNode == translator.wasmI32Class);
+              list[i] = (constant.fieldValues[field] as IntConstant).value;
+            }
+            bytes = list.buffer.asUint8List();
+          } else {
+            assert(isI32);
+            final list = Uint32List(elements.length);
+            for (int i = 0; i < list.length; ++i) {
+              // The constant is a `const WasmI32 {WasmI32._value: <XXX>}`
+              final constant = elements[i] as InstanceConstant;
+              assert(constant.classNode == translator.wasmI32Class);
+              list[i] = (constant.fieldValues[field] as IntConstant).value;
+            }
+            bytes = list.buffer.asUint8List();
           }
-          final offset = segment.length;
-          segment.append(list.buffer.asUint8List());
-          b.i32_const(offset);
+          b.i32_const(segment.length);
           b.i32_const(elements.length);
           b.array_new_data(arrayType, segment);
+          segment.append(bytes);
           return;
         }
 
@@ -1107,8 +1122,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       return constantModule != vtableModule &&
           vtableModule != translator.mainModule.module;
     }, (cinfo, b, __) {
-      // The dummy struct must be declared before the constant global so that the
-      // constant's initializer can reference it.
+      // The dummy struct must be declared before the constant global so that
+      // the constant's initializer can reference it.
       final dummyStructGlobal = translator
           .getDummyValuesCollectorForModule(b.moduleBuilder)
           .dummyStructGlobal;
@@ -1848,7 +1863,7 @@ class _ConstantAccessor {
     final initFunctionType =
         translator.typesBuilder.defineFunction(const [], [type]);
     final initFunction =
-        module.functions.define(initFunctionType, '$name (lazy initializer)}');
+        module.functions.define(initFunctionType, '$name (lazy initializer)');
     final b = initFunction.body;
     info._codeGen(info, b, true);
     if (info.needsRuntimeCanonicalization) {
@@ -1870,7 +1885,7 @@ class _ConstantAccessor {
     final initFunctionType =
         translator.typesBuilder.defineFunction(const [], [type]);
     final initFunction =
-        module.functions.define(initFunctionType, '$name (lazy initializer)}');
+        module.functions.define(initFunctionType, '$name (lazy initializer)');
     final b = initFunction.body;
     b.i32_const(tableIndex);
     info._codeGen(info, b, true);
@@ -1931,41 +1946,42 @@ class _ConstantAccessor {
   static int _nextGlobalId = 0;
   String _constantName(Constant constant) {
     final id = _nextGlobalId++;
+    final prefix = translator.options.uniqueConstantNames ? 'C$id ' : '';
     if (constant is StringConstant) {
       var value = constant.value;
       final newline = value.indexOf('\n');
       if (newline != -1) value = value.substring(0, newline);
       if (value.length > 30) value = '${value.substring(0, 30)}<...>';
-      return 'C$id "$value"';
+      return '$prefix"$value"';
     }
     if (constant is BoolConstant) {
-      return 'C$id ${constant.value}';
+      return '$prefix${constant.value}';
     }
     if (constant is IntConstant) {
-      return 'C$id ${constant.value}';
+      return '$prefix${constant.value}';
     }
     if (constant is DoubleConstant) {
-      return 'C$id ${constant.value}';
+      return '$prefix${constant.value}';
     }
     if (constant is InstanceConstant) {
       final klass = constant.classNode;
       final name = klass.name;
       if (constant.typeArguments.isEmpty) {
-        return 'C$id $name';
+        return '$prefix$name';
       }
       final typeArguments = constant.typeArguments.map(_nameType).join(', ');
       if (klass == translator.wasmArrayClass ||
           klass == translator.immutableWasmArrayClass) {
         final entries =
             (constant.fieldValues.values.single as ListConstant).entries;
-        return 'C$id $name<$typeArguments>[${entries.length}]';
+        return '$prefix$name<$typeArguments>[${entries.length}]';
       }
-      return 'C$id $name<$typeArguments>';
+      return '$prefix$name<$typeArguments>';
     }
     if (constant is TearOffConstant) {
-      return 'C$id ${constant.target.name} tear-off';
+      return '$prefix${constant.target.name} tear-off';
     }
-    return 'C$id $constant';
+    return '$prefix$constant';
   }
 
   String _nameType(DartType type) {

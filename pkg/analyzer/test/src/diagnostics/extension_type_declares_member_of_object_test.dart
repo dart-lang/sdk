@@ -46,4 +46,78 @@ extension type E(int it) {
       ],
     );
   }
+
+  test_representation() async {
+    await assertErrorsInCode(
+      '''
+extension type E0(Object? hashCode) {}
+extension type E1(Object? noSuchMethod) {}
+extension type E2(Object? runtimeType) {}
+extension type E3(Object? toString) {}
+''',
+      [
+        error(diag.extensionTypeDeclaresMemberOfObject, 26, 8),
+        error(diag.extensionTypeDeclaresMemberOfObject, 65, 12),
+        error(diag.extensionTypeDeclaresMemberOfObject, 108, 11),
+        error(diag.extensionTypeDeclaresMemberOfObject, 150, 8),
+      ],
+    );
+  }
+
+  test_static_getter() async {
+    await assertErrorsInCode(
+      '''
+extension type E(int it) {
+  static int get hashCode => 0;
+  static int get noSuchMethod => 0;
+  static int get runtimeType => 0;
+  static int get toString => 0;
+}
+''',
+      [
+        error(diag.extensionTypeDeclaresMemberOfObject, 44, 8),
+        error(diag.extensionTypeDeclaresMemberOfObject, 76, 12),
+        error(diag.extensionTypeDeclaresMemberOfObject, 112, 11),
+        error(diag.extensionTypeDeclaresMemberOfObject, 147, 8),
+      ],
+    );
+  }
+
+  test_static_method() async {
+    await assertErrorsInCode(
+      '''
+extension type E(int it) {
+  static int hashCode() => 0;
+  static dynamic noSuchMethod(Invocation i) => null;
+  static Type runtimeType() => int;
+  static String toString() => '';
+}
+''',
+      [
+        error(diag.extensionTypeDeclaresMemberOfObject, 40, 8),
+        error(diag.extensionTypeDeclaresMemberOfObject, 74, 12),
+        error(diag.extensionTypeDeclaresMemberOfObject, 124, 11),
+        error(diag.extensionTypeDeclaresMemberOfObject, 162, 8),
+      ],
+    );
+  }
+
+  test_static_setter() async {
+    await assertErrorsInCode(
+      '''
+extension type E(int it) {
+  static set hashCode(int _) {}
+  static set noSuchMethod(int _) {}
+  static set runtimeType(int _) {}
+  static set toString(int _) {}
+}
+''',
+      [
+        error(diag.extensionTypeDeclaresMemberOfObject, 40, 8),
+        error(diag.extensionTypeDeclaresMemberOfObject, 72, 12),
+        error(diag.extensionTypeDeclaresMemberOfObject, 108, 11),
+        error(diag.extensionTypeDeclaresMemberOfObject, 143, 8),
+      ],
+    );
+  }
 }

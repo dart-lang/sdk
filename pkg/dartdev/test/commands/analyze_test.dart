@@ -83,22 +83,16 @@ void defineAnalysisError() {
       var errors = <AnalysisError>[
         AnalysisError({
           'severity': 'INFO',
-          'location': {
-            'file': 'a.dart',
-          }
+          'location': {'file': 'a.dart'},
         }),
         AnalysisError({
           'severity': 'WARNING',
-          'location': {
-            'file': 'a.dart',
-          }
+          'location': {'file': 'a.dart'},
         }),
         AnalysisError({
           'severity': 'ERROR',
-          'location': {
-            'file': 'a.dart',
-          }
-        })
+          'location': {'file': 'a.dart'},
+        }),
       ];
 
       errors.sort();
@@ -113,22 +107,16 @@ void defineAnalysisError() {
       var errors = <AnalysisError>[
         AnalysisError({
           'severity': 'INFO',
-          'location': {
-            'file': 'c.dart',
-          }
+          'location': {'file': 'c.dart'},
         }),
         AnalysisError({
           'severity': 'INFO',
-          'location': {
-            'file': 'b.dart',
-          }
+          'location': {'file': 'b.dart'},
         }),
         AnalysisError({
           'severity': 'INFO',
-          'location': {
-            'file': 'a.dart',
-          }
-        })
+          'location': {'file': 'a.dart'},
+        }),
       ];
 
       errors.sort();
@@ -143,16 +131,16 @@ void defineAnalysisError() {
       var errors = <AnalysisError>[
         AnalysisError({
           'severity': 'INFO',
-          'location': {'file': 'a.dart', 'offset': 8}
+          'location': {'file': 'a.dart', 'offset': 8},
         }),
         AnalysisError({
           'severity': 'INFO',
-          'location': {'file': 'a.dart', 'offset': 6}
+          'location': {'file': 'a.dart', 'offset': 6},
         }),
         AnalysisError({
           'severity': 'INFO',
-          'location': {'file': 'a.dart', 'offset': 4}
-        })
+          'location': {'file': 'a.dart', 'offset': 4},
+        }),
       ];
 
       errors.sort();
@@ -168,18 +156,18 @@ void defineAnalysisError() {
         AnalysisError({
           'severity': 'INFO',
           'location': {'file': 'a.dart', 'offset': 8},
-          'message': 'C'
+          'message': 'C',
         }),
         AnalysisError({
           'severity': 'INFO',
           'location': {'file': 'a.dart', 'offset': 6},
-          'message': 'B'
+          'message': 'B',
         }),
         AnalysisError({
           'severity': 'INFO',
           'location': {'file': 'a.dart', 'offset': 4},
-          'message': 'A'
-        })
+          'message': 'A',
+        }),
       ];
 
       errors.sort();
@@ -251,8 +239,10 @@ void defineAnalyze() {
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
-    expect(result.stderr,
-        contains("Directory or file doesn't exist: /no/such/dir1/"));
+    expect(
+      result.stderr,
+      contains("Directory or file doesn't exist: /no/such/dir1/"),
+    );
     expect(result.stderr, contains(_analyzeUsageText));
   });
 
@@ -321,14 +311,16 @@ void defineAnalyze() {
     });
 
     test('error with context message', () async {
-      p = project(mainSrc: '''
+      p = project(
+        mainSrc: '''
 part 'a.dart';
 
 class B extends A {
   @override
   void m(String p) {}
 }
-''');
+''',
+      );
       p.file('lib${path.separator}a.dart', '''
 part of 'main.dart';
 
@@ -348,8 +340,9 @@ class A {
 
   test('warning --fatal-warnings', () async {
     p = project(
-        mainSrc: _unusedImportCodeSnippet,
-        analysisOptions: _unusedImportAnalysisOptions);
+      mainSrc: _unusedImportCodeSnippet,
+      analysisOptions: _unusedImportAnalysisOptions,
+    );
     var result = await p.runAnalyze(['--fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, equals(2));
@@ -359,8 +352,9 @@ class A {
 
   test('warning implicit --fatal-warnings', () async {
     p = project(
-        mainSrc: _unusedImportCodeSnippet,
-        analysisOptions: _unusedImportAnalysisOptions);
+      mainSrc: _unusedImportCodeSnippet,
+      analysisOptions: _unusedImportAnalysisOptions,
+    );
     var result = await p.runAnalyze([p.dirPath]);
 
     expect(result.exitCode, equals(2));
@@ -370,8 +364,9 @@ class A {
 
   test('warning --no-fatal-warnings', () async {
     p = project(
-        mainSrc: _unusedImportCodeSnippet,
-        analysisOptions: _unusedImportAnalysisOptions);
+      mainSrc: _unusedImportCodeSnippet,
+      analysisOptions: _unusedImportAnalysisOptions,
+    );
     var result = await p.runAnalyze(['--no-fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, 0);
@@ -412,9 +407,7 @@ analyzer:
   });
 
   test('TODOs hidden by default', () async {
-    p = project(
-      mainSrc: _todoAsWarningCodeSnippet,
-    );
+    p = project(mainSrc: _todoAsWarningCodeSnippet);
     var result = await p.runAnalyze([p.dirPath]);
 
     expect(result.exitCode, equals(0));
@@ -466,22 +459,28 @@ analyzer:
     expect(result.stderr, contains("Unknown experiment(s): 'bad'"));
   });
 
-  test('--enable-experiment with a non-experimental feature', () async {
-    p = project();
-    var result = await p.runAnalyze(['--enable-experiment=records']);
+  test(
+    '--enable-experiment with a non-experimental feature',
+    () async {
+      p = project();
+      var result = await p.runAnalyze(['--enable-experiment=records']);
 
-    expect(result.exitCode, 0);
-    expect(result.stdout, contains('No issues found!'));
-    expect(result.stderr, contains("'records' is now enabled by default"));
-  }, skip: 'records are enabled by default in 3.0');
+      expect(result.exitCode, 0);
+      expect(result.stdout, contains('No issues found!'));
+      expect(result.stderr, contains("'records' is now enabled by default"));
+    },
+    skip: 'records are enabled by default in 3.0',
+  );
 
   test('--verbose', () async {
-    p = project(mainSrc: '''
+    p = project(
+      mainSrc: '''
 int f() {
   var result = one + 2;
   var one = 1;
   return result;
-}''');
+}''',
+    );
     var result = await p.runAnalyze(['--verbose', p.dirPath]);
 
     expect(result.exitCode, 3);
@@ -489,7 +488,9 @@ int f() {
     var stdout = result.stdout;
     expect(stdout, contains("The declaration of 'one' is here"));
     expect(
-        stdout, contains('Try moving the declaration to before the first use'));
+      stdout,
+      contains('Try moving the declaration to before the first use'),
+    );
     expect(stdout, contains('https://dart.dev'));
     expect(stdout, contains('referenced_before_declaration'));
   });
@@ -499,11 +500,13 @@ int f() {
       final foo = project(name: 'foo');
       foo.file('lib${path.separator}foo.dart', 'var my_foo = 0;');
 
-      p = project(mainSrc: '''
+      p = project(
+        mainSrc: '''
 import 'package:foo/foo.dart';
 void f() {
   my_foo;
-}''');
+}''',
+      );
       p.file('my_packages.json', '''
 {
   "configVersion": 2,
@@ -529,10 +532,7 @@ void f() {
 
     test('not existing', () async {
       p = project();
-      var result = await p.runAnalyze([
-        '--packages=no.such.file',
-        p.dirPath,
-      ]);
+      var result = await p.runAnalyze(['--packages=no.such.file', p.dirPath]);
 
       expect(result.exitCode, 64);
       expect(result.stderr, contains("The file doesn't exist: no.such.file"));
@@ -544,10 +544,7 @@ void f() {
     var cache = project(name: 'cache');
 
     p = project(mainSrc: 'var v = 0;');
-    var result = await p.runAnalyze([
-      '--cache=${cache.dirPath}',
-      p.mainPath,
-    ]);
+    var result = await p.runAnalyze(['--cache=${cache.dirPath}', p.mainPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -567,7 +564,7 @@ void f() {
         'offset': 362,
         'length': 72,
         'startLine': 15,
-        'startColumn': 4
+        'startColumn': 4,
       },
       'message': 'Foo bar baz.',
       'hasFix': false,
@@ -580,7 +577,7 @@ void f() {
         'offset': 19,
         'length': 1,
         'startLine': 2,
-        'startColumn': 9
+        'startColumn': 9,
       },
       'message':
           "Local variable 's' can't be referenced before it is declared.",
@@ -596,11 +593,11 @@ void f() {
             'offset': 29,
             'length': 1,
             'startLine': 3,
-            'startColumn': 7
-          }
-        }
+            'startColumn': 7,
+          },
+        },
       ],
-      'hasFix': false
+      'hasFix': false,
     };
 
     group('default', () {
@@ -618,18 +615,21 @@ void f() {
         expect(stdout, contains('dead_code'));
       });
 
-      test('prioritizes errors in analysis_options.yaml (with other errors)',
-          () async {
-        p = project(
+      test(
+        'prioritizes errors in analysis_options.yaml (with other errors)',
+        () async {
+          p = project(
             mainSrc: 'int get foo => null;\n',
-            analysisOptions: 'include: package:lints/recommended.yaml\nf');
-        var result = await p.runAnalyze([]);
+            analysisOptions: 'include: package:lints/recommended.yaml\nf',
+          );
+          var result = await p.runAnalyze([]);
 
-        expect(result.exitCode, 3);
-        expect(result.stderr, isEmpty);
+          expect(result.exitCode, 3);
+          expect(result.stderr, isEmpty);
 
-        final stdout = result.stdout;
-        final expectedOutput = '''
+          final stdout = result.stdout;
+          final expectedOutput =
+              '''
 Analyzing myapp...
 
 Errors were found in 'pubspec.yaml' and/or 'analysis_options.yaml' which might result in either invalid diagnostics being produced or valid diagnostics being missed.
@@ -642,21 +642,24 @@ Errors in remaining files.
 
 2 issues found.
 ''';
-        expect(stdout.trim(), expectedOutput.trim());
-      });
+          expect(stdout.trim(), expectedOutput.trim());
+        },
+      );
 
-      test('prioritizes errors in analysis_options.yaml (without other errors)',
-          () async {
-        p = project(
+      test(
+        'prioritizes errors in analysis_options.yaml (without other errors)',
+        () async {
+          p = project(
             mainSrc: 'int get foo => 1;\n',
-            analysisOptions: 'include: package:lints/recommended.yaml\nf');
-        var result = await p.runAnalyze([]);
+            analysisOptions: 'include: package:lints/recommended.yaml\nf',
+          );
+          var result = await p.runAnalyze([]);
 
-        expect(result.exitCode, 3);
-        expect(result.stderr, isEmpty);
+          expect(result.exitCode, 3);
+          expect(result.stderr, isEmpty);
 
-        final stdout = result.stdout;
-        final expectedOutput = '''
+          final stdout = result.stdout;
+          final expectedOutput = '''
 Analyzing myapp...
 
 Errors were found in 'pubspec.yaml' and/or 'analysis_options.yaml' which might result in either invalid diagnostics being produced or valid diagnostics being missed.
@@ -665,13 +668,15 @@ Errors were found in 'pubspec.yaml' and/or 'analysis_options.yaml' which might r
 
 1 issue found.
 ''';
-        expect(stdout.trim(), expectedOutput.trim());
-      });
+          expect(stdout.trim(), expectedOutput.trim());
+        },
+      );
 
       test('does not prioritize warnings in analysis_options.yaml', () async {
         p = project(
-            mainSrc: 'int get foo => null;\n',
-            analysisOptions: 'include: package:lints/recommended.yaml');
+          mainSrc: 'int get foo => null;\n',
+          analysisOptions: 'include: package:lints/recommended.yaml',
+        );
         var result = await p.runAnalyze([]);
 
         expect(result.exitCode, 3);
@@ -681,7 +686,8 @@ Errors were found in 'pubspec.yaml' and/or 'analysis_options.yaml' which might r
           result.stdout.toString(),
           filePath: p.dirPath,
         );
-        final expectedOutput = '''
+        final expectedOutput =
+            '''
 Analyzing myapp...
 
   error - lib${path.separator}main.dart:1:16 - A value of type 'Null' can't be returned from the function 'foo' because it has a return type of 'int'. - return_of_invalid_type
@@ -697,10 +703,7 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
       group('--format=json', () {
         test('no errors', () async {
           p = project(mainSrc: 'int get foo => 1;\n');
-          var result = await p.runAnalyze([
-            '--format=json',
-            p.mainPath,
-          ]);
+          var result = await p.runAnalyze(['--format=json', p.mainPath]);
 
           expect(result.exitCode, 0);
           expect(result.stderr, isEmpty);
@@ -710,10 +713,7 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
         });
         test('one error', () async {
           p = project(mainSrc: "int get foo => 'str';\n");
-          var result = await p.runAnalyze([
-            '--format=json',
-            p.mainPath,
-          ]);
+          var result = await p.runAnalyze(['--format=json', p.mainPath]);
 
           expect(result.exitCode, 3);
           expect(result.stderr, isEmpty);
@@ -721,9 +721,11 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
           final escapedSeparator = path.separator.replaceAll('\\', '\\\\');
           final stdout = result.stdout.trim();
           expect(
-              stdout,
-              startsWith(
-                  '{"version":1,"diagnostics":[{"code":"return_of_invalid_type",'));
+            stdout,
+            startsWith(
+              '{"version":1,"diagnostics":[{"code":"return_of_invalid_type",',
+            ),
+          );
           expect(stdout, endsWith('}'));
           expect(stdout, contains('lib${escapedSeparator}main.dart'));
           expect(stdout, contains('"line":1,"column":16'));
@@ -749,11 +751,12 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
         expect(logger.stderrBuffer, isEmpty);
         final stdout = logger.stdoutBuffer.toString().trim();
         expect(
-            stdout,
-            '{"version":1,"diagnostics":[{"code":"dead_code","severity":"INFO",'
-            '"type":"TODO","location":{"file":"lib/test.dart","range":{'
-            '"start":{"offset":362,"line":15,"column":4},"end":{"offset":434,'
-            '"line":16,"column":12}}},"problemMessage":"Foo bar baz."}]}');
+          stdout,
+          '{"version":1,"diagnostics":[{"code":"dead_code","severity":"INFO",'
+          '"type":"TODO","location":{"file":"lib/test.dart","range":{'
+          '"start":{"offset":362,"line":15,"column":4},"end":{"offset":434,'
+          '"line":16,"column":12}}},"problemMessage":"Foo bar baz."}]}',
+        );
       });
       test('full', () {
         final logger = TestLogger(false);
@@ -764,31 +767,29 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
         expect(logger.stderrBuffer, isEmpty);
         final stdout = logger.stdoutBuffer.toString().trim();
         expect(
-            stdout,
-            '{"version":1,"diagnostics":[{'
-            '"code":"referenced_before_declaration","severity":"ERROR",'
-            '"type":"COMPILE_TIME_ERROR","location":{"file":"lib/test.dart",'
-            '"range":{"start":{"offset":19,"line":2,"column":9},"end":{'
-            '"offset":20,"line":null,"column":null}}},"problemMessage":'
-            '"Local variable \'s\' can\'t be referenced before it is declared.",'
-            '"correctionMessage":"Try moving the declaration to before the'
-            ' first use, or renaming the local variable so that it doesn\'t hide'
-            ' a name from an enclosing scope.","contextMessages":[{"location":{'
-            '"file":"lib/test.dart","range":{"start":{"offset":29,"line":3,'
-            '"column":7},"end":{"offset":30,"line":null,"column":null}}},'
-            '"message":"The declaration of \'s\' is on line 3."}],'
-            '"documentation":'
-            '"https:://dart.dev/diagnostics/referenced_before_declaration"}]}');
+          stdout,
+          '{"version":1,"diagnostics":[{'
+          '"code":"referenced_before_declaration","severity":"ERROR",'
+          '"type":"COMPILE_TIME_ERROR","location":{"file":"lib/test.dart",'
+          '"range":{"start":{"offset":19,"line":2,"column":9},"end":{'
+          '"offset":20,"line":null,"column":null}}},"problemMessage":'
+          '"Local variable \'s\' can\'t be referenced before it is declared.",'
+          '"correctionMessage":"Try moving the declaration to before the'
+          ' first use, or renaming the local variable so that it doesn\'t hide'
+          ' a name from an enclosing scope.","contextMessages":[{"location":{'
+          '"file":"lib/test.dart","range":{"start":{"offset":29,"line":3,'
+          '"column":7},"end":{"offset":30,"line":null,"column":null}}},'
+          '"message":"The declaration of \'s\' is on line 3."}],'
+          '"documentation":'
+          '"https:://dart.dev/diagnostics/referenced_before_declaration"}]}',
+        );
       });
     });
     group('machine', () {
       group('--format=machine', () {
         test('no errors', () async {
           p = project(mainSrc: 'int get foo => 1;\n');
-          var result = await p.runAnalyze([
-            '--format=machine',
-            p.mainPath,
-          ]);
+          var result = await p.runAnalyze(['--format=machine', p.mainPath]);
 
           expect(result.exitCode, 0);
           expect(result.stderr, isEmpty);
@@ -798,10 +799,7 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
         });
         test('one error', () async {
           p = project(mainSrc: "int get foo => 'str';\n");
-          var result = await p.runAnalyze([
-            '--format=machine',
-            p.mainPath,
-          ]);
+          var result = await p.runAnalyze(['--format=machine', p.mainPath]);
 
           expect(result.exitCode, 3);
           expect(result.stderr, isEmpty);
@@ -831,8 +829,9 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
     test('--use-aot-snapshot', () async {
       p = project(mainSrc: 'int get foo => 1;\n');
 
-      var result =
-          await p.runAnalyze(['--use-aot-snapshot'], workingDir: p.dirPath);
+      var result = await p.runAnalyze([
+        '--use-aot-snapshot',
+      ], workingDir: p.dirPath);
 
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
@@ -842,8 +841,9 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
     test('--no-use-aot-snapshot', () async {
       p = project(mainSrc: 'int get foo => 1;\n');
 
-      var result =
-          await p.runAnalyze(['--no-use-aot-snapshot'], workingDir: p.dirPath);
+      var result = await p.runAnalyze([
+        '--no-use-aot-snapshot',
+      ], workingDir: p.dirPath);
 
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);

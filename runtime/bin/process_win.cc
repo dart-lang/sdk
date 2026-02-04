@@ -612,6 +612,24 @@ class ProcessStarter {
     return 0;
   }
 
+  // Check if the current process is attached to console by opening
+  // CONOUT$.
+  //
+  // Checking STD_OUTPUT_HANDLE does not actually say anything because output
+  // might be redirected, but the console will still exist and can be written
+  // to.
+  //
+  // See https://learn.microsoft.com/en-us/windows/console/console-handles.
+  static bool IsCurrentProcessAttachedToConsole() {
+    HANDLE h = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE,
+                           FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+    if (h != INVALID_HANDLE_VALUE) {
+      CloseHandle(h);
+      return true;
+    }
+    return false;
+  }
+
   int StartForExec(HANDLE hjob) {
     ASSERT(mode_ == kInheritStdio);
     ASSERT(Process::ModeIsAttached(mode_));
@@ -665,6 +683,13 @@ class ProcessStarter {
     // Create process.
     DWORD creation_flags =
         EXTENDED_STARTUPINFO_PRESENT | CREATE_UNICODE_ENVIRONMENT;
+    if (!IsCurrentProcessAttachedToConsole()) {
+      // Prevent child process from creating a console if the current
+      // process does not have a console. This makes sure that if
+      // dart.exe is spawned without a console then dartvm.exe
+      // will not create its own console.
+      creation_flags |= DETACHED_PROCESS;
+    }
     BOOL result = CreateProcessW(
         nullptr,  // ApplicationName
         command_line_,

@@ -109,7 +109,7 @@ void f() {
 }
 void g<T, U>() {}
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 14, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 14, 5)],
     );
   }
 
@@ -121,7 +121,7 @@ void f() {
 }
 void g<T>() {}
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 14, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 14, 13)],
     );
   }
 
@@ -135,7 +135,7 @@ class C {
   void call<T, U>() {}
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 12, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 12, 5)],
     );
   }
 
@@ -149,7 +149,7 @@ class C {
   void call<T>() {}
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 12, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 12, 13)],
     );
   }
 
@@ -161,7 +161,7 @@ f() {
   foo<int>;
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 33, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 33, 5)],
     );
   }
 
@@ -173,7 +173,7 @@ f() {
   foo<int, int>;
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsFunction, 30, 10)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 30, 10)],
     );
   }
 
@@ -184,7 +184,7 @@ f(void Function<T, U>() foo, void Function<T, U>() bar) {
   (1 == 2 ? foo : bar)<int>;
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsAnonymousFunction, 80, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsFunction, 80, 5)],
     );
   }
 
@@ -199,6 +199,460 @@ f(void Function<T>() foo, void Function<T, U>() bar) {
     );
   }
 
+  test_messageText_annotation() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  const A();
+}
+
+@A<int>()
+void f() {}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsElement,
+          28,
+          5,
+          messageContains: [
+            "The class 'A'",
+            '0 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_constructorInvocationWithExplicitNew_noTypeParameters() async {
+    await assertErrorsInCode(
+      r'''
+class Foo<X> {
+  Foo.bar();
+}
+
+main() {
+  new Foo.bar<int>();
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsConstructor,
+          53,
+          5,
+          messageContains: [
+            "The constructor 'Foo.bar'",
+            "doesn't have type parameters",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_constructorInvocationWithImplicitNew_noTypeParameters() async {
+    await assertErrorsInCode(
+      r'''
+class Foo<X> {
+  Foo.bar();
+}
+
+main() {
+  Foo.bar<int>();
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsConstructor,
+          49,
+          5,
+          messageContains: [
+            "The constructor 'Foo.bar'",
+            "doesn't have type parameters",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_constructorTearoff_noTypeParametersExpected() async {
+    await assertErrorsInCode(
+      '''
+class A<T> {
+  A.foo() {}
+}
+
+var x = A.foo<int>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsConstructor,
+          42,
+          5,
+          messageContains: [
+            "The constructor 'A.foo'",
+            "doesn't have type parameters",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_dotShorthand() async {
+    await assertErrorsInCode(
+      r'''
+abstract class Foo<T> {
+  const factory Foo.a() = _Foo;
+
+  const Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  const _Foo();
+}
+
+Foo<int> bar<T>() => const .a<int>();
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          154,
+          5,
+          messageContains: [
+            "the constructor 'Foo.a'",
+            "type parameters can't be applied to dot shorthand constructor "
+                "invocations",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_dynamic() async {
+    await assertErrorsInCode(
+      r'''
+dynamic<int> v;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          0,
+          12,
+          messageContains: [
+            "The type 'dynamic'",
+            '0 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_enum() async {
+    await assertErrorsInCode(
+      r'''
+enum E<T, U> {
+  v<int>()
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsEnum,
+          18,
+          5,
+          messageContains: [
+            'The enum',
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_extension() async {
+    await assertErrorsInCode(
+      r'''
+extension E on int {
+  void foo() {}
+}
+
+void f() {
+  E<int>(0).foo();
+}
+''',
+      [error(diag.wrongNumberOfTypeArgumentsExtension, 54, 5)],
+    );
+  }
+
+  test_messageText_functionInstantiation_duringConstEvaluation() async {
+    await assertErrorsInCode(
+      '''
+void f<T>() {}
+const dynamic x = f;
+const y = (f)<int, String>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsFunction,
+          49,
+          13,
+          messageContains: [
+            "The type of this function is 'void Function<T>()'",
+            '1 type parameters',
+            '2 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_implicitCallTearoff() async {
+    await assertErrorsInCode(
+      '''
+f(C c) {
+  c<int>;
+}
+class C {
+  void call<T, U>() {}
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsElement,
+          12,
+          5,
+          messageContains: [
+            "The method 'call'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_instantiationOfFunctionTypedExpression() async {
+    await assertErrorsInCode(
+      '''
+f(void Function<T, U>() foo, void Function<T, U>() bar) {
+  (1 == 2 ? foo : bar)<int>;
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsFunction,
+          80,
+          5,
+          messageContains: [
+            "The type of this function is 'void Function<T, U>()'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_localFunction() async {
+    await assertErrorsInCode(
+      '''
+f() {
+  void foo<T, U>() {}
+  foo<int>;
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsElement,
+          33,
+          5,
+          messageContains: [
+            "The function 'foo'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_namedType() async {
+    await assertErrorsInCode(
+      r'''
+class A<E, F> {}
+A<A>? a;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          17,
+          5,
+          messageContains: [
+            "The type 'A'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_never() async {
+    await assertErrorsInCode(
+      r'''
+Never<int> f() => throw '';
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          0,
+          10,
+          messageContains: [
+            "The type 'Never'",
+            '0 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_prefixedConstructorInvocation() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class Foo<X> {
+  Foo.bar();
+}
+''');
+    await assertErrorsInCode(
+      '''
+import 'a.dart' as p;
+
+main() {
+  p.Foo.bar<int>();
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsConstructor,
+          43,
+          5,
+          messageContains: [
+            "The constructor 'p.Foo.bar'",
+            "doesn't have type parameters",
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_topLevelFunctionInvocation() async {
+    await assertErrorsInCode(
+      '''
+void f() {
+  g<int>();
+}
+void g<T, U>() {}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsElement,
+          14,
+          5,
+          messageContains: [
+            "The function 'g'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_topLevelFunctionTearoff_const() async {
+    await assertErrorsInCode(
+      r'''
+void foo<T, U>(T a, U b) {}
+const g = foo<int>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArgumentsElement,
+          41,
+          5,
+          messageContains: [
+            "The function 'foo'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_typeInstantiation() async {
+    await assertErrorsInCode(
+      '''
+class C<T, U> {}
+var t = C<int>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          26,
+          5,
+          messageContains: [
+            "The type 'C'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_typeInstantiation_typedef() async {
+    await assertErrorsInCode(
+      '''
+typedef Fn<T, U> = void Function(T, U);
+var t = Fn<int>;
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          50,
+          5,
+          messageContains: [
+            "The type 'Fn'",
+            '2 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_messageText_typeParameter() async {
+    await assertErrorsInCode(
+      r'''
+class C<T> {
+  late T<int> f;
+}
+''',
+      [
+        error(
+          diag.wrongNumberOfTypeArguments,
+          20,
+          6,
+          messageContains: [
+            "The type 'T'",
+            '0 type parameters',
+            '1 type arguments',
+          ],
+        ),
+      ],
+    );
+  }
+
   test_metadata_1of0() async {
     await assertErrorsInCode(
       r'''
@@ -209,7 +663,7 @@ class A {
 @A<int>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 28, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 28, 5)],
     );
   }
 
@@ -225,7 +679,7 @@ typedef B = A;
 @B<int>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 44, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 44, 5)],
     );
   }
 
@@ -239,7 +693,7 @@ class A<T, U> {
 @A<int>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 34, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 34, 5)],
     );
   }
 
@@ -255,7 +709,7 @@ typedef B<T, U> = A;
 @B<int>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 50, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 50, 5)],
     );
   }
 
@@ -269,7 +723,7 @@ class A<T> {
 @A<int, String>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 31, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 31, 13)],
     );
   }
 
@@ -285,7 +739,7 @@ typedef B<T> = A;
 @B<int, String>()
 void f() {}
 ''',
-      [error(diag.wrongNumberOfTypeArguments, 47, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 47, 13)],
     );
   }
 
@@ -299,7 +753,7 @@ class C {
   void g<T, U>() {}
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 19, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 19, 5)],
     );
   }
 
@@ -313,7 +767,7 @@ class C {
   void g<T>() {}
 }
 ''',
-      [error(diag.wrongNumberOfTypeArgumentsMethod, 19, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsElement, 19, 13)],
     );
   }
 

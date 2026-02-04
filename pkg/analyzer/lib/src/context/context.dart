@@ -55,7 +55,7 @@ class AnalysisContextImpl implements AnalysisContext {
 
   @override
   AnalysisOptions getAnalysisOptionsForFile(File file) =>
-      _analysisOptionsMap.getOptions(file);
+      _analysisOptionsMap[file];
 
   void setTypeProviders({required TypeProviderImpl typeProvider}) {
     if (_typeProvider != null) {

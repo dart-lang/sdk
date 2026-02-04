@@ -12,7 +12,7 @@ import "dart:core" hide Symbol;
 import "dart:ffi" show Pointer, Struct, Union, IntPtr, Handle, Void, Native;
 import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
-import "dart:_vm" show FinalThreadLocal;
+import "dart:_vm" show FinalThreadLocal, ThreadLocal;
 
 /// These are the additional parts of this patch library:
 part "class_id_fasta.dart";
@@ -488,3 +488,16 @@ abstract interface class IsolateGroup {
 final _toStringVisiting = FinalThreadLocal<List<Object>>(() => <Object>[]);
 @patch
 List<Object> get toStringVisiting => _toStringVisiting.value;
+
+@pragma("vm:external-name", "Internal_ensureDeeplyImmutable")
+external _ensureDeeplyImmutable(value);
+
+@pragma("vm:shared")
+final _printToZone = ThreadLocal<void Function(String)?>();
+@patch
+void Function(String)? get printToZone =>
+    _printToZone.hasValue ? _printToZone.value : null;
+@patch
+set printToZone(void Function(String)? value) {
+  _printToZone.value = value;
+}

@@ -2339,8 +2339,7 @@ class BinaryBuilder {
 
   Expression _readInvalidExpression() {
     int offset = readOffset();
-    return new InvalidExpression(
-        readStringReference(), readExpressionOption())
+    return new InvalidExpression(readStringReference(), readExpressionOption())
       ..fileOffset = offset;
   }
 
@@ -2432,14 +2431,14 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperPropertyGet.byReference(
-        readName(), readNonNullInstanceMemberReference())
+        readExpression(), readName(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
   Expression _readAbstractSuperPropertySet() {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
-    return new AbstractSuperPropertySet.byReference(
+    return new AbstractSuperPropertySet.byReference(readExpression(),
         readName(), readExpression(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
@@ -2448,15 +2447,15 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertyGet.byReference(
-        readName(), readNonNullInstanceMemberReference())
+        readExpression(), readName(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
   Expression _readSuperPropertySet() {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
-    return new SuperPropertySet.byReference(
-        readName(), readExpression(), readNonNullInstanceMemberReference())
+    return new SuperPropertySet.byReference(readExpression(), readName(),
+        readExpression(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2590,16 +2589,22 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new AbstractSuperMethodInvocation.byReference(
-        readName(), readArguments(), readNonNullInstanceMemberReference())
-      ..fileOffset = offset;
+      readExpression(),
+      readName(),
+      readArguments(),
+      readNonNullInstanceMemberReference(),
+    )..fileOffset = offset;
   }
 
   Expression _readSuperMethodInvocation() {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperMethodInvocation.byReference(
-        readName(), readArguments(), readNonNullInstanceMemberReference())
-      ..fileOffset = offset;
+      readExpression(),
+      readName(),
+      readArguments(),
+      readNonNullInstanceMemberReference(),
+    )..fileOffset = offset;
   }
 
   Expression _readStaticInvocation() {

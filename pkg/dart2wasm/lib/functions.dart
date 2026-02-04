@@ -12,6 +12,7 @@ import 'dispatch_table.dart';
 import 'dynamic_modules.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
+import 'util.dart' as util;
 
 /// This class is responsible for collecting import and export annotations.
 /// It also creates Wasm functions for Dart members and manages the compilation
@@ -49,49 +50,34 @@ class FunctionCollector {
   }
 
   void _importOrExport(Procedure member) {
-    String? importName =
-        translator.getPragma(member, "wasm:import", member.name.text);
+    final importName = util.getWasmImportPragma(translator.coreTypes, member);
     if (importName != null) {
-      int dot = importName.indexOf('.');
-      if (dot != -1) {
-        assert(!member.isInstanceMember);
-        String module = importName.substring(0, dot);
-        String name = importName.substring(dot + 1);
-        final ftype = _makeFunctionType(translator, member.reference, null,
-            isImportOrExport: true);
-        _functions[member.reference] = translator
-            .moduleForReference(member.reference)
-            .functions
-            .import(module, name, ftype, "$importName (import)");
-      }
+      final ftype = _makeFunctionType(translator, member.reference, null,
+          isImportOrExport: true);
+      _functions[member.reference] = translator
+          .moduleForReference(member.reference)
+          .functions
+          .import(importName.moduleName, importName.itemName, ftype,
+              "$importName (import)");
     }
 
     // Ensure any procedures marked as exported are enqueued.
-    final text = member.name.text;
-    String? exportName = translator.getPragma(member, "wasm:export", text);
+    String? exportName = util.getWasmExportPragma(translator.coreTypes, member);
     if (exportName != null) {
       getFunction(member.reference);
     }
 
     // Whether a procedure is strongly or weakly exported, we must not use its
     // name as the export name of a different function.
-    exportName ??= translator.getPragma(member, "wasm:weak-export", text);
+    exportName ??= util.getWasmWeakExportPragma(translator.coreTypes, member);
     if (exportName != null) {
-      translator.exportNamer.reserveName(exportName);
+      translator.exporter.reserveName(exportName);
     }
   }
 
   /// If the member with the reference [target] is exported, get the export
   /// name.
-  String? getExportName(Reference target) {
-    final member = target.asMember;
-    if (member.reference == target) {
-      final text = member.name.text;
-      return translator.getPragma(member, "wasm:export", text) ??
-          translator.getPragma(member, "wasm:weak-export", text);
-    }
-    return null;
-  }
+  String? getExportName(Reference target) => translator.getExportName(target);
 
   void initialize() {
     _collectImportsAndExports();
@@ -113,24 +99,20 @@ class FunctionCollector {
     return _functions.putIfAbsent(target, () {
       final member = target.asMember;
 
-      // If this function is a `@pragma('wasm:import', '<module>:<name>')` we
+      // If this function is a `@pragma('wasm:import', '<module>.<name>')` we
       // import the function and return it.
       if (member.reference == target && member.annotations.isNotEmpty) {
         final importName =
-            translator.getPragma(member, 'wasm:import', member.name.text);
+            util.getWasmImportPragma(translator.coreTypes, member);
+
         if (importName != null) {
-          assert(!member.isInstanceMember);
-          int dot = importName.indexOf('.');
-          if (dot != -1) {
-            final module = importName.substring(0, dot);
-            final name = importName.substring(dot + 1);
-            final ftype = _makeFunctionType(translator, member.reference, null,
-                isImportOrExport: true);
-            return _functions[member.reference] = translator
-                .moduleForReference(member.reference)
-                .functions
-                .import(module, name, ftype, "$importName (import)");
-          }
+          final ftype = _makeFunctionType(translator, member.reference, null,
+              isImportOrExport: true);
+          return _functions[member.reference] = translator
+              .moduleForReference(member.reference)
+              .functions
+              .import(importName.moduleName, importName.itemName, ftype,
+                  "$importName (import)");
         }
       }
 
@@ -145,9 +127,8 @@ class FunctionCollector {
       // we export it under the given `<name>`
       String? exportName;
       if (member.reference == target && member.annotations.isNotEmpty) {
-        exportName = translator.getPragma(
-                member, 'wasm:export', member.name.text) ??
-            translator.getPragma(member, 'wasm:weak-export', member.name.text);
+        exportName = util.getWasmExportPragma(translator.coreTypes, member) ??
+            util.getWasmWeakExportPragma(translator.coreTypes, member);
         assert(exportName == null || member is Procedure && member.isStatic);
       }
 

@@ -57,6 +57,19 @@ sealed class FieldEncoding {
   /// This is only used for instance fields.
   Initializer buildImplicitInitializer();
 
+  /// Creates an [Initializer] for initializing this field with its declared
+  /// initializer value and removes the initializer expression from the field
+  /// itself.
+  ///
+  /// This is used to support access of primary constructor parameters in the
+  /// field initializers. For instance
+  ///
+  ///     class C(var int a, final int b, int c) {
+  ///       int d = a + b + c;
+  ///     }
+  ///
+  Initializer takePrimaryConstructorFieldInitializer();
+
   /// Registers that the (implicit) setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
   void setCovariantByClass();
@@ -253,6 +266,13 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
   void registerSuperCall() {
     _field!.transformerFlags |= TransformerFlag.superCalls;
   }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    Expression value = _field!.initializer!;
+    _field!.initializer = null;
+    return new FieldInitializer(_field!, value)..fileOffset = value.fileOffset;
+  }
 }
 
 class RegularFieldEncoding with RegularFieldEncodingMixin {
@@ -430,7 +450,6 @@ class PrimaryConstructorFieldEncoding with RegularFieldEncodingMixin {
   ];
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<ClassMember> get localSetters => _fragment.hasSetter
       ? [
           new _FieldClassMember(
@@ -511,21 +530,21 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..fileOffset = _fragment.nameOffset
         ..parent = _lateIsSetField;
     }
-    _lateGetter!.function.body = _createGetterBody(
-      coreTypes,
-      _fragment.name,
-      initializer,
-    )..parent = _lateGetter!.function;
+    _lateGetter!.function.registerFunctionBody(
+      _createGetterBody(coreTypes, _fragment.name, initializer),
+    );
     // The initializer is copied from [_field] to [_lateGetter] so we copy the
     // transformer flags to reflect whether the getter contains super calls.
     _lateGetter!.transformerFlags = _field!.transformerFlags;
 
     if (_lateSetter != null) {
-      _lateSetter!.function.body = _createSetterBody(
-        coreTypes,
-        _fragment.name,
-        _lateSetter!.function.positionalParameters.first,
-      )..parent = _lateSetter!.function;
+      _lateSetter!.function.registerFunctionBody(
+        _createSetterBody(
+          coreTypes,
+          _fragment.name,
+          _lateSetter!.function.positionalParameters.first,
+        ),
+      );
     }
   }
 
@@ -552,6 +571,13 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..isSynthetic = isSynthetic,
     );
     return initializers;
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
+    );
   }
 
   /// Creates an [Expression] that reads [_field].
@@ -1477,6 +1503,13 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       "Unexpected call to ${runtimeType}.registerSuperCall().",
     );
   }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
+    );
+  }
 }
 
 /// The encoding of an extension type declaration representation field.
@@ -1640,6 +1673,13 @@ class RepresentationFieldEncoding implements FieldEncoding {
   void registerSuperCall() {
     throw new UnsupportedError(
       "Unexpected call to ${runtimeType}.registerSuperCall().",
+    );
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
     );
   }
 }
@@ -1937,6 +1977,13 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   void registerSuperCall() {
     throw new UnsupportedError(
       "Unexpected call to ${runtimeType}.registerSuperCall().",
+    );
+  }
+
+  @override
+  Initializer takePrimaryConstructorFieldInitializer() {
+    throw new UnsupportedError(
+      '$runtimeType.takePrimaryConstructorFieldInitializer',
     );
   }
 }

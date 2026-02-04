@@ -5,13 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show RecordingDiagnosticListener;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 
@@ -28,8 +26,8 @@ class ParseBase with ResourceProviderMixin {
 
     var diagnosticListener = RecordingDiagnosticListener();
 
-    var reader = CharSequenceReader(content);
-    var scanner = Scanner(source, reader, diagnosticListener)
+    var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
+    var scanner = Scanner(content, diagnosticReporter)
       ..configureFeatures(
         featureSetForOverriding: featureSet,
         featureSet: featureSet,
@@ -44,8 +42,7 @@ class ParseBase with ResourceProviderMixin {
     featureSet = scanner.featureSet;
 
     var parser = Parser(
-      source,
-      diagnosticListener,
+      diagnosticReporter,
       featureSet: featureSet,
       languageVersion: languageVersion,
       lineInfo: lineInfo,

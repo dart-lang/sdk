@@ -4,7 +4,7 @@
 
 // functionFilter=foo
 // functionFilter=doit
-// tableFilter=static[0-9]+
+// tableFilter=cross-module-funcs
 // globalFilter=fooGlobal
 // globalFilter=Foo
 // typeFilter=NoMatch

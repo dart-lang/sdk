@@ -145,6 +145,8 @@ B29 = TargetBlock() idom:B20
 B31 = JoinBlock(B29, B28) idom:B20
   Goto(B22)
 B22 = JoinBlock(B31, B19) idom:B0
+  v42 = InterfaceCall tear-off A.foo1(v1)
+  DirectCall print(v42)
   Return(v17)
 
 --- staticCalls
@@ -164,9 +166,9 @@ B6 = TargetBlock() idom:B0
 B7 = TargetBlock() idom:B0
   Goto(B9)
 B9 = JoinBlock(B7, B6) idom:B0
-  v17 = DirectCall getter sField()
+  v17 = LoadStaticField(sField)
   v18 = BinaryIntOp +(v17, v12)
-  DirectCall setter sField(v18)
+  StoreStaticField(sField, v18)
   Return(v20)
 
 --- dynamicCalls
@@ -182,11 +184,32 @@ B0 = EntryBlock()
   DynamicCall set baz(v3, v14)
   Return(v16)
 
+--- closureCalls
+B0 = EntryBlock()
+  v4 = Constant(1)
+  v5 = Constant("a")
+  v7 = Constant(<int>)
+  v9 = Constant(2)
+  v10 = Constant("b")
+  v15 = Constant(42)
+  v19 = Constant(null)
+  v1 = Parameter(func1)
+  v2 = Parameter(func2)
+  DynamicCall call(v1, v4, v5)
+  ClosureCall(v7, v2, v9, v10)
+  v12 = AllocateClosure()
+  DirectCall closure FunctionDeclarationImpl(void func3(int x) => print(x);) at closureCalls(v12, v15)
+  v17 = AllocateClosure()
+  DirectCall closure FunctionExpression(Null () {
+  print("hey");
+}) at closureCalls(v17)
+  Return(v19)
+
 --- objectAllocation
 B0 = EntryBlock()
   v13 = Constant(null)
   v1 = Parameter(a)
-  v2 = AllocateObject()
+  v2 = AllocateObject B()
   DirectCall B.(v2, v1)
   v8 = InterfaceCall getter C.y(v2)
   v10 = InterfaceCall getter C.x(v2)
@@ -198,18 +221,6 @@ B0 = EntryBlock()
 B0 = EntryBlock()
   v1 = Constant(null)
   Return(v1)
-
---- getter sField
-B0 = EntryBlock()
-  v1 = LoadStaticField(sField)
-  Return(v1)
-
---- setter sField
-B0 = EntryBlock()
-  v4 = Constant(null)
-  v1 = Parameter(#value)
-  StoreStaticField(sField, v1)
-  Return(v4)
 
 --- field-init sField
 B0 = EntryBlock()

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/types.dart';
@@ -56,7 +57,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
         constantsAllowed = false;
         parametersAllowed = true;
       }
-      if (parametersAllowed && instr is! Parameter) {
+      if (parametersAllowed && instr is! Parameter && instr is! ParallelMove) {
         parametersAllowed = false;
       }
       if (phisAllowed && instr is! Phi) {
@@ -111,6 +112,23 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
     }
     if (previous != Use.Null) {
       assert(previous.getNext(graph) == Use.Null);
+    }
+  }
+
+  void verifyTypeArguments(Definition typeArguments, Definition user) {
+    switch (typeArguments) {
+      case TypeArguments():
+      case Constant(value: ConstantValue(constant: TypeArgumentsConstant())):
+        assert(typeArguments.type is TypeArgumentsType);
+        return;
+      default:
+        throw 'Unexpected type arguments ${IrToText.instruction(typeArguments)} in ${IrToText.instruction(user)}';
+    }
+  }
+
+  void verifyCall(CallInstruction instr) {
+    if (instr.hasTypeArguments) {
+      verifyTypeArguments(instr.typeArguments!, instr);
     }
   }
 
@@ -235,13 +253,24 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
-  void visitDirectCall(DirectCall instr) {}
+  void visitDirectCall(DirectCall instr) {
+    verifyCall(instr);
+  }
 
   @override
-  void visitInterfaceCall(InterfaceCall instr) {}
+  void visitInterfaceCall(InterfaceCall instr) {
+    verifyCall(instr);
+  }
 
   @override
-  void visitDynamicCall(DynamicCall instr) {}
+  void visitClosureCall(ClosureCall instr) {
+    verifyCall(instr);
+  }
+
+  @override
+  void visitDynamicCall(DynamicCall instr) {
+    verifyCall(instr);
+  }
 
   @override
   void visitParameter(Parameter instr) {
@@ -283,8 +312,12 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitNullCheck(NullCheck instr) {}
+
+  @override
   void visitTypeParameters(TypeParameters instr) {
-    // TypeParameters can only be used in TypeCast, TypeTest and TypeArguments.
+    // TypeParameters can only be used in TypeCast, TypeTest,
+    // TypeArguments and TypeLiteral.
     for (final use in instr.inputUses) {
       final user = use.getInstruction(graph);
       switch (user) {
@@ -293,6 +326,8 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
         case TypeTest():
           assert(instr == user.typeParameters);
         case TypeArguments():
+          assert(instr == user.typeParameters);
+        case TypeLiteral():
           assert(instr == user.typeParameters);
         default:
           throw 'Unexpected user ${IrToText.instruction(user)} of TypeParameters';
@@ -323,6 +358,10 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
           assert(user.typeArguments == instr);
         case AllocateObject():
           assert(user.typeArguments == instr);
+        case AllocateListLiteral():
+          assert(user.typeArguments == instr);
+        case AllocateMapLiteral():
+          assert(user.typeArguments == instr);
         default:
           throw 'Unexpected user ${IrToText.instruction(user)} of TypeArguments';
       }
@@ -330,7 +369,30 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
-  void visitAllocateObject(AllocateObject instr) {}
+  void visitTypeLiteral(TypeLiteral instr) {}
+
+  @override
+  void visitAllocateObject(AllocateObject instr) {
+    if (instr.hasTypeArguments) {
+      verifyTypeArguments(instr.typeArguments!, instr);
+    }
+  }
+
+  @override
+  void visitAllocateClosure(AllocateClosure instr) {}
+
+  @override
+  void visitAllocateListLiteral(AllocateListLiteral instr) {
+    verifyTypeArguments(instr.typeArguments, instr);
+  }
+
+  @override
+  void visitAllocateMapLiteral(AllocateMapLiteral instr) {
+    verifyTypeArguments(instr.typeArguments, instr);
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation instr) {}
 
   @override
   void visitComparison(Comparison instr) {
@@ -364,6 +426,17 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitUnaryDoubleOp(UnaryDoubleOp instr) {
     assert(instr.operand.type is DoubleType);
   }
+
+  @override
+  void visitUnaryBoolOp(UnaryBoolOp instr) {
+    assert(instr.operand.type is BoolType);
+  }
+
+  @override
+  void visitAllocateList(AllocateList instr) {}
+
+  @override
+  void visitSetListElement(SetListElement instr) {}
 
   @override
   void visitParallelMove(ParallelMove instr) {}

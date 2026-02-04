@@ -376,6 +376,87 @@ class MyClass<T> {
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_class_constructor_primary_declaration() async {
+    var content = r'''
+class A { const A(); }
+mixin M {}
+
+[!
+class const B(final int y) {}
+class C<T extends Object>.named(
+  var int x, [
+  final int y = 0,
+]) extends A with M implements B {
+  this {}
+}
+!]
+''';
+
+    var expected = [
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('const', SemanticTokenTypes.keyword),
+      _Token('B', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('y', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token('C', SemanticTokenTypes.class_, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('T', SemanticTokenTypes.typeParameter),
+      _Token('extends', SemanticTokenTypes.keyword),
+      _Token('Object', SemanticTokenTypes.class_),
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('x', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('final', SemanticTokenTypes.keyword),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('y', SemanticTokenTypes.parameter, [
+        SemanticTokenModifiers.declaration,
+      ]),
+      _Token('0', SemanticTokenTypes.number),
+      _Token('extends', SemanticTokenTypes.keyword),
+      _Token('A', SemanticTokenTypes.class_),
+      _Token('with', SemanticTokenTypes.keyword),
+      _Token('M', SemanticTokenTypes.class_),
+      _Token('implements', SemanticTokenTypes.keyword),
+      _Token('B', SemanticTokenTypes.class_),
+      _Token('this', SemanticTokenTypes.keyword),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_class_constructor_primary_invocation() async {
+    var content = r'''
+class A.named(int a, {int b = 0});
+
+var a = [!A.named(1, b: 2);!]
+''';
+
+    var expected = [
+      _Token('A', SemanticTokenTypes.class_, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+      _Token('named', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+      ]),
+      _Token('1', SemanticTokenTypes.number),
+      _Token('b', SemanticTokenTypes.parameter, [
+        CustomSemanticTokenModifiers.label,
+      ]),
+      _Token('2', SemanticTokenTypes.number),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
   Future<void> test_class_constructors() async {
     var content = '''
 class MyClass {

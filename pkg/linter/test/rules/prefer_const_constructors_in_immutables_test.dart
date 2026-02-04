@@ -148,6 +148,14 @@ class A {
 ''');
   }
 
+  test_immutable_constConstructor_primary() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class const C(final int i);
+''');
+  }
+
   test_immutable_constFactory() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';
@@ -178,6 +186,34 @@ class A {
   A.named() {}
 }
 ''');
+  }
+
+  test_immutable_constructorHasBody_primary() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C(final int i) {
+  this {
+    print(1);
+  }
+}
+''');
+  }
+
+  test_immutable_constSuperCall_primary() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+class C {
+  const C();
+}
+@immutable
+class D(final int i) extends C {
+  this : super();
+}
+''',
+      [lint(75, 1)],
+    );
   }
 
   test_immutable_factoryConstructor_toConstConstructor() async {
@@ -228,6 +264,29 @@ class C with M {
 ''');
   }
 
+  test_immutable_implicitConstSuperCall_primary() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+class C {
+  const C();
+}
+@immutable
+class D(final int i) extends C;
+''',
+      [lint(75, 1)],
+    );
+  }
+
+  test_immutable_implicitNonConstSuperCall_primary() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+class C {}
+@immutable
+class D(final int i) extends C;
+''');
+  }
+
   test_immutable_nonConstConstructor() async {
     await assertDiagnostics(
       r'''
@@ -238,6 +297,17 @@ class A {
 }
 ''',
       [lint(56, 1)],
+    );
+  }
+
+  test_immutable_nonConstConstructor_primary() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+@immutable
+class C(final int i);
+''',
+      [lint(50, 1)],
     );
   }
 
@@ -330,6 +400,17 @@ int notConst = 0;
 class C {
   final int f;
   C(Object f) : f = notConst;
+}
+''');
+  }
+
+  test_immutable_nonConstSuperCall_primary() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+class C {}
+@immutable
+class D(final int i) extends C {
+  this : super();
 }
 ''');
   }

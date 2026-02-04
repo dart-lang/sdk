@@ -3,22 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show Queue;
-import 'dart:convert' show jsonEncode;
-import 'dart:io';
 
 // ignore: implementation_imports
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show Link, relativizeUri;
-import 'package:record_use/record_use_internal.dart'
-    show
-        Location,
-        Constant,
-        NullConstant,
-        BoolConstant,
-        IntConstant,
-        StringConstant,
-        FlattenConstantsExtension,
-        MapifyIterableExtension;
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+// ignore: implementation_imports
+import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
@@ -52,7 +41,7 @@ import '../native/behavior.dart';
 import '../options.dart';
 import '../tracer.dart' show Tracer;
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/resource_identifier.dart';
+import '../universe/recorded_use.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import 'codegen_helpers.dart';
@@ -2360,7 +2349,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       );
     } else {
       StaticUse staticUse;
-      Object? resourceIdentifierAnnotation;
+      Object? recordedMethodUses;
       if (element is ConstructorEntity) {
         CallStructure callStructure = CallStructure.unnamed(
           arguments.length,
@@ -2382,12 +2371,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           callStructure,
           node.typeArguments,
         );
-        if (_closedWorld.annotationsData.methodIsResourceIdentifier(element)) {
-          resourceIdentifierAnnotation = _methodResourceIdentifier(
+        if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
+          recordedMethodUses = _recordMethodUses(
             element,
-            callStructure,
             node.inputs,
-            node.sourceInformation,
+            node.sourceInformation!,
           );
         }
       }
@@ -2396,71 +2384,61 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       push(
         js.Call(pop(), arguments, sourceInformation: node.sourceInformation),
       );
-      if (resourceIdentifierAnnotation != null) {
-        push(pop().withAnnotation(resourceIdentifierAnnotation));
+      if (recordedMethodUses != null) {
+        push(pop().withAnnotation(recordedMethodUses));
       }
     }
   }
 
-  ResourceIdentifier _methodResourceIdentifier(
+  RecordedUse _recordMethodUses(
     FunctionEntity element,
-    CallStructure callStructure,
     List<HInstruction> arguments,
-    SourceInformation? sourceInformation,
+    SourceInformation sourceInformation,
   ) {
-    final definition = _closedWorld.elementMap.getMemberContextNode(element);
-    final uri =
-        definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
+    // TODO(https://github.com/dart-lang/native/issues/2948): Record the name of
+    // the extension instead of the desugared name.
+    final isExtensionMethod = hasUnnamedExtensionNamePrefix(element.name!);
 
-    Location? location;
-    if (sourceInformation != null) {
-      SourceLocation? sourceLocation =
-          sourceInformation.startPosition ??
-          sourceInformation.innerPosition ??
-          sourceInformation.endPosition;
-      if (sourceLocation != null) {
-        final sourceUri = sourceLocation.sourceUri;
-        if (sourceUri != null) {
-          // Is [sourceUri] normalized in some way or does that need to be done
-          // here?
-          location = Location(
-            uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
-          );
-        }
+    final originalParameterStructure = element.parameterStructure;
+
+    final positionalArguments = <ConstantValue?>[];
+    final namedArguments = <String, ConstantValue?>{};
+    var argumentIndex = 0;
+    // Loop over arguments in namedOrdering or in nativeOrdering.
+    _closedWorld.elementEnvironment.forEachParameter(element, (
+      DartType type,
+      String? name,
+      ConstantValue? defaultValue,
+    ) {
+      if (argumentIndex == 0 && isExtensionMethod) {
+        // Skip extension method receiver.
+        argumentIndex++;
+        // TODO(https://github.com/dart-lang/native/issues/2948): Support
+        // extension method receiver.
+      } else if (argumentIndex <
+          originalParameterStructure.positionalParameters) {
+        positionalArguments.add(_findConstant(arguments[argumentIndex++]));
+      } else {
+        namedArguments[name!] = _findConstant(arguments[argumentIndex++]);
       }
-    }
+    });
 
-    //TODO(mosum): Are named arguments even possible to record in JS?
-    final List<Constant?> constantArguments = [];
-    for (final constant in arguments.map(_findConstant)) {
-      constantArguments.add(constant != null ? _findValue(constant) : null);
-    }
-
-    final constants = constantArguments.nonNulls.flatten().asMapToIndices;
-
-    final argumentJson = jsonEncode(
-      constantArguments.map((argument) => argument?.toJson(constants)).toList(),
-    );
-
-    return ResourceIdentifier(
-      element.name!,
-      element.enclosingClass?.name,
-      relativizeUri(Uri.base, uri, Platform.isWindows),
-      location,
-      constantArguments.any((argument) => argument == null),
-      argumentJson,
+    return RecordedCallWithArguments(
+      function: element,
+      sourceInformation: sourceInformation,
+      positionalArguments: positionalArguments,
+      namedArguments: namedArguments,
     );
   }
 
-  Constant? _findValue(ConstantValue constant) {
-    return switch (constant) {
-      NullConstantValue() => NullConstant(),
-      BoolConstantValue() => BoolConstant(constant.boolValue),
-      IntConstantValue() => IntConstant(constant.intValue.toInt()),
-      StringConstantValue() => StringConstant(constant.stringValue),
-      //TODO(mosum): Add list and map support
-      Object() => null,
-    };
+  RecordedUse _recordTearOff(
+    FunctionEntity element,
+    SourceInformation sourceInformation,
+  ) {
+    return RecordedTearOff(
+      function: element,
+      sourceInformation: sourceInformation,
+    );
   }
 
   ConstantValue? _findConstant(HInstruction node) {
@@ -2699,6 +2677,15 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         ? _nativeData.getFixedBackendName(target)
         : target.name;
 
+    Object? recordedMethodUses;
+    if (_closedWorld.annotationsData.shouldRecordMethodUses(target)) {
+      recordedMethodUses = _recordMethodUses(
+        target,
+        inputs,
+        node.sourceInformation!,
+      );
+    }
+
     void invokeWithJavaScriptReceiver(js.Expression receiverExpression) {
       // JS-interop target names can be paths ("a.b"), so we parse them to
       // re-associate the property accesses ("#.a.b" is `dot(dot(#,'a'),'b')`).
@@ -2728,6 +2715,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
       js.Expression expression = js.js
           .uncachedExpressionTemplate(template)
           .instantiateExpression(templateInputs);
+      if (recordedMethodUses != null) {
+        expression = expression.withAnnotation(recordedMethodUses);
+      }
       push(expression.withSourceInformation(node.sourceInformation));
       _registry.registerNativeMethod(target);
     }
@@ -2764,6 +2754,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         } else {
           assert(target.isFunction);
           expression = js.js('#(#)', [targetExpression, arguments]);
+        }
+        if (recordedMethodUses != null) {
+          expression = expression.withAnnotation(recordedMethodUses);
         }
         push(expression.withSourceInformation(node.sourceInformation));
         _registry.registerNativeMethod(target);
@@ -2915,6 +2908,13 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     if (!constant.isDummy) {
       // TODO(johnniwinther): Support source information on synthetic constants.
       expression = expression.withSourceInformation(sourceInformation);
+    }
+    if (constant is FunctionConstantValue) {
+      final element = constant.element;
+      if (_closedWorld.annotationsData.shouldRecordMethodUses(element)) {
+        final recordedMethodUses = _recordTearOff(element, sourceInformation!);
+        expression = expression.withAnnotation(recordedMethodUses);
+      }
     }
     push(expression);
   }

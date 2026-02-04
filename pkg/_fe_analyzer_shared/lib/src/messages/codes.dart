@@ -10,17 +10,13 @@ library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;
 
-import 'diagnostic_message.dart' show CfeDiagnosticMessage;
+import 'diagnostic.dart';
 
-import '../scanner/token.dart' show Token;
+import 'diagnostic_message.dart' show CfeDiagnosticMessage;
 
 import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
-
-import 'conversions.dart' as conversions;
-
-part 'codes_generated.dart';
 
 const int noLength = 1;
 
@@ -409,7 +405,14 @@ String? relativizeUri(Uri? uri) {
   return uri == null ? null : util.relativizeUri(Uri.base, uri, util.isWindows);
 }
 
-typedef SummaryTemplate = Message Function(int, int, num, num, num);
+typedef SummaryTemplate =
+    Message Function({
+      required int count,
+      required int bytes,
+      required num timeMs,
+      required num rateBytesPerMs,
+      required num averageTimeMs,
+    });
 
 String itemizeNames(List<String> names) {
   StringBuffer buffer = new StringBuffer();

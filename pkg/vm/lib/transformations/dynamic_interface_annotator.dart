@@ -77,6 +77,12 @@ void annotateComponent(
     hierarchy,
   );
 
+  annotateMembersOfExtendableMixinsAsCanBeOverridden(
+    extendableAnnotator.annotatedClasses,
+    canBeOverriddenAnnotator.annotatedMembers,
+    canBeOverriddenAnnotator.pragma,
+  );
+
   _ImplicitOverridesAnnotator(
     pragmaConstant(coreTypes, kDynModuleCanBeOverriddenImplicitlyPragmaName),
     hierarchy,
@@ -667,6 +673,27 @@ class _DiscoverLanguageImplPragmasVisitor extends RecursiveVisitor {
         throw 'Expected instance member $node';
       }
       spec.canBeOverridden.add(node);
+    }
+  }
+}
+
+// In a mixin application, clones of instance members always override
+// all members of the original mixin. So declaring a mixin as extendable
+// implies that all its members can be overridden.
+void annotateMembersOfExtendableMixinsAsCanBeOverridden(
+  Set<Class> extendableClasses,
+  Set<Member> overriddenMembers,
+  Constant pragma,
+) {
+  for (final cls in extendableClasses) {
+    if (cls.isMixinClass || cls.isMixinDeclaration) {
+      for (final member in cls.members) {
+        if (member.isInstanceMember) {
+          if (overriddenMembers.add(member)) {
+            member.addAnnotation(ConstantExpression(pragma));
+          }
+        }
+      }
     }
   }
 }

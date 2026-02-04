@@ -6,7 +6,7 @@ import '../serialize/printer.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
-abstract class Instruction implements Serializable {
+abstract mixin class Instruction implements Serializable {
   /// The [ValueType] types referenced by this instruction. Used to determine
   /// which types need to be included in the module. Unused types will not be
   /// emitted in the wasm output.
@@ -60,24 +60,17 @@ abstract class Instruction implements Serializable {
       case 0xFB:
         {
           final byte2 = d.readByte();
-          switch (byte2) {
-            case 0x00:
-              return StructNew.deserialize(d, types);
-            case 0x01:
-              return StructNewDefault.deserialize(d, types);
-            case 0x06:
-              return ArrayNew.deserialize(d, types);
-            case 0x07:
-              return ArrayNewDefault.deserialize(d, types);
-            case 0x08:
-              return ArrayNewFixed.deserialize(d, types);
-            case 0x1A:
-              return ExternInternalize.deserialize(d);
-            case 0x1B:
-              return ExternExternalize.deserialize(d);
-            default:
-              throw "Invalid ${isConstOnlyUse ? 'const ' : ''}instruction byte: $byte $byte2";
-          }
+          return switch (byte2) {
+            0x00 => StructNew.deserialize(d, types),
+            0x01 => StructNewDefault.deserialize(d, types),
+            0x06 => ArrayNew.deserialize(d, types),
+            0x07 => ArrayNewDefault.deserialize(d, types),
+            0x08 => ArrayNewFixed.deserialize(d, types),
+            0x1A => ExternInternalize.deserialize(d),
+            0x1B => ExternExternalize.deserialize(d),
+            _ =>
+              throw "Invalid ${isConstOnlyUse ? 'const ' : ''}instruction byte: $byte $byte2"
+          };
         }
       default:
         throw "Invalid ${isConstOnlyUse ? 'const ' : ''}instruction byte: $byte";
@@ -535,30 +528,43 @@ abstract class Instruction implements Serializable {
       case 0xFC:
         {
           final opcode = d.readByte();
-          switch (opcode) {
-            case 0x00:
-              return I32TruncSatF32S.deserialize(d);
-            case 0x01:
-              return I32TruncSatF32U.deserialize(d);
-            case 0x02:
-              return I32TruncSatF64S.deserialize(d);
-            case 0x03:
-              return I32TruncSatF64U.deserialize(d);
-            case 0x04:
-              return I64TruncSatF32S.deserialize(d);
-            case 0x05:
-              return I64TruncSatF32U.deserialize(d);
-            case 0x06:
-              return I64TruncSatF64S.deserialize(d);
-            case 0x07:
-              return I64TruncSatF64U.deserialize(d);
-            case 0x10:
-              return TableSize.deserialize(d, tables);
-            case 0x11:
-              return TableFill.deserialize(d, tables);
-            default:
-              throw "Invalid instruction byte: 0xFC $opcode";
-          }
+          return switch (opcode) {
+            0x00 => I32TruncSatF32S.deserialize(d),
+            0x01 => I32TruncSatF32U.deserialize(d),
+            0x02 => I32TruncSatF64S.deserialize(d),
+            0x03 => I32TruncSatF64U.deserialize(d),
+            0x04 => I64TruncSatF32S.deserialize(d),
+            0x05 => I64TruncSatF32U.deserialize(d),
+            0x06 => I64TruncSatF64S.deserialize(d),
+            0x07 => I64TruncSatF64U.deserialize(d),
+            0x0B => MemoryFill.deserialize(d, memories),
+            0x10 => TableSize.deserialize(d, tables),
+            0x11 => TableFill.deserialize(d, tables),
+            _ => throw "Invalid instruction byte: 0xFC $opcode"
+          };
+        }
+      case 0xFD:
+        {
+          final opcode = d.readUnsigned();
+          final instruction = V128Instruction.fromOpcode(opcode);
+          if (instruction != null) return instruction;
+          return switch (opcode) {
+            0x15 => I8x16ExtractLaneS.deserialize(d),
+            0x16 => I8x16ExtractLaneU.deserialize(d),
+            0x17 => I8x16ReplaceLane.deserialize(d),
+            0x18 => I16x8ExtractLaneS.deserialize(d),
+            0x19 => I16x8ExtractLaneU.deserialize(d),
+            0x1A => I16x8ReplaceLane.deserialize(d),
+            0x1B => I32x4ExtractLane.deserialize(d),
+            0x1C => I32x4ReplaceLane.deserialize(d),
+            0x1D => I64x2ExtractLane.deserialize(d),
+            0x1E => I64x2ReplaceLane.deserialize(d),
+            0x1F => F32x4ExtractLane.deserialize(d),
+            0x20 => F32x4ReplaceLane.deserialize(d),
+            0x21 => F64x2ExtractLane.deserialize(d),
+            0x22 => F64x2ReplaceLane.deserialize(d),
+            _ => throw "Invalid instruction byte: 0xFD $opcode"
+          };
         }
       default:
         d.offset = instructionStart;
@@ -2004,6 +2010,7 @@ class MemorySize extends Instruction {
   @override
   void printTo(IrPrinter p) {
     p.write(name);
+    p.write(' ');
     p.writeMemoryReference(memory);
   }
 }
@@ -2025,6 +2032,33 @@ class MemoryGrow extends Instruction {
 
   @override
   String get name => 'memory.grow';
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write(name);
+    p.write(' ');
+    p.writeMemoryReference(memory);
+  }
+}
+
+class MemoryFill extends Instruction {
+  final Memory memory;
+
+  MemoryFill(this.memory);
+
+  static MemoryFill deserialize(Deserializer d, Memories memories) {
+    return MemoryFill(memories[d.readUnsigned()]);
+  }
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeUnsigned(0x0B);
+    s.writeUnsigned(memory.index);
+  }
+
+  @override
+  String get name => 'memory.fill';
 
   @override
   void printTo(IrPrinter p) {
@@ -4314,6 +4348,331 @@ class I64TruncSatF64U extends Instruction {
 
   @override
   String get name => 'i64.trunc_sat_f64_u';
+}
+
+enum V128Instruction with Instruction {
+  i8x16Splat(0x0F, 'i8x16.splat'),
+  i16x8Splat(0x10, 'i16x8.splat'),
+  i32x4Splat(0x11, 'i32x4.splat'),
+  i64x2Splat(0x12, 'i64x2.splat'),
+  f32x4Splat(0x13, 'f32x4.splat'),
+  f64x2Splat(0x14, 'f64x2.splat'),
+  i8x16Eq(0x23, 'i8x16.eq'),
+  i16x8Eq(0x2D, 'i16x8.eq'),
+  i32x4Eq(0x37, 'i32x4.eq'),
+  f32x4Eq(0x41, 'f32x4.eq'),
+  f64x2Eq(0x47, 'f64x2.eq'),
+  v128Not(0x4D, 'v128.not'),
+  v128And(0x4E, 'v128.and'),
+  v128AndNot(0x4F, 'v128.andnot'),
+  v128Or(0x50, 'v128.or'),
+  v128Xor(0x51, 'v128.xor'),
+  v128BitSelect(0x52, 'v128.bitselect'),
+  i8x16Neg(0x61, 'i8x16.neg'),
+  i8x16Add(0x6E, 'i8x16.add'),
+  i8x16Sub(0x71, 'i8x16.sub'),
+  i16x8Neg(0x81, 'i16x8.neg'),
+  i16x8Add(0x8E, 'i16x8.add'),
+  i16x8Sub(0x91, 'i16x8.sub'),
+  i16x8Mul(0x95, 'i16x8.mul'),
+  i32x4Neg(0xA1, 'i32x4.neg'),
+  i32x4Add(0xAE, 'i32x4.add'),
+  i32x4Sub(0xB1, 'i32x4.sub'),
+  i32x4Mul(0xB5, 'i32x4.mul'),
+  i32x4DotI16x8(0xBA, 'i32x4.dot_i16x8_s'),
+  i64x2Neg(0xC1, 'i64x2.neg'),
+  i64x2Add(0xCE, 'i64x2.add'),
+  i64x2Sub(0xD1, 'i64x2.sub'),
+  i64x2Mul(0xD5, 'i64x2.mul'),
+  i64x2Eq(0xD6, 'i64x2.eq');
+
+  final int opcode;
+  @override
+  final String name;
+
+  const V128Instruction(this.opcode, this.name);
+
+  static List<V128Instruction?> _lookup = (() {
+    final lookup = List<V128Instruction?>.filled(256, null);
+    for (final v in values) {
+      lookup[v.opcode] = v;
+    }
+    return lookup;
+  })();
+
+  static V128Instruction? fromOpcode(int opcode) => _lookup[opcode];
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(opcode);
+  }
+}
+
+class I8x16ExtractLaneS extends Instruction {
+  const I8x16ExtractLaneS(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x15);
+    s.writeByte(lane);
+  }
+
+  static I8x16ExtractLaneS deserialize(Deserializer d) =>
+      I8x16ExtractLaneS(d.readByte());
+
+  @override
+  String get name => 'i8x16.extract_lane_s';
+}
+
+class I8x16ExtractLaneU extends Instruction {
+  const I8x16ExtractLaneU(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x16);
+    s.writeByte(lane);
+  }
+
+  static I8x16ExtractLaneU deserialize(Deserializer d) =>
+      I8x16ExtractLaneU(d.readByte());
+
+  @override
+  String get name => 'i8x16.extract_lane_u';
+}
+
+class I8x16ReplaceLane extends Instruction {
+  const I8x16ReplaceLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x17);
+    s.writeByte(lane);
+  }
+
+  static I8x16ReplaceLane deserialize(Deserializer d) =>
+      I8x16ReplaceLane(d.readByte());
+
+  @override
+  String get name => 'i8x16.replace_lane';
+}
+
+class I16x8ExtractLaneS extends Instruction {
+  const I16x8ExtractLaneS(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x18);
+    s.writeByte(lane);
+  }
+
+  static I16x8ExtractLaneS deserialize(Deserializer d) =>
+      I16x8ExtractLaneS(d.readByte());
+
+  @override
+  String get name => 'i16x8.extract_lane_s';
+}
+
+class I16x8ExtractLaneU extends Instruction {
+  const I16x8ExtractLaneU(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x19);
+    s.writeByte(lane);
+  }
+
+  static I16x8ExtractLaneU deserialize(Deserializer d) =>
+      I16x8ExtractLaneU(d.readByte());
+
+  @override
+  String get name => 'i16x8.extract_lane_u';
+}
+
+class I16x8ReplaceLane extends Instruction {
+  const I16x8ReplaceLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x1A);
+    s.writeByte(lane);
+  }
+
+  static I16x8ReplaceLane deserialize(Deserializer d) =>
+      I16x8ReplaceLane(d.readByte());
+
+  @override
+  String get name => 'i16x8.replace_lane';
+}
+
+class I32x4ExtractLane extends Instruction {
+  const I32x4ExtractLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x1B);
+    s.writeByte(lane);
+  }
+
+  static I32x4ExtractLane deserialize(Deserializer d) =>
+      I32x4ExtractLane(d.readByte());
+
+  @override
+  String get name => 'i32x4.extract_lane';
+}
+
+class I32x4ReplaceLane extends Instruction {
+  const I32x4ReplaceLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x1C);
+    s.writeByte(lane);
+  }
+
+  static I32x4ReplaceLane deserialize(Deserializer d) =>
+      I32x4ReplaceLane(d.readByte());
+
+  @override
+  String get name => 'i32x4.replace_lane';
+}
+
+class I64x2ExtractLane extends Instruction {
+  const I64x2ExtractLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x1D);
+    s.writeByte(lane);
+  }
+
+  static I64x2ExtractLane deserialize(Deserializer d) =>
+      I64x2ExtractLane(d.readByte());
+
+  @override
+  String get name => 'i64x2.extract_lane';
+}
+
+class I64x2ReplaceLane extends Instruction {
+  const I64x2ReplaceLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x1E);
+    s.writeByte(lane);
+  }
+
+  static I64x2ReplaceLane deserialize(Deserializer d) =>
+      I64x2ReplaceLane(d.readByte());
+
+  @override
+  String get name => 'i64x2.replace_lane';
+}
+
+class F32x4ExtractLane extends Instruction {
+  const F32x4ExtractLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x1F);
+    s.writeByte(lane);
+  }
+
+  static F32x4ExtractLane deserialize(Deserializer d) =>
+      F32x4ExtractLane(d.readByte());
+
+  @override
+  String get name => 'f32x4.extract_lane';
+}
+
+class F32x4ReplaceLane extends Instruction {
+  const F32x4ReplaceLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x20);
+    s.writeByte(lane);
+  }
+
+  static F32x4ReplaceLane deserialize(Deserializer d) =>
+      F32x4ReplaceLane(d.readByte());
+
+  @override
+  String get name => 'f32x4.replace_lane';
+}
+
+class F64x2ExtractLane extends Instruction {
+  const F64x2ExtractLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x21);
+    s.writeByte(lane);
+  }
+
+  static F64x2ExtractLane deserialize(Deserializer d) =>
+      F64x2ExtractLane(d.readByte());
+
+  @override
+  String get name => 'f64x2.extract_lane';
+}
+
+class F64x2ReplaceLane extends Instruction {
+  const F64x2ReplaceLane(this.lane);
+
+  final int lane;
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x22);
+    s.writeByte(lane);
+  }
+
+  static F64x2ReplaceLane deserialize(Deserializer d) =>
+      F64x2ReplaceLane(d.readByte());
+
+  @override
+  String get name => 'f64x2.replace_lane';
 }
 
 class BeginNoEffectTryTable extends Instruction {

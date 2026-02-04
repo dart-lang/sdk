@@ -1,53 +1,60 @@
 (module $module4
   (type $#Top <...>)
   (type $BoxedInt <...>)
-  (type $FooConst3 <...>)
-  (type $FooConstBase <...>)
   (type $JSStringImpl <...>)
-  (func $FooConstBase.doit (import "module0" "func14") (param (ref $FooConstBase) (ref null $#Top)) (result (ref null $#Top)))
-  (func $JSStringImpl._interpolate3 (import "module0" "func10") (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl)))
-  (func $print (import "module0" "func9") (param (ref null $#Top)) (result (ref null $#Top)))
+  (type $Object <...>)
   (global $".FooConst3(" (import "" "FooConst3(") (ref extern))
-  (global $"C427 3" (import "module0" "global11") (ref $BoxedInt))
-  (global $"C8 \")\"" (import "module0" "global4") (ref $JSStringImpl))
-  (global $"C516 FooConst3" (ref $FooConst3)
-    (i32.const 121)
-    (i32.const 0)
-    (struct.new $FooConst3))
-  (global $"C519 \"FooConst3(\"" (ref $JSStringImpl)
+  (global $"\")\"" (import "module0" "global4") (ref $JSStringImpl))
+  (global $3 (import "module0" "global11") (ref $BoxedInt))
+  (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 34 funcref)
+  (global $"\"FooConst3(\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
     (global.get $".FooConst3(")
     (struct.new $JSStringImpl))
-  (global $"C527 \"foo3Code(\"" (ref $JSStringImpl) <...>)
+  (global $"\"foo3Code(\"" (ref $JSStringImpl) <...>)
+  (global $FooConst3 (ref $Object)
+    (i32.const 124)
+    (i32.const 0)
+    (struct.new $Object))
   (global $fooGlobal3 (mut (ref null $#Top))
     (ref.null none))
+  (elem $module0.cross-module-funcs-0
+    (set 14 (ref.func $"foo3Code <noInline>"))
+    (set 24 (ref.func $"fooGlobal3 implicit getter"))
+    (set 32 (ref.func $0)))
   (func $"foo3Code <noInline>" (param $var0 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C516 FooConst3"
-    call $print
+    global.get $FooConst3
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
-    global.get $"C527 \"foo3Code(\""
+    global.get $"\"foo3Code(\""
     local.get $var0
-    global.get $"C8 \")\""
-    call $JSStringImpl._interpolate3
-    call $print
+    global.get $"\")\""
+    i32.const 19
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
-    global.get $"C427 3"
+    global.get $3
     global.set $fooGlobal3
     ref.null none
   )
-  (func $FooConst3.doit (param $var0 (ref $FooConstBase)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    (local $var2 (ref $FooConst3))
-    local.get $var0
-    ref.cast $FooConst3
-    global.get $"C519 \"FooConst3(\""
+  (func $fooGlobal3 implicit getter (result (ref $#Top)) <...>)
+  (func $null (result (ref $Object)) <...>)
+  (func $FooConst3.doit (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
+    global.get $"\"FooConst3(\""
     local.get $var1
-    global.get $"C8 \")\""
-    call $JSStringImpl._interpolate3
-    call $print
+    global.get $"\")\""
+    i32.const 19
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSStringImpl))
+    i32.const 18
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
     drop
+    local.get $var0
     local.get $var1
-    call $FooConstBase.doit
+    i32.const 27
+    call_indirect $module0.cross-module-funcs-0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
     drop
     ref.null none
   )

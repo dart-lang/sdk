@@ -247,15 +247,6 @@ main() { // missing async
     );
   }
 
-  void test_constConstructorWithBody() {
-    createParser('const C() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.constConstructorWithBody, 10, 1),
-    ]);
-  }
-
   void test_constEnum() {
     parseCompilationUnit(
       "const enum E {ONE}",
@@ -272,7 +263,7 @@ main() { // missing async
     createParser('const factory C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.constFactory, 0, 5)]);
+    listener.assertErrors([]);
   }
 
   void test_constMethod() {
@@ -1021,23 +1012,6 @@ class Foo {
     );
   }
 
-  void test_externalConstructorWithBody_factory() {
-    createParser('external factory C() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.externalFactoryWithBody, 21, 1)]);
-  }
-
-  void test_externalConstructorWithBody_named() {
-    createParser('external C.c() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([diag.externalMethodWithBody]);
-    //      listener.assertErrors(
-    //          [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 15, 2)]);
-  }
-
   void test_externalEnum() {
     parseCompilationUnit(
       "external enum E {ONE}",
@@ -1049,7 +1023,7 @@ class Foo {
     createParser('external const A f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.constNotInitialized, 17, 1)]);
+    listener.assertErrors([]);
   }
 
   void test_externalField_final() {
@@ -1078,46 +1052,6 @@ class Foo {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     assertNoErrors();
-  }
-
-  void test_externalGetterWithBody() {
-    createParser('external int get x {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([diag.externalMethodWithBody]);
-    //      listener.assertErrors(
-    //          [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 19, 2)]);
-  }
-
-  void test_externalMethodWithBody() {
-    createParser('external m() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([diag.externalMethodWithBody]);
-    //    listener.assertErrors(
-    //        [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 13, 2)]);
-  }
-
-  void test_externalOperatorWithBody() {
-    createParser('external operator +(int value) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([diag.externalMethodWithBody]);
-    //      listener.assertErrors(
-    //          [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 31, 2)]);
-  }
-
-  void test_externalSetterWithBody() {
-    createParser('external set x(int value) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
-    listener.assertErrorsWithCodes([diag.externalMethodWithBody]);
-    //      listener.assertErrors(
-    //          [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 26, 2)]);
   }
 
   void test_externalTypedef() {
@@ -1385,12 +1319,9 @@ class Wrong<T> {
     createParser('String get m native "str" => 0;');
     parser.parseClassMember('C') as MethodDeclaration;
     if (!allowNativeClause) {
-      assertErrorsWithCodes([
-        diag.nativeClauseShouldBeAnnotation,
-        diag.externalMethodWithBody,
-      ]);
+      assertErrorsWithCodes([diag.nativeClauseShouldBeAnnotation]);
     } else {
-      assertErrorsWithCodes([diag.externalMethodWithBody]);
+      assertNoErrors();
     }
   }
 
@@ -2571,24 +2502,6 @@ class Wrong<T> {
     expect(list.parameters[1].isNamed, isTrue);
   }
 
-  void test_redirectingConstructorWithBody_named() {
-    createParser('C.x() : this() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.redirectingConstructorWithBody, 15, 1),
-    ]);
-  }
-
-  void test_redirectingConstructorWithBody_unnamed() {
-    createParser('C() : this.x() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.redirectingConstructorWithBody, 15, 1),
-    ]);
-  }
-
   void test_redirectionInNonFactoryConstructor() {
     createParser('C() = D;');
     ClassMember member = parser.parseClassMember('C');
@@ -2619,10 +2532,7 @@ class Wrong<T> {
     createParser('const static int f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(diag.modifierOutOfOrder, 6, 6),
-      expectedError(diag.constNotInitialized, 17, 1),
-    ]);
+    listener.assertErrors([expectedError(diag.modifierOutOfOrder, 6, 6)]);
   }
 
   void test_staticAfterVar() {

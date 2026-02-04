@@ -7,6 +7,9 @@ analyzer:
     implementation_imports: ignore
     library_prefixes: ignore
 
+  exclude:
+    - test/ir_tests/*.dart
+
 linter:
   rules:
     - directives_ordering

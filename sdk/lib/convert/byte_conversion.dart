@@ -14,7 +14,7 @@ abstract mixin class ByteConversionSink
   const ByteConversionSink();
 
   factory ByteConversionSink.withCallback(
-    void callback(List<int> accumulated),
+    void Function(List<int> accumulated) callback,
   ) = _ByteCallbackSink;
   factory ByteConversionSink.from(Sink<List<int>> sink) = _ByteAdapterSink;
 
@@ -66,7 +66,7 @@ class _ByteCallbackSink extends ByteConversionSink {
   List<int> _buffer = Uint8List(_INITIAL_BUFFER_SIZE);
   int _bufferIndex = 0;
 
-  _ByteCallbackSink(void callback(List<int> accumulated))
+  _ByteCallbackSink(void Function(List<int> accumulated) callback)
     : _callback = callback;
 
   void add(Iterable<int> chunk) {

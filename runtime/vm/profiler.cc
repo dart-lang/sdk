@@ -160,7 +160,7 @@ class ProfilerStackWalker : public ValueObject {
       return true;
     }
 #if defined(DART_INCLUDE_PROFILER)
-    if (total_frames_ >= FLAG_max_profile_depth) {
+    if (total_frames_ >= Profiler::CurrentConfig().max_depth) {
       sample_->set_truncated_trace(true);
       return false;
     }
@@ -197,25 +197,21 @@ class ProfilerStackWalker : public ValueObject {
 };
 
 // MSAN/ASAN are unaware of frames initialized by generated code.
+// ProfilerNativeStackWalker may also read a random slot in the stack if a
+// function on the stack doesn't use frame pointers and puts something that
+// looks like a stack address into the FP register.
 NO_SANITIZE_ADDRESS
 NO_SANITIZE_MEMORY
-#if defined(DART_HOST_OS_MACOS)
-// Mac profiling is cross-thread and TSAN doesn't know that thread_suspend
-// establishes synchronization.
-NO_SANITIZE_THREAD
-#endif
 static uword* LoadStackSlot(uword* ptr) {
   return reinterpret_cast<uword*>(*ptr);
 }
 
-#if defined(DART_HOST_OS_MACOS)
-// Mac profiling is cross-thread and TSAN doesn't know that thread_suspend
-// establishes synchronization.
-#define IGNORE_RACE(x) x##_ignore_race
-#define IGNORE_RACE2(x) x##IgnoreRace
+// Clang on Windows inlines the load from LoadStackSlot and still applies the
+// sanitizer instrumentation to the load in callers.
+#if defined(DART_HOST_OS_WINDOWS)
+#define WINDOWS_EXTRA_NO_SANITIZE_ADDRESS NO_SANITIZE_ADDRESS
 #else
-#define IGNORE_RACE(x) x
-#define IGNORE_RACE2(x) x
+#define WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
 #endif
 
 // The layout of C stack frames.
@@ -266,6 +262,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         original_sp_(sp),
         lower_bound_(stack_lower) {}
 
+  WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
   void walk() {
     Append(original_pc_, original_fp_);
 
@@ -320,11 +317,13 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
   }
 
  private:
+  WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != nullptr);
     return LoadStackSlot(fp + kHostSavedCallerPcSlotFromFp);
   }
 
+  WINDOWS_EXTRA_NO_SANITIZE_ADDRESS
   uword* CallerFP(uword* fp) const {
     ASSERT(fp != nullptr);
     return LoadStackSlot(fp + kHostSavedCallerFpSlotFromFp);
@@ -388,8 +387,7 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
 
 #if defined(DART_INCLUDE_SIMULATOR)
   const bool use_simulator_stack_bounds =
-      FLAG_use_simulator && thread != nullptr &&
-      thread->IGNORE_RACE2(IsExecutingDartCode)();
+      FLAG_use_simulator && thread != nullptr && thread->IsExecutingDartCode();
   if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != nullptr);
@@ -612,10 +610,15 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
 
 #if defined(DART_INCLUDE_PROFILER)
 
-RelaxedAtomic<bool> Profiler::initialized_ = false;
+Monitor* Profiler::monitor_ = nullptr;
+Profiler::Config Profiler::config_ = {.enabled = false,
+                                      .period_us = 0,
+                                      .max_depth = 0};
+RelaxedAtomic<bool> Profiler::running_ = false;
 SampleBlockBuffer* Profiler::sample_block_buffer_ = nullptr;
 Profiler::ProfileProcessorCallback Profiler::process_profile_callback_ =
     nullptr;
+
 bool SampleBlockProcessor::initialized_ = false;
 bool SampleBlockProcessor::shutdown_ = false;
 bool SampleBlockProcessor::drain_ = false;
@@ -625,24 +628,85 @@ ThreadJoinId SampleBlockProcessor::processor_thread_id_ =
 Monitor* SampleBlockProcessor::monitor_ = nullptr;
 
 void Profiler::Init() {
-  // Place some sane restrictions on user controlled flags.
-  SetSampleDepth(FLAG_max_profile_depth);
-  if (!FLAG_profiler) {
-    return;
-  }
-  ASSERT(!initialized_);
-  // The profiler may have been shutdown previously, in which case the sample
-  // buffer will have already been initialized.
-  if (sample_block_buffer_ == nullptr) {
-    intptr_t num_blocks = CalculateSampleBufferCapacity();
-    sample_block_buffer_ = new SampleBlockBuffer(num_blocks);
-  }
-  UpdateFlagProfilePeriod(FLAG_profile_period);
-  ThreadInterrupter::Init(FLAG_profile_period);
-  ThreadInterrupter::Startup();
+  monitor_ = new Monitor();
+  ThreadInterrupter::Init();
   SampleBlockProcessor::Init();
+  SetConfig({});
+}
+
+void Profiler::Cleanup() {
+  {
+    SafepointMonitorLocker lock(monitor_);
+    StopLocked();
+  }
+
+  SampleBlockProcessor::Cleanup();
+  ThreadInterrupter::Cleanup();
+  delete monitor_;
+}
+
+namespace {
+Profiler::Config NormalizeConfig(const Profiler::Config& config) {
+  const intptr_t kMinimumDepth = 2;
+  const intptr_t kMaximumDepth = 255;
+  const intptr_t kMinimumProfilePeriodUs = 50;
+  return {
+      .enabled = config.enabled,
+      .period_us = Utils::Maximum(kMinimumProfilePeriodUs, config.period_us),
+      .max_depth = Utils::Minimum(
+          kMaximumDepth,
+          Utils::Maximum(kMinimumDepth, config.max_depth.load())),
+  };
+}
+}  // namespace
+
+void Profiler::SetConfig(const Profiler::Config& config) {
+  SafepointMonitorLocker lock(monitor_);
+
+  const auto new_config = NormalizeConfig(config);
+  const auto old_config = config_;
+  config_ = new_config;
+
+  if (new_config.enabled != old_config.enabled) {
+    // Update running state.
+    if (new_config.enabled) {
+      StartLocked();
+    } else {
+      StopLocked();
+    }
+  } else if (old_config.enabled) {
+    // Check if we need to reconfigure a running profiler.
+    //
+    // Note: this will not resize the sampling buffer, you
+    // need to stop and restart the profiler to resize it.
+    if (new_config.period_us != old_config.period_us) {
+      ThreadInterrupter::SetInterruptPeriod(new_config.period_us);
+    }
+
+    // Profiling thread will automatically pickup a change in
+    // config_.max_depth, but to resize underlying buffer
+    // you need to start and stop the profiler.
+  }
+}
+
+void Profiler::StartLocked() {
+  RELEASE_ASSERT(!running_);
+
+  // The profiler may have been shutdown previously, in which case the sample
+  // buffer will have already been initialized. However it might be too small.
+  const intptr_t sample_buffer_capacity = CalculateSampleBufferCapacity();
+  if (sample_block_buffer_ != nullptr &&
+      sample_buffer_capacity > sample_block_buffer_->Capacity()) {
+    delete sample_block_buffer_;
+    sample_block_buffer_ = nullptr;
+  }
+  if (sample_block_buffer_ == nullptr) {
+    sample_block_buffer_ = new SampleBlockBuffer(sample_buffer_capacity);
+  }
+  ThreadInterrupter::SetInterruptPeriod(config_.period_us);
+  ThreadInterrupter::Startup();
   SampleBlockProcessor::Startup();
-  initialized_ = true;
+  running_ = true;
 }
 
 class SampleBlockCleanupVisitor : public IsolateVisitor {
@@ -656,45 +720,20 @@ class SampleBlockCleanupVisitor : public IsolateVisitor {
   }
 };
 
-void Profiler::Cleanup() {
-  if (!FLAG_profiler && !initialized_) {
+void Profiler::StopLocked() {
+  if (!running_) {
     return;
   }
-  ASSERT(initialized_);
-  ThreadInterrupter::Cleanup();
+
+  ThreadInterrupter::Shutdown();
 
   const bool should_drain = process_profile_callback_ != nullptr;
-  SampleBlockProcessor::Cleanup(should_drain);
+  SampleBlockProcessor::Shutdown(should_drain);
 
   SampleBlockCleanupVisitor visitor;
   Isolate::VisitIsolates(&visitor);
 
-  initialized_ = false;
-}
-
-void Profiler::UpdateRunningState() {
-  if (!FLAG_profiler && initialized_) {
-    Cleanup();
-  } else if (FLAG_profiler && !initialized_) {
-    Init();
-  }
-}
-
-void Profiler::SetSampleDepth(intptr_t depth) {
-  const int kMinimumDepth = 2;
-  const int kMaximumDepth = 255;
-  if (depth < kMinimumDepth) {
-    FLAG_max_profile_depth = kMinimumDepth;
-  } else if (depth > kMaximumDepth) {
-    FLAG_max_profile_depth = kMaximumDepth;
-  } else {
-    FLAG_max_profile_depth = depth;
-  }
-}
-
-static intptr_t SamplesPerSecond() {
-  const intptr_t kMicrosPerSec = 1000000;
-  return kMicrosPerSec / FLAG_profile_period;
+  running_ = false;
 }
 
 intptr_t Profiler::CalculateSampleBufferCapacity() {
@@ -708,25 +747,13 @@ intptr_t Profiler::CalculateSampleBufferCapacity() {
   // We use the fact that `ceil((float)a / (float)b) == (a + b - 1) / b` when
   // `a` and `b` are positive integers below.
   const intptr_t max_sample_chain_length =
-      (FLAG_max_profile_depth + Sample::kPCArraySizeInWords - 1) /
+      (config_.max_depth + Sample::kPCArraySizeInWords - 1) /
       Sample::kPCArraySizeInWords;
+  const intptr_t kMicrosPerSec = 1000000;
+  const intptr_t samples_per_second = kMicrosPerSec / config_.period_us;
   const intptr_t sample_count = FLAG_sample_buffer_duration *
-                                SamplesPerSecond() * max_sample_chain_length;
+                                samples_per_second * max_sample_chain_length;
   return (sample_count / SampleBlock::kSamplesPerBlock) + 1;
-}
-
-void Profiler::UpdateFlagProfilePeriod(intptr_t period) {
-  const int kMinimumProfilePeriod = 50;
-  if (period < kMinimumProfilePeriod) {
-    FLAG_profile_period = kMinimumProfilePeriod;
-  } else {
-    FLAG_profile_period = period;
-  }
-}
-
-void Profiler::UpdateSamplePeriod() {
-  UpdateFlagProfilePeriod(FLAG_profile_period);
-  ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
 }
 
 SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
@@ -1073,13 +1100,12 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   void walk() {
     RELEASE_ASSERT(StubCode::HasBeenInitialized());
-    if (thread_->IGNORE_RACE2(IsDeoptimizing)()) {
+    if (thread_->IsDeoptimizing()) {
       sample_->set_ignore_sample(true);
       return;
     }
 
-    uword* exit_fp =
-        reinterpret_cast<uword*>(thread_->IGNORE_RACE(top_exit_frame_info)());
+    uword* exit_fp = reinterpret_cast<uword*>(thread_->top_exit_frame_info());
     bool has_exit_frame = exit_fp != nullptr;
     if (has_exit_frame) {
       // Exited from compiled code or interpreter.
@@ -1090,14 +1116,13 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       pc_ = CallerPC();
       fp_ = CallerFP();
     } else {
-      if (thread_->IGNORE_RACE(vm_tag)() == VMTag::kDartTagId) {
+      if (thread_->vm_tag() == VMTag::kDartTagId) {
         // Running compiled code.
         // Use the FP and PC from the thread interrupt or simulator; already set
         // in the constructor.
 
 #if defined(DART_DYNAMIC_MODULES)
-      } else if (thread_->IGNORE_RACE(vm_tag)() ==
-                 VMTag::kDartInterpretedTagId) {
+      } else if (thread_->vm_tag() == VMTag::kDartInterpretedTagId) {
         // Running interpreter.
         pc_ = reinterpret_cast<uword*>(thread_->interpreter()->get_pc());
         fp_ = reinterpret_cast<uword*>(thread_->interpreter()->get_fp());
@@ -1300,7 +1325,7 @@ static Sample* SetupSample(Thread* thread,
                            bool allocation_sample,
                            ThreadId tid) {
   ASSERT(thread != nullptr);
-  Isolate* isolate = thread->IGNORE_RACE(isolate)();
+  Isolate* isolate = thread->isolate();
   SampleBlockBuffer* buffer = Profiler::sample_block_buffer();
   Sample* sample = allocation_sample ? buffer->ReserveAllocationSample(isolate)
                                      : buffer->ReserveCPUSample(isolate);
@@ -1308,7 +1333,7 @@ static Sample* SetupSample(Thread* thread,
     return nullptr;
   }
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(), tid);
-  uword vm_tag = thread->IGNORE_RACE(vm_tag)();
+  uword vm_tag = thread->vm_tag();
 #if defined(DART_INCLUDE_SIMULATOR)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
@@ -1321,7 +1346,7 @@ static Sample* SetupSample(Thread* thread,
   }
 #endif
   sample->set_vm_tag(vm_tag);
-  sample->set_user_tag(thread->IGNORE_RACE(user_tag)());
+  sample->set_user_tag(thread->user_tag());
   sample->set_thread_task(thread->task_kind());
   return sample;
 }
@@ -1405,7 +1430,7 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
   ASSERT(Profiler::sample_block_buffer() != nullptr);
 
 #if !defined(PRODUCT)
-  Isolate* isolate = thread->IGNORE_RACE(isolate)();
+  Isolate* isolate = thread->isolate();
 
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
@@ -1441,9 +1466,9 @@ void ReleaseToCurrentBlock(Isolate* isolate) {
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
   ASSERT(thread != nullptr);
-  OSThread* os_thread = thread->IGNORE_RACE(os_thread)();
+  OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != nullptr);
-  Isolate* isolate = thread->IGNORE_RACE(isolate)();
+  Isolate* isolate = thread->isolate();
 
   // Double check if interrupts are disabled
   // after the thread interrupter decided to send a signal.
@@ -1465,7 +1490,7 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  const bool in_dart_code = thread->IGNORE_RACE2(IsExecutingDartCode)();
+  const bool in_dart_code = thread->IsExecutingDartCode();
 
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
@@ -1513,7 +1538,7 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (thread->IsDartMutatorThread()) {
-    if (thread->IGNORE_RACE2(IsDeoptimizing)()) {
+    if (thread->IsDeoptimizing()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
       ReleaseToCurrentBlock(isolate);
@@ -1547,7 +1572,7 @@ void Profiler::SampleThread(Thread* thread,
   Dart_Port port = (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT;
   ProfilerNativeStackWalker native_stack_walker(
       &counters_, port, sample, isolate, stack_lower, stack_upper, pc, fp, sp);
-  const bool exited_dart_code = thread->IGNORE_RACE2(HasExitedDartCode)();
+  const bool exited_dart_code = thread->HasExitedDartCode();
   ProfilerDartStackWalker dart_stack_walker(thread, port, sample, isolate, pc,
                                             fp, sp, lr,
                                             /*allocation_sample=*/false);
@@ -1884,19 +1909,24 @@ ProcessedSampleBuffer::ProcessedSampleBuffer()
 
 void SampleBlockProcessor::Init() {
   ASSERT(!initialized_);
-  if (monitor_ == nullptr) {
-    monitor_ = new Monitor();
-  }
-  ASSERT(monitor_ != nullptr);
+  monitor_ = new Monitor();
   initialized_ = true;
-  shutdown_ = false;
+  shutdown_ = true;
   drain_ = false;
+}
+
+void SampleBlockProcessor::Cleanup() {
+  Shutdown();
+  initialized_ = false;
+  delete monitor_;
 }
 
 void SampleBlockProcessor::Startup() {
   ASSERT(initialized_);
   ASSERT(processor_thread_id_ == OSThread::kInvalidThreadJoinId);
   SafepointMonitorLocker startup_ml(monitor_);
+  shutdown_ = false;
+  drain_ = false;
   OSThread::Start("Dart Profiler SampleBlockProcessor", ThreadMain, 0);
   while (!thread_running_) {
     startup_ml.Wait();
@@ -1904,7 +1934,7 @@ void SampleBlockProcessor::Startup() {
   ASSERT(processor_thread_id_ != OSThread::kInvalidThreadJoinId);
 }
 
-void SampleBlockProcessor::Cleanup(bool drain /* = false */) {
+void SampleBlockProcessor::Shutdown(bool drain /* = false */) {
   {
     SafepointMonitorLocker shutdown_ml(monitor_);
     if (shutdown_) {
@@ -1928,7 +1958,6 @@ void SampleBlockProcessor::Cleanup(bool drain /* = false */) {
     OSThread::Join(processor_thread_id_);
   }
   processor_thread_id_ = OSThread::kInvalidThreadJoinId;
-  initialized_ = false;
   ASSERT(!thread_running_);
 }
 

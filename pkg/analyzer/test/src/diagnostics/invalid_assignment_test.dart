@@ -726,14 +726,14 @@ VoidToInt f = new C();
 class A {
   int x = 7;
 }
-f(var y) {
+f(y) {
   A a = A();
   if (y is String) {
     a.x = y;
   }
 }
 ''',
-      [error(diag.invalidAssignment, 80, 1)],
+      [error(diag.invalidAssignment, 76, 1)],
     );
   }
 
@@ -779,14 +779,14 @@ f() {
   test_localVariable_promotion() async {
     await assertErrorsInCode(
       r'''
-f(var y) {
+f(y) {
   if (y is String) {
     int x = y;
     print(x);
   }
 }
 ''',
-      [error(diag.invalidAssignment, 44, 1)],
+      [error(diag.invalidAssignment, 40, 1)],
     );
   }
 
@@ -1029,13 +1029,13 @@ f() {
 class A {
   static int x = 7;
 }
-f(var y) {
+f(y) {
   if (y is String) {
     A.x = y;
   }
 }
 ''',
-      [error(diag.invalidAssignment, 74, 1)],
+      [error(diag.invalidAssignment, 70, 1)],
     );
   }
 

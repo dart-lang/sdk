@@ -34,13 +34,15 @@ Version languageVersionFromSdkVersion(String sdkVersionStr) {
 /// library map.
 abstract class AbstractDartSdk implements DartSdk {
   /// The resource provider used to access the file system.
-  late final ResourceProvider resourceProvider;
+  final ResourceProvider resourceProvider;
 
   /// A mapping from Dart library URI's to the library represented by that URI.
   LibraryMap libraryMap = LibraryMap();
 
   /// The mapping from Dart URI's to the corresponding sources.
   final Map<String, Source?> _uriToSourceMap = HashMap<String, Source?>();
+
+  AbstractDartSdk(this.resourceProvider);
 
   @override
   List<SdkLibraryImpl> get sdkLibraries => libraryMap.sdkLibraries;
@@ -200,18 +202,26 @@ class EmbedderSdk extends AbstractDartSdk {
 
   static const String _embeddedLibMapKey = 'embedded_libs';
 
-  late final Version _languageVersion;
+  final Version _languageVersion;
 
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
+  @Deprecated("Use 'EmbedderSdk.new2' instead.")
   EmbedderSdk(
-    ResourceProvider resourceProvider,
+    super.resourceProvider,
     Map<Folder, YamlMap>? embedderYamls, {
     required Version languageVersion,
-  }) {
-    this.resourceProvider = resourceProvider;
-    _languageVersion = languageVersion;
+  }) : _languageVersion = languageVersion {
     embedderYamls?.forEach(_processEmbedderYaml);
+  }
+
+  EmbedderSdk.new2(
+    super.resourceProvider,
+    Folder libFolder,
+    YamlMap? embedderYaml, {
+    required Version languageVersion,
+  }) : _languageVersion = languageVersion {
+    _processEmbedderYaml(libFolder, embedderYaml);
   }
 
   @override
@@ -307,7 +317,8 @@ class EmbedderSdk extends AbstractDartSdk {
   ///   'dart:io': '../../sdk/io/io.dart'
   ///
   /// If a key doesn't begin with `dart:` it is ignored.
-  void _processEmbedderYaml(Folder libDir, YamlMap map) {
+  void _processEmbedderYaml(Folder libDir, YamlMap? map) {
+    if (map == null) return;
     var embeddedLibs = map[_embeddedLibMapKey] as YamlNode;
     if (embeddedLibs is YamlMap) {
       embeddedLibs.forEach(
@@ -387,9 +398,8 @@ class FolderBasedDartSdk extends AbstractDartSdk {
 
   /// Initialize a newly created SDK to represent the Dart SDK installed in the
   /// [sdkDirectory].
-  FolderBasedDartSdk(ResourceProvider resourceProvider, Folder sdkDirectory)
+  FolderBasedDartSdk(super.resourceProvider, Folder sdkDirectory)
     : _sdkDirectory = sdkDirectory {
-    this.resourceProvider = resourceProvider;
     libraryMap = initialLibraryMap();
   }
 

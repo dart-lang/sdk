@@ -352,9 +352,19 @@ class Object {
   bool IsCanonical() const { return ptr()->untag()->IsCanonical(); }
   void SetCanonical() const { ptr()->untag()->SetCanonical(); }
   void ClearCanonical() const { ptr()->untag()->ClearCanonical(); }
-  bool IsImmutable() const { return ptr()->untag()->IsImmutable(); }
-  void SetImmutable() const { ptr()->untag()->SetImmutable(); }
-  void ClearImmutable() const { ptr()->untag()->ClearImmutable(); }
+  bool IsShallowImmutable() const {
+    return ptr()->untag()->IsShallowImmutable();
+  }
+  void SetShallowImmutable() const { ptr()->untag()->SetShallowImmutable(); }
+  void ClearShallowImmutable() const {
+    ptr()->untag()->ClearShallowImmutable();
+  }
+  bool IsDeeplyImmutable() const { return ptr()->untag()->IsDeeplyImmutable(); }
+  void SetDeeplyImmutable() const { ptr()->untag()->SetDeeplyImmutable(); }
+  void ClearDeeplyImmutable() const { ptr()->untag()->ClearDeeplyImmutable(); }
+  bool IsImmutable() const {
+    return IsShallowImmutable() || IsDeeplyImmutable();
+  }
   intptr_t GetClassId() const { return ptr()->GetClassId(); }
   inline ClassPtr clazz() const;
   static intptr_t tags_offset() { return OFFSET_OF(UntaggedObject, tags_); }
@@ -722,7 +732,10 @@ class Object {
     kNo,
   };
 
-  static bool ShouldHaveImmutabilityBitSet(classid_t class_id);
+  static bool ShouldHaveShallowImmutabilityBitSet(classid_t class_id);
+  static bool ShouldHaveDeeplyImmutabilityBitSet(classid_t class_id);
+
+  void EnsureDeeplyImmutable(Zone* zone) const;
 
  protected:
   friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
@@ -977,6 +990,35 @@ class Object {
     return -kWordSize;
   }
 
+  // Initialize the oject header for a freshly allocated object at [address]
+  // of size [instance_size] with cid [class_id]. If the hash is stored in
+  // the object header, it is initialized to 0.
+  //
+  // Whether the object is old or new is determined from the address,
+  // see ObjectAlignment in pointer_tagging.h for details.
+  DART_FORCE_INLINE static void InitializeHeader(uword address,
+                                                 intptr_t class_id,
+                                                 intptr_t instance_size) {
+    uword tags = 0;
+    ASSERT(class_id != kIllegalCid);
+    tags = UntaggedObject::ClassIdTag::update(class_id, tags);
+    tags = UntaggedObject::SizeTag::update(instance_size, tags);
+    const bool is_old =
+        (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
+    tags = UntaggedObject::AlwaysSetBit::update(true, tags);
+    tags = UntaggedObject::NotMarkedBit::update(true, tags);
+    tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
+    tags = UntaggedObject::NewOrEvacuationCandidateBit::update(!is_old, tags);
+    tags = UntaggedObject::ShallowImmutableBit::update(
+        Object::ShouldHaveShallowImmutabilityBitSet(class_id), tags);
+    tags = UntaggedObject::DeeplyImmutableBit::update(
+        Object::ShouldHaveDeeplyImmutabilityBitSet(class_id), tags);
+#if defined(HASH_IN_OBJECT_HEADER)
+    tags = UntaggedObject::HashTag::update(0, tags);
+#endif
+    reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
+  }
+
   static void InitializeObject(uword address,
                                intptr_t id,
                                intptr_t size,
@@ -1098,6 +1140,7 @@ class Object {
   friend class OneByteString;
   friend class TwoByteString;
   friend class Thread;
+  friend class module_snapshot::ObjectPoolDeserializationCluster;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
@@ -1338,8 +1381,6 @@ class Class : public Object {
   // The mixin for this class if one exists. Otherwise, returns a raw pointer
   // to this class.
   ClassPtr Mixin() const;
-
-  bool IsInFullSnapshot() const;
 
   virtual StringPtr DictionaryName() const { return Name(); }
 
@@ -1655,12 +1696,6 @@ class Class : public Object {
 
   // Check if this class represents the 'Record' class.
   bool IsRecordClass() const { return id() == kRecordCid; }
-
-  static bool IsInFullSnapshot(ClassPtr cls) {
-    NoSafepointScope no_safepoint;
-    return UntaggedLibrary::InFullSnapshotBit::decode(
-        cls->untag()->library()->untag()->flags_);
-  }
 
   static intptr_t GetClassId(ClassPtr cls) {
     NoSafepointScope no_safepoint;
@@ -2327,10 +2362,6 @@ class PatchClass : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedPatchClass));
   }
-  static bool IsInFullSnapshot(PatchClassPtr cls) {
-    NoSafepointScope no_safepoint;
-    return Class::IsInFullSnapshot(cls->untag()->wrapped_class());
-  }
 
   static PatchClassPtr New(const Class& wrapped_class,
                            const KernelProgramInfo& info,
@@ -2584,8 +2615,6 @@ class ICData : public CallSiteData {
 #undef REBIND_ENUM_DEF
         kNumRebindRules,
   };
-  static const char* RebindRuleToCString(RebindRule r);
-  static bool ParseRebindRule(const char* str, RebindRule* out);
   RebindRule rebind_rule() const;
 
   void set_is_megamorphic(bool value) const {
@@ -4359,8 +4388,6 @@ class Function : public Object {
   void set_implicit_closure_function(const Function& value) const;
   ClosurePtr implicit_static_closure() const;
   void set_implicit_static_closure(const Closure& closure) const;
-  ScriptPtr eval_script() const;
-  void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
   bool is_eval_function() const;
@@ -4571,6 +4598,13 @@ class Field : public Object {
     return untag()->kind_bits_.Read<NoSanitizeThreadBit>();
   }
 
+  void set_has_deeply_immutable_type(bool value) const {
+    untag()->kind_bits_.UpdateBool<HasDeeplyImmutableTypeBit>(value);
+  }
+  bool has_deeply_immutable_type() const {
+    return untag()->kind_bits_.Read<HasDeeplyImmutableTypeBit>();
+  }
+
 #if defined(DART_DYNAMIC_MODULES)
   bool is_declared_in_bytecode() const;
 #else
@@ -4680,8 +4714,6 @@ class Field : public Object {
   TokenPosition end_token_pos() const { return untag()->end_token_pos_; }
 
   int32_t SourceFingerprint() const;
-
-  StringPtr InitializingExpression() const;
 
   bool has_nontrivial_initializer() const {
     return untag()->kind_bits_.Read<HasNontrivialInitializerBit>();
@@ -4903,12 +4935,6 @@ class Field : public Object {
   void SetInitializerFunction(const Function& initializer) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
-  // For static fields only. Constructs a closure that gets/sets the
-  // field value.
-  InstancePtr GetterClosure() const;
-  InstancePtr SetterClosure() const;
-  InstancePtr AccessorClosure(bool make_setter) const;
-
   // Constructs getter and setter names for fields and vice versa.
   static StringPtr GetterName(const String& field_name);
   static StringPtr GetterSymbol(const String& field_name);
@@ -4984,6 +5010,10 @@ class Field : public Object {
                              HasInitializerBit::kNextBit>;
   using NoSanitizeThreadBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, SharedBit::kNextBit>;
+  using HasDeeplyImmutableTypeBit =
+      BitField<decltype(UntaggedField::kind_bits_),
+               bool,
+               NoSanitizeThreadBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -5360,14 +5390,6 @@ class Library : public Object {
     StoreNonPointer<Dart_FfiNativeResolver, Dart_FfiNativeResolver,
                     std::memory_order_relaxed>(&untag()->ffi_native_resolver_,
                                                value);
-  }
-
-  bool is_in_fullsnapshot() const {
-    return UntaggedLibrary::InFullSnapshotBit::decode(untag()->flags_);
-  }
-  void set_is_in_fullsnapshot(bool value) const {
-    set_flags(
-        UntaggedLibrary::InFullSnapshotBit::update(value, untag()->flags_));
   }
 
   StringPtr PrivateName(const String& name) const;
@@ -8669,6 +8691,8 @@ class Instance : public Object {
 
   static intptr_t NativeFieldsOffset() { return sizeof(UntaggedObject); }
 
+  static intptr_t first_field_offset() { return NextFieldOffset(); }
+
  protected:
 #ifndef PRODUCT
   virtual void PrintSharedInstanceJSON(JSONObject* jsobj,
@@ -8969,10 +8993,6 @@ class TypeArguments : public Instance {
                            const TypeArguments& other,
                            intptr_t other_length,
                            intptr_t total_length) const;
-
-  // Concatenate [this] and [other] vectors of type parameters.
-  TypeArgumentsPtr ConcatenateTypeParameters(Zone* zone,
-                                             const TypeArguments& other) const;
 
   // Returns an InstantiationMode for this type argument vector, which
   // specifies whether the type argument vector requires instantiation and

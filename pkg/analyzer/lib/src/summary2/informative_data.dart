@@ -398,6 +398,7 @@ class InformativeDataApplier {
       fragment.setCodeRange(info.codeOffset, info.codeLength);
       fragment.firstTokenOffset = info.firstTokenOffset;
       fragment.nameOffset = info.nameOffset;
+      fragment.documentationComment = info.documentationComment;
       _applyToTypeParameters(fragment.typeParameters, info.typeParameters);
       _applyToFormalParameters(fragment.formalParameters, info.parameters);
     });
@@ -597,8 +598,8 @@ class _InfoBuilder {
         node,
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
-        primaryConstructor: node.namePart.ifTypeOrNull(),
-        members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+        primaryConstructor: node.namePart.tryCast(),
+        members: node.body.tryCast<BlockClassBody>()?.members ?? [],
       ),
     );
   }
@@ -738,7 +739,7 @@ class _InfoBuilder {
         node,
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
-        primaryConstructor: node.namePart.ifTypeOrNull(),
+        primaryConstructor: node.namePart.tryCast(),
         members: node.body.members,
         fields: [
           ...node.body.constants.map(_buildEnumConstant),
@@ -814,7 +815,7 @@ class _InfoBuilder {
         name: node.primaryConstructor.typeName,
         typeParameters: node.primaryConstructor.typeParameters,
         primaryConstructor: node.primaryConstructor,
-        members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+        members: node.body.tryCast<BlockClassBody>()?.members ?? [],
       ),
     );
   }
@@ -859,6 +860,7 @@ class _InfoBuilder {
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset: node.name?.offsetIfNotEmpty,
+      documentationComment: _getDocumentationComment(notDefault),
       typeParameters: _buildTypeParameters(typeParameters),
       parameters: _buildFormalParameters(parameters),
     );
@@ -1083,7 +1085,7 @@ class _InfoBuilder {
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset: node.constructorName?.name.offsetIfNotEmpty,
-      documentationComment: null,
+      documentationComment: _getDocumentationComment(body),
       typeParameters: const [],
       parameters: _buildFormalParameters(node.formalParameters),
       constantOffsets: _buildConstantOffsets(
@@ -1418,9 +1420,10 @@ class _InfoFormalParameter extends _InfoNode {
     required super.codeOffset,
     required super.codeLength,
     required super.nameOffset,
+    required super.documentationComment,
     required this.typeParameters,
     required this.parameters,
-  }) : super(documentationComment: null);
+  });
 
   _InfoFormalParameter.read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),

@@ -1,0 +1,11 @@
+class C1(var int a, final String b, double c);
+
+class C2([var int a = 0, final String b = '', double c = 0.0]);
+
+class C3({required var int a, required final String b, required double c});
+
+class C4({var int a = 0, final String b = '', double c = 0.0});
+
+test(C1 c1) {}
+
+main() {}

@@ -150,16 +150,16 @@ class PostfixExpressionResolver {
     node.element = result.getter2 as MethodElement?;
     if (result.needsGetterError) {
       if (operand is SuperExpression) {
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedSuperOperator,
-          arguments: [methodName, receiverType],
+        _diagnosticReporter.report(
+          diag.undefinedSuperOperator
+              .withArguments(operator: methodName, type: receiverType)
+              .at(node.operator),
         );
       } else {
-        _diagnosticReporter.atToken(
-          node.operator,
-          diag.undefinedOperator,
-          arguments: [methodName, receiverType],
+        _diagnosticReporter.report(
+          diag.undefinedOperator
+              .withArguments(operator: methodName, type: receiverType)
+              .at(node.operator),
         );
       }
     }
@@ -186,17 +186,23 @@ class PostfixExpressionResolver {
           if (_resolver.definingLibrary.featureSet.isEnabled(
             Feature.inference_update_4,
           )) {
-            _resolver.flowAnalysis.flow?.postIncDec(
+            _resolver.flowAnalysis.flow?.storeExpressionInfo(
               node,
-              element,
-              SharedTypeView(operatorReturnType),
+              _resolver.flowAnalysis.flow?.postIncDec(
+                node,
+                element,
+                SharedTypeView(operatorReturnType),
+              ),
             );
           } else {
-            _resolver.flowAnalysis.flow?.write(
+            _resolver.flowAnalysis.flow?.storeExpressionInfo(
               node,
-              element,
-              SharedTypeView(operatorReturnType),
-              null,
+              _resolver.flowAnalysis.flow?.write(
+                node,
+                element,
+                SharedTypeView(operatorReturnType),
+                null,
+              ),
             );
           }
         }
