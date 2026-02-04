@@ -232,7 +232,7 @@ final class HtmlEscape extends Converter<String, String> {
 
   String convert(String text) {
     var val = _convert(text, 0, text.length);
-    return val == null ? text : val;
+    return val ?? text;
   }
 
   /// Converts the substring of text from start to end.

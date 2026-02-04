@@ -247,6 +247,7 @@ class WasmF32 extends _WasmBase {
 
   @pragma("wasm:intrinsic")
   external factory WasmF32.fromDouble(double value);
+
   external double toDouble();
 }
 
@@ -276,9 +277,37 @@ class WasmF64 extends _WasmBase {
 
 /// The Wasm `v128` type.
 @pragma("wasm:entry-point")
-class WasmV128 extends _WasmBase {}
+final class WasmV128 extends _WasmBase {}
 
-extension type WasmI8x16(WasmV128 value) {
+extension WasmV128Extension on WasmV128 {
+  /// Wasm `v128.not` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 operator ~();
+
+  /// Wasm `v128.and` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 operator &(WasmV128 other);
+
+  /// Wasm `v128.or` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 operator |(WasmV128 other);
+
+  /// Wasm `v128.xor` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 operator ^(WasmV128 other);
+
+  /// Wasm `v128.andnot` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 andNot(WasmV128 other);
+
+  /// Wasm `v128.bitselect` instruction.
+  ///
+  /// Returns `(v1 & mask) | (v2 & ~mask)` where `mask` is this vector.
+  @pragma("wasm:intrinsic")
+  external WasmV128 bitSelect(WasmV128 v1, WasmV128 v2);
+}
+
+extension type WasmI8x16(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external factory WasmI8x16.splat(WasmI32 value);
 
@@ -296,9 +325,12 @@ extension type WasmI8x16(WasmV128 value) {
 
   @pragma("wasm:intrinsic")
   external WasmI8x16 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 eq(WasmI8x16 other);
 }
 
-extension type WasmI16x8(WasmV128 value) {
+extension type WasmI16x8(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external factory WasmI16x8.splat(WasmI32 value);
 
@@ -321,9 +353,12 @@ extension type WasmI16x8(WasmV128 value) {
 
   @pragma("wasm:intrinsic")
   external WasmI32x4 dotProduct(WasmI16x8 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 eq(WasmI16x8 other);
 }
 
-extension type WasmI32x4(WasmV128 value) {
+extension type WasmI32x4(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external factory WasmI32x4.splat(WasmI32 value);
   @pragma("wasm:intrinsic")
@@ -340,9 +375,12 @@ extension type WasmI32x4(WasmV128 value) {
 
   @pragma("wasm:intrinsic")
   external WasmI32x4 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 eq(WasmI32x4 other);
 }
 
-extension type WasmI64x2(WasmV128 value) {
+extension type WasmI64x2(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external factory WasmI64x2.splat(WasmI64 value);
   @pragma("wasm:intrinsic")
@@ -359,24 +397,33 @@ extension type WasmI64x2(WasmV128 value) {
 
   @pragma("wasm:intrinsic")
   external WasmI64x2 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 eq(WasmI64x2 other);
 }
 
-extension type WasmF32x4(WasmV128 value) {
+extension type WasmF32x4(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external factory WasmF32x4.splat(WasmF32 value);
   @pragma("wasm:intrinsic")
   external WasmF32 extractLane(int index);
   @pragma("wasm:intrinsic")
   external WasmF32x4 replaceLane(int index, WasmF32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 eq(WasmF32x4 other);
 }
 
-extension type WasmF64x2(WasmV128 value) {
+extension type WasmF64x2(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external factory WasmF64x2.splat(WasmF64 value);
   @pragma("wasm:intrinsic")
   external WasmF64 extractLane(int index);
   @pragma("wasm:intrinsic")
   external WasmF64x2 replaceLane(int index, WasmF64 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 eq(WasmF64x2 other);
 }
 
 /// A Wasm array.
