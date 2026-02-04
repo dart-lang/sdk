@@ -50,9 +50,6 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   bool get isConst => baseElement.isConst;
 
   @override
-  bool get isDeclaring => baseElement.isDeclaring;
-
-  @override
   bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
   @override

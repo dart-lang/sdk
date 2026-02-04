@@ -1810,7 +1810,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isOriginDeclaration = true;
     fragment.isConst =
         node.constKeyword != null || parent is EnumDeclarationImpl;
-    fragment.isDeclaring = true;
     fragment.isPrimary = true;
     fragment.typeName = node.typeName.lexeme;
 

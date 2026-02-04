@@ -1500,7 +1500,6 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeFlags({
           ..._executableItemFlags(item),
           'isConst': item.flags.isConst,
-          'isDeclaring': item.flags.isDeclaring,
           'isFactory': item.flags.isFactory,
           'isOriginDeclaration': item.flags.isOriginDeclaration,
           'isOriginImplicitDefault': item.flags.isOriginImplicitDefault,
