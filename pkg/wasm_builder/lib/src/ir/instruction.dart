@@ -572,6 +572,12 @@ abstract class Instruction implements Serializable {
             0x37 => I32x4Eq.deserialize(d),
             0x41 => F32x4Eq.deserialize(d),
             0x47 => F64x2Eq.deserialize(d),
+            0x4D => V128Not.deserialize(d),
+            0x4E => V128And.deserialize(d),
+            0x4F => V128AndNot.deserialize(d),
+            0x50 => V128Or.deserialize(d),
+            0x51 => V128Xor.deserialize(d),
+            0x52 => V128BitSelect.deserialize(d),
             0x61 => I8x16Neg.deserialize(d),
             0x6E => I8x16Add.deserialize(d),
             0x71 => I8x16Sub.deserialize(d),
@@ -5240,4 +5246,82 @@ class F64x2Eq extends Instruction {
 
   @override
   String get name => 'f64x2.eq';
+}
+
+class V128Not extends Instruction {
+  const V128Not();
+  static V128Not deserialize(Deserializer d) => const V128Not();
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x4D);
+  }
+
+  @override
+  String get name => 'v128.not';
+}
+
+class V128And extends Instruction {
+  const V128And();
+  static V128And deserialize(Deserializer d) => const V128And();
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x4E);
+  }
+
+  @override
+  String get name => 'v128.and';
+}
+
+class V128AndNot extends Instruction {
+  const V128AndNot();
+  static V128AndNot deserialize(Deserializer d) => const V128AndNot();
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x4F);
+  }
+
+  @override
+  String get name => 'v128.andnot';
+}
+
+class V128Or extends Instruction {
+  const V128Or();
+  static V128Or deserialize(Deserializer d) => const V128Or();
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x50);
+  }
+
+  @override
+  String get name => 'v128.or';
+}
+
+class V128Xor extends Instruction {
+  const V128Xor();
+  static V128Xor deserialize(Deserializer d) => const V128Xor();
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x51);
+  }
+
+  @override
+  String get name => 'v128.xor';
+}
+
+class V128BitSelect extends Instruction {
+  const V128BitSelect();
+  static V128BitSelect deserialize(Deserializer d) => const V128BitSelect();
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFD);
+    s.writeUnsigned(0x52);
+  }
+
+  @override
+  String get name => 'v128.bitselect';
 }

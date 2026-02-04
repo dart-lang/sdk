@@ -26,6 +26,7 @@ void main() {
   runTest('testI16x8', _testI16x8);
   runTest('testF32x4', _testF32x4);
   runTest('testF64x2', _testF64x2);
+  runTest('testV128', _testV128);
 
   if (failures.isNotEmpty) {
     print('\n${failures.length} tests failed:');
@@ -243,6 +244,115 @@ void _testF64x2() {
   _expectCmpTrue(vEq.extractLane(0).toInt());
   vEq = v1.eq(WasmF64x2.splat(WasmF64.fromDouble(11.5)));
   _expectCmpFalse(vEq.extractLane(0).toInt());
+}
+
+void _testV128() {
+  // Use WasmI32x4 as a concrete WasmV128
+  var v1 = WasmI32x4.splat(WasmI32.fromInt(0xAAAAAAAA));
+  var v2 = WasmI32x4.splat(WasmI32.fromInt(0x55555555));
+  // & with heterogeneous lanes
+  var v3 = WasmI32x4.splat(WasmI32.fromInt(0x12345678))
+      .replaceLane(1, WasmI32.fromInt(0x9ABCDEF0))
+      .replaceLane(2, WasmI32.fromInt(0x0FEDCBA9))
+      .replaceLane(3, WasmI32.fromInt(0x87654321));
+  var v4 = WasmI32x4.splat(WasmI32.fromInt(0x87654321))
+      .replaceLane(1, WasmI32.fromInt(0x0FEDCBA9))
+      .replaceLane(2, WasmI32.fromInt(0x9ABCDEF0))
+      .replaceLane(3, WasmI32.fromInt(0x12345678));
+
+  // ~
+  var vNot = WasmI32x4(~v1);
+  Expect.equals(vNot.extractLane(0).toIntUnsigned(), 0x55555555);
+
+  // &
+  var vAnd = WasmI32x4(v1 & v2);
+  _expectCmpFalse(vAnd.extractLane(0).toIntSigned());
+
+  var vAnd2 = WasmI32x4(v3 & v4);
+  Expect.equals(vAnd2.extractLane(0).toIntUnsigned(), 0x12345678 & 0x87654321);
+  Expect.equals(vAnd2.extractLane(1).toIntUnsigned(), 0x9ABCDEF0 & 0x0FEDCBA9);
+  Expect.equals(vAnd2.extractLane(2).toIntUnsigned(), 0x0FEDCBA9 & 0x9ABCDEF0);
+  Expect.equals(vAnd2.extractLane(3).toIntUnsigned(), 0x87654321 & 0x12345678);
+
+  // |
+  var vOr = WasmI32x4(v1 | v2);
+  _expectCmpTrue(vOr.extractLane(0).toIntSigned());
+
+  // | with heterogeneous lanes
+  var vOr2 = WasmI32x4(v3 | v4);
+  Expect.equals(vOr2.extractLane(0).toIntUnsigned(), 0x12345678 | 0x87654321);
+  Expect.equals(vOr2.extractLane(1).toIntUnsigned(), 0x9ABCDEF0 | 0x0FEDCBA9);
+  Expect.equals(vOr2.extractLane(2).toIntUnsigned(), 0x0FEDCBA9 | 0x9ABCDEF0);
+  Expect.equals(vOr2.extractLane(3).toIntUnsigned(), 0x87654321 | 0x12345678);
+
+  // xor
+  var vXor = WasmI32x4(v1 ^ v1);
+  _expectCmpFalse(vXor.extractLane(0).toIntSigned());
+
+  // ^ with heterogeneous lanes
+  var vXor2 = WasmI32x4(v3 ^ v4);
+  Expect.equals(vXor2.extractLane(0).toIntUnsigned(), 0x12345678 ^ 0x87654321);
+  Expect.equals(vXor2.extractLane(1).toIntUnsigned(), 0x9ABCDEF0 ^ 0x0FEDCBA9);
+  Expect.equals(vXor2.extractLane(2).toIntUnsigned(), 0x0FEDCBA9 ^ 0x9ABCDEF0);
+  Expect.equals(vXor2.extractLane(3).toIntUnsigned(), 0x87654321 ^ 0x12345678);
+
+  // andNot
+  var vAndNot = WasmI32x4(v1.andNot(v1));
+  _expectCmpFalse(vAndNot.extractLane(0).toIntSigned());
+
+  // andNot with heterogeneous lanes
+  var vAndNot2 = WasmI32x4(v3.andNot(v4));
+  Expect.equals(
+    vAndNot2.extractLane(0).toIntUnsigned(),
+    0x12345678 & ~0x87654321,
+  );
+  Expect.equals(
+    vAndNot2.extractLane(1).toIntUnsigned(),
+    0x9ABCDEF0 & ~0x0FEDCBA9,
+  );
+  Expect.equals(
+    vAndNot2.extractLane(2).toIntUnsigned(),
+    0x0FEDCBA9 & ~0x9ABCDEF0,
+  );
+  Expect.equals(
+    vAndNot2.extractLane(3).toIntUnsigned(),
+    0x87654321 & ~0x12345678,
+  );
+
+  // bitSelect
+  var mask = WasmI32x4.splat(WasmI32.fromInt(0xFFFFFFFF));
+  var vSel = WasmI32x4(mask.bitSelect(v1, v2));
+  Expect.equals(vSel.extractLane(0).toIntUnsigned(), 0xAAAAAAAA);
+
+  mask = WasmI32x4.splat(WasmI32.fromInt(0));
+  vSel = WasmI32x4(mask.bitSelect(v1, v2));
+  Expect.equals(vSel.extractLane(0).toIntUnsigned(), 0x55555555);
+
+  // bitSelect with heterogeneous mask and lanes
+  var mask2 = WasmI32x4.splat(WasmI32.fromInt(0xF0F0F0F0))
+      .replaceLane(1, WasmI32.fromInt(0x0F0F0F0F))
+      .replaceLane(2, WasmI32.fromInt(0x0AAAAAAA))
+      .replaceLane(3, WasmI32.fromInt(0x05555555));
+  var vSel2 = WasmI32x4(mask2.bitSelect(v3, v4));
+
+  int bitSelect(int m, int a, int b) => (a & m) | (b & ~m);
+
+  Expect.equals(
+    vSel2.extractLane(0).toIntUnsigned(),
+    bitSelect(0xF0F0F0F0, 0x12345678, 0x87654321),
+  );
+  Expect.equals(
+    vSel2.extractLane(1).toIntUnsigned(),
+    bitSelect(0x0F0F0F0F, 0x9ABCDEF0, 0x0FEDCBA9),
+  );
+  Expect.equals(
+    vSel2.extractLane(2).toIntUnsigned(),
+    bitSelect(0x0AAAAAAA, 0x0FEDCBA9, 0x9ABCDEF0),
+  );
+  Expect.equals(
+    vSel2.extractLane(3).toIntUnsigned(),
+    bitSelect(0x05555555, 0x87654321, 0x12345678),
+  );
 }
 
 void _expectCmpTrue(int v) => Expect.equals(v, -1);

@@ -2839,6 +2839,48 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.I64x2Neg());
   }
 
+  void v128_not() {
+    assert(_verifyTypes(const [ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.not']));
+    _add(const ir.V128Not());
+  }
+
+  void v128_and() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.and']));
+    _add(const ir.V128And());
+  }
+
+  void v128_andnot() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.andnot']));
+    _add(const ir.V128AndNot());
+  }
+
+  void v128_or() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.or']));
+    _add(const ir.V128Or());
+  }
+
+  void v128_xor() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['v128.xor']));
+    _add(const ir.V128Xor());
+  }
+
+  void v128_bitselect() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['v128.bitselect']));
+    _add(const ir.V128BitSelect());
+  }
+
   String _localTraceString(ir.Local local) {
     final localName = localNames[local.index];
     if (localName == null) {
