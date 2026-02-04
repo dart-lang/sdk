@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type C0(dynamic a) {
+  abstract extension-type-member representation-field get a() → core::int;
+  constructor • = self::C0|constructor#;
+  constructor tearoff • = self::C0|constructor#_#new#tearOff;
+}
+extension type C1(dynamic b) {
+  abstract extension-type-member representation-field get b() → core::bool;
+  constructor • = self::C1|constructor#;
+  constructor tearoff • = self::C1|constructor#_#new#tearOff;
+}
+extension type C2(dynamic c) {
+  abstract extension-type-member representation-field get c() → core::String;
+  constructor • = self::C2|constructor#;
+  constructor tearoff • = self::C2|constructor#_#new#tearOff;
+}
+extension type C3(dynamic d) {
+  abstract extension-type-member representation-field get d() → core::List<core::int>;
+  constructor • = self::C3|constructor#;
+  constructor tearoff • = self::C3|constructor#_#new#tearOff;
+}
+static extension-type-member method C0|constructor#([core::int a = 0]) → self::C0% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member synthetic method C0|constructor#_#new#tearOff([has-declared-initializer core::int a]) → self::C0% /* erasure=dynamic, declared=! */
+  return self::C0|constructor#(a);
+static extension-type-member method C1|constructor#([final core::bool b = true]) → self::C1% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member synthetic method C1|constructor#_#new#tearOff([has-declared-initializer core::bool b]) → self::C1% /* erasure=dynamic, declared=! */
+  return self::C1|constructor#(b);
+static extension-type-member method C2|constructor#({core::String c = "foo"}) → self::C2% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member synthetic method C2|constructor#_#new#tearOff({has-declared-initializer core::String c}) → self::C2% /* erasure=dynamic, declared=! */
+  return self::C2|constructor#(c: c);
+static extension-type-member method C3|constructor#({final core::List<core::int> d = const <core::int>[0]}) → self::C3% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member synthetic method C3|constructor#_#new#tearOff({has-declared-initializer core::List<core::int> d}) → self::C3% /* erasure=dynamic, declared=! */
+  return self::C3|constructor#(d: d);
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///extension_type_parameter_type_inference.dart:11:30 -> ListConstant(const <int>[0])
+Extra constant evaluation: evaluated: 9, effectively constant: 1

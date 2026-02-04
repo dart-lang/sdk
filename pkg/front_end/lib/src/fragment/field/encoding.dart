@@ -1480,9 +1480,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
   @override
   void set type(DartType value) {
     assert(
-      _type == null ||
-          // Coverage-ignore(suite): Not run.
-          _type is InferredType,
+      _type == null || _type is InferredType,
       "Type has already been computed for field ${_fragment.name}.",
     );
     _type = value;
