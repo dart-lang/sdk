@@ -1926,6 +1926,14 @@ class OutlineBuilder extends StackListenerImpl {
             type: formal.type,
             name: formal.name,
             nameOffset: formal.fileOffset,
+            // We copy the default value token to the primary constructor field
+            // in order to support field type inference from the default value.
+            defaultValueToken:
+                libraryFeatures.primaryConstructors.isEnabled &&
+                    // TODO(johnniwinther): Handle extension types.
+                    !forExtensionType
+                ? formal.copyDefaultValueToken()
+                : null,
           );
           formals[i] = formal.forPrimaryConstructor(_builderFactory);
         }
@@ -3004,7 +3012,10 @@ class OutlineBuilder extends StackListenerImpl {
           modifiers: modifiers,
           type:
               type ??
-              (memberKind.isParameterInferable
+              (memberKind.isParameterInferable(
+                    libraryFeatures,
+                    declarationContext,
+                  )
                   ? _builderFactory.addInferableType()
                   : const ImplicitTypeBuilder()),
           name: parameterName,
@@ -4740,7 +4751,10 @@ class OutlineBuilder extends StackListenerImpl {
 
 extension on MemberKind {
   /// Returns `true` if a parameter occurring in this context can be inferred.
-  bool get isParameterInferable {
+  bool isParameterInferable(
+    LibraryFeatures libraryFeatures,
+    DeclarationContext declarationContext,
+  ) {
     switch (this) {
       case MemberKind.Catch:
       case MemberKind.FunctionTypeAlias:
@@ -4753,22 +4767,21 @@ extension on MemberKind {
       case MemberKind.ExtensionNonStaticMethod:
       case MemberKind.ExtensionStaticMethod:
       case MemberKind.ExtensionTypeStaticMethod:
-      case MemberKind.PrimaryConstructor:
         return false;
       case MemberKind.NonStaticMethod:
       case MemberKind.ExtensionTypeNonStaticMethod:
-      // Coverage-ignore(suite): Not run.
       // TODO(eernst): Write a test such that this does run.
       case MemberKind.AnonymousMethod:
-      // Coverage-ignore(suite): Not run.
       // These can be inferred but cannot hold parameters so the cases are
       // dead code:
       case MemberKind.NonStaticField:
-      // Coverage-ignore(suite): Not run.
       case MemberKind.StaticField:
-      // Coverage-ignore(suite): Not run.
       case MemberKind.TopLevelField:
         return true;
+      case MemberKind.PrimaryConstructor:
+        return libraryFeatures.primaryConstructors.isEnabled &&
+            // TODO(johnniwinther): Handle extension types.
+            declarationContext != DeclarationContext.ExtensionType;
     }
   }
 }

@@ -1607,6 +1607,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required TypeBuilder type,
     required String name,
     required int nameOffset,
+    required Token? defaultValueToken,
   }) {
     _declarationFragments.current.registerPrimaryConstructorField(
       _addPrimaryConstructorField(
@@ -1615,6 +1616,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         type: type,
         name: name,
         nameOffset: nameOffset,
+        defaultValueToken: defaultValueToken,
       ),
     );
   }
@@ -2190,6 +2192,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required TypeBuilder type,
     required String name,
     required int nameOffset,
+    required Token? defaultValueToken,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -2204,6 +2207,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           enclosingScope: enclosingDeclaration.bodyScope,
           enclosingDeclaration: enclosingDeclaration,
           enclosingCompilationUnit: _compilationUnit,
+          defaultValueToken: defaultValueToken,
         );
     _addFragment(fragment);
     return fragment;
@@ -2248,7 +2252,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       nameOffset: nameOffset,
       fileOffset: nameOffset,
       fileUri: _compilationUnit.fileUri,
-      initializerToken: initializerToken,
+      defaultValueToken: initializerToken,
       hasImmediatelyDeclaredInitializer: initializerToken != null,
       isWildcard: isWildcard,
       publicName: publicName,

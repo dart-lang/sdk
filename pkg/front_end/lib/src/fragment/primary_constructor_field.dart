@@ -334,7 +334,6 @@ class PrimaryConstructorFieldDeclaration
 
     type.registerInferredTypeListener(this);
     if (type is InferableTypeBuilder) {
-      // Coverage-ignore-block(suite): Not run.
       // A field with no type and initializer or an instance field without
       // type and initializer need to have the type inferred.
       _encoding.type = new InferredType(
@@ -346,7 +345,7 @@ class PrimaryConstructorFieldDeclaration
         name: _fragment.name,
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
-        token: null,
+        token: _fragment.takeDefaultValueToken(),
       );
       type.registerInferable(this);
     }
@@ -442,7 +441,6 @@ class PrimaryConstructorFieldDeclaration
     _encoding.setCovariantByClass();
   }
 
-  // Coverage-ignore(suite): Not run.
   (DartType, Expression?) _computeInferredType(
     ClassHierarchyBase classHierarchy,
     Token? token,
@@ -458,7 +456,10 @@ class PrimaryConstructorFieldDeclaration
             fileUri: fileUri,
             extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
             scope: scope,
-            inferenceDataForTesting: builder.dataForTesting?.inferenceData,
+            inferenceDataForTesting: builder
+                .dataForTesting
+                // Coverage-ignore(suite): Not run.
+                ?.inferenceData,
             bodyBuilderContext: createBodyBuilderContext(),
             startToken: token,
             isLate: false,
@@ -499,6 +500,8 @@ class PrimaryConstructorFieldFragment implements Fragment {
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
 
+  Token? _defaultValueToken;
+
   SourcePropertyBuilder? _builder;
   PrimaryConstructorFieldDeclaration? _declaration;
 
@@ -519,7 +522,8 @@ class PrimaryConstructorFieldFragment implements Fragment {
     required this.enclosingScope,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
-  });
+    required Token? defaultValueToken,
+  }) : _defaultValueToken = defaultValueToken;
 
   @override
   SourcePropertyBuilder get builder {
@@ -550,4 +554,16 @@ class PrimaryConstructorFieldFragment implements Fragment {
   }
 
   bool get hasSetter => !modifiers.isFinal;
+
+  /// Returns the [_defaultValueToken] field and clears it.
+  ///
+  /// This is used to transfer ownership of the token to the receiver. Tokens
+  /// need to be cleared during the outline phase to avoid holding the token
+  /// stream in memory.
+  Token? takeDefaultValueToken() {
+    Token? value = _defaultValueToken;
+    // Ensure that we don't hold on to the token.
+    _defaultValueToken = null;
+    return value;
+  }
 }
