@@ -3219,12 +3219,6 @@ duplicatedDeclarationCause:
   problemMessage: "Previous declaration of '#name'."
   severity: CONTEXT
 
-duplicatedDeclarationSyntheticCause:
-  parameters:
-    Name name: undocumented
-  problemMessage: "Previous declaration of '#name' is implied by this definition."
-  severity: CONTEXT
-
 # Use this message when a duplicated declaration is used.
 duplicatedDeclarationUse:
   parameters:
@@ -6678,13 +6672,6 @@ unmatchedPatchDeclaration:
     Name declarationName: The name of the unmatched declaration.
   problemMessage: "Patch '#declarationName' doesn't match a declaration in the origin library."
   correctionMessage: "Try changing the name to an existing declaration or removing the '@patch' annotation."
-
-unmatchedAugmentationConstructor:
-  parameters:
-    Name name: undocumented
-  problemMessage: "Augmentation constructor '#name' doesn't match a constructor in the augmented class."
-  correctionMessage: "Try changing the name to an existing constructor or removing the 'augment' modifier."
-  experiments: augmentations
 
 nonAugmentationMemberConflictCause:
   parameters: none

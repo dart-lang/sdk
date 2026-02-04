@@ -3306,35 +3306,6 @@ const Template<
   Message Function(String name),
   Message Function({required String name})
 >
-duplicatedDeclarationSyntheticCause = const Template(
-  "DuplicatedDeclarationSyntheticCause",
-  withArgumentsOld: _withArgumentsOldDuplicatedDeclarationSyntheticCause,
-  withArguments: _withArgumentsDuplicatedDeclarationSyntheticCause,
-  severity: CfeSeverity.context,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedDeclarationSyntheticCause({
-  required String name,
-}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    duplicatedDeclarationSyntheticCause,
-    problemMessage:
-        """Previous declaration of '${name_0}' is implied by this definition.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicatedDeclarationSyntheticCause(String name) =>
-    _withArgumentsDuplicatedDeclarationSyntheticCause(name: name);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function(String name),
-  Message Function({required String name})
->
 duplicatedDeclarationUse = const Template(
   "DuplicatedDeclarationUse",
   withArgumentsOld: _withArgumentsOldDuplicatedDeclarationUse,
@@ -17046,34 +17017,6 @@ Message _withArgumentsUnmatchedAugmentationClassMember({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldUnmatchedAugmentationClassMember(String memberName) =>
     _withArgumentsUnmatchedAugmentationClassMember(memberName: memberName);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function(String name),
-  Message Function({required String name})
->
-unmatchedAugmentationConstructor = const Template(
-  "UnmatchedAugmentationConstructor",
-  withArgumentsOld: _withArgumentsOldUnmatchedAugmentationConstructor,
-  withArguments: _withArgumentsUnmatchedAugmentationConstructor,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnmatchedAugmentationConstructor({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
-  return new Message(
-    unmatchedAugmentationConstructor,
-    problemMessage:
-        """Augmentation constructor '${name_0}' doesn't match a constructor in the augmented class.""",
-    correctionMessage:
-        """Try changing the name to an existing constructor or removing the 'augment' modifier.""",
-    arguments: {'name': name},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldUnmatchedAugmentationConstructor(String name) =>
-    _withArgumentsUnmatchedAugmentationConstructor(name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
