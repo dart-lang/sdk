@@ -80,10 +80,7 @@ final class LineSplitter extends StreamTransformerBase<String, String> {
   }
 
   Stream<String> bind(Stream<String> stream) {
-    return Stream<String>.eventTransformed(
-      stream,
-      (EventSink<String> sink) => _LineSplitterEventSink(sink),
-    );
+    return Stream<String>.eventTransformed(stream, _LineSplitterEventSink.new);
   }
 }
 

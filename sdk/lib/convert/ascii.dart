@@ -260,7 +260,7 @@ final class AsciiDecoder extends _UnicodeSubsetDecoder {
 }
 
 class _ErrorHandlingAsciiDecoderSink extends ByteConversionSink {
-  ByteConversionSink _utf8Sink;
+  final ByteConversionSink _utf8Sink;
   _ErrorHandlingAsciiDecoderSink(this._utf8Sink);
 
   void close() {
@@ -290,7 +290,7 @@ class _ErrorHandlingAsciiDecoderSink extends ByteConversionSink {
 }
 
 class _SimpleAsciiDecoderSink extends ByteConversionSink {
-  Sink _sink;
+  final Sink _sink;
   _SimpleAsciiDecoderSink(this._sink);
 
   void close() {
