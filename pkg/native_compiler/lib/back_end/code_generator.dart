@@ -5,29 +5,15 @@
 import 'dart:typed_data';
 
 import 'package:cfg/ir/constant_value.dart';
-import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
+import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
-import 'package:native_compiler/back_end/object_pool.dart';
-
-/// Generated code for a function.
-class Code {
-  final CFunction function;
-  final Uint8List instructions;
-  final ObjectPool objectPool;
-
-  /// Offset of instructions in the resulting image.
-  int? instructionsImageOffset;
-
-  Code(this.function, this.instructions, this.objectPool);
-}
-
-/// Comsumer of the generated code.
-typedef CodeConsumer = void Function(Code);
+import 'package:native_compiler/runtime/object_layout.dart';
+import 'package:native_compiler/runtime/vm_defs.dart';
 
 /// Base class for architecture-specific code generator.
 ///
@@ -53,8 +39,13 @@ abstract base class CodeGenerator extends Pass
     (i) => Label(),
   );
 
+  /// Slow paths generated after all blocks.
+  final List<SlowPath> _slowPaths = [];
+
   CodeGenerator(this.backEndState) : super('CodeGen');
 
+  VMOffsets get vmOffsets => backEndState.vmOffsets;
+  ObjectLayout get objectLayout => backEndState.objectLayout;
   List<Block> get codeGenBlockOrder => backEndState.codeGenBlockOrder;
 
   Location loc(OperandId operandId) =>
@@ -107,6 +98,11 @@ abstract base class CodeGenerator extends Pass
       generateBlock(block);
     }
     _currentBlockIndex = -1;
+
+    for (final slowPath in _slowPaths) {
+      _asm.bind(slowPath.entry);
+      slowPath.generator();
+    }
 
     backEndState.consumeGeneratedCode(
       Code(graph.function, _asm.bytes, _asm.objectPool),
@@ -164,6 +160,12 @@ abstract base class CodeGenerator extends Pass
     return firstNonEmpty;
   }
 
+  Label addSlowPath(void Function() generator) {
+    final entry = Label();
+    _slowPaths.add(SlowPath(entry, generator));
+    return entry;
+  }
+
   @override
   void visitEntryBlock(EntryBlock instr) {}
 
@@ -202,24 +204,33 @@ abstract base class CodeGenerator extends Pass
     // TODO: merge subsequent ParallelMove instructions.
     final map = <Location, Location>{};
     for (final move in instr.moves) {
-      if (move is Move && move.from != move.to) {
-        assert(!map.containsKey(move.from));
-        map[move.from] = move.to;
+      if (move is Move) {
+        final from = move.from.physicalLocation;
+        final to = move.to.physicalLocation;
+        if (from != to) {
+          assert(!map.containsKey(from));
+          map[from] = to;
+        }
       }
     }
     for (final move in instr.moves) {
-      if (move is Move && map.containsKey(move.from)) {
-        if (map.containsKey(move.to)) {
-          _generateDependentMoves(move.from, move.to, map);
-        } else {
-          generateMove(move.from, move.to);
-          map.remove(move.from);
+      if (move is Move) {
+        final from = move.from.physicalLocation;
+        final to = move.to.physicalLocation;
+
+        if (map.containsKey(from)) {
+          if (map.containsKey(to)) {
+            _generateDependentMoves(from, to, map);
+          } else {
+            generateMove(from, to);
+            map.remove(from);
+          }
         }
       }
     }
     for (final move in instr.moves) {
       if (move is LoadConstant) {
-        generateLoadConstant(move.value, move.to);
+        generateLoadConstant(move.value, move.to.physicalLocation);
       }
     }
   }
@@ -279,4 +290,10 @@ abstract base class CodeGenerator extends Pass
   @override
   void visitStringInterpolation(StringInterpolation instr) =>
       throw 'Unexpected StringInterpolation (should be lowered)';
+}
+
+class SlowPath {
+  final Label entry;
+  final void Function() generator;
+  SlowPath(this.entry, this.generator);
 }

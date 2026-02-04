@@ -10,9 +10,6 @@
 regress/annotation_on_type_parameter_name_clash_on_constructor: FormatterCrash
 regress/annotation_on_type_parameter_name_extension_type_constructor: FormatterCrash
 enhanced_enums/external_constructor: FormatterCrash
-extension_types/const_constructor_body: FormatterCrash
-general/constants/non_const_constructor: FormatterCrash
-general/constants/various: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
 general/issue45700.crash: FormatterCrash

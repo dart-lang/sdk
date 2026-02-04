@@ -2721,7 +2721,10 @@ class Parser {
       Token? skipToken =
           recoveryEnumWith(
             token,
-            diag.multipleClauses.withArgumentsOld("enum", "with"),
+            diag.multipleClauses.withArguments(
+              definitionKind: "enum",
+              clauseKind: "with",
+            ),
           ) ??
           recoverySmallLookAheadSkipTokens(token, lookForNext);
 
@@ -2745,8 +2748,14 @@ class Parser {
       Token? skipToken = recoveryEnumWith(
         token,
         hasWithClauses
-            ? diag.multipleClauses.withArgumentsOld("enum", "with")
-            : diag.outOfOrderClauses.withArgumentsOld("with", "implements"),
+            ? diag.multipleClauses.withArguments(
+                definitionKind: "enum",
+                clauseKind: "with",
+              )
+            : diag.outOfOrderClauses.withArguments(
+                expectedEarlierClause: "with",
+                expectedLaterClause: "implements",
+              ),
       );
       if (skipToken != null) {
         hasWithClauses = true;
@@ -2757,7 +2766,10 @@ class Parser {
         // this 'implements').
         skipToken = recoveryEnumImplements(
           token,
-          diag.multipleClauses.withArgumentsOld("enum", "implements"),
+          diag.multipleClauses.withArguments(
+            definitionKind: "enum",
+            clauseKind: "implements",
+          ),
         );
       }
       if (skipToken == null) {
@@ -3163,7 +3175,7 @@ class Parser {
           const ['extend', 'on'].contains(token.next!.lexeme)) {
         reportRecoverableError(
           token.next!,
-          diag.expectedInstead.withArgumentsOld('extends'),
+          diag.expectedInstead.withArguments(expected: 'extends'),
         );
         token = parseClassExtendsSeenExtendsClause(token.next!, token, kind);
       } else {
@@ -3418,7 +3430,7 @@ class Parser {
           const ['extend', 'extends'].contains(token.next!.lexeme)) {
         reportRecoverableError(
           token.next!,
-          diag.expectedInstead.withArgumentsOld('on'),
+          diag.expectedInstead.withArguments(expected: 'on'),
         );
         token = parseMixinOn(token);
       } else {
@@ -3594,7 +3606,7 @@ class Parser {
             onKeyword.isA(Keyword.WITH)) {
           reportRecoverableError(
             onKeyword,
-            diag.expectedInstead.withArgumentsOld('on'),
+            diag.expectedInstead.withArguments(expected: 'on'),
           );
         } else {
           reportRecoverableError(
@@ -8582,9 +8594,9 @@ class Parser {
           reportRecoverableErrorWithEnd(
             newKeyword,
             identifier,
-            diag.literalWithClassAndNew.withArgumentsOld(
-              value.toLowerCase(),
-              identifier,
+            diag.literalWithClassAndNew.withArguments(
+              kind: value.toLowerCase(),
+              lexeme: identifier,
             ),
           );
           return parsePrimary(
@@ -8603,9 +8615,9 @@ class Parser {
           reportRecoverableErrorWithEnd(
             newKeyword,
             identifier,
-            diag.literalWithClassAndNew.withArgumentsOld(
-              value.toLowerCase(),
-              identifier,
+            diag.literalWithClassAndNew.withArguments(
+              kind: value.toLowerCase(),
+              lexeme: identifier,
             ),
           );
           return parsePrimary(

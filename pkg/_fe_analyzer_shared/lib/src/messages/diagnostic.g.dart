@@ -299,8 +299,8 @@ const MessageCode colonInPlaceOfIn = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String modifier, String earlierModifier),
+  Message Function({required String modifier, required String earlierModifier})
 >
 conflictingModifiers = const Template(
   "ConflictingModifiers",
@@ -311,23 +311,28 @@ conflictingModifiers = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConflictingModifiers({
-  required String string,
-  required String string2,
+  required String modifier,
+  required String earlierModifier,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var modifier_0 = conversions.validateString(modifier);
+  var earlierModifier_0 = conversions.validateString(earlierModifier);
   return new Message(
     conflictingModifiers,
     problemMessage:
-        """Members can't be declared to be both '${string_0}' and '${string2_0}'.""",
+        """Members can't be declared to be both '${modifier_0}' and '${earlierModifier_0}'.""",
     correctionMessage: """Try removing one of the keywords.""",
-    arguments: {'string': string, 'string2': string2},
+    arguments: {'modifier': modifier, 'earlierModifier': earlierModifier},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConflictingModifiers(String string, String string2) =>
-    _withArgumentsConflictingModifiers(string: string, string2: string2);
+Message _withArgumentsOldConflictingModifiers(
+  String modifier,
+  String earlierModifier,
+) => _withArgumentsConflictingModifiers(
+  modifier: modifier,
+  earlierModifier: earlierModifier,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constAndFinal = const MessageCode(
@@ -520,8 +525,8 @@ const MessageCode duplicateDeferred = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String name),
-  Message Function({required String name})
+  Message Function(String labelName),
+  Message Function({required String labelName})
 >
 duplicateLabelInSwitchStatement = const Template(
   "DuplicateLabelInSwitchStatement",
@@ -531,20 +536,22 @@ duplicateLabelInSwitchStatement = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicateLabelInSwitchStatement({required String name}) {
-  var name_0 = conversions.validateAndDemangleName(name);
+Message _withArgumentsDuplicateLabelInSwitchStatement({
+  required String labelName,
+}) {
+  var labelName_0 = conversions.validateAndDemangleName(labelName);
   return new Message(
     duplicateLabelInSwitchStatement,
     problemMessage:
-        """The label '${name_0}' was already used in this switch statement.""",
+        """The label '${labelName_0}' was already used in this switch statement.""",
     correctionMessage: """Try choosing a different name for this label.""",
-    arguments: {'name': name},
+    arguments: {'labelName': labelName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldDuplicateLabelInSwitchStatement(String name) =>
-    _withArgumentsDuplicateLabelInSwitchStatement(name: name);
+Message _withArgumentsOldDuplicateLabelInSwitchStatement(String labelName) =>
+    _withArgumentsDuplicateLabelInSwitchStatement(labelName: labelName);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode duplicatePrefix = const MessageCode(
@@ -952,8 +959,8 @@ Message _withArgumentsOldExpectedIdentifierButGotKeyword(Token lexeme) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string),
-  Message Function({required String string})
+  Message Function(String expected),
+  Message Function({required String expected})
 >
 expectedInstead = const Template(
   "ExpectedInstead",
@@ -963,18 +970,18 @@ expectedInstead = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedInstead({required String string}) {
-  var string_0 = conversions.validateString(string);
+Message _withArgumentsExpectedInstead({required String expected}) {
+  var expected_0 = conversions.validateString(expected);
   return new Message(
     expectedInstead,
-    problemMessage: """Expected '${string_0}' instead of this.""",
-    arguments: {'string': string},
+    problemMessage: """Expected '${expected_0}' instead of this.""",
+    arguments: {'expected': expected},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldExpectedInstead(String string) =>
-    _withArgumentsExpectedInstead(string: string);
+Message _withArgumentsOldExpectedInstead(String expected) =>
+    _withArgumentsExpectedInstead(expected: expected);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode expectedMixinBody = const MessageCode(
@@ -2189,8 +2196,8 @@ Message _withArgumentsOldLiteralWithClass(String string, Token lexeme) =>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, Token lexeme),
-  Message Function({required String string, required Token lexeme})
+  Message Function(String kind, Token lexeme),
+  Message Function({required String kind, required Token lexeme})
 >
 literalWithClassAndNew = const Template(
   "LiteralWithClassAndNew",
@@ -2201,23 +2208,23 @@ literalWithClassAndNew = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLiteralWithClassAndNew({
-  required String string,
+  required String kind,
   required Token lexeme,
 }) {
-  var string_0 = conversions.validateString(string);
+  var kind_0 = conversions.validateString(kind);
   var lexeme_0 = conversions.tokenToLexeme(lexeme);
   return new Message(
     literalWithClassAndNew,
     problemMessage:
-        """A ${string_0} literal can't be prefixed by 'new ${lexeme_0}'.""",
+        """A ${kind_0} literal can't be prefixed by 'new ${lexeme_0}'.""",
     correctionMessage: """Try removing 'new' and '${lexeme_0}'""",
-    arguments: {'string': string, 'lexeme': lexeme},
+    arguments: {'kind': kind, 'lexeme': lexeme},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldLiteralWithClassAndNew(String string, Token lexeme) =>
-    _withArgumentsLiteralWithClassAndNew(string: string, lexeme: lexeme);
+Message _withArgumentsOldLiteralWithClassAndNew(String kind, Token lexeme) =>
+    _withArgumentsLiteralWithClassAndNew(kind: kind, lexeme: lexeme);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode literalWithNew = const MessageCode(
@@ -2389,8 +2396,11 @@ const MessageCode mixinWithClause = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String modifier, String expectedLaterModifier),
+  Message Function({
+    required String modifier,
+    required String expectedLaterModifier,
+  })
 >
 modifierOutOfOrder = const Template(
   "ModifierOutOfOrder",
@@ -2401,28 +2411,38 @@ modifierOutOfOrder = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsModifierOutOfOrder({
-  required String string,
-  required String string2,
+  required String modifier,
+  required String expectedLaterModifier,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var modifier_0 = conversions.validateString(modifier);
+  var expectedLaterModifier_0 = conversions.validateString(
+    expectedLaterModifier,
+  );
   return new Message(
     modifierOutOfOrder,
     problemMessage:
-        """The modifier '${string_0}' should be before the modifier '${string2_0}'.""",
+        """The modifier '${modifier_0}' should be before the modifier '${expectedLaterModifier_0}'.""",
     correctionMessage: """Try re-ordering the modifiers.""",
-    arguments: {'string': string, 'string2': string2},
+    arguments: {
+      'modifier': modifier,
+      'expectedLaterModifier': expectedLaterModifier,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldModifierOutOfOrder(String string, String string2) =>
-    _withArgumentsModifierOutOfOrder(string: string, string2: string2);
+Message _withArgumentsOldModifierOutOfOrder(
+  String modifier,
+  String expectedLaterModifier,
+) => _withArgumentsModifierOutOfOrder(
+  modifier: modifier,
+  expectedLaterModifier: expectedLaterModifier,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String definitionKind, String clauseKind),
+  Message Function({required String definitionKind, required String clauseKind})
 >
 multipleClauses = const Template(
   "MultipleClauses",
@@ -2433,24 +2453,29 @@ multipleClauses = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMultipleClauses({
-  required String string,
-  required String string2,
+  required String definitionKind,
+  required String clauseKind,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var definitionKind_0 = conversions.validateString(definitionKind);
+  var clauseKind_0 = conversions.validateString(clauseKind);
   return new Message(
     multipleClauses,
     problemMessage:
-        """Each '${string_0}' definition can have at most one '${string2_0}' clause.""",
+        """Each '${definitionKind_0}' definition can have at most one '${clauseKind_0}' clause.""",
     correctionMessage:
-        """Try combining all of the '${string2_0}' clauses into a single clause.""",
-    arguments: {'string': string, 'string2': string2},
+        """Try combining all of the '${clauseKind_0}' clauses into a single clause.""",
+    arguments: {'definitionKind': definitionKind, 'clauseKind': clauseKind},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldMultipleClauses(String string, String string2) =>
-    _withArgumentsMultipleClauses(string: string, string2: string2);
+Message _withArgumentsOldMultipleClauses(
+  String definitionKind,
+  String clauseKind,
+) => _withArgumentsMultipleClauses(
+  definitionKind: definitionKind,
+  clauseKind: clauseKind,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode multipleExtends = const MessageCode(
@@ -2648,8 +2673,11 @@ const MessageCode operatorWithTypeParameters = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String string, String string2),
-  Message Function({required String string, required String string2})
+  Message Function(String expectedEarlierClause, String expectedLaterClause),
+  Message Function({
+    required String expectedEarlierClause,
+    required String expectedLaterClause,
+  })
 >
 outOfOrderClauses = const Template(
   "OutOfOrderClauses",
@@ -2660,24 +2688,34 @@ outOfOrderClauses = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOutOfOrderClauses({
-  required String string,
-  required String string2,
+  required String expectedEarlierClause,
+  required String expectedLaterClause,
 }) {
-  var string_0 = conversions.validateString(string);
-  var string2_0 = conversions.validateString(string2);
+  var expectedEarlierClause_0 = conversions.validateString(
+    expectedEarlierClause,
+  );
+  var expectedLaterClause_0 = conversions.validateString(expectedLaterClause);
   return new Message(
     outOfOrderClauses,
     problemMessage:
-        """The '${string_0}' clause must come before the '${string2_0}' clause.""",
+        """The '${expectedEarlierClause_0}' clause must come before the '${expectedLaterClause_0}' clause.""",
     correctionMessage:
-        """Try moving the '${string_0}' clause before the '${string2_0}' clause.""",
-    arguments: {'string': string, 'string2': string2},
+        """Try moving the '${expectedEarlierClause_0}' clause before the '${expectedLaterClause_0}' clause.""",
+    arguments: {
+      'expectedEarlierClause': expectedEarlierClause,
+      'expectedLaterClause': expectedLaterClause,
+    },
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldOutOfOrderClauses(String string, String string2) =>
-    _withArgumentsOutOfOrderClauses(string: string, string2: string2);
+Message _withArgumentsOldOutOfOrderClauses(
+  String expectedEarlierClause,
+  String expectedLaterClause,
+) => _withArgumentsOutOfOrderClauses(
+  expectedEarlierClause: expectedEarlierClause,
+  expectedLaterClause: expectedLaterClause,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode partOfTwice = const MessageCode(

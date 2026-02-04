@@ -894,12 +894,14 @@ class BodyBuilderImpl extends StackListenerImpl
       // second (or innermost declaration) of `x`.
       for (int previousOffset in previousOffsets) {
         addProblem(
-          diag.localVariableUsedBeforeDeclared.withArgumentsOld(variableName),
+          diag.localVariableUsedBeforeDeclared.withArguments(
+            variableName: variableName,
+          ),
           previousOffset,
           variableName.length,
           context: <LocatedMessage>[
             diag.localVariableUsedBeforeDeclaredContext
-                .withArgumentsOld(variableName)
+                .withArguments(variableName: variableName)
                 .withLocation(uri, variable.fileOffset, variableName.length),
           ],
         );
@@ -1982,7 +1984,9 @@ class BodyBuilderImpl extends StackListenerImpl
         for (VariableDeclaration rightVariable in right.declaredVariables) {
           if (!leftVariablesByName.containsKey(rightVariable.name)) {
             addProblem(
-              diag.missingVariablePattern.withArgumentsOld(rightVariable.name!),
+              diag.missingVariablePattern.withArguments(
+                variableName: rightVariable.name!,
+              ),
               left.fileOffset,
               noLength,
             );
@@ -1995,7 +1999,9 @@ class BodyBuilderImpl extends StackListenerImpl
         for (VariableDeclaration leftVariable in left.declaredVariables) {
           if (!rightVariablesByName.containsKey(leftVariable.name)) {
             addProblem(
-              diag.missingVariablePattern.withArgumentsOld(leftVariable.name!),
+              diag.missingVariablePattern.withArguments(
+                variableName: leftVariable.name!,
+              ),
               right.fileOffset,
               noLength,
             );
@@ -8758,7 +8764,9 @@ class BodyBuilderImpl extends StackListenerImpl
           // TODO(ahe): Should validate this is a goto target.
           if (!_labelScope.claimLabel(labelName)) {
             addProblem(
-              diag.duplicateLabelInSwitchStatement.withArgumentsOld(labelName),
+              diag.duplicateLabelInSwitchStatement.withArguments(
+                labelName: labelName,
+              ),
               label.charOffset,
               labelName.length,
             );
@@ -9020,8 +9028,8 @@ class BodyBuilderImpl extends StackListenerImpl
               false) {
             String jointVariableName = jointVariable.name!;
             addProblem(
-              diag.jointPatternVariablesMismatch.withArgumentsOld(
-                jointVariableName,
+              diag.jointPatternVariablesMismatch.withArguments(
+                variableName: jointVariableName,
               ),
               firstUseOffsets[jointVariable]!,
               jointVariableName.length,
@@ -9030,8 +9038,8 @@ class BodyBuilderImpl extends StackListenerImpl
           if (jointPatternVariablesNotInAll?.contains(jointVariable) ?? false) {
             String jointVariableName = jointVariable.name!;
             addProblem(
-              diag.jointPatternVariableNotInAll.withArgumentsOld(
-                jointVariableName,
+              diag.jointPatternVariableNotInAll.withArguments(
+                variableName: jointVariableName,
               ),
               firstUseOffsets[jointVariable]!,
               jointVariableName.length,
@@ -9040,8 +9048,8 @@ class BodyBuilderImpl extends StackListenerImpl
           if (hasDefaultOrLabels) {
             String jointVariableName = jointVariable.name!;
             addProblem(
-              diag.jointPatternVariableWithLabelDefault.withArgumentsOld(
-                jointVariableName,
+              diag.jointPatternVariableWithLabelDefault.withArguments(
+                variableName: jointVariableName,
               ),
               firstUseOffsets[jointVariable]!,
               jointVariableName.length,
@@ -9081,8 +9089,8 @@ class BodyBuilderImpl extends StackListenerImpl
           String variableName = variable.name!;
           if (usedNamesOffsets[variableName] case [int offset, ...]) {
             addProblem(
-              diag.jointPatternVariableWithLabelDefault.withArgumentsOld(
-                variableName,
+              diag.jointPatternVariableWithLabelDefault.withArguments(
+                variableName: variableName,
               ),
               offset,
               variableName.length,

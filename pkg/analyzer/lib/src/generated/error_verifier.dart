@@ -644,6 +644,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             constructorElement: element,
             errorRange: node.errorRange,
           );
+          _validateConstructorBodyAllowed(
+            element: element,
+            constKeyword: node.constKeyword,
+            externalKeyword: node.externalKeyword,
+            isRedirecting:
+                node.redirectedConstructor != null ||
+                node.initializers
+                    .whereType<RedirectingConstructorInvocation>()
+                    .isNotEmpty,
+            body: node.body,
+          );
         }
         _checkForRedirectingConstructorErrorCodes(node);
         _checkForConflictingInitializerErrorCodes(node);
@@ -1025,6 +1036,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _returnTypeVerifier.verifyReturnType(returnType);
         _checkForMainFunction1(node.name, fragment);
         _checkForMainFunction2(node);
+        _checkForExternalMethodWithBody(
+          externalKeyword: node.externalKeyword,
+          body: node.functionExpression.body,
+        );
         super.visitFunctionDeclaration(node);
       },
       isAsynchronous: fragment.isAsynchronous,
@@ -1274,6 +1289,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkForTypeAnnotationDeferredClass(returnType);
         _returnTypeVerifier.verifyReturnType(returnType);
         _checkForWrongTypeParameterVarianceInMethod(node);
+        _checkForExternalMethodWithBody(
+          externalKeyword: node.externalKeyword,
+          body: node.body,
+        );
         super.visitMethodDeclaration(node);
       },
       isAsynchronous: fragment.isAsynchronous,
@@ -1484,7 +1503,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             constructorElement: element,
             errorRange: node.errorRange,
           );
-          _checkForConstConstructorWithBodyPrimary(node);
+          if (body != null) {
+            _validateConstructorBodyAllowed(
+              element: element,
+              constKeyword: node.constKeyword,
+              externalKeyword: null,
+              isRedirecting: false,
+              body: body.body,
+            );
+          }
         }
 
         _checkForUndefinedConstructorInInitializerImplicit(
@@ -2964,21 +2991,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForConstConstructorWithBodyPrimary(
-    PrimaryConstructorDeclaration node,
-  ) {
-    var element = node.declaredFragment!.element;
-    if (!element.isConst) {
-      return;
-    }
-
-    if (node.body?.body case BlockFunctionBody blockBody) {
-      diagnosticReporter.report(
-        diag.constConstructorWithBody.at(blockBody.block.leftBracket),
-      );
-    }
-  }
-
   /// Verify that if the given [element] is 'const' constructor, then there are
   /// no invocations of non-'const' super constructors, and that there are no
   /// instance variables mixed in.
@@ -3850,6 +3862,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
     }
+  }
+
+  bool _checkForExternalMethodWithBody({
+    required Token? externalKeyword,
+    required FunctionBody body,
+  }) {
+    if (externalKeyword != null) {
+      if (body is BlockFunctionBody) {
+        diagnosticReporter.report(
+          diag.externalMethodWithBody.at(body.block.leftBracket),
+        );
+        return true;
+      } else if (body is ExpressionFunctionBody) {
+        diagnosticReporter.report(
+          diag.externalMethodWithBody.at(body.functionDefinition),
+        );
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Verify that the given field formal [parameter] is in a constructor
@@ -6771,6 +6803,57 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.report(
         diag.multipleCombinators.atOffset(offset: offset, length: length),
       );
+    }
+  }
+
+  void _validateConstructorBodyAllowed({
+    required ConstructorElement element,
+    required Token? constKeyword,
+    required Token? externalKeyword,
+    required bool isRedirecting,
+    required FunctionBody body,
+  }) {
+    if (element.isFactory) {
+      if (externalKeyword != null) {
+        if (body is BlockFunctionBody) {
+          diagnosticReporter.report(
+            diag.externalFactoryWithBody.at(body.block.leftBracket),
+          );
+        } else if (body is ExpressionFunctionBody) {
+          diagnosticReporter.report(
+            diag.externalFactoryWithBody.at(body.functionDefinition),
+          );
+        }
+      } else if (constKeyword != null && !isRedirecting) {
+        diagnosticReporter.report(diag.constFactory.at(constKeyword));
+      }
+    } else {
+      _checkForExternalMethodWithBody(
+        externalKeyword: externalKeyword,
+        body: body,
+      );
+      if (isRedirecting) {
+        if (body is BlockFunctionBody) {
+          diagnosticReporter.report(
+            diag.redirectingConstructorWithBody.at(body.block.leftBracket),
+          );
+        } else if (body is ExpressionFunctionBody) {
+          diagnosticReporter.report(
+            diag.redirectingConstructorWithBody.at(body.functionDefinition),
+          );
+        }
+      }
+      if (element.isConst) {
+        if (body is BlockFunctionBody) {
+          diagnosticReporter.report(
+            diag.constConstructorWithBody.at(body.block.leftBracket),
+          );
+        } else if (body is ExpressionFunctionBody) {
+          diagnosticReporter.report(
+            diag.constConstructorWithBody.at(body.functionDefinition),
+          );
+        }
+      }
     }
   }
 

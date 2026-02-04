@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:native_compiler/back_end/assembler.dart';
+import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:cfg/ir/constant_value.dart';
@@ -328,6 +329,49 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     }
   }
 
+  /// Create a [base + offset] address for arbitrary offset,
+  /// generating extra code if necessary.
+  /// The resulting address can be used in ldp/stp instructions.
+  Address pairAddress(
+    Register base,
+    int offset, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    final scale = sz.log2sizeInBytes;
+    if (_isInt(7 + scale, offset) && ((offset & (sz.sizeInBytes - 1)) == 0)) {
+      return RegOffsetAddress(base, offset);
+    } else {
+      throw 'Large address offsets are not implemented yet: $offset';
+    }
+  }
+
+  @override
+  void enterDartFrame() {
+    pushPair(FP, LR);
+    mov(FP, stackPointerReg);
+
+    // Tag and save caller pool pointer.
+    add(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
+    pushPair(poolPointerReg, codeReg);
+
+    // Load and untag current pool pointer.
+    ldr(
+      poolPointerReg,
+      fieldAddress(codeReg, vmOffsets.Code_object_pool_offset),
+    );
+    sub(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
+  }
+
+  @override
+  void leaveDartFrame() {
+    // Restore and untag pool pointer.
+    ldr(poolPointerReg, RegOffsetAddress(FP, -2 * wordSize));
+    sub(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
+
+    mov(stackPointerReg, FP);
+    popPair(FP, LR);
+  }
+
   @override
   void push(Register reg) {
     str(
@@ -504,6 +548,56 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       Immediate(value).tryEncodingBitMasks(sz) != null;
 
   @override
+  void addImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert(sz.is32or64);
+    assert(_isInt(sz.bitWidth, value) || _isUint(sz.bitWidth, value));
+    if (value == 0) {
+      if (dst != src) {
+        mov(dst, src, sz);
+      }
+    } else if (canEncodeImm12(value)) {
+      add(dst, src, Immediate(value), sz);
+    } else if (canEncodeImm12(-value)) {
+      sub(dst, src, Immediate(-value), sz);
+    } else {
+      assert(src != tempReg);
+      loadImmediate(tempReg, value);
+      if (dst == SP || src == SP) {
+        add(dst, src, ExtRegOperand(tempReg, .UXTX, 0), sz);
+      } else {
+        add(dst, src, tempReg, sz);
+      }
+    }
+  }
+
+  @override
+  void andImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert(sz.is32or64);
+    assert(_isInt(sz.bitWidth, value) || _isUint(sz.bitWidth, value));
+    if (value == 0) {
+      movz(dst, 0);
+    } else if (value == -1) {
+      mov(dst, src, sz);
+    } else if (canEncodeBitMasks(value, sz)) {
+      and(dst, src, Immediate(value), sz);
+    } else {
+      assert(src != tempReg);
+      loadImmediate(tempReg, value);
+      and(dst, src, tempReg, sz);
+    }
+  }
+
+  @override
   void callRuntime(RuntimeEntry entry, int argumentCount) {
     ldr(
       R5,
@@ -517,6 +611,18 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       LR,
       address(threadReg, vmOffsets.Thread_call_to_runtime_entry_point_offset),
     );
+    blr(LR);
+  }
+
+  @override
+  void callLeafRuntime(LeafRuntimeEntry entry) {
+    unimplemented("callLeafRuntime $entry");
+  }
+
+  @override
+  void callStub(Code stub) {
+    loadFromPool(codeReg, stub);
+    ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
   }
 

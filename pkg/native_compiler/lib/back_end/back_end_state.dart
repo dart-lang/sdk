@@ -3,14 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/instructions.dart';
-import 'package:native_compiler/back_end/code_generator.dart';
+import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/stub_code_generator.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
 /// Hold back-end state shared between code generation
 /// and register allocation.
 class BackEndState {
+  /// Runtime offsets and constants.
   late final VMOffsets vmOffsets;
+
+  /// Layout of Dart objects.
+  late final ObjectLayout objectLayout;
+
+  /// Reusable stubs.
+  late final StubFactory stubFactory;
 
   /// Block order for the code generation.
   late final List<Block> codeGenBlockOrder;

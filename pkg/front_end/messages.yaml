@@ -6931,8 +6931,8 @@ interfaceClassExtendedOutsideOfLibrary:
 
 finalClassExtendedOutsideOfLibrary:
   parameters:
-    Name name: undocumented
-  problemMessage: "The class '#name' can't be extended outside of its library because it's a final class."
+    Name className: The name of the class that can't be extended outside its library.
+  problemMessage: "The class '#className' can't be extended outside of its library because it's a final class."
   script:
     main.dart:
       import 'lib.dart';
@@ -7011,18 +7011,18 @@ unspecifiedGetterNameInObjectPattern:
 
 jointPatternVariablesMismatch:
   parameters:
-    Name name: undocumented
-  problemMessage: "Variable pattern '#name' doesn't have the same type or finality in all cases."
+    Name variableName: The name of the problematic variable.
+  problemMessage: "Variable pattern '#variableName' doesn't have the same type or finality in all cases."
   script: |
     test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
 
 nonExhaustiveSwitchExpression:
   parameters:
-    Type type: undocumented
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
-  correctionMessage: "Try adding a wildcard pattern or cases that match '#string2'."
+    Type scrutineeType: The type of the scrutinee.
+    String witness: Witness of the type that is not matched.
+    String correction: Correction for the type that is not matched.
+  problemMessage: "The type '#scrutineeType' is not exhaustively matched by the switch cases since it doesn't match '#witness'."
+  correctionMessage: "Try adding a wildcard pattern or cases that match '#correction'."
   script: |
     enum Enum { a, b }
     String method(Enum e) => switch (e) {
@@ -7031,11 +7031,11 @@ nonExhaustiveSwitchExpression:
 
 nonExhaustiveSwitchStatement:
   parameters:
-    Type type: undocumented
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
-  correctionMessage: "Try adding a default case or cases that match '#string2'."
+    Type scrutineeType: The type of the scrutinee.
+    String witness: Witness of the type that is not matched.
+    String correction: Correction for the type that is not matched.
+  problemMessage: "The type '#scrutineeType' is not exhaustively matched by the switch cases since it doesn't match '#witness'."
+  correctionMessage: "Try adding a default case or cases that match '#correction'."
   script: |
     enum Enum { a, b }
     method(Enum e) {
@@ -7047,9 +7047,9 @@ nonExhaustiveSwitchStatement:
 
 patternTypeMismatchInIrrefutableContext:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-  problemMessage: "The matched value of type '#type' isn't assignable to the required type '#type2'."
+    Type actualType: The matched value type.
+    Type expectedType: The type that the matched value isn't assignable to.
+  problemMessage: "The matched value of type '#actualType' isn't assignable to the required type '#expectedType'."
   correctionMessage: "Try changing the required type of the pattern, or the matched value type."
   script: |
     method(List<String> list) {
@@ -7058,8 +7058,8 @@ patternTypeMismatchInIrrefutableContext:
 
 duplicatePatternAssignmentVariable:
   parameters:
-    Name name: undocumented
-  problemMessage: The variable '#name' is already assigned in this pattern.
+    Name variableName: The name of the already-assigned variable.
+  problemMessage: The variable '#variableName' is already assigned in this pattern.
   correctionMessage: Try renaming the variable.
   script: |
     method(List<String> list) {
@@ -7074,8 +7074,8 @@ duplicatePatternAssignmentVariableContext:
 
 duplicateRecordPatternField:
   parameters:
-    Name name: undocumented
-  problemMessage: The field '#name' is already matched in this pattern.
+    Name fieldName: The name of the duplicated field.
+  problemMessage: The field '#fieldName' is already matched in this pattern.
   correctionMessage: Try removing the duplicate field.
   script: |
     method(o) {
@@ -7131,8 +7131,8 @@ refutablePatternInIrrefutableContext:
 
 missingVariablePattern:
   parameters:
-    Name name: undocumented
-  problemMessage: "Variable pattern '#name' is missing in this branch of the logical-or pattern."
+    Name variableName: The name of the variable that's missing in this branch of the logical-or pattern.
+  problemMessage: "Variable pattern '#variableName' is missing in this branch of the logical-or pattern."
   correctionMessage: "Try declaring this variable pattern in the branch."
   script: |
     method(x) {
@@ -7300,15 +7300,15 @@ patternVariableAssignmentInsideGuard:
 
 jointPatternVariableNotInAll:
   parameters:
-    Name name: undocumented
-  problemMessage: "The variable '#name' is available in some, but not all cases that share this body."
+    Name variableName: The name of the variable that's not available in all cases that share this body.
+  problemMessage: "The variable '#variableName' is available in some, but not all cases that share this body."
   script: |
     test(x) { switch(x) { case var a: case < 0: case [var a]: return a; default: return null; } }
 
 jointPatternVariableWithLabelDefault:
   parameters:
-    Name name: undocumented
-  problemMessage: "The variable '#name' is not available because there is a label or 'default' case."
+    Name variableName: The name of the variable that's not available due to a label or `default` case.
+  problemMessage: "The variable '#variableName' is not available because there is a label or 'default' case."
   script: |
     test(x) { switch(x) { case var a: default: return a; } }
 
@@ -7343,45 +7343,45 @@ extensionTypeDeclarationCause:
 
 invalidExtensionTypeSuperInterface:
   parameters:
-    Type type: undocumented
-    Type type2: undocumented
-    Name name: undocumented
-  problemMessage: "The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'."
-  correctionMessage: "Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'."
+    Type interfaceType: The implemented interface type.
+    Type representationType: The representation type.
+    Name extensionTypeName: The extension type name.
+  problemMessage: "The implemented interface '#interfaceType' must be a supertype of the representation type '#representationType' of extension type '#extensionTypeName'."
+  correctionMessage: "Try changing the interface type to a supertype of '#representationType' or the representation type to a subtype of '#interfaceType'."
   script: |
     extension type E(num n) implements int {}
 
 invalidExtensionTypeSuperExtensionType:
   parameters:
-    Type type: undocumented
-    Name name: undocumented
-    Type type2: undocumented
-    Type type3: undocumented
-  problemMessage: "The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself."
-  correctionMessage: "Try changing the representation type to a subtype of '#type2'."
+    Type representationType: The extension type's representation type.
+    Name extensionTypeName: The name of the problematic extension type.
+    Type implementedExtensionRepresentationType: The representation type of the implemented extension type.
+    Type implementedExtensionType: The implemented extension type.
+  problemMessage: "The representation type '#representationType' of extension type '#extensionTypeName' must be either a subtype of the representation type '#implementedExtensionRepresentationType' of the implemented extension type '#implementedExtensionType' or a subtype of '#implementedExtensionType' itself."
+  correctionMessage: "Try changing the representation type to a subtype of '#implementedExtensionRepresentationType'."
   script: |
     extension type E1(int i) {}
     extension type E2(num n) implements E1 {}
 
 localVariableUsedBeforeDeclared:
   parameters:
-    Name name: undocumented
-  problemMessage: "Local variable '#name' can't be referenced before it is declared."
+    Name variableName: The name of the not-yet-declared variable.
+  problemMessage: "Local variable '#variableName' can't be referenced before it is declared."
   script: |
     foo(dynamic x, dynamic y) { y = x; dynamic x; }
 
 localVariableUsedBeforeDeclaredContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "This is the declaration of the variable '#name'."
+    Name variableName: The name of the problematic variable.
+  problemMessage: "This is the declaration of the variable '#variableName'."
   severity: CONTEXT
 
 implementNonExtensionTypeAndExtensionTypeMember:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member."
-  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+    Name extensionTypeName: The name of the extension type.
+    Name memberName: The name of the member that is being inherited from both an extension type member and a non-extension type member.
+  problemMessage: "The extension type '#extensionTypeName' can't inherit the member '#memberName' as both an extension type member and a non-extension type member."
+  correctionMessage: "Try declaring a member '#memberName' in '#extensionTypeName' to resolve the conflict."
   script: |
     class Class {
       void method() {}
@@ -7413,10 +7413,10 @@ nonExtensionTypeMemberOneOfContext:
 
 implementMultipleExtensionTypeMembers:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "The extension type '#name' can't inherit the member '#name2' from more than one extension type."
-  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+    Name extensionTypeName: The name of the problematic extension type.
+    Name memberName: The name of the member that can't be inherited from more than one extension type.
+  problemMessage: "The extension type '#extensionTypeName' can't inherit the member '#memberName' from more than one extension type."
+  correctionMessage: "Try declaring a member '#memberName' in '#extensionTypeName' to resolve the conflict."
   script: |
     extension type ExtensionType1(int i) {
       void method() {}
@@ -7484,9 +7484,9 @@ representationFieldTrailingComma:
 
 wrongTypeParameterVarianceInSuperinterface:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "'#name' can't be used contravariantly or invariantly in '#type'."
+    Name typeVariableName: The name of the problematic type variable.
+    Type type: The type in which the type variable is used contravariantly or invariantly.
+  problemMessage: "'#typeVariableName' can't be used contravariantly or invariantly in '#type'."
   script: |
     extension type E<X>(List<Function(Object?)> foo) implements List<Function(X)> {}
 
@@ -7572,13 +7572,13 @@ recordUsedAsCallable:
 
 experimentExpiredEnabled:
   parameters:
-    Name name: undocumented
-  problemMessage: "The experiment '#name' has expired and can't be enabled."
+    Name experimentName: The name of the expired experiment.
+  problemMessage: "The experiment '#experimentName' has expired and can't be enabled."
 
 experimentExpiredDisabled:
   parameters:
-    Name name: undocumented
-  problemMessage: "The experiment '#name' has expired and can't be disabled."
+    Name experimentName: The name of the expired experiment.
+  problemMessage: "The experiment '#experimentName' has expired and can't be disabled."
 
 dartFfiLibraryInDart2Wasm:
   parameters: none
@@ -7604,8 +7604,8 @@ missingNamedSuperConstructorParameter:
 
 implicitSuperInitializerMissingArguments:
   parameters:
-    Name name: undocumented
-  problemMessage: "The implicitly called unnamed constructor from '#name' has required parameters."
+    Name className: The name of the class containing the implicitly called unnamed constructor.
+  problemMessage: "The implicitly called unnamed constructor from '#className' has required parameters."
   correctionMessage: "Try adding an explicit super initializer with the required arguments."
   script: |
     class A { A(int foo); } class B extends A { B(); }
@@ -7625,8 +7625,8 @@ dotShorthandsConstructorInvocationWithTypeArguments:
 
 dotShorthandsInvalidContext:
   parameters:
-    Name name: undocumented
-  problemMessage: "No type was provided to find the dot shorthand '#name'."
+    Name dotShorthandName: The name of the dot shorthand that was sought.
+  problemMessage: "No type was provided to find the dot shorthand '#dotShorthandName'."
   experiments: dot-shorthands
   script: |
     void main() {
@@ -7635,10 +7635,10 @@ dotShorthandsInvalidContext:
 
 dotShorthandsUndefinedGetter:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "The static getter or field '#name' isn't defined for the type '#type'."
-  correctionMessage: "Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#name'."
+    Name getterName: The name of the getter (or field) that isn't defined.
+    Type contextType: The dot shorthand context type in which the getter was sought.
+  problemMessage: "The static getter or field '#getterName' isn't defined for the type '#contextType'."
+  correctionMessage: "Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#getterName'."
   experiments: dot-shorthands
   script: |
     class C {
@@ -7650,10 +7650,10 @@ dotShorthandsUndefinedGetter:
 
 dotShorthandsUndefinedInvocation:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "The static method or constructor '#name' isn't defined for the type '#type'."
-  correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'."
+    Name memberName: The name of the static method or constructor that was sought.
+    Type contextType: The dot shorthand context type in which the static method or constructor was sought.
+  problemMessage: "The static method or constructor '#memberName' isn't defined for the type '#contextType'."
+  correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#memberName'."
   experiments: dot-shorthands
   script: |
     class C {
@@ -7665,8 +7665,8 @@ dotShorthandsUndefinedInvocation:
 
 expressionEvaluationKnownVariableUnavailable:
   parameters:
-    Name name: undocumented
-  problemMessage: "The variable '#name' is unavailable in this expression evaluation."
+    Name variableName: The name of the unavailable variable.
+  problemMessage: "The variable '#variableName' is unavailable in this expression evaluation."
 
 partOfName:
   parameters: none

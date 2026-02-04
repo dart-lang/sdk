@@ -1140,6 +1140,7 @@ class Object {
   friend class OneByteString;
   friend class TwoByteString;
   friend class Thread;
+  friend class module_snapshot::ObjectPoolDeserializationCluster;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
@@ -8689,6 +8690,8 @@ class Instance : public Object {
   static intptr_t NextFieldOffset() { return sizeof(UntaggedInstance); }
 
   static intptr_t NativeFieldsOffset() { return sizeof(UntaggedObject); }
+
+  static intptr_t first_field_offset() { return NextFieldOffset(); }
 
  protected:
 #ifndef PRODUCT

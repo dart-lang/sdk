@@ -452,15 +452,15 @@ class ProcessedOptions {
         // Coverage-ignore-block(suite): Not run.
         if (value) {
           reportWithoutLocation(
-            diag.experimentExpiredEnabled.withArgumentsOld(
-              experimentalFlag.name,
+            diag.experimentExpiredEnabled.withArguments(
+              experimentName: experimentalFlag.name,
             ),
             CfeSeverity.error,
           );
         } else {
           reportWithoutLocation(
-            diag.experimentExpiredDisabled.withArgumentsOld(
-              experimentalFlag.name,
+            diag.experimentExpiredDisabled.withArguments(
+              experimentName: experimentalFlag.name,
             ),
             CfeSeverity.error,
           );

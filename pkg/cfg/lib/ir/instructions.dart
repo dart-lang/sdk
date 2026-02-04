@@ -1644,7 +1644,9 @@ abstract base class MoveOp {}
 enum ParallelMoveStage {
   // Move fixed output of the instruction to its desired location.
   output,
-  // Split/spill live ranges.
+  // Spill output of the instruction.
+  spill,
+  // Split live ranges.
   split,
   // Moves at control flow edges (including phi moves).
   control,

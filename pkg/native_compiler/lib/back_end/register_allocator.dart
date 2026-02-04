@@ -42,7 +42,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   // which can be inserted later between instructions.
   static const int step = 2;
 
-  static const bool trace = false;
+  static const bool trace = const bool.fromEnvironment('trace.regalloc');
 
   static const int maxPosition = 0x7fffffff;
 
@@ -818,7 +818,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
         if (liveRange.allocatedLocation is! StackLocation) {
           _insertMoveBefore(
             _nextInstruction(instr),
-            ParallelMoveStage.split,
+            ParallelMoveStage.spill,
             liveRange.allocatedLocation!,
             spillSlot,
           );

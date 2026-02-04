@@ -1606,14 +1606,14 @@ class ARM64Decoder {
   void decodeAddSubShiftExt(Instr instr) {
     switch (instr.bit(30)) {
       case 0:
-        if (instr.rdField() == R31) {
+        if ((instr.rdField() == R31) && (instr.sField() == 1)) {
           format(instr, "cmn'sf 'rn, 'shift_op");
         } else {
           format(instr, "add'sf's 'rd, 'rn, 'shift_op");
         }
         break;
       case 1:
-        if (instr.rdField() == R31) {
+        if ((instr.rdField() == R31) && (instr.sField() == 1)) {
           format(instr, "cmp'sf 'rn, 'shift_op");
         } else {
           if (instr.rnField() == R31) {

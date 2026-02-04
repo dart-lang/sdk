@@ -7,6 +7,8 @@ import 'dart:typed_data';
 import 'package:cfg/ir/constant_value.dart';
 import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/assembler.dart';
+import 'package:native_compiler/back_end/code.dart';
+import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:test/test.dart';
 import 'disassembler.dart' show Disassembler;
@@ -67,6 +69,47 @@ void main() {
       expectDisassembly(
         'ldr r0, [r0, #-256]\n'
         'str r1, [r0, #32760]\n',
+      );
+    });
+    test('pairAddress', () {
+      asm.ldp(R1, R2, asm.pairAddress(R0, -0x200));
+      asm.stp(R1, R2, asm.pairAddress(R0, 0x1f8));
+      // TODO: support large and unaligned offsets
+      expectThrows(() {
+        asm.pairAddress(R0, 3);
+      });
+      expectThrows(() {
+        asm.pairAddress(R0, -1);
+      });
+      expectThrows(() {
+        asm.pairAddress(R0, -0x208);
+      });
+      expectThrows(() {
+        asm.pairAddress(R0, 0x200);
+      });
+      expectDisassembly(
+        'ldp r1, r2, [r0, #-512]\n'
+        'stp r1, r2, [r0, #504]\n',
+      );
+    });
+    test('enterDartFrame', () {
+      asm.enterDartFrame();
+      expectDisassembly(
+        'stp fp, lr, [sp, #-16]!\n'
+        'mov fp, sp\n'
+        'add pp, pp, #0x1\n'
+        'stp pp, code, [sp, #-16]!\n'
+        'ldr pp, [code, #${vmOffsets.Code_object_pool_offset - heapObjectTag}]\n'
+        'sub pp, pp, #0x1\n',
+      );
+    });
+    test('leaveDartFrame', () {
+      asm.leaveDartFrame();
+      expectDisassembly(
+        'ldr pp, [fp, #-16]\n'
+        'sub pp, pp, #0x1\n'
+        'mov sp, fp\n'
+        'ldp fp, lr, [sp], #16 !\n',
       );
     });
     test('push', () {
@@ -196,12 +239,70 @@ void main() {
         'mov r5, 0xff00ff00ff00ff00\n',
       );
     });
+    test('addImmediate', () {
+      asm.addImmediate(R0, R0, 0);
+      asm.addImmediate(R1, R2, 0);
+      asm.addImmediate(R1, R2, 0, .s32);
+      asm.addImmediate(R1, R2, 0xabc);
+      asm.addImmediate(R1, R2, -0xabc);
+      asm.addImmediate(R1, R2, 0xabc000);
+      asm.addImmediate(R1, R2, -0xabc000);
+      asm.addImmediate(R1, R2, 0x11223344_55667788);
+      asm.addImmediate(SP, FP, 0x11223344_55667788);
+      expectDisassembly(
+        'mov r1, r2\n'
+        'movw r1, r2\n'
+        'add r1, r2, #0xabc\n'
+        'sub r1, r2, #0xabc\n'
+        'add r1, r2, #0xabc000\n'
+        'sub r1, r2, #0xabc000\n'
+        'movz tmp, #0x7788\n'
+        'movk tmp, #0x5566 lsl 16\n'
+        'movk tmp, #0x3344 lsl 32\n'
+        'movk tmp, #0x1122 lsl 48\n'
+        'add r1, r2, tmp\n'
+        'movz tmp, #0x7788\n'
+        'movk tmp, #0x5566 lsl 16\n'
+        'movk tmp, #0x3344 lsl 32\n'
+        'movk tmp, #0x1122 lsl 48\n'
+        'add csp, fp, tmp uxtx 0\n',
+      );
+    });
+    test('andImmediate', () {
+      asm.andImmediate(R1, R2, 0);
+      asm.andImmediate(R1, R2, 0, .u32);
+      asm.andImmediate(R1, R2, -1);
+      asm.andImmediate(R1, R2, -1, .u32);
+      asm.andImmediate(R1, R2, 0xff);
+      asm.andImmediate(R1, R2, 0x11223344_55667788);
+      expectDisassembly(
+        'movz r1, #0x0\n'
+        'movz r1, #0x0\n'
+        'mov r1, r2\n'
+        'movw r1, r2\n'
+        'and r1, r2, 0xff\n'
+        'movz tmp, #0x7788\n'
+        'movk tmp, #0x5566 lsl 16\n'
+        'movk tmp, #0x3344 lsl 32\n'
+        'movk tmp, #0x1122 lsl 48\n'
+        'and r1, r2, tmp\n',
+      );
+    });
     test('callRuntime', () {
       asm.callRuntime(RuntimeEntry.AllocateObject, 2);
       expectDisassembly(
         'ldr r5, [thr, #${vmOffsets.Thread_runtime_entry_offset(RuntimeEntry.AllocateObject, wordSize)}]\n'
         'movz r4, #0x2\n'
         'ldr lr, [thr, #${vmOffsets.Thread_call_to_runtime_entry_point_offset}]\n'
+        'blr lr\n',
+      );
+    });
+    test('callStub', () {
+      final stub = Code(null, Uint8List(0), ObjectPool());
+      asm.callStub(stub);
+      expectDisassembly(
+        'ldr code, [pp, #${objectPoolBase}]\n'
+        'ldr lr, [code, #${vmOffsets.Code_entry_point_offset.first - heapObjectTag}]\n'
         'blr lr\n',
       );
     });

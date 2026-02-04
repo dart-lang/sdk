@@ -168,6 +168,7 @@
   FIELD(ICData, entries_offset)                                                \
   FIELD(ICData, owner_offset)                                                  \
   FIELD(ICData, state_bits_offset)                                             \
+  FIELD(Instance, first_field_offset)                                          \
   FIELD(Int32x4, value_offset)                                                 \
   FIELD(Isolate, finalizers_offset)                                            \
   NOT_IN_PRODUCT(FIELD(Isolate, has_resumption_breakpoints_offset))            \
@@ -191,6 +192,7 @@
   FIELD(NativeArguments, argv_offset)                                          \
   FIELD(NativeArguments, retval_offset)                                        \
   FIELD(NativeArguments, thread_offset)                                        \
+  FIELD(Object, tags_offset)                                                   \
   FIELD(ObjectStore, double_type_offset)                                       \
   FIELD(ObjectStore, int_type_offset)                                          \
   FIELD(ObjectStore, record_field_names_offset)                                \

@@ -7,7 +7,8 @@ import 'package:cfg/front_end/recognized_methods.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:kernel/ast.dart' as ast;
-import 'package:native_compiler/back_end/code_generator.dart';
+import 'package:native_compiler/back_end/code.dart';
+import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/snapshot/image_writer.dart';
 import 'package:native_compiler/snapshot/snapshot.dart';
@@ -21,10 +22,12 @@ class CompilationSet {
   final List<CFunction> _pendingFunctions = [];
   final ImageWriter _imageWriter;
   late final SnapshotSerializer _snapshot;
+  late final StubFactory _stubFactory;
 
   CompilationSet(this.libraries, this.config)
     : _imageWriter = config.createImageWriter() {
     _snapshot = SnapshotSerializer(config.targetCPU, functionRegistry);
+    _stubFactory = config.createStubFactory(_consumeGeneratedCode);
   }
 
   /// Add [function] to be compiled.
@@ -111,7 +114,9 @@ class CompilationSet {
       rethrow;
     }
 
-    config.createPipeline(functionRegistry, _consumeGeneratedCode).run(graph);
+    config
+        .createPipeline(functionRegistry, _stubFactory, _consumeGeneratedCode)
+        .run(graph);
   }
 
   void _consumeGeneratedCode(Code code) {

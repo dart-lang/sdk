@@ -1054,14 +1054,13 @@ class JContextField extends JField {
 
   final BoxLocal box;
 
-  JContextField(String name, this.box, {required bool isConst})
+  JContextField(String name, this.box, {required super.isConst})
     : super(
         box.container.library as JLibrary,
         box.container as JClass,
         Name(name, box.container.library.canonicalUri),
         isStatic: false,
         isAssignable: true,
-        isConst: isConst,
       );
 
   factory JContextField.readFromDataSource(DataSourceReader source) {

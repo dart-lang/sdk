@@ -263,7 +263,7 @@ main() { // missing async
     createParser('const factory C() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(diag.constFactory, 0, 5)]);
+    listener.assertErrors([]);
   }
 
   void test_constMethod() {
@@ -1319,14 +1319,9 @@ class Wrong<T> {
     createParser('String get m native "str" => 0;');
     parser.parseClassMember('C') as MethodDeclaration;
     if (!allowNativeClause) {
-      assertErrorsWithCodes([
-        diag.nativeClauseShouldBeAnnotation,
-        diag.externalMethodWithBody,
-      ]);
+      assertErrorsWithCodes([diag.nativeClauseShouldBeAnnotation]);
     } else {
-      listener.assertErrors([
-        expectedError(diag.externalMethodWithBody, 26, 1),
-      ]);
+      assertNoErrors();
     }
   }
 

@@ -3896,7 +3896,6 @@ class AstBuilder extends StackListener {
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
     // TODO(kallentu): Removal of const factory error for const function feature
-    handleRecoverableError(fe_diag.constFactory, constKeyword, constKeyword);
   }
 
   @override
@@ -5870,17 +5869,6 @@ class AstBuilder extends StackListener {
         fe_diag.constructorWithTypeParameters,
         typeParameters.beginToken,
         typeParameters.endToken,
-      );
-    }
-    if (modifiers?.constKeyword != null &&
-        (body.length > 1 || body.beginToken.lexeme != ';')) {
-      // This error is also reported in BodyBuilder.finishFunction
-      Token bodyToken = body.beginToken;
-      // Token bodyToken = body.beginToken ?? modifiers.constKeyword;
-      handleRecoverableError(
-        fe_diag.constConstructorWithBody,
-        bodyToken,
-        bodyToken,
       );
     }
 

@@ -92,7 +92,7 @@ class A {
       r'''
 external void foo() {}
 ''',
-      [error(diag.externalMethodWithBody, 0, 8)],
+      [error(diag.externalMethodWithBody, 20, 1)],
     );
   }
 
@@ -101,7 +101,7 @@ external void foo() {}
       r'''
 external void foo() => null;
 ''',
-      [error(diag.externalMethodWithBody, 0, 8)],
+      [error(diag.externalMethodWithBody, 20, 2)],
     );
   }
 }

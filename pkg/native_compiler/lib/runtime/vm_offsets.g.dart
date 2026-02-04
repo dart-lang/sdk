@@ -107,6 +107,7 @@ base class VMOffsets {
   int get ICData_entries_offset => throw 'Unknown';
   int get ICData_owner_offset => throw 'Unknown';
   int get ICData_state_bits_offset => throw 'Unknown';
+  int get Instance_first_field_offset => throw 'Unknown';
   int get Int32x4_value_offset => throw 'Unknown';
   int get Isolate_finalizers_offset => throw 'Unknown';
   int get Isolate_has_resumption_breakpoints_offset => throw 'Unknown';
@@ -130,6 +131,7 @@ base class VMOffsets {
   int get NativeArguments_argv_offset => throw 'Unknown';
   int get NativeArguments_retval_offset => throw 'Unknown';
   int get NativeArguments_thread_offset => throw 'Unknown';
+  int get Object_tags_offset => throw 'Unknown';
   int get ObjectStore_double_type_offset => throw 'Unknown';
   int get ObjectStore_int_type_offset => throw 'Unknown';
   int get ObjectStore_record_field_names_offset => throw 'Unknown';
@@ -752,6 +754,8 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get ICData_state_bits_offset => 0x34;
   @override
+  int get Instance_first_field_offset => 0x8;
+  @override
   int get Int32x4_value_offset => 0x8;
   @override
   int get Isolate_finalizers_offset => 0x18;
@@ -797,6 +801,8 @@ final class Arm64VMOffsets extends VMOffsets {
   int get NativeArguments_retval_offset => 0x18;
   @override
   int get NativeArguments_thread_offset => 0x0;
+  @override
+  int get Object_tags_offset => 0x0;
   @override
   int get ObjectStore_double_type_offset => 0x1b0;
   @override
@@ -1661,6 +1667,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get ICData_state_bits_offset => 0x34;
   @override
+  int get Instance_first_field_offset => 0x8;
+  @override
   int get Int32x4_value_offset => 0x8;
   @override
   int get Isolate_finalizers_offset => 0x18;
@@ -1704,6 +1712,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get NativeArguments_retval_offset => 0x18;
   @override
   int get NativeArguments_thread_offset => 0x0;
+  @override
+  int get Object_tags_offset => 0x0;
   @override
   int get ObjectStore_double_type_offset => 0x1b0;
   @override

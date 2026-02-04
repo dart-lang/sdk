@@ -205,6 +205,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x14;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x1c;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x4;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -245,6 +246,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0xc;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0xd8;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -927,6 +929,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -968,6 +971,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -1651,6 +1655,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x14;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x1c;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x4;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -1691,6 +1696,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0xc;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0xd8;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -2372,6 +2378,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -2413,6 +2420,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -3099,6 +3107,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -3140,6 +3149,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -3823,6 +3833,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -3864,6 +3875,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -4548,6 +4560,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x14;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x1c;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x4;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -4588,6 +4601,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0xc;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0xd8;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -5271,6 +5285,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -5312,6 +5327,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -5991,6 +6007,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x14;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x1c;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x4;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0xc;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
@@ -6029,6 +6046,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0xc;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0xd8;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -6705,6 +6723,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
@@ -6744,6 +6763,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -7421,6 +7441,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x14;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x1c;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x4;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0xc;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
@@ -7459,6 +7480,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0xc;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0xd8;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -8134,6 +8156,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
@@ -8173,6 +8196,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -8853,6 +8877,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
@@ -8892,6 +8917,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -9569,6 +9595,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
@@ -9608,6 +9635,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -10286,6 +10314,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x14;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x1c;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x4;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0xc;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
@@ -10324,6 +10353,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0xc;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0xd8;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -11001,6 +11031,7 @@ static constexpr dart::compiler::target::word ICData_NumArgsTestedShift = 0x0;
 static constexpr dart::compiler::target::word ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word ICData_owner_offset = 0x28;
 static constexpr dart::compiler::target::word ICData_state_bits_offset = 0x34;
+static constexpr dart::compiler::target::word Instance_first_field_offset = 0x8;
 static constexpr dart::compiler::target::word Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word Isolate_finalizers_offset = 0x18;
 static constexpr dart::compiler::target::word IsolateGroup_object_store_offset =
@@ -11040,6 +11071,7 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     0x18;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset =
     0x0;
+static constexpr dart::compiler::target::word Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     0x1b0;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset =
@@ -11743,6 +11775,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x14;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x4;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0xc;
@@ -11786,6 +11820,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0xd8;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -12544,6 +12579,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -12587,6 +12624,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -13352,6 +13390,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -13395,6 +13435,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -14156,6 +14197,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -14199,6 +14242,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -14960,6 +15004,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -15003,6 +15049,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -15766,6 +15813,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x14;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x4;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0xc;
@@ -15809,6 +15858,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0xd8;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -16568,6 +16618,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -16611,6 +16663,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -17366,6 +17419,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x14;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x4;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0xc;
@@ -17407,6 +17462,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0xd8;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -18158,6 +18214,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -18199,6 +18257,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -18957,6 +19016,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -18998,6 +19059,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -19752,6 +19814,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -19793,6 +19857,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -20547,6 +20612,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -20588,6 +20655,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -21344,6 +21412,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x14;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x4;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0xc;
@@ -21385,6 +21455,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0xd8;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
@@ -22137,6 +22208,8 @@ static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 0x18;
 static constexpr dart::compiler::target::word AOT_ICData_owner_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_ICData_state_bits_offset =
     0x28;
+static constexpr dart::compiler::target::word AOT_Instance_first_field_offset =
+    0x8;
 static constexpr dart::compiler::target::word AOT_Int32x4_value_offset = 0x8;
 static constexpr dart::compiler::target::word AOT_Isolate_finalizers_offset =
     0x18;
@@ -22178,6 +22251,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_retval_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0x0;
+static constexpr dart::compiler::target::word AOT_Object_tags_offset = 0x0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_double_type_offset = 0x1b0;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =

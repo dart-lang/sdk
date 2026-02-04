@@ -181,6 +181,7 @@ final class IrToText extends VoidInstructionVisitor {
         DynamicCallKind.getter => 'get ',
         DynamicCallKind.setter => 'set ',
       }}${instr.selector}',
+    AllocateObject() => 'AllocateObject ${instr.type}',
     BinaryIntOp() => 'BinaryIntOp ${instr.op.token}',
     UnaryIntOp() => 'UnaryIntOp ${instr.op.token}',
     BinaryDoubleOp() => 'BinaryDoubleOp ${instr.op.token}',

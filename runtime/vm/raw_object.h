@@ -1325,6 +1325,7 @@ class UntaggedClass : public UntaggedObject {
   friend class CidRewriteVisitor;
   friend class FinalizeVMIsolateVisitor;
   friend class Api;
+  friend class module_snapshot::ObjectPoolDeserializationCluster;
 };
 
 class UntaggedPatchClass : public UntaggedObject {

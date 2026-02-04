@@ -13480,8 +13480,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 jointVariable.type != inferredType) {
               jointVariable.initializer = problemReporting.buildProblem(
                 compilerContext: compilerContext,
-                message: diag.jointPatternVariablesMismatch.withArgumentsOld(
-                  jointVariable.name!,
+                message: diag.jointPatternVariablesMismatch.withArguments(
+                  variableName: jointVariable.name!,
                 ),
                 fileUri: fileUri,
                 fileOffset:
@@ -15098,8 +15098,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (leftVariable.type != rightVariable.type ||
             leftVariable.isFinal != rightVariable.isFinal) {
           problemReporting.addProblem(
-            diag.jointPatternVariablesMismatch.withArgumentsOld(
-              rightVariableName,
+            diag.jointPatternVariablesMismatch.withArguments(
+              variableName: rightVariableName,
             ),
             leftVariable.fileOffset,
             rightVariableName.length,
@@ -16605,8 +16605,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         const DynamicType(),
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.dotShorthandsInvalidContext.withArgumentsOld(
-            node.name.text,
+          message: diag.dotShorthandsInvalidContext.withArguments(
+            dotShorthandName: node.name.text,
           ),
           fileUri: fileUri,
           fileOffset: node.nameOffset,
@@ -16821,9 +16821,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // [node.name] in the declaration of [cachedContext].
       replacement = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: diag.dotShorthandsUndefinedInvocation.withArgumentsOld(
-          node.name.text,
-          cachedContext,
+        message: diag.dotShorthandsUndefinedInvocation.withArguments(
+          memberName: node.name.text,
+          contextType: cachedContext,
         ),
         fileUri: fileUri,
         fileOffset: node.nameOffset,
@@ -16836,8 +16836,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // e.g. `var x = .one;`
       replacement = problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: diag.dotShorthandsInvalidContext.withArgumentsOld(
-          node.name.text,
+        message: diag.dotShorthandsInvalidContext.withArguments(
+          dotShorthandName: node.name.text,
         ),
         fileUri: fileUri,
         fileOffset: node.nameOffset,
@@ -16870,8 +16870,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         const DynamicType(),
         problemReporting.buildProblem(
           compilerContext: compilerContext,
-          message: diag.dotShorthandsInvalidContext.withArgumentsOld(
-            node.name.text,
+          message: diag.dotShorthandsInvalidContext.withArguments(
+            dotShorthandName: node.name.text,
           ),
           fileUri: fileUri,
           fileOffset: node.nameOffset,
@@ -16968,9 +16968,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             const DynamicType(),
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: diag.dotShorthandsUndefinedGetter.withArgumentsOld(
-                node.name.text,
-                cachedContext,
+              message: diag.dotShorthandsUndefinedGetter.withArguments(
+                getterName: node.name.text,
+                contextType: cachedContext,
               ),
               fileUri: fileUri,
               fileOffset: node.nameOffset,
@@ -16986,8 +16986,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             const DynamicType(),
             problemReporting.buildProblem(
               compilerContext: compilerContext,
-              message: diag.dotShorthandsInvalidContext.withArgumentsOld(
-                node.name.text,
+              message: diag.dotShorthandsInvalidContext.withArguments(
+                dotShorthandName: node.name.text,
               ),
               fileUri: fileUri,
               fileOffset: node.nameOffset,

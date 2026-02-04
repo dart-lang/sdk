@@ -708,7 +708,7 @@ class _InitializerBuilder {
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.implicitSuperInitializerMissingArguments
-                .withArgumentsOld(superTarget.enclosingClass.name),
+                .withArguments(className: superTarget.enclosingClass.name),
             fileUri: _fileUri,
             fileOffset: argumentIssue.charOffset,
             length: argumentIssue.length,

@@ -8,7 +8,7 @@ import 'dart:typed_data';
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:kernel/ast.dart' as ast;
-import 'package:native_compiler/back_end/code_generator.dart' show Code;
+import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/configuration.dart';
 import 'package:cfg/ir/functions.dart';
@@ -80,6 +80,12 @@ enum FunctionKind {
   implicitSetter,
   fieldInitializer,
 }
+
+/// Object pool entry kinds in the module snapshots.
+///
+/// This enum should match ModuleSnapshot::ObjectPoolEntryKind
+/// enum declared in runtime/vm/module_snapshot.cc.
+enum ObjectPoolEntryKind { objectRef, newObjectTags }
 
 abstract base class SerializationCluster {
   /// Add [object] to the cluster and push its outgoing references.
@@ -717,7 +723,14 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
     final pool = object as ObjectPool;
     _objects.add(pool);
     for (final entry in pool.entries) {
-      serializer.push(entry);
+      if (entry is SpecializedEntry) {
+        switch (entry) {
+          case NewObjectTags():
+            serializer.push(entry.cls);
+        }
+      } else {
+        serializer.push(entry);
+      }
     }
   }
 
@@ -740,7 +753,16 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
     for (final pool in _objects) {
       serializer.writeUint(pool.entries.length);
       for (final entry in pool.entries) {
-        serializer.writeRefId(entry);
+        if (entry is SpecializedEntry) {
+          switch (entry) {
+            case NewObjectTags():
+              serializer.writeUint(ObjectPoolEntryKind.newObjectTags.index);
+              serializer.writeRefId(entry.cls);
+          }
+        } else {
+          serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
+          serializer.writeRefId(entry);
+        }
       }
     }
   }

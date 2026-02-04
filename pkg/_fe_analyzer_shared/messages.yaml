@@ -256,8 +256,8 @@ expectedStatement:
 expectedInstead:
   type: syntacticError
   parameters:
-    String string: undocumented
-  problemMessage: "Expected '#string' instead of this."
+    String expected: What was expected.
+  problemMessage: "Expected '#expected' instead of this."
   # This is an alternative to ExpectedButGot when the last consumed token
   # should be replaced with a different token.
   #
@@ -352,10 +352,10 @@ implementsBeforeWith:
 multipleClauses:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Each '#string' definition can have at most one '#string2' clause."
-  correctionMessage: "Try combining all of the '#string2' clauses into a single clause."
+    String definitionKind: The kind of definition that has multiple clauses.
+    String clauseKind: The kind of clause of which there are multiple.
+  problemMessage: "Each '#definitionKind' definition can have at most one '#clauseKind' clause."
+  correctionMessage: "Try combining all of the '#clauseKind' clauses into a single clause."
   analyzerCode: multipleClauses
   hasPublishedDocs: false
   script:
@@ -365,10 +365,10 @@ multipleClauses:
 outOfOrderClauses:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The '#string' clause must come before the '#string2' clause."
-  correctionMessage: "Try moving the '#string' clause before the '#string2' clause."
+    String expectedEarlierClause: The kind of clause that must come earlier.
+    String expectedLaterClause: The kind of clause that must come later.
+  problemMessage: "The '#expectedEarlierClause' clause must come before the '#expectedLaterClause' clause."
+  correctionMessage: "Try moving the '#expectedEarlierClause' clause before the '#expectedLaterClause' clause."
   analyzerCode: outOfOrderClauses
   hasPublishedDocs: false
   script: "class B {} class D {} enum A implements B with D { v; }"
@@ -750,9 +750,9 @@ constAndFinal:
 conflictingModifiers:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "Members can't be declared to be both '#string' and '#string2'."
+    String modifier: The problematic modifier.
+    String earlierModifier: The earlier modifier that conflicts.
+  problemMessage: "Members can't be declared to be both '#modifier' and '#earlierModifier'."
   correctionMessage: "Try removing one of the keywords."
   analyzerCode: conflictingModifiers
   hasPublishedDocs: false
@@ -777,9 +777,9 @@ constFactory:
 modifierOutOfOrder:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The modifier '#string' should be before the modifier '#string2'."
+    String modifier: The problematic modifier.
+    String expectedLaterModifier: The modifier that should come later.
+  problemMessage: "The modifier '#modifier' should be before the modifier '#expectedLaterModifier'."
   correctionMessage: "Try re-ordering the modifiers."
   analyzerCode: modifierOutOfOrder
   hasPublishedDocs: false
@@ -1087,8 +1087,8 @@ continueWithoutLabelInCase:
 duplicateLabelInSwitchStatement:
   type: syntacticError
   parameters:
-    Name name: undocumented
-  problemMessage: "The label '#name' was already used in this switch statement."
+    Name labelName: The name of the label that was already used.
+  problemMessage: "The label '#labelName' was already used in this switch statement."
   correctionMessage: "Try choosing a different name for this label."
   analyzerCode: duplicateLabelInSwitchStatement
   hasPublishedDocs: false
@@ -1230,9 +1230,9 @@ unexpectedTokens:
 literalWithClassAndNew:
   type: syntacticError
   parameters:
-    String string: undocumented
-    Token lexeme: undocumented
-  problemMessage: "A #string literal can't be prefixed by 'new #lexeme'."
+    String kind: The literal kind
+    Token lexeme: The lexeme between `new` and the literal.
+  problemMessage: "A #kind literal can't be prefixed by 'new #lexeme'."
   correctionMessage: "Try removing 'new' and '#lexeme'"
   analyzerCode: literalWithClassAndNew
   hasPublishedDocs: false

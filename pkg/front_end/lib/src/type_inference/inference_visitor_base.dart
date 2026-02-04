@@ -1504,13 +1504,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// If target is missing on a non-dynamic receiver, an error is reported
-  /// using [errorTemplate] and an invalid expression is returned.
+  /// using [diag.undefinedSetter] and an invalid expression is returned.
   Expression? reportMissingInterfaceMember(
     ObjectAccessTarget target,
     DartType receiverType,
     Name name,
     int fileOffset,
-    Template<Message Function(String, DartType), Function> errorTemplate,
   ) {
     assert(isKnown(receiverType));
     if (target.isMissing) {
@@ -1521,9 +1520,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
       return problemReporting.buildProblem(
         compilerContext: compilerContext,
-        message: errorTemplate.withArgumentsOld(
-          name.text,
-          receiverType.nonTypeParameterBound,
+        message: diag.undefinedSetter.withArguments(
+          name: name.text,
+          type: receiverType.nonTypeParameterBound,
         ),
         fileUri: fileUri,
         fileOffset: fileOffset,

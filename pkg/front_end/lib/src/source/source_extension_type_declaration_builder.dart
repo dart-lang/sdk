@@ -285,7 +285,10 @@ class SourceExtensionTypeDeclarationBuilder
               Message? errorMessage;
               if (variable.parameter.isLegacyCovariant) {
                 errorMessage = diag.wrongTypeParameterVarianceInSuperinterface
-                    .withArgumentsOld(variable.name, interface);
+                    .withArguments(
+                      typeVariableName: variable.name,
+                      type: interface,
+                    );
               } else {
                 // Coverage-ignore-block(suite): Not run.
                 errorMessage = diag.invalidTypeParameterInSupertypeWithVariance
@@ -680,10 +683,10 @@ class SourceExtensionTypeDeclarationBuilder
             interface,
           )) {
             libraryBuilder.addProblem(
-              diag.invalidExtensionTypeSuperInterface.withArgumentsOld(
-                interface,
-                declaredRepresentationType,
-                name,
+              diag.invalidExtensionTypeSuperInterface.withArguments(
+                interfaceType: interface,
+                representationType: declaredRepresentationType,
+                extensionTypeName: name,
               ),
               typeBuilder.charOffset!,
               noLength,
@@ -704,11 +707,12 @@ class SourceExtensionTypeDeclarationBuilder
               instantiatedImplementedRepresentationType,
             )) {
               libraryBuilder.addProblem(
-                diag.invalidExtensionTypeSuperExtensionType.withArgumentsOld(
-                  declaredRepresentationType,
-                  name,
-                  instantiatedImplementedRepresentationType,
-                  interface,
+                diag.invalidExtensionTypeSuperExtensionType.withArguments(
+                  representationType: declaredRepresentationType,
+                  extensionTypeName: name,
+                  implementedExtensionRepresentationType:
+                      instantiatedImplementedRepresentationType,
+                  implementedExtensionType: interface,
                 ),
                 typeBuilder.charOffset!,
                 noLength,
