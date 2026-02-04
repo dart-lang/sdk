@@ -4,14 +4,12 @@
 
 extension type ET1(int i) {} // Ok
 
-// TODO(johnniwinther): Report error.
-extension type ET2(var int i) {}
+extension type ET2(var int i) {} // Error
 
-// TODO(johnniwinther): Remove error.
 extension type ET3(final int i) {}
 
-extension type ET4(i) {} // Error
+extension type ET4(i) {}
 
 extension type ET5(var i) {} // Error
 
-extension type ET6(final i) {} // Error
+extension type ET6(final i) {}

@@ -345,7 +345,7 @@ class RegularFieldDeclaration
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
-    Token? token = _fragment.constInitializerToken;
+    Token? token = _fragment.takeConstInitializerToken();
     if (!hasBodyBeenBuilt && token != null) {
       if ((_fragment.modifiers.isConst ||
           (isFinal &&
@@ -577,7 +577,7 @@ class RegularFieldDeclaration
     }
 
     type.registerInferredTypeListener(this);
-    Token? token = _fragment.initializerToken;
+    Token? token = _fragment.takeInitializerToken();
     if (type is InferableTypeBuilder) {
       if (!_fragment.modifiers.hasInitializer && isStatic) {
         // A static field without type and initializer will always be inferred

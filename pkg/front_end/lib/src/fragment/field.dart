@@ -73,7 +73,7 @@ class FieldFragment implements Fragment {
   ///
   /// This can only be called once and will hand over the responsibility of
   /// the token to the caller.
-  Token? get constInitializerToken {
+  Token? takeConstInitializerToken() {
     Token? result = _constInitializerToken;
     // Ensure that we don't hold onto the token.
     _constInitializerToken = null;
@@ -114,9 +114,9 @@ class FieldFragment implements Fragment {
   ///
   /// This can only be called once and will hand over the responsibility of
   /// the token to the caller.
-  Token? get initializerToken {
+  Token? takeInitializerToken() {
     Token? result = _initializerToken;
-    // Ensure that we don't hold onto the token.
+    // Ensure that we don't hold on to the token.
     _initializerToken = null;
     return result;
   }

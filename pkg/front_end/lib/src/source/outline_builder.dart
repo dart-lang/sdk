@@ -1872,28 +1872,49 @@ class OutlineBuilder extends StackListenerImpl {
               formal.fileUri,
             );
           }
-          if (type is ImplicitTypeBuilder) {
-            _compilationUnit.addProblem(
-              diag.expectedRepresentationType,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
-            formal.type = new InvalidTypeBuilderImpl(
-              formal.fileUri,
-              formal.fileOffset,
-            );
-          }
-          if (formal.modifiers.containsSyntacticModifiers(
-            ignoreCovariant: true,
-            ignoreRequired: true,
-          )) {
-            _compilationUnit.addProblem(
-              diag.representationFieldModifier,
-              formal.fileOffset,
-              formal.name.length,
-              formal.fileUri,
-            );
+          if (libraryFeatures.primaryConstructors.isEnabled) {
+            if (formal.modifiers.containsSyntacticModifiers(
+              // Already reported in the parser.
+              ignoreConst: true,
+              ignoreCovariant: true,
+              ignoreRequired: true,
+              // Final is allowed.
+              ignoreFinal: true,
+            )) {
+              _compilationUnit.addProblem(
+                diag.representationFieldModifier,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+            }
+          } else {
+            if (type is ImplicitTypeBuilder) {
+              _compilationUnit.addProblem(
+                diag.expectedRepresentationType,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+              formal.type = new InvalidTypeBuilderImpl(
+                formal.fileUri,
+                formal.fileOffset,
+              );
+            }
+            if (formal.modifiers.containsSyntacticModifiers(
+              // Already reported in the parser.
+              ignoreCovariant: true,
+              ignoreRequired: true,
+              // Reported above as missing a representation type.
+              ignoreVar: true,
+            )) {
+              _compilationUnit.addProblem(
+                diag.representationFieldModifier,
+                formal.fileOffset,
+                formal.name.length,
+                formal.fileUri,
+              );
+            }
           }
           if (formal.isInitializingFormal) {
             _compilationUnit.addProblem(
@@ -1926,39 +1947,62 @@ class OutlineBuilder extends StackListenerImpl {
             type: formal.type,
             name: formal.name,
             nameOffset: formal.fileOffset,
+            // We copy the default value token to the primary constructor field
+            // in order to support field type inference from the default value.
+            defaultValueToken: libraryFeatures.primaryConstructors.isEnabled
+                ? formal.copyDefaultValueToken()
+                : null,
           );
           formals[i] = formal.forPrimaryConstructor(_builderFactory);
         }
       }
       if (forExtensionType) {
-        if (firstOptionalPositionalParameterOffset != null) {
-          _compilationUnit.addProblem(
-            diag.optionalParametersInExtensionTypeDeclaration,
-            firstOptionalPositionalParameterOffset,
-            1,
-            uri,
-          );
-        } else if (firstNamedParameterOffset != null) {
-          _compilationUnit.addProblem(
-            diag.namedParametersInExtensionTypeDeclaration,
-            firstNamedParameterOffset,
-            1,
-            uri,
-          );
-        } else if (requiredPositionalCount == 0) {
-          _compilationUnit.addProblem(
-            diag.expectedRepresentationField,
-            charOffset,
-            1,
-            uri,
-          );
-        } else if (formals.length > 1) {
-          _compilationUnit.addProblem(
-            diag.multipleRepresentationFields,
-            charOffset,
-            1,
-            uri,
-          );
+        if (libraryFeatures.primaryConstructors.isEnabled) {
+          if (formals.isEmpty) {
+            _compilationUnit.addProblem(
+              diag.expectedRepresentationField,
+              charOffset,
+              1,
+              uri,
+            );
+          } else if (formals.length > 1) {
+            _compilationUnit.addProblem(
+              diag.multipleRepresentationFields,
+              charOffset,
+              1,
+              uri,
+            );
+          }
+        } else {
+          if (firstOptionalPositionalParameterOffset != null) {
+            _compilationUnit.addProblem(
+              diag.optionalParametersInExtensionTypeDeclaration,
+              firstOptionalPositionalParameterOffset,
+              1,
+              uri,
+            );
+          } else if (firstNamedParameterOffset != null) {
+            _compilationUnit.addProblem(
+              diag.namedParametersInExtensionTypeDeclaration,
+              firstNamedParameterOffset,
+              1,
+              uri,
+            );
+          } else if (requiredPositionalCount == 0) {
+            _compilationUnit.addProblem(
+              diag.expectedRepresentationField,
+              charOffset,
+              1,
+              uri,
+            );
+          } else if (formals.length > 1) {
+            _compilationUnit.addProblem(
+              diag.multipleRepresentationFields,
+              charOffset,
+              1,
+              uri,
+            );
+          }
         }
       }
     }
@@ -3004,7 +3048,7 @@ class OutlineBuilder extends StackListenerImpl {
           modifiers: modifiers,
           type:
               type ??
-              (memberKind.isParameterInferable
+              (memberKind.isParameterInferable(libraryFeatures)
                   ? _builderFactory.addInferableType()
                   : const ImplicitTypeBuilder()),
           name: parameterName,
@@ -4676,7 +4720,6 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNoExtensionTypeBody(Token semicolonToken) {
     debugEvent("NoExtensionTypeBody");
     _builderFactory.beginExtensionTypeBody();
@@ -4740,7 +4783,7 @@ class OutlineBuilder extends StackListenerImpl {
 
 extension on MemberKind {
   /// Returns `true` if a parameter occurring in this context can be inferred.
-  bool get isParameterInferable {
+  bool isParameterInferable(LibraryFeatures libraryFeatures) {
     switch (this) {
       case MemberKind.Catch:
       case MemberKind.FunctionTypeAlias:
@@ -4753,22 +4796,19 @@ extension on MemberKind {
       case MemberKind.ExtensionNonStaticMethod:
       case MemberKind.ExtensionStaticMethod:
       case MemberKind.ExtensionTypeStaticMethod:
-      case MemberKind.PrimaryConstructor:
         return false;
       case MemberKind.NonStaticMethod:
       case MemberKind.ExtensionTypeNonStaticMethod:
-      // Coverage-ignore(suite): Not run.
       // TODO(eernst): Write a test such that this does run.
       case MemberKind.AnonymousMethod:
-      // Coverage-ignore(suite): Not run.
       // These can be inferred but cannot hold parameters so the cases are
       // dead code:
       case MemberKind.NonStaticField:
-      // Coverage-ignore(suite): Not run.
       case MemberKind.StaticField:
-      // Coverage-ignore(suite): Not run.
       case MemberKind.TopLevelField:
         return true;
+      case MemberKind.PrimaryConstructor:
+        return libraryFeatures.primaryConstructors.isEnabled;
     }
   }
 }
