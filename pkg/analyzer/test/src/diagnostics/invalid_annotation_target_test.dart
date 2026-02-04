@@ -900,6 +900,25 @@ extension type const E(@A() int x) {}
 ''');
   }
 
+  void test_field_enumValue() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.field})
+class A {
+  const A();
+}
+
+enum E {
+  @A()
+  one
+}
+''',
+      [error(diag.invalidAnnotationTarget, 105, 1)],
+    );
+  }
+
   void test_field_field() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
@@ -929,7 +948,7 @@ class C(@A() final int f);
 ''');
   }
 
-  void test_function_function() async {
+  void test_function_localFunction() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta_meta.dart';
 
@@ -938,8 +957,11 @@ class A {
   const A();
 }
 
-@A()
-int f(int x) => 0;
+void f() {
+  @A()
+  // ignore: unused_element
+  int g(int x) => 0;
+}
 ''');
   }
 
@@ -960,6 +982,20 @@ class C {
 ''',
       [error(diag.invalidAnnotationTarget, 109, 1)],
     );
+  }
+
+  void test_function_topLevelFunction() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.function})
+class A {
+  const A();
+}
+
+@A()
+int f(int x) => 0;
+''');
   }
 
   void test_function_topLevelGetter() async {

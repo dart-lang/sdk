@@ -24,6 +24,7 @@ import 'package:analyzer/src/error/annotation_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_functionality_verifier.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
+import 'package:analyzer/src/error/do_not_submit_member_use_verifier.dart';
 import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/element_usage_frontier_detector.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
@@ -131,6 +132,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
              diagnosticReporter: _diagnosticReporter,
            ),
          ),
+         ElementUsageFrontierDetector(
+           workspacePackage: workspacePackage,
+           elementUsageSet: const DoNotSubmitElementUsageSet(),
+           elementUsageReporter: DoNotSubmitElementUsageReporter(
+             diagnosticReporter: _diagnosticReporter,
+           ),
+         ),
        ],
        _errorHandlerVerifier = ErrorHandlerVerifier(
          _diagnosticReporter,
@@ -162,12 +170,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _annotationVerifier.checkAnnotation(node);
     _widgetPreviewVerifier.checkAnnotation(node);
     super.visitAnnotation(node);
-  }
-
-  @override
-  void visitArgumentList(ArgumentList node) {
-    _invalidAccessVerifier._checkForInvalidDoNotSubmitParameter(node);
-    super.visitArgumentList(node);
   }
 
   @override
@@ -1747,8 +1749,6 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    _checkForInvalidDoNotSubmitAccess(identifier, element);
-
     if (_inCurrentLibrary(element)) {
       return;
     }
@@ -1815,8 +1815,6 @@ class _InvalidAccessVerifier {
       return;
     }
 
-    _checkForInvalidDoNotSubmitAccess(node, element);
-
     if (_inCurrentLibrary(element)) {
       return;
     }
@@ -1835,7 +1833,6 @@ class _InvalidAccessVerifier {
     if (element == null) {
       return;
     }
-    _checkForInvalidDoNotSubmitAccess(node, element);
 
     if (_inCurrentLibrary(element)) {
       return;
@@ -1872,101 +1869,6 @@ class _InvalidAccessVerifier {
             .withArguments(name: element.name!)
             .at(node),
       );
-    }
-  }
-
-  void _checkForInvalidDoNotSubmitAccess(AstNode node, Element element) {
-    if (element is FormalParameterElement || !_hasDoNotSubmit(element)) {
-      return;
-    }
-
-    // It's valid for a member annotated with `@doNotSubmit` to access another
-    // member annotated with `@doNotSubmit`. For example, this is valid:
-    // ```
-    // @doNotSubmit
-    // void foo() {}
-    //
-    // @doNotSubmit
-    // void bar() {
-    //   // OK: `foo` is annotated with `@doNotSubmit` but so is `bar`.
-    //   foo();
-    // }
-    // ```
-    var declaration = node.thisOrAncestorOfType<Declaration>();
-    if (declaration != null) {
-      var element = declaration.declaredFragment?.element;
-      if (element != null && _hasDoNotSubmit(element)) {
-        return;
-      }
-    }
-
-    var (name, errorEntity) = _getIdentifierNameAndErrorEntity(node, element);
-    _diagnosticReporter.report(
-      diag.invalidUseOfDoNotSubmitMember
-          .withArguments(name: name)
-          .atOffset(offset: errorEntity.offset, length: errorEntity.length),
-    );
-  }
-
-  // Checks for invalid parameters annotated with `@doNotSubmit`. For example:
-  //
-  //     void a({@doNotSubmit int? b}) {}
-  //     void c() {
-  //       // Error: `b` is annotated with `@doNotSubmit` and it's a parameter.
-  //       a(b: 0);
-  //     }
-  void _checkForInvalidDoNotSubmitParameter(ArgumentList node) {
-    // Examples:
-    //
-    //     void a({@doNotSubmit int? b}) {
-    //       // OK: `b` is annotated with `@doNotSubmit` but it's a parameter.
-    //       print(b);
-    //     }
-    //
-    //     void c({@doNotSubmit int? b}) {
-    //       void d() {
-    //         // OK: `b` is annotated with `@doNotSubmit` but it's a parent arg.
-    //         print(b);
-    //       }
-    //     }
-
-    // Check if the method being called is a parent method of the current node.
-    var bodyParent = node.thisOrAncestorOfType<FunctionBody>()?.parent;
-    if (bodyParent != null &&
-        (bodyParent == node.thisOrAncestorOfType<FunctionDeclaration>() ||
-            bodyParent == node.thisOrAncestorOfType<MethodDeclaration>())) {
-      return;
-    }
-
-    for (var argument in node.arguments) {
-      var element = argument.correspondingParameter;
-      if (element != null) {
-        if (!_hasDoNotSubmit(element)) {
-          continue;
-        }
-        if (argument is NamedExpression) {
-          argument = argument.name.label;
-          var (name, errorEntity) = _getIdentifierNameAndErrorEntity(
-            argument,
-            element,
-          );
-          _diagnosticReporter.report(
-            diag.invalidUseOfDoNotSubmitMember
-                .withArguments(name: name)
-                .atOffset(
-                  offset: errorEntity.offset,
-                  length: errorEntity.length,
-                ),
-          );
-        } else {
-          // For positional arguments.
-          _diagnosticReporter.report(
-            diag.invalidUseOfDoNotSubmitMember
-                .withArguments(name: element.displayName)
-                .at(argument),
-          );
-        }
-      }
     }
   }
 
@@ -2078,11 +1980,6 @@ class _InvalidAccessVerifier {
       );
     }
   }
-
-  bool _hasDoNotSubmit(Element element) =>
-      element.metadata.hasDoNotSubmit ||
-      (element is PropertyAccessorElement &&
-          element.variable.metadata.hasDoNotSubmit);
 
   bool _hasTypeOrSuperType(
     InterfaceElement? element,
