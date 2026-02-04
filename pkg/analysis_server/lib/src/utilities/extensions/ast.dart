@@ -355,23 +355,6 @@ extension ExtensionTypeDeclarationExtension on ExtensionTypeDeclaration {
   }
 }
 
-extension FormalParameterExtension on FormalParameter? {
-  /// Whether this parameter is a declaring parameter.
-  bool get isDeclaringParameter {
-    var normalParameter = switch (this) {
-      DefaultFormalParameter parameter => parameter.parameter,
-      NormalFormalParameter parameter => parameter,
-      _ => null,
-    };
-    var keywordType = switch (normalParameter) {
-      SimpleFormalParameter parameter => parameter.keyword?.type,
-      FunctionTypedFormalParameter parameter => parameter.keyword?.type,
-      _ => null,
-    };
-    return keywordType == Keyword.FINAL || keywordType == Keyword.VAR;
-  }
-}
-
 extension FunctionBodyExtension on FunctionBody {
   bool get isEmpty =>
       this is EmptyFunctionBody ||

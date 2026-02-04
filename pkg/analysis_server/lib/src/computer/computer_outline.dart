@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -608,7 +607,9 @@ class DartUnitOutlineComputer {
     var outlines = <Outline>[];
     outlines.add(_newPrimaryConstructorOutline(namePart));
     for (var parameter in namePart.formalParameters.parameters) {
-      if (parameter.isDeclaringParameter) {
+      var parameterElement = parameter.declaredFragment!.element;
+      if (parameterElement is engine.FieldFormalParameterElement &&
+          parameterElement.isDeclaring) {
         outlines.add(_newDeclaredFieldOutline(parameter));
       }
     }
