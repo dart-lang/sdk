@@ -2709,6 +2709,48 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.I8x16Neg());
   }
 
+  void i8x16_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i8x16.eq']));
+    _add(const ir.I8x16Eq());
+  }
+
+  void i16x8_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i16x8.eq']));
+    _add(const ir.I16x8Eq());
+  }
+
+  void i32x4_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i32x4.eq']));
+    _add(const ir.I32x4Eq());
+  }
+
+  void i64x2_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['i64x2.eq']));
+    _add(const ir.I64x2Eq());
+  }
+
+  void f32x4_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f32x4.eq']));
+    _add(const ir.F32x4Eq());
+  }
+
+  void f64x2_eq() {
+    assert(_verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],
+        trace: const ['f64x2.eq']));
+    _add(const ir.F64x2Eq());
+  }
+
   void i16x8_add() {
     assert(_verifyTypes(
         const [ir.NumType.v128, ir.NumType.v128], const [ir.NumType.v128],

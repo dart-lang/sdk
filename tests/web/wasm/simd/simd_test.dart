@@ -8,15 +8,39 @@ import 'package:expect/expect.dart';
 import 'dart:_wasm';
 
 void main() {
-  testI8x16();
-  testI16x8();
-  testI32x4();
-  testI64x2();
-  testF32x4();
-  testF64x2();
+  final failures = <(String, Object, StackTrace)>[];
+
+  void runTest(String name, void Function() testFn) {
+    print('Running $name...');
+    try {
+      testFn();
+    } catch (e, st) {
+      print('  Failed: $e');
+      failures.add((name, e, st));
+    }
+  }
+
+  runTest('testI64x2', _testI64x2);
+  runTest('testI8x16', _testI8x16);
+  runTest('testI32x4', _testI32x4);
+  runTest('testI16x8', _testI16x8);
+  runTest('testF32x4', _testF32x4);
+  runTest('testF64x2', _testF64x2);
+
+  if (failures.isNotEmpty) {
+    print('\n${failures.length} tests failed:');
+    for (var (name, e, st) in failures) {
+      print('  $name: $e');
+      print(st);
+      print('');
+    }
+    throw 'Tests failed';
+  } else {
+    print('\nAll tests passed!');
+  }
 }
 
-void testI8x16() {
+void _testI8x16() {
   // splat
   var v1 = WasmI8x16.splat(WasmI32.fromInt(10));
   var v2 = WasmI8x16.splat(WasmI32.fromInt(20));
@@ -45,9 +69,15 @@ void testI8x16() {
   var vNeg = -v1;
   Expect.equals(vNeg.extractLaneSigned(0).toIntSigned(), -10);
   Expect.equals(vNeg.extractLaneSigned(15).toIntSigned(), -10);
+
+  // eq
+  var vEq = v1.eq(WasmI8x16.splat(WasmI32.fromInt(10))); // 10 == 10
+  _expectCmpTrue(vEq.extractLaneSigned(0).toIntSigned()); // True is -1 (all 1s)
+  vEq = v1.eq(WasmI8x16.splat(WasmI32.fromInt(11))); // 10 != 11
+  _expectCmpFalse(vEq.extractLaneSigned(0).toIntSigned()); // False is 0
 }
 
-void testI16x8() {
+void _testI16x8() {
   // splat
   var v1 = WasmI16x8.splat(WasmI32.fromInt(10));
   var v2 = WasmI16x8.splat(WasmI32.fromInt(20));
@@ -86,9 +116,15 @@ void testI16x8() {
   var vDot = v1.dotProduct(v2);
   Expect.equals(vDot.extractLane(0).toIntSigned(), 400); // 10*20 + 10*20
   Expect.equals(vDot.extractLane(3).toIntSigned(), 400);
+
+  // eq
+  var vEq = v1.eq(WasmI16x8.splat(WasmI32.fromInt(10)));
+  _expectCmpTrue(vEq.extractLaneSigned(0).toIntSigned());
+  vEq = v1.eq(WasmI16x8.splat(WasmI32.fromInt(11)));
+  _expectCmpFalse(vEq.extractLaneSigned(0).toIntSigned());
 }
 
-void testI32x4() {
+void _testI32x4() {
   // splat
   var v1 = WasmI32x4.splat(WasmI32.fromInt(10));
   var v2 = WasmI32x4.splat(WasmI32.fromInt(20));
@@ -122,9 +158,16 @@ void testI32x4() {
   var vNeg = -v1;
   Expect.equals(vNeg.extractLane(0).toIntSigned(), -10);
   Expect.equals(vNeg.extractLane(3).toIntSigned(), -10);
+
+  // eq
+  var vEq = v1.eq(WasmI32x4.splat(WasmI32.fromInt(10)));
+  _expectCmpTrue(vEq.extractLane(0).toIntSigned());
+  var s11 = WasmI32x4.splat(WasmI32.fromInt(11));
+  vEq = v1.eq(s11);
+  _expectCmpFalse(vEq.extractLane(0).toIntSigned());
 }
 
-void testI64x2() {
+void _testI64x2() {
   // splat
   var v1 = WasmI64x2.splat(WasmI64.fromInt(10));
   var v2 = WasmI64x2.splat(WasmI64.fromInt(20));
@@ -156,9 +199,15 @@ void testI64x2() {
   var vNeg = -v1;
   Expect.equals(vNeg.extractLane(0).toInt(), -10);
   Expect.equals(vNeg.extractLane(1).toInt(), -10);
+
+  // eq
+  var vEq = v1.eq(WasmI64x2.splat(WasmI64.fromInt(10)));
+  _expectCmpTrue(vEq.extractLane(0).toInt());
+  vEq = v1.eq(WasmI64x2.splat(WasmI64.fromInt(11)));
+  _expectCmpFalse(vEq.extractLane(0).toInt());
 }
 
-void testF32x4() {
+void _testF32x4() {
   // splat
   var v1 = WasmF32x4.splat(WasmF32.fromDouble(10.5));
 
@@ -169,9 +218,15 @@ void testF32x4() {
   var v2 = v1.replaceLane(0, WasmF32.fromDouble(5.5));
   Expect.equals(v2.extractLane(0).toDouble(), 5.5);
   Expect.equals(v2.extractLane(1).toDouble(), 10.5);
+
+  // eq
+  var vEq = v1.eq(WasmF32x4.splat(WasmF32.fromDouble(10.5)));
+  _expectCmpTrue(vEq.extractLane(0).toIntSigned());
+  vEq = v1.eq(WasmF32x4.splat(WasmF32.fromDouble(11.5)));
+  _expectCmpFalse(vEq.extractLane(0).toIntSigned());
 }
 
-void testF64x2() {
+void _testF64x2() {
   // splat
   var v1 = WasmF64x2.splat(WasmF64.fromDouble(10.5));
 
@@ -182,4 +237,13 @@ void testF64x2() {
   var v2 = v1.replaceLane(0, WasmF64.fromDouble(5.5));
   Expect.equals(v2.extractLane(0).toDouble(), 5.5);
   Expect.equals(v2.extractLane(1).toDouble(), 10.5);
+
+  // eq
+  var vEq = v1.eq(WasmF64x2.splat(WasmF64.fromDouble(10.5)));
+  _expectCmpTrue(vEq.extractLane(0).toInt());
+  vEq = v1.eq(WasmF64x2.splat(WasmF64.fromDouble(11.5)));
+  _expectCmpFalse(vEq.extractLane(0).toInt());
 }
+
+void _expectCmpTrue(int v) => Expect.equals(v, -1);
+void _expectCmpFalse(int v) => Expect.equals(v, 0);
