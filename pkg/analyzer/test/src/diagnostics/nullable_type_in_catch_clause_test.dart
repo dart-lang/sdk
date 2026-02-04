@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -35,7 +35,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.nullableTypeInCatchClause, 32, 7)],
+      [error(diag.nullableTypeInCatchClause, 32, 7)],
     );
   }
 
@@ -58,7 +58,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.nullableTypeInCatchClause, 21, 16)],
+      [error(diag.nullableTypeInCatchClause, 21, 16)],
     );
   }
 
@@ -81,7 +81,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.nullableTypeInCatchClause, 21, 4)],
+      [error(diag.nullableTypeInCatchClause, 21, 4)],
     );
   }
 
@@ -108,7 +108,7 @@ class A<B> {
   }
 }
 ''',
-      [error(WarningCode.nullableTypeInCatchClause, 40, 1)],
+      [error(diag.nullableTypeInCatchClause, 40, 1)],
     );
   }
 }

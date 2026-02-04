@@ -258,9 +258,9 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   Dart_EnterScope();
 
   bin::DartUtils::SetOriginalWorkingDirectory();
-  Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(
+  Dart_Handle result = bin::DartUtils::SetupCoreLibraries(
       /*is_service_isolate=*/false, /*trace_loading=*/false,
-      /*flag_profile_microtasks=*/false);
+      /*flag_profile_microtasks=*/false, bin::DartIoSettings{});
   CHECK_RESULT(result);
 
   // Setup kernel service as the main script for this isolate.

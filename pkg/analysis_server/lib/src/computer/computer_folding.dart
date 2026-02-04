@@ -268,8 +268,8 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     _computer._addRegion(
-      node.name.end,
-      node.rightBracket.end,
+      node.namePart.end,
+      node.body.end,
       FoldingKind.CLASS_BODY,
     );
     super.visitClassDeclaration(node);
@@ -279,7 +279,8 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     _computer._addRegion(
-      node.name?.end ?? node.returnType.end,
+      // TODO(scheglov): support primary constructors
+      node.name?.end ?? node.typeName!.end,
       node.end,
       FoldingKind.FUNCTION_BODY,
     );
@@ -299,8 +300,8 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitEnumDeclaration(EnumDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     _computer._addRegion(
-      node.leftBracket.end,
-      node.rightBracket.offset,
+      node.body.leftBracket.end,
+      node.body.rightBracket.offset,
       FoldingKind.CLASS_BODY,
     );
     super.visitEnumDeclaration(node);
@@ -316,8 +317,8 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     _computer._addRegion(
-      node.leftBracket.end,
-      node.rightBracket.offset,
+      node.body.leftBracket.end,
+      node.body.rightBracket.offset,
       FoldingKind.CLASS_BODY,
     );
     super.visitExtensionDeclaration(node);
@@ -326,11 +327,13 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
-    _computer._addRegion(
-      node.leftBracket.end,
-      node.rightBracket.offset,
-      FoldingKind.CLASS_BODY,
-    );
+    if (node.body case BlockClassBody body) {
+      _computer._addRegion(
+        body.leftBracket.end,
+        body.rightBracket.offset,
+        FoldingKind.CLASS_BODY,
+      );
+    }
     super.visitExtensionTypeDeclaration(node);
   }
 

@@ -14,11 +14,19 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
-  ConvertToWildcardVariable({required super.context});
+  @override
+  final CorrectionApplicability applicability;
 
   @override
-  CorrectionApplicability get applicability =>
-      CorrectionApplicability.singleLocation;
+  final FixKind? multiFixKind;
+
+  ConvertToWildcardVariable({required super.context})
+    : multiFixKind = null,
+      applicability = .singleLocation;
+
+  ConvertToWildcardVariable.automatically({required super.context})
+    : multiFixKind = DartFixKind.convertToWildcardVariableMulti,
+      applicability = .automatically;
 
   @override
   FixKind get fixKind => DartFixKind.convertToWildcardVariable;

@@ -17,6 +17,26 @@ class DotShorthandPropertyAccessTest extends AbstractCompletionDriverTest
     with DotShorthandPropertyAccessTestCases {}
 
 mixin DotShorthandPropertyAccessTestCases on AbstractCompletionDriverTest {
+  Future<void> test_annotationArgumentList() async {
+    allowedIdentifiers = {'one', 'two'};
+    await computeSuggestions('''
+enum E { one, two }
+
+@C(.^)
+class C {
+  final E e;
+  const C(this.e);
+}
+''');
+    assertResponse(r'''
+suggestions
+  one
+    kind: enumConstant
+  two
+    kind: enumConstant
+''');
+  }
+
   Future<void> test_class() async {
     allowedIdentifiers = {'getter', 'notStatic'};
     await computeSuggestions('''
@@ -520,48 +540,6 @@ replacement
 suggestions
   anotherGetter
     kind: getter
-''');
-  }
-
-  Future<void> test_invalid_type() async {
-    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
-    newFile(join(testPackageLibPath, 'private.dart'), '''
-// ignore: unused_field
-enum _E { e01, e02 }
-
-void foo(_E e) {}
-''');
-    await computeSuggestions('''
-import 'private.dart';
-
-void f() {
-  foo(.^);
-}
-''');
-    assertResponse(r'''
-suggestions
-''');
-  }
-
-  Future<void> test_invalid_type_typedef() async {
-    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
-    newFile(join(testPackageLibPath, 'private.dart'), '''
-// ignore: unused_field
-enum _E { e01, e02 }
-
-typedef E = _E;
-
-void foo(E e) {}
-''');
-    await computeSuggestions('''
-import 'private.dart';
-
-void f() {
-  foo(.^);
-}
-''');
-    assertResponse(r'''
-suggestions
 ''');
   }
 }

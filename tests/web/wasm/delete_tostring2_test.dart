@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2wasmOptions=--extra-compiler-option=--delete-tostring-package-uri=package:smith
+// dart2wasmOptions=--extra-compiler-option=--delete-tostring-package-uri=package:expect
 
 import 'package:expect/expect.dart';
-import 'package:smith/configuration.dart' show Architecture;
 
-import 'delete_tostring_test.dart' show archX64, archArm;
+import 'delete_tostring_test.dart' show first, second;
 
 main() {
   // The `toString()` was replaced with `super.toString()` which defaults to the
   // one from `Object.toString()`:
-  Expect.equals('Instance of \'$Architecture\'', archX64.toString());
-  Expect.equals('Instance of \'$Architecture\'', archArm.toString());
+  Expect.equals('Instance of \'$ExpectException\'', first.toString());
+  Expect.equals('Instance of \'$ExpectException\'', second.toString());
 }

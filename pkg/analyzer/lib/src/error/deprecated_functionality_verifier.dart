@@ -4,11 +4,11 @@
 
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 
 class DeprecatedFunctionalityVerifier {
@@ -36,6 +36,7 @@ class DeprecatedFunctionalityVerifier {
 
   void constructorDeclaration(ConstructorDeclaration node) {
     _checkForDeprecatedOptionalSuperParameters(node);
+    _checkForDeprecatedOptionalRedirectedParameters(node);
 
     // Check redirectiong constructor invocations in the initializer list.
     for (var redirectingConstructorInvocation
@@ -133,16 +134,14 @@ class DeprecatedFunctionalityVerifier {
     if (node.type?.element is InterfaceElement) {
       if (element.library == _currentLibrary) return;
       if (element.isDeprecatedWithKind('extend')) {
-        _diagnosticReporter.atNode(
-          node,
-          WarningCode.deprecatedExtend,
-          arguments: [element.name!],
+        _diagnosticReporter.report(
+          diag.deprecatedExtend.withArguments(typeName: element.name!).at(node),
         );
       } else if (element.isDeprecatedWithKind('subclass')) {
-        _diagnosticReporter.atNode(
-          node,
-          WarningCode.deprecatedSubclass,
-          arguments: [element.name!],
+        _diagnosticReporter.report(
+          diag.deprecatedSubclass
+              .withArguments(typeName: element.name!)
+              .at(node),
         );
       }
     }
@@ -156,16 +155,16 @@ class DeprecatedFunctionalityVerifier {
       if (element.library == _currentLibrary) continue;
       if (namedType.type?.element is InterfaceElement) {
         if (element.isDeprecatedWithKind('implement')) {
-          _diagnosticReporter.atNode(
-            namedType,
-            WarningCode.deprecatedImplement,
-            arguments: [element.name!],
+          _diagnosticReporter.report(
+            diag.deprecatedImplement
+                .withArguments(typeName: element.name!)
+                .at(namedType),
           );
         } else if (element.isDeprecatedWithKind('subclass')) {
-          _diagnosticReporter.atNode(
-            namedType,
-            WarningCode.deprecatedSubclass,
-            arguments: [element.name!],
+          _diagnosticReporter.report(
+            diag.deprecatedSubclass
+                .withArguments(typeName: element.name!)
+                .at(namedType),
           );
         }
       }
@@ -177,10 +176,10 @@ class DeprecatedFunctionalityVerifier {
     required AstNode errorNode,
   }) {
     if (element.isDeprecatedWithKind('instantiate')) {
-      _diagnosticReporter.atNode(
-        errorNode,
-        WarningCode.deprecatedInstantiate,
-        arguments: [element.name!],
+      _diagnosticReporter.report(
+        diag.deprecatedInstantiate
+            .withArguments(typeName: element.name!)
+            .at(errorNode),
       );
     }
   }
@@ -192,10 +191,8 @@ class DeprecatedFunctionalityVerifier {
       if (element is! InterfaceElement) continue;
       if (element.library == _currentLibrary) continue;
       if (element.isDeprecatedWithKind('mixin')) {
-        _diagnosticReporter.atNode(
-          mixin,
-          WarningCode.deprecatedMixin,
-          arguments: [element.name!],
+        _diagnosticReporter.report(
+          diag.deprecatedMixin.withArguments(typeName: element.name!).at(mixin),
         );
       }
     }
@@ -214,20 +211,55 @@ class DeprecatedFunctionalityVerifier {
     }
     for (var parameter in omittedParameters) {
       if (parameter.isDeprecatedWithKind('optional')) {
-        _diagnosticReporter.atEntity(
-          errorEntity,
-          WarningCode.deprecatedOptional,
-          arguments: [parameter.name ?? '<unknown>'],
+        _diagnosticReporter.report(
+          diag.deprecatedOptional
+              .withArguments(parameterName: parameter.name ?? '<unknown>')
+              .at(errorEntity),
+        );
+      }
+    }
+  }
+
+  void _checkForDeprecatedOptionalRedirectedParameters(
+    ConstructorDeclaration node,
+  ) {
+    if (node.redirectedConstructor?.element case var redirectedConstructor?) {
+      var SourceRange(offset: errorOffset, length: errorLength) =
+          node.errorRange;
+      var positionalArgumentCount = node.parameters.parameters
+          .where((p) => p.isPositional)
+          .length;
+      var namedArgumentNames = node.parameters.parameters
+          .where((p) => p.isNamed)
+          .map((p) => p.name?.lexeme)
+          .nonNulls
+          .toList();
+      var redirectedConstructorPositionalParameterCount = 0;
+      for (var parameter in redirectedConstructor.formalParameters) {
+        if (parameter.isPositional) {
+          redirectedConstructorPositionalParameterCount++;
+        }
+        if (!parameter.isOptional) continue;
+        if (!parameter.isDeprecatedWithKind('optional')) continue;
+        if (parameter.isPositional) {
+          if (redirectedConstructorPositionalParameterCount <=
+              positionalArgumentCount) {
+            continue;
+          }
+        } else {
+          if (namedArgumentNames.contains(parameter.name)) continue;
+        }
+
+        _diagnosticReporter.report(
+          diag.deprecatedOptional
+              .withArguments(parameterName: parameter.name ?? '<unknown>')
+              .atOffset(offset: errorOffset, length: errorLength),
         );
       }
     }
   }
 
   void _checkForDeprecatedOptionalSuperParameters(ConstructorDeclaration node) {
-    var interfaceElement = node.declaredFragment!.element.enclosingElement;
-    var superType = interfaceElement.supertype;
-    if (superType == null) return;
-
     var superConstructorInvocations = node.initializers
         .whereType<SuperConstructorInvocation>();
     if (superConstructorInvocations.length > 1) {
@@ -252,8 +284,7 @@ class DeprecatedFunctionalityVerifier {
       // The unnamed super-constructor will be invoked; report a warning for
       // each `@Deprecated.optional` parameter in that constructor without a
       // matching super-parameter.
-
-      if (superType.element.unnamedConstructor
+      if (node.declaredFragment!.element.superConstructor
           case var unnamedSuperConstructor?) {
         superConstructor = unnamedSuperConstructor;
       } else {
@@ -312,11 +343,10 @@ class DeprecatedFunctionalityVerifier {
         }
       }
 
-      _diagnosticReporter.atOffset(
-        offset: errorOffset,
-        length: errorLength,
-        diagnosticCode: WarningCode.deprecatedOptional,
-        arguments: [parameter.name ?? '<unknown>'],
+      _diagnosticReporter.report(
+        diag.deprecatedOptional
+            .withArguments(parameterName: parameter.name ?? '<unknown>')
+            .atOffset(offset: errorOffset, length: errorLength),
       );
     }
   }
@@ -329,10 +359,10 @@ class DeprecatedFunctionalityVerifier {
       if (element.library == _currentLibrary) continue;
       if (namedType.type?.element is InterfaceElement) {
         if (element.isDeprecatedWithKind('subclass')) {
-          _diagnosticReporter.atNode(
-            namedType,
-            WarningCode.deprecatedSubclass,
-            arguments: [element.name!],
+          _diagnosticReporter.report(
+            diag.deprecatedSubclass
+                .withArguments(typeName: element.name!)
+                .at(namedType),
           );
         }
       }

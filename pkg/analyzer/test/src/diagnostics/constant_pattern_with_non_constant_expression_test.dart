@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -76,13 +76,7 @@ void f(x) {
   if (x case A.a) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
-          60,
-          3,
-        ),
-      ],
+      [error(diag.constantPatternWithNonConstantExpression, 60, 3)],
     );
   }
 
@@ -295,13 +289,7 @@ void f(x) {
   if (x case const [a]) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
-          47,
-          1,
-        ),
-      ],
+      [error(diag.constantPatternWithNonConstantExpression, 47, 1)],
     );
   }
 
@@ -333,13 +321,7 @@ void f(x) {
   if (x case a) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
-          38,
-          1,
-        ),
-      ],
+      [error(diag.constantPatternWithNonConstantExpression, 38, 1)],
     );
   }
 
@@ -413,13 +395,7 @@ void f(x) {
   if (x case const {a: 1}) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
-          47,
-          1,
-        ),
-      ],
+      [error(diag.constantPatternWithNonConstantExpression, 47, 1)],
     );
   }
 
@@ -463,13 +439,7 @@ void f(x) {
   if (x case const {0: a}) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
-          50,
-          1,
-        ),
-      ],
+      [error(diag.constantPatternWithNonConstantExpression, 50, 1)],
     );
   }
 
@@ -535,13 +505,7 @@ void f(var e, int a) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
-          58,
-          1,
-        ),
-      ],
+      [error(diag.constantPatternWithNonConstantExpression, 58, 1)],
     );
   }
 
@@ -575,13 +539,7 @@ void f(x) {
   if (x case a) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.constantPatternWithNonConstantExpression,
-          39,
-          1,
-        ),
-      ],
+      [error(diag.constantPatternWithNonConstantExpression, 39, 1)],
     );
 
     var node = findNode.singleGuardedPattern;
@@ -603,7 +561,7 @@ void f(Object? x) {
   if (x case foo) {}
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 33, 3)],
+      [error(diag.undefinedIdentifier, 33, 3)],
     );
 
     var node = findNode.singleGuardedPattern;

@@ -20,6 +20,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as path;
 
 import '../utilities/git.dart';
@@ -29,48 +30,75 @@ import 'operation.dart';
 
 /// Run the simulation based on the given command-line [arguments].
 Future<void> main(List<String> arguments) async {
-  var driver = Driver();
-  await driver.run(arguments);
+  var driver = Driver.fromArgs(arguments);
+  if (driver == null) return;
+  await driver.run();
 }
 
 /// The driver class that runs the simulation.
 class Driver {
-  /// The value of the [OVERLAY_STYLE_OPTION_NAME] indicating that modifications
+  /// The value of the [_overlayStyleOptionName] indicating that modifications
   /// to a file should be represented by an add overlay, followed by zero or
   /// more change overlays, followed by a remove overlay.
-  static String CHANGE_OVERLAY_STYLE = 'change';
+  static const String _changeOverlayStyle = 'change';
 
   /// The name of the command-line flag that will print help text.
-  static String HELP_FLAG_NAME = 'help';
+  static const String _helpFlagName = 'help';
 
-  /// The value of the [OVERLAY_STYLE_OPTION_NAME] indicating that modifications
+  /// The value of the [_overlayStyleOptionName] indicating that modifications
   /// to a file should be represented by an add overlay, followed by zero or
   /// more additional add overlays, followed by a remove overlay.
-  static String MULTIPLE_ADD_OVERLAY_STYLE = 'multipleAdd';
+  static const String _multipleAddOverlayStyle = 'multipleAdd';
 
   /// The name of the command-line option used to specify the style of
   /// interaction to use when making `analysis.updateContent` requests.
-  static String OVERLAY_STYLE_OPTION_NAME = 'overlay-style';
+  static const String _overlayStyleOptionName = 'overlay-style';
 
   /// The name of the branch used to clean-up after making temporary changes.
-  // ignore: unreachable_from_main
-  static const String TEMP_BRANCH_NAME = 'temp';
+  // ignore: unused_field
+  static const String _tempBranchName = 'temp';
 
   /// The name of the command-line flag that will cause verbose output to be
   /// produced.
-  static String VERBOSE_FLAG_NAME = 'verbose';
+  static const String _verboseFlagName = 'verbose';
+
+  /// Creates and returns a parser that can be used to parse the command-line
+  /// arguments.
+  static ArgParser get _argParser => ArgParser()
+    ..addFlag(
+      _helpFlagName,
+      abbr: 'h',
+      help: 'Print usage information',
+      negatable: false,
+    )
+    ..addOption(
+      _overlayStyleOptionName,
+      help:
+          'The style of interaction to use for analysis.updateContent requests',
+      allowed: [_changeOverlayStyle, _multipleAddOverlayStyle],
+      allowedHelp: {
+        _changeOverlayStyle: '<add> <change>* <remove>',
+        _multipleAddOverlayStyle: '<add>+ <remove>',
+      },
+      defaultsTo: 'change',
+    )
+    ..addFlag(
+      _verboseFlagName,
+      abbr: 'v',
+      help: 'Produce verbose output for debugging',
+      negatable: false,
+    );
 
   /// The style of interaction to use for analysis.updateContent requests.
-  late OverlayStyle overlayStyle;
+  final OverlayStyle _overlayStyle;
 
   /// The absolute path of the repository.
-  late String repositoryPath;
+  final String _repositoryPath;
 
   /// The absolute paths to the analysis roots.
-  late List<String> analysisRoots;
+  final List<String> _analysisRoots;
 
-  /// The git repository.
-  late GitRepository repository;
+  final GitRepository _repository;
 
   /// The connection to the analysis server.
   late Server server;
@@ -80,17 +108,26 @@ class Driver {
   late List<Glob> fileGlobs;
 
   /// An object gathering statistics about the simulation.
-  late Statistics statistics;
+  late final Statistics _statistics;
 
   /// A flag indicating whether verbose output should be provided.
-  bool verbose = false;
+  final bool _verbose;
 
   /// The logger to which verbose logging data will be written.
-  late Logger logger;
+  late Logger _logger;
 
-  /// Initialize a newly created driver.
-  Driver() {
-    statistics = Statistics(this);
+  Driver._({
+    required OverlayStyle overlayStyle,
+    required String repositoryPath,
+    required List<String> analysisRoots,
+    required GitRepository repository,
+    required bool verbose,
+  }) : _overlayStyle = overlayStyle,
+       _repositoryPath = repositoryPath,
+       _analysisRoots = analysisRoots,
+       _repository = repository,
+       _verbose = verbose {
+    _statistics = Statistics(this);
   }
 
   /// Allow the output from the server to be read and processed.
@@ -98,15 +135,9 @@ class Driver {
     await Future.delayed(Duration(milliseconds: 2));
   }
 
-  /// Run the simulation based on the given command-line arguments ([args]).
-  Future<void> run(List<String> args) async {
-    //
-    // Process the command-line arguments.
-    //
-    if (!_processCommandLine(args)) {
-      return;
-    }
-    if (verbose) {
+  /// Runs the simulation.
+  Future<void> run() async {
+    if (_verbose) {
       stdout.writeln();
       stdout.writeln('-' * 80);
       stdout.writeln();
@@ -118,47 +149,17 @@ class Driver {
     //
     // Print out statistics gathered while performing the simulation.
     //
-    if (verbose) {
+    if (_verbose) {
       stdout.writeln();
       stdout.writeln('-' * 80);
     }
     stdout.writeln();
-    statistics.print();
-    if (verbose) {
+    _statistics.print();
+    if (_verbose) {
       stdout.writeln();
       server.printStatistics();
     }
     exit(0);
-  }
-
-  /// Create and return a parser that can be used to parse the command-line
-  /// arguments.
-  ArgParser _createArgParser() {
-    var parser = ArgParser();
-    parser.addFlag(
-      HELP_FLAG_NAME,
-      abbr: 'h',
-      help: 'Print usage information',
-      negatable: false,
-    );
-    parser.addOption(
-      OVERLAY_STYLE_OPTION_NAME,
-      help:
-          'The style of interaction to use for analysis.updateContent requests',
-      allowed: [CHANGE_OVERLAY_STYLE, MULTIPLE_ADD_OVERLAY_STYLE],
-      allowedHelp: {
-        CHANGE_OVERLAY_STYLE: '<add> <change>* <remove>',
-        MULTIPLE_ADD_OVERLAY_STYLE: '<add>+ <remove>',
-      },
-      defaultsTo: 'change',
-    );
-    parser.addFlag(
-      VERBOSE_FLAG_NAME,
-      abbr: 'v',
-      help: 'Produce verbose output for debugging',
-      negatable: false,
-    );
-    return parser;
   }
 
   /// Add source edits to the given [fileEdit] based on the given [blobDiff].
@@ -205,7 +206,7 @@ class Driver {
   /// analysis roots.
   Iterable<String> _findPubspecsInAnalysisRoots() {
     var pubspecFiles = <String>[];
-    for (var directoryPath in analysisRoots) {
+    for (var directoryPath in _analysisRoots) {
       var directory = Directory(directoryPath);
       var children = directory.listSync(recursive: true, followLinks: false);
       for (var child in children) {
@@ -257,67 +258,13 @@ class Driver {
     return buffer.toString();
   }
 
-  /// Process the command-line [arguments]. Return `true` if the simulation
-  /// should be run.
-  bool _processCommandLine(List<String> args) {
-    var parser = _createArgParser();
-    ArgResults results;
-    try {
-      results = parser.parse(args);
-    } catch (exception) {
-      _showUsage(parser);
-      return false;
-    }
-
-    if (results[HELP_FLAG_NAME] as bool) {
-      _showUsage(parser);
-      return false;
-    }
-
-    var overlayStyleValue = results[OVERLAY_STYLE_OPTION_NAME] as String;
-    if (overlayStyleValue == CHANGE_OVERLAY_STYLE) {
-      overlayStyle = OverlayStyle.change;
-    } else if (overlayStyleValue == MULTIPLE_ADD_OVERLAY_STYLE) {
-      overlayStyle = OverlayStyle.multipleAdd;
-    }
-
-    if (results[VERBOSE_FLAG_NAME] as bool) {
-      verbose = true;
-      logger = Logger(stdout);
-    }
-
-    var arguments = results.rest;
-    if (arguments.length < 2) {
-      _showUsage(parser);
-      return false;
-    }
-    repositoryPath = path.normalize(arguments[0]);
-    repository = GitRepository(repositoryPath, logger: logger);
-
-    analysisRoots = arguments
-        .sublist(1)
-        .map((String analysisRoot) => path.normalize(analysisRoot))
-        .toList();
-    for (var analysisRoot in analysisRoots) {
-      if (repositoryPath != analysisRoot &&
-          !path.isWithin(repositoryPath, analysisRoot)) {
-        _showUsage(
-          parser,
-          'Analysis roots must be contained within the repository: $analysisRoot',
-        );
-        return false;
-      }
-    }
-    return true;
-  }
-
   /// Replay the changes in each commit.
   Future<void> _replayChanges() async {
     //
     // Get the revision history of the repo.
     //
-    var history = repository.getCommitHistory();
-    statistics.commitCount = history.commitIds.length;
+    var history = _repository.getCommitHistory();
+    _statistics.commitCount = history.commitIds.length;
     var iterator = history.iterator();
     try {
       //
@@ -331,7 +278,7 @@ class Driver {
         // Checkout the commit on which the changes are based.
         //
         var commit = iterator.srcCommit;
-        repository.checkout(commit);
+        _repository.checkout(commit);
         if (expectedErrors != null) {
           //          ErrorMap actualErrors =
           await server.computeErrorMap(server.analyzedDartFiles);
@@ -346,7 +293,7 @@ class Driver {
         }
         if (firstCheckout) {
           changedPubspecs = _findPubspecsInAnalysisRoots();
-          server.sendAnalysisSetAnalysisRoots(analysisRoots, []);
+          server.sendAnalysisSetAnalysisRoots(_analysisRoots, []);
           firstCheckout = false;
         } else {
           server.removeAllOverlays();
@@ -360,9 +307,9 @@ class Driver {
         // Apply the changes.
         //
         var commitDelta = iterator.next();
-        commitDelta.filterDiffs(analysisRoots, fileGlobs);
+        commitDelta.filterDiffs(_analysisRoots, fileGlobs);
         if (commitDelta.hasDiffs) {
-          statistics.commitsWithChangeInRootCount++;
+          _statistics.commitsWithChangeInRootCount++;
           await _replayDiff(commitDelta);
         }
         changedPubspecs = commitDelta.filesMatching(file_paths.pubspecYaml);
@@ -370,7 +317,7 @@ class Driver {
     } finally {
       // Ensure that the repository is left at the most recent commit.
       if (history.commitIds.isNotEmpty) {
-        repository.checkout(history.commitIds[0]);
+        _repository.checkout(history.commitIds[0]);
       }
     }
     server.removeAllOverlays();
@@ -383,7 +330,7 @@ class Driver {
   Future<void> _replayDiff(CommitDelta commitDelta) async {
     var editList = <FileEdit>[];
     for (var record in commitDelta.diffRecords) {
-      var edit = FileEdit(overlayStyle, record);
+      var edit = FileEdit(_overlayStyle, record);
       _createSourceEdits(edit, record.getBlobDiff());
       editList.add(edit);
     }
@@ -405,7 +352,7 @@ class Driver {
         AnalysisService.OVERRIDES: currentFile,
       });
       for (var operation in edit.getOperations()) {
-        statistics.editCount++;
+        _statistics.editCount++;
         operation.perform(server);
         await readServerOutput();
       }
@@ -425,8 +372,8 @@ class Driver {
 
   /// Run the simulation by starting up a server and sending it requests.
   Future<void> _runSimulation() async {
-    server = Server(logger: logger);
-    var stopwatch = statistics.stopwatch;
+    server = Server(logger: _logger);
+    var stopwatch = _statistics.stopwatch;
     stopwatch.start();
     await server.start();
     server.sendServerSetSubscriptions([ServerService.STATUS]);
@@ -447,13 +394,79 @@ class Driver {
       // TODO(brianwilkerson): This needs to be moved into a Zone in order to
       // ensure that it is always run.
       server.sendServerShutdown();
-      repository.checkout('master');
+      _repository.checkout('master');
     }
     stopwatch.stop();
   }
 
+  /// Returns a [Driver] based on the given command-line arguments ([args]).
+  ///
+  /// Returns `null` if the args are erroneous (or if the `--help` flag is
+  /// given).
+  static Driver? fromArgs(List<String> args) {
+    var parser = _argParser;
+    ArgResults results;
+    try {
+      results = parser.parse(args);
+    } catch (exception) {
+      _showUsage(parser);
+      return null;
+    }
+
+    if (results.flag(_helpFlagName)) {
+      _showUsage(parser);
+      return null;
+    }
+
+    var overlayStyleValue = results.option(_overlayStyleOptionName);
+    var overlayStyle = switch (overlayStyleValue) {
+      _changeOverlayStyle => OverlayStyle.change,
+      _multipleAddOverlayStyle => OverlayStyle.multipleAdd,
+      _ => throw UsageException(
+        'Unexpected "$_overlayStyleOptionName" value',
+        parser.usage,
+      ),
+    };
+
+    var verbose = false;
+    Logger? logger;
+    if (results.flag(_verboseFlagName)) {
+      verbose = true;
+      logger = Logger(stdout);
+    }
+
+    var arguments = results.rest;
+    if (arguments.length < 2) {
+      _showUsage(parser);
+      return null;
+    }
+    var repositoryPath = path.normalize(arguments[0]);
+
+    var analysisRoots = arguments
+        .sublist(1)
+        .map((analysisRoot) => path.normalize(analysisRoot))
+        .toList();
+    for (var analysisRoot in analysisRoots) {
+      if (repositoryPath != analysisRoot &&
+          !path.isWithin(repositoryPath, analysisRoot)) {
+        _showUsage(
+          parser,
+          'Analysis roots must be contained within the repository: $analysisRoot',
+        );
+        return null;
+      }
+    }
+    return Driver._(
+      overlayStyle: overlayStyle,
+      repositoryPath: repositoryPath,
+      analysisRoots: analysisRoots,
+      repository: GitRepository(repositoryPath, logger: logger),
+      verbose: verbose,
+    );
+  }
+
   /// Display usage information, preceded by the [errorMessage] if one is given.
-  void _showUsage(ArgParser parser, [String? errorMessage]) {
+  static void _showUsage(ArgParser parser, [String? errorMessage]) {
     if (errorMessage != null) {
       stderr.writeln(errorMessage);
       stderr.writeln();
@@ -579,11 +592,11 @@ class Statistics {
   /// Print the statistics to [stdout].
   void print() {
     stdout.write('Replay commits in ');
-    stdout.writeln(driver.repositoryPath);
+    stdout.writeln(driver._repositoryPath);
     stdout.write('  replay took ');
     stdout.writeln(_printTime(stopwatch.elapsedMilliseconds));
     stdout.write('  analysis roots = ');
-    stdout.writeln(driver.analysisRoots);
+    stdout.writeln(driver._analysisRoots);
     stdout.write('  number of commits = ');
     stdout.writeln(commitCount);
     stdout.write('  number of commits with a change in an analysis root = ');

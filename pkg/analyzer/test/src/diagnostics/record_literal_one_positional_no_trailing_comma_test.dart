@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ void f((int,) i) {
   f((''));
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 24, 2)],
+      [error(diag.argumentTypeNotAssignable, 24, 2)],
     );
   }
 
@@ -34,7 +34,7 @@ void f((int,) i) {
   f(1);
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 23, 1)],
+      [error(diag.argumentTypeNotAssignable, 23, 1)],
     );
   }
 
@@ -45,13 +45,7 @@ void f((int,) i) {
   f((1));
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
-          23,
-          3,
-        ),
-      ],
+      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 23, 3)],
     );
   }
 
@@ -70,7 +64,7 @@ void f((int,) r) {
   r = ('');
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 25, 4)],
+      [error(diag.invalidAssignment, 25, 4)],
     );
   }
 
@@ -81,7 +75,7 @@ void f((int,) r) {
   r = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 25, 1)],
+      [error(diag.invalidAssignment, 25, 1)],
     );
   }
 
@@ -92,13 +86,7 @@ void f((int,) r) {
   r = (1);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
-          25,
-          3,
-        ),
-      ],
+      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 25, 3)],
     );
   }
 
@@ -115,13 +103,7 @@ void f((int,) r) {
       '''
 (int,) r = (1);
 ''',
-      [
-        error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
-          11,
-          3,
-        ),
-      ],
+      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 11, 3)],
     );
   }
 
@@ -130,7 +112,7 @@ void f((int,) r) {
       '''
 (int,) r = ('');
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 12, 2)],
+      [error(diag.invalidAssignment, 12, 2)],
     );
   }
 
@@ -147,7 +129,7 @@ void f((int,) r) {
   return 1;
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 22, 1)],
+      [error(diag.returnOfInvalidTypeFromFunction, 22, 1)],
     );
   }
 
@@ -158,13 +140,7 @@ void f((int,) r) {
   return (1);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
-          22,
-          3,
-        ),
-      ],
+      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 22, 3)],
     );
   }
 
@@ -173,7 +149,7 @@ void f((int,) r) {
       '''
 (int,) f() => ('');
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 14, 4)],
+      [error(diag.returnOfInvalidTypeFromFunction, 14, 4)],
     );
   }
 
@@ -182,7 +158,7 @@ void f((int,) r) {
       '''
 (int,) f() => 1;
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 14, 1)],
+      [error(diag.returnOfInvalidTypeFromFunction, 14, 1)],
     );
   }
 
@@ -191,13 +167,7 @@ void f((int,) r) {
       '''
 (int,) f() => (1);
 ''',
-      [
-        error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
-          14,
-          3,
-        ),
-      ],
+      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 14, 3)],
     );
   }
 
@@ -206,7 +176,7 @@ void f((int,) r) {
       '''
 (int,) f() { return (''); }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 20, 4)],
+      [error(diag.returnOfInvalidTypeFromFunction, 20, 4)],
     );
   }
 

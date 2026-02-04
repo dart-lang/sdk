@@ -17,7 +17,7 @@ import "dart:core" as core;
 class Increment extends core::Object {
   late field core::int x;
   constructor •() → self::Increment
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_31192.dart:7:17: Error: This couldn't be parsed.
+    : invalid-initializer "pkg/front_end/testcases/regress/issue_31192.dart:7:17: Error: This couldn't be parsed.
   Increment() : x++ {}
                 ^" {}
 }

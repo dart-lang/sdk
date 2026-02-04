@@ -6,9 +6,9 @@ import 'dart:math' as math;
 
 /// The value returned by [levenshtein] if the distance is determined
 /// to be over the specified threshold.
-const int LEVENSHTEIN_MAX = 1 << 20;
+const int levenshteinMax = 1 << 20;
 
-const int _MAX_VALUE = 1 << 10;
+const int _maxValue = 1 << 10;
 
 /// Find the Levenshtein distance between two [String]s if it's less than or
 /// equal to a given threshold.
@@ -41,14 +41,14 @@ int levenshtein(
   // if one string is empty,
   // the edit distance is necessarily the length of the other
   if (sLength == 0) {
-    return tLength <= threshold ? tLength : LEVENSHTEIN_MAX;
+    return tLength <= threshold ? tLength : levenshteinMax;
   }
   if (tLength == 0) {
-    return sLength <= threshold ? sLength : LEVENSHTEIN_MAX;
+    return sLength <= threshold ? sLength : levenshteinMax;
   }
   // the distance can never be less than abs(s_len - t_len)
   if ((sLength - tLength).abs() > threshold) {
-    return LEVENSHTEIN_MAX;
+    return levenshteinMax;
   }
 
   // swap the two strings to consume less memory
@@ -75,8 +75,8 @@ int levenshtein(
 
   // these fills ensure that the value above the rightmost entry of our
   // stripe will be ignored in following loop iterations
-  _setRange(p, boundary, p.length, _MAX_VALUE);
-  _setRange(d, 0, d.length, _MAX_VALUE);
+  _setRange(p, boundary, p.length, _maxValue);
+  _setRange(d, 0, d.length, _maxValue);
 
   // iterates through t
   for (var j = 1; j <= tLength; j++) {
@@ -90,12 +90,12 @@ int levenshtein(
 
     // the stripe may lead off of the table if s and t are of different sizes
     if (min > max) {
-      return LEVENSHTEIN_MAX;
+      return levenshteinMax;
     }
 
     // ignore entry left of leftmost
     if (min > 1) {
-      d[min - 1] = _MAX_VALUE;
+      d[min - 1] = _maxValue;
     }
 
     // iterates through [min, max] in s
@@ -121,7 +121,7 @@ int levenshtein(
     return p[sLength];
   }
 
-  return LEVENSHTEIN_MAX;
+  return levenshteinMax;
 }
 
 void _setRange(List<int> a, int start, int end, int value) {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
@@ -69,13 +71,13 @@ bool _isInvokedWithoutNullAwareOperator(Token? token) =>
 
 /// Rule to lint consecutive invocations of methods or getters on the same
 /// reference that could be done with the cascade operator.
-class CascadeInvocations extends LintRule {
+class CascadeInvocations extends AnalysisRule {
   /// Default constructor.
   CascadeInvocations()
     : super(name: LintNames.cascade_invocations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.cascadeInvocations;
+  DiagnosticCode get diagnosticCode => diag.cascadeInvocations;
 
   @override
   void registerNodeProcessors(
@@ -303,7 +305,7 @@ class _NodeVisitor extends UnifyingAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

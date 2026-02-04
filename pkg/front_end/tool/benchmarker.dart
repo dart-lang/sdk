@@ -11,7 +11,7 @@ late final Uri repoDir = computeRepoDirUri();
 
 void main(List<String> args) {
   if (args.contains("--help")) return _help();
-  _checkEnvironment();
+  checkEnvironment();
   bool doCacheBenchmarkingToo = false;
   bool doDisabledGcBenchmarkToo = false;
   bool silent = false;
@@ -30,8 +30,8 @@ void main(List<String> args) {
       gcRuns = int.parse(arg.substring("--gcs=".length));
     } else if (arg.startsWith("--core=")) {
       core = int.parse(arg.substring("--core=".length));
-    } else if (arg.startsWith("--aotruntime")) {
-      aotRuntime = arg.substring("--aotruntime".length);
+    } else if (arg.startsWith("--aotruntime=")) {
+      aotRuntime = arg.substring("--aotruntime=".length);
     } else if (arg.startsWith("--snapshot=")) {
       snapshots.add(arg.substring("--snapshot=".length));
     } else if (arg.startsWith("--arguments=")) {
@@ -383,7 +383,7 @@ Map<String, num> benchmark(
   );
 }
 
-late final RegExp _extractNumbers = new RegExp(
+late final RegExp _extractPerfNumbers = new RegExp(
   r"([\d+\,\.]+)\s+(.+)\s*",
   caseSensitive: false,
 );
@@ -412,7 +412,9 @@ Map<String, num> _benchmark(
         "LLC-loads:u,"
         "LLC-load-misses:u";
   }
-  ProcessResult processResult = Process.runSync("perf", [
+  ProcessResult processResult = Process.runSync("time", [
+    "-v",
+    "perf",
     "stat",
     "-B",
     "-e",
@@ -463,7 +465,7 @@ Map<String, num> _benchmark(
       }
       line = line.substring(0, pos);
     }
-    for (RegExpMatch match in _extractNumbers.allMatches(line)) {
+    for (RegExpMatch match in _extractPerfNumbers.allMatches(line)) {
       String stringValue = match.group(1)!.trim();
       String caption = match.group(2)!.trim();
       stringValue = stringValue.replaceAll(",", "");
@@ -478,6 +480,16 @@ Map<String, num> _benchmark(
         print("WARNING: $caption is scaled at $scaling!");
         warnings?.scalingInEffect = true;
       }
+    }
+    String trimmed = line.trim();
+    const String searchedTimeDashVCaption =
+        "Maximum resident set size (kbytes): ";
+    if (trimmed.startsWith(searchedTimeDashVCaption)) {
+      String maxRssString = trimmed
+          .substring(searchedTimeDashVCaption.length)
+          .trim();
+      result["maxRssKbytes"] = int.parse(maxRssString);
+      result["maxRssBytes"] = int.parse(maxRssString) * 1024;
     }
   }
 
@@ -521,7 +533,7 @@ String _computeAotRuntime() {
   }
 }
 
-void _checkEnvironment() {
+void checkEnvironment() {
   if (!Platform.isLinux) {
     throw "This (probably) only works in Linux";
   }

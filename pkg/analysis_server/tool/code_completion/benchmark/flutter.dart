@@ -59,6 +59,7 @@ Future<void> _runForever({
     resourceProvider: resourceProvider,
     includedPaths: [path],
     sdkPath: '/Users/scheglov/Applications/dart-sdk',
+    withFineDependencies: true,
   );
   var analysisContext = collection.contextFor(path);
   var analysisSession = analysisContext.currentSession;

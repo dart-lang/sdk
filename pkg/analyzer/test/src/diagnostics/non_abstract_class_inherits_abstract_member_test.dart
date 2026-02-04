@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -37,9 +37,10 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
+          diag.nonAbstractClassInheritsAbstractMemberOne,
           51,
           1,
+          messageContains: ["'getter A.x'"],
         ),
       ],
     );
@@ -55,13 +56,7 @@ class B implements A {
   int get x => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          45,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 45, 1)],
     );
   }
 
@@ -87,9 +82,10 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
+          diag.nonAbstractClassInheritsAbstractMemberTwo,
           45,
           1,
+          messageContains: ["'getter A.x' and 'setter A.x'"],
         ),
       ],
     );
@@ -107,9 +103,10 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
+          diag.nonAbstractClassInheritsAbstractMemberOne,
           45,
           1,
+          messageContains: ["'getter A.x'"],
         ),
       ],
     );
@@ -164,13 +161,7 @@ class C extends B {}
 
 class D extends C {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          42,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 42, 1)],
     );
   }
 
@@ -222,13 +213,7 @@ enum E implements A {
   v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          38,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 38, 1)],
     );
   }
 
@@ -243,13 +228,7 @@ enum E with M {
   v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          33,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 33, 1)],
     );
   }
 
@@ -264,13 +243,7 @@ enum E implements A {
   v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          34,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 34, 1)],
     );
   }
 
@@ -285,13 +258,7 @@ enum E with M {
   v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          32,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 32, 1)],
     );
   }
 
@@ -306,13 +273,7 @@ enum E implements A {
   v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          38,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 38, 1)],
     );
   }
 
@@ -327,13 +288,7 @@ enum E with M {
   v;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 36, 1)],
     );
   }
 
@@ -356,13 +311,7 @@ class A {
 }
 class B implements A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          42,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 42, 1)],
     );
   }
 
@@ -376,13 +325,7 @@ class B implements A {
   int get x => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 36, 1)],
     );
   }
 
@@ -408,9 +351,10 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
+          diag.nonAbstractClassInheritsAbstractMemberTwo,
           36,
           1,
+          messageContains: ["'getter A.x' and 'setter A.x'"],
         ),
       ],
     );
@@ -426,13 +370,7 @@ class B implements A {
   void set x(int value) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 36, 1)],
     );
   }
 
@@ -451,9 +389,10 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFivePlus,
+          diag.nonAbstractClassInheritsAbstractMemberFivePlus,
           62,
           1,
+          messageContains: ["'A.m', 'A.n', 'A.o', 'A.p'"],
         ),
       ],
     );
@@ -473,9 +412,10 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFour,
+          diag.nonAbstractClassInheritsAbstractMemberFour,
           55,
           1,
+          messageContains: ["'A.m', 'A.n', 'A.o', and 'A.p'"],
         ),
       ],
     );
@@ -581,13 +521,7 @@ abstract class I {
 }
 class B = A with M implements I;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          87,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 87, 1)],
     );
   }
 
@@ -602,13 +536,7 @@ abstract class M {
 abstract class A {}
 class B = A with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          67,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 67, 1)],
     );
   }
 
@@ -623,13 +551,7 @@ abstract class A {
 }
 class B = A with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          58,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 58, 1)],
     );
   }
 
@@ -642,13 +564,7 @@ class I {
 class C implements I {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          42,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 42, 1)],
     );
   }
 
@@ -661,13 +577,7 @@ abstract class A {
 class C extends A {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          40,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 40, 1)],
     );
   }
 
@@ -680,13 +590,7 @@ class I {
 class C implements I {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          28,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 28, 1)],
     );
   }
 
@@ -700,13 +604,7 @@ class C implements I {
   noSuchMethod(v);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          28,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 28, 1)],
     );
   }
 
@@ -734,13 +632,7 @@ class I {
 class C implements I {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          55,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 55, 1)],
     );
   }
 
@@ -753,13 +645,7 @@ abstract class A {
 class C extends A {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          35,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 35, 1)],
     );
   }
 
@@ -776,13 +662,7 @@ abstract class B {
 class C implements A, B {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          89,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 89, 1)],
     );
   }
 
@@ -795,13 +675,7 @@ abstract class A { get g1; get g2; }
 abstract class B implements A { get g1 => 1; }
 class C extends Object with B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          103,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 103, 1)],
     );
   }
 
@@ -814,13 +688,7 @@ abstract class A { m1(); m2(); }
 abstract class B implements A { m1() => 1; }
 class C extends Object with B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          97,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 97, 1)],
     );
   }
 
@@ -833,13 +701,7 @@ abstract class A { set s1(v); set s2(v); }
 abstract class B implements A { set s1(v) {} }
 class C extends Object with B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          109,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 109, 1)],
     );
   }
 
@@ -856,13 +718,7 @@ abstract class A {
 class B extends A implements I {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          71,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 71, 1)],
     );
   }
 
@@ -880,13 +736,7 @@ class B extends A implements I {
   get field => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          77,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 77, 1)],
     );
   }
 
@@ -899,13 +749,7 @@ class I {
 class C implements I {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 36, 1)],
     );
   }
 
@@ -918,13 +762,7 @@ abstract class A {
 class C extends A {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          43,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 43, 1)],
     );
   }
 
@@ -941,13 +779,7 @@ abstract class B implements A {
 class C extends B {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          84,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 84, 1)],
     );
   }
 
@@ -962,13 +794,7 @@ class C implements I {
   set v(_) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          27,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 27, 1)],
     );
   }
 
@@ -983,13 +809,7 @@ class C implements I {
   get v => 1;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          27,
-          1,
-        ),
-      ],
+      [error(diag.nonAbstractClassInheritsAbstractMemberOne, 27, 1)],
     );
   }
 
@@ -1017,9 +837,10 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberThree,
+          diag.nonAbstractClassInheritsAbstractMemberThree,
           48,
           1,
+          messageContains: ["'A.m', 'A.n', and 'A.o'"],
         ),
       ],
     );
@@ -1037,9 +858,10 @@ class C extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
+          diag.nonAbstractClassInheritsAbstractMemberTwo,
           41,
           1,
+          messageContains: ["'A.m' and 'A.n'"],
         ),
       ],
     );
@@ -1057,9 +879,10 @@ class C implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
+          diag.nonAbstractClassInheritsAbstractMemberTwo,
           27,
           1,
+          messageContains: ["'getter I.v' and 'setter I.v'."],
         ),
       ],
     );

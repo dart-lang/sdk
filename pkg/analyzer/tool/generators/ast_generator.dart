@@ -129,11 +129,12 @@ class _Generator {
         .nonNulls
         .toList();
 
+    var nodeBody = nodeImpl.body as BlockClassBodyImpl;
     return _ImplClass(
       node: nodeImpl,
       interfaceElement: interfaceElement,
       properties: properties,
-      leftBracketOffset: nodeImpl.leftBracket.offset,
+      leftBracketOffset: nodeBody.leftBracket.offset,
     );
   }
 
@@ -468,39 +469,40 @@ Token get endToken {
     var foundNonNullProperty = false;
     propertiesLoop:
     for (var property in implClass.properties.reversed) {
+      var propertyName = property.name;
+      if (implClass.doNotGenerateLookupNames.contains(propertyName)) {
+        continue;
+      }
+
       switch (property.typeKind) {
         case _PropertyTypeKindToken():
           if (property.isNullable) {
-            buffer.writeln(
-              'if (${property.name} case var ${property.name}?) {',
-            );
-            buffer.write('return ${property.name};');
+            buffer.writeln('if ($propertyName case var $propertyName?) {');
+            buffer.write('return $propertyName;');
             buffer.writeln('}');
           } else {
-            buffer.write('return ${property.name};');
+            buffer.write('return $propertyName;');
             foundNonNullProperty = true;
             break propertiesLoop;
           }
         case _PropertyTypeKindTokenList():
-          var lastIndexStr = '${property.name}.length - 1';
-          buffer.write('return ${property.name}[$lastIndexStr];');
+          var lastIndexStr = '$propertyName.length - 1';
+          buffer.write('return $propertyName[$lastIndexStr];');
           foundNonNullProperty = true;
           break propertiesLoop;
         case _PropertyTypeKindNode():
           if (property.isNullable) {
-            buffer.writeln(
-              'if (${property.name} case var ${property.name}?) {',
-            );
-            buffer.write('return ${property.name}.endToken;');
+            buffer.writeln('if ($propertyName case var $propertyName?) {');
+            buffer.write('return $propertyName.endToken;');
             buffer.writeln('}');
           } else {
-            buffer.write('return ${property.name}.endToken;');
+            buffer.write('return $propertyName.endToken;');
             foundNonNullProperty = true;
             break propertiesLoop;
           }
         case _PropertyTypeKindNodeList():
           buffer.write('''
-if (${property.name}.endToken case var result?) {
+if ($propertyName.endToken case var result?) {
   return result;
 }''');
         case _PropertyTypeKindOther():
@@ -518,6 +520,10 @@ if (${property.name}.endToken case var result?) {
   void _generateFields(_ImplClass implClass, StringBuffer buffer) {
     for (var property in implClass.properties) {
       var propertyName = property.name;
+
+      if (implClass.doNotGenerateLookupNames.contains(propertyName)) {
+        continue;
+      }
 
       if (property.isSuper) {
         continue;
@@ -563,6 +569,10 @@ final ${property.typeCode} $propertyName;
 
   void _generateNodeGettersSetters(StringBuffer buffer, _ImplClass implClass) {
     for (var property in implClass.properties) {
+      var propertyName = property.name;
+      if (implClass.doNotGenerateLookupNames.contains(propertyName)) {
+        continue;
+      }
       if (property.isSuper) {
         if (property.withOverrideSuperNotNull) {
           buffer.write('''
@@ -574,14 +584,14 @@ ${property.typeCode} get ${property.name} => super.${property.name}!;
         continue;
       }
       if (property.typeKind is _PropertyTypeKindNode) {
-        var propertyName = property.name;
         var maybeOverride = property.withOverride ? '@override' : '';
         buffer.write('''
 \n@generated
 $maybeOverride
 ${property.typeCode} get $propertyName => _$propertyName;
-    
-@generated
+''');
+        buffer.write('''
+\n@generated
 set $propertyName(${property.typeCode} $propertyName) {
   _$propertyName = _becomeParentOf($propertyName);
 }
@@ -674,7 +684,7 @@ void visitChildren(AstVisitor visitor) {''');
   void _removeGeneratedMembers(ResolvedUnitResult astUnitResult) {
     var replacements = <_Replacement>[];
     for (var implClass in implClasses) {
-      for (var member in implClass.node.members) {
+      for (var member in implClass.members) {
         String memberName;
         switch (member) {
           case ConstructorDeclarationImpl():
@@ -693,7 +703,14 @@ void visitChildren(AstVisitor visitor) {''');
             }
           case FieldDeclarationImpl():
             var field = member.fields.variables.single;
-            memberName = field.declaredFragment!.element.lookupName!;
+            var element = field.declaredFragment!.element;
+            memberName = element.lookupName!;
+            if (element.metadata.hasDoNotGenerate) {
+              implClass.doNotGenerateLookupNames.add(memberName);
+              continue;
+            }
+          case PrimaryConstructorBodyImpl():
+            throw UnimplementedError();
         }
         if (implClass.generatedLookupNames.contains(memberName)) {
           replacements.add(_Replacement(member.offset, member.end, ''));
@@ -830,8 +847,12 @@ class _ImplClass {
     );
   }
 
+  NodeListImpl<ClassMemberImpl> get members {
+    return (node.body as BlockClassBodyImpl).members;
+  }
+
   String get name {
-    return node.name.lexeme;
+    return node.namePart.typeName.lexeme;
   }
 }
 

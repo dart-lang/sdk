@@ -100,10 +100,11 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     await _write(
-      builder,
-      resolvedUnit,
-      name,
-      targetNode,
+      builder: builder,
+      resolvedUnit: resolvedUnit,
+      name: name,
+      unitMember: targetNode,
+      unitMemberName: targetNode.namePart.typeName,
       constructorName: name,
       argumentList: argumentList,
     );
@@ -118,8 +119,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     _constructorName = node.toSource();
     // should be synthetic default constructor
     if (constructorElement == null ||
-        !constructorElement.isDefaultConstructor ||
-        !constructorElement.isSynthetic) {
+        !constructorElement.isOriginImplicitDefault) {
       return;
     }
 
@@ -226,7 +226,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     Token name,
     EnumConstantDeclaration parent,
   ) async {
-    var grandParent = parent.parent;
+    var grandParent = parent.parent?.parent;
     if (grandParent is! EnumDeclaration) {
       return;
     }
@@ -255,24 +255,26 @@ class CreateConstructor extends ResolvedCorrectionProducer {
 
     var arguments = parent.arguments;
     _constructorName =
-        '${targetNode.name.lexeme}${arguments?.constructorSelector ?? ''}';
+        '${targetNode.namePart.typeName.lexeme}${arguments?.constructorSelector ?? ''}';
 
     await _write(
-      builder,
-      resolvedUnit,
-      name,
-      targetNode,
+      builder: builder,
+      resolvedUnit: resolvedUnit,
+      name: name,
+      unitMember: targetNode,
+      unitMemberName: targetNode.namePart.typeName,
       isConst: true,
       constructorName: arguments?.constructorSelector?.name.token,
       argumentList: arguments?.argumentList,
     );
   }
 
-  Future<void> _write(
-    ChangeBuilder builder,
-    ResolvedUnitResult resolvedUnit,
-    Token name,
-    NamedCompilationUnitMember unitMember, {
+  Future<void> _write({
+    required ChangeBuilder builder,
+    required ResolvedUnitResult resolvedUnit,
+    required Token name,
+    required CompilationUnitMember unitMember,
+    required Token unitMemberName,
     Token? constructorName,
     bool isConst = false,
     ArgumentList? argumentList,
@@ -281,7 +283,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertConstructor(unitMember, (builder) {
         builder.writeConstructorDeclaration(
-          unitMember.name.lexeme,
+          unitMemberName.lexeme,
           isConst: isConst,
           argumentList: argumentList,
           constructorName: constructorName?.lexeme,

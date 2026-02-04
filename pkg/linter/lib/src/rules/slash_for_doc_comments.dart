@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -9,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer using `///` for doc comments.';
 
@@ -21,7 +23,7 @@ bool isJavaStyle(Comment comment) {
   return comment.tokens.first.lexeme.startsWith('/**');
 }
 
-class SlashForDocComments extends LintRule {
+class SlashForDocComments extends AnalysisRule {
   SlashForDocComments()
     : super(name: LintNames.slash_for_doc_comments, description: _desc);
 
@@ -29,7 +31,7 @@ class SlashForDocComments extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.slashForDocComments;
+  DiagnosticCode get diagnosticCode => diag.slashForDocComments;
 
   @override
   void registerNodeProcessors(
@@ -56,7 +58,7 @@ class SlashForDocComments extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

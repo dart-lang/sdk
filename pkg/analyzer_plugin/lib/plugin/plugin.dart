@@ -254,6 +254,7 @@ abstract class ServerPlugin {
       byteStore: _byteStore,
       sdkPath: _sdkPath,
       fileContentCache: FileContentCache(resourceProvider),
+      withFineDependencies: true,
     );
     _contextCollection = contextCollection;
     await afterNewContextCollection(contextCollection: contextCollection);

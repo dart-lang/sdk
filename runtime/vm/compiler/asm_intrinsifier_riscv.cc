@@ -1501,11 +1501,11 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
 
   Label retry, already_set_in_r4;
   __ Bind(&retry);
-  __ lr(T2, Address(A0, 0));
+  __ lrx(T2, Address(A0, 0));
   __ srli(T4, T2, target::UntaggedObject::kHashTagPos);
   __ bnez(T4, &already_set_in_r4);
   __ or_(T2, T2, T3);
-  __ sc(T4, T2, Address(A0, 0));
+  __ scx(T4, T2, Address(A0, 0));
   __ bnez(T4, &retry);
   // Fall-through with A1 containing new hash value (untagged).
   __ SmiTag(A0, A1);
@@ -1724,9 +1724,9 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ slli(A0, A0, target::UntaggedObject::kHashTagPos);
   Label retry;
   __ Bind(&retry);
-  __ lr(T0, Address(A1, 0));
+  __ lrx(T0, Address(A1, 0));
   __ or_(T0, T0, A0);
-  __ sc(TMP, T0, Address(A1, 0));
+  __ scx(TMP, T0, Address(A1, 0));
   __ bnez(TMP, &retry);
 
   __ srli(A0, A0, target::UntaggedObject::kHashTagPos);

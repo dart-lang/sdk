@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
@@ -110,9 +109,9 @@ class _FakeAnalysisDriver implements AnalysisDriver {
     }
     var kind = file.kind;
     var library = kind.library ?? kind.asLibrary;
-    var element = libraryContext.computeUnitElement(library, file);
+    var fragment = libraryContext.computeUnitElement(library, file);
     return UnitElementResultImpl(
-      fragment: element,
+      fragment: fragment,
       fileState: file,
       session: currentSession,
     );
@@ -130,7 +129,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   final ResourceProvider resourceProvider;
 
   @override
-  final ContextRoot contextRoot;
+  final ContextRootImpl contextRoot;
 
   @override
   late _MicroAnalysisSessionImpl currentSession;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -152,9 +152,7 @@ FunctionDeclaration
     var parseResult = parseStringWithErrors(r'''
 set foo {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.missingFunctionParameters, 4, 3),
-    ]);
+    parseResult.assertErrors([error(diag.missingFunctionParameters, 4, 3)]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -179,7 +177,7 @@ FunctionDeclaration
 set foo({a}) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
+      error(diag.wrongNumberOfParametersForSetter, 4, 3),
     ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
@@ -205,7 +203,7 @@ FunctionDeclaration
 set foo([a]) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
+      error(diag.wrongNumberOfParametersForSetter, 4, 3),
     ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
@@ -231,7 +229,7 @@ FunctionDeclaration
 set foo(a, b, c) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
+      error(diag.wrongNumberOfParametersForSetter, 4, 3),
     ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;
@@ -257,7 +255,7 @@ FunctionDeclaration
 set foo() {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
+      error(diag.wrongNumberOfParametersForSetter, 4, 3),
     ]);
 
     var node = parseResult.findNode.singleFunctionDeclaration;

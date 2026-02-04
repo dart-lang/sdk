@@ -30,12 +30,7 @@ Future<void> main(List<String> args) async {
   if (compile == null) throw "Input doesn't crash.";
   String categorized = categorize(compile.$2);
 
-  CompilationUnitEnd ast = getAST(
-    rawBytes,
-    includeComments: true,
-    enableTripleShift: true,
-    allowPatterns: true,
-  );
+  CompilationUnitEnd ast = getAST(rawBytes, includeComments: true);
   ast.debugPrint();
 
   Visitor v = new Visitor(helper, categorized, sourceAsString);

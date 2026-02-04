@@ -8,9 +8,9 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:linter/src/rules.dart';
@@ -701,6 +701,21 @@ name: $testPackageName
     );
   }
 
+  Future<void> test_pubspec_withError() async {
+    registerLintRules();
+    createFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - package_names
+''');
+
+    const content = r'''
+name: class^
+''';
+
+    await expectNoAction(filePath: pubspecFilePath, content);
+  }
+
   Future<void> test_snippets() async {
     setSnippetTextEditSupport();
 
@@ -869,13 +884,13 @@ $lintsYaml
 }
 
 /// A version of `camel_case_types` that is deprecated.
-class _DeprecatedCamelCaseTypes extends LintRule {
+class _DeprecatedCamelCaseTypes extends AnalysisRule {
   static const LintCode code = LintCode(
     'camel_case_types',
     "The type name '{0}' isn't an UpperCamelCase identifier.",
     correctionMessage:
         'Try changing the name to follow the UpperCamelCase style.',
-    hasPublishedDocs: true,
+    uniqueName: 'LintCode.camel_case_types',
   );
 
   _DeprecatedCamelCaseTypes()

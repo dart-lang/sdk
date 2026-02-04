@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
+import 'package:path/path.dart' as p;
 
 import 'constants.dart';
 
@@ -17,6 +18,11 @@ Never throwUnsupportedInvalidType(InvalidType type) => throw UnsupportedError(
 Never throwUnsupportedAuxiliaryType(AuxiliaryType type) =>
     throw UnsupportedError(
       'Unsupported auxiliary type $type (${type.runtimeType}).',
+    );
+
+Never throwUnsupportedExperimentalType(ExperimentalType type) =>
+    throw UnsupportedError(
+      'Unsupported experimental type $type (${type.runtimeType}).',
     );
 
 Constructor? unnamedConstructor(Class c) =>
@@ -709,5 +715,40 @@ extension InstanceInvocationHelpers on InstanceInvocation {
       }
     }
     return false;
+  }
+}
+
+extension LibraryHelpers on Library {
+  /// Returns the size in bytes of the Dart source code for this library.
+  ///
+  /// This includes the size of the library source and all part sources.
+  int get dartSize {
+    final uriToSource = enclosingComponent!.uriToSource;
+
+    final libUri = fileUri;
+    final source = uriToSource[libUri];
+    if (source == null) {
+      // Sources that only contain external declarations have nothing to add to
+      // the sum.
+      return 0;
+    }
+    var dartSize = source.source.length;
+    for (final part in parts) {
+      var partUri = part.partUri;
+      if (partUri.startsWith(importUri.scheme)) {
+        // Convert to a relative-to-library uri in order to compute a file uri.
+        partUri = p.relative(partUri, from: p.dirname('$importUri'));
+      }
+      final fileUri = libUri.resolve(partUri);
+      final partSource = uriToSource[fileUri];
+      if (partSource == null) {
+        // Sources that only contain external declarations have nothing to add
+        // to the sum.
+        continue;
+      }
+      dartSize += partSource.source.length;
+    }
+
+    return dartSize;
   }
 }

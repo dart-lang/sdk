@@ -19,10 +19,10 @@ class RemoveUnnecessaryCast extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CAST;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryCast;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CAST_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryCastMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

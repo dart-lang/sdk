@@ -7,7 +7,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -56,7 +56,7 @@ analyzer:
     var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
     expect(
       unignorableCodeNames,
-      unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']),
+      unorderedEquals(['one_error_code', 'another']),
     );
   }
 
@@ -68,7 +68,7 @@ analyzer:
 ''');
 
     var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
-    expect(unignorableCodeNames, contains('INVALID_ANNOTATION'));
+    expect(unignorableCodeNames, contains('invalid_annotation'));
     expect(unignorableCodeNames.length, greaterThan(500));
   }
 
@@ -82,7 +82,22 @@ analyzer:
 ''');
 
     var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
-    expect(unignorableCodeNames, contains('UNUSED_IMPORT'));
+    expect(unignorableCodeNames, contains('unused_import'));
+  }
+
+  test_analyzer_cannotIgnore_severity_withProcessor_oldSeverity() {
+    var analysisOptions = parseOptions('''
+analyzer:
+  errors:
+    unused_import: error
+  cannot-ignore:
+    - warning
+''');
+
+    // Since `unused_import` has been reclassified as an error,
+    // `cannot-ignore: - warning` should not apply to it.
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, isNot(contains('unused_import')));
   }
 
   test_analyzer_chromeos_checks() {
@@ -117,7 +132,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.returnTypeInvalidForCatchError,
+      diagnosticCode: diag.returnTypeInvalidForCatchError,
       arguments: [
         ['x'],
         ['y'],
@@ -142,7 +157,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.unusedLocalVariable,
+      diagnosticCode: diag.unusedLocalVariable,
       arguments: [
         ['x'],
       ],
@@ -167,7 +182,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: CompileTimeErrorCode.invalidAssignment,
+      diagnosticCode: diag.invalidAssignment,
       arguments: [
         ['x'],
         ['y'],
@@ -193,7 +208,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.returnTypeInvalidForCatchError,
+      diagnosticCode: diag.returnTypeInvalidForCatchError,
       arguments: [
         ['x'],
         ['y'],

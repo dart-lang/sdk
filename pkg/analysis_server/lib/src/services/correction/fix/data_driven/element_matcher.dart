@@ -278,7 +278,8 @@ class _MatcherBuilder {
         _addMatcher(
           components: [
             parent.constructorName?.name ?? '',
-            grandparent.returnType.name,
+            // TODO(scheglov): support primary constructors
+            grandparent.typeName!.name,
           ],
           kinds: [ElementKind.constructorKind],
         );

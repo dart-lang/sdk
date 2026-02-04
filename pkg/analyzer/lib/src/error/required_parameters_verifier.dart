@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:collection/collection.dart';
 
 /// Checks for missing arguments for required named parameters.
@@ -144,7 +144,11 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
     for (FormalParameterElement parameter in parameters) {
       if (parameter.isRequiredNamed) {
-        String parameterName = parameter.name!;
+        var parameterName = parameter.name;
+        if (parameterName == null) {
+          continue;
+        }
+
         if (!_containsNamedExpression(
           enclosingConstructor,
           arguments,
@@ -157,7 +161,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
           );
           _errorReporter.atEntity(
             errorEntity,
-            CompileTimeErrorCode.missingRequiredArgument,
+            diag.missingRequiredArgument,
             arguments: [parameterName],
           );
         }
@@ -175,13 +179,13 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
             if (reason != null) {
               _errorReporter.atEntity(
                 errorEntity,
-                WarningCode.missingRequiredParamWithDetails,
+                diag.missingRequiredParamWithDetails,
                 arguments: [parameterName, reason],
               );
             } else {
               _errorReporter.atEntity(
                 errorEntity,
-                WarningCode.missingRequiredParam,
+                diag.missingRequiredParam,
                 arguments: [parameterName],
               );
             }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,10 +13,11 @@ import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imp
 import 'package:collection/collection.dart' show IterableExtension;
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer declaring `const` constructors on `@immutable` classes.';
 
-class PreferConstConstructorsInImmutables extends LintRule {
+class PreferConstConstructorsInImmutables extends AnalysisRule {
   PreferConstConstructorsInImmutables()
     : super(
         name: LintNames.prefer_const_constructors_in_immutables,
@@ -23,8 +25,7 @@ class PreferConstConstructorsInImmutables extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferConstConstructorsInImmutables;
+  DiagnosticCode get diagnosticCode => diag.preferConstConstructorsInImmutables;
 
   @override
   void registerNodeProcessors(
@@ -38,7 +39,7 @@ class PreferConstConstructorsInImmutables extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -66,11 +67,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (node.constKeyword != null) return;
+    if (node.primaryConstructor.constKeyword != null) return;
     var element = node.declaredFragment?.element;
     if (element == null) return;
     if (element.metadata.hasImmutable) {
-      rule.reportAtToken(node.name);
+      rule.reportAtToken(node.primaryConstructor.typeName);
     }
   }
 

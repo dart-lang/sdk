@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -55,6 +55,32 @@ void f({@Deprecated.optional() int? p}) {}
 
 void g() {
   f(p: 1);
+}
+''');
+  }
+
+  test_argumentGiven_redirectedFromFactory_parameter_named() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C();
+  factory C.two({int? p}) = D;
+}
+
+class D extends C {
+  D({@Deprecated.optional() int? p});
+}
+''');
+  }
+
+  test_argumentGiven_redirectedFromFactory_parameter_positional() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C();
+  factory C.two([int? p]) = D;
+}
+
+class D extends C {
+  D([@Deprecated.optional() int? p]);
 }
 ''');
   }
@@ -128,7 +154,7 @@ void g() {
   f();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 57, 1)],
+      [error(diag.deprecatedOptional, 57, 1)],
     );
   }
 
@@ -143,7 +169,7 @@ C f() {
   return .m();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 85, 1)],
+      [error(diag.deprecatedOptional, 85, 1)],
     );
   }
 
@@ -158,7 +184,7 @@ C f() {
   return .new();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 69, 3)],
+      [error(diag.deprecatedOptional, 69, 3)],
     );
   }
 
@@ -173,7 +199,7 @@ class D extends C {
   D();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 73, 1)],
+      [error(diag.deprecatedOptional, 73, 1)],
     );
   }
 
@@ -188,7 +214,7 @@ class D extends C {
   D();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 73, 1)],
+      [error(diag.deprecatedOptional, 73, 1)],
     );
   }
 
@@ -203,7 +229,7 @@ void f() {
   C();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 64, 1)],
+      [error(diag.deprecatedOptional, 64, 1)],
     );
   }
 
@@ -218,7 +244,7 @@ void f(C c) {
   c.m();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 76, 1)],
+      [error(diag.deprecatedOptional, 76, 1)],
     );
   }
 
@@ -231,7 +257,7 @@ void g() {
   f();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 57, 1)],
+      [error(diag.deprecatedOptional, 57, 1)],
     );
   }
 
@@ -260,7 +286,27 @@ class C {
   C.two() : this();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 60, 4)],
+      [error(diag.deprecatedOptional, 60, 4)],
+    );
+  }
+
+  test_argumentOmitted_redirectedConstructor_indirectlyDeprecated() async {
+    // This test asserts that we do _not_ report the `C.three` constructor.
+    // While the `C.two` constructor must deal with the deprecation of the
+    // optionality of `C.new`'s `p` parameter, there is nothing to do for
+    // `C.three`. (For example, we can't pass a positional argument to
+    // `this.two()`, because `C.two` does not accept a positional parameter.)
+    // Whether and how `C.three` must change depends on how `C.two` is changed
+    // to handle the deprecation.
+    await assertErrorsInCode(
+      r'''
+class C {
+  C([@Deprecated.optional() int? p]);
+  C.two() : this();
+  C.three() : this.two();
+}
+''',
+      [error(diag.deprecatedOptional, 60, 4)],
     );
   }
 
@@ -272,7 +318,68 @@ class C {
   C.two() : this.one();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 69, 3)],
+      [error(diag.deprecatedOptional, 69, 3)],
+    );
+  }
+
+  test_argumentOmitted_redirectedFromFactory_parameter_named() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C();
+  factory C.two() = D;
+}
+
+class D extends C {
+  D({@Deprecated.optional() int? p});
+}
+''',
+      [error(diag.deprecatedOptional, 27, 5)],
+    );
+  }
+
+  test_argumentOmitted_redirectedFromFactory_parameter_positional() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C();
+  factory C.two() = D;
+}
+
+class D extends C {
+  D([@Deprecated.optional() int? p]);
+}
+''',
+      [error(diag.deprecatedOptional, 27, 5)],
+    );
+  }
+
+  test_argumentOmitted_redirectedIndirectlyFromFactory_parameter_named() async {
+    // In this test, we ensure that no warning is reported for `C.two`. That is,
+    // we do not report indirect deprecation issues with redirecting factory
+    // constructors. The signature of `C.two` cannot be atomically adjusted to
+    // prepare for the new signature in `E.new`. The only way to prepare `C.two`
+    // is to simultaneously prepare `D.two`, and preparing `C.two` will either
+    // produce a new error or warning at `C.two` (if the signature is adjusted),
+    // or will make `C.two` indirectly compliant (like if `D.two` is changed to
+    // redirect differently, or not redirect, etc.).
+    await assertErrorsInCode(
+      r'''
+class C {
+  C();
+  factory C.two() = D.two;
+}
+
+class D extends C {
+  D();
+  factory D.two() = E;
+}
+
+class E extends D {
+  E({@Deprecated.optional() int? p});
+}
+''',
+      [error(diag.deprecatedOptional, 84, 5)],
     );
   }
 
@@ -287,7 +394,32 @@ class D extends C {
   D() : super();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 79, 5)],
+      [error(diag.deprecatedOptional, 79, 5)],
+    );
+  }
+
+  test_argumentOmitted_superInvocation_indirectlyDeprecated() async {
+    // This test asserts that we do _not_ report the `E.new` constructor. While
+    // the `D.new` constructor must deal with the deprecation of the optionality
+    // of `C.new`'s `p` parameter, there is nothing to do for `E.new`. (For
+    // example, we can't pass a positional argument to `super()`, because
+    // `D.new` does not accept a positional parameter.) Whether and how `E.new`
+    // must change depends on how `D.new` is changed to handle the deprecation.
+    await assertErrorsInCode(
+      r'''
+class C {
+  C([@Deprecated.optional() int? p]);
+}
+
+class D extends C {
+  D() : super();
+}
+
+class E extends D {
+  E() : super();
+}
+''',
+      [error(diag.deprecatedOptional, 79, 5)],
     );
   }
 
@@ -302,7 +434,7 @@ class D extends C {
   D() : super();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 79, 5)],
+      [error(diag.deprecatedOptional, 79, 5)],
     );
   }
 
@@ -317,7 +449,7 @@ class D extends C {
   D() : super.named();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 91, 5)],
+      [error(diag.deprecatedOptional, 91, 5)],
     );
   }
 

@@ -46,6 +46,12 @@ CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 class CodeStatistics;
 class StackFrame;
 
+namespace module_snapshot {
+class CodeDeserializationCluster;
+class Deserializer;
+class ObjectPoolDeserializationCluster;
+}  // namespace module_snapshot
+
 #define DEFINE_CONTAINS_COMPRESSED(type)                                       \
   static constexpr bool kContainsCompressedPointers =                          \
       is_compressed_ptr<type>::value;
@@ -886,6 +892,7 @@ class UntaggedObject {
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
   friend class Object;
+  friend class module_snapshot::Deserializer;
   friend uword TagsFromUntaggedObject(UntaggedObject*);                // tags_
   friend void SetNewSpaceTaggingWord(ObjectPtr, classid_t, uint32_t);  // tags_
   friend class ObjectCopyBase;  // LoadPointer/StorePointer
@@ -1249,6 +1256,7 @@ class UntaggedClass : public UntaggedObject {
 #if !defined(DART_PRECOMPILED_RUNTIME)
         return reinterpret_cast<CompressedObjectPtr*>(&dependent_code_);
 #endif
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1333,6 +1341,7 @@ class UntaggedPatchClass : public UntaggedObject {
         UNREACHABLE();
         return nullptr;
 #endif
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1527,6 +1536,7 @@ class UntaggedFunction : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&data_);
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1625,10 +1635,9 @@ class UntaggedClosureData : public UntaggedObject {
   using PackedAwaiterLinkIndex = BitField<decltype(packed_fields_),
                                           uint8_t,
                                           PackedAwaiterLinkDepth::kNextBit>;
-  using DoesCloseOverOnlySharedFields =
-      BitField<decltype(packed_fields_),
-               bool,
-               PackedAwaiterLinkIndex::kNextBit>;
+  using CapturesOnlySharedFields = BitField<decltype(packed_fields_),
+                                            bool,
+                                            PackedAwaiterLinkIndex::kNextBit>;
   friend class Function;
   friend class UnitDeserializationRoots;
 };
@@ -1692,6 +1701,7 @@ class UntaggedField : public UntaggedObject {
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<CompressedObjectPtr*>(&initializer_function_);
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1761,6 +1771,7 @@ class alignas(8) UntaggedScript : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&kernel_program_info_);
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1838,6 +1849,7 @@ class UntaggedLibrary : public UntaggedObject {
         UNREACHABLE();
         return nullptr;
 #endif
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1894,6 +1906,7 @@ class UntaggedNamespace : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&owner_);
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -2077,6 +2090,7 @@ class UntaggedCode : public UntaggedObject {
   friend class UnitSerializationRoots;
   friend class UnitDeserializationRoots;
   friend class CallSiteResetter;
+  friend class module_snapshot::CodeDeserializationCluster;
 };
 
 class UntaggedBytecode : public UntaggedObject {
@@ -2142,6 +2156,7 @@ class UntaggedObjectPool : public UntaggedObject {
   friend class Interpreter;
   friend class UnitSerializationRoots;
   friend class UnitDeserializationRoots;
+  friend class module_snapshot::ObjectPoolDeserializationCluster;
 };
 
 class UntaggedInstructions : public UntaggedObject {
@@ -2713,6 +2728,7 @@ class UntaggedICData : public UntaggedCallSiteData {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return to();
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -2851,6 +2867,7 @@ class UntaggedLibraryPrefix : public UntaggedInstance {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&importer_);
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -3387,6 +3404,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class Page;
   friend class MarkingVisitor;
   friend class FastObjectCopy;  // For initializing fields.
+  friend class module_snapshot::Deserializer;
   friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };
 

@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class ConvertToWhereTypeBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.prefer_iterable_whereType;
+  String get lintCode => LintNames.prefer_iterable_wheretype;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -49,7 +49,7 @@ class ConvertToWhereTypeTest extends FixProcessorLintTest {
   FixKind get kind => DartFixKind.convertToWhereType;
 
   @override
-  String get lintCode => LintNames.prefer_iterable_whereType;
+  String get lintCode => LintNames.prefer_iterable_wheretype;
 
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''

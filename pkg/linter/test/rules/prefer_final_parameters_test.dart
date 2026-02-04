@@ -2,19 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(PreferFinalParametersBeforePrimaryConstructorsTest);
     defineReflectiveTests(PreferFinalParametersTest);
     // TODO(srawlins): Add tests of abstract functions.
   });
 }
 
 @reflectiveTest
-class PreferFinalParametersTest extends LintRuleTest {
+class PreferFinalParametersBeforePrimaryConstructorsTest extends LintRuleTest {
+  @override
+  List<String> get experiments => super.experiments
+      .where(
+        (experiment) => experiment != Feature.primary_constructors.enableString,
+      )
+      .toList();
+
   @override
   String get lintRule => LintNames.prefer_final_parameters;
 
@@ -339,7 +349,7 @@ void f({final String? _}) { }
       [
         // No lint.
         // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-        error(CompileTimeErrorCode.privateOptionalParameter, 22, 1),
+        error(diag.privateNamedNonFieldParameter, 22, 1),
       ],
     );
   }
@@ -371,7 +381,7 @@ void f({required String _}) { }
       [
         // No lint.
         // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-        error(CompileTimeErrorCode.privateOptionalParameter, 24, 1),
+        error(diag.privateNamedNonFieldParameter, 24, 1),
       ],
     );
   }
@@ -404,6 +414,20 @@ void f([String? _]) { }
   test_topLevelFunction_wildcard() async {
     await assertNoDiagnostics(r'''
 void f(int _){ }
+''');
+  }
+}
+
+@reflectiveTest
+class PreferFinalParametersTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.prefer_final_parameters;
+
+  test_basicFunction() async {
+    await assertNoDiagnostics(r'''
+void f(String p) {
+  print(p);
+}
 ''');
   }
 }

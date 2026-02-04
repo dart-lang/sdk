@@ -61,6 +61,12 @@ class StubCode : public AllStatic {
   static void ForEachStub(
       const std::function<bool(const char*, uword)>& callback);
 
+  static constexpr const char* StubNames[] = {
+#define STUB_CODE_NAME(name) #name,
+      VM_STUB_CODE_LIST(STUB_CODE_NAME)
+#undef STUB_CODE_NAME
+  };
+
 // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
   static const Code& name() { return *entries_[k##name##Index].code; }         \

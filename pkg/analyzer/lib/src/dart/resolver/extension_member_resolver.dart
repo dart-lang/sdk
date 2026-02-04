@@ -18,11 +18,23 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+
+/// The result of a failed attempt to resolve an identifier to the single
+/// element with the given name, where the result is expected to come from an
+/// extension. [AmbiguousStaticExtensionResolutionError] covers the case where
+/// multiple matching extensions were found, resulting in an ambiguity.
+class AmbiguousStaticExtensionResolutionError
+    extends StaticExtensionResolutionResult {
+  const AmbiguousStaticExtensionResolutionError();
+
+  @override
+  InternalExecutableElement? get member => null;
+}
 
 class ExtensionMemberResolver {
   final ResolverVisitor _resolver;
@@ -115,35 +127,65 @@ class ExtensionMemberResolver {
 
     // The most specific extension is ambiguous.
     if (mostSpecific.length == 2) {
-      _diagnosticReporter.atEntity(
-        nameEntity,
-        CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
-        arguments: [
-          name.name,
-          mostSpecific[0].extension,
-          mostSpecific[1].extension,
-        ],
+      _diagnosticReporter.report(
+        diag.ambiguousExtensionMemberAccessTwo
+            .withArguments(
+              name: name.name,
+              firstExtension: mostSpecific[0].extension,
+              secondExtension: mostSpecific[1].extension,
+            )
+            .at(nameEntity),
       );
     } else {
       var extensions = mostSpecific.map((e) => e.extension).toList();
-      _diagnosticReporter.atEntity(
-        nameEntity,
-        CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore,
-        arguments: [
-          name.name,
-          mostSpecific.map((e) {
-            var name = e.extension.name;
-            if (name != null) {
-              return "extension '$name'";
-            }
-            var type = e.extendedType.getDisplayString();
-            return "unnamed extension on '$type'";
-          }).commaSeparatedWithAnd,
-        ],
-        contextMessages: convertTypeNames(<Object>[...extensions]),
+      _diagnosticReporter.report(
+        diag.ambiguousExtensionMemberAccessThreeOrMore
+            .withArguments(
+              name: name.name,
+              extensions: mostSpecific.map((e) {
+                var name = e.extension.name;
+                if (name != null) {
+                  return "extension '$name'";
+                }
+                var type = e.extendedType.getDisplayString();
+                return "unnamed extension on '$type'";
+              }).commaSeparatedWithAnd,
+            )
+            .withContextMessages(convertTypeNames(<Object>[...extensions]))
+            .at(nameEntity),
       );
     }
     return ExtensionResolutionError.ambiguous;
+  }
+
+  /// Finds extensions applicable to [declaration] for static member lookups.
+  StaticExtensionResolutionResult findStaticExtension(
+    InterfaceElement declaration,
+    SyntacticEntity nameEntity,
+    Name name,
+  ) {
+    var extensions = [
+      for (var extension
+          in _resolver.libraryFragment.accessibleExtensions
+              .havingStaticMemberWithName(name))
+        if (extension.extension.onDeclaration == declaration) extension,
+    ];
+
+    if (extensions.isEmpty) {
+      return const NoneStaticExtensionResolutionError();
+    }
+
+    // When an extension is looked up for the declaration, only the exact match
+    // matters, since there is no inheritance of the static members. No attempts
+    // made to find the most precise match, and any ambiguity is treated as an
+    // error.
+    if (extensions.length == 1) {
+      var extension = extensions[0];
+      _resolver.libraryFragment.scope.notifyExtensionUsed(extension.extension);
+      return SingleStaticExtensionResolutionResult(member: extension.member);
+    }
+
+    return const AmbiguousStaticExtensionResolutionError();
   }
 
   /// Resolve the [name] (without `=`) to the corresponding getter and setter
@@ -202,9 +244,8 @@ class ExtensionMemberResolver {
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.extensionOverrideWithoutAccess,
+        _diagnosticReporter.report(
+          diag.extensionOverrideWithoutAccess.at(node),
         );
       }
       nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
@@ -212,9 +253,8 @@ class ExtensionMemberResolver {
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
-      _diagnosticReporter.atNode(
-        node.argumentList,
-        CompileTimeErrorCode.invalidExtensionArgumentCount,
+      _diagnosticReporter.report(
+        diag.invalidExtensionArgumentCount.at(node.argumentList),
       );
       nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
       nodeImpl.extendedType = DynamicTypeImpl.instance;
@@ -253,10 +293,7 @@ class ExtensionMemberResolver {
     );
 
     if (receiverType is VoidType) {
-      _diagnosticReporter.atNode(
-        receiverExpression,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.report(diag.useOfVoidResult.at(receiverExpression));
     } else if (!_typeSystem.isAssignableTo(
       receiverType,
       extendedType,
@@ -267,7 +304,7 @@ class ExtensionMemberResolver {
           : whyNotPromotedArguments[0];
       _diagnosticReporter.atNode(
         receiverExpression,
-        CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
+        diag.extensionOverrideArgumentNotAssignable,
         arguments: [receiverType, extendedType],
         contextMessages: _resolver.computeWhyNotPromotedMessages(
           receiverExpression,
@@ -294,7 +331,7 @@ class ExtensionMemberResolver {
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _diagnosticReporter.atNode(
               typeArgumentList.arguments[i],
-              CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+              diag.typeArgumentNotMatchingBounds,
               arguments: [argument, name, parameterBound],
             );
           }
@@ -377,7 +414,7 @@ class ExtensionMemberResolver {
         // explicit extension overrides cannot refer to unnamed extensions.
         _diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension,
+          diag.wrongNumberOfTypeArgumentsExtension,
           arguments: [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);
@@ -506,6 +543,18 @@ enum ExtensionResolutionError implements ExtensionResolutionResult {
 /// result (if any) is known to come from an extension.
 sealed class ExtensionResolutionResult implements SimpleResolutionResult {}
 
+/// The result of a failed attempt to resolve an identifier to the single
+/// element with the given name, where the result is expected to come from an
+/// extension. [NoneStaticExtensionResolutionError] covers the case where no
+/// matching extensions were found.
+class NoneStaticExtensionResolutionError
+    extends StaticExtensionResolutionResult {
+  const NoneStaticExtensionResolutionError();
+
+  @override
+  InternalExecutableElement? get member => null;
+}
+
 /// The result of a successful attempt to resolve an identifier to elements,
 /// where the result (if any) is known to come from an extension.
 class SingleExtensionResolutionResult extends SimpleResolutionResult
@@ -514,4 +563,26 @@ class SingleExtensionResolutionResult extends SimpleResolutionResult
     required super.getter2,
     required super.setter2,
   }) : assert(getter2 != null || setter2 != null);
+}
+
+/// The result of a successful attempt to resolve an identifier to the single
+/// element with the given name, where the result (if any) is known to come from
+/// an extension.
+class SingleStaticExtensionResolutionResult
+    extends SimpleStaticExtensionResolutionResult
+    implements StaticExtensionResolutionResult {
+  SingleStaticExtensionResolutionResult({
+    required InternalExecutableElement member,
+  }) : super(member: member);
+
+  @override
+  InternalExecutableElement get member => super.member!;
+}
+
+/// The result of attempting to resolve an identifier to the single element with
+/// the given name, where the result (if any) is known to come from an
+/// extension.
+sealed class StaticExtensionResolutionResult
+    extends SimpleStaticExtensionResolutionResult {
+  const StaticExtensionResolutionResult({super.member});
 }

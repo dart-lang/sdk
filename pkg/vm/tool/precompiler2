@@ -134,7 +134,7 @@ DART="$(find_dart)"
 function gen_kernel() {
   if [[ "$DART_GN_ARGS" == *"precompile_tools=true"* ]]; then
     # Precompile gen_kernel to an AOT app.
-    ninja -C "$BUILD_DIR" gen_kernel.exe
+    buildtools/ninja/ninja -C "$BUILD_DIR" gen_kernel.exe
     "$BUILD_DIR/gen_kernel.exe" $@
   else
     $DART ${DART_VM_FLAGS} "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" $@

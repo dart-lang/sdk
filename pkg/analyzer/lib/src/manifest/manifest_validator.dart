@@ -6,9 +6,9 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/manifest/charcodes.dart';
 import 'package:analyzer/src/manifest/manifest_values.dart';
-import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -495,7 +495,7 @@ class ManifestValidator {
           reporter,
           activity,
           attributeScreenOrientation,
-          ManifestWarningCode.settingOrientationOnActivity,
+          diag.settingOrientationOnActivity,
         );
       }
     }
@@ -505,7 +505,7 @@ class ManifestValidator {
           reporter,
           activity,
           attributeResizableActivity,
-          ManifestWarningCode.nonResizableActivity,
+          diag.nonResizableActivity,
         );
       }
     }
@@ -532,7 +532,7 @@ class ManifestValidator {
           reporter,
           element,
           androidName,
-          ManifestWarningCode.unsupportedChromeOsHardware,
+          diag.unsupportedChromeOsHardware,
           [element.attributes[androidName]!.value],
         );
       } else if (element.attributes[androidRequired]?.value == 'true') {
@@ -545,7 +545,7 @@ class ManifestValidator {
           reporter,
           element,
           androidName,
-          ManifestWarningCode.unsupportedChromeOsFeature,
+          diag.unsupportedChromeOsFeature,
           [element.attributes[androidName]!.value],
         );
       }
@@ -567,7 +567,7 @@ class ManifestValidator {
             reporter,
             permission,
             androidName,
-            ManifestWarningCode.cameraPermissionsIncompatible,
+            diag.cameraPermissionsIncompatible,
           );
         }
       } else {
@@ -579,7 +579,7 @@ class ManifestValidator {
             reporter,
             permission,
             androidName,
-            ManifestWarningCode.permissionImpliesUnsupportedHardware,
+            diag.permissionImpliesUnsupportedHardware,
             [featureName],
           );
         }
@@ -603,7 +603,7 @@ class ManifestValidator {
           reporter,
           feature,
           androidName,
-          ManifestWarningCode.unsupportedChromeOsHardware,
+          diag.unsupportedChromeOsHardware,
           [hardwareFeatureTouchscreen],
         );
       } else if (feature.attributes[androidRequired]?.value == 'true') {
@@ -611,17 +611,12 @@ class ManifestValidator {
           reporter,
           feature,
           androidName,
-          ManifestWarningCode.unsupportedChromeOsFeature,
+          diag.unsupportedChromeOsFeature,
           [hardwareFeatureTouchscreen],
         );
       }
     } else {
-      _reportErrorForNode(
-        reporter,
-        manifest,
-        null,
-        ManifestWarningCode.noTouchscreenFeature,
-      );
+      _reportErrorForNode(reporter, manifest, null, diag.noTouchscreenFeature);
     }
   }
 }

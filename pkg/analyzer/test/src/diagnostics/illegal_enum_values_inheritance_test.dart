@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 46, 1)],
+      [error(diag.illegalEnumValuesInheritance, 46, 1)],
     );
   }
 
@@ -37,7 +37,7 @@ class A {
 
 abstract class B implements A, Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 46, 1)],
+      [error(diag.illegalEnumValuesInheritance, 46, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ mixin M {
 
 abstract class B with M implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 46, 1)],
+      [error(diag.illegalEnumValuesInheritance, 46, 1)],
     );
   }
 
@@ -63,7 +63,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 51, 1)],
+      [error(diag.illegalEnumValuesInheritance, 51, 1)],
     );
   }
 
@@ -76,7 +76,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 47, 1)],
+      [error(diag.illegalEnumValuesInheritance, 47, 1)],
     );
   }
 
@@ -89,7 +89,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 51, 1)],
+      [error(diag.illegalEnumValuesInheritance, 51, 1)],
     );
   }
 
@@ -104,7 +104,7 @@ enum E implements A {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 41, 1)],
+      [error(diag.illegalEnumValuesInheritance, 41, 1)],
     );
   }
 
@@ -119,7 +119,7 @@ enum E implements A {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 39, 1)],
+      [error(diag.illegalEnumValuesInheritance, 39, 1)],
     );
   }
 
@@ -134,7 +134,7 @@ enum E with M {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 39, 1)],
+      [error(diag.illegalEnumValuesInheritance, 39, 1)],
     );
   }
 
@@ -149,7 +149,7 @@ enum E implements A {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 41, 1)],
+      [error(diag.illegalEnumValuesInheritance, 41, 1)],
     );
   }
 
@@ -164,7 +164,7 @@ enum E with M {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 41, 1)],
+      [error(diag.illegalEnumValuesInheritance, 41, 1)],
     );
   }
 
@@ -177,7 +177,7 @@ class A {
 
 mixin M on A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 37, 1)],
+      [error(diag.illegalEnumValuesInheritance, 37, 1)],
     );
   }
 
@@ -190,7 +190,7 @@ class A {
 
 mixin M on A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 42, 1)],
+      [error(diag.illegalEnumValuesInheritance, 42, 1)],
     );
   }
 
@@ -203,7 +203,7 @@ class A {
 
 mixin M on A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 40, 1)],
+      [error(diag.illegalEnumValuesInheritance, 40, 1)],
     );
   }
 
@@ -216,7 +216,7 @@ class A {
 
 mixin M on A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesInheritance, 42, 1)],
+      [error(diag.illegalEnumValuesInheritance, 42, 1)],
     );
   }
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class AddNullCheckReplaceWithNullAwareTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+  FixKind get kind => DartFixKind.replaceWithNullAware;
 
   Future<void> test_cascade() async {
     await resolveTestCode('''
@@ -389,8 +389,8 @@ void g() {
 }
 ''');
     await assertNoFix(
-      errorFilter: (diagnostic) =>
-          diagnostic.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.invalidAssignment,
     );
   }
 
@@ -402,9 +402,8 @@ void g(int i) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.argumentTypeNotAssignable;
+      filter: (error) {
+        return error.diagnosticCode == diag.argumentTypeNotAssignable;
       },
     );
   }
@@ -445,9 +444,8 @@ void g(int i, int? x) {
   f(i ?? x!);
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.argumentTypeNotAssignable;
+      filter: (error) {
+        return error.diagnosticCode == diag.argumentTypeNotAssignable;
       },
     );
   }
@@ -460,9 +458,8 @@ void g(int i, int x) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.argumentTypeNotAssignable;
+      filter: (error) {
+        return error.diagnosticCode == diag.argumentTypeNotAssignable;
       },
     );
   }
@@ -475,9 +472,8 @@ void g(int i, int? x) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.argumentTypeNotAssignable;
+      filter: (error) {
+        return error.diagnosticCode == diag.argumentTypeNotAssignable;
       },
     );
   }
@@ -566,9 +562,8 @@ void f (List<int>? args) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (diagnostic) =>
-          diagnostic.diagnosticCode !=
-          CompileTimeErrorCode.listElementTypeNotAssignable,
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode != diag.listElementTypeNotAssignable,
     );
   }
 
@@ -616,9 +611,8 @@ f(List<String>? args) {
   });
 }
 ''',
-      errorFilter: (diagnostic) =>
-          diagnostic.diagnosticCode !=
-          CompileTimeErrorCode.yieldEachOfInvalidType,
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode != diag.yieldEachOfInvalidType,
     );
   }
 
@@ -638,9 +632,9 @@ g() {
   }
 }
 ''',
-      errorFilter: (diagnostic) =>
+      filter: (diagnostic) =>
           diagnostic.diagnosticCode ==
-          CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
+          diag.uncheckedUseOfNullableValueInYieldEach,
     );
   }
 
@@ -660,9 +654,8 @@ class C {
   }
 }
 ''',
-      errorFilter: (diagnostic) =>
-          diagnostic.diagnosticCode !=
-          CompileTimeErrorCode.yieldEachOfInvalidType,
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode != diag.yieldEachOfInvalidType,
     );
   }
 
@@ -678,9 +671,8 @@ Iterable<String> f(List<String>? args) sync* {
   yield* args!;
 }
 ''',
-      errorFilter: (diagnostic) =>
-          diagnostic.diagnosticCode !=
-          CompileTimeErrorCode.yieldEachOfInvalidType,
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode != diag.yieldEachOfInvalidType,
     );
   }
 }

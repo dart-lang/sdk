@@ -203,7 +203,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
+    if (notification.event == analysisNotificationNavigation) {
       var params = AnalysisNavigationParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,
@@ -839,6 +839,62 @@ int V = 42;
     var target = targets[targetIndex];
     expect(target.startLine, greaterThan(0));
     expect(target.startColumn, greaterThan(0));
+  }
+
+  Future<void> test_class_getter_originDeclaration() async {
+    addTestFile('''
+class A {
+  int get foo => 0;
+  void bar() {
+    foo;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo;', 'foo =>');
+  }
+
+  Future<void> test_class_getter_originField() async {
+    addTestFile('''
+class A {
+  final int foo = 0;
+  void bar() {
+    foo;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo;', 'foo = 0;');
+  }
+
+  Future<void> test_class_setter_originDeclaration() async {
+    addTestFile('''
+class A {
+  set foo(int _)
+  void bar() {
+    foo = 0;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo = 0;', 'foo(int _)');
+  }
+
+  Future<void> test_class_setter_originField() async {
+    addTestFile('''
+class A {
+  int foo = 42;
+  void bar() {
+    foo = 0;
+  }
+}
+''');
+    await prepareNavigation();
+
+    assertHasRegionTarget('foo = 0;', 'foo = 42;');
   }
 
   Future<void> test_enum_constant() async {
@@ -1955,6 +2011,54 @@ void f() {
     await prepareNavigation();
     assertHasRegionTarget('AAA aaa', 'AAA {}');
     expect(testTarget.kind, ElementKind.CLASS);
+  }
+
+  Future<void> test_targetElement_atDeclaration_enum() async {
+    addTestFile('''
+enum E { one }
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('E {', 'E {');
+  }
+
+  Future<void> test_targetElement_atDeclaration_extension() async {
+    addTestFile('''
+extension E on String {}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('E on', 'E on');
+  }
+
+  Future<void> test_targetElement_atDeclaration_extensionType() async {
+    addTestFile('''
+extension type E(int it) {}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('E(int', 'E(int');
+  }
+
+  Future<void> test_targetElement_atDeclaration_mixin() async {
+    addTestFile('''
+mixin M {}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('M {', 'M {');
+  }
+
+  Future<void> test_targetElement_atDeclaration_typeAlias_functionType() async {
+    addTestFile('''
+typedef void F();
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('F();', 'F();');
+  }
+
+  Future<void> test_targetElement_atDeclaration_typeAlias_generic() async {
+    addTestFile('''
+typedef F = void Function();
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('F =', 'F =');
   }
 
   Future<void> test_targetElement_typedef_functionType() async {

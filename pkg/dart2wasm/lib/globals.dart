@@ -21,6 +21,7 @@ class Globals {
   /// this maps the global to the getter function defined and exported in
   /// the defining module.
   final Map<w.Global, w.BaseFunction> _globalGetters = {};
+  final Map<w.Global, w.BaseFunction> _globalSetters = {};
 
   final Map<Field, w.Global> _globalInitializedFlag = {};
   final WasmGlobalImporter _globalsModuleMap;
@@ -28,7 +29,7 @@ class Globals {
   Globals(this.translator)
       : _globalsModuleMap = WasmGlobalImporter(translator, 'global');
 
-  Constant? _getConstantInitializer(Field variable) {
+  Constant? getConstantInitializer(Field variable) {
     Expression? init = variable.initializer;
     if (init == null || init is NullLiteral) return NullConstant();
     if (init is IntLiteral) return IntConstant(init.value);
@@ -37,6 +38,10 @@ class Globals {
     if (init is StringLiteral) return StringConstant(init.value);
     if (init is ConstantExpression) return init.constant;
     return null;
+  }
+
+  void declareMainAppGlobalExportWithName(String name, w.Global exportable) {
+    _globalsModuleMap.exportDefinitionWithName(name, exportable);
   }
 
   /// Reads the value of [w.Global] onto the stack in [b].
@@ -68,6 +73,30 @@ class Globals {
     return global.type.type;
   }
 
+  /// Dual to [readGlobal]
+  void writeGlobal(w.InstructionsBuilder b, w.Global global) {
+    final owningModule = translator.moduleToBuilder[global.enclosingModule]!;
+    final callingModule = b.moduleBuilder;
+    if (owningModule == callingModule) {
+      b.global_set(global);
+    } else if (translator.isMainModule(owningModule)) {
+      final importedGlobal = _globalsModuleMap.get(global, callingModule);
+      b.global_set(importedGlobal);
+    } else {
+      final setter = _globalSetters.putIfAbsent(global, () {
+        final setterType =
+            owningModule.types.defineFunction([global.type.type], const []);
+        final setterFunction = owningModule.functions.define(setterType);
+        final setterBody = setterFunction.body;
+        setterBody.local_get(setterFunction.locals.single);
+        setterBody.global_set(global);
+        setterBody.end();
+        return setterFunction;
+      });
+      translator.callFunction(setter, b);
+    }
+  }
+
   /// Return (and if needed create) the Wasm global corresponding to a static
   /// field.
   w.Global getGlobalForStaticField(Field field) {
@@ -79,10 +108,10 @@ class Globals {
 
       // Maybe we can emit the initialization in the globals section. If so,
       // then that's preferred as we can make the global as non-mutable.
-      final Constant? init = _getConstantInitializer(field);
+      final Constant? init = getConstantInitializer(field);
       if (init != null &&
-          !(translator.constants.ensureConstant(init, module)?.isLazy ??
-              false)) {
+          translator.constants
+              .tryInstantiateEagerlyFrom(module, init, fieldType)) {
         // Initialized to a constant
         final global = module.globals.define(
             w.GlobalType(fieldType, mutable: !field.isFinal), memberName);

@@ -4,23 +4,21 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
-    show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
+    show translateErrorToken;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 /// The class `Scanner` implements a scanner for Dart code.
 ///
@@ -48,7 +46,7 @@ class Scanner {
 
   /// The diagnostic listener that will be informed of any diagnostics that are
   /// found during the scan.
-  final DiagnosticOrErrorListener _diagnosticListener;
+  final DiagnosticListener _diagnosticListener;
 
   /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
   /// language version greater than the one specified in the package config.
@@ -66,12 +64,12 @@ class Scanner {
 
   /// Initialize a newly created scanner to scan characters from the given
   /// [source]. The given character [reader] will be used to read the characters
-  /// in the source. The given [_diagnosticListener] will be informed of any errors
-  /// that are found.
+  /// in the source. The given [_diagnosticListener] will be informed of any
+  /// errors that are found.
   factory Scanner(
     Source source,
     CharacterReader reader,
-    DiagnosticOrErrorListener diagnosticListener,
+    DiagnosticListener diagnosticListener,
   ) => Scanner.fasta(
     source,
     diagnosticListener,
@@ -81,7 +79,7 @@ class Scanner {
 
   factory Scanner.fasta(
     Source source,
-    DiagnosticOrErrorListener diagnosticListener, {
+    DiagnosticListener diagnosticListener, {
     String? contents,
     int offset = -1,
   }) {
@@ -130,7 +128,7 @@ class Scanner {
   }
 
   void reportError(
-    ScannerErrorCode errorCode,
+    DiagnosticCode diagnosticCode,
     int offset,
     List<Object?>? arguments,
   ) {
@@ -139,7 +137,7 @@ class Scanner {
         source: source,
         offset: offset,
         length: 1,
-        diagnosticCode: errorCode,
+        diagnosticCode: diagnosticCode,
         arguments: arguments ?? const [],
       ),
     );
@@ -212,7 +210,7 @@ class Scanner {
           source: source,
           offset: versionToken.offset,
           length: versionToken.length,
-          diagnosticCode: WarningCode.invalidLanguageVersionOverrideGreater,
+          diagnosticCode: diag.invalidLanguageVersionOverrideGreater,
           arguments: [latestVersion.major, latestVersion.minor],
         ),
       );

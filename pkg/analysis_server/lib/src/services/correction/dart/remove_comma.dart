@@ -34,13 +34,13 @@ class RemoveComma extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_COMMA;
+  FixKind get fixKind => DartFixKind.removeComma;
 
   @override
   List<String>? get multiFixArguments => [commaKind, targetDescription];
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_COMMA_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeCommaMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

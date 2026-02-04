@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,16 +12,17 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Private field could be `final`.';
 
-class PreferFinalFields extends LintRule {
+class PreferFinalFields extends AnalysisRule {
   PreferFinalFields()
     : super(name: LintNames.prefer_final_fields, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalFields;
+  DiagnosticCode get diagnosticCode => diag.preferFinalFields;
 
   @override
   void registerNodeProcessors(
@@ -48,7 +50,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     if (node.isInvalidExtensionTypeField) return;
-    if (node.parent is EnumDeclaration) return;
+    if (node.parent?.parent is EnumDeclaration) return;
     if (node.fields.isFinal || node.fields.isConst) {
       return;
     }
@@ -106,7 +108,7 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   final RuleContext context;
 
@@ -127,10 +129,15 @@ class _Visitor extends SimpleAstVisitor<void> {
       // TODO(srawlins): We could look at the constructors once and store a set
       // of which fields are initialized by any, and a set of which fields are
       // initialized by all. This would conceivably improve performance.
-      var classDeclaration = variable.parent?.parent?.parent;
-      var constructors = classDeclaration is ClassDeclaration
-          ? classDeclaration.members.whereType<ConstructorDeclaration>()
-          : <ConstructorDeclaration>[];
+      var classDeclaration = variable.parent?.parent?.parent?.parent;
+      var constructors = <ConstructorDeclaration>[];
+      if (classDeclaration is ClassDeclaration) {
+        if (classDeclaration.body case BlockClassBody body) {
+          constructors = body.members
+              .whereType<ConstructorDeclaration>()
+              .toList();
+        }
+      }
 
       var isSetInAnyConstructor = constructors.any(
         (constructor) => field.isSetInConstructor(constructor),

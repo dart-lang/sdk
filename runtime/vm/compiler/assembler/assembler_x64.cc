@@ -2063,15 +2063,14 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
-      tsan_enter_exit) {
+  if (FLAG_target_thread_sanitizer && tsan_enter_exit) {
     TsanFuncEntry(/*preserve_registers=*/false);
   }
   movq(RBX, compiler::Address(THR, entry.OffsetFromThread()));
   LoadImmediate(R10, compiler::Immediate(argument_count));
+  Comment("Runtime call: %s", entry.name());
   call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
-      tsan_enter_exit) {
+  if (FLAG_target_thread_sanitizer && tsan_enter_exit) {
     TsanFuncExit(/*preserve_registers=*/false);
   }
 }
@@ -2085,7 +2084,6 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
                                    intptr_t frame_size,
                                    bool preserve_registers)
     : assembler_(assembler), preserve_registers_(preserve_registers) {
-  __ Comment("EnterCallRuntimeFrame");
   __ EnterFrame(0);
 
   if (preserve_registers_) {
@@ -2107,6 +2105,7 @@ void LeafRuntimeScope::Call(const RuntimeEntry& entry,
   COMPILE_ASSERT(CallingConventions::kVolatileCpuRegisters & (1 << RAX));
   __ movq(RAX, compiler::Address(THR, entry.OffsetFromThread()));
   __ movq(compiler::Assembler::VMTagAddress(), RAX);
+  __ Comment("Leaf runtime call: %s", entry.name());
   __ CallCFunction(RAX);
   __ movq(compiler::Assembler::VMTagAddress(),
           compiler::Immediate(VMTag::kDartTagId));
@@ -2131,8 +2130,6 @@ LeafRuntimeScope::~LeafRuntimeScope() {
 }
 
 void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
-  ASSERT(addr.base() != RSP);
-  ASSERT(addr.base() != RBP);
   ASSERT(dst != RSP);
   ASSERT(dst != RBP);
   Comment("TsanLoadAcquire");
@@ -2178,8 +2175,6 @@ void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
 }
 
 void Assembler::TsanStoreRelease(Register src, Address addr, OperandSize size) {
-  ASSERT(addr.base() != RSP);
-  ASSERT(addr.base() != RBP);
   ASSERT(src != RSP);
   ASSERT(src != RBP);
   Comment("TsanStoreRelease");
@@ -2211,7 +2206,6 @@ void Assembler::TsanStoreRelease(Register src, Address addr, OperandSize size) {
 }
 
 void Assembler::TsanFuncEntry(bool preserve_registers) {
-  Comment("TsanFuncEntry");
   LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
   movq(CallingConventions::kArg1Reg,
        Address(RBP, target::frame_layout.saved_caller_fp_from_fp *
@@ -2224,7 +2218,6 @@ void Assembler::TsanFuncEntry(bool preserve_registers) {
 }
 
 void Assembler::TsanFuncExit(bool preserve_registers) {
-  Comment("TsanFuncExit");
   LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
   rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
 }

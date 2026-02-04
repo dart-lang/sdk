@@ -52,7 +52,10 @@ abstract class CodeGenerator {
 /// produced type is not a subtype of the expected type.
 abstract class AstCodeGenerator
     extends ExpressionVisitor1<w.ValueType, w.ValueType>
-    with ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>
+    with
+        ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>,
+        ExpressionVisitor1ExperimentExclusionMixin<w.ValueType, w.ValueType>,
+        StatementVisitorExperimentExclusionMixin<void>
     implements InitializerVisitor<void>, StatementVisitor<void>, CodeGenerator {
   final Translator translator;
   final w.FunctionType functionType;
@@ -869,8 +872,7 @@ abstract class AstCodeGenerator
       final Location? location = node.location;
       final w.RefType stringRefType = translator.stringTypeNullable;
       if (location != null) {
-        translator.constants.instantiateConstant(
-          b,
+        instantiateConstant(
           StringConstant(location.file.toString()),
           stringRefType,
         );
@@ -880,8 +882,7 @@ abstract class AstCodeGenerator
             node.enclosingComponent!.uriToSource[location.file]!.text;
         final String conditionString = sourceString.substring(
             node.conditionStartOffset, node.conditionEndOffset);
-        translator.constants.instantiateConstant(
-          b,
+        instantiateConstant(
           StringConstant(conditionString),
           stringRefType,
         );
@@ -927,7 +928,7 @@ abstract class AstCodeGenerator
         (i) => b.block([], [exceptionType, stackTraceType]),
         growable: true);
 
-    w.Label try_ = b.try_([], [exceptionType, stackTraceType]);
+    w.Label try_ = b.try_legacy([], [exceptionType, stackTraceType]);
     catchBlockLabels.add(try_);
 
     catchBlockLabels = catchBlockLabels.reversed.toList();
@@ -972,7 +973,7 @@ abstract class AstCodeGenerator
 
     // Insert a catch instruction which will catch any thrown Dart
     // exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
+    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
 
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
@@ -995,22 +996,15 @@ abstract class AstCodeGenerator
     // Rethrow if all the catch blocks fall through
     b.rethrow_(try_);
 
-    // If we have a catches that are generic enough to catch a JavaScript
-    // error, we need to put that into a catch_all block.
     if (node.catches
         .any((c) => guardCanMatchJSException(translator, c.guard))) {
-      // This catches any objects that aren't dart exceptions, such as
-      // JavaScript exceptions or objects.
-      b.catch_all_legacy();
+      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
 
-      // We can't inspect the thrown object in a catch_all and get a stack
-      // trace, so we just attach the current stack trace.
-      call(translator.stackTraceCurrent.reference);
-      b.local_set(thrownStackTrace);
-
-      // We create a generic JavaScript error in this case.
       call(translator.javaScriptErrorFactory.reference);
-      b.local_set(thrownException);
+      b.local_tee(thrownException); // ref null #Top
+
+      b.getJavaScriptErrorStackTrace(translator);
+      b.local_set(thrownStackTrace);
 
       for (int catchBlockIndex = 0;
           catchBlockIndex < node.catches.length;
@@ -1101,7 +1095,7 @@ abstract class AstCodeGenerator
     w.Label returnFinalizerBlock = b.block();
     returnFinalizers.add(TryBlockFinalizer(returnFinalizerBlock));
 
-    w.Label tryBlock = b.try_();
+    w.Label tryBlock = b.try_legacy();
     translateStatement(node.body);
 
     final bool mustHandleReturn =
@@ -1116,12 +1110,12 @@ abstract class AstCodeGenerator
     }
 
     // Handle Dart exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
+    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
     // Handle JS exceptions.
-    b.catch_all_legacy();
+    b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
     translateStatement(node.finalizer);
     b.rethrow_(tryBlock);
 
@@ -1758,78 +1752,45 @@ abstract class AstCodeGenerator
     final positionalArguments = node.arguments.positional;
     final namedArguments = node.arguments.named;
     final memberName = node.name;
+    final callShape = CallShape(
+        memberName,
+        typeArguments.length,
+        positionalArguments.length,
+        namedArguments.map((n) => n.name).toList()..sort());
     final forwarder = translator
         .getDynamicForwardersForModule(b.moduleBuilder)
-        .getDynamicInvocationForwarder(memberName);
+        .getDynamicInvocationForwarder(callShape);
 
     // Evaluate receiver
     translateExpression(receiver, translator.topType);
-    final nullableReceiverLocal = addLocal(translator.topType);
-    b.local_set(nullableReceiverLocal);
 
     // Evaluate type arguments.
-    final typeArgsLocal = addLocal(
-        makeArray(translator.typeArrayType, typeArguments.length,
-            (elementType, elementIdx) {
-      translator.types.makeType(this, typeArguments[elementIdx]);
-    }));
-    b.local_set(typeArgsLocal);
+    for (final typeArgument in typeArguments) {
+      translator.types.makeType(this, typeArgument);
+    }
 
     // Evaluate positional arguments
-    final positionalArgsLocal = addLocal(makeArray(
-        translator.nullableObjectArrayType, positionalArguments.length,
-        (elementType, elementIdx) {
-      translateExpression(positionalArguments[elementIdx], elementType);
-    }));
-    b.local_set(positionalArgsLocal);
+    for (final argument in positionalArguments) {
+      translateExpression(argument, translator.topType);
+    }
 
     // Evaluate named arguments. The arguments need to be evaluated in the
     // order they appear in the AST, but need to be sorted based on names in
     // the argument list passed to the dynamic forwarder. Create a local for
     // each argument to allow adding values to the list in expected order.
-    final List<MapEntry<String, w.Local>> namedArgumentLocals = [];
+    final namedArgumentLocals = <String, w.Local>{};
     for (final namedArgument in namedArguments) {
       translateExpression(namedArgument.value, translator.topType);
       final argumentLocal = addLocal(translator.topType);
       b.local_set(argumentLocal);
-      namedArgumentLocals.add(MapEntry(namedArgument.name, argumentLocal));
+      namedArgumentLocals[namedArgument.name] = argumentLocal;
     }
-    namedArgumentLocals.sort((e1, e2) => e1.key.compareTo(e2.key));
 
-    // Create named argument array
-    final namedArgsLocal = addLocal(
-        makeArray(translator.nullableObjectArrayType, namedArguments.length * 2,
-            (elementType, elementIdx) {
-      if (elementIdx % 2 == 0) {
-        final name = namedArgumentLocals[elementIdx ~/ 2].key;
-        final w.ValueType symbolValueType =
-            translator.classInfo[translator.symbolClass]!.nonNullableType;
-        translator.constants.instantiateConstant(b,
-            translator.symbols.symbolForNamedParameter(name), symbolValueType);
-      } else {
-        final local = namedArgumentLocals[elementIdx ~/ 2].value;
-        b.local_get(local);
-      }
-    }));
-    b.local_set(namedArgsLocal);
+    // Load named arguments in sorted order.
+    for (final name in callShape.named) {
+      b.local_get(namedArgumentLocals[name]!);
+    }
 
-    final nullBlock = b.block([], [translator.topTypeNonNullable]);
-    b.local_get(nullableReceiverLocal);
-    b.br_on_non_null(nullBlock);
-    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
-    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
-    // have a `Null` class in dart2wasm so we throw directly.
-    b.local_get(nullableReceiverLocal);
-    createInvocationObject(translator, b, memberName, typeArgsLocal,
-        positionalArgsLocal, namedArgsLocal);
-
-    call(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.unreachable();
-    b.end(); // nullBlock
-
-    b.local_get(typeArgsLocal);
-    b.local_get(positionalArgsLocal);
-    b.local_get(namedArgsLocal);
     translator.callFunction(forwarder.function, b);
 
     return translator.topType;
@@ -1951,7 +1912,8 @@ abstract class AstCodeGenerator
     pushReceiver(signature);
 
     final targets = selector.targets(unchecked: useUncheckedEntry);
-    List<({Range range, Reference target})> targetRanges = targets.targetRanges;
+    List<({Range range, Reference target})> targetRanges =
+        targets.allTargetRanges;
     List<({Range range, Reference target})> staticDispatchRanges =
         targets.staticDispatchRanges;
 
@@ -2080,8 +2042,7 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitStaticTearOff(StaticTearOff node, w.ValueType expectedType) {
-    translator.constants.instantiateConstant(
-        b, StaticTearOffConstant(node.target), expectedType);
+    instantiateConstant(StaticTearOffConstant(node.target), expectedType);
     return expectedType;
   }
 
@@ -2188,21 +2149,6 @@ abstract class AstCodeGenerator
 
     // Evaluate receiver
     translateExpression(receiver, translator.topType);
-    final nullableReceiverLocal = addLocal(translator.topType);
-    b.local_set(nullableReceiverLocal);
-
-    final nullBlock = b.block([], [translator.topTypeNonNullable]);
-    b.local_get(nullableReceiverLocal);
-    b.br_on_non_null(nullBlock);
-    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
-    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
-    // have a `Null` class in dart2wasm so we throw directly.
-    b.local_get(nullableReceiverLocal);
-    createGetterInvocationObject(translator, b, memberName);
-
-    call(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.unreachable();
-    b.end(); // nullBlock
 
     // Call get forwarder
     translator.callFunction(forwarder.function, b);
@@ -2219,31 +2165,8 @@ abstract class AstCodeGenerator
         .getDynamicForwardersForModule(b.moduleBuilder)
         .getDynamicSetForwarder(memberName);
 
-    // Evaluate receiver
     translateExpression(receiver, translator.topType);
-    final nullableReceiverLocal = addLocal(translator.topType);
-    b.local_set(nullableReceiverLocal);
-
-    // Evaluate positional arg
     translateExpression(value, translator.topType);
-    final positionalArgLocal = addLocal(translator.topType);
-    b.local_set(positionalArgLocal);
-
-    final nullBlock = b.block([], [translator.topTypeNonNullable]);
-    b.local_get(nullableReceiverLocal);
-    b.br_on_non_null(nullBlock);
-    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
-    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
-    // have a `Null` class in dart2wasm so we throw directly.
-    b.local_get(nullableReceiverLocal);
-    createSetterInvocationObject(translator, b, memberName, positionalArgLocal);
-
-    call(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.unreachable();
-    b.end(); // nullBlock
-
-    // Call set forwarder
-    b.local_get(positionalArgLocal);
     translator.callFunction(forwarder.function, b);
 
     return translator.topType;
@@ -2563,7 +2486,7 @@ abstract class AstCodeGenerator
     final int vtableFieldIndex = representation.fieldIndexForSignature(
         node.arguments.positional.length, argNames);
     final w.FunctionType functionType =
-        representation.getVtableFieldType(vtableFieldIndex);
+        representation.vtableStruct.getVtableEntryAt(vtableFieldIndex);
 
     // Call entry point in vtable
     b.local_get(closureLocal);
@@ -2611,14 +2534,18 @@ abstract class AstCodeGenerator
       }
 
       // Instantiation function
+      final vtableIndex =
+          translator.closureLayouter.vtableInstantiationFunctionIndex;
+      final instantiationFunctionType =
+          representation.vtableStruct.getVtableEntryAt(vtableIndex);
+
       b.local_get(closureTemp);
       b.struct_get(representation.closureStruct, FieldIndex.closureVtable);
-      b.struct_get(
-          representation.vtableStruct, FieldIndex.vtableInstantiationFunction);
+      b.struct_get(representation.vtableStruct, vtableIndex);
 
       // Call instantiation function
-      b.call_ref(representation.instantiationFunctionType);
-      return representation.instantiationFunctionType.outputs.single;
+      b.call_ref(instantiationFunctionType);
+      return instantiationFunctionType.outputs.single;
     } else {
       // Only other alternative is `NeverType`.
       assert(type is NeverType);
@@ -2694,8 +2621,7 @@ abstract class AstCodeGenerator
     // Push default values for optional positional parameters.
     for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
-      translator.constants
-          .instantiateConstant(b, paramInfo.positional[i]!, type);
+      instantiateConstant(paramInfo.positional[i]!, type);
     }
 
     // Named arguments. Store evaluated arguments in locals to be able to
@@ -2718,8 +2644,7 @@ abstract class AstCodeGenerator
       if (namedLocal != null) {
         b.local_get(namedLocal);
       } else {
-        translator.constants
-            .instantiateConstant(b, paramInfo.named[name]!, type);
+        instantiateConstant(paramInfo.named[name]!, type);
       }
     }
   }
@@ -2792,48 +2717,44 @@ abstract class AstCodeGenerator
     final exceptionLocals = tryBlockLocals.last;
     b.local_get(exceptionLocals.exceptionLocal);
     b.local_get(exceptionLocals.stackTraceLocal);
-    b.throw_(translator.getExceptionTag(b.moduleBuilder));
+    b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
     return expectedType;
   }
 
   @override
   w.ValueType visitConstantExpression(
       ConstantExpression node, w.ValueType expectedType) {
-    translator.constants.instantiateConstant(b, node.constant, expectedType);
+    instantiateConstant(node.constant, expectedType);
     return expectedType;
   }
 
   @override
   w.ValueType visitNullLiteral(NullLiteral node, w.ValueType expectedType) {
-    translator.constants.instantiateConstant(b, NullConstant(), expectedType);
+    instantiateConstant(NullConstant(), expectedType);
     return expectedType;
   }
 
   @override
   w.ValueType visitStringLiteral(StringLiteral node, w.ValueType expectedType) {
-    translator.constants
-        .instantiateConstant(b, StringConstant(node.value), expectedType);
+    instantiateConstant(StringConstant(node.value), expectedType);
     return expectedType;
   }
 
   @override
   w.ValueType visitBoolLiteral(BoolLiteral node, w.ValueType expectedType) {
-    translator.constants
-        .instantiateConstant(b, BoolConstant(node.value), expectedType);
+    instantiateConstant(BoolConstant(node.value), expectedType);
     return expectedType;
   }
 
   @override
   w.ValueType visitIntLiteral(IntLiteral node, w.ValueType expectedType) {
-    translator.constants
-        .instantiateConstant(b, IntConstant(node.value), expectedType);
+    instantiateConstant(IntConstant(node.value), expectedType);
     return expectedType;
   }
 
   @override
   w.ValueType visitDoubleLiteral(DoubleLiteral node, w.ValueType expectedType) {
-    translator.constants
-        .instantiateConstant(b, DoubleConstant(node.value), expectedType);
+    instantiateConstant(DoubleConstant(node.value), expectedType);
     return expectedType;
   }
 
@@ -3200,6 +3121,15 @@ abstract class AstCodeGenerator
     call(translator
         .noSuchMethodErrorThrowUnimplementedExternalMemberError.reference);
     b.unreachable();
+  }
+
+  void instantiateConstant(Constant constant, w.ValueType expectedType) {
+    translator.constants.instantiateConstant(
+      b,
+      constant,
+      expectedType,
+      deferredModuleGuard: translator.moduleForConstant(constant),
+    );
   }
 }
 
@@ -4082,12 +4012,12 @@ class StaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     w.Global global = translator.globals.getGlobalForStaticField(field);
     w.Global? flag = translator.globals.getGlobalInitializedFlag(field);
     translateExpression(field.initializer!, global.type.type);
-    b.global_set(global);
+    translator.globals.writeGlobal(b, global);
     if (flag != null) {
       b.i32_const(1);
-      b.global_set(flag);
+      translator.globals.writeGlobal(b, flag);
     }
-    b.global_get(global);
+    translator.globals.readGlobal(b, global);
     translator.convertType(b, global.type.type, outputs.single);
     b.end();
   }
@@ -4109,7 +4039,7 @@ class EagerStaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     setSourceMapSourceAndFileOffset(source, field.fileOffset);
 
     translateExpression(field.initializer!, global.type.type);
-    b.global_set(global);
+    translator.globals.writeGlobal(b, global);
   }
 }
 
@@ -4139,20 +4069,20 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
       w.Global global, w.Global? flag, w.BaseFunction? initFunction) {
     if (initFunction == null) {
       // Statically initialized
-      b.global_get(global);
+      translator.globals.readGlobal(b, global);
     } else {
       if (flag != null) {
         // Explicit initialization flag
-        b.global_get(flag);
+        translator.globals.readGlobal(b, flag);
         b.if_(const [], [global.type.type]);
-        b.global_get(global);
+        translator.globals.readGlobal(b, global);
         b.else_();
         translator.callFunction(initFunction, b);
         b.end();
       } else {
         // Null signals uninitialized
         w.Label block = b.block(const [], [initFunction.type.outputs.single]);
-        b.global_get(global);
+        translator.globals.readGlobal(b, global);
         b.br_on_non_null(block);
         translator.callFunction(initFunction, b);
         b.end();
@@ -4162,10 +4092,10 @@ class StaticFieldImplicitAccessorCodeGenerator extends AstCodeGenerator {
 
   void _generateSetter(w.Global global, w.Global? flag) {
     b.local_get(paramLocals.single);
-    b.global_set(global);
+    translator.globals.writeGlobal(b, global);
     if (flag != null) {
       b.i32_const(1); // true
-      b.global_set(flag);
+      translator.globals.writeGlobal(b, flag);
     }
   }
 }
@@ -4706,6 +4636,39 @@ extension MacroAssembler on w.InstructionsBuilder {
     return outputs;
   }
 
+  /// Switches on the [pushBranchExpression] and calls [handleCase] for each
+  /// case or [handleDefault] for the default case.
+  ///
+  /// Assumes that [handleCase] and [handleDefault] will push [outputs] on the
+  /// stack.
+  ///
+  /// Leaves [outputs] on the stack.
+  void emitDenseTableBranch(
+      List<w.ValueType> outputs,
+      int n,
+      void Function() pushBranchExpression,
+      void Function(int) handleCase,
+      void Function() handleDefault) {
+    final done = block([], outputs);
+    final defaultCase = block();
+
+    final labelStack = <w.Label>[];
+    for (int i = 0; i < n; ++i) {
+      labelStack.add(block());
+    }
+    pushBranchExpression();
+    br_table(labelStack, defaultCase);
+    for (int i = n - 1; i >= 0; --i) {
+      end();
+      handleCase(i);
+      br(done);
+    }
+
+    end(); // defaultCase
+    handleDefault();
+    end(); // done
+  }
+
   void incrementingLoop(
       {required void Function() pushStart,
       required void Function() pushLimit,
@@ -5097,18 +5060,23 @@ extension MacroAssembler on w.InstructionsBuilder {
 
   List<w.ValueType> invoke(CallTarget target, {bool forceInline = false}) {
     if (target.supportsInlining && (target.shouldInline || forceInline)) {
-      final List<w.Local> inlinedLocals =
-          target.signature.inputs.map((t) => addLocal(t)).toList();
-      for (w.Local local in inlinedLocals.reversed) {
-        local_set(local);
-      }
-      final w.Label callBlock = block(const [], target.signature.outputs);
-      comment('Inlined ${target.name}');
-      target.inliningCodeGen.generate(this, inlinedLocals, callBlock);
-    } else {
-      comment('Direct call to ${target.name}');
-      call(target.function);
+      return inlineCallTo(target);
     }
+    comment('Direct call to ${target.name}');
+    call(target.function);
+    return emitUnreachableIfNoResult(target.signature.outputs);
+  }
+
+  List<w.ValueType> inlineCallTo(CallTarget target) {
+    assert(target.supportsInlining);
+    final List<w.Local> inlinedLocals =
+        target.signature.inputs.map((t) => addLocal(t)).toList();
+    for (w.Local local in inlinedLocals.reversed) {
+      local_set(local);
+    }
+    final w.Label callBlock = block(const [], target.signature.outputs);
+    comment('Inlined ${target.name}');
+    target.inliningCodeGen.generate(this, inlinedLocals, callBlock);
     return emitUnreachableIfNoResult(target.signature.outputs);
   }
 
@@ -5134,6 +5102,24 @@ extension MacroAssembler on w.InstructionsBuilder {
     assert(receiverType.isSubtypeOf(translator.topTypeNonNullable));
     struct_get(
         translator.classInfoCollector.topInfo.struct, FieldIndex.classId);
+  }
+
+  /// Expects a `_JavaScriptError` object to be on stack, calls
+  /// `_JavaScriptError.stackTrace` getter, downcasts the stack trace to
+  /// non-null. The cast is safe as this getter doesn't return null, but its
+  /// return type in the signature is nullable as it's an override.
+  ///
+  /// This is used to get the JS stack trace of a JS exception after boxing the
+  /// exception's `externref` (caught with the tag `WebAssembly.JSTag`) as
+  /// `_JavaScriptError`.
+  void getJavaScriptErrorStackTrace(Translator translator) {
+    final stackTraceGetter =
+        translator.javaScriptErrorStackTraceGetter.reference;
+    final stackTraceGetterFunction =
+        translator.functions.getFunction(stackTraceGetter);
+    ref_cast(stackTraceGetterFunction.type.inputs[0] as w.RefType);
+    translator.callReference(stackTraceGetter, this);
+    ref_as_non_null();
   }
 }
 

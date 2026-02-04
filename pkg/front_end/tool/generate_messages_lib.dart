@@ -5,10 +5,8 @@
 /// @docImport 'package:front_end/src/codes/type_labeler.dart';
 library;
 
-import 'dart:convert';
-import 'dart:io' show exitCode;
-
 import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_utilities/located_error.dart';
 import 'package:analyzer_utilities/messages.dart';
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
@@ -66,48 +64,20 @@ part of 'codes.dart';
 part of 'cfe_codes.dart';
 """);
 
-  bool hasError = false;
-  int largestIndex = 0;
-  final indexNameMap = new Map<int, String>();
-
-  List<String> keys = frontEndAndSharedMessages.keys.toList()..sort();
   var pseudoSharedCodeValues = <String>{};
-  for (String name in keys) {
-    var errorCodeInfo = frontEndAndSharedMessages[name]!;
-    var index = errorCodeInfo.index;
-    if (index != null) {
-      String? otherName = indexNameMap[index];
-      if (otherName != null) {
-        print(
-          'Error: The "index:" field must be unique, '
-          'but is the same for $otherName and $name',
-        );
-        hasError = true;
-        // Continue looking for other problems.
-      } else {
-        indexNameMap[index] = name;
-        if (largestIndex < index) {
-          largestIndex = index;
-        }
-      }
-    }
+  for (var message in diagnosticTables.sortedFrontEndDiagnostics) {
     var forFeAnalyzerShared =
-        errorCodeInfo is SharedErrorCodeInfo ||
-        errorCodeInfo is FrontEndErrorCodeInfo &&
-            errorCodeInfo.pseudoSharedCode != null;
-    String template;
-    try {
-      template = _TemplateCompiler(
-        name: name,
-        index: index,
-        errorCodeInfo: errorCodeInfo,
+        message is SharedMessage ||
+        message is FrontEndMessage && message.pseudoSharedCode != null;
+    String template = LocatedError.wrap(
+      span: message.keySpan,
+      () => _TemplateCompiler(
+        message: message,
         pseudoSharedCodeValues: forFeAnalyzerShared
             ? pseudoSharedCodeValues
             : null,
-      ).compile();
-    } catch (e, st) {
-      Error.throwWithStackTrace('Error while compiling $name: $e', st);
-    }
+      ).compile(),
+    );
     if (forFeAnalyzerShared) {
       sharedMessages.writeln(template);
     } else {
@@ -124,28 +94,16 @@ part of 'cfe_codes.dart';
     sharedMessages.writeln('  $code,');
   }
   sharedMessages.writeln('}');
-  if (largestIndex > indexNameMap.length) {
-    print(
-      'Error: The "index:" field values should be unique, consecutive'
-      ' whole numbers starting with 1.',
-    );
-    hasError = true;
-    // Fall through to print more information.
+  sharedMessages.writeln();
+  sharedMessages.writeln(
+    '/// Enum containing analyzer error codes referenced by '
+    '[Code.sharedCode].',
+  );
+  sharedMessages.writeln('enum SharedCode {');
+  for (var code in diagnosticTables.sortedSharedDiagnostics) {
+    sharedMessages.writeln('  ${code.analyzerCode.camelCaseName},');
   }
-  if (hasError) {
-    exitCode = 1;
-    print('The largest index is $largestIndex');
-    final sortedIndices = indexNameMap.keys.toList()..sort();
-    int nextAvailableIndex = largestIndex + 1;
-    for (int index = 1; index <= sortedIndices.length; ++index) {
-      if (sortedIndices[index - 1] != index) {
-        nextAvailableIndex = index;
-        break;
-      }
-    }
-    print('The next available index is ${nextAvailableIndex}');
-    return new Messages('', '');
-  }
+  sharedMessages.writeln('}');
 
   return new Messages("$sharedMessages", "$cfeMessages");
 }
@@ -165,11 +123,11 @@ String _newName({required Set<String> usedNames, required String nameHint}) {
 
 class _TemplateCompiler {
   final String name;
-  final int? index;
-  final String problemMessage;
-  final String? correctionMessage;
+  final CfeStyleMessage message;
+  final List<TemplatePart> problemMessage;
+  final List<TemplatePart>? correctionMessage;
   final String? severity;
-  final Map<String, ErrorCodeParameter> parameters;
+  final Map<String, DiagnosticParameter> parameters;
   final String? pseudoSharedCode;
 
   /// If the template will be generated into `pkg/_fe_analyzer_shared`, a set of
@@ -187,38 +145,41 @@ class _TemplateCompiler {
   late final List<String> arguments = parameters.keys
       .map((name) => "'$name': $name")
       .toList();
-  final Map<ParsedPlaceholder, String> interpolators = {};
+  final Map<TemplateParameterPart, String> interpolators = {};
   final List<String> withArgumentsStatements = [];
   bool hasLabeler = false;
 
   _TemplateCompiler({
-    required this.name,
-    required this.index,
-    required CfeStyleErrorCodeInfo errorCodeInfo,
+    required this.message,
     required this.pseudoSharedCodeValues,
-  }) : problemMessage = errorCodeInfo.problemMessage,
-       correctionMessage = errorCodeInfo.correctionMessage,
-       severity = errorCodeInfo.cfeSeverity,
-       parameters = errorCodeInfo.parameters,
-       pseudoSharedCode = errorCodeInfo is FrontEndErrorCodeInfo
-           ? errorCodeInfo.pseudoSharedCode
+  }) : name = message.frontEndCode.pascalCaseName,
+       problemMessage = message.problemMessage,
+       correctionMessage = message.correctionMessage,
+       severity = message.cfeSeverity,
+       parameters = message.parameters,
+       pseudoSharedCode = message is FrontEndMessage
+           ? message.pseudoSharedCode
            : null;
 
   String compile() {
     var codeArguments = <String>[
-      if (index != null)
-        'index: $index'
-      else if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
-        // If "index:" is defined, then "analyzerCode:" should not be generated
-        // in the front end. See comment in messages.yaml
+      if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
         'pseudoSharedCode: ${_encodePseudoSharedCode(pseudoSharedCode!)}',
       if (severity != null) 'severity: CfeSeverity.$severity',
+      if (message case SharedMessage(:var analyzerCode))
+        'sharedCode: SharedCode.${analyzerCode.camelCaseName}',
     ];
 
+    String interpolatedProblemMessage = interpolate(problemMessage)!;
+    String? interpolatedCorrectionMessage = interpolate(correctionMessage);
+    if (hasLabeler) {
+      interpolatedProblemMessage += " + labeler.originMessages";
+    }
+
     if (parameters.isEmpty) {
-      codeArguments.add('problemMessage: r"""$problemMessage"""');
+      codeArguments.add('problemMessage: $interpolatedProblemMessage');
       if (correctionMessage != null) {
-        codeArguments.add('correctionMessage: r"""$correctionMessage"""');
+        codeArguments.add('correctionMessage: $interpolatedCorrectionMessage');
       }
 
       return """
@@ -230,22 +191,9 @@ const MessageCode code$name =
 
     List<String> templateArguments = <String>[];
     templateArguments.add('\"$name\"');
-    templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
-    if (correctionMessage != null) {
-      templateArguments.add(
-        'correctionMessageTemplate: r"""$correctionMessage"""',
-      );
-    }
-
     templateArguments.add("withArgumentsOld: _withArgumentsOld$name");
     templateArguments.add("withArguments: _withArguments$name");
     templateArguments.addAll(codeArguments);
-
-    String interpolatedProblemMessage = interpolate(problemMessage)!;
-    String? interpolatedCorrectionMessage = interpolate(correctionMessage);
-    if (hasLabeler) {
-      interpolatedProblemMessage += " + labeler.originMessages";
-    }
 
     List<String> messageArguments = <String>[
       "problemMessage: $interpolatedProblemMessage",
@@ -283,48 +231,37 @@ Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
 """;
   }
 
-  String computeInterpolator(ParsedPlaceholder placeholder) {
-    var name = placeholder.name;
-    var parameter = parameters[name];
-    if (parameter == null) {
-      throw StateError(
-        'Placeholder ${json.encode(name)} not declared as a parameter',
-      );
-    }
-    var conversion =
-        placeholder.conversionOverride ?? parameter.type.cfeConversion;
+  String computeInterpolator(TemplateParameterPart placeholder) {
+    var parameter = placeholder.parameter;
+    var name = parameter.name;
+    var type = parameter.type;
+    var conversion = placeholder.conversionOverride ?? type.cfeConversion;
     if (conversion is LabelerConversion && !hasLabeler) {
       withArgumentsStatements.add("TypeLabeler labeler = new TypeLabeler();");
       hasLabeler = true;
     }
 
-    if (conversion?.toCode(
-          name: placeholder.name,
-          type: parameters[placeholder.name]!.type,
-        )
-        case var conversion?) {
-      var interpolator = _newName(
-        usedNames: usedNames,
-        nameHint: placeholder.name,
-      );
+    if (conversion?.toCode(name: name, type: type) case var conversion?) {
+      var interpolator = _newName(usedNames: usedNames, nameHint: name);
       withArgumentsStatements.add("var $interpolator = $conversion;");
       return interpolator;
     } else {
-      return placeholder.name;
+      return name;
     }
   }
 
-  String? interpolate(String? text) {
-    if (text == null) return null;
-    text = text.replaceAll(r"$", r"\$").replaceAllMapped(placeholderPattern, (
-      Match m,
-    ) {
-      var placeholder = ParsedPlaceholder.fromMatch(m);
-      var interpolator = interpolators[placeholder] ??= computeInterpolator(
-        placeholder,
-      );
-      return "\${$interpolator}";
-    });
+  String? interpolate(List<TemplatePart>? template) {
+    if (template == null) return null;
+    var text = template
+        .map(
+          (part) => switch (part) {
+            TemplateLiteralPart(:var text) =>
+              text.replaceAll(r'\', r'\\').replaceAll(r"$", r"\$"),
+            TemplateParameterPart() =>
+              "\${${interpolators[part] ??= computeInterpolator(part)}}",
+          },
+        )
+        .join();
     return "\"\"\"$text\"\"\"";
   }
 

@@ -81,6 +81,8 @@ namespace dart {
   V(Developer_postEvent, 2)                                                    \
   V(Developer_webServerControl, 3)                                             \
   V(Developer_NativeRuntime_buildId, 0)                                        \
+  V(Developer_NativeRuntime_streamTimelineTo, 5)                               \
+  V(Developer_NativeRuntime_stopStreamingTimeline, 0)                          \
   V(Developer_NativeRuntime_writeHeapSnapshotToFile, 1)                        \
   V(Developer_reachability_barrier, 0)                                         \
   V(Double_getIsNegative, 1)                                                   \
@@ -279,6 +281,11 @@ namespace dart {
   V(Internal_allocateObjectInstructionsEnd, 0)                                 \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
+  V(ThreadLocal_allocateId, 0)                                                 \
+  V(ThreadLocal_clearValue, 1)                                                 \
+  V(ThreadLocal_getValue, 1)                                                   \
+  V(ThreadLocal_hasValue, 1)                                                   \
+  V(ThreadLocal_setValue, 2)                                                   \
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \

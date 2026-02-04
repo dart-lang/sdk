@@ -99,10 +99,9 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   /// The offset and length to use as an error range for this constructor
   /// declaration, accounting for named and unnamed constructors.
   SourceRange get errorRange {
-    var name = this.name;
-    var offset = returnType.offset;
-    int length = (name != null ? name.end : returnType.end) - offset;
-    return SourceRange(offset, length);
+    var startEntity = typeName ?? (newKeyword ?? factoryKeyword)!;
+    var endEntity = name ?? startEntity;
+    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
   }
 
   bool get isNonRedirectingGenerative {
@@ -335,6 +334,15 @@ extension PatternFieldImplExtension on PatternFieldImpl {
     } else {
       return fieldNameName;
     }
+  }
+}
+
+extension PrimaryConstructorDeclarationExtension
+    on PrimaryConstructorDeclaration {
+  SourceRange get errorRange {
+    var startEntity = beginToken;
+    var endEntity = constructorName ?? beginToken;
+    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
   }
 }
 

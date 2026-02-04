@@ -365,8 +365,9 @@ dependencies:
       ]
     }
     ''';
-    processRunner.startHandler = (executable, args, {dir, env}) =>
-        MockProcess(1, 0, json, '');
+    processRunner.startHandler =
+        (executable, args, {workingDirectory, environment}) =>
+            MockProcess(1, 0, json, '');
 
     pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
     await pumpEventQueue(times: 500);
@@ -383,10 +384,11 @@ dependencies:
   /// processes to cache the version numbers.
   void test_packageVersion_withDEPSfile() async {
     var didRun = false;
-    processRunner.startHandler = (executable, args, {dir, env}) {
-      didRun = true;
-      return MockProcess(1, 0, '', '');
-    };
+    processRunner.startHandler =
+        (executable, args, {workingDirectory, environment}) {
+          didRun = true;
+          return MockProcess(1, 0, '', '');
+        };
 
     newFile('/home/DEPS', '');
     pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);

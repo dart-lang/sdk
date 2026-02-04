@@ -51,10 +51,7 @@ class BitVector : public ZoneAllocated {
     Clear();
   }
 
-  void CopyFrom(const BitVector* other) {
-    Clear();
-    AddAll(other);
-  }
+  void CopyFrom(const BitVector* other);
 
   static intptr_t SizeFor(intptr_t length) {
     return 1 + ((length - 1) / kBitsPerWord);

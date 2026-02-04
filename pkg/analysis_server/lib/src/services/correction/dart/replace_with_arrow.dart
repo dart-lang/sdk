@@ -17,10 +17,10 @@ class ReplaceWithArrow extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_ARROW;
+  FixKind get fixKind => DartFixKind.replaceWithArrow;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_ARROW_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithArrowMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

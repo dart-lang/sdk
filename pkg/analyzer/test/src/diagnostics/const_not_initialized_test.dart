@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class A {
   static const F;
 }
 ''',
-      [error(CompileTimeErrorCode.constNotInitialized, 25, 1)],
+      [error(diag.constNotInitialized, 25, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ enum E {
   static const F;
 }
 ''',
-      [error(CompileTimeErrorCode.constNotInitialized, 29, 1)],
+      [error(diag.constNotInitialized, 29, 1)],
     );
   }
 
@@ -45,7 +45,7 @@ extension E on String {
   static const F;
 }
 ''',
-      [error(CompileTimeErrorCode.constNotInitialized, 39, 1)],
+      [error(diag.constNotInitialized, 39, 1)],
     );
   }
 
@@ -57,8 +57,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 18, 1),
-        error(CompileTimeErrorCode.constNotInitialized, 18, 1),
+        error(diag.unusedLocalVariable, 18, 1),
+        error(diag.constNotInitialized, 18, 1),
       ],
     );
   }
@@ -68,7 +68,7 @@ f() {
       '''
 const F;
 ''',
-      [error(CompileTimeErrorCode.constNotInitialized, 6, 1)],
+      [error(diag.constNotInitialized, 6, 1)],
     );
   }
 }

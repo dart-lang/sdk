@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/error/error.dart';
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 
 class MockDiagnosticType implements DiagnosticType {
   @override
@@ -62,17 +62,17 @@ class MockIOSink implements IOSink {
   void writeln([Object? obj = '']) {}
 }
 
-class TestDiagnosticCode extends DiagnosticCode {
-  @override
-  late DiagnosticSeverity severity;
+class TestDiagnosticCode extends DiagnosticCodeImpl {
+  TestDiagnosticCode(
+    String name,
+    String message, {
+    super.type = DiagnosticType.COMPILE_TIME_ERROR,
+  }) : super(
+         problemMessage: message,
+         name: name,
+         uniqueName: 'TestErrorCode.$name',
+       );
 
   @override
-  late DiagnosticType type;
-
-  TestDiagnosticCode(String name, String message)
-    : super(
-        problemMessage: message,
-        name: name,
-        uniqueName: 'TestErrorCode.$name',
-      );
+  DiagnosticSeverity get severity => type.severity;
 }

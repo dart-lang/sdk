@@ -11,6 +11,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -38,12 +39,13 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/lint/constants.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -170,7 +172,9 @@ abstract final class AnnotatedNode implements AstNode {
   List<AstNode> get sortedCommentAndAnnotations;
 }
 
-sealed class AnnotatedNodeImpl extends AstNodeImpl with _AnnotatedNodeMixin {
+sealed class AnnotatedNodeImpl extends AstNodeImpl
+    with _AnnotatedNodeMixin
+    implements AnnotatedNode {
   /// Initializes a newly created annotated node.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the node
@@ -255,13 +259,6 @@ abstract final class Annotation implements AstNode {
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// annotation couldn't be resolved.
   Element? get element;
-
-  /// The element associated with this annotation.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this
-  /// annotation couldn't be resolved.
-  @Deprecated('Use element instead')
-  Element? get element2;
 
   /// The element annotation representing this annotation in the element model,
   /// or `null` if the AST hasn't been resolved.
@@ -380,12 +377,6 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   set element(Element? value) {
     _element = value;
-  }
-
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 {
-    return element;
   }
 
   @generated
@@ -1026,9 +1017,6 @@ abstract final class AssignedVariablePattern implements VariablePattern {
   /// In valid code this is either a [LocalVariableElement] or a
   /// [FormalParameterElement].
   Element? get element;
-
-  @Deprecated('Use element instead')
-  Element? get element2;
 }
 
 @GenerateNodeImpl(
@@ -1047,10 +1035,6 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   Token get beginToken {
     return name;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
 
   @generated
   @override
@@ -1109,11 +1093,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 ///        [Expression] operator [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignmentExpression
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        MethodReferenceExpression,
-        CompoundAssignmentExpression {
+    implements MethodReferenceExpression, CompoundAssignmentExpression {
   /// The expression used to compute the left hand side.
   Expression get leftHandSide;
 
@@ -1132,7 +1112,7 @@ abstract final class AssignmentExpression
   ],
 )
 final class AssignmentExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
+    with CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
   @generated
   ExpressionImpl _leftHandSide;
@@ -1198,9 +1178,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     ..addToken('operator', operator)
     ..addNode('rightHandSide', rightHandSide);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   /// The parameter element representing the parameter to which the value of the
   /// right operand is bound, or `null` if the AST structure is not resolved or
   /// the function being invoked is not known based on static type information.
@@ -1257,10 +1234,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _leftHandSide);
 }
 
 /// A node in the AST structure for a Dart program.
@@ -1368,7 +1341,7 @@ abstract final class AstNode implements SyntacticEntity {
   void visitChildren(AstVisitor visitor);
 }
 
-sealed class AstNodeImpl implements AstNode {
+sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   AstNode? _parent;
 
   @override
@@ -1777,6 +1750,88 @@ abstract final class Block implements Statement {
   NodeList<Statement> get statements;
 }
 
+/// The class body with members.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class BlockClassBody implements ClassBody {
+  /// The left curly bracket.
+  Token get leftBracket;
+
+  /// The members declared in the body.
+  NodeList<ClassMember> get members;
+
+  /// The right curly bracket.
+  Token get rightBracket;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftBracket'),
+    GenerateNodeProperty('members'),
+    GenerateNodeProperty('rightBracket'),
+  ],
+)
+final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
+  @generated
+  @override
+  final Token leftBracket;
+
+  @generated
+  @override
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+
+  @generated
+  @override
+  final Token rightBracket;
+
+  @generated
+  BlockClassBodyImpl({
+    required this.leftBracket,
+    required List<ClassMemberImpl> members,
+    required this.rightBracket,
+  }) {
+    this.members._initialize(this, members);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftBracket;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockClassBody(this);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    members.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (members._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+}
+
 /// A function body that consists of a block of statements.
 ///
 ///    blockFunctionBody ::=
@@ -2153,11 +2208,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 ///        '[ ' expression '] '
 ///      | identifier
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class CascadeExpression
-    implements
-        Expression,
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression {
+abstract final class CascadeExpression implements Expression {
   /// The cascade sections sharing the common target.
   NodeList<Expression> get cascadeSections;
 
@@ -2175,7 +2226,6 @@ abstract final class CascadeExpression
   ],
 )
 final class CascadeExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
     implements CascadeExpression {
   @generated
   ExpressionImpl _target;
@@ -2231,9 +2281,6 @@ final class CascadeExpressionImpl extends ExpressionImpl
     ..addNode('target', target)
     ..addNodeList('cascadeSections', cascadeSections);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => null;
-
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
@@ -2262,13 +2309,6 @@ final class CascadeExpressionImpl extends ExpressionImpl
       return result;
     }
     return null;
-  }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) {
-    // Null shorting that occurs in a cascade section does not extend to the
-    // full cascade expression.
-    return false;
   }
 }
 
@@ -2741,18 +2781,6 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 /// An 'exception' or 'stackTrace' parameter in [CatchClause].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CatchClauseParameter extends AstNode {
-  /// The declared element.
-  ///
-  /// Returns `null` if the AST hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement;
-
-  /// The declared element.
-  ///
-  /// Returns `null` if the AST hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement2;
-
   /// The declared fragment.
   ///
   /// Returns `null` if the AST hasn't been resolved.
@@ -2779,18 +2807,6 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   @override
   Token get beginToken {
     return name;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement {
-    return declaredFragment?.element;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement2 {
-    return declaredElement;
   }
 
   @generated
@@ -2889,6 +2905,14 @@ class ChildEntity {
   ChildEntity(this.name, this.value);
 }
 
+/// The body of a class declaration.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class ClassBody implements AstNode {}
+
+abstract final class ClassBodyImpl extends AstNodeImpl implements ClassBody {
+  List<ClassMemberImpl> get members;
+}
+
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
@@ -2900,7 +2924,10 @@ class ChildEntity {
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ClassDeclaration implements NamedCompilationUnitMember {
+abstract final class ClassDeclaration
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `abstract` keyword, or `null` if the keyword was absent.
   Token? get abstractKeyword;
 
@@ -2909,6 +2936,9 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
+
+  /// The body of the class declaration.
+  ClassBody get body;
 
   /// The token representing the `class` keyword.
   Token get classKeyword;
@@ -2931,23 +2961,31 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   Token? get interfaceKeyword;
 
   /// The left curly bracket.
+  @Deprecated('Use body instead')
   Token get leftBracket;
 
-  /// The `macro` keyword, or `null` if the keyword was absent.
-  @Deprecated('Support for macros was removed')
-  Token? get macroKeyword;
-
   /// The members defined by the class.
+  @Deprecated('Use body instead')
   NodeList<ClassMember> get members;
 
   /// The `mixin` keyword, or `null` if the keyword was absent.
   Token? get mixinKeyword;
+
+  /// The name of the class.
+  @Deprecated('Use namePart instead')
+  @override
+  Token get name;
+
+  /// The name of the class, as an identifier with type parameters, or
+  /// a primary constructor.
+  ClassNamePart get namePart;
 
   /// The native clause for this class, or `null` if the class doesn't have a
   /// native clause.
   NativeClause? get nativeClause;
 
   /// The right curly bracket.
+  @Deprecated('Use body instead')
   Token get rightBracket;
 
   /// The `sealed` keyword, or `null` if the keyword was absent.
@@ -2955,6 +2993,7 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   /// The type parameters for the class, or `null` if the class doesn't have any
   /// type parameters.
+  @Deprecated('Use namePart instead')
   TypeParameterList? get typeParameters;
 
   /// The `with` clause for the class, or `null` if the class doesn't have a
@@ -2966,25 +3005,24 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('abstractKeyword'),
-    GenerateNodeProperty('macroKeyword'),
     GenerateNodeProperty('sealedKeyword'),
     GenerateNodeProperty('baseKeyword'),
     GenerateNodeProperty('interfaceKeyword'),
     GenerateNodeProperty('finalKeyword'),
     GenerateNodeProperty('mixinKeyword'),
     GenerateNodeProperty('classKeyword'),
-    GenerateNodeProperty('name', isSuper: true),
-    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('namePart'),
     GenerateNodeProperty('extendsClause'),
     GenerateNodeProperty('withClause'),
     GenerateNodeProperty('implementsClause'),
     GenerateNodeProperty('nativeClause'),
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('members'),
-    GenerateNodeProperty('rightBracket'),
+    GenerateNodeProperty('body'),
   ],
 )
-final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class ClassDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements ClassDeclaration {
   @generated
@@ -2994,10 +3032,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @generated
   @override
   final Token? abstractKeyword;
-
-  @generated
-  @override
-  final Token? macroKeyword;
 
   @generated
   @override
@@ -3024,7 +3058,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token classKeyword;
 
   @generated
-  TypeParameterListImpl? _typeParameters;
+  ClassNamePartImpl _namePart;
 
   @generated
   ExtendsClauseImpl? _extendsClause;
@@ -3039,16 +3073,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   NativeClauseImpl? _nativeClause;
 
   @generated
-  @override
-  final Token leftBracket;
-
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
-
-  @generated
-  @override
-  final Token rightBracket;
+  ClassBodyImpl _body;
 
   @override
   ClassFragmentImpl? declaredFragment;
@@ -3059,39 +3084,45 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.augmentKeyword,
     required this.abstractKeyword,
-    required this.macroKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
     required this.finalKeyword,
     required this.mixinKeyword,
     required this.classKeyword,
-    required super.name,
-    required TypeParameterListImpl? typeParameters,
+    required ClassNamePartImpl namePart,
     required ExtendsClauseImpl? extendsClause,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
     required NativeClauseImpl? nativeClause,
-    required this.leftBracket,
-    required List<ClassMemberImpl> members,
-    required this.rightBracket,
-  }) : _typeParameters = typeParameters,
+    required ClassBodyImpl body,
+  }) : _namePart = namePart,
        _extendsClause = extendsClause,
        _withClause = withClause,
        _implementsClause = implementsClause,
-       _nativeClause = nativeClause {
-    _becomeParentOf(typeParameters);
+       _nativeClause = nativeClause,
+       _body = body {
+    _becomeParentOf(namePart);
     _becomeParentOf(extendsClause);
     _becomeParentOf(withClause);
     _becomeParentOf(implementsClause);
     _becomeParentOf(nativeClause);
-    this.members._initialize(this, members);
+    _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  ClassBodyImpl get body => _body;
+
+  @generated
+  set body(ClassBodyImpl body) {
+    _body = _becomeParentOf(body);
   }
 
   @generated
   @override
   Token get endToken {
-    return rightBracket;
+    return body.endToken;
   }
 
   @generated
@@ -3111,9 +3142,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     }
     if (abstractKeyword case var abstractKeyword?) {
       return abstractKeyword;
-    }
-    if (macroKeyword case var macroKeyword?) {
-      return macroKeyword;
     }
     if (sealedKeyword case var sealedKeyword?) {
       return sealedKeyword;
@@ -3142,6 +3170,31 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
+  @Deprecated('Use body instead')
+  @override
+  Token get leftBracket {
+    return (body as BlockClassBodyImpl).leftBracket;
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  NodeListImpl<ClassMemberImpl> get members {
+    return (body as BlockClassBodyImpl).members;
+  }
+
+  @Deprecated('Use namePart instead')
+  @override
+  Token get name => namePart.typeName;
+
+  @generated
+  @override
+  ClassNamePartImpl get namePart => _namePart;
+
+  @generated
+  set namePart(ClassNamePartImpl namePart) {
+    _namePart = _becomeParentOf(namePart);
+  }
+
   @generated
   @override
   NativeClauseImpl? get nativeClause => _nativeClause;
@@ -3151,13 +3204,16 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     _nativeClause = _becomeParentOf(nativeClause);
   }
 
-  @generated
+  @Deprecated('Use body instead')
   @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
+  Token get rightBracket {
+    return (body as BlockClassBodyImpl).rightBracket;
+  }
 
-  @generated
-  set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+  @Deprecated('Use namePart instead')
+  @override
+  TypeParameterListImpl? get typeParameters {
+    return namePart.typeParameters;
   }
 
   @generated
@@ -3174,22 +3230,18 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('macroKeyword', macroKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)
     ..addToken('finalKeyword', finalKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('classKeyword', classKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
+    ..addNode('namePart', namePart)
     ..addNode('extendsClause', extendsClause)
     ..addNode('withClause', withClause)
     ..addNode('implementsClause', implementsClause)
     ..addNode('nativeClause', nativeClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+    ..addNode('body', body);
 
   @generated
   @override
@@ -3199,12 +3251,12 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    typeParameters?.accept(visitor);
+    namePart.accept(visitor);
     extendsClause?.accept(visitor);
     withClause?.accept(visitor);
     implementsClause?.accept(visitor);
     nativeClause?.accept(visitor);
-    members.accept(visitor);
+    body.accept(visitor);
   }
 
   @generated
@@ -3213,10 +3265,8 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
+    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+      return namePart;
     }
     if (extendsClause case var extendsClause?) {
       if (extendsClause._containsOffset(rangeOffset, rangeEnd)) {
@@ -3238,9 +3288,8 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
         return nativeClause;
       }
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
     }
     return null;
   }
@@ -3257,6 +3306,24 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
   ClassMemberImpl({required super.comment, required super.metadata});
+
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+}
+
+/// The name of a class, enum, or extension type declaration.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class ClassNamePart implements AstNode {
+  /// The name of the type being declared.
+  Token get typeName;
+
+  /// The type parameters.
+  TypeParameterList? get typeParameters;
+}
+
+sealed class ClassNamePartImpl extends AstNodeImpl implements ClassNamePart {
+  @override
+  TypeParameterListImpl? get typeParameters;
 }
 
 /// A class type alias.
@@ -4082,20 +4149,6 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// used for navigation.
   Element? get readElement;
 
-  /// The element that is used to read the value.
-  ///
-  /// Returns `null` if this node isn't a compound assignment, if the AST
-  /// structure hasn't been resolved, or if the target couldn't be resolved.
-  ///
-  /// In valid code this element can be a [LocalVariableElement], a
-  /// [FormalParameterElement], or a [GetterElement].
-  ///
-  /// In invalid code this element is `null`. For example, in `int += 2`. In
-  /// such cases, for recovery purposes, [writeElement] is filled, and can be
-  /// used for navigation.
-  @Deprecated('Use readElement instead')
-  Element? get readElement2;
-
   /// The type of the value read with the [readElement], or `null` if this node
   /// isn't a compound assignment.
   ///
@@ -4120,24 +4173,6 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// [readElement] and [writeElement] could be non-`null`.
   Element? get writeElement;
 
-  /// The element that is used to write the result.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved, or if the target
-  /// couldn't be resolved.
-  ///
-  /// In valid code this is a [LocalVariableElement], [FormalParameterElement],
-  /// or a [SetterElement].
-  ///
-  /// In invalid code, for recovery, we might use other elements, for example a
-  /// [GetterElement] `myGetter = 0` even though the getter can't be used to set
-  /// a value. We do this to help the user to navigate to the getter, and maybe
-  /// add the corresponding setter.
-  ///
-  /// If this node is a compound assignment, such as `x += y`, both
-  /// [readElement] and [writeElement] could be non-`null`.
-  @Deprecated('Use writeElement instead')
-  Element? get writeElement2;
-
   /// The type of the target of the assignment.
   ///
   /// The types of assigned values must be subtypes of this type.
@@ -4159,14 +4194,6 @@ base mixin CompoundAssignmentExpressionImpl
 
   @override
   TypeImpl? writeType;
-
-  @Deprecated('Use readElement instead')
-  @override
-  Element? get readElement2 => readElement;
-
-  @Deprecated('Use writeElement instead')
-  @override
-  Element? get writeElement2 => writeElement;
 }
 
 /// A conditional expression.
@@ -4691,6 +4718,11 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// is unnamed.
   Token? get name;
 
+  /// The token for the `new` keyword, or `null` if the keyword is absent, so
+  /// either [factoryKeyword] is not `null`, or the old syntax with [typeName]
+  /// is used.
+  Token? get newKeyword;
+
   /// The parameters associated with the constructor.
   FormalParameterList get parameters;
 
@@ -4703,12 +4735,18 @@ abstract final class ConstructorDeclaration implements ClassMember {
   ConstructorName? get redirectedConstructor;
 
   /// The type of object being created.
+  @Deprecated('Use typeName instead')
   Identifier get returnType;
 
   /// The token for the separator (colon or equals) before the initializer list
   /// or redirection, or `null` if there are neither initializers nor a
   /// redirection.
   Token? get separator;
+
+  /// The name of the enclosing type, e.g. `C` in `C() {}` or `C.named() {}`.
+  ///
+  /// Or `null` if uses new syntax with [newKeyword] or [factoryKeyword].
+  SimpleIdentifier? get typeName;
 }
 
 @GenerateNodeImpl(
@@ -4717,7 +4755,8 @@ abstract final class ConstructorDeclaration implements ClassMember {
     GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
     GenerateNodeProperty('constKeyword', tokenGroupId: 0, isTokenFinal: false),
     GenerateNodeProperty('factoryKeyword', tokenGroupId: 0),
-    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('newKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('typeName'),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('name'),
     GenerateNodeProperty('parameters'),
@@ -4746,7 +4785,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   final Token? factoryKeyword;
 
   @generated
-  IdentifierImpl _returnType;
+  @override
+  final Token? newKeyword;
+
+  @generated
+  SimpleIdentifierImpl? _typeName;
 
   @generated
   @override
@@ -4785,7 +4828,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     required this.externalKeyword,
     required this.constKeyword,
     required this.factoryKeyword,
-    required IdentifierImpl returnType,
+    required this.newKeyword,
+    required SimpleIdentifierImpl? typeName,
     required this.period,
     required this.name,
     required FormalParameterListImpl parameters,
@@ -4793,11 +4837,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     required List<ConstructorInitializerImpl> initializers,
     required ConstructorNameImpl? redirectedConstructor,
     required FunctionBodyImpl body,
-  }) : _returnType = returnType,
+  }) : _typeName = typeName,
        _parameters = parameters,
        _redirectedConstructor = redirectedConstructor,
        _body = body {
-    _becomeParentOf(returnType);
+    _becomeParentOf(typeName);
     _becomeParentOf(parameters);
     this.initializers._initialize(this, initializers);
     _becomeParentOf(redirectedConstructor);
@@ -4827,11 +4871,21 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
           externalKeyword,
           constKeyword,
           factoryKeyword,
+          newKeyword,
         )
         case var result?) {
       return result;
     }
-    return returnType.beginToken;
+    if (typeName case var typeName?) {
+      return typeName.beginToken;
+    }
+    if (period case var period?) {
+      return period;
+    }
+    if (name case var name?) {
+      return name;
+    }
+    return parameters.beginToken;
   }
 
   /// Whether this is a trivial constructor.
@@ -4864,13 +4918,20 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     _redirectedConstructor = _becomeParentOf(redirectedConstructor);
   }
 
-  @generated
+  @Deprecated('Use typeName instead')
   @override
-  IdentifierImpl get returnType => _returnType;
+  IdentifierImpl get returnType {
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+    return typeName!;
+  }
 
   @generated
-  set returnType(IdentifierImpl returnType) {
-    _returnType = _becomeParentOf(returnType);
+  @override
+  SimpleIdentifierImpl? get typeName => _typeName;
+
+  @generated
+  set typeName(SimpleIdentifierImpl? typeName) {
+    _typeName = _becomeParentOf(typeName);
   }
 
   @generated
@@ -4880,7 +4941,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addToken('externalKeyword', externalKeyword)
     ..addToken('constKeyword', constKeyword)
     ..addToken('factoryKeyword', factoryKeyword)
-    ..addNode('returnType', returnType)
+    ..addToken('newKeyword', newKeyword)
+    ..addNode('typeName', typeName)
     ..addToken('period', period)
     ..addToken('name', name)
     ..addNode('parameters', parameters)
@@ -4898,7 +4960,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    returnType.accept(visitor);
+    typeName?.accept(visitor);
     parameters.accept(visitor);
     initializers.accept(visitor);
     redirectedConstructor?.accept(visitor);
@@ -4911,8 +4973,10 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (returnType._containsOffset(rangeOffset, rangeEnd)) {
-      return returnType;
+    if (typeName case var typeName?) {
+      if (typeName._containsOffset(rangeOffset, rangeEnd)) {
+        return typeName;
+      }
     }
     if (parameters._containsOffset(rangeOffset, rangeEnd)) {
       return parameters;
@@ -5521,7 +5585,7 @@ sealed class DartPattern implements AstNode, ListPatternElement {
 }
 
 sealed class DartPatternImpl extends AstNodeImpl
-    implements DartPattern, ListPatternElementImpl {
+    implements ListPatternElementImpl, DartPattern {
   @override
   TypeImpl? matchedValueType;
 
@@ -5591,7 +5655,7 @@ abstract final class Declaration implements AnnotatedNode {
   /// Returns `null` for [FieldDeclaration] and [TopLevelVariableDeclaration]
   /// because these nodes don't declare any fragments, but individual
   /// [VariableDeclaration]s inside them do. They are [Declaration]s mostly to
-  /// fit into [ClassDeclaration.members] and [CompilationUnit.declarations].
+  /// fit into [ClassDeclaration.body] and [CompilationUnit.declarations].
   Fragment? get declaredFragment;
 }
 
@@ -5612,20 +5676,6 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
 ///        [Annotation] finalConstVarOrType [SimpleIdentifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DeclaredIdentifier implements Declaration {
-  /// The element associated with this declaration.
-  ///
-  /// Returns `null` if either this node corresponds to a list of declarations
-  /// or if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement;
-
-  /// The element associated with this declaration.
-  ///
-  /// Returns `null` if either this node corresponds to a list of declarations
-  /// or if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement2;
-
   @override
   LocalVariableFragment? get declaredFragment;
 
@@ -5682,18 +5732,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     required this.name,
   }) : _type = type {
     _becomeParentOf(type);
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement {
-    return declaredFragment?.element;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement2 {
-    return declaredElement;
   }
 
   @generated
@@ -5768,18 +5806,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class DeclaredVariablePattern implements VariablePattern {
-  /// The element declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  BindPatternVariableElement? get declaredElement;
-
-  /// The element declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved.
-  @Deprecated('Use declaredFragment instead')
-  BindPatternVariableElement? get declaredElement2;
-
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
@@ -5831,18 +5857,6 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       return type.beginToken;
     }
     return name;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  BindPatternVariableElementImpl? get declaredElement {
-    return declaredFragment?.element;
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  BindPatternVariableElementImpl? get declaredElement2 {
-    return declaredElement;
   }
 
   @generated
@@ -6803,6 +6817,57 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 }
 
+/// The empty class body.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class EmptyClassBody implements ClassBody {
+  /// The semicolon token.
+  Token get semicolon;
+}
+
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('semicolon')])
+final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
+  @generated
+  @override
+  final Token semicolon;
+
+  @generated
+  EmptyClassBodyImpl({required this.semicolon});
+
+  @generated
+  @override
+  Token get beginToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @override
+  List<ClassMemberImpl> get members => const [];
+
+  @generated
+  @override
+  ChildEntities get _childEntities =>
+      ChildEntities()..addToken('semicolon', semicolon);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyClassBody(this);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
 /// An empty function body.
 ///
 /// An empty function body can only appear in constructors or abstract methods.
@@ -6912,6 +6977,117 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// The enum declaration body, with constants and members.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class EnumBody implements AstNode {
+  /// The enumeration constants being declared.
+  NodeList<EnumConstantDeclaration> get constants;
+
+  /// The left curly bracket.
+  Token get leftBracket;
+
+  /// The members declared in the body.
+  NodeList<ClassMember> get members;
+
+  /// The right curly bracket.
+  Token get rightBracket;
+
+  /// The optional semicolon after the last constant.
+  Token? get semicolon;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftBracket'),
+    GenerateNodeProperty('constants'),
+    GenerateNodeProperty('semicolon'),
+    GenerateNodeProperty('members'),
+    GenerateNodeProperty('rightBracket'),
+  ],
+)
+final class EnumBodyImpl extends AstNodeImpl implements EnumBody {
+  @generated
+  @override
+  final Token leftBracket;
+
+  @generated
+  @override
+  final NodeListImpl<EnumConstantDeclarationImpl> constants = NodeListImpl._();
+
+  @generated
+  @override
+  final Token? semicolon;
+
+  @generated
+  @override
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+
+  @generated
+  @override
+  final Token rightBracket;
+
+  @generated
+  EnumBodyImpl({
+    required this.leftBracket,
+    required List<EnumConstantDeclarationImpl> constants,
+    required this.semicolon,
+    required List<ClassMemberImpl> members,
+    required this.rightBracket,
+  }) {
+    this.constants._initialize(this, constants);
+    this.members._initialize(this, members);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftBracket;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('constants', constants)
+    ..addToken('semicolon', semicolon)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumBody(this);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    constants.accept(visitor);
+    members.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (constants._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (members._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
     return null;
   }
 }
@@ -7068,13 +7244,6 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// constructor couldn't be resolved.
   ConstructorElement? get constructorElement;
 
-  /// The constructor that's invoked by this enum constant.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved, or if the
-  /// constructor couldn't be resolved.
-  @Deprecated('Use constructorElement instead')
-  ConstructorElement? get constructorElement2;
-
   @override
   FieldFragment? get declaredFragment;
 
@@ -7127,10 +7296,6 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   set arguments(EnumConstantArgumentsImpl? arguments) {
     _arguments = _becomeParentOf(arguments);
   }
-
-  @Deprecated('Use constructorElement instead')
-  @override
-  InternalConstructorElement? get constructorElement2 => constructorElement;
 
   @generated
   @override
@@ -7191,11 +7356,18 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 ///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class EnumDeclaration implements NamedCompilationUnitMember {
+abstract final class EnumDeclaration
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
+  /// The body of the enum declaration.
+  EnumBody get body;
+
   /// The enumeration constants being declared.
+  @Deprecated('Use body instead')
   NodeList<EnumConstantDeclaration> get constants;
 
   @override
@@ -7209,19 +7381,33 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
   ImplementsClause? get implementsClause;
 
   /// The left curly bracket.
+  @Deprecated('Use body instead')
   Token get leftBracket;
 
   /// The members declared by the enumeration.
+  @Deprecated('Use body instead')
   NodeList<ClassMember> get members;
 
+  /// The name of the enum.
+  @Deprecated('Use namePart instead')
+  @override
+  Token get name;
+
+  /// The name of the enum, as an identifier with type parameters,
+  /// or a primary constructor.
+  ClassNamePart get namePart;
+
   /// The right curly bracket.
+  @Deprecated('Use body instead')
   Token get rightBracket;
 
   /// The optional semicolon after the last constant.
+  @Deprecated('Use body instead')
   Token? get semicolon;
 
   /// The type parameters for the enumeration, or `null` if the enumeration
   /// doesn't have any type parameters.
+  @Deprecated('Use namePart instead')
   TypeParameterList? get typeParameters;
 
   /// The `with` clause for the enumeration, or `null` if the enumeration
@@ -7233,18 +7419,16 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('enumKeyword'),
-    GenerateNodeProperty('name', isSuper: true),
-    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('namePart'),
     GenerateNodeProperty('withClause'),
     GenerateNodeProperty('implementsClause'),
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('constants'),
-    GenerateNodeProperty('semicolon'),
-    GenerateNodeProperty('members'),
-    GenerateNodeProperty('rightBracket'),
+    GenerateNodeProperty('body'),
   ],
 )
-final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class EnumDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements EnumDeclaration {
   @generated
@@ -7256,7 +7440,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token enumKeyword;
 
   @generated
-  TypeParameterListImpl? _typeParameters;
+  ClassNamePartImpl _namePart;
 
   @generated
   WithClauseImpl? _withClause;
@@ -7265,24 +7449,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   ImplementsClauseImpl? _implementsClause;
 
   @generated
-  @override
-  final Token leftBracket;
-
-  @generated
-  @override
-  final NodeListImpl<EnumConstantDeclarationImpl> constants = NodeListImpl._();
-
-  @generated
-  @override
-  final Token? semicolon;
-
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
-
-  @generated
-  @override
-  final Token rightBracket;
+  EnumBodyImpl _body;
 
   @override
   EnumFragmentImpl? declaredFragment;
@@ -7293,29 +7460,39 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.augmentKeyword,
     required this.enumKeyword,
-    required super.name,
-    required TypeParameterListImpl? typeParameters,
+    required ClassNamePartImpl namePart,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
-    required this.leftBracket,
-    required List<EnumConstantDeclarationImpl> constants,
-    required this.semicolon,
-    required List<ClassMemberImpl> members,
-    required this.rightBracket,
-  }) : _typeParameters = typeParameters,
+    required EnumBodyImpl body,
+  }) : _namePart = namePart,
        _withClause = withClause,
-       _implementsClause = implementsClause {
-    _becomeParentOf(typeParameters);
+       _implementsClause = implementsClause,
+       _body = body {
+    _becomeParentOf(namePart);
     _becomeParentOf(withClause);
     _becomeParentOf(implementsClause);
-    this.constants._initialize(this, constants);
-    this.members._initialize(this, members);
+    _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  EnumBodyImpl get body => _body;
+
+  @generated
+  set body(EnumBodyImpl body) {
+    _body = _becomeParentOf(body);
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  NodeListImpl<EnumConstantDeclarationImpl> get constants {
+    return body.constants;
   }
 
   @generated
   @override
   Token get endToken {
-    return rightBracket;
+    return body.endToken;
   }
 
   @generated
@@ -7336,13 +7513,47 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
-  @generated
+  @Deprecated('Use body instead')
   @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
+  Token get leftBracket {
+    return body.leftBracket;
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  NodeListImpl<ClassMemberImpl> get members {
+    return body.members;
+  }
+
+  @Deprecated('Use namePart instead')
+  @override
+  Token get name => namePart.typeName;
 
   @generated
-  set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+  @override
+  ClassNamePartImpl get namePart => _namePart;
+
+  @generated
+  set namePart(ClassNamePartImpl namePart) {
+    _namePart = _becomeParentOf(namePart);
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  Token get rightBracket {
+    return body.rightBracket;
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  Token? get semicolon {
+    return body.semicolon;
+  }
+
+  @Deprecated('Use namePart instead')
+  @override
+  TypeParameterListImpl? get typeParameters {
+    return namePart.typeParameters;
   }
 
   @generated
@@ -7359,15 +7570,10 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('enumKeyword', enumKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
+    ..addNode('namePart', namePart)
     ..addNode('withClause', withClause)
     ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('constants', constants)
-    ..addToken('semicolon', semicolon)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+    ..addNode('body', body);
 
   @generated
   @override
@@ -7377,11 +7583,10 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    typeParameters?.accept(visitor);
+    namePart.accept(visitor);
     withClause?.accept(visitor);
     implementsClause?.accept(visitor);
-    constants.accept(visitor);
-    members.accept(visitor);
+    body.accept(visitor);
   }
 
   @generated
@@ -7390,10 +7595,8 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
+    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+      return namePart;
     }
     if (withClause case var withClause?) {
       if (withClause._containsOffset(rangeOffset, rangeEnd)) {
@@ -7405,13 +7608,8 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
         return implementsClause;
       }
     }
-    if (constants._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
     }
     return null;
   }
@@ -7830,7 +8028,7 @@ sealed class ExpressionImpl extends CollectionElementImpl
 
     var constant = visitor.evaluateAndReportInvalidConstant(this);
     var isInvalidConstant = diagnosticListener.diagnostics.any(
-      (e) => e.diagnosticCode == CompileTimeErrorCode.invalidConstant,
+      (e) => e.diagnosticCode == diag.invalidConstant,
     );
     if (isInvalidConstant) {
       return null;
@@ -8150,6 +8348,9 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
+  /// The body of the extension declaration.
+  BlockClassBody get body;
+
   @override
   ExtensionFragment? get declaredFragment;
 
@@ -8157,9 +8358,11 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   Token get extensionKeyword;
 
   /// The left curly bracket.
+  @Deprecated('Use body instead')
   Token get leftBracket;
 
   /// The members being added to the extended class.
+  @Deprecated('Use body instead')
   NodeList<ClassMember> get members;
 
   /// The name of the extension, or `null` if the extension doesn't have a name.
@@ -8169,6 +8372,7 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   ExtensionOnClause? get onClause;
 
   /// The right curly bracket.
+  @Deprecated('Use body instead')
   Token get rightBracket;
 
   /// The token representing the `type` keyword.
@@ -8187,9 +8391,7 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('name'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('onClause'),
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('members'),
-    GenerateNodeProperty('rightBracket'),
+    GenerateNodeProperty('body'),
   ],
 )
 final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
@@ -8218,16 +8420,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   ExtensionOnClauseImpl? _onClause;
 
   @generated
-  @override
-  final Token leftBracket;
-
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
-
-  @generated
-  @override
-  final Token rightBracket;
+  BlockClassBodyImpl _body;
 
   @override
   ExtensionFragmentImpl? declaredFragment;
@@ -8242,20 +8435,28 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required this.name,
     required TypeParameterListImpl? typeParameters,
     required ExtensionOnClauseImpl? onClause,
-    required this.leftBracket,
-    required List<ClassMemberImpl> members,
-    required this.rightBracket,
+    required BlockClassBodyImpl body,
   }) : _typeParameters = typeParameters,
-       _onClause = onClause {
+       _onClause = onClause,
+       _body = body {
     _becomeParentOf(typeParameters);
     _becomeParentOf(onClause);
-    this.members._initialize(this, members);
+    _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  BlockClassBodyImpl get body => _body;
+
+  @generated
+  set body(BlockClassBodyImpl body) {
+    _body = _becomeParentOf(body);
   }
 
   @generated
   @override
   Token get endToken {
-    return rightBracket;
+    return body.endToken;
   }
 
   @generated
@@ -8267,6 +8468,18 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     return extensionKeyword;
   }
 
+  @Deprecated('Use body instead')
+  @override
+  Token get leftBracket {
+    return body.leftBracket;
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  NodeListImpl<ClassMemberImpl> get members {
+    return body.members;
+  }
+
   @generated
   @override
   ExtensionOnClauseImpl? get onClause => _onClause;
@@ -8274,6 +8487,12 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   set onClause(ExtensionOnClauseImpl? onClause) {
     _onClause = _becomeParentOf(onClause);
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  Token get rightBracket {
+    return body.rightBracket;
   }
 
   @generated
@@ -8294,9 +8513,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('onClause', onClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+    ..addNode('body', body);
 
   @generated
   @override
@@ -8309,7 +8526,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     super.visitChildren(visitor);
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
-    members.accept(visitor);
+    body.accept(visitor);
   }
 
   @generated
@@ -8328,9 +8545,8 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
         return onClause;
       }
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
     }
     return null;
   }
@@ -8434,10 +8650,6 @@ abstract final class ExtensionOverride implements Expression {
   /// The extension that resolution will use to resolve member references.
   ExtensionElement get element;
 
-  /// The extension that resolution will use to resolve member references.
-  @Deprecated('Use element instead')
-  ExtensionElement get element2;
-
   /// The actual type extended by this override, produced by applying
   /// [typeArgumentTypes] to the generic type extended by the extension, or
   /// `null` if the AST structure hasn't been resolved.
@@ -8531,10 +8743,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     return name;
   }
 
-  @Deprecated('Use element instead')
-  @override
-  ExtensionElementImpl get element2 => element;
-
   @generated
   @override
   Token get endToken {
@@ -8625,11 +8833,17 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 ///        '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionTypeDeclaration
-    implements NamedCompilationUnitMember {
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
+  /// The body of the extension type declaration.
+  ClassBody get body;
+
   /// The `const` keyword.
+  @Deprecated('Use primaryConstructor instead')
   Token? get constKeyword;
 
   @override
@@ -8642,21 +8856,34 @@ abstract final class ExtensionTypeDeclaration
   ImplementsClause? get implementsClause;
 
   /// The left curly bracket.
+  @Deprecated('Use body instead')
   Token get leftBracket;
 
   /// The members.
+  @Deprecated('Use body instead')
   NodeList<ClassMember> get members;
 
+  /// The name of the extension type.
+  @Deprecated('Use primaryConstructor instead')
+  @override
+  Token get name;
+
+  /// The primary constructor of the extension type.
+  PrimaryConstructorDeclaration get primaryConstructor;
+
   /// The representation declaration.
+  @Deprecated('Use primaryConstructor instead')
   RepresentationDeclaration get representation;
 
   /// The right curly bracket.
+  @Deprecated('Use body instead')
   Token get rightBracket;
 
   /// The `type` keyword.
   Token get typeKeyword;
 
   /// The type parameters.
+  @Deprecated('Use primaryConstructor instead')
   TypeParameterList? get typeParameters;
 }
 
@@ -8665,17 +8892,15 @@ abstract final class ExtensionTypeDeclaration
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('extensionKeyword'),
     GenerateNodeProperty('typeKeyword'),
-    GenerateNodeProperty('constKeyword'),
-    GenerateNodeProperty('name', isSuper: true),
-    GenerateNodeProperty('typeParameters'),
-    GenerateNodeProperty('representation'),
+    GenerateNodeProperty('primaryConstructor'),
     GenerateNodeProperty('implementsClause'),
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('members'),
-    GenerateNodeProperty('rightBracket'),
+    GenerateNodeProperty('body'),
   ],
 )
-final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class ExtensionTypeDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements ExtensionTypeDeclaration {
   @generated
@@ -8691,29 +8916,16 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token typeKeyword;
 
   @generated
-  @override
-  final Token? constKeyword;
-
-  @generated
-  TypeParameterListImpl? _typeParameters;
-
-  @generated
-  RepresentationDeclarationImpl _representation;
+  PrimaryConstructorDeclarationImpl _primaryConstructor;
 
   @generated
   ImplementsClauseImpl? _implementsClause;
 
   @generated
-  @override
-  final Token leftBracket;
+  ClassBodyImpl _body;
 
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
-
-  @generated
-  @override
-  final Token rightBracket;
+  @Deprecated('Use primaryConstructor instead')
+  RepresentationDeclarationImpl? _representation;
 
   @override
   ExtensionTypeFragmentImpl? declaredFragment;
@@ -8725,27 +8937,36 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.augmentKeyword,
     required this.extensionKeyword,
     required this.typeKeyword,
-    required this.constKeyword,
-    required super.name,
-    required TypeParameterListImpl? typeParameters,
-    required RepresentationDeclarationImpl representation,
+    required PrimaryConstructorDeclarationImpl primaryConstructor,
     required ImplementsClauseImpl? implementsClause,
-    required this.leftBracket,
-    required List<ClassMemberImpl> members,
-    required this.rightBracket,
-  }) : _typeParameters = typeParameters,
-       _representation = representation,
-       _implementsClause = implementsClause {
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(representation);
+    required ClassBodyImpl body,
+  }) : _primaryConstructor = primaryConstructor,
+       _implementsClause = implementsClause,
+       _body = body {
+    _becomeParentOf(primaryConstructor);
     _becomeParentOf(implementsClause);
-    this.members._initialize(this, members);
+    _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  ClassBodyImpl get body => _body;
+
+  @generated
+  set body(ClassBodyImpl body) {
+    _body = _becomeParentOf(body);
+  }
+
+  @Deprecated('Use primaryConstructor instead')
+  @override
+  Token? get constKeyword {
+    return primaryConstructor.constKeyword;
   }
 
   @generated
   @override
   Token get endToken {
-    return rightBracket;
+    return body.endToken;
   }
 
   @generated
@@ -8766,22 +8987,121 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
-  @generated
+  @Deprecated('Use body instead')
   @override
-  RepresentationDeclarationImpl get representation => _representation;
-
-  @generated
-  set representation(RepresentationDeclarationImpl representation) {
-    _representation = _becomeParentOf(representation);
+  Token get leftBracket {
+    return (body as BlockClassBodyImpl).leftBracket;
   }
 
-  @generated
+  @Deprecated('Use body instead')
   @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
+  NodeListImpl<ClassMemberImpl> get members {
+    return (body as BlockClassBodyImpl).members;
+  }
+
+  @Deprecated('Use primaryConstructor instead')
+  @override
+  Token get name => primaryConstructor.typeName;
 
   @generated
-  set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
+  @override
+  PrimaryConstructorDeclarationImpl get primaryConstructor =>
+      _primaryConstructor;
+
+  @generated
+  set primaryConstructor(PrimaryConstructorDeclarationImpl primaryConstructor) {
+    _primaryConstructor = _becomeParentOf(primaryConstructor);
+  }
+
+  @Deprecated('Use primaryConstructor instead')
+  @override
+  RepresentationDeclarationImpl get representation {
+    Token syntheticName() {
+      return StringToken(TokenType.IDENTIFIER, '', 0);
+    }
+
+    TypeAnnotationImpl syntheticType() {
+      return NamedTypeImpl(
+        importPrefix: null,
+        name: StringToken(TokenType.IDENTIFIER, 'InvalidType', 0),
+        question: null,
+        typeArguments: null,
+      );
+    }
+
+    var parameters = primaryConstructor.formalParameters.parameters;
+    var formal = parameters.firstOrNull;
+    if (formal is DefaultFormalParameterImpl) {
+      formal = formal.parameter;
+    }
+
+    var representation = _representation;
+    if (representation == null) {
+      var constructorName = primaryConstructor.constructorName;
+
+      if (formal is DefaultFormalParameterImpl) {
+        formal = formal.parameter;
+      }
+
+      TypeAnnotationImpl fieldType;
+      Token fieldName;
+      List<AnnotationImpl> fieldMetadata;
+
+      if (formal is SimpleFormalParameterImpl) {
+        fieldType = formal.type ?? syntheticType();
+        fieldName = formal.name ?? syntheticName();
+        fieldMetadata = formal.metadata;
+      } else if (formal is FieldFormalParameterImpl) {
+        fieldType = formal.type ?? syntheticType();
+        fieldName = formal.name;
+        fieldMetadata = formal.metadata;
+      } else {
+        fieldType = syntheticType();
+        fieldName = formal?.name ?? syntheticName();
+        fieldMetadata = formal?.metadata ?? const [];
+      }
+
+      representation = RepresentationDeclarationImpl(
+        constructorName: constructorName != null
+            ? RepresentationConstructorNameImpl(
+                period: constructorName.period,
+                name: constructorName.name,
+              )
+            : null,
+        leftParenthesis: primaryConstructor.formalParameters.leftParenthesis,
+        fieldMetadata: fieldMetadata,
+        fieldType: fieldType,
+        fieldName: fieldName,
+        rightParenthesis: primaryConstructor.formalParameters.rightParenthesis,
+      );
+      _representation = _becomeParentOf(representation);
+    }
+    representation.constructorFragment = primaryConstructor.declaredFragment;
+    if (declaredFragment case var declaredFragment?) {
+      representation.fieldFragment = declaredFragment.fields
+          .where((f) => !f.isStatic)
+          .firstOrNull;
+    }
+    return representation;
+  }
+
+  /// Usually, the only formal parameter of the primary constructor.
+  /// But could be `null` in invalid code.
+  SimpleFormalParameterImpl? get representationFormalParameter {
+    var formalParameters = primaryConstructor.formalParameters;
+    return formalParameters.parameters.firstOrNull.ifTypeOrNull();
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  Token get rightBracket {
+    return (body as BlockClassBodyImpl).rightBracket;
+  }
+
+  @Deprecated('Use primaryConstructor instead')
+  @override
+  TypeParameterListImpl? get typeParameters {
+    return primaryConstructor.typeParameters;
   }
 
   @generated
@@ -8790,14 +9110,9 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('extensionKeyword', extensionKeyword)
     ..addToken('typeKeyword', typeKeyword)
-    ..addToken('constKeyword', constKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('representation', representation)
+    ..addNode('primaryConstructor', primaryConstructor)
     ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+    ..addNode('body', body);
 
   @generated
   @override
@@ -8808,10 +9123,9 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    typeParameters?.accept(visitor);
-    representation.accept(visitor);
+    primaryConstructor.accept(visitor);
     implementsClause?.accept(visitor);
-    members.accept(visitor);
+    body.accept(visitor);
   }
 
   @generated
@@ -8820,22 +9134,16 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
-    }
-    if (representation._containsOffset(rangeOffset, rangeEnd)) {
-      return representation;
+    if (primaryConstructor._containsOffset(rangeOffset, rangeEnd)) {
+      return primaryConstructor;
     }
     if (implementsClause case var implementsClause?) {
       if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
         return implementsClause;
       }
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
     }
     return null;
   }
@@ -10616,18 +10924,6 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed.
   bool isPotentiallyMutatedInScope(VariableElement variable);
-
-  /// If [variable] is a local variable or parameter declared anywhere within
-  /// the top level function or method containing this [FunctionBody], return a
-  /// boolean indicating whether [variable] is potentially mutated within the
-  /// scope of its declaration.
-  ///
-  /// If [variable] isn't a local variable or parameter declared within the top
-  /// level function or method containing this [FunctionBody], return `false`.
-  ///
-  /// Throws an exception if resolution hasn't been performed.
-  @Deprecated('Use isPotentiallyMutatedInScope instead')
-  bool isPotentiallyMutatedInScope2(VariableElement variable);
 }
 
 sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
@@ -10663,12 +10959,6 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
   }
 
-  @Deprecated('Use isPotentiallyMutatedInScope instead')
-  @override
-  bool isPotentiallyMutatedInScope2(VariableElement variable) {
-    return isPotentiallyMutatedInScope(variable);
-  }
-
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
   /// return type context for `return` statements.
   ///
@@ -10692,7 +10982,10 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
+abstract final class FunctionDeclaration
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if there is no `augment` keyword.
   Token? get augmentKeyword;
 
@@ -10716,6 +11009,10 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
   /// Whether this function declares a setter.
   bool get isSetter;
 
+  /// The name of the function.
+  @override
+  Token get name;
+
   /// The token representing the `get` or `set` keyword, or `null` if this is a
   /// function declaration rather than a property declaration.
   Token? get propertyKeyword;
@@ -10730,11 +11027,14 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
     GenerateNodeProperty('externalKeyword'),
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('propertyKeyword'),
-    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('functionExpression'),
   ],
 )
-final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class FunctionDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements FunctionDeclaration {
   @generated
@@ -10753,6 +11053,10 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? propertyKeyword;
 
   @generated
+  @override
+  final Token name;
+
+  @generated
   FunctionExpressionImpl _functionExpression;
 
   @override
@@ -10766,7 +11070,7 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.externalKeyword,
     required TypeAnnotationImpl? returnType,
     required this.propertyKeyword,
-    required super.name,
+    required this.name,
     required FunctionExpressionImpl functionExpression,
   }) : _returnType = returnType,
        _functionExpression = functionExpression {
@@ -11100,10 +11404,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionExpressionInvocation
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        InvocationExpression {
+    implements InvocationExpression {
   /// The element associated with the function being invoked based on static
   /// type information.
   ///
@@ -11124,7 +11425,6 @@ abstract final class FunctionExpressionInvocation
   ],
 )
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
-    with NullShortableExpressionImpl
     implements RewrittenMethodInvocationImpl, FunctionExpressionInvocation {
   @generated
   ExpressionImpl _function;
@@ -11172,9 +11472,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
@@ -11210,10 +11507,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _function);
 }
 
 /// An expression representing a reference to a function, possibly with type
@@ -11516,6 +11809,10 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionTypedFormalParameter
     implements NormalFormalParameter {
+  /// The token representing either the `final` or `var` keyword, or
+  /// `null` if no keyword was used.
+  Token? get keyword;
+
   @override
   Token get name;
 
@@ -11541,6 +11838,7 @@ abstract final class FunctionTypedFormalParameter
   childEntitiesOrder: [
     GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('keyword'),
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('name', isSuper: true, superNullAssertOverride: true),
     GenerateNodeProperty('typeParameters'),
@@ -11550,6 +11848,10 @@ abstract final class FunctionTypedFormalParameter
 )
 final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
+  @generated
+  @override
+  final Token? keyword;
+
   @generated
   TypeAnnotationImpl? _returnType;
 
@@ -11569,6 +11871,7 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     required super.metadata,
     required super.covariantKeyword,
     required super.requiredKeyword,
+    required this.keyword,
     required TypeAnnotationImpl? returnType,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -11591,6 +11894,14 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     return parameters.endToken;
   }
 
+  /// If [keyword] is `final`, returns it.
+  Token? get finalKeyword {
+    if (keyword?.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -11599,6 +11910,9 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     }
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
+    }
+    if (keyword case var keyword?) {
+      return keyword;
     }
     if (returnType case var returnType?) {
       return returnType.beginToken;
@@ -11613,7 +11927,7 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   bool get isExplicitlyTyped => true;
 
   @override
-  bool get isFinal => false;
+  bool get isFinal => keyword?.keyword == Keyword.FINAL;
 
   @generated
   @override
@@ -11646,11 +11960,20 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     _typeParameters = _becomeParentOf(typeParameters);
   }
 
+  /// If [keyword] is `var`, returns it.
+  Token? get varKeyword {
+    if (keyword?.keyword == Keyword.VAR) {
+      return keyword;
+    }
+    return null;
+  }
+
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('keyword', keyword)
     ..addNode('returnType', returnType)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
@@ -13175,12 +13498,6 @@ abstract final class ImportPrefixReference implements AstNode {
   /// Usually a [PrefixElement], but can be anything in invalid code.
   Element? get element;
 
-  /// The element to which [name] is resolved.
-  ///
-  /// Usually a [PrefixElement], but can be anything in invalid code.
-  @Deprecated('Use element instead')
-  Element? get element2;
-
   /// The name of the referenced import prefix.
   Token get name;
 
@@ -13216,10 +13533,6 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
     return name;
   }
 
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
-
   @generated
   @override
   Token get endToken {
@@ -13253,11 +13566,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 ///    indexExpression ::=
 ///        [Expression] '[' [Expression] ']'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class IndexExpression
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        MethodReferenceExpression {
+abstract final class IndexExpression implements MethodReferenceExpression {
   /// The expression used to compute the index.
   Expression get index;
 
@@ -13331,7 +13640,7 @@ abstract final class IndexExpression
   ],
 )
 final class IndexExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl, DotShorthandMixin
+    with DotShorthandMixin
     implements IndexExpression {
   @generated
   ExpressionImpl? _target;
@@ -13464,9 +13773,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     ..addNode('index', index)
     ..addToken('rightBracket', rightBracket);
 
-  @override
-  AstNode get _nullShortingExtensionCandidate => parent!;
-
   /// The parameter element representing the parameter to which the value of the
   /// index expression is bound, or `null` if the AST structure is not resolved,
   /// or the function being invoked is not known based on static type
@@ -13547,10 +13853,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _target);
 }
 
 /// An instance creation expression.
@@ -14488,22 +14790,11 @@ abstract final class LibraryDirective implements Directive {
   /// directive couldn't be resolved.
   LibraryElement? get element;
 
-  /// The element associated with this directive.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this
-  /// directive couldn't be resolved.
-  @Deprecated('Use element instead')
-  LibraryElement? get element2;
-
   /// The token representing the `library` keyword.
   Token get libraryKeyword;
 
   /// The name of the library being defined.
   LibraryIdentifier? get name;
-
-  /// The name of the library being defined.
-  @Deprecated('Use name instead')
-  LibraryIdentifier? get name2;
 
   /// The semicolon terminating the directive.
   Token get semicolon;
@@ -14543,10 +14834,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     _becomeParentOf(name);
   }
 
-  @Deprecated('Use element instead')
-  @override
-  LibraryElementImpl? get element2 => element;
-
   @generated
   @override
   Token get endToken {
@@ -14567,10 +14854,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   set name(LibraryIdentifierImpl? name) {
     _name = _becomeParentOf(name);
   }
-
-  @Deprecated('Use name instead')
-  @override
-  LibraryIdentifierImpl? get name2 => name;
 
   @generated
   @override
@@ -15976,11 +16259,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 ///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
 ///        [ArgumentList]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class MethodInvocation
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        InvocationExpression {
+abstract final class MethodInvocation implements InvocationExpression {
   /// Whether this expression is cascaded.
   ///
   /// If it is, then the target of this expression isn't stored locally but is
@@ -16027,7 +16306,7 @@ abstract final class MethodInvocation
   ],
 )
 final class MethodInvocationImpl extends InvocationExpressionImpl
-    with NullShortableExpressionImpl, DotShorthandMixin
+    with DotShorthandMixin
     implements MethodInvocation {
   @generated
   ExpressionImpl? _target;
@@ -16158,9 +16437,6 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
@@ -16201,10 +16477,6 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _target);
 }
 
 /// An expression that implicitly makes reference to a method.
@@ -16225,12 +16497,18 @@ abstract final class MethodReferenceExpression implements Expression {
 ///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class MixinDeclaration implements NamedCompilationUnitMember {
+abstract final class MixinDeclaration
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
+
+  /// The body of the mixin declaration.
+  BlockClassBody get body;
 
   @override
   MixinFragment? get declaredFragment;
@@ -16240,19 +16518,26 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
   ImplementsClause? get implementsClause;
 
   /// The left curly bracket.
+  @Deprecated('Use body instead')
   Token get leftBracket;
 
   /// The members defined by the mixin.
+  @Deprecated('Use body instead')
   NodeList<ClassMember> get members;
 
   /// The token representing the `mixin` keyword.
   Token get mixinKeyword;
+
+  /// The name of the mixin.
+  @override
+  Token get name;
 
   /// The on clause for the mixin, or `null` if the mixin doesn't have any
   /// superclass constraints.
   MixinOnClause? get onClause;
 
   /// The right curly bracket.
+  @Deprecated('Use body instead')
   Token get rightBracket;
 
   /// The type parameters for the mixin, or `null` if the mixin doesn't have any
@@ -16265,16 +16550,17 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('baseKeyword'),
     GenerateNodeProperty('mixinKeyword'),
-    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('onClause'),
     GenerateNodeProperty('implementsClause'),
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('members'),
-    GenerateNodeProperty('rightBracket'),
+    GenerateNodeProperty('body'),
   ],
 )
-final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class MixinDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements MixinDeclaration {
   @generated
@@ -16290,6 +16576,10 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token mixinKeyword;
 
   @generated
+  @override
+  final Token name;
+
+  @generated
   TypeParameterListImpl? _typeParameters;
 
   @generated
@@ -16299,16 +16589,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   ImplementsClauseImpl? _implementsClause;
 
   @generated
-  @override
-  final Token leftBracket;
-
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
-
-  @generated
-  @override
-  final Token rightBracket;
+  BlockClassBodyImpl _body;
 
   @override
   MixinFragmentImpl? declaredFragment;
@@ -16320,26 +16601,34 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.augmentKeyword,
     required this.baseKeyword,
     required this.mixinKeyword,
-    required super.name,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required MixinOnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
-    required this.leftBracket,
-    required List<ClassMemberImpl> members,
-    required this.rightBracket,
+    required BlockClassBodyImpl body,
   }) : _typeParameters = typeParameters,
        _onClause = onClause,
-       _implementsClause = implementsClause {
+       _implementsClause = implementsClause,
+       _body = body {
     _becomeParentOf(typeParameters);
     _becomeParentOf(onClause);
     _becomeParentOf(implementsClause);
-    this.members._initialize(this, members);
+    _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  BlockClassBodyImpl get body => _body;
+
+  @generated
+  set body(BlockClassBodyImpl body) {
+    _body = _becomeParentOf(body);
   }
 
   @generated
   @override
   Token get endToken {
-    return rightBracket;
+    return body.endToken;
   }
 
   @generated
@@ -16363,6 +16652,18 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
+  @Deprecated('Use body instead')
+  @override
+  Token get leftBracket {
+    return body.leftBracket;
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  NodeListImpl<ClassMemberImpl> get members {
+    return body.members;
+  }
+
   @generated
   @override
   MixinOnClauseImpl? get onClause => _onClause;
@@ -16370,6 +16671,12 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @generated
   set onClause(MixinOnClauseImpl? onClause) {
     _onClause = _becomeParentOf(onClause);
+  }
+
+  @Deprecated('Use body instead')
+  @override
+  Token get rightBracket {
+    return body.rightBracket;
   }
 
   @generated
@@ -16391,9 +16698,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addNode('typeParameters', typeParameters)
     ..addNode('onClause', onClause)
     ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+    ..addNode('body', body);
 
   @generated
   @override
@@ -16406,7 +16711,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
     implementsClause?.accept(visitor);
-    members.accept(visitor);
+    body.accept(visitor);
   }
 
   @generated
@@ -16430,9 +16735,8 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
         return implementsClause;
       }
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
     }
     return null;
   }
@@ -16518,25 +16822,24 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 
 /// A node that declares a single name within the scope of a compilation unit.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@Deprecated('Use specific subclasses and properties')
 abstract final class NamedCompilationUnitMember
     implements CompilationUnitMember {
   /// The name of the member being declared.
+  @Deprecated('Use name or namePart properties of concrete subclasses')
   Token get name;
 }
 
+@Deprecated('Use specific subclasses and properties')
 sealed class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     implements NamedCompilationUnitMember {
-  @override
-  final Token name;
-
-  /// Initializes a newly created compilation unit member with the given [name].
+  /// Initializes a newly created compilation unit member.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
   NamedCompilationUnitMemberImpl({
     required super.comment,
     required super.metadata,
-    required this.name,
   });
 }
 
@@ -16553,13 +16856,6 @@ abstract final class NamedExpression implements Expression {
   /// Returns `null` if the AST structure hasn't been resolved or if there's no
   /// parameter with the same name as this expression.
   FormalParameterElement? get element;
-
-  /// The element representing the parameter being named by this expression.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if there's no
-  /// parameter with the same name as this expression.
-  @Deprecated('Use element instead')
-  FormalParameterElement? get element2;
 
   /// The expression with which the name is associated.
   Expression get expression;
@@ -16601,12 +16897,6 @@ final class NamedExpressionImpl extends ExpressionImpl
   @override
   InternalFormalParameterElement? get element {
     return _name.label.element?.ifTypeOrNull();
-  }
-
-  @Deprecated('Use element instead')
-  @override
-  InternalFormalParameterElement? get element2 {
-    return element;
   }
 
   @generated
@@ -16687,16 +16977,6 @@ abstract final class NamedType implements TypeAnnotation {
   /// type name, such as for `void`.
   Element? get element;
 
-  /// The element of [name] considering [importPrefix].
-  ///
-  /// This could be a [ClassElement], [TypeAliasElement], or other type defining
-  /// element.
-  ///
-  /// Returns `null` if [name] can't be resolved, or there's no element for the
-  /// type name, such as for `void`.
-  @Deprecated('Use element instead')
-  Element? get element2;
-
   /// The optional import prefix before [name].
   ImportPrefixReference? get importPrefix;
 
@@ -16710,10 +16990,6 @@ abstract final class NamedType implements TypeAnnotation {
 
   /// The name of the type.
   Token get name;
-
-  /// The name of the type.
-  @Deprecated('Use name instead')
-  Token get name2;
 
   /// The type being named, or `null` if the AST structure hasn't been resolved,
   /// or if this is part of a [ConstructorReference].
@@ -16775,10 +17051,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     return name;
   }
 
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
-
   @generated
   @override
   Token get endToken {
@@ -16804,19 +17076,17 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   bool get isDeferred {
     var importPrefixElement = importPrefix?.element;
     if (importPrefixElement is PrefixElement) {
-      return importPrefixElement.fragments.any(
-        (fragment) => fragment.isDeferred,
-      );
+      var fragments = importPrefixElement.fragments;
+      for (var i = 0; i < fragments.length; i++) {
+        if (fragments[i].isDeferred) return true;
+      }
+      return false;
     }
     return false;
   }
 
   @override
   bool get isSynthetic => name.isSynthetic && typeArguments == null;
-
-  @Deprecated('Use name instead')
-  @override
-  Token get name2 => name;
 
   @generated
   @override
@@ -16916,6 +17186,86 @@ sealed class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   Token get endToken => semicolon;
+}
+
+/// The type name with optional type parameters.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class NameWithTypeParameters implements ClassNamePart {}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('typeName'),
+    GenerateNodeProperty('typeParameters'),
+  ],
+)
+final class NameWithTypeParametersImpl extends ClassNamePartImpl
+    implements NameWithTypeParameters {
+  @generated
+  @override
+  final Token typeName;
+
+  @generated
+  TypeParameterListImpl? _typeParameters;
+
+  @generated
+  NameWithTypeParametersImpl({
+    required this.typeName,
+    required TypeParameterListImpl? typeParameters,
+  }) : _typeParameters = typeParameters {
+    _becomeParentOf(typeParameters);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return typeName;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (typeParameters case var typeParameters?) {
+      return typeParameters.endToken;
+    }
+    return typeName;
+  }
+
+  @generated
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  @generated
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('typeName', typeName)
+    ..addNode('typeParameters', typeParameters);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitNameWithTypeParameters(this);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeParameters?.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    return null;
+  }
 }
 
 /// The "native" clause in an class declaration.
@@ -17728,63 +18078,6 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 }
 
-/// Abstract interface for expressions that may participate in null-shorting.
-///
-/// This is an analyzer-internal interface that was exposed through the public
-/// API by mistake. It is deprecated and will be removed in analyzer version
-/// 9.0.0.
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-@Deprecated('No longer supported.')
-abstract final class NullShortableExpression implements Expression {
-  /// The expression that terminates any null shorting that might occur in this
-  /// expression.
-  ///
-  /// This might be called regardless of whether this expression is itself
-  /// null-aware.
-  ///
-  /// For example, the statement `a?.b[c] = d;` contains the following
-  /// null-shortable subexpressions:
-  /// - `a?.b`
-  /// - `a?.b[c]`
-  /// - `a?.b[c] = d`
-  ///
-  /// Calling [nullShortingTermination] on any of these subexpressions yields
-  /// the expression `a?.b[c] = d`, indicating that the null-shorting induced by
-  /// the `?.` causes the rest of the subexpression `a?.b[c] = d` to be skipped.
-  @Deprecated('No longer supported.')
-  Expression get nullShortingTermination;
-}
-
-base mixin NullShortableExpressionImpl
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression {
-  @override
-  Expression get nullShortingTermination {
-    var result = this;
-    while (true) {
-      var parent = result._nullShortingExtensionCandidate;
-      if (parent is NullShortableExpressionImpl &&
-          parent._extendsNullShorting(result)) {
-        result = parent;
-      } else {
-        return result;
-      }
-    }
-  }
-
-  /// The ancestor of this node to which null-shorting might be extended.
-  ///
-  /// Usually this is just the node's parent, however if `this` is the base of
-  /// a cascade section, it's the cascade expression itself, which might be a
-  /// more distant ancestor.
-  AstNode? get _nullShortingExtensionCandidate;
-
-  /// Whether the effect of any null-shorting within [descendant] (which should
-  /// be a descendant of `this`) should extend to include `this`.
-  bool _extendsNullShorting(Expression descendant);
-}
-
 /// An object pattern.
 ///
 ///    objectPattern ::=
@@ -18176,9 +18469,6 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 ///        [Annotation] 'part' [StringLiteral] ';'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PartDirective implements UriBasedDirective {
-  /// The configurations that control which file is actually included.
-  NodeList<Configuration> get configurations;
-
   /// Information about this part directive.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
@@ -18195,7 +18485,6 @@ abstract final class PartDirective implements UriBasedDirective {
   childEntitiesOrder: [
     GenerateNodeProperty('partKeyword'),
     GenerateNodeProperty('uri', isSuper: true),
-    GenerateNodeProperty('configurations'),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -18204,10 +18493,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   @generated
   @override
   final Token partKeyword;
-
-  @generated
-  @override
-  final NodeListImpl<ConfigurationImpl> configurations = NodeListImpl._();
 
   @generated
   @override
@@ -18222,11 +18507,8 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     required super.metadata,
     required this.partKeyword,
     required super.uri,
-    required List<ConfigurationImpl> configurations,
     required this.semicolon,
-  }) {
-    this.configurations._initialize(this, configurations);
-  }
+  });
 
   @generated
   @override
@@ -18245,7 +18527,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('partKeyword', partKeyword)
     ..addNode('uri', uri)
-    ..addNodeList('configurations', configurations)
     ..addToken('semicolon', semicolon);
 
   @generated
@@ -18257,7 +18538,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     uri.accept(visitor);
-    configurations.accept(visitor);
   }
 
   @generated
@@ -18268,10 +18548,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     }
     if (uri._containsOffset(rangeOffset, rangeEnd)) {
       return uri;
-    }
-    if (configurations._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
     }
     return null;
   }
@@ -18560,15 +18836,6 @@ abstract final class PatternField implements AstNode {
   /// inside [RecordPattern]s.
   Element? get element;
 
-  /// The element referenced by [effectiveName].
-  ///
-  /// Returns `null` if the AST structure is not resolved yet.
-  ///
-  /// Returns non-`null` inside valid [ObjectPattern]s; always returns `null`
-  /// inside [RecordPattern]s.
-  @Deprecated('Use element instead')
-  Element? get element2;
-
   /// The name of the field, or `null` if the field is a positional field.
   PatternFieldName? get name;
 
@@ -18620,10 +18887,6 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     }
     return null;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
 
   @generated
   @override
@@ -18980,8 +19243,6 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
 abstract final class PostfixExpression
     implements
         Expression,
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
   /// The element associated with the operator based on the static type of the
@@ -19004,10 +19265,7 @@ abstract final class PostfixExpression
   ],
 )
 final class PostfixExpressionImpl extends ExpressionImpl
-    with
-        NullShortableExpressionImpl,
-        CompoundAssignmentExpressionImpl,
-        DotShorthandMixin
+    with CompoundAssignmentExpressionImpl, DotShorthandMixin
     implements PostfixExpression {
   @generated
   ExpressionImpl _operand;
@@ -19057,9 +19315,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
     ..addNode('operand', operand)
     ..addToken('operator', operator);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` ff the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
@@ -19100,10 +19355,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, operand);
 }
 
 /// An identifier that is prefixed or an access to an object property where the
@@ -19256,8 +19507,6 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 abstract final class PrefixExpression
     implements
         Expression,
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
         MethodReferenceExpression,
         CompoundAssignmentExpression {
   /// The element associated with the operator based on the static type of the
@@ -19280,7 +19529,7 @@ abstract final class PrefixExpression
   ],
 )
 final class PrefixExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
+    with CompoundAssignmentExpressionImpl
     implements PrefixExpression {
   @generated
   @override
@@ -19330,9 +19579,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
     ..addToken('operator', operator)
     ..addNode('operand', operand);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
@@ -19373,10 +19619,359 @@ final class PrefixExpressionImpl extends ExpressionImpl
     }
     return null;
   }
+}
+
+/// The body of a primary constructor.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+// TODO(scheglov): This should not be a `Declaration`.
+abstract final class PrimaryConstructorBody implements ClassMember {
+  /// The body of the constructor.
+  FunctionBody get body;
+
+  /// The token for the separator before [initializers], or `null` if there
+  /// are no initializers.
+  Token? get colon;
+
+  /// The initializers associated with the constructor.
+  NodeList<ConstructorInitializer> get initializers;
+
+  /// The token for the `this` keyword.
+  Token get thisKeyword;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('thisKeyword'),
+    GenerateNodeProperty('colon'),
+    GenerateNodeProperty('initializers'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class PrimaryConstructorBodyImpl extends ClassMemberImpl
+    implements PrimaryConstructorBody {
+  @generated
+  @override
+  final Token thisKeyword;
+
+  @generated
+  @override
+  final Token? colon;
+
+  @generated
+  @override
+  final NodeListImpl<ConstructorInitializerImpl> initializers =
+      NodeListImpl._();
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @generated
+  PrimaryConstructorBodyImpl({
+    required super.comment,
+    required super.metadata,
+    required this.thisKeyword,
+    required this.colon,
+    required List<ConstructorInitializerImpl> initializers,
+    required FunctionBodyImpl body,
+  }) : _body = body {
+    this.initializers._initialize(this, initializers);
+    _becomeParentOf(body);
+  }
 
   @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, operand) && operator.type.isIncrementOperator;
+  Token? get augmentKeyword => null;
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf(body);
+  }
+
+  PrimaryConstructorDeclarationImpl? get declaration {
+    switch (parent?.parent) {
+      case ClassDeclarationImpl parent:
+        return parent.namePart.ifTypeOrNull();
+      case EnumDeclarationImpl parent:
+        return parent.namePart.ifTypeOrNull();
+      case ExtensionTypeDeclarationImpl parent:
+        return parent.primaryConstructor;
+      default:
+        return null;
+    }
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    return thisKeyword;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('thisKeyword', thisKeyword)
+    ..addToken('colon', colon)
+    ..addNodeList('initializers', initializers)
+    ..addNode('body', body);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPrimaryConstructorBody(this);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    initializers.accept(visitor);
+    body.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (initializers._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
+/// The declaration of a primary constructor.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
+  /// The token for the `const` keyword, or `null` if the primary constructor
+  /// isn't a const constructor.
+  Token? get constKeyword;
+
+  /// The name of the primary constructor.
+  PrimaryConstructorName? get constructorName;
+
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  ConstructorFragment? get declaredFragment;
+
+  /// The formal parameters of the constructor, including declaring.
+  FormalParameterList get formalParameters;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('constKeyword'),
+    GenerateNodeProperty('typeName'),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('constructorName'),
+    GenerateNodeProperty('formalParameters'),
+  ],
+)
+final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
+    implements PrimaryConstructorDeclaration {
+  @generated
+  @override
+  final Token? constKeyword;
+
+  @generated
+  @override
+  final Token typeName;
+
+  @generated
+  TypeParameterListImpl? _typeParameters;
+
+  @generated
+  PrimaryConstructorNameImpl? _constructorName;
+
+  @generated
+  FormalParameterListImpl _formalParameters;
+
+  @override
+  ConstructorFragmentImpl? declaredFragment;
+
+  @generated
+  PrimaryConstructorDeclarationImpl({
+    required this.constKeyword,
+    required this.typeName,
+    required TypeParameterListImpl? typeParameters,
+    required PrimaryConstructorNameImpl? constructorName,
+    required FormalParameterListImpl formalParameters,
+  }) : _typeParameters = typeParameters,
+       _constructorName = constructorName,
+       _formalParameters = formalParameters {
+    _becomeParentOf(typeParameters);
+    _becomeParentOf(constructorName);
+    _becomeParentOf(formalParameters);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (constKeyword case var constKeyword?) {
+      return constKeyword;
+    }
+    return typeName;
+  }
+
+  PrimaryConstructorBodyImpl? get body =>
+      parent.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
+
+  @generated
+  @override
+  PrimaryConstructorNameImpl? get constructorName => _constructorName;
+
+  @generated
+  set constructorName(PrimaryConstructorNameImpl? constructorName) {
+    _constructorName = _becomeParentOf(constructorName);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return formalParameters.endToken;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf(formalParameters);
+  }
+
+  @generated
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  @generated
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('typeName', typeName)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('constructorName', constructorName)
+    ..addNode('formalParameters', formalParameters);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPrimaryConstructorDeclaration(this);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeParameters?.accept(visitor);
+    constructorName?.accept(visitor);
+    formalParameters.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (constructorName case var constructorName?) {
+      if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
+        return constructorName;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    return null;
+  }
+}
+
+/// The name of a primary constructor.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class PrimaryConstructorName implements AstNode {
+  /// The name of the primary constructor, can be `new`.
+  Token get name;
+
+  /// The period separating [name] from the previous token.
+  Token get period;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('period'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class PrimaryConstructorNameImpl extends AstNodeImpl
+    implements PrimaryConstructorName {
+  @generated
+  @override
+  final Token period;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  PrimaryConstructorNameImpl({required this.period, required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return period;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('name', name);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPrimaryConstructorName(this);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
 }
 
 /// The access of a property of an object.
@@ -19388,11 +19983,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
 ///    propertyAccess ::=
 ///        [Expression] '.' [SimpleIdentifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PropertyAccess
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        NullShortableExpression,
-        CommentReferableExpression {
+abstract final class PropertyAccess implements CommentReferableExpression {
   /// Whether this expression is cascaded.
   ///
   /// If it is, then the target of this expression isn't stored locally but is
@@ -19431,7 +20022,7 @@ abstract final class PropertyAccess
   ],
 )
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
-    with NullShortableExpressionImpl, DotShorthandMixin
+    with DotShorthandMixin
     implements PropertyAccess {
   @generated
   ExpressionImpl? _target;
@@ -19534,9 +20125,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     ..addToken('operator', operator)
     ..addNode('propertyName', propertyName);
 
-  @override
-  AstNode? get _nullShortingExtensionCandidate => parent;
-
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
@@ -19567,10 +20155,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     }
     return null;
   }
-
-  @override
-  bool _extendsNullShorting(Expression descendant) =>
-      identical(descendant, _target);
 }
 
 /// A record literal.
@@ -20392,13 +20976,6 @@ abstract final class RelationalPattern implements DartPattern {
   /// operator couldn't be resolved.
   MethodElement? get element;
 
-  /// The element of the [operator] for the matched type.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if the
-  /// operator couldn't be resolved.
-  @Deprecated('Use element instead')
-  MethodElement? get element2;
-
   /// The expression used to compute the operand.
   Expression get operand;
 
@@ -20437,10 +21014,6 @@ final class RelationalPatternImpl extends DartPatternImpl
   Token get beginToken {
     return operator;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  MethodElement? get element2 => element;
 
   @generated
   @override
@@ -20511,6 +21084,7 @@ final class RelationalPatternImpl extends DartPatternImpl
 
 /// The name of the primary constructor of an extension type.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@Deprecated('Use PrimaryConstructorDeclaration instead')
 abstract final class RepresentationConstructorName implements AstNode {
   /// The name of the primary constructor.
   Token get name;
@@ -20525,6 +21099,7 @@ abstract final class RepresentationConstructorName implements AstNode {
     GenerateNodeProperty('name'),
   ],
 )
+@Deprecated('Use PrimaryConstructorDeclaration instead')
 final class RepresentationConstructorNameImpl extends AstNodeImpl
     implements RepresentationConstructorName {
   @generated
@@ -20579,6 +21154,7 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
 ///    <representationDeclaration> ::=
 ///        ('.' <identifierOrNew>)? '(' <metadata> <type> <identifier> ')'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@Deprecated('Use PrimaryConstructorDeclaration instead')
 abstract final class RepresentationDeclaration implements AstNode {
   /// The fragment of the primary constructor contained in this declaration.
   ConstructorFragment? get constructorFragment;
@@ -20616,6 +21192,7 @@ abstract final class RepresentationDeclaration implements AstNode {
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
+@Deprecated('Use PrimaryConstructorDeclaration instead')
 final class RepresentationDeclarationImpl extends AstNodeImpl
     implements RepresentationDeclaration {
   @generated
@@ -21372,6 +21949,14 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     throw StateError('Expected at least one non-null');
   }
 
+  /// If [keyword] is `final`, returns it.
+  Token? get finalKeyword {
+    if (keyword?.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -21409,6 +21994,14 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   @generated
   set type(TypeAnnotationImpl? type) {
     _type = _becomeParentOf(type);
+  }
+
+  /// If [keyword] is `var`, returns it.
+  Token? get varKeyword {
+    if (keyword?.keyword == Keyword.VAR) {
+      return keyword;
+    }
+    return null;
   }
 
   @generated
@@ -22414,6 +23007,9 @@ final class SuperExpressionImpl extends ExpressionImpl
 ///        'super' '.' name ([TypeParameterList]? [FormalParameterList])?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SuperFormalParameter implements NormalFormalParameter {
+  @override
+  SuperFormalParameterFragment? get declaredFragment;
+
   /// The token representing either the `final`, `const` or `var` keyword, or
   /// `null` if no keyword was used.
   Token? get keyword;
@@ -22516,6 +23112,11 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     _becomeParentOf(typeParameters);
     _becomeParentOf(parameters);
   }
+
+  @generated
+  @override
+  SuperFormalParameterFragmentImpl? get declaredFragment =>
+      super.declaredFragment as SuperFormalParameterFragmentImpl?;
 
   @generated
   @override
@@ -23956,9 +24557,16 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 ///      | [FunctionTypeAlias]
 ///      | [GenericTypeAlias]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class TypeAlias implements NamedCompilationUnitMember {
+abstract final class TypeAlias
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
+
+  /// The name of the type alias.
+  @override
+  Token get name;
 
   /// The semicolon terminating the declaration.
   Token get semicolon;
@@ -23967,13 +24575,19 @@ abstract final class TypeAlias implements NamedCompilationUnitMember {
   Token get typedefKeyword;
 }
 
-sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
+sealed class TypeAliasImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     implements TypeAlias {
   @override
   final Token? augmentKeyword;
 
   @override
   final Token typedefKeyword;
+
+  @override
+  Token name;
 
   @override
   final Token semicolon;
@@ -23987,7 +24601,7 @@ sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.augmentKeyword,
     required this.typedefKeyword,
-    required super.name,
+    required this.name,
     required this.semicolon,
   });
 
@@ -24609,24 +25223,9 @@ class UriValidationCode {
 //  that these two kinds of variables can be distinguished.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclaration implements Declaration {
-  /// The element declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// represents the declaration of a top-level variable or a field.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement;
-
-  /// The element declared by this declaration.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// represents the declaration of a top-level variable or a field.
-  @Deprecated('Use declaredFragment instead')
-  LocalVariableElement? get declaredElement2;
-
   /// The fragment declared by this declaration.
   ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this node
-  /// represents the declaration of a local variable.
+  /// Returns `null` if the AST structure hasn't been resolved.
   @override
   VariableFragment? get declaredFragment;
 
@@ -24692,18 +25291,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
     required ExpressionImpl? initializer,
   }) : _initializer = initializer {
     _becomeParentOf(initializer);
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement {
-    return declaredFragment?.element.ifTypeOrNull<LocalVariableElementImpl>();
-  }
-
-  @Deprecated('Use declaredFragment instead')
-  @override
-  LocalVariableElementImpl? get declaredElement2 {
-    return declaredElement;
   }
 
   /// This overridden implementation of [documentationComment] looks in the
@@ -25644,8 +26231,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   @override
   List<AstNode> get sortedCommentAndAnnotations {
     var comment = _documentationComment;
-    return <AstNode>[if (comment != null) comment, ..._metadata]
-      ..sort(AstNode.LEXICAL_ORDER);
+    return <AstNode>[?comment, ..._metadata]..sort(AstNode.LEXICAL_ORDER);
   }
 
   @override

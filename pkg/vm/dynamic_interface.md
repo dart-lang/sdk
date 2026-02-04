@@ -51,16 +51,6 @@ dynamic module can override.
 Library item specifies all _public_ classes and members in the given
 library. Public members of private classes are not included.
 
-## Library prefix
-
-```
-  - library: '<prefix>*'
-```
-
-Library prefix item specifies all _public_ classes and members of
-all libraries with given prefix. Public members of private classes are not included.
-
-
 ## Class
 
 ```
@@ -104,9 +94,6 @@ Class member item specifies given member of the given class.
 callable:
   # All public classes and members in `dart:core`.
   - library: 'dart:core'
-
-  # All public classes and members in `package:flutter`.
-  - library: 'package:flutter/*'
 
   # Only `foo` in `package:my_app/dyn_interface.dart`.
   - library: 'package:my_app/dyn_interface.dart'

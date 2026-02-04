@@ -44,7 +44,7 @@ Widget build(BuildContext context) {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_CLOSING_LABELS) {
+    if (notification.event == analysisNotificationClosingLabels) {
       var params = AnalysisClosingLabelsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,
@@ -53,7 +53,7 @@ Widget build(BuildContext context) {
         lastLabels = params.labels;
         _labelsReceived.complete();
       }
-    } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
+    } else if (notification.event == serverNotificationError) {
       var params = ServerErrorParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../util/ast_type_matchers.dart';
 import 'parser_test_base.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -25,7 +25,7 @@ class FormalParameterParserTest extends FastaParserTestCase {
   FormalParameter parseNNBDFormalParameter(
     String code,
     ParameterKind kind, {
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
   }) {
     String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
@@ -39,7 +39,7 @@ class FormalParameterParserTest extends FastaParserTestCase {
     }
     createParser(parametersCode);
     FormalParameterList list = parserProxy.parseFormalParameterList();
-    assertErrors(errors: errors);
+    assertErrors(diagnostics: diagnostics);
     return list.parameters.single;
   }
 
@@ -232,7 +232,7 @@ class C {
     FormalParameter parameter = parseNNBDFormalParameter(
       'covariant required A a : null',
       kind,
-      errors: [expectedError(ParserErrorCode.modifierOutOfOrder, 12, 8)],
+      diagnostics: [expectedError(diag.modifierOutOfOrder, 12, 8)],
     );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
@@ -397,7 +397,7 @@ class C {
     parseNNBDFormalParameter(
       'external int i',
       ParameterKind.REQUIRED,
-      errors: [expectedError(ParserErrorCode.extraneousModifier, 1, 8)],
+      diagnostics: [expectedError(diag.extraneousModifier, 1, 8)],
     );
   }
 
@@ -461,7 +461,7 @@ class C {
     FormalParameter parameter = parseNNBDFormalParameter(
       'final required a : null',
       kind,
-      errors: [expectedError(ParserErrorCode.modifierOutOfOrder, 8, 8)],
+      diagnostics: [expectedError(diag.modifierOutOfOrder, 8, 8)],
     );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
@@ -795,7 +795,7 @@ class C {
     FormalParameter parameter = parseNNBDFormalParameter(
       'var required a : null',
       kind,
-      errors: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 8)],
+      diagnostics: [expectedError(diag.modifierOutOfOrder, 6, 8)],
     );
     expect(parameter, isNotNull);
     expect(parameter, isDefaultFormalParameter);
@@ -1004,7 +1004,7 @@ class C {
   void test_parseFormalParameterList_prefixedType_missingName() {
     FormalParameterList list = parseFormalParameterList(
       '(io.File)',
-      errors: [expectedError(ParserErrorCode.missingIdentifier, 8, 1)],
+      diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
     );
     expect(list, isNotNull);
     expect(list.leftParenthesis, isNotNull);
@@ -1024,9 +1024,9 @@ class C {
   void test_parseFormalParameterList_prefixedType_partial() {
     FormalParameterList list = parseFormalParameterList(
       '(io.)',
-      errors: [
-        expectedError(ParserErrorCode.expectedTypeName, 4, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 4, 1),
+      diagnostics: [
+        expectedError(diag.expectedTypeName, 4, 1),
+        expectedError(diag.missingIdentifier, 4, 1),
       ],
     );
     expect(list, isNotNull);
@@ -1047,9 +1047,9 @@ class C {
   void test_parseFormalParameterList_prefixedType_partial2() {
     FormalParameterList list = parseFormalParameterList(
       '(io.,a)',
-      errors: [
-        expectedError(ParserErrorCode.expectedTypeName, 4, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 4, 1),
+      diagnostics: [
+        expectedError(diag.expectedTypeName, 4, 1),
+        expectedError(diag.missingIdentifier, 4, 1),
       ],
     );
     expect(list, isNotNull);
@@ -1065,7 +1065,7 @@ class C {
   void test_parseNormalFormalParameter_field_const_noType() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const this.a',
-      diagnosticCodes: [ParserErrorCode.extraneousModifier],
+      diagnosticCodes: [diag.extraneousModifier],
     );
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
@@ -1079,7 +1079,7 @@ class C {
   void test_parseNormalFormalParameter_field_const_type() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const A this.a',
-      diagnosticCodes: [ParserErrorCode.extraneousModifier],
+      diagnosticCodes: [diag.extraneousModifier],
     );
     expect(parameter, isNotNull);
     expect(parameter, isFieldFormalParameter);
@@ -1347,7 +1347,7 @@ class C {
   void test_parseNormalFormalParameter_simple_const_noType() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const a',
-      diagnosticCodes: [ParserErrorCode.extraneousModifier],
+      diagnosticCodes: [diag.extraneousModifier],
     );
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);
@@ -1360,7 +1360,7 @@ class C {
   void test_parseNormalFormalParameter_simple_const_type() {
     NormalFormalParameter parameter = parseNormalFormalParameter(
       'const A a',
-      diagnosticCodes: [ParserErrorCode.extraneousModifier],
+      diagnosticCodes: [diag.extraneousModifier],
     );
     expect(parameter, isNotNull);
     expect(parameter, isSimpleFormalParameter);

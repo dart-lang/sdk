@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
-part 'package:analyzer/src/dart/error/todo_codes.g.dart';
-
-/// Static helper methods and properties for working with [TodoCode]s.
+/// Static helper methods and properties for working with [DiagnosticType.TODO]
+/// codes.
 class Todo {
   static const _codes = {
-    'TODO': TodoCode.todo,
-    'FIXME': TodoCode.fixme,
-    'HACK': TodoCode.hack,
-    'UNDONE': TodoCode.undone,
+    'TODO': diag.todo,
+    'FIXME': diag.fixme,
+    'HACK': diag.hack,
+    'UNDONE': diag.undone,
   };
 
   /// This matches the two common Dart task styles
@@ -48,6 +48,6 @@ class Todo {
     throw UnimplementedError('Do not construct');
   }
 
-  /// Returns the TodoCode for [kind], falling back to [TodoCode.todo].
-  static TodoCode forKind(String kind) => _codes[kind] ?? TodoCode.todo;
+  /// Returns the TodoCode for [kind], falling back to [diag.todo].
+  static DiagnosticCode forKind(String kind) => _codes[kind] ?? diag.todo;
 }

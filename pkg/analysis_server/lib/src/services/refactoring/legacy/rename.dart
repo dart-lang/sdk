@@ -47,8 +47,11 @@ class RenameProcessor {
     } else if (workspace.containsElement(element)) {
       Fragment? fragment = element.firstFragment;
       while (fragment != null) {
-        var edit = newSourceEdit_range(range.fragmentName(fragment)!, newName);
-        doSourceChange_addFragmentEdit(change, fragment, edit);
+        var nameRange = range.fragmentName(fragment);
+        if (nameRange != null) {
+          var edit = newSourceEdit_range(nameRange, newName);
+          doSourceChange_addFragmentEdit(change, fragment, edit);
+        }
         fragment = fragment.nextFragment;
       }
     }

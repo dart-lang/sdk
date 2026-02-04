@@ -19,6 +19,7 @@ Element convertElement(engine.Element element) {
   var aliasedType = getAliasedTypeString(element);
   var elementParameters = getParametersString(element);
   var elementReturnType = getReturnTypeString(element);
+  var extendedType = getExtendedTypeString(element);
   return Element(
     kind,
     name,
@@ -35,6 +36,7 @@ Element convertElement(engine.Element element) {
     aliasedType: aliasedType,
     parameters: elementParameters,
     returnType: elementReturnType,
+    extendedType: extendedType,
   );
 }
 
@@ -150,29 +152,8 @@ String getElementDisplayName(engine.Element element) {
   }
 }
 
-String? getParametersString(engine.Element element) {
-  // TODO(scheglov): expose the corresponding feature from ExecutableElement
-  List<engine.FormalParameterElement> parameters;
-  if (element is engine.ExecutableElement) {
-    // valid getters don't have parameters
-    if (element.kind == engine.ElementKind.GETTER &&
-        element.formalParameters.isEmpty) {
-      return null;
-    }
-    parameters = element.formalParameters.toList();
-  } else if (element is engine.TypeAliasElement) {
-    var aliasedType = element.aliasedType;
-    if (aliasedType is FunctionType) {
-      parameters = aliasedType.formalParameters.toList();
-    } else {
-      return null;
-    }
-  } else {
-    return null;
-  }
-
+String getParametersListString(List<engine.FormalParameterElement> parameters) {
   parameters.sort(_preferRequiredParams);
-
   var sb = StringBuffer();
   var closeOptionalString = '';
   for (var parameter in parameters) {
@@ -197,6 +178,30 @@ String? getParametersString(engine.Element element) {
   }
   sb.write(closeOptionalString);
   return '($sb)';
+}
+
+String? getParametersString(engine.Element element) {
+  // TODO(scheglov): expose the corresponding feature from ExecutableElement
+  List<engine.FormalParameterElement> parameters;
+  if (element is engine.ExecutableElement) {
+    // valid getters don't have parameters
+    if (element.kind == engine.ElementKind.GETTER &&
+        element.formalParameters.isEmpty) {
+      return null;
+    }
+    parameters = element.formalParameters.toList();
+  } else if (element is engine.TypeAliasElement) {
+    var aliasedType = element.aliasedType;
+    if (aliasedType is FunctionType) {
+      parameters = aliasedType.formalParameters.toList();
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+
+  return getParametersListString(parameters);
 }
 
 String? _getTypeParametersString(engine.Element element) {

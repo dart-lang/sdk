@@ -1,22 +1,22 @@
 Problems reported:
 
-parser/no-triple-shift/define_triple_shift_method:2:16: This requires the 'triple-shift' language feature to be enabled.
+parser/no-triple-shift/define_triple_shift_method:3:16: This requires the 'triple-shift' language feature to be enabled.
   Foo operator >>>(_) => this;
                ^^^
 
-parser/no-triple-shift/define_triple_shift_method:7:7: This requires the 'triple-shift' language feature to be enabled.
+parser/no-triple-shift/define_triple_shift_method:8:7: This requires the 'triple-shift' language feature to be enabled.
   foo >>> 42;
       ^^^
 
-parser/no-triple-shift/define_triple_shift_method:8:13: This requires the 'triple-shift' language feature to be enabled.
+parser/no-triple-shift/define_triple_shift_method:9:13: This requires the 'triple-shift' language feature to be enabled.
   print(foo >>> 42);
             ^^^
 
-parser/no-triple-shift/define_triple_shift_method:9:13: This requires the 'triple-shift' language feature to be enabled.
+parser/no-triple-shift/define_triple_shift_method:10:13: This requires the 'triple-shift' language feature to be enabled.
   print(foo >>>= 42);
             ^^^^
 
-parser/no-triple-shift/define_triple_shift_method:10:12: This requires the 'triple-shift' language feature to be enabled.
+parser/no-triple-shift/define_triple_shift_method:11:12: This requires the 'triple-shift' language feature to be enabled.
   if ((foo >>>= 42) == foo) {
            ^^^^
 
@@ -27,6 +27,7 @@ beginCompilationUnit(class)
     handleIdentifier(Foo, classOrMixinDeclaration)
     handleNoTypeVariables({)
     beginClassDeclaration(class, null, null, null, null, null, null, null, null, Foo)
+      handleNoPrimaryConstructor(Foo, null, false)
       handleNoType(Foo)
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -50,13 +51,13 @@ beginCompilationUnit(class)
                 handleNoType(()
                 handleIdentifier(_, formalParameterDeclaration)
                 handleFormalParameterWithoutValue())
-              endFormalParameter(null, null, null, _, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
+              endFormalParameter(null, null, null, null, _, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
             endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
             handleNoInitializers()
             handleAsyncModifier(null, null)
             handleThisExpression(this, expression)
             handleExpressionFunctionBody(=>, ;)
-          endClassMethod(null, Foo, (, null, ;)
+          endMethod(DeclarationKind.Class, null, Foo, (, null, ;)
         endMember()
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 1, {, })
     endClassDeclaration(class, })
@@ -113,6 +114,7 @@ beginCompilationUnit(class)
           beginBinaryExpression(>>>)
             handleLiteralInt(42)
           endBinaryExpression(>>>, 42)
+          handlePositionalArgument(foo)
         endArguments(1, (, ))
         handleSend(print, ))
         handleExpressionStatement(print, ;)
@@ -126,6 +128,7 @@ beginCompilationUnit(class)
           handleExperimentNotEnabled(ExperimentalFlag.tripleShift, >>, >=)
           handleLiteralInt(42)
           handleAssignmentExpression(>>>=, 42)
+          handlePositionalArgument(foo)
         endArguments(1, (, ))
         handleSend(print, ))
         handleExpressionStatement(print, ;)
@@ -138,6 +141,7 @@ beginCompilationUnit(class)
             handleExperimentNotEnabled(ExperimentalFlag.tripleShift, >>, >=)
             handleLiteralInt(42)
             handleAssignmentExpression(>>>=, 42)
+            handlePositionalRecordField(foo)
           endParenthesizedExpression(()
           beginBinaryExpression(==)
             handleIdentifier(foo, expression)
@@ -153,6 +157,7 @@ beginCompilationUnit(class)
               beginArguments(()
                 beginLiteralString("same")
                 endLiteralString(0, ))
+                handlePositionalArgument("same")
               endArguments(1, (, ))
               handleSend(print, ))
               handleExpressionStatement(print, ;)

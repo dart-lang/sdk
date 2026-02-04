@@ -46,6 +46,7 @@ final testSuiteDirectories = [
   Path('third_party/pkg/native/pkgs/hooks_runner'),
   Path('third_party/pkg/native/pkgs/hooks'),
   Path('third_party/pkg/native/pkgs/native_toolchain_c'),
+  Path('third_party/pkg/native/pkgs/record_use'),
   Path('third_party/pkg/package_config'),
   Path('utils/tests/peg'),
 ];

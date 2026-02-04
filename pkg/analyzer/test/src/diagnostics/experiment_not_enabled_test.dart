@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,8 +28,8 @@ main() {
 }
 ''',
       [
-        error(ParserErrorCode.experimentNotEnabled, 86, 5),
-        error(CompileTimeErrorCode.undefinedMethod, 96, 3),
+        error(diag.experimentNotEnabled, 86, 5),
+        error(diag.undefinedMethod, 96, 3),
       ],
     );
   }
@@ -44,7 +43,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 42, 1)],
+      [error(diag.experimentNotEnabled, 42, 1)],
     );
   }
 
@@ -54,7 +53,7 @@ void main() {
 // @dart = 2.12
 typedef A = int;
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
+      [error(diag.experimentNotEnabled, 26, 1)],
     );
   }
 
@@ -64,7 +63,23 @@ typedef A = int;
 // @dart = 2.12
 typedef A = int?;
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
+      [error(diag.experimentNotEnabled, 26, 1)],
+    );
+  }
+
+  test_privateNamedParameters_disabled() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.8
+class C {
+  int? _x;
+  C({this._x});
+}
+''',
+      [
+        error(diag.unusedField, 32, 2),
+        error(diag.experimentNotEnabledOffByDefault, 46, 2),
+      ],
     );
   }
 }

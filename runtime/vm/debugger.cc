@@ -6,14 +6,13 @@
 
 #include "include/dart_api.h"
 
-#if defined(DART_DYNAMIC_MODULES)
 #include "vm/bytecode_reader.h"
-#endif
 #include "vm/closure_functions_cache.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/api/deopt_id.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
@@ -52,6 +51,10 @@ DEFINE_FLAG(bool,
             trace_debugger_stacktrace,
             false,
             "Trace debugger stacktrace collection");
+DEFINE_FLAG(bool,
+            trace_debugger_stacktrace_verbose,
+            false,
+            "Additional output when tracing debugger stacktraces");
 DEFINE_FLAG(bool, trace_rewind, false, "Trace frame rewind");
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
 
@@ -637,16 +640,13 @@ void ActivationFrame::PrintContextLevelError(const char* message) {
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
   OS::PrintErr("token_pos_ %s\n", token_pos_.ToCString());
-  if (IsInterpreted()) {
+  if (IsInterpreted() && bytecode().HasLocalVariablesInfo()) {
 #if defined(DART_DYNAMIC_MODULES)
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     Zone* const zone = Thread::Current()->zone();
     ZoneTextBuffer buffer(zone);
-    bytecode().WriteLocalVariablesInfo(zone, &buffer);
+    KernelBytecodeDisassembler::PrintLocalVariablesInfo(
+        zone, &buffer, bytecode(), PayloadStart());
     OS::PrintErr("%s\n", buffer.buffer());
-#endif
-#else
-    UNREACHABLE();
 #endif
   } else {
     DisassembleToStdout formatter;
@@ -778,8 +778,10 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
 }
 
 // Get the saved current context of this activation.
-const Context& ActivationFrame::GetSavedCurrentContext() {
-  if (!ctx_.IsNull()) return ctx_;
+const Context& ActivationFrame::GetSavedCurrentContext(intptr_t* index) {
+  // If the index of the variable was requested, do the retrieval again.
+  if (context_initialized_ && index == nullptr) return ctx_;
+  context_initialized_ = true;
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   Object& obj = Object::Handle();
@@ -788,13 +790,19 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
     var_descriptors_.GetInfo(i, &var_info);
     const int8_t kind = var_info.kind();
     if (kind == UntaggedLocalVarDescriptors::kSavedCurrentContext) {
-      if (FLAG_trace_debugger_stacktrace) {
-        OS::PrintErr("\tFound saved current ctx at index %d\n",
-                     var_info.index());
+      if (index != nullptr) {
+        *index = var_info.index();
       }
       const auto variable_index = VariableIndex(var_info.index());
       obj = GetStackVar(variable_index);
-      if (obj.IsClosure()) {
+      if (function_.IsImplicitInstanceClosureFunction()) {
+        // The context of an implicit instance closure contains only one slot
+        // for "this", so the instance is stored as the context and accessed
+        // directly by generated code to avoid allocating a separate context.
+        // Here, we create the elided context object for debugging purposes.
+        ctx_ = Context::New(1);
+        ctx_.SetAt(0, obj);
+      } else if (obj.IsClosure()) {
         ASSERT(function().IsClosureCallDispatcher());
         // Closure.call frames.
         ctx_ = Closure::Cast(obj).GetContext();
@@ -1409,7 +1417,13 @@ void DebuggerStackTrace::AddAsyncSuspension() {
   // with stress flags.
   if (trace_.is_empty() ||
       trace_.Last()->kind() != ActivationFrame::kAsyncSuspensionMarker) {
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr("  async suspension\n");
+    }
     trace_.Add(new ActivationFrame(ActivationFrame::kAsyncSuspensionMarker));
+  } else if (FLAG_trace_debugger_stacktrace &&
+             FLAG_trace_debugger_stacktrace_verbose) {
+    OS::PrintErr("  skipping repeated async suspension\n");
   }
 }
 
@@ -1793,9 +1807,15 @@ static ActivationFrame* CollectDartFrame(uword pc,
       new ActivationFrame(pc, frame->fp(), frame->sp(), function,
                           code_or_bytecode, deopt_frame, deopt_frame_offset);
   if (FLAG_trace_debugger_stacktrace) {
-    const Context& ctx = activation->GetSavedCurrentContext();
-    OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
-    OS::PrintErr("\tLine number: %" Pd "\n", activation->LineNumber());
+    intptr_t index = -1;
+    const Context& ctx = activation->GetSavedCurrentContext(&index);
+    if (index >= 0) {
+      OS::PrintErr("    Current context (index %" Pu "): %s\n", index,
+                   ctx.ToCString());
+    } else if (!ctx.IsNull()) {
+      OS::PrintErr("    Current context: %s\n", ctx.ToCString());
+    }
+    OS::PrintErr("    Line number: %" Pd "\n", activation->LineNumber());
   }
   return activation;
 }
@@ -1832,16 +1852,19 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
   auto& bytecode = Bytecode::Handle(zone);
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
 
+  if (FLAG_trace_debugger_stacktrace) {
+    OS::PrintErr("CollectStackTrace: starting collection\n");
+  }
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
                               StackFrameIterator::kNoCrossThreadIteration);
   for (StackFrame* frame = iterator.NextFrame(); frame != nullptr;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
-    if (FLAG_trace_debugger_stacktrace) {
-      OS::PrintErr("CollectStackTrace: visiting frame:\n\t%s\n",
-                   frame->ToCString());
-    }
     if (frame->IsDartFrame()) {
+      if (FLAG_trace_debugger_stacktrace) {
+        // StackFrame::ToCString() prepends two spaces in its output.
+        OS::PrintErr("%s\n", frame->ToCString());
+      }
       if (frame->is_interpreted()) {
         function = frame->LookupDartFunction();
         bytecode = frame->LookupDartBytecode();
@@ -1850,8 +1873,17 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
         code = frame->LookupDartCode();
         stack_trace->AppendCodeFrames(frame, code);
       }
+    } else if (FLAG_trace_debugger_stacktrace &&
+               FLAG_trace_debugger_stacktrace_verbose) {
+      // StackFrame::ToCString() prepends two spaces in its output.
+      OS::PrintErr("%s\n", frame->ToCString());
+      OS::PrintErr("    non-Dart frame skipped\n");
     }
   }
+  if (FLAG_trace_debugger_stacktrace) {
+    OS::PrintErr("CollectStackTrace: collection finished\n\n");
+  }
+
   return stack_trace;
 }
 
@@ -1864,9 +1896,8 @@ void DebuggerStackTrace::AppendCodeFrames(StackFrame* frame, const Code& code) {
     if (code.is_force_optimized()) {
       if (FLAG_trace_debugger_stacktrace) {
         ASSERT(!function.IsNull());
-        OS::PrintErr(
-            "CollectStackTrace: skipping force-optimized function: %s\n",
-            function.ToFullyQualifiedCString());
+        OS::PrintErr("    skipping force-optimized function: %s\n",
+                     function.ToFullyQualifiedCString());
       }
       return;  // Skip frame of force-optimized (and non-debuggable) function.
     }
@@ -1878,7 +1909,7 @@ void DebuggerStackTrace::AppendCodeFrames(StackFrame* frame, const Code& code) {
       function = it.function();
       if (FLAG_trace_debugger_stacktrace) {
         ASSERT(!function.IsNull());
-        OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
+        OS::PrintErr("    visiting inlined function: %s\n",
                      function.ToFullyQualifiedCString());
       }
       intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
@@ -1909,6 +1940,9 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
   constexpr intptr_t kDefaultStackAllocation = 8;
   auto stack_trace = new DebuggerStackTrace(kDefaultStackAllocation);
 
+  if (FLAG_trace_debugger_stacktrace) {
+    OS::PrintErr("CollectStackTrace: starting async awaiters collection\n");
+  }
   bool has_async = false;
   bool has_async_catch_error = false;
   StackTraceUtils::CollectFrames(
@@ -1919,6 +1953,10 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
         }
 
         if (frame.frame != nullptr) {  // Synchronous portion of the stack.
+          if (FLAG_trace_debugger_stacktrace) {
+            // StackFrame::ToCString() prepends two spaces in its output.
+            OS::PrintErr("%s\n", frame.frame->ToCString());
+          }
           if (!frame.bytecode.IsNull()) {
             function = frame.frame->LookupDartFunction();
             stack_trace->AppendBytecodeFrame(frame.frame, function,
@@ -1934,37 +1972,54 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
             return;
           }
 
+          uword start = 0;
+          const Object* obj = nullptr;
+          const char* name = nullptr;
           if (!frame.bytecode.IsNull()) {
             function = frame.bytecode.function();
-            ASSERT(!function.IsNull());
-            if (!function.is_visible()) {
-              return;
+            start = frame.bytecode.PayloadStart();
+            obj = &frame.bytecode;
+            if (FLAG_trace_debugger_stacktrace) {
+              name = frame.bytecode.FullyQualifiedName();
             }
-            const uword absolute_pc =
-                frame.bytecode.PayloadStart() + frame.pc_offset;
-            stack_trace->AddAsyncAwaiterFrame(absolute_pc, function,
-                                              frame.bytecode, frame.closure);
           } else {
             function = frame.code.function();
-            if (!function.is_visible()) {
-              return;
+            start = frame.code.PayloadStart();
+            obj = &frame.code;
+            if (FLAG_trace_debugger_stacktrace) {
+              name = frame.code.QualifiedName(
+                  NameFormattingParams(Object::kInternalName));
             }
-            const uword absolute_pc =
-                frame.code.PayloadStart() + frame.pc_offset;
-            stack_trace->AddAsyncAwaiterFrame(absolute_pc, function, frame.code,
-                                              frame.closure);
           }
+          ASSERT(!function.IsNull());
+          if (!function.is_visible()) {
+            return;
+          }
+          const uword absolute_pc = start + frame.pc_offset;
+          if (FLAG_trace_debugger_stacktrace) {
+            OS::PrintErr("  async awaiter: %s+%#" Px "\n", name,
+                         frame.pc_offset);
+          }
+          stack_trace->AddAsyncAwaiterFrame(absolute_pc, function, *obj,
+                                            frame.closure);
         }
       },
       &has_async_catch_error);
 
   // If the entire stack is sync, return no (async) trace.
   if (!has_async) {
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr(
+          "CollectStackTrace: discarding async awaiters collection\n\n");
+    }
     return nullptr;
   }
 
   stack_trace->set_has_async_catch_error(has_async_catch_error);
 
+  if (FLAG_trace_debugger_stacktrace) {
+    OS::PrintErr("CollectStackTrace: async awaiters collection finished\n\n");
+  }
   return stack_trace;
 }
 
@@ -3904,34 +3959,19 @@ static bool IsAtAsyncJump(ActivationFrame* top_frame) {
   if (top_frame->IsInterpreted()) {
 #if defined(DART_DYNAMIC_MODULES)
     const auto& bytecode = top_frame->bytecode();
-    const uword prev = bytecode.GetInstructionBefore(top_frame->pc());
-    if (prev == 0) {
-      // Async awaiter frames have an PC offset of 0 or 1.
-      ASSERT(top_frame->pc() == bytecode.PayloadStart() ||
-             top_frame->pc() == bytecode.PayloadStart() +
-                                    StackTraceUtils::kFutureListenerPcOffset);
-      return false;
+    ASSERT(bytecode.HasSourcePositions());
+    const uword pc_offset = top_frame->pc() - bytecode.PayloadStart();
+    // pc_offset could equal to bytecode size if the last instruction is Throw.
+    ASSERT(pc_offset <= static_cast<uword>(bytecode.Size()));
+    bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
+    bool is_yield_point = false;
+    while (iter.MoveNext()) {
+      if (pc_offset <= iter.PcOffset()) {
+        break;
+      }
+      is_yield_point = iter.IsYieldPoint();
     }
-    auto* const instr = reinterpret_cast<const KBCInstr*>(prev);
-    // Async jumps in bytecode are implemented via direct calls to the
-    // appropriate Dart method.
-    if (!KernelBytecode::IsDirectCallOpcode(instr)) {
-      return false;
-    }
-    const auto& object_pool = ObjectPool::Handle(zone, bytecode.object_pool());
-    auto const index = KernelBytecode::DecodeD(instr);
-    const auto& obj = Object::Handle(zone, object_pool.ObjectAt(index));
-    if (obj.IsNull() || !obj.IsFunction()) {
-      return false;
-    }
-    const auto& target = Function::Cast(obj);
-    auto* const object_store = thread->isolate_group()->object_store();
-    return target.ptr() == object_store->suspend_state_await() ||
-           target.ptr() ==
-               object_store->suspend_state_await_with_type_check() ||
-           target.ptr() == object_store->suspend_state_yield_async_star() ||
-           target.ptr() ==
-               object_store->suspend_state_suspend_sync_star_at_start();
+    return is_yield_point;
 #else
     UNREACHABLE();
 #endif
@@ -3955,33 +3995,28 @@ static bool IsAtAsyncJump(ActivationFrame* top_frame) {
 static bool IsAtBytecodeAsyncReturn(ActivationFrame* top_frame) {
 #if defined(DART_DYNAMIC_MODULES)
   if (!top_frame->IsInterpreted()) return false;
-
-  Thread* const thread = Thread::Current();
-  Zone* const zone = thread->zone();
   const auto& bytecode = top_frame->bytecode();
-  uword prev = bytecode.GetInstructionBefore(top_frame->pc());
+  const uword return_address = top_frame->pc();
+  const uword prev = bytecode.GetInstructionBefore(return_address);
   if (prev == 0) {
+    const uword start = bytecode.PayloadStart();
     // Async awaiter frames have an PC offset of 0 or 1.
-    ASSERT(top_frame->pc() == bytecode.PayloadStart() ||
-           top_frame->pc() == bytecode.PayloadStart() +
-                                  StackTraceUtils::kFutureListenerPcOffset);
+    ASSERT(return_address == start ||
+           return_address == start + StackTraceUtils::kFutureListenerPcOffset);
     return false;
   }
-  auto* instr = reinterpret_cast<const KBCInstr*>(prev);
+  auto* const instr = reinterpret_cast<const KBCInstr*>(prev);
   // Async returns in bytecode are implemented via direct calls to
-  // the appropriate Dart async return method followed by a return
-  // instruction.
-  if (KernelBytecode::IsReturnOpcode(instr)) {
-    prev = bytecode.GetInstructionBefore(prev);
-    ASSERT(prev != 0);
-    instr = reinterpret_cast<const KBCInstr*>(prev);
-  }
+  // the appropriate Dart async return method. Note that unlike other async
+  // machinery, the direct call to _returnAsync is not marked synthetic.
   if (!KernelBytecode::IsDirectCallOpcode(instr)) {
     return false;
   }
-  const auto& object_pool = ObjectPool::Handle(zone, bytecode.object_pool());
   auto const index = KernelBytecode::DecodeD(instr);
-  const auto& obj = Object::Handle(zone, object_pool.ObjectAt(index));
+  auto* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+  const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
+  const auto& obj = Object::Handle(zone, pool.ObjectAt(index));
   if (obj.IsNull() || !obj.IsFunction()) {
     return false;
   }

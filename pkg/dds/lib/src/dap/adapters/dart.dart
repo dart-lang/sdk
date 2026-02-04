@@ -63,10 +63,10 @@ typedef _StreamEventHandler<T> = FutureOr<void> Function(T data);
 const _noResult = null;
 
 /// Pattern for extracting useful error messages from an evaluation exception.
-final _evalErrorMessagePattern = RegExp('Error: (.*)');
+final _evalErrorMessagePattern = RegExp('Error: (.+)');
 
 /// Pattern for extracting useful error messages from an unhandled exception.
-final _exceptionMessagePattern = RegExp('Unhandled exception:\n(.*)');
+final _exceptionMessagePattern = RegExp('Unhandled exception:\n(.+)');
 
 /// Pattern for a trailing semicolon.
 final _trailingSemicolonPattern = RegExp(r';$');
@@ -401,6 +401,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// events that suggest the session ended (such as a process exiting and the
   /// VM Service closing).
   bool _hasSentTerminatedEvent = false;
+
+  /// Whether we have already sent the [ExitedEvent] to the client.
+  bool _hasSentExitedEvent = false;
 
   /// Whether verbose internal logs (such as VM Service traffic) should be sent
   /// to the client in `dart.log` events.
@@ -831,21 +834,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final pauseEventKind = isolate.runnable ?? false
           ? vm.EventKind.kIsolateRunnable
           : vm.EventKind.kIsolateStart;
-      final thread =
-          await isolateManager.registerIsolate(isolate, pauseEventKind);
+      await isolateManager.registerIsolate(isolate, pauseEventKind);
 
       // If the Isolate already has a Pause event we can give it to the
       // IsolateManager to handle (if it's PausePostStart it will re-configure
-      // the isolate before resuming), otherwise we can just resume it (if it's
-      // runnable - otherwise we'll handle this when it becomes runnable in an
-      // event later).
+      // the isolate before resuming), otherwise wait for the PauseStart event
+      // to arrive and then this will be done.
       if (isolate.pauseEvent?.kind?.startsWith('Pause') ?? false) {
         await isolateManager.handleEvent(
           isolate.pauseEvent!,
         );
-      } else if (isolate.runnable == true) {
-        await isolateManager.handleThreadStartup(thread,
-            sendStoppedOnEntry: false);
       }
     }));
   }
@@ -1124,26 +1122,24 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         result = await vmEvaluate(thread, library.id!, expression);
       }
     } catch (e) {
-      final rawMessage = '$e';
-
-      // Error messages can be quite verbose and don't fit well into a
-      // single-line watch window. For example:
+      // Expression compilation errors may result in exceptions here (failed
+      // RCP requests) rather than a returned vm.ErrorRef:
       //
       //    evaluateInFrame: (113) Expression compilation error
       //    org-dartlang-debug:synthetic_debug_expression:1:5: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
       //    1 + "a"
       //        ^
-      //
-      // So in the case of a Watch context, try to extract the useful message.
-      if (args.context == 'watch') {
-        throw DebugAdapterException(extractEvaluationErrorMessage(rawMessage));
-      }
-
-      throw DebugAdapterException(rawMessage);
+      _throwEvalError(args, '$e');
     }
 
     if (result is vm.ErrorRef) {
-      throw DebugAdapterException(result.message ?? '<error ref>');
+      // Some kinds of errors will return ErrorRefs:
+      //
+      // Unhandled exception:
+      // NoSuchMethodError: Class 'DateTime' has no instance getter 'ye'.
+      // Receiver: Instance of 'DateTime'
+      // Tried calling: ye
+      _throwEvalError(args, result.message ?? '<error ref>');
     } else if (result is vm.Sentinel) {
       throw DebugAdapterException(result.valueAsString ?? '<collected>');
     } else if (result is vm.InstanceRef && thread != null) {
@@ -1183,6 +1179,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
+  /// Throws a [DebugAdapterException] for an expression evaluation error.
+  ///
+  /// For some contexts, parts of the error message may be extracted resulting
+  /// in a shorter message (for example to provide less noise in a Watch
+  /// window).
+  Never _throwEvalError(EvaluateArguments args, String message) {
+    if (args.context == 'watch') {
+      message = extractEvaluationErrorMessage(message);
+    }
+
+    throw DebugAdapterException(message);
+  }
+
   /// Tries to extract the useful part from an evaluation exception message.
   ///
   /// If no message could be extracted, returns the whole original error.
@@ -1208,11 +1217,32 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await preventBreakingAndResume();
   }
 
+  /// Sends an [ExitedEvent] if one has not already been sent.
+  ///
+  /// Waits for any in-progress output events to complete first.
+  void handleSessionExited(int exitCode) async {
+    await _waitForPendingOutputEvents();
+
+    if (_hasSentExitedEvent) {
+      return;
+    }
+
+    _hasSentExitedEvent = true;
+
+    sendEvent(ExitedEventBody(exitCode: exitCode));
+  }
+
   /// Sends a [TerminatedEvent] if one has not already been sent.
   ///
   /// Waits for any in-progress output events to complete first.
   void handleSessionTerminate([String exitSuffix = '']) async {
     await _waitForPendingOutputEvents();
+
+    // Ensure that we stop watching for a VM Service info file if we are using
+    // these utils.
+    if (this case final VmServiceInfoFileUtils vmServiceUtils) {
+      vmServiceUtils.stopWaitingForVmServiceInfoFile();
+    }
 
     if (_hasSentTerminatedEvent) {
       return;
@@ -1289,32 +1319,29 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return false;
     }
 
-    final packageFileLikeUri = await thread.resolveUriToPackageLibPath(uri);
-    if (packageFileLikeUri == null) {
+    final packageFileUri = await thread.resolveUriToPackageLibPath(uri);
+    if (packageFileUri == null) {
       return false;
     }
 
-    return !isInUserProject(packageFileLikeUri);
+    return !isInUserProject(packageFileUri);
   }
 
-  /// Checks whether [uri] is inside the users project. This is used to support
-  /// debugging "Just My Code" (via [isExternalPackageLibrary]) and also for
-  /// stack trace highlighting, where non-user code will be faded.
+  /// Checks whether [targetUri] is inside the users project. This is used to
+  /// support debugging "Just My Code" (via [isExternalPackageLibrary]) and also
+  /// for stack trace highlighting, where non-user code will be faded.
   bool isInUserProject(Uri targetUri) {
-    if (!isSupportedFileScheme(targetUri)) {
+    if (!targetUri.isScheme('file')) {
       return false;
     }
 
-    // We could already be 'file', or we could be another supported file scheme
-    // like dart-macro+file, but we can only call toFilePath() on a file URI
-    // and we use the equivalent path to decide if this is within the workspace.
-    var targetPath = targetUri.replace(scheme: 'file').toFilePath();
-
-    // Always compare paths case-insensitively to avoid any issues where APIs
-    // may have returned different casing (e.g. Windows drive letters). It's
-    // almost certain a user wouldn't have a "local" package and an "external"
-    // package with paths differing only be case.
-    targetPath = targetPath.toLowerCase();
+    final targetPath = targetUri
+        .toFilePath()
+        // Always compare paths case-insensitively to avoid any issues where APIs
+        // may have returned different casing (e.g. Windows drive letters). It's
+        // almost certain a user wouldn't have a "local" package and an "external"
+        // package with paths differing only be case.
+        .toLowerCase();
 
     return projectPaths
         .map((projectPath) => projectPath.toLowerCase())
@@ -1572,9 +1599,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     final path = args.source.path;
     final name = args.source.name;
-    final uri = path != null
-        ? normalizeUri(fromClientPathOrUri(path)).toString()
-        : name!;
+    final uri = path != null ? normalizeUri(Uri.file(path)).toString() : name!;
 
     // Use a completer to track when the response is sent, so any events related
     // to these breakpoints are not sent before the client has the IDs.
@@ -1651,7 +1676,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   }
 
   /// Converts a URI in the form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
-  /// to a local file-like URI based on the current SDK.
+  /// to a local file URI based on the current SDK.
   Uri? convertOrgDartlangSdkToPath(Uri uri) {
     // org-dartlang-sdk URIs can be in multiple forms:
     //
@@ -2030,9 +2055,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         data.kind == FrameScopeDataKind.globals) {
       /// Helper to simplify calling converter.
       Future<Variable> convert(int index, vm.FieldRef fieldRef) async {
-        return _converter.convertFieldRefToVariable(
+        final response = await thread.getObject(fieldRef);
+        // Store the name of this field as we may need it to
+        // compute evaluateNames for child objects later.
+        final value = response is vm.Field ? response.staticValue : response;
+        if (value is vm.InstanceRef) {
+          storeEvaluateName(value, fieldRef.name);
+        }
+
+        return _converter.convertVmResponseToVariable(
           thread,
-          fieldRef,
+          value,
+          name: fieldRef.name,
+          evaluateName: fieldRef.name,
           allowCallingToString:
               evaluateToStringInDebugViews && index < maxToStringsPerEvaluation,
           format: format,
@@ -2310,14 +2345,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final framePaths = await Future.wait(frameLocations.map((frame) async {
       final uri = frame?.uri;
       if (uri == null) return null;
-      if (isSupportedFileScheme(uri)) {
+      if (uri.isScheme('file')) {
         return (uri: uri, isUserCode: isInUserProject(uri));
       }
       if (thread == null || !isResolvableUri(uri)) return null;
       try {
-        final fileLikeUri = await thread.resolveUriToPath(uri);
-        return fileLikeUri != null
-            ? (uri: fileLikeUri, isUserCode: isInUserProject(fileLikeUri))
+        final fileUri = await thread.resolveUriToPath(uri);
+        return fileUri != null
+            ? (uri: fileUri, isUserCode: isInUserProject(fileUri))
             : null;
       } catch (e, s) {
         // Swallow errors for the same reason noted above.
@@ -2333,8 +2368,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final uri = frameLocation?.uri;
       final framePathInfo = framePaths[i];
 
-      // A file-like URI ('file://' or 'dart-macro+file://').
-      final fileLikeUri = framePathInfo?.uri;
+      // A file URI.
+      final fileUri = framePathInfo?.uri;
 
       // Default to true so that if we don't know whether this is user-project
       // then we leave the formatting as-is and don't fade anything out.
@@ -2342,7 +2377,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
       // For the name, we usually use the package URI, but if we only had a file
       // URI to begin with, try to make it relative to cwd so it's not so long.
-      final name = uri != null && fileLikeUri != null
+      final name = uri != null && fileUri != null
           ? (uri.isScheme('file')
               ? _converter.convertToRelativePath(uri.toFilePath())
               : uri.toString())
@@ -2367,8 +2402,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         continue;
       }
 
-      final clientPath =
-          fileLikeUri != null ? toClientPathOrUri(fileLikeUri) : null;
+      final clientPath = fileUri != null ? toClientPathOrUri(fileUri) : null;
       events.add(
         OutputEventBody(
           category: category,
@@ -2615,19 +2649,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return;
     }
 
-    // Doesn't need resolving if already file-like.
-    if (isSupportedFileScheme(uri)) {
+    // Doesn't need resolving if already file.
+    if (uri.isScheme('file')) {
       return;
     }
 
-    final fileLikeUri = await thread.resolveUriToPath(uri);
-    if (fileLikeUri != null) {
+    final fileUri = await thread.resolveUriToPath(uri);
+    if (fileUri != null) {
       // Convert:
       //   uri -> resolvedUri
       //   fileUri -> resolvedFileUri
       final resolvedFieldName =
           'resolved${field.substring(0, 1).toUpperCase()}${field.substring(1)}';
-      data[resolvedFieldName] = fileLikeUri.toString();
+      data[resolvedFieldName] = fileUri.toString();
     }
   }
 
@@ -2769,6 +2803,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// allows logging all traffic over the VM Service.
   Future<vm.VmService> _vmServiceConnectUri(String wsUri) async {
     final socket = await WebSocket.connect(wsUri);
+    // Enable periodic ping on the WebSocket to avoid idle connections (for
+    // example while sat at a breakpoint) from being dropped by some kinds of
+    // anti-virus.
+    // https://github.com/Dart-Code/Dart-Code/issues/5794
+    socket.pingInterval = Duration(seconds: 15);
     final controller = StreamController();
     final streamClosedCompleter = Completer();
     final logger = this.logger;
@@ -2858,46 +2897,17 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
-  /// Whether the current client supports URIs in place of file paths, including
-  /// file-like URIs that are not the 'file' scheme (such as 'dart-macro+file').
-  bool get clientSupportsUri => _initializeArgs?.supportsDartUris ?? false;
-
-  /// Returns whether [uri] is a file-like URI scheme that is supported by the
-  /// client.
-  ///
-  /// Returning `true` here does not guarantee that the client supports URIs,
-  /// the caller should also check [clientSupportsUri].
-  bool isSupportedFileScheme(Uri uri) {
-    return uri.isScheme('file') ||
-        // Handle all file-like schemes that end '+file' like
-        // 'dart-macro+file://'.
-        (clientSupportsUri && uri.scheme.endsWith('+file'));
-  }
-
   /// Converts a URI into a form that can be used by the client.
   ///
-  /// If the client supports URIs (like VS Code), it will be returned unchanged
-  /// but otherwise it will be the `toFilePath()` equivalent if a 'file://' URI
-  /// and otherwise `null`.
+  /// Returns `null` if the uri is not a supported file scheme.
   String? toClientPathOrUri(Uri? uri) {
     if (uri == null) {
       return null;
-    } else if (clientSupportsUri) {
-      return uri.toString();
     } else if (uri.isScheme('file')) {
       return uri.toFilePath();
     } else {
       return null;
     }
-  }
-
-  /// Converts a String used by the client as a path/URI into a [Uri].
-  Uri fromClientPathOrUri(String filePathOrUriString) {
-    var uri = Uri.tryParse(filePathOrUriString);
-    if (uri == null || !isSupportedFileScheme(uri)) {
-      uri = Uri.file(filePathOrUriString);
-    }
-    return uri;
   }
 }
 

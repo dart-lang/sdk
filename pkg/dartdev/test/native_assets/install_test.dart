@@ -201,8 +201,9 @@ Run "dart help" to see global options.
           workingDirectory,
           environment,
         );
-        expect(installResult.stdout, contains('Running build hooks'));
-        expect(installResult.stdout, contains('Running link hooks'));
+        // No hooks.
+        expect(installResult.stdout, isNot(contains('Running build hooks')));
+        expect(installResult.stdout, isNot(contains('Running link hooks')));
 
         await _runToolForTest(environment);
 
@@ -427,13 +428,16 @@ Run "dart help" to see global options.
         expect(pubspecNew, isNot(equals(pubspecOld)));
         pubspecFile.writeAsStringSync(pubspecNew);
 
-        await _runDartdev(
+        final installResult = await _runDartdev(
           fromDartdevSource,
           'install',
           [dartAppUri.toFilePath()],
           null,
           environment,
         );
+
+        expect(installResult.stdout, contains('Running build hooks'));
+        expect(installResult.stdout, contains('Running link hooks'));
 
         for (final (tool, someInt) in [
           ('dart_app', 5),

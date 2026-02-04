@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -32,424 +31,12 @@ part 'a.dart';
     );
   }
 
-  test_inLibrary_configurations_default() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/a_html.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/a_io.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    declaredVariables = {
-      'dart.library.html': 'false',
-      'dart.library.io': 'false',
-    };
-
-    await assertNoErrorsInCode(r'''
-part 'a.dart'
-  if (dart.library.html) 'a_html.dart'
-  if (dart.library.io) 'a_io.dart';
-
-A? a;
-''');
-
-    var node = findNode.unit;
-    assertResolvedNodeText(node, r'''
-CompilationUnit
-  directives
-    PartDirective
-      partKeyword: part
-      uri: SimpleStringLiteral
-        literal: 'a.dart'
-      configurations
-        Configuration
-          ifKeyword: if
-          leftParenthesis: (
-          name: DottedName
-            components
-              SimpleIdentifier
-                token: dart
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: library
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: html
-                element: <null>
-                staticType: null
-          rightParenthesis: )
-          uri: SimpleStringLiteral
-            literal: 'a_html.dart'
-          resolvedUri: DirectiveUriWithSource
-            source: package:test/a_html.dart
-        Configuration
-          ifKeyword: if
-          leftParenthesis: (
-          name: DottedName
-            components
-              SimpleIdentifier
-                token: dart
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: library
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: io
-                element: <null>
-                staticType: null
-          rightParenthesis: )
-          uri: SimpleStringLiteral
-            literal: 'a_io.dart'
-          resolvedUri: DirectiveUriWithSource
-            source: package:test/a_io.dart
-      semicolon: ;
-      partInclude: PartInclude
-        uri: DirectiveUriWithUnit
-          uri: package:test/a.dart
-  declarations
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        type: NamedType
-          name: A
-          question: ?
-          element: <testLibrary>::@class::A
-          type: A?
-        variables
-          VariableDeclaration
-            name: a
-            declaredElement: <testLibraryFragment> a@93
-      semicolon: ;
-      declaredElement: <null>
-''');
-  }
-
-  test_inLibrary_configurations_first() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/a_html.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/a_io.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    declaredVariables = {
-      'dart.library.html': 'true',
-      'dart.library.io': 'false',
-    };
-
-    await assertNoErrorsInCode(r'''
-part 'a.dart'
-  if (dart.library.html) 'a_html.dart'
-  if (dart.library.io) 'a_io.dart';
-
-A? a;
-''');
-
-    var node = findNode.unit;
-    assertResolvedNodeText(node, r'''
-CompilationUnit
-  directives
-    PartDirective
-      partKeyword: part
-      uri: SimpleStringLiteral
-        literal: 'a.dart'
-      configurations
-        Configuration
-          ifKeyword: if
-          leftParenthesis: (
-          name: DottedName
-            components
-              SimpleIdentifier
-                token: dart
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: library
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: html
-                element: <null>
-                staticType: null
-          rightParenthesis: )
-          uri: SimpleStringLiteral
-            literal: 'a_html.dart'
-          resolvedUri: DirectiveUriWithSource
-            source: package:test/a_html.dart
-        Configuration
-          ifKeyword: if
-          leftParenthesis: (
-          name: DottedName
-            components
-              SimpleIdentifier
-                token: dart
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: library
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: io
-                element: <null>
-                staticType: null
-          rightParenthesis: )
-          uri: SimpleStringLiteral
-            literal: 'a_io.dart'
-          resolvedUri: DirectiveUriWithSource
-            source: package:test/a_io.dart
-      semicolon: ;
-      partInclude: PartInclude
-        uri: DirectiveUriWithUnit
-          uri: package:test/a_html.dart
-  declarations
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        type: NamedType
-          name: A
-          question: ?
-          element: <testLibrary>::@class::A
-          type: A?
-        variables
-          VariableDeclaration
-            name: a
-            declaredElement: <testLibraryFragment> a@93
-      semicolon: ;
-      declaredElement: <null>
-''');
-  }
-
-  test_inLibrary_configurations_noRelativeUri() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-part 'a.dart'
-  if (x) ':net';
-''');
-
-    var node = findNode.singleConfiguration;
-    assertResolvedNodeText(node, r'''
-Configuration
-  ifKeyword: if
-  leftParenthesis: (
-  name: DottedName
-    components
-      SimpleIdentifier
-        token: x
-        element: <null>
-        staticType: null
-  rightParenthesis: )
-  uri: SimpleStringLiteral
-    literal: ':net'
-  resolvedUri: DirectiveUriWithRelativeUriString
-    relativeUriString: :net
-''');
-  }
-
-  test_inLibrary_configurations_noRelativeUriStr() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-part 'a.dart'
-  if (x) '${'foo'}.dart';
-''');
-
-    var node = findNode.singleConfiguration;
-    assertResolvedNodeText(node, r'''
-Configuration
-  ifKeyword: if
-  leftParenthesis: (
-  name: DottedName
-    components
-      SimpleIdentifier
-        token: x
-        element: <null>
-        staticType: null
-  rightParenthesis: )
-  uri: StringInterpolation
-    elements
-      InterpolationString
-        contents: '
-      InterpolationExpression
-        leftBracket: ${
-        expression: SimpleStringLiteral
-          literal: 'foo'
-        rightBracket: }
-      InterpolationString
-        contents: .dart'
-    staticType: null
-    stringValue: null
-  resolvedUri: DirectiveUri
-''');
-  }
-
-  test_inLibrary_configurations_noSource() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-part 'a.dart'
-  if (x) 'foo:bar';
-''');
-
-    var node = findNode.singleConfiguration;
-    assertResolvedNodeText(node, r'''
-Configuration
-  ifKeyword: if
-  leftParenthesis: (
-  name: DottedName
-    components
-      SimpleIdentifier
-        token: x
-        element: <null>
-        staticType: null
-  rightParenthesis: )
-  uri: SimpleStringLiteral
-    literal: 'foo:bar'
-  resolvedUri: DirectiveUriWithRelativeUri
-    relativeUri: foo:bar
-''');
-  }
-
-  test_inLibrary_configurations_second() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/a_html.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/a_io.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    declaredVariables = {
-      'dart.library.html': 'false',
-      'dart.library.io': 'true',
-    };
-
-    await assertNoErrorsInCode(r'''
-part 'a.dart'
-  if (dart.library.html) 'a_html.dart'
-  if (dart.library.io) 'a_io.dart';
-
-A? a;
-''');
-
-    var node = findNode.unit;
-    assertResolvedNodeText(node, r'''
-CompilationUnit
-  directives
-    PartDirective
-      partKeyword: part
-      uri: SimpleStringLiteral
-        literal: 'a.dart'
-      configurations
-        Configuration
-          ifKeyword: if
-          leftParenthesis: (
-          name: DottedName
-            components
-              SimpleIdentifier
-                token: dart
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: library
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: html
-                element: <null>
-                staticType: null
-          rightParenthesis: )
-          uri: SimpleStringLiteral
-            literal: 'a_html.dart'
-          resolvedUri: DirectiveUriWithSource
-            source: package:test/a_html.dart
-        Configuration
-          ifKeyword: if
-          leftParenthesis: (
-          name: DottedName
-            components
-              SimpleIdentifier
-                token: dart
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: library
-                element: <null>
-                staticType: null
-              SimpleIdentifier
-                token: io
-                element: <null>
-                staticType: null
-          rightParenthesis: )
-          uri: SimpleStringLiteral
-            literal: 'a_io.dart'
-          resolvedUri: DirectiveUriWithSource
-            source: package:test/a_io.dart
-      semicolon: ;
-      partInclude: PartInclude
-        uri: DirectiveUriWithUnit
-          uri: package:test/a_io.dart
-  declarations
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        type: NamedType
-          name: A
-          question: ?
-          element: <testLibrary>::@class::A
-          type: A?
-        variables
-          VariableDeclaration
-            name: a
-            declaredElement: <testLibraryFragment> a@93
-      semicolon: ;
-      declaredElement: <null>
-''');
-  }
-
   test_inLibrary_fileDoesNotExist() async {
     await assertErrorsInCode(
       r'''
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 8)],
+      [error(diag.uriDoesNotExist, 5, 8)],
     );
 
     var node = findNode.singlePartDirective;
@@ -470,7 +57,7 @@ PartDirective
       '''
 part 'part.g.dart';
 ''',
-      [error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 13)],
+      [error(diag.uriHasNotBeenGenerated, 5, 13)],
     );
   }
 
@@ -479,7 +66,7 @@ part 'part.g.dart';
       r'''
 part ':net';
 ''',
-      [error(CompileTimeErrorCode.invalidUri, 5, 6)],
+      [error(diag.invalidUri, 5, 6)],
     );
 
     var node = findNode.singlePartDirective;
@@ -500,7 +87,7 @@ PartDirective
       r'''
 part '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.uriWithInterpolation, 5, 15)],
+      [error(diag.uriWithInterpolation, 5, 15)],
     );
 
     var node = findNode.singlePartDirective;
@@ -531,7 +118,7 @@ PartDirective
       r'''
 part 'foo:bar';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 9)],
+      [error(diag.uriDoesNotExist, 5, 9)],
     );
 
     var node = findNode.singlePartDirective;
@@ -625,9 +212,7 @@ part of bar;
     assertNoErrorsInResult();
 
     await resolveFile2(a);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.partOfDifferentLibrary, 33, 8),
-    ]);
+    assertErrorsInResult([error(diag.partOfDifferentLibrary, 33, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -673,7 +258,7 @@ part of 'x.dart';
       r'''
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfDifferentLibrary, 5, 8)],
+      [error(diag.partOfDifferentLibrary, 5, 8)],
     );
 
     var node = findNode.singlePartDirective;
@@ -726,7 +311,7 @@ PartDirective
       r'''
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfNonPart, 5, 8)],
+      [error(diag.partOfNonPart, 5, 8)],
     );
 
     var node = findNode.singlePartDirective;
@@ -753,7 +338,7 @@ part 'c.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 23, 8)]);
+    assertErrorsInResult([error(diag.uriDoesNotExist, 23, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -779,7 +364,7 @@ part ':net';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.invalidUri, 23, 6)]);
+    assertErrorsInResult([error(diag.invalidUri, 23, 6)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -805,9 +390,7 @@ part '${'foo'}.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.uriWithInterpolation, 23, 15),
-    ]);
+    assertErrorsInResult([error(diag.uriWithInterpolation, 23, 15)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -843,7 +426,7 @@ part 'foo:bar';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 23, 9)]);
+    assertErrorsInResult([error(diag.uriDoesNotExist, 23, 9)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -873,7 +456,7 @@ part of my.lib;
 ''');
 
     await resolveFile2(c);
-    assertErrorsInResult([error(ParserErrorCode.partOfName, 8, 6)]);
+    assertErrorsInResult([error(diag.partOfName, 8, 6)]);
 
     // We already reported an error above.
     await resolveFile2(b);
@@ -937,9 +520,7 @@ part of 'a.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.partOfDifferentLibrary, 23, 8),
-    ]);
+    assertErrorsInResult([error(diag.partOfDifferentLibrary, 23, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -967,7 +548,7 @@ part 'c.dart';
     newFile('$testPackageLibPath/c.dart', '');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.partOfNonPart, 23, 8)]);
+    assertErrorsInResult([error(diag.partOfNonPart, 23, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''

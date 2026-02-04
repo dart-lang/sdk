@@ -45,6 +45,7 @@ class EditBulkFixes extends LegacyHandler {
         resourceProvider: server.resourceProvider,
         sdkPath: server.sdkPath,
         byteStore: server.byteStore,
+        withFineDependencies: true,
       );
       var workspace = DartChangeWorkspace(
         collection.contexts.map((c) => c.currentSession).toList(),

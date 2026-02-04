@@ -310,10 +310,10 @@ void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
 void ConstantPropagator::VisitTsanFuncEntryExit(TsanFuncEntryExitInstr* instr) {
 }
 
-void ConstantPropagator::VisitTsanReadWrite(TsanReadWriteInstr* instr) {}
+void ConstantPropagator::VisitSanReadWrite(SanReadWriteInstr* instr) {}
 
-void ConstantPropagator::VisitTsanReadWriteIndexed(
-    TsanReadWriteIndexedInstr* instr) {}
+void ConstantPropagator::VisitSanReadWriteIndexed(
+    SanReadWriteIndexedInstr* instr) {}
 
 Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
   if (defn->IsPhi()) {

@@ -1,3 +1,4 @@
+// @dart=2.12
 // From https://github.com/dart-lang/sdk/issues/46886
 extension on Symbol {
   String operator >(_) => "Greater Than used";

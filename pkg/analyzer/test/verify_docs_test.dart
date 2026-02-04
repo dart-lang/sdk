@@ -12,7 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:test/test.dart';
 
@@ -60,7 +60,7 @@ class SnippetTester {
   bool isAllowedLint(Diagnostic diagnostic) {
     var errorCode = diagnostic.diagnosticCode;
     return errorCode is LintCode &&
-        errorCode.name == 'non_constant_identifier_names' &&
+        errorCode.lowerCaseName == 'non_constant_identifier_names' &&
         diagnostic.message.contains("'test_");
   }
 
@@ -164,8 +164,8 @@ $snippet
         Iterable<Diagnostic> diagnostics = results.diagnostics.where((error) {
           DiagnosticCode diagnosticCode = error.diagnosticCode;
           // TODO(brianwilkerson): .
-          return diagnosticCode != WarningCode.unusedImport &&
-              diagnosticCode != WarningCode.unusedLocalVariable &&
+          return diagnosticCode != diag.unusedImport &&
+              diagnosticCode != diag.unusedLocalVariable &&
               !isAllowedLint(error);
         });
         if (diagnostics.isNotEmpty) {

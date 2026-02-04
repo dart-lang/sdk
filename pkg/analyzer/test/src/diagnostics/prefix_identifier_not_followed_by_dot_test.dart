@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 46, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 46, 1)],
     );
   }
 
@@ -43,7 +43,7 @@ f() {
   p += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 32, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
     );
   }
 
@@ -60,7 +60,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 46, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 46, 1)],
     );
   }
 
@@ -79,7 +79,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 85, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 85, 1)],
     );
   }
 
@@ -94,7 +94,7 @@ f() {
   p = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 32, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
     );
   }
 
@@ -109,7 +109,7 @@ f() {
   p += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 32, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
     );
   }
 
@@ -125,7 +125,7 @@ f() {
   p?.g();
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 32, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
     );
   }
 
@@ -140,7 +140,7 @@ f() {
   p?.loadLibrary();
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 41, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 41, 1)],
     );
   }
 
@@ -156,7 +156,7 @@ f() {
   return p?.x;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 39, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 39, 1)],
     );
   }
 
@@ -171,7 +171,7 @@ f() {
   return p?.loadLibrary;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 48, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 48, 1)],
     );
   }
 
@@ -187,7 +187,7 @@ f() {
   p?.x = null;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 32, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 32, 1)],
     );
   }
 
@@ -202,7 +202,7 @@ f() {
   p?.loadLibrary = null;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 41, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 41, 1)],
     );
   }
 
@@ -217,7 +217,7 @@ f() {
   return p;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 39, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 39, 1)],
     );
   }
 }

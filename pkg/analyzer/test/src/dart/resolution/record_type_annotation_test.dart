@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -75,7 +75,7 @@ RecordTypeAnnotation
 // @dart = 2.19
 void f(({int f1, String f2}) x) {}
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 23, 1)],
+      [error(diag.experimentNotEnabled, 23, 1)],
     );
 
     var node = findNode.singleFormalParameterList;
@@ -88,7 +88,7 @@ FormalParameterList
       element: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment> x@45
+    declaredFragment: <testLibraryFragment> x@45
       element: isPublic
         type: InvalidType
   rightParenthesis: )
@@ -101,7 +101,7 @@ FormalParameterList
 // @dart = 2.19
 void f((int, String) x) {}
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 23, 1)],
+      [error(diag.experimentNotEnabled, 23, 1)],
     );
 
     var node = findNode.singleFormalParameterList;
@@ -114,7 +114,7 @@ FormalParameterList
       element: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment> x@37
+    declaredFragment: <testLibraryFragment> x@37
       element: isPublic
         type: InvalidType
   rightParenthesis: )

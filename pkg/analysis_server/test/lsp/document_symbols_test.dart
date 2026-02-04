@@ -76,6 +76,32 @@ enum Theme {
     expect(enumValue.containerName, 'Theme');
   }
 
+  Future<void> test_extension_names() async {
+    failTestOnErrorDiagnostic = false;
+
+    const content = '''
+extension StringExtensions on String {}
+extension _StringExtensions on String {}
+extension on String {}
+extension on {}
+''';
+    newFile(mainFilePath, content);
+    await initialize();
+
+    var result = await getDocumentSymbols(mainFileUri);
+    var symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    var names = symbols.map((symbol) => symbol.name).toList();
+    expect(names, [
+      'StringExtensions',
+      '_StringExtensions',
+      'extension on String',
+      '<unnamed extension>',
+    ]);
+  }
+
   Future<void> test_flat() async {
     const content = '''
 String topLevel = '';
@@ -130,7 +156,7 @@ extension type A(int i) {
     expect(namedExtension.containerName, isNull);
 
     var unnamedExtension = symbols[6];
-    expect(unnamedExtension.name, equals('<unnamed extension>'));
+    expect(unnamedExtension.name, equals('extension on String'));
     expect(unnamedExtension.containerName, isNull);
 
     var extensionTypeA = symbols[7];
@@ -219,7 +245,7 @@ class MyClass {
       getDocumentSymbols(mainFileUri),
       throwsA(
         isResponseError(
-          ServerErrorCodes.FileNotAnalyzed,
+          ServerErrorCodes.fileNotAnalyzed,
           message: 'File is not being analyzed',
         ),
       ),

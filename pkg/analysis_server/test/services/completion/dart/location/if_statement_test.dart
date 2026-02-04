@@ -37,8 +37,6 @@ int f01() => 0;
 suggestions
   A1
     kind: class
-  A1.named
-    kind: constructor
   c01
     kind: topLevelVariable
   const

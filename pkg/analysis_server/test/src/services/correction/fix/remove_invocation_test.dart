@@ -34,7 +34,7 @@ var s = '${1}${2}';
 @reflectiveTest
 class RemoveInvocationTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_INVOCATION;
+  FixKind get kind => DartFixKind.removeInvocation;
 
   @override
   String get lintCode => LintNames.noop_primitive_operations;

@@ -63,13 +63,18 @@ Future<String> getMachineListing(
       {
         'name': rule.name,
         'description': rule.description,
-        'categories': info.categories.toList(growable: false),
+        'categories': info.categories
+            .map((category) => category.name)
+            .toList(growable: false),
         'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': const [],
         'fixStatus':
-            fixStatusMap[rule.diagnosticCodes.first.uniqueName] ??
-            'unregistered',
+            fixStatusMap[rule
+                .diagnosticCodes
+                .firstOrNull
+                ?.lowerCaseUniqueName] ??
+            'noFix',
         'details': info.deprecatedDetails,
         'sinceDartSdk': _versionToString(info.states.first.since),
       },
@@ -96,7 +101,7 @@ Map<String, String> readFixStatusMap() {
   var yaml = loadYamlNode(contents) as YamlMap;
   return <String, String>{
     for (var MapEntry(key: String code, :YamlMap value) in yaml.entries)
-      if (code.startsWith('LintCode.')) code: value['status'] as String,
+      code: value['status'] as String,
   };
 }
 

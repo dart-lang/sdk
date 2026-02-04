@@ -301,6 +301,7 @@ Future<T> _withNewAnalysisContext<T>(
     fileContentCache: fileContentCache,
     includedPaths: [includedPath],
     unlinkedUnitStore: unlinkedUnitStore,
+    withFineDependencies: true,
   );
   var result = await f(collection);
   collection.hashCode; // to keep it alive

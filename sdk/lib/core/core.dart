@@ -136,15 +136,13 @@
 /// ## Other documentation
 ///
 /// For more information about how to use the built-in types, refer to
-/// [Built-in Types](https://dart.dev/guides/language/language-tour#built-in-types)
-/// in
-/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
+/// [Built-in Types](https://dart.dev/language/built-in-types).
 ///
-/// Also, see
-/// [dart:core - numbers, collections, strings, and more](https://dart.dev/guides/libraries/library-tour#dartcore---numbers-collections-strings-and-more)
+/// Also, check out the
+/// [introduction to `dart:core`](https://dart.dev/libraries/dart-core)
 /// for more coverage of types in this library.
 ///
-/// The [Dart Language Specification](https://dart.dev/guides/language/spec)
+/// The [Dart Language Specification](https://dart.dev/resources/language/spec)
 /// provides technical details.
 ///
 /// {@category Core}
@@ -153,6 +151,7 @@ library dart.core;
 import "dart:collection";
 import "dart:_internal" hide Symbol, LinkedList, LinkedListEntry;
 import "dart:_internal" as internal show Symbol;
+import "dart:_internal" show isToStringVisiting, toStringVisiting;
 import "dart:convert"
     show
         ascii,

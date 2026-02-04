@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -69,6 +69,19 @@ void f(Object? x) {
 
 class A<T> {
   T get _foo => throw 0;
+}
+''');
+  }
+
+  test_class_getterSetter_isUsed_assignmentExpression_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get _foo => 0;
+  set _foo(int _) {}
+
+  void f() {
+    _foo += 2;
+  }
 }
 ''');
   }
@@ -197,10 +210,7 @@ class _A {
   }
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 6, 2),
-        error(WarningCode.unusedElement, 20, 12),
-      ],
+      [error(diag.unusedElement, 6, 2), error(diag.unusedElement, 20, 12)],
     );
   }
 
@@ -212,10 +222,7 @@ class _A {
   _A.named() {}
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 6, 2),
-        error(WarningCode.unusedElement, 26, 5),
-      ],
+      [error(diag.unusedElement, 6, 2), error(diag.unusedElement, 26, 5)],
     );
   }
 
@@ -228,7 +235,7 @@ main(p) {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -241,7 +248,7 @@ void f(Object p) {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -254,7 +261,7 @@ void f(Object p) {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -267,7 +274,7 @@ void f(Object p) {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -278,7 +285,7 @@ class _A {}
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -292,7 +299,7 @@ void f() {
 }
 print(x) {}
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -306,24 +313,11 @@ main() {
 }
 print(x) {}
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
-  test_classGetterSetter_isUsed_assignmentExpression_compound() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int get _foo => 0;
-  set _foo(int _) {}
-
-  void f() {
-    _foo += 2;
-  }
-}
-''');
-  }
-
-  test_classSetter_isUsed_assignmentExpression_simple() async {
+  test_class_setter_isUsed_assignmentExpression_simple() async {
     await assertNoErrorsInCode(r'''
 class A {
   set _foo(int _) {}
@@ -382,7 +376,7 @@ class A {
   A();
 }
 ''',
-      [error(WarningCode.unusedElement, 14, 12)],
+      [error(diag.unusedElement, 14, 12)],
     );
   }
 
@@ -406,8 +400,28 @@ class B extends A {
   B._named() : super._constructor();
 }
 ''',
-      [error(WarningCode.unusedElement, 87, 6)],
+      [error(diag.unusedElement, 87, 6)],
     );
+  }
+
+  test_constructorFactory_notUsed_multiple() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  factory A._factory() => A();
+  A();
+}
+''',
+      [error(diag.unusedElement, 22, 8)],
+    );
+  }
+
+  test_constructorFactory_notUsed_single() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A._factory() => throw 0;
+}
+''');
   }
 
   test_constructorPublic_privateClass_exposedViaTypeAlias() async {
@@ -428,7 +442,7 @@ class _A {
 }
 var a = _A();
 ''',
-      [error(WarningCode.unusedElement, 16, 5)],
+      [error(diag.unusedElement, 16, 5)],
     );
   }
 
@@ -449,7 +463,7 @@ enum E {
   const E({int? a});
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 37, 1)],
+      [error(diag.unusedElementParameter, 37, 1)],
     );
   }
 
@@ -470,7 +484,7 @@ enum E {
   const E([int? a]);
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 37, 1)],
+      [error(diag.unusedElementParameter, 37, 1)],
     );
   }
 
@@ -492,7 +506,7 @@ void f(d) {
   d.B;
 }
 ''',
-      [error(WarningCode.unusedElement, 5, 7)],
+      [error(diag.unusedElement, 5, 7)],
     );
   }
 
@@ -553,7 +567,7 @@ extension type E(int i) {
   void _f() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 33, 2)],
+      [error(diag.unusedElement, 33, 2)],
     );
   }
 
@@ -562,7 +576,7 @@ extension type E(int i) {
       r'''
 extension type _E(int i) {}
 ''',
-      [error(WarningCode.unusedElement, 15, 2)],
+      [error(diag.unusedElement, 15, 2)],
     );
   }
 
@@ -576,7 +590,7 @@ void f() {
   print(v);
 }
 ''',
-      [error(WarningCode.unusedElement, 15, 2)],
+      [error(diag.unusedElement, 15, 2)],
     );
   }
 
@@ -590,7 +604,7 @@ void f() {
   print(v);
 }
 ''',
-      [error(WarningCode.unusedElement, 15, 2)],
+      [error(diag.unusedElement, 15, 2)],
     );
   }
 
@@ -601,7 +615,7 @@ extension type E(int i) {
   E._named(this.i);
 }
 ''',
-      [error(WarningCode.unusedElement, 30, 6)],
+      [error(diag.unusedElement, 30, 6)],
     );
   }
 
@@ -613,7 +627,7 @@ extension type E(int i) {
 }
 typedef A = E;
 ''',
-      [error(WarningCode.unusedElement, 30, 6)],
+      [error(diag.unusedElement, 30, 6)],
     );
   }
 
@@ -624,7 +638,7 @@ extension type _E(int i) {
   _E.named(this.i);
 }
 ''',
-      [error(WarningCode.unusedElement, 32, 5)],
+      [error(diag.unusedElement, 32, 5)],
     );
   }
 
@@ -647,26 +661,6 @@ typedef B = _A;
 ''');
   }
 
-  test_factoryConstructor_notUsed_multiple() async {
-    await assertErrorsInCode(
-      r'''
-class A {
-  factory A._factory() => A();
-  A();
-}
-''',
-      [error(WarningCode.unusedElement, 22, 8)],
-    );
-  }
-
-  test_factoryConstructor_notUsed_single() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  factory A._factory() => throw 0;
-}
-''');
-  }
-
   test_fieldImplicitGetter_isUsed() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -681,7 +675,7 @@ class A {
       r'''
 _(){}
 ''',
-      [error(WarningCode.unusedElement, 0, 1)],
+      [error(diag.unusedElement, 0, 1)],
     );
   }
 
@@ -690,7 +684,7 @@ _(){}
       r'''
 __(){}
 ''',
-      [error(WarningCode.unusedElement, 0, 2)],
+      [error(diag.unusedElement, 0, 2)],
     );
   }
 
@@ -729,7 +723,7 @@ main() {
   f() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 11, 1)],
+      [error(diag.unusedElement, 11, 1)],
     );
   }
 
@@ -742,7 +736,7 @@ main() {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 11, 2)],
+      [error(diag.unusedElement, 11, 2)],
     );
   }
 
@@ -791,7 +785,7 @@ typedef _F(a, b);
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 8, 2)],
+      [error(diag.unusedElement, 8, 2)],
     );
   }
 
@@ -826,7 +820,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 52, 1)],
+      [error(diag.unusedLocalVariable, 52, 1)],
     );
   }
 
@@ -876,7 +870,7 @@ void f(A a) {
   var v = a._g;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 50, 1)],
+      [error(diag.unusedLocalVariable, 50, 1)],
     );
   }
 
@@ -890,7 +884,7 @@ main() {
   var v = new A()._g;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 45, 1)],
+      [error(diag.unusedLocalVariable, 45, 1)],
     );
   }
 
@@ -927,10 +921,7 @@ class B extends A {
   int get _a => 3;
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 35, 2),
-        error(WarningCode.unusedElement, 155, 2),
-      ],
+      [error(diag.unusedElement, 35, 2), error(diag.unusedElement, 155, 2)],
     );
   }
 
@@ -941,7 +932,7 @@ class A {
   get _g => null;
 }
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -954,7 +945,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -967,7 +958,7 @@ m() {
 ''',
       [
         // Code is dead but not unused.
-        error(WarningCode.deadCode, 8, 5),
+        error(diag.deadCode, 8, 5),
       ],
     );
   }
@@ -982,7 +973,7 @@ main() {
   _(){}
 }
 ''',
-      [error(WarningCode.unusedElement, 55, 1)],
+      [error(diag.unusedElement, 55, 1)],
     );
   }
 
@@ -995,7 +986,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 22, 2)],
+      [error(diag.unusedElement, 22, 2)],
     );
   }
 
@@ -1010,7 +1001,7 @@ class C {
 ''',
       [
         // Code is dead but not unused.
-        error(WarningCode.deadCode, 22, 5),
+        error(diag.deadCode, 22, 5),
       ],
     );
   }
@@ -1027,7 +1018,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 66, 1)],
+      [error(diag.unusedElement, 66, 1)],
     );
   }
 
@@ -1038,7 +1029,7 @@ main() {
   __(){}
 }
 ''',
-      [error(WarningCode.unusedElement, 11, 2)],
+      [error(diag.unusedElement, 11, 2)],
     );
   }
 
@@ -1436,7 +1427,7 @@ extension<T> on T {
   void call() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 27, 4)],
+      [error(diag.unusedElement, 27, 4)],
     );
   }
 
@@ -1451,7 +1442,7 @@ class B {
   void _m1() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 17, 3)],
+      [error(diag.unusedElement, 17, 3)],
     );
   }
 
@@ -1462,7 +1453,7 @@ class A {
   static _m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 19, 2)],
+      [error(diag.unusedElement, 19, 2)],
     );
   }
 
@@ -1473,7 +1464,7 @@ extension _A on String {
   void m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 32, 1)],
+      [error(diag.unusedElement, 32, 1)],
     );
   }
 
@@ -1486,7 +1477,7 @@ extension _A on bool {
   operator []=(int index, int value) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 34, 3)],
+      [error(diag.unusedElement, 34, 3)],
     );
   }
 
@@ -1497,7 +1488,7 @@ extension _A on bool {
   int operator [](int index) => 7;
 }
 ''',
-      [error(WarningCode.unusedElement, 38, 2)],
+      [error(diag.unusedElement, 38, 2)],
     );
   }
 
@@ -1508,7 +1499,7 @@ extension _E on int {
   void call() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 29, 4)],
+      [error(diag.unusedElement, 29, 4)],
     );
   }
 
@@ -1521,7 +1512,7 @@ extension _A on String {
   int operator -(int other) => other;
 }
 ''',
-      [error(WarningCode.unusedElement, 40, 1)],
+      [error(diag.unusedElement, 40, 1)],
     );
   }
 
@@ -1532,7 +1523,7 @@ extension _A on String {
   int operator ~() => 7;
 }
 ''',
-      [error(WarningCode.unusedElement, 40, 1)],
+      [error(diag.unusedElement, 40, 1)],
     );
   }
 
@@ -1545,7 +1536,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 19, 2)],
+      [error(diag.unusedElement, 19, 2)],
     );
   }
 
@@ -1557,7 +1548,7 @@ class A {
   int _f(int p) => 7;
 }
 ''',
-      [error(WarningCode.unusedElement, 44, 2)],
+      [error(diag.unusedElement, 44, 2)],
     );
   }
 
@@ -1570,7 +1561,7 @@ class A {
 /// This is similar to [A._f].
 int g() => 7;
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -1581,7 +1572,7 @@ extension on String {
   void m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 29, 1)],
+      [error(diag.unusedElement, 29, 1)],
     );
   }
 
@@ -1592,7 +1583,7 @@ extension on String {
   int operator -(int other) => other;
 }
 ''',
-      [error(WarningCode.unusedElement, 37, 1)],
+      [error(diag.unusedElement, 37, 1)],
     );
   }
 
@@ -1608,11 +1599,11 @@ class C with _M {}
       r'''
 mixin _M {}
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
-  test_optionalParameter_isUsed_constructor() async {
+  test_parameter_isUsed_constructor() async {
     await assertNoErrorsInCode(r'''
 class _A {
   _A([int a = 0]);
@@ -1621,7 +1612,58 @@ f() => _A(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_functionTearoff() async {
+  test_parameter_isUsed_fieldFormal_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A(0);
+''');
+  }
+
+  test_parameter_isUsed_fieldFormal_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named([int? a]) = _A;
+}
+f() => _A.named(0);
+''');
+  }
+
+  test_parameter_isUsed_fieldFormal_superInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A([this.e]);
+}
+
+class _B extends _A {
+  _B(int e) : super(e);
+}
+
+var b = _B(1);
+''');
+  }
+
+  test_parameter_isUsed_fieldFormal_superParameter() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A([this.e]);
+}
+
+class _B extends _A {
+  _B(super.e);
+}
+
+var b = _B(2);
+''');
+  }
+
+  test_parameter_isUsed_functionTearoff() async {
     await assertNoErrorsInCode(r'''
 f() {
   void _m([int? a]) {}
@@ -1630,7 +1672,7 @@ f() {
 ''');
   }
 
-  test_optionalParameter_isUsed_genericConstructor() async {
+  test_parameter_isUsed_genericConstructor() async {
     await assertNoErrorsInCode('''
 class C<T> {
   C._([int? x]);
@@ -1641,7 +1683,7 @@ void foo() {
 ''');
   }
 
-  test_optionalParameter_isUsed_genericFunction() async {
+  test_parameter_isUsed_genericFunction() async {
     await assertNoErrorsInCode('''
 void _f<T>([int? x]) {}
 void foo() {
@@ -1650,7 +1692,7 @@ void foo() {
 ''');
   }
 
-  test_optionalParameter_isUsed_genericMethod() async {
+  test_parameter_isUsed_genericMethod() async {
     await assertNoErrorsInCode('''
 class C {
   void _m<T>([int? x]) {}
@@ -1661,7 +1703,7 @@ void foo() {
 ''');
   }
 
-  test_optionalParameter_isUsed_local() async {
+  test_parameter_isUsed_local() async {
     await assertNoErrorsInCode(r'''
 f() {
   void _m([int? a]) {}
@@ -1670,7 +1712,7 @@ f() {
 ''');
   }
 
-  test_optionalParameter_isUsed_methodTearoff() async {
+  test_parameter_isUsed_methodTearoff() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1679,7 +1721,7 @@ f() => A()._m;
 ''');
   }
 
-  test_optionalParameter_isUsed_named() async {
+  test_parameter_isUsed_named() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m({int a = 0}) {}
@@ -1688,7 +1730,80 @@ f() => A()._m(a: 0);
 ''');
   }
 
-  test_optionalParameter_isUsed_overridden() async {
+  test_parameter_isUsed_named_fieldFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A(f: 1);
+''');
+  }
+
+  test_parameter_isUsed_named_fieldFormal_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A(f: 0);
+''');
+  }
+
+  test_parameter_isUsed_named_fieldFormal_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named({int? f}) = _A;
+}
+f() => _A.named(f: 0);
+''');
+  }
+
+  test_parameter_isUsed_named_fieldFormal_superInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A({this.e});
+}
+
+class _B extends _A {
+  _B([int? e]) : super(e: 1);
+}
+
+var b = _B(1);
+''');
+  }
+
+  test_parameter_isUsed_named_fieldFormal_superParameter() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A({this.e});
+}
+
+class _B extends _A {
+  _B({super.e});
+}
+
+var b = _B(e: 2);
+''');
+  }
+
+  test_parameter_isUsed_named_superFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A({int? a});
+}
+
+class B extends _A {
+  B({super.a});
+}
+''');
+  }
+
+  test_parameter_isUsed_overridden() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1702,11 +1817,11 @@ f() {
   B()._m(0);
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 26, 1)],
+      [error(diag.unusedElementParameter, 26, 1)],
     );
   }
 
-  test_optionalParameter_isUsed_override() async {
+  test_parameter_isUsed_override() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1719,7 +1834,7 @@ f() => A()._m(0);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
-  test_optionalParameter_isUsed_override_inAugmentation() async {
+  test_parameter_isUsed_override_inAugmentation() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1733,7 +1848,7 @@ f() => A()._m(0);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
-  test_optionalParameter_isUsed_override_ofAugmentation() async {
+  test_parameter_isUsed_override_ofAugmentation() async {
     await assertNoErrorsInCode(r'''
 class A {
 }
@@ -1747,7 +1862,7 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_override_renamed() async {
+  test_parameter_isUsed_override_renamed() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1759,7 +1874,7 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_overrideRequired() async {
+  test_parameter_isUsed_overrideRequired() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m(int a) {}
@@ -1771,7 +1886,7 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_overrideRequiredNamed() async {
+  test_parameter_isUsed_overrideRequiredNamed() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m({required int a}) {}
@@ -1783,7 +1898,7 @@ f() => A()._m(a: 0);
 ''');
   }
 
-  test_optionalParameter_isUsed_positional() async {
+  test_parameter_isUsed_positional() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m([int? a]) {}
@@ -1792,7 +1907,7 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_isUsed_publicMethod() async {
+  test_parameter_isUsed_publicMethod() async {
     await assertNoErrorsInCode(r'''
 class A {
   void m([int? a]) {}
@@ -1801,7 +1916,7 @@ f() => A().m();
 ''');
   }
 
-  test_optionalParameter_isUsed_publicMethod_extension() async {
+  test_parameter_isUsed_publicMethod_extension() async {
     await assertNoErrorsInCode(r'''
 extension E on String {
   void m([int? a]) {}
@@ -1810,7 +1925,7 @@ f() => "hello".m();
 ''');
   }
 
-  test_optionalParameter_isUsed_requiredPositional() async {
+  test_parameter_isUsed_requiredPositional() async {
     await assertNoErrorsInCode(r'''
 class A {
   void _m(int a) {}
@@ -1819,7 +1934,63 @@ f() => A()._m(0);
 ''');
   }
 
-  test_optionalParameter_notUsed_constructor_named() async {
+  test_parameter_isUsed_superFormal() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A([int? a]);
+}
+
+class B extends _A {
+  B([super.a]);
+}
+''');
+  }
+
+  test_parameter_isUsed_topLevel() async {
+    await assertNoErrorsInCode(r'''
+void _m([int? a]) {}
+f() => _m(1);
+''');
+  }
+
+  test_parameter_isUsed_topLevelPublic() async {
+    await assertNoErrorsInCode(r'''
+void m([int? a]) {}
+f() => m();
+''');
+  }
+
+  test_parameter_missingName_isNamed_redirectingFactory_source() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.impl({int? x});
+  factory C({}) = C.impl;
+}
+''',
+      [
+        error(diag.missingIdentifier, 43, 1),
+        error(diag.redirectToInvalidFunctionType, 48, 6),
+      ],
+    );
+  }
+
+  test_parameter_missingName_isNamed_redirectingFactory_target() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.impl({});
+  factory C({int? x}) = C.impl;
+}
+''',
+      [
+        error(diag.missingIdentifier, 20, 1),
+        error(diag.redirectToInvalidFunctionType, 48, 6),
+      ],
+    );
+  }
+
+  test_parameter_notUsed_constructor_named() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1827,11 +1998,11 @@ class A {
 }
 f() => A._();
 ''',
-      [error(WarningCode.unusedElementParameter, 22, 1)],
+      [error(diag.unusedElementParameter, 22, 1)],
     );
   }
 
-  test_optionalParameter_notUsed_constructor_unnamed() async {
+  test_parameter_notUsed_constructor_unnamed() async {
     await assertErrorsInCode(
       r'''
 class _A {
@@ -1839,11 +2010,11 @@ class _A {
 }
 f() => _A();
 ''',
-      [error(WarningCode.unusedElementParameter, 22, 1)],
+      [error(diag.unusedElementParameter, 22, 1)],
     );
   }
 
-  test_optionalParameter_notUsed_extension() async {
+  test_parameter_notUsed_extension() async {
     await assertErrorsInCode(
       r'''
 extension E on String {
@@ -1851,12 +2022,39 @@ extension E on String {
 }
 f() => "hello"._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 40, 1)],
+      [error(diag.unusedElementParameter, 40, 1)],
+    );
+  }
+
+  test_parameter_notUsed_fieldFormal() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_parameter_notUsed_fieldFormal_factoryRedirect() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
     );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_optionalParameter_notUsed_genericConstructor() async {
+  test_parameter_notUsed_genericConstructor() async {
     // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
     addTestFile('''
 class C<T> {
@@ -1871,7 +2069,7 @@ void foo() {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_optionalParameter_notUsed_genericFunction() async {
+  test_parameter_notUsed_genericFunction() async {
     // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
     addTestFile('''
 void _f<T>([int? x]) {}
@@ -1884,7 +2082,7 @@ void foo() {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_optionalParameter_notUsed_genericMethod() async {
+  test_parameter_notUsed_genericMethod() async {
     // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
     addTestFile('''
 class C {
@@ -1898,7 +2096,7 @@ void foo() {
     expect(result.diagnostics, isNotEmpty);
   }
 
-  test_optionalParameter_notUsed_named() async {
+  test_parameter_notUsed_named() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1906,11 +2104,38 @@ class A {
 }
 f() => A()._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 26, 1)],
+      [error(diag.unusedElementParameter, 26, 1)],
     );
   }
 
-  test_optionalParameter_notUsed_override_added() async {
+  test_parameter_notUsed_named_fieldFormal() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_parameter_notUsed_named_fieldFormal_factoryRedirect() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_parameter_notUsed_override_added() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1921,35 +2146,27 @@ class B implements A {
 }
 f() => A()._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 66, 1)],
+      [error(diag.unusedElementParameter, 66, 1)],
     );
   }
 
-  test_optionalParameter_notUsed_overrideRequired() async {
+  test_parameter_notUsed_overrideRequired() async {
     await assertNoErrorsInCode(r'''
 class A {
-  const A({
-    required this.a,
-    required this.b,
-  });
+  A({required this.a, required this.b});
   final String a;
   final String b;
 }
 
 class _B extends A {
-  const _B({
-    required super.a,
-    super.b = 'b',
-  });
+  _B({required super.a, super.b = 'b'});
 }
 
-const foo = _B(
-  a: 'a',
-);
+var foo = _B(a: 'a');
 ''');
   }
 
-  test_optionalParameter_notUsed_positional() async {
+  test_parameter_notUsed_positional() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1957,11 +2174,11 @@ class A {
 }
 f() => A()._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 26, 1)],
+      [error(diag.unusedElementParameter, 26, 1)],
     );
   }
 
-  test_optionalParameter_notUsed_publicMethod_privateExtension() async {
+  test_parameter_notUsed_publicMethod_privateExtension() async {
     await assertErrorsInCode(
       r'''
 extension _E on String {
@@ -1969,11 +2186,11 @@ extension _E on String {
 }
 f() => "hello".m();
 ''',
-      [error(WarningCode.unusedElementParameter, 40, 1)],
+      [error(diag.unusedElementParameter, 40, 1)],
     );
   }
 
-  test_optionalParameter_notUsed_publicMethod_unnamedExtension() async {
+  test_parameter_notUsed_publicMethod_unnamedExtension() async {
     await assertErrorsInCode(
       r'''
 extension on String {
@@ -1981,11 +2198,11 @@ extension on String {
 }
 f() => "hello".m();
 ''',
-      [error(WarningCode.unusedElementParameter, 37, 1)],
+      [error(diag.unusedElementParameter, 37, 1)],
     );
   }
 
-  test_optionalParameter_static_notUsed() async {
+  test_parameter_notUsed_static() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -1993,11 +2210,11 @@ class A {
 }
 f() => A._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 33, 1)],
+      [error(diag.unusedElementParameter, 33, 1)],
     );
   }
 
-  test_optionalParameter_staticPublic_notUsed_privateClass() async {
+  test_parameter_notUsed_staticPublic_privateClass() async {
     await assertErrorsInCode(
       r'''
 class _A {
@@ -2005,190 +2222,18 @@ class _A {
 }
 f() => _A.m();
 ''',
-      [error(WarningCode.unusedElementParameter, 33, 1)],
+      [error(diag.unusedElementParameter, 33, 1)],
     );
   }
 
-  test_optionalParameter_topLevel_isUsed() async {
-    await assertNoErrorsInCode(r'''
-void _m([int? a]) {}
-f() => _m(1);
-''');
-  }
-
-  test_optionalParameter_topLevel_notUsed() async {
+  test_parameter_notUsed_topLevel() async {
     await assertErrorsInCode(
       r'''
 void _m([int? a]) {}
 f() => _m();
 ''',
-      [error(WarningCode.unusedElementParameter, 14, 1)],
+      [error(diag.unusedElementParameter, 14, 1)],
     );
-  }
-
-  test_optionalParameter_topLevelPublic_isUsed() async {
-    await assertNoErrorsInCode(r'''
-void m([int? a]) {}
-f() => m();
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_isUsed() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A({this.f});
-}
-f() => _A(f: 1);
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_isUsed_constructorInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A({this.f});
-}
-f() => _A(f: 0);
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_isUsed_factoryRedirect() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A({this.f});
-  factory _A.named({int? f}) = _A;
-}
-f() => _A.named(f: 0);
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_isUsed_superInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int e;
-  final int? f;
-  _A(this.e, {this.f});
-}
-
-class B extends _A {
-  B(int e) : super(e, f: 1);
-}
-''');
-  }
-
-  test_parameter_optionalNamed_fieldFormal_notUsed() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A({this.f});
-}
-f() => _A();
-''',
-      [error(WarningCode.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_optionalNamed_fieldFormal_notUsed_factoryRedirect() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A({this.f});
-  factory _A.named() = _A;
-}
-f() => _A.named();
-''',
-      [error(WarningCode.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_optionalNamed_isUsed_superFormal() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  _A({int? a});
-}
-
-class B extends _A {
-  B({super.a});
-}
-''');
-  }
-
-  test_parameter_optionalPositional_fieldFormal_isUsed_constructorInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-}
-f() => _A(0);
-''');
-  }
-
-  test_parameter_optionalPositional_fieldFormal_isUsed_factoryRedirect() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-  factory _A.named([int? a]) = _A;
-}
-f() => _A.named(0);
-''');
-  }
-
-  test_parameter_optionalPositional_fieldFormal_isUsed_superInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int e;
-  final int? f;
-  _A(this.e, [this.f]);
-}
-
-class B extends _A {
-  B(int e) : super(e, 1);
-}
-''');
-  }
-
-  test_parameter_optionalPositional_fieldFormal_notUsed() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-}
-f() => _A();
-''',
-      [error(WarningCode.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_optionalPositional_fieldFormal_notUsed_factoryRedirect() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-  factory _A.named() = _A;
-}
-f() => _A.named();
-''',
-      [error(WarningCode.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_optionalPositional_isUsed_superFormal() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  _A([int? a]);
-}
-
-class B extends _A {
-  B([super.a]);
-}
-''');
   }
 
   test_privateEnum_privateConstructor_isUsed_redirect() async {
@@ -2218,7 +2263,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 52, 4)],
+      [error(diag.unusedElement, 52, 4)],
     );
   }
 
@@ -2247,7 +2292,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 25, 4)],
+      [error(diag.unusedElement, 25, 4)],
     );
   }
 
@@ -2276,7 +2321,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 22, 4)],
+      [error(diag.unusedElement, 22, 4)],
     );
   }
 
@@ -2305,7 +2350,7 @@ void f() {
   _E.v._foo();
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 33, 1)],
+      [error(diag.unusedElementParameter, 33, 1)],
     );
   }
 
@@ -2334,7 +2379,7 @@ void f() {
   _E.v._foo();
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 33, 1)],
+      [error(diag.unusedElementParameter, 33, 1)],
     );
   }
 
@@ -2363,7 +2408,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 21, 4)],
+      [error(diag.unusedElement, 21, 4)],
     );
   }
 
@@ -2393,7 +2438,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 32, 4)],
+      [error(diag.unusedElement, 32, 4)],
     );
   }
 
@@ -2423,7 +2468,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 29, 4)],
+      [error(diag.unusedElement, 29, 4)],
     );
   }
 
@@ -2453,7 +2498,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 28, 4)],
+      [error(diag.unusedElement, 28, 4)],
     );
   }
 
@@ -2470,7 +2515,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 50, 3)],
+      [error(diag.unusedElement, 50, 3)],
     );
   }
 
@@ -2565,7 +2610,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 32, 3)],
+      [error(diag.unusedElement, 32, 3)],
     );
   }
 
@@ -2595,7 +2640,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 29, 3)],
+      [error(diag.unusedElement, 29, 3)],
     );
   }
 
@@ -2625,7 +2670,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 28, 3)],
+      [error(diag.unusedElement, 28, 3)],
     );
   }
 
@@ -2663,7 +2708,7 @@ enum E {
   const E._bar();
 }
 ''',
-      [error(WarningCode.unusedElement, 49, 4)],
+      [error(diag.unusedElement, 49, 4)],
     );
   }
 
@@ -2688,7 +2733,7 @@ enum E {
   static int get _foo => 0;
 }
 ''',
-      [error(WarningCode.unusedElement, 31, 4)],
+      [error(diag.unusedElement, 31, 4)],
     );
   }
 
@@ -2713,7 +2758,7 @@ enum E {
   static void _foo() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 28, 4)],
+      [error(diag.unusedElement, 28, 4)],
     );
   }
 
@@ -2738,7 +2783,7 @@ enum E {
   static set _foo(int _) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 27, 4)],
+      [error(diag.unusedElement, 27, 4)],
     );
   }
 
@@ -2773,7 +2818,7 @@ enum E {
   const E.bar();
 }
 ''',
-      [error(WarningCode.unusedElement, 47, 3)],
+      [error(diag.unusedElement, 47, 3)],
     );
   }
 
@@ -2823,7 +2868,7 @@ class _A {
 }
 void f(_A a) {}
 ''',
-      [error(WarningCode.unusedElement, 25, 1)],
+      [error(diag.unusedElement, 25, 1)],
     );
   }
 
@@ -2845,7 +2890,7 @@ extension _A on String {
   static void m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 39, 1)],
+      [error(diag.unusedElement, 39, 1)],
     );
   }
 
@@ -2870,7 +2915,7 @@ void main() {
   _A;
 }
 ''',
-      [error(WarningCode.unusedElement, 25, 1)],
+      [error(diag.unusedElement, 25, 1)],
     );
   }
 
@@ -2920,7 +2965,7 @@ class A {
   set _s(x) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -2935,7 +2980,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -2982,7 +3027,7 @@ _f() {}
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 0, 2)],
+      [error(diag.unusedElement, 0, 2)],
     );
   }
 
@@ -2995,7 +3040,7 @@ _f(int p) {
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 0, 2)],
+      [error(diag.unusedElement, 0, 2)],
     );
   }
 
@@ -3005,7 +3050,7 @@ main() {
 /// [_f] is a great function.
 _f(int p) => 7;
 ''',
-      [error(WarningCode.unusedElement, 30, 2)],
+      [error(diag.unusedElement, 30, 2)],
     );
   }
 
@@ -3057,7 +3102,7 @@ void f() {
       r'''
 set _foo(int _) {}
 ''',
-      [error(WarningCode.unusedElement, 4, 4)],
+      [error(diag.unusedElement, 4, 4)],
     );
   }
 
@@ -3097,7 +3142,7 @@ main() {
   _a = 2;
 }
 ''',
-      [error(WarningCode.unusedElement, 4, 2)],
+      [error(diag.unusedElement, 4, 2)],
     );
   }
 
@@ -3109,7 +3154,7 @@ f() {
   _a += 1;
 }
 ''',
-      [error(WarningCode.unusedElement, 4, 2)],
+      [error(diag.unusedElement, 4, 2)],
     );
   }
 
@@ -3119,7 +3164,7 @@ f() {
 /// [_a] is a great variable.
 int _a = 7;
 ''',
-      [error(WarningCode.unusedElement, 34, 2)],
+      [error(diag.unusedElement, 34, 2)],
     );
   }
 
@@ -3168,7 +3213,7 @@ typedef _F = void Function();
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 8, 2)],
+      [error(diag.unusedElement, 8, 2)],
     );
   }
 
@@ -3205,7 +3250,7 @@ void f() {
       r'''
 typedef _A = List<int>;
 ''',
-      [error(WarningCode.unusedElement, 8, 2)],
+      [error(diag.unusedElement, 8, 2)],
     );
   }
 }

@@ -222,9 +222,12 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
 #if defined(DART_PRECOMPILER)
 ImageWriter::ImageWriter(Thread* t,
                          bool generates_assembly,
+                         bool needs_unique_names,
                          const Trie<const char>* deobfuscation_trie)
 #else
-ImageWriter::ImageWriter(Thread* t, bool generates_assembly)
+ImageWriter::ImageWriter(Thread* t,
+                         bool generates_assembly,
+                         bool needs_unique_names)
 #endif
     : thread_(ASSERT_NOTNULL(t)),
       zone_(t->zone()),
@@ -235,7 +238,8 @@ ImageWriter::ImageWriter(Thread* t, bool generates_assembly)
 #if defined(DART_PRECOMPILER)
       namer_(t->zone(),
              deobfuscation_trie,
-             /*for_assembly=*/generates_assembly),
+             /*for_assembly=*/generates_assembly,
+             /*create_unique_names=*/needs_unique_names),
 #endif
       image_type_(TagObjectTypeAsReadOnly(zone_, "Image")),
       instructions_section_type_(
@@ -1225,7 +1229,10 @@ AssemblyImageWriter::AssemblyImageWriter(
     const Trie<const char>* deobfuscation_trie,
     bool strip,
     SharedObjectWriter* debug_so)
-    : ImageWriter(thread, /*generates_assembly=*/true, deobfuscation_trie),
+    : ImageWriter(thread,
+                  /*generates_assembly=*/true,
+                  /*needs_unique_names=*/true,
+                  deobfuscation_trie),
       assembly_stream_(stream),
       assembly_dwarf_(
           AddDwarfIfUnstripped(zone_, strip, debug_so, deobfuscation_trie)),
@@ -1380,6 +1387,10 @@ void ImageWriter::SnapshotTextObjectNamer::ModifyForAssembly(
     buffer->Clear();
     buffer->AddString(result);
   }
+}
+
+void ImageWriter::SnapshotTextObjectNamer::EnsureUniqueName(
+    BaseTextBuffer* buffer) {
   auto* const pair = usage_count_.Lookup(buffer->buffer());
   if (pair == nullptr) {
     usage_count_.Insert({buffer->buffer(), 1});
@@ -1400,6 +1411,9 @@ const char* ImageWriter::SnapshotTextObjectNamer::SnapshotNameFor(
   }
   if (for_assembly_) {
     ModifyForAssembly(&printer);
+  }
+  if (create_unique_names_) {
+    EnsureUniqueName(&printer);
   }
   return printer.buffer();
 }
@@ -1429,6 +1443,9 @@ const char* ImageWriter::SnapshotTextObjectNamer::SnapshotNameFor(
   }
   if (for_assembly_) {
     ModifyForAssembly(&printer);
+  }
+  if (create_unique_names_) {
+    EnsureUniqueName(&printer);
   }
   return printer.buffer();
 }
@@ -1861,15 +1878,20 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  NonStreamingWriteStream* isolate_instructions,
                                  const Trie<const char>* deobfuscation_trie,
                                  SharedObjectWriter* debug_so,
-                                 SharedObjectWriter* so)
-    : ImageWriter(thread, /*generates_assembly=*/false, deobfuscation_trie),
+                                 SharedObjectWriter* so,
+                                 bool needs_unique_names)
+    : ImageWriter(thread,
+                  /*generates_assembly=*/false,
+                  needs_unique_names,
+                  deobfuscation_trie),
 #else
 BlobImageWriter::BlobImageWriter(Thread* thread,
                                  NonStreamingWriteStream* vm_instructions,
                                  NonStreamingWriteStream* isolate_instructions,
                                  SharedObjectWriter* debug_so,
-                                 SharedObjectWriter* so)
-    : ImageWriter(thread, /*generates_assembly=*/false),
+                                 SharedObjectWriter* so,
+                                 bool needs_unique_names)
+    : ImageWriter(thread, /*generates_assembly=*/false, needs_unique_names),
 #endif
       vm_instructions_(vm_instructions),
       isolate_instructions_(isolate_instructions),

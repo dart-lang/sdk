@@ -66,9 +66,9 @@ deferred/many_parts/many_parts_test: Slow, Pass # Large stress test by design
 dart2js/code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.
 
 [ $compiler == dart2wasm && $runtime != d8 ]
+wasm/source_map_simple_optimized_deferred_test: SkipByDesign # Reads source map file using d8's readbuffer
 wasm/source_map_simple_optimized_test: SkipByDesign # Reads source map file using d8's readbuffer
 wasm/source_map_simple_test: SkipByDesign # Reads source map file using d8's readbuffer
-wasm/uri_base_test: SkipByDesign # Converts Uri.base to file path
 
 [ $compiler == dart2wasm && ($runtime == d8 || $runtime == jsc || $runtime == jsshell) ]
 wasm/multi_module_stress_test: SkipByDesign # DataView fails to load necessary input file.

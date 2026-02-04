@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -16,7 +17,7 @@ void main() {
 @reflectiveTest
 class CombinatorsOrderingTest extends LintRuleTest {
   @override
-  List<DiagnosticCode> get ignoredDiagnosticCodes => [WarningCode.unusedImport];
+  List<DiagnosticCode> get ignoredDiagnosticCodes => [diag.unusedImport];
 
   @override
   String get lintRule => LintNames.combinators_ordering;

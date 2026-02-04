@@ -14,11 +14,12 @@ library from "org-dartlang-test:///main.dart" as main {
   static method foo() → dynamic {}
 }
 
-And 20 platform libraries:
+And 21 platform libraries:
  - dart:_http
  - dart:_builtin
  - dart:vmservice_io
  - dart:_compact_hash
+ - dart:_vm
  - dart:async
  - dart:cli
  - dart:collection

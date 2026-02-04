@@ -11,6 +11,8 @@ import 'dart:io' show Platform;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/server_isolate_channel.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -18,7 +20,6 @@ import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
-import 'package:analyzer_plugin/src/channel/isolate_channel.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:meta/meta.dart';
 
@@ -33,15 +34,18 @@ class PluginIsolate {
   /// `null` if the isolate could not be started.
   final String? executionPath;
 
-  /// The path to the '.packages' file used to control the resolution of
+  /// The path to the package config file used to control the resolution of
   /// 'package:' URIs, or `null` if the isolate could not be started.
-  final String? packagesPath;
+  final String? packageConfigPath;
 
   /// The object used to manage the receiving and sending of notifications.
   final AbstractNotificationManager _notificationManager;
 
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService _instrumentationService;
+
+  /// The session logger that is to be used by the isolate.
+  final SessionLogger sessionLogger;
 
   /// The context roots that are currently using the results produced by the
   /// plugin.
@@ -58,9 +62,10 @@ class PluginIsolate {
   PluginIsolate(
     this._path,
     this.executionPath,
-    this.packagesPath,
+    this.packageConfigPath,
     this._notificationManager,
-    this._instrumentationService, {
+    this._instrumentationService,
+    this.sessionLogger, {
     required this.isLegacy,
   });
 
@@ -203,10 +208,11 @@ class PluginIsolate {
 
   /// Creates and returns the channel used to communicate with the server.
   ServerCommunicationChannel _createChannel() {
-    return ServerIsolateChannel.discovered(
+    return ServerIsolateChannel(
       Uri.file(executionPath!, windows: Platform.isWindows),
-      Uri.file(packagesPath!, windows: Platform.isWindows),
+      Uri.file(packageConfigPath!, windows: Platform.isWindows),
       _instrumentationService,
+      sessionLogger,
     );
   }
 
@@ -233,11 +239,11 @@ class PluginIsolate {
 class PluginSession {
   /// The maximum number of milliseconds that server should wait for a response
   /// from a plugin before deciding that the plugin is hung.
-  static const Duration MAXIMUM_RESPONSE_TIME = Duration(minutes: 2);
+  static const Duration _maximumResponseTime = Duration(minutes: 2);
 
   /// The length of time to wait after sending a 'plugin.shutdown' request
   /// before a failure to terminate will cause the isolate to be killed.
-  static const Duration WAIT_FOR_SHUTDOWN_DURATION = Duration(seconds: 10);
+  static const Duration _waitForShutdownDuration = Duration(seconds: 10);
 
   /// The information about the plugin being executed.
   final PluginIsolate _isolate;
@@ -262,7 +268,7 @@ class PluginSession {
   bool isCompatible = true;
 
   /// The glob patterns of files that the plugin is interested in knowing about.
-  List<String>? interestingFiles;
+  List<String>? interestingFileGlobs;
 
   /// The name to be used when reporting problems related to the plugin.
   String? _name;
@@ -343,7 +349,7 @@ class PluginSession {
     // identify non-responsive plugins and kill them.
     var cutOffTime =
         DateTime.now().millisecondsSinceEpoch -
-        MAXIMUM_RESPONSE_TIME.inMilliseconds;
+        _maximumResponseTime.inMilliseconds;
     for (var requestData in pendingRequests.values) {
       if (requestData.requestTime < cutOffTime) {
         return true;
@@ -448,7 +454,7 @@ class PluginSession {
     );
     var result = PluginVersionCheckResult.fromResponse(response);
     isCompatible = result.isCompatible;
-    interestingFiles = result.interestingFiles;
+    interestingFileGlobs = result.interestingFiles;
     _name = result.name;
     _version = result.version;
     if (!isCompatible) {
@@ -470,7 +476,7 @@ class PluginSession {
       throw StateError('Cannot stop a plugin that is not running.');
     }
     sendRequest(PluginShutdownParams());
-    Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
+    Future.delayed(_waitForShutdownDuration, () {
       if (channel != null) {
         channel?.kill();
         channel = null;

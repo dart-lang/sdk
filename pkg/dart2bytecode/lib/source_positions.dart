@@ -14,57 +14,94 @@ import 'bytecode_serialization.dart'
 
 /// Maintains mapping between bytecode instructions and source positions.
 class SourcePositions extends BytecodeDeclaration {
-  // Special value of fileOffset which marks synthetic code without source
+  // Special value of fileOffset which marks synthetic code without a source
   // position.
-  static const syntheticCodeMarker = -1;
+  static const noSourcePosition = -1;
+  // The flags encoded into the low bits of the source position.
+  static const syntheticFlag = 1 << 0;
+  static const yieldPointFlag = 1 << 1;
+  static const _numFlags = 2;
+  static const _flagMask = (1 << _numFlags) - 1;
 
-  final List<int> _positions = <int>[]; // Pairs (PC, fileOffset).
-  int _lastPc = 0;
-  int _lastOffset = 0;
+  final _positions = <int>[]; // Pairs (PC, fileOffset).
+  // Stored separately just to make sure no call to add uses a smaller
+  // PC offset than the previous call, even if the previous call didn't
+  // add an entry to the list because the last entry covers it.
+  int _lastPcAdded = 0;
 
   SourcePositions();
 
-  // Maps the given PC to the given file offset.
-  void add(int pc, int fileOffset) {
-    assert((fileOffset >= 0) || (fileOffset == syntheticCodeMarker));
-    if (fileOffset != _lastOffset) {
-      if (pc <= _lastPc) {
-        throw ArgumentError(
-            '$pc <= $_lastPc for change in source position $fileOffset != $_lastOffset',
-            'pc');
-      }
-      _positions.add(pc);
-      _positions.add(fileOffset);
-      _lastPc = pc;
-      _lastOffset = fileOffset;
+  int _encode(int fileOffset, int flags) =>
+      (flags == 0 || fileOffset == noSourcePosition)
+          ? fileOffset
+          : -((fileOffset << _numFlags) | flags) - 1;
+
+  (int, int) _decode(int encoded) {
+    if (encoded >= 0 || encoded == noSourcePosition) {
+      return (encoded, 0);
     }
+    final value = -encoded - 1;
+    return (value >> _numFlags, value & _flagMask);
+  }
+
+  // Maps the given PC to the given file offset. If there is already an entry
+  // for the given PC, then the new information overwrites the old information.
+  //
+  // Marks the source position as synthetic (not to be used by the debugger
+  // or coverage calculations) if [(flags & syntheticFlag) != 0].
+  //
+  // Marks the pc as within a yield point if [(flags & yieldPointFlag) != 0].
+  //
+  // Assumes that the pc is greater than or equal to the pc used in the most
+  // recent call to add, if any.
+  void add(int pc, int fileOffset, int flags) {
+    assert(fileOffset >= 0 || fileOffset == noSourcePosition);
+    assert((flags & ~_flagMask) == 0);
+    if (_lastPcAdded > pc) {
+      throw ArgumentError('Attempt to add entry for $pc after $_lastPcAdded');
+    }
+    _lastPcAdded = pc;
+    final encodedFileOffset = _encode(fileOffset, flags);
+    if (_positions.isNotEmpty) {
+      final i = _positions.length - 2;
+      final lastPc = _positions[i];
+      final lastFileOffset = _positions[i + 1];
+      if (lastFileOffset == encodedFileOffset) {
+        // The last entry covers this PC offset as well.
+        return;
+      }
+      if (lastPc == pc) {
+        // The new entry for this PC overwrites the old one.
+        _positions.removeRange(i, i + 2);
+      }
+    }
+    _positions.add(pc);
+    _positions.add(encodedFileOffset);
   }
 
   bool get isEmpty => _positions.isEmpty;
   bool get isNotEmpty => !isEmpty;
 
   void write(BufferedWriter writer) {
-    writer.writePackedUInt30(_positions.length ~/ 2);
+    final pairs = _positions.length ~/ 2;
+    writer.writePackedUInt30(pairs);
     final encodePC = new PackedUInt30DeltaEncoder();
     final encodeOffset = new SLEB128DeltaEncoder();
-    for (int i = 0; i < _positions.length; i += 2) {
-      final int pc = _positions[i];
-      final int fileOffset = _positions[i + 1];
-      encodePC.write(writer, pc);
-      encodeOffset.write(writer, fileOffset);
+    for (int i = 0; i < pairs; i++) {
+      encodePC.write(writer, _positions[2 * i]);
+      encodeOffset.write(writer, _positions[2 * i + 1]);
     }
   }
 
   SourcePositions.read(BufferedReader reader) {
-    final int length = reader.readPackedUInt30();
+    final int pairs = reader.readPackedUInt30();
     final decodePC = new PackedUInt30DeltaDecoder();
     final decodeOffset = new SLEB128DeltaDecoder();
-    for (int i = 0; i < length; ++i) {
-      int pc = decodePC.read(reader);
-      int fileOffset = decodeOffset.read(reader);
-      _positions.add(pc);
-      _positions.add(fileOffset);
+    for (int i = 0; i < pairs; i++) {
+      _positions.add(decodePC.read(reader));
+      _positions.add(decodeOffset.read(reader));
     }
+    _lastPcAdded = _positions.isEmpty ? 0 : _positions[_positions.length - 2];
   }
 
   @override
@@ -73,14 +110,19 @@ class SourcePositions extends BytecodeDeclaration {
   Map<int, String> getBytecodeAnnotations() {
     final map = <int, String>{};
     for (int i = 0; i < _positions.length; i += 2) {
-      final int pc = _positions[i];
-      final int fileOffset = _positions[i + 1];
-      final entry = 'source position $fileOffset';
-      if (map[pc] == null) {
-        map[pc] = entry;
-      } else {
-        map[pc] = "${map[pc]}; $entry";
+      final pc = _positions[i];
+      final (fileOffset, flags) = _decode(_positions[i + 1]);
+      String annotation = '';
+      if ((flags & syntheticFlag) != 0) {
+        annotation += 'synthetic ';
       }
+      if ((flags & yieldPointFlag) != 0) {
+        annotation += 'yield point @ ';
+      }
+      annotation += 'source position $fileOffset';
+      // There is at most one entry per PC offset.
+      assert(map[pc] == null);
+      map[pc] = annotation;
     }
     return map;
   }

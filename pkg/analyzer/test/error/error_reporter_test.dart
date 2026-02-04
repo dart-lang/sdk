@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -30,11 +30,7 @@ class ErrorReporterTest extends PubPackageResolutionTest {
       listener,
       firstFragment.libraryFragment.source,
     );
-    reporter.atElement2(
-      element,
-      CompileTimeErrorCode.castToNonType,
-      arguments: ['A'],
-    );
+    reporter.atElement2(element, diag.castToNonType, arguments: ['A']);
 
     var diagnostic = listener.diagnostics[0];
     expect(diagnostic.offset, firstFragment.nameOffset);
@@ -51,11 +47,7 @@ extension on int {}
       listener,
       firstFragment.libraryFragment.source,
     );
-    reporter.atElement2(
-      element,
-      CompileTimeErrorCode.castToNonType,
-      arguments: ['A'],
-    );
+    reporter.atElement2(element, diag.castToNonType, arguments: ['A']);
 
     var diagnostic = listener.diagnostics[0];
     expect(diagnostic.offset, -1);
@@ -93,10 +85,14 @@ main() {
       firstType.element.firstFragment.libraryFragment.source,
     );
 
-    reporter.atNode(
-      findNode.simple('x'),
-      CompileTimeErrorCode.argumentTypeNotAssignable,
-      arguments: [firstType, secondType, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: firstType,
+            expectedStaticType: secondType,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -134,10 +130,14 @@ main() {
       listener,
       firstType.element.firstFragment.libraryFragment.source,
     );
-    reporter.atNode(
-      findNode.simple('x'),
-      CompileTimeErrorCode.argumentTypeNotAssignable,
-      arguments: [firstType, secondType, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: firstType,
+            expectedStaticType: secondType,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -163,10 +163,14 @@ main() {
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
-    reporter.atNode(
-      findNode.simple('x'),
-      CompileTimeErrorCode.argumentTypeNotAssignable,
-      arguments: [fa.variables.type!.type!, fb.variables.type!.type!, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: fa.variables.type!.type!,
+            expectedStaticType: fb.variables.type!.type!,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -194,10 +198,14 @@ main() {
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
-    reporter.atNode(
-      findNode.simple('x'),
-      CompileTimeErrorCode.argumentTypeNotAssignable,
-      arguments: [ba.variables.type!.type!, bb.variables.type!.type!, ''],
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: ba.variables.type!.type!,
+            expectedStaticType: bb.variables.type!.type!,
+            additionalInfo: '',
+          )
+          .at(findNode.simple('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -223,10 +231,14 @@ zap: baz
       'baz',
     );
 
-    reporter.atSourceSpan(
-      span,
-      AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue,
-      arguments: ['test', 'zip', 'zap'],
+    reporter.report(
+      diag.unsupportedOptionWithLegalValue
+          .withArguments(
+            sectionName: 'test',
+            optionKey: 'zip',
+            legalValue: 'zap',
+          )
+          .atSourceSpan(span),
     );
     expect(listener.diagnostics, hasLength(1));
     expect(listener.diagnostics.first.offset, offset);

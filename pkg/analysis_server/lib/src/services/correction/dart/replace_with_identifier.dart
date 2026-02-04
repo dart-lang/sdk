@@ -17,10 +17,10 @@ class ReplaceWithIdentifier extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_IDENTIFIER;
+  FixKind get fixKind => DartFixKind.replaceWithIdentifier;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_IDENTIFIER_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithIdentifierMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -4,16 +4,17 @@
 
 import 'dart:mirrors';
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/options_file_validator.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,7 +43,7 @@ class ErrorCodeValuesTest {
     StringBuffer missingCodes = StringBuffer();
     errorTypeMap.forEach((Type errorType, List<DiagnosticCode> codes) {
       var listedNames = codes
-          .map((DiagnosticCode code) => code.uniqueName)
+          .map((DiagnosticCode code) => code.lowerCaseUniqueName)
           .toSet();
 
       var declaredNames = reflectClass(errorType).declarations.values
@@ -96,7 +97,7 @@ analyzer:
   cannot-ignore:
     - not_an_error_code
 ''',
-      [AnalysisOptionsWarningCode.unrecognizedErrorCode],
+      [diag.unrecognizedErrorCode],
     );
   }
 
@@ -124,7 +125,7 @@ analyzer:
   cannot-ignore:
     one_error_code: true
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -144,7 +145,7 @@ analyzer:
     one_error_code:
       foo: bar
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -162,7 +163,7 @@ analyzer:
   enable-experiment:
     - not-an-experiment
     ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithoutValues],
+      [diag.unsupportedOptionWithoutValues],
     );
   }
 
@@ -173,7 +174,7 @@ analyzer:
   enable-experiment:
     experiment: true
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -183,7 +184,7 @@ analyzer:
 analyzer:
   enable-experiment: 7
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -205,7 +206,7 @@ analyzer:
   errors:
     unused_local_variable: ftw
     ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
@@ -220,7 +221,7 @@ analyzer:
   errors:
     unused_local_variable: null
     ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
@@ -235,11 +236,11 @@ analyzer:
   errors:
     not_supported: ignore
     ''',
-      [AnalysisOptionsWarningCode.unrecognizedErrorCode],
+      [diag.unrecognizedErrorCode],
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
-      contains("'not_supported' isn't a recognized error code"),
+      contains("'not_supported' isn't a recognized diagnostic code"),
     );
   }
 
@@ -250,11 +251,11 @@ analyzer:
   errors:
     null: ignore
     ''',
-      [AnalysisOptionsWarningCode.unrecognizedErrorCode],
+      [diag.unrecognizedErrorCode],
     );
     expect(
       diagnostics.single.problemMessage.messageText(includeUrl: false),
-      contains("'null' isn't a recognized error code"),
+      contains("'null' isn't a recognized diagnostic code"),
     );
   }
 
@@ -266,7 +267,7 @@ analyzer:
     - invalid_annotation
     - unused_import
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -278,7 +279,7 @@ analyzer:
     invalid_annotation: ignore
     unused_import: [1, 2, 3]
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -289,7 +290,7 @@ analyzer:
   language:
     - notAnOption: true
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -299,7 +300,7 @@ analyzer:
 analyzer:
   language: true
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -317,7 +318,7 @@ analyzer:
   language:
     unsupported: true
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
   }
 
@@ -335,7 +336,7 @@ analyzer:
       '''
 analyzer: 7
     ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -353,7 +354,7 @@ analyzer:
 analyzer:
   not_supported: true
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
   }
 
@@ -372,7 +373,7 @@ analyzer:
   optional-checks:
     chromeos-manifest
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues],
+      [diag.unsupportedOptionWithLegalValues],
     );
   }
 
@@ -383,7 +384,7 @@ analyzer:
   optional-checks:
     - chrome-os-manifest-checks
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -400,7 +401,7 @@ code-style:
 code-style:
   format: 80
 ''',
-      [AnalysisOptionsWarningCode.unsupportedValue],
+      [diag.unsupportedValue],
     );
   }
 
@@ -416,7 +417,7 @@ code-style:
       '''
 code-style: 7
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -426,7 +427,7 @@ code-style: 7
 code-style:
   - format
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -435,7 +436,7 @@ code-style:
       '''
 code-style: format
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
@@ -445,7 +446,7 @@ code-style: format
 code-style:
   not_supported: true
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithoutValues],
+      [diag.unsupportedOptionWithoutValues],
     );
   }
 
@@ -455,7 +456,7 @@ code-style:
 formatter:
   wrong: 123
 ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithoutValues],
+      [diag.unsupportedOptionWithoutValues],
     );
   }
 
@@ -467,8 +468,8 @@ formatter:
   wrong2: 123
 ''',
       [
-        AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
-        AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
+        diag.unsupportedOptionWithoutValues,
+        diag.unsupportedOptionWithoutValues,
       ],
     );
   }
@@ -479,7 +480,7 @@ formatter:
 formatter:
   page_width: 123.45
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -489,7 +490,7 @@ formatter:
 formatter:
   page_width: -123
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -499,7 +500,7 @@ formatter:
 formatter:
   page_width: "123"
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -509,7 +510,7 @@ formatter:
 formatter:
   page_width: 0
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -527,7 +528,7 @@ formatter:
   trailing_commas:
     a: b
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -537,7 +538,7 @@ formatter:
 formatter:
   trailing_commas: 1
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -547,7 +548,7 @@ formatter:
 formatter:
   trailing_commas: foo
 ''',
-      [AnalysisOptionsWarningCode.invalidOption],
+      [diag.invalidOption],
     );
   }
 
@@ -579,7 +580,7 @@ linter:
 linter:
   unsupported: true
     ''',
-      [AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue],
+      [diag.unsupportedOptionWithLegalValue],
     );
   }
 
@@ -611,13 +612,29 @@ plugins:
       '''
 plugins: 7
 ''',
-      [AnalysisOptionsWarningCode.invalidSectionFormat],
+      [diag.invalidSectionFormat],
     );
   }
 
   test_plugins_valid_empty() {
     validate('''
 plugins:
+''', []);
+  }
+
+  test_propagate_linter_exceptions() {
+    validate('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions
+''', []);
+  }
+
+  test_propagate_linter_exceptions_mapKey() {
+    validate('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: true
 ''', []);
   }
 
@@ -642,7 +659,7 @@ class OptionsProviderTest with ResourceProviderMixin {
 
   void assertErrorsInList(
     List<Diagnostic> diagnostics,
-    List<ExpectedError> expectedErrors,
+    List<ExpectedDiagnostic> expectedErrors,
   ) {
     GatheringDiagnosticListener diagnosticListener =
         GatheringDiagnosticListener();
@@ -672,19 +689,25 @@ class OptionsProviderTest with ResourceProviderMixin {
     int offset,
     int length, {
     Pattern? correctionContains,
+    // TODO(FMorschel): refactor the uses of this to prefer `messageContains`
     String? text,
     List<Pattern> messageContains = const [],
     List<ExpectedContextMessage> contextMessages =
         const <ExpectedContextMessage>[],
-  }) => ExpectedError(
-    code,
-    offset,
-    length,
-    correctionContains: correctionContains,
-    message: text,
-    messageContains: messageContains,
-    expectedContextMessages: contextMessages,
-  );
+  }) {
+    assert(
+      text == null || messageContains.isEmpty,
+      'Only use one of text or messageContains',
+    );
+    return ExpectedError(
+      code,
+      offset,
+      length,
+      correctionContains: correctionContains,
+      messageContainsAll: text != null ? [text] : messageContains,
+      contextMessages: contextMessages,
+    );
+  }
 
   void setUp() {
     sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
@@ -704,7 +727,7 @@ analyzer:
   plugins:
     - plugin_two
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 55, 10)],
+      [error(diag.multiplePlugins, 55, 10)],
     );
   }
 
@@ -722,7 +745,7 @@ analyzer:
     plugin_two:
       foo: bar
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 53, 10)],
+      [error(diag.multiplePlugins, 53, 10)],
     );
   }
 
@@ -738,7 +761,7 @@ include: other_options.yaml
 analyzer:
   plugins: plugin_two
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 49, 10)],
+      [error(diag.multiplePlugins, 49, 10)],
     );
   }
 
@@ -758,7 +781,7 @@ analyzer:
   plugins:
     - plugin_two
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 55, 10)],
+      [error(diag.multiplePlugins, 55, 10)],
     );
   }
 
@@ -778,7 +801,7 @@ analyzer:
       r'''
 include: other_options.yaml
 ''',
-      [error(AnalysisOptionsWarningCode.includedFileWarning, 9, 18)],
+      [error(diag.includedFileWarning, 9, 18)],
     );
   }
 
@@ -792,8 +815,8 @@ analyzer:
     - plugin_three
 ''',
       [
-        error(AnalysisOptionsWarningCode.multiplePlugins, 44, 10),
-        error(AnalysisOptionsWarningCode.multiplePlugins, 61, 12),
+        error(diag.multiplePlugins, 44, 10),
+        error(diag.multiplePlugins, 61, 12),
       ],
     );
   }
@@ -824,7 +847,7 @@ analyzer:
     plugin_one: yes
     plugin_two: sure
 ''',
-      [error(AnalysisOptionsWarningCode.multiplePlugins, 45, 10)],
+      [error(diag.multiplePlugins, 45, 10)],
     );
   }
 
@@ -836,7 +859,7 @@ analyzer:
     plugin_one: yes
     plugin_one: sure
 ''',
-      [error(AnalysisOptionsErrorCode.parseError, 45, 10)],
+      [error(diag.parseError, 45, 10)],
     );
   }
 
@@ -861,7 +884,7 @@ version: 0.0.1
     );
 
     assertErrorsInList(diagnostics, [
-      error(AnalysisOptionsWarningCode.pluginsInInnerOptions, 11, 12),
+      error(diag.pluginsInInnerOptions, 11, 12),
     ]);
   }
 
@@ -909,11 +932,12 @@ version: 0.0.1
   }
 }
 
-class TestRule extends LintRule {
+class TestRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'fantastic_test_rule',
     'Fantastic test rule.',
     correctionMessage: 'Try fantastic test rule.',
+    uniqueName: 'LintCode.fantastic_test_rule',
   );
 
   TestRule() : super(name: 'fantastic_test_rule', description: '');

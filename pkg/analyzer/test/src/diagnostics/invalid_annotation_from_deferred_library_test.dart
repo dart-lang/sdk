@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ library root;
 import 'lib1.dart' deferred as a;
 @a.C() main () {}
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotationFromDeferredLibrary, 49, 3)],
+      [error(diag.invalidAnnotationFromDeferredLibrary, 49, 3)],
     );
   }
 
@@ -42,14 +42,7 @@ import 'lib1.dart' deferred as a;
 class C { const C(int i); }
 @C(a.x) main () {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode
-              .invalidAnnotationConstantValueFromDeferredLibrary,
-          81,
-          1,
-        ),
-      ],
+      [error(diag.invalidAnnotationConstantValueFromDeferredLibrary, 81, 1)],
     );
   }
 
@@ -65,7 +58,7 @@ library root;
 import 'lib1.dart' deferred as a;
 @a.v main () {}
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotationFromDeferredLibrary, 49, 3)],
+      [error(diag.invalidAnnotationFromDeferredLibrary, 49, 3)],
     );
   }
 
@@ -80,7 +73,7 @@ library root;
 import 'lib1.dart' deferred as a;
 @a.C.name() main () {}
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotationFromDeferredLibrary, 49, 3)],
+      [error(diag.invalidAnnotationFromDeferredLibrary, 49, 3)],
     );
   }
 }

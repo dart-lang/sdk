@@ -356,22 +356,12 @@ class FieldAccessErrorSlowPath : public ThrowErrorSlowPathCode {
   }
 };
 
-class ThrowIfValueCantBeSharedSlowPath : public ThrowErrorSlowPathCode {
+class CheckedStoreIntoSharedSlowPath
+    : public TemplateSlowPathCode<StoreStaticFieldInstr> {
  public:
-  explicit ThrowIfValueCantBeSharedSlowPath(Instruction* instruction,
-                                            Register value)
-      : ThrowErrorSlowPathCode(instruction,
-                               kThrowIfValueCantBeSharedRuntimeEntry),
-        value_(value) {
-    ASSERT(instruction->IsStoreStaticField());
-  }
-  virtual const char* name() { return "shared value error"; }
-
-  virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
-    return 2;  // field, value
-  }
-
-  virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler);
+  explicit CheckedStoreIntoSharedSlowPath(StoreStaticFieldInstr* instruction,
+                                          Register value)
+      : TemplateSlowPathCode(instruction), value_(value) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
@@ -384,6 +374,8 @@ class ThrowIfValueCantBeSharedSlowPath : public ThrowErrorSlowPathCode {
 
   Register value() const { return value_; }
 };
+
+enum class TypeTestOutcome { kConclusive, kNotConclusive };
 
 class FlowGraphCompiler : public ValueObject {
  private:
@@ -682,13 +674,6 @@ class FlowGraphCompiler : public ValueObject {
                                compiler::Label* is_not_instance_lbl);
   void GenerateListTypeCheck(Register kClassIdReg,
                              compiler::Label* is_instance_lbl);
-
-  // Returns true if no further checks are necessary but the code coming after
-  // the emitted code here is still required do a runtime call (for the negative
-  // case of throwing an exception).
-  bool GenerateSubtypeRangeCheck(Register class_id_reg,
-                                 const Class& type_class,
-                                 compiler::Label* is_subtype_lbl);
 
   // We test up to 4 different cid ranges, if we would need to test more in
   // order to get a definite answer we fall back to the old mechanism (namely
@@ -1075,7 +1060,7 @@ class FlowGraphCompiler : public ValueObject {
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
-  bool GenerateInstantiatedTypeNoArgumentsTest(
+  TypeTestOutcome GenerateInstantiatedTypeNoArgumentsTest(
       const InstructionSource& source,
       const AbstractType& dst_type,
       compiler::Label* is_instance_lbl,

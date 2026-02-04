@@ -1,170 +1,170 @@
 Problems reported:
 
-parser/general/augment_super:1:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/general/augment_super:2:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 augment void topLevelMethod() {
 ^^^^^^^
 
-parser/general/augment_super:1:1: Expected ';' after this.
+parser/general/augment_super:2:1: Expected ';' after this.
 augment void topLevelMethod() {
 ^^^^^^^
 
-parser/general/augment_super:2:11: 'super' can't be used as an identifier because it's a keyword.
+parser/general/augment_super:3:11: 'super' can't be used as an identifier because it's a keyword.
   augment super();
           ^^^^^
 
-parser/general/augment_super:2:11: Expected ';' after this.
+parser/general/augment_super:3:11: Expected ';' after this.
   augment super();
           ^^^^^
 
-parser/general/augment_super:5:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/general/augment_super:6:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 augment void topLevelMethodError() {
 ^^^^^^^
 
-parser/general/augment_super:5:1: Expected ';' after this.
+parser/general/augment_super:6:1: Expected ';' after this.
 augment void topLevelMethodError() {
 ^^^^^^^
 
-parser/general/augment_super:6:11: Expected ';' after this.
+parser/general/augment_super:7:11: Expected ';' after this.
   augment int local;
           ^^^
 
-parser/general/augment_super:11:9: A function declaration needs an explicit list of parameters.
+parser/general/augment_super:12:9: A function declaration needs an explicit list of parameters.
 augment List<int> get topLevelProperty {
         ^^^^
 
-parser/general/augment_super:11:19: Expected a function body, but got 'get'.
+parser/general/augment_super:12:19: Expected a function body, but got 'get'.
 augment List<int> get topLevelProperty {
                   ^^^
 
-parser/general/augment_super:12:23: Expected ',' before this.
+parser/general/augment_super:13:23: Expected ',' before this.
   return [... augment super, augment super[0]];
                       ^^^^^
 
-parser/general/augment_super:12:38: Expected ',' before this.
+parser/general/augment_super:13:38: Expected ',' before this.
   return [... augment super, augment super[0]];
                                      ^^^^^
 
-parser/general/augment_super:15:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/general/augment_super:16:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 augment void set topLevelProperty(List<int> value) {
 ^^^^^^^
 
-parser/general/augment_super:15:1: Expected ';' after this.
+parser/general/augment_super:16:1: Expected ';' after this.
 augment void set topLevelProperty(List<int> value) {
 ^^^^^^^
-
-parser/general/augment_super:16:11: 'super' can't be used as an identifier because it's a keyword.
-  augment super[0] = value[1];
-          ^^^^^
-
-parser/general/augment_super:16:11: Expected ';' after this.
-  augment super[0] = value[1];
-          ^^^^^
 
 parser/general/augment_super:17:11: 'super' can't be used as an identifier because it's a keyword.
+  augment super[0] = value[1];
+          ^^^^^
+
+parser/general/augment_super:17:11: Expected ';' after this.
+  augment super[0] = value[1];
+          ^^^^^
+
+parser/general/augment_super:18:11: 'super' can't be used as an identifier because it's a keyword.
   augment super = value;
           ^^^^^
 
-parser/general/augment_super:21:11: 'super' can't be used as an identifier because it's a keyword.
-  augment super();
-          ^^^^^
-
-parser/general/augment_super:21:11: Expected ';' after this.
-  augment super();
-          ^^^^^
-
 parser/general/augment_super:22:11: 'super' can't be used as an identifier because it's a keyword.
+  augment super();
+          ^^^^^
+
+parser/general/augment_super:22:11: Expected ';' after this.
+  augment super();
+          ^^^^^
+
+parser/general/augment_super:23:11: 'super' can't be used as an identifier because it's a keyword.
   augment super;
           ^^^^^
 
-parser/general/augment_super:23:11: Expected ';' after this.
+parser/general/augment_super:24:11: Expected ';' after this.
   augment int local;
           ^^^
 
-parser/general/augment_super:27:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/general/augment_super:28:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 augment class Class {
 ^^^^^^^
 
-parser/general/augment_super:27:1: Expected ';' after this.
+parser/general/augment_super:28:1: Expected ';' after this.
 augment class Class {
 ^^^^^^^
 
-parser/general/augment_super:28:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/general/augment_super:29:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   augment void instanceMethod() {
   ^^^^^^^
 
-parser/general/augment_super:28:3: Expected ';' after this.
+parser/general/augment_super:29:3: Expected ';' after this.
   augment void instanceMethod() {
   ^^^^^^^
 
-parser/general/augment_super:29:13: 'super' can't be used as an identifier because it's a keyword.
+parser/general/augment_super:30:13: 'super' can't be used as an identifier because it's a keyword.
     augment super();
             ^^^^^
 
-parser/general/augment_super:29:13: Expected ';' after this.
+parser/general/augment_super:30:13: Expected ';' after this.
     augment super();
             ^^^^^
 
-parser/general/augment_super:32:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/general/augment_super:33:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   augment void instanceMethodErrors() {
   ^^^^^^^
 
-parser/general/augment_super:32:3: Expected ';' after this.
+parser/general/augment_super:33:3: Expected ';' after this.
   augment void instanceMethodErrors() {
   ^^^^^^^
 
-parser/general/augment_super:33:13: Expected ';' after this.
+parser/general/augment_super:34:13: Expected ';' after this.
     augment int local;
             ^^^
 
-parser/general/augment_super:37:11: Expected ';' after this.
+parser/general/augment_super:38:11: Expected ';' after this.
   augment int get instanceProperty {
           ^^^
 
-parser/general/augment_super:38:13: 'super' can't be used as an identifier because it's a keyword.
+parser/general/augment_super:39:13: 'super' can't be used as an identifier because it's a keyword.
     augment super++;
             ^^^^^
 
-parser/general/augment_super:38:13: Expected ';' after this.
+parser/general/augment_super:39:13: Expected ';' after this.
     augment super++;
             ^^^^^
 
-parser/general/augment_super:38:20: Expected an identifier, but got ';'.
+parser/general/augment_super:39:20: Expected an identifier, but got ';'.
     augment super++;
                    ^
 
-parser/general/augment_super:39:7: Expected ';' after this.
+parser/general/augment_super:40:7: Expected ';' after this.
     --augment super;
       ^^^^^^^
 
-parser/general/augment_super:40:13: Expected ';' after this.
+parser/general/augment_super:41:13: Expected ';' after this.
     return -augment super;
             ^^^^^^^
 
-parser/general/augment_super:43:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/general/augment_super:44:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   augment void set instanceProperty(int value) {
   ^^^^^^^
 
-parser/general/augment_super:43:3: Expected ';' after this.
+parser/general/augment_super:44:3: Expected ';' after this.
   augment void set instanceProperty(int value) {
   ^^^^^^^
 
-parser/general/augment_super:44:13: 'super' can't be used as an identifier because it's a keyword.
+parser/general/augment_super:45:13: 'super' can't be used as an identifier because it's a keyword.
     augment super = value;
             ^^^^^
 
-parser/general/augment_super:48:13: 'super' can't be used as an identifier because it's a keyword.
-    augment super();
-            ^^^^^
-
-parser/general/augment_super:48:13: Expected ';' after this.
-    augment super();
-            ^^^^^
-
 parser/general/augment_super:49:13: 'super' can't be used as an identifier because it's a keyword.
+    augment super();
+            ^^^^^
+
+parser/general/augment_super:49:13: Expected ';' after this.
+    augment super();
+            ^^^^^
+
+parser/general/augment_super:50:13: 'super' can't be used as an identifier because it's a keyword.
     augment super;
             ^^^^^
 
-parser/general/augment_super:50:13: Expected ';' after this.
+parser/general/augment_super:51:13: Expected ';' after this.
     augment int local;
             ^^^
 
@@ -345,7 +345,7 @@ beginCompilationUnit(augment)
           handleType(List, null)
           handleIdentifier(value, formalParameterDeclaration)
           handleFormalParameterWithoutValue())
-        endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+        endFormalParameter(null, null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
       endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
       handleAsyncModifier(null, null)
       beginBlockFunctionBody({)
@@ -474,6 +474,7 @@ beginCompilationUnit(augment)
     handleIdentifier(Class, classOrMixinDeclaration)
     handleNoTypeVariables({)
     beginClassDeclaration(class, null, null, null, null, null, null, null, null, Class)
+      handleNoPrimaryConstructor(Class, null, false)
       handleNoType(Class)
       handleClassExtends(null, 1)
       handleClassNoWithClause()
@@ -489,7 +490,7 @@ beginCompilationUnit(augment)
             handleIdentifier(augment, fieldDeclaration)
             handleNoFieldInitializer(void)
             handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
-          endClassFields(null, null, null, null, null, null, null, 1, augment, ;)
+          endFields(DeclarationKind.Class, null, null, null, null, null, null, null, 1, augment, ;)
         endMember()
         beginMetadataStar(void)
         endMetadataStar(0)
@@ -520,7 +521,7 @@ beginCompilationUnit(augment)
               endRecordLiteral((, 0, null)
               handleExpressionStatement((, ;)
             endBlockFunctionBody(2, {, })
-          endClassMethod(null, void, (, null, })
+          endMethod(DeclarationKind.Class, null, void, (, null, })
         endMember()
         beginMetadataStar(augment)
         endMetadataStar(0)
@@ -531,7 +532,7 @@ beginCompilationUnit(augment)
             handleIdentifier(augment, fieldDeclaration)
             handleNoFieldInitializer(void)
             handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
-          endClassFields(null, null, null, null, null, null, null, 1, augment, ;)
+          endFields(DeclarationKind.Class, null, null, null, null, null, null, null, 1, augment, ;)
         endMember()
         beginMetadataStar(void)
         endMetadataStar(0)
@@ -568,7 +569,7 @@ beginCompilationUnit(augment)
               handleSend(augment, augment)
               handleExpressionStatement(augment, ;)
             endBlockFunctionBody(3, {, })
-          endClassMethod(null, void, (, null, })
+          endMethod(DeclarationKind.Class, null, void, (, null, })
         endMember()
         beginMetadataStar(augment)
         endMetadataStar(0)
@@ -580,7 +581,7 @@ beginCompilationUnit(augment)
             handleIdentifier(int, fieldDeclaration)
             handleNoFieldInitializer(get)
             handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], int, int)
-          endClassFields(null, null, null, null, null, null, null, 1, augment, ;)
+          endFields(DeclarationKind.Class, null, null, null, null, null, null, null, 1, augment, ;)
         endMember()
         beginMetadataStar(get)
         endMetadataStar(0)
@@ -633,7 +634,7 @@ beginCompilationUnit(augment)
               handleSuperExpression(super, expression)
               handleExpressionStatement(super, ;)
             endBlockFunctionBody(6, {, })
-          endClassMethod(get, get, {, null, })
+          endMethod(DeclarationKind.Class, get, get, {, null, })
         endMember()
         beginMetadataStar(augment)
         endMetadataStar(0)
@@ -644,7 +645,7 @@ beginCompilationUnit(augment)
             handleIdentifier(augment, fieldDeclaration)
             handleNoFieldInitializer(void)
             handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
-          endClassFields(null, null, null, null, null, null, null, 1, augment, ;)
+          endFields(DeclarationKind.Class, null, null, null, null, null, null, null, 1, augment, ;)
         endMember()
         beginMetadataStar(void)
         endMetadataStar(0)
@@ -662,7 +663,7 @@ beginCompilationUnit(augment)
                 handleType(int, null)
                 handleIdentifier(value, formalParameterDeclaration)
                 handleFormalParameterWithoutValue())
-              endFormalParameter(null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
+              endFormalParameter(null, null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
             endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
             handleNoInitializers()
             handleAsyncModifier(null, null)
@@ -685,7 +686,7 @@ beginCompilationUnit(augment)
                 endInitializedIdentifier(super)
               endVariablesDeclaration(1, ;)
             endBlockFunctionBody(1, {, })
-          endClassMethod(set, void, (, null, })
+          endMethod(DeclarationKind.Class, set, void, (, null, })
         endMember()
         beginMetadataStar(void)
         endMetadataStar(0)
@@ -750,7 +751,7 @@ beginCompilationUnit(augment)
               handleSend(augment, augment)
               handleExpressionStatement(augment, ;)
             endBlockFunctionBody(6, {, })
-          endClassMethod(null, void, (, null, })
+          endMethod(DeclarationKind.Class, null, void, (, null, })
         endMember()
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 9, {, })
     endClassDeclaration(class, })

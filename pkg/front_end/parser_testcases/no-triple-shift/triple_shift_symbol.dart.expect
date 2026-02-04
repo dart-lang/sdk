@@ -1,6 +1,6 @@
 Problems reported:
 
-parser/no-triple-shift/triple_shift_symbol:2:13: Expected an identifier, but got ')'.
+parser/no-triple-shift/triple_shift_symbol:3:13: Expected an identifier, but got ')'.
   print(#>>>);
             ^
 
@@ -29,6 +29,7 @@ beginCompilationUnit(main)
             handleNoArguments())
             handleSend(, )
           endBinaryExpression(>, )
+          handlePositionalArgument(#)
         endArguments(1, (, ))
         handleSend(print, ))
         handleExpressionStatement(print, ;)

@@ -58,6 +58,17 @@ class RuntimeEntry : public BaseRuntimeEntry {
 
   static uword InterpretCallEntry();
 
+  static constexpr const char* RuntimeEntryNames[] = {
+#define RUNTIME_ENTRY_NAME(name) #name,
+      RUNTIME_ENTRY_LIST(RUNTIME_ENTRY_NAME)
+#undef RUNTIME_ENTRY_NAME
+  };
+  static constexpr const char* LeafRuntimeEntryNames[] = {
+#define LEAF_RUNTIME_ENTRY_NAME(type, name, ...) #name,
+      LEAF_RUNTIME_ENTRY_LIST(LEAF_RUNTIME_ENTRY_NAME)
+#undef LEAF_RUNTIME_ENTRY_NAME
+  };
+
  private:
   const char* const name_;
   const void* const function_;

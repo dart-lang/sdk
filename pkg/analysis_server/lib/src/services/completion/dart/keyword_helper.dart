@@ -263,6 +263,9 @@ class KeywordHelper {
   /// keywords to include.
   void addExpressionKeywords(
     AstNode? node, {
+    bool canBeBool = true,
+    bool canBeNull = true,
+    bool canSuggestConst = true,
     bool mustBeConstant = false,
     bool mustBeStatic = false,
   }) {
@@ -311,11 +314,17 @@ class KeywordHelper {
       return true;
     }
 
-    addKeyword(Keyword.FALSE);
-    addKeyword(Keyword.NULL);
-    addKeyword(Keyword.TRUE);
+    if (canBeBool) {
+      addKeyword(Keyword.FALSE);
+    }
+    if (canBeNull) {
+      addKeyword(Keyword.NULL);
+    }
+    if (canBeBool) {
+      addKeyword(Keyword.TRUE);
+    }
     if (node != null) {
-      if (constIsValid(node)) {
+      if (canSuggestConst && constIsValid(node)) {
         addKeyword(Keyword.CONST);
       }
       if (!mustBeConstant && !mustBeStatic) {
@@ -326,10 +335,12 @@ class KeywordHelper {
           node.inAsyncStarOrSyncStarMethodOrFunction) {
         addKeyword(Keyword.AWAIT);
       }
-      if (switchIsValid(node) && featureSet.isEnabled(Feature.patterns)) {
+      if (!mustBeConstant &&
+          switchIsValid(node) &&
+          featureSet.isEnabled(Feature.patterns)) {
         addKeyword(Keyword.SWITCH);
       }
-    } else if (featureSet.isEnabled(Feature.patterns)) {
+    } else if (!mustBeConstant && featureSet.isEnabled(Feature.patterns)) {
       addKeyword(Keyword.SWITCH);
     }
   }
@@ -429,14 +440,11 @@ class KeywordHelper {
     required bool suggestRequired,
     required bool suggestVariableName,
     bool suggestCovariant = true,
+    bool suggestFinalOrVar = true,
     bool suggestThis = true,
-    bool suggestFinal = true,
   }) {
     if (suggestCovariant) {
       addKeyword(Keyword.COVARIANT);
-    }
-    if (suggestFinal) {
-      addKeyword(Keyword.FINAL);
     }
     if (suggestRequired && parameterList.inNamedGroup(offset)) {
       addKeyword(Keyword.REQUIRED);
@@ -451,6 +459,15 @@ class KeywordHelper {
       }
       if (suggestThis) {
         addKeyword(Keyword.THIS);
+      }
+    } else if (parent is PrimaryConstructorDeclaration) {
+      if (suggestFinalOrVar) {
+        if (featureSet.isEnabled(Feature.super_parameters)) {
+          addKeyword(Keyword.SUPER);
+        }
+        addKeyword(Keyword.FINAL);
+        addKeyword(Keyword.THIS);
+        addKeyword(Keyword.VAR);
       }
     }
   }

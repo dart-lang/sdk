@@ -97,7 +97,8 @@ class AstPrinter {
   int _constantLevel = 0;
   int _indentationLevel = 0;
   late final Map<LabeledStatement, String> _labelNames = {};
-  late final Map<VariableDeclaration, String> _variableNames = {};
+  late final Map<VariableDeclaration, String> _variableDeclarationNames = {};
+  late final Map<Variable, String> _variableNames = {};
 
   AstPrinter(this._strategy);
 
@@ -202,12 +203,28 @@ class AstPrinter {
     return _labelNames[node] ??= 'label${_labelNames.length}';
   }
 
-  String getVariableName(VariableDeclaration node) {
-    String? name = node.name;
-    if (name != null) {
-      return name;
+  String getVariableName(Variable node) {
+    switch (node) {
+      case NamedParameter(:var name):
+      case PositionalParameter(cosmeticName: var name?):
+      case TypeVariable(cosmeticName: var name?):
+      case LocalVariable(cosmeticName: var name?):
+        return name;
+      case ThisVariable():
+        return 'this';
+      case PositionalParameter(cosmeticName: null):
+      case TypeVariable(cosmeticName: null):
+      case LocalVariable(cosmeticName: null):
+      case SyntheticVariable():
+        return _variableNames[node] ??= '#${_variableNames.length}';
+      case VariableDeclaration():
+        String? name = node.name;
+        if (name != null) {
+          return name;
+        }
+        return _variableDeclarationNames[node] ??=
+            '#${_variableDeclarationNames.length}';
     }
-    return _variableNames[node] ??= '#${_variableNames.length}';
   }
 
   String getSwitchCaseName(SwitchCase node) {
@@ -450,7 +467,7 @@ class AstPrinter {
     node.toTextInternal(this, includeTypeArguments: includeTypeArguments);
   }
 
-  /// Writes the variable declaration [node] to the printer buffer.
+  /// Writes the [VariableInitialization] [node] to the printer buffer.
   ///
   /// If [includeModifiersAndType] is `true`, the declaration is prefixed by
   /// the modifiers and declared type of the variable. Otherwise only the
@@ -458,7 +475,7 @@ class AstPrinter {
   ///
   /// If [isLate] and [type] are provided, these values are used instead of
   /// the corresponding properties on [node].
-  void writeVariableDeclaration(VariableDeclaration node,
+  void writeVariableInitialization(VariableInitialization node,
       {bool includeModifiersAndType = true,
       bool? isLate,
       DartType? type,
@@ -479,11 +496,40 @@ class AstPrinter {
       writeType(type ?? node.type);
       _sb.write(' ');
     }
-    _sb.write(getVariableName(node));
+    _sb.write(getVariableName(node.variable));
     if (includeInitializer && node.initializer != null && !node.isRequired) {
       _sb.write(' = ');
       writeExpression(node.initializer!);
     }
+  }
+
+  /// Writes the variable declaration [node] to the printer buffer.
+  ///
+  /// If [includeModifiersAndType] is `true`, the declaration is prefixed by
+  /// the modifiers and declared type of the variable. Otherwise only the
+  /// name and the initializer, if present, are included.
+  ///
+  /// If [isLate] and [type] are provided, these values are used instead of
+  /// the corresponding properties on [node].
+  void writeExpressionVariable(ExpressionVariable node,
+      {bool includeModifiersAndType = true, bool? isLate, DartType? type}) {
+    if (includeModifiersAndType) {
+      if (node is FunctionParameter && node.isRequired) {
+        _sb.write('required ');
+      }
+      if (isLate ?? (node is! FunctionParameter && node.isLate)) {
+        _sb.write('late ');
+      }
+      if (node is! FunctionParameter && node.isFinal) {
+        _sb.write('final ');
+      }
+      if (node is! FunctionParameter && node.isConst) {
+        _sb.write('const ');
+      }
+      writeType(type ?? node.type);
+      _sb.write(' ');
+    }
+    _sb.write(getVariableName(node));
   }
 
   void writeFunctionNode(FunctionNode node, String name) {
@@ -510,7 +556,7 @@ class AstPrinter {
       if (index == node.requiredParameterCount) {
         _sb.write('[');
       }
-      writeVariableDeclaration(node.positionalParameters[index]);
+      writeVariableInitialization(node.positionalParameters[index]);
     }
     if (node.requiredParameterCount < node.positionalParameters.length) {
       _sb.write(']');
@@ -524,7 +570,7 @@ class AstPrinter {
         if (index > 0) {
           _sb.write(', ');
         }
-        writeVariableDeclaration(node.namedParameters[index]);
+        writeVariableInitialization(node.namedParameters[index]);
       }
       _sb.write('}');
     }

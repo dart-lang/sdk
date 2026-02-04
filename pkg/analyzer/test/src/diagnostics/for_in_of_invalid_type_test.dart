@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -35,7 +35,7 @@ f(bool e) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidType, 41, 1)],
+      [error(diag.forInOfInvalidType, 41, 1)],
     );
   }
 
@@ -48,7 +48,7 @@ f(Never e) async {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 32, 26)],
+      [error(diag.deadCode, 32, 26)],
     );
     // TODO(scheglov): extract for-in resolution and implement
     //    assertType(findNode.simple('id;'), 'Never');
@@ -63,7 +63,7 @@ f(Object e) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidType, 43, 1)],
+      [error(diag.forInOfInvalidType, 43, 1)],
     );
   }
 
@@ -119,7 +119,7 @@ f(bool e) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidType, 29, 1)],
+      [error(diag.forInOfInvalidType, 29, 1)],
     );
   }
 
@@ -143,7 +143,7 @@ f(Never e) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 20, 26)],
+      [error(diag.deadCode, 20, 26)],
     );
     // TODO(scheglov): extract for-in resolution and implement
     //    assertType(findNode.simple('id;'), 'Never');
@@ -158,7 +158,7 @@ f(Object e) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidType, 37, 1)],
+      [error(diag.forInOfInvalidType, 37, 1)],
     );
   }
 }
@@ -175,7 +175,7 @@ f(dynamic e) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidType, 32, 1)],
+      [error(diag.forInOfInvalidType, 32, 1)],
     );
   }
 }

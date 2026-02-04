@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -13,7 +12,8 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 class AnnotationResolver {
@@ -93,7 +93,7 @@ class AnnotationResolver {
       );
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _diagnosticReporter.atNode(node, CompileTimeErrorCode.invalidAnnotation);
+      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
     }
 
     _visitArguments(
@@ -117,7 +117,7 @@ class AnnotationResolver {
     node.element = constructorElement;
 
     if (constructorElement == null) {
-      _diagnosticReporter.atNode(node, CompileTimeErrorCode.invalidAnnotation);
+      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
       AnnotationInferrer(
         resolver: _resolver,
         node: node,
@@ -172,7 +172,7 @@ class AnnotationResolver {
       );
       _resolveAnnotationElementGetter(node, getter);
     } else {
-      _diagnosticReporter.atNode(node, CompileTimeErrorCode.invalidAnnotation);
+      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
     }
 
     _visitArguments(
@@ -188,7 +188,7 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     if (!element.isConst || node.arguments != null) {
-      _diagnosticReporter.atNode(node, CompileTimeErrorCode.invalidAnnotation);
+      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
     }
 
     _visitArguments(
@@ -239,7 +239,7 @@ class AnnotationResolver {
     if (element1 == null) {
       _diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.undefinedAnnotation,
+        diag.undefinedAnnotation,
         arguments: [name1.name],
       );
       _visitArguments(
@@ -331,7 +331,7 @@ class AnnotationResolver {
         if (element == null) {
           _diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.undefinedAnnotation,
+            diag.undefinedAnnotation,
             arguments: [name2.name],
           );
           _visitArguments(
@@ -375,7 +375,7 @@ class AnnotationResolver {
       return;
     }
 
-    _diagnosticReporter.atNode(node, CompileTimeErrorCode.invalidAnnotation);
+    _diagnosticReporter.report(diag.invalidAnnotation.at(node));
 
     _visitArguments(
       node,
@@ -390,13 +390,10 @@ class AnnotationResolver {
   ) {
     // The accessor should be synthetic, the variable should be constant, and
     // there should be no arguments.
-    if (!accessorElement.isSynthetic ||
+    if (accessorElement.isOriginDeclaration ||
         !accessorElement.variable.isConst ||
         annotation.arguments != null) {
-      _diagnosticReporter.atNode(
-        annotation,
-        CompileTimeErrorCode.invalidAnnotation,
-      );
+      _diagnosticReporter.report(diag.invalidAnnotation.at(annotation));
     }
   }
 
@@ -459,7 +456,7 @@ class AnnotationResolver {
       );
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _diagnosticReporter.atNode(node, CompileTimeErrorCode.invalidAnnotation);
+      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
     }
 
     _visitArguments(

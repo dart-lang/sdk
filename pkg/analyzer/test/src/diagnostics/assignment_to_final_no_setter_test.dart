@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -30,10 +30,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 49, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 60, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 74, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 81, 1),
+        error(diag.assignmentToFinalNoSetter, 49, 1),
+        error(diag.assignmentToFinalNoSetter, 60, 1),
+        error(diag.assignmentToFinalNoSetter, 74, 1),
+        error(diag.assignmentToFinalNoSetter, 81, 1),
       ],
     );
   }
@@ -53,10 +53,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 51, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 64, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 80, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 89, 1),
+        error(diag.assignmentToFinalNoSetter, 51, 1),
+        error(diag.assignmentToFinalNoSetter, 64, 1),
+        error(diag.assignmentToFinalNoSetter, 80, 1),
+        error(diag.assignmentToFinalNoSetter, 89, 1),
       ],
     );
   }
@@ -76,10 +76,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 57, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 68, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 82, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 89, 1),
+        error(diag.assignmentToFinalNoSetter, 57, 1),
+        error(diag.assignmentToFinalNoSetter, 68, 1),
+        error(diag.assignmentToFinalNoSetter, 82, 1),
+        error(diag.assignmentToFinalNoSetter, 89, 1),
       ],
     );
   }
@@ -99,10 +99,10 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 46, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 57, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 71, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 78, 1),
+        error(diag.assignmentToFinalNoSetter, 46, 1),
+        error(diag.assignmentToFinalNoSetter, 57, 1),
+        error(diag.assignmentToFinalNoSetter, 71, 1),
+        error(diag.assignmentToFinalNoSetter, 78, 1),
       ],
     );
   }
@@ -122,10 +122,10 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 53, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 64, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 78, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 85, 1),
+        error(diag.assignmentToFinalNoSetter, 53, 1),
+        error(diag.assignmentToFinalNoSetter, 64, 1),
+        error(diag.assignmentToFinalNoSetter, 78, 1),
+        error(diag.assignmentToFinalNoSetter, 85, 1),
       ],
     );
   }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,6 +14,7 @@ import 'package:yaml/yaml.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Avoid using web-only libraries outside Flutter web plugin packages.';
@@ -31,7 +33,7 @@ YamlMap _parseYaml(String content) {
   return YamlMap();
 }
 
-class AvoidWebLibrariesInFlutter extends LintRule {
+class AvoidWebLibrariesInFlutter extends AnalysisRule {
   /// Cache of most recent analysis root to parsed "hasFlutter" state.
   static final Map<String, bool> _rootHasFlutterCache = {};
 
@@ -39,8 +41,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
     : super(name: LintNames.avoid_web_libraries_in_flutter, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidWebLibrariesInFlutter;
+  DiagnosticCode get diagnosticCode => diag.avoidWebLibrariesInFlutter;
 
   bool hasFlutterDep(File? pubspec) {
     if (pubspec == null) {
@@ -104,7 +105,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

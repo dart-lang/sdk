@@ -26,8 +26,8 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
     if (context is StubCorrectionProducerContext) {
       return ReplaceWithIsEmpty._(
         context: context,
-        fixKind: DartFixKind.REPLACE_WITH_IS_EMPTY,
-        multiFixKind: DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI,
+        fixKind: DartFixKind.replaceWithIsEmpty,
+        multiFixKind: DartFixKind.replaceWithIsEmptyMulti,
         binary: null,
         replacement: null,
       );
@@ -37,8 +37,8 @@ class ReplaceWithIsEmpty extends ResolvedCorrectionProducer {
     FixKind fixKind;
     FixKind multiFixKind;
     if (replacement == null) {
-      fixKind = DartFixKind.REPLACE_WITH_IS_EMPTY;
-      multiFixKind = DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI;
+      fixKind = DartFixKind.replaceWithIsEmpty;
+      multiFixKind = DartFixKind.replaceWithIsEmptyMulti;
     } else {
       fixKind = replacement.fixKind;
       multiFixKind = replacement.multiFixKind;
@@ -181,16 +181,16 @@ class _Replacement {
 
   _Replacement.isEmpty(Expression lengthTarget)
     : this._(
-        fixKind: DartFixKind.REPLACE_WITH_IS_EMPTY,
-        multiFixKind: DartFixKind.REPLACE_WITH_IS_EMPTY_MULTI,
+        fixKind: DartFixKind.replaceWithIsEmpty,
+        multiFixKind: DartFixKind.replaceWithIsEmptyMulti,
         getter: 'isEmpty',
         lengthTarget: lengthTarget,
       );
 
   _Replacement.isNotEmpty(Expression lengthTarget)
     : this._(
-        fixKind: DartFixKind.REPLACE_WITH_IS_NOT_EMPTY,
-        multiFixKind: DartFixKind.REPLACE_WITH_IS_NOT_EMPTY_MULTI,
+        fixKind: DartFixKind.replaceWithIsNotEmpty,
+        multiFixKind: DartFixKind.replaceWithIsNotEmptyMulti,
         getter: 'isNotEmpty',
         lengthTarget: lengthTarget,
       );

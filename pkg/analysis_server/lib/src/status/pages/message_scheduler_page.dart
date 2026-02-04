@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
@@ -20,8 +21,9 @@ class MessageSchedulerPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    var now = DateTime.now().millisecondsSinceEpoch;
     var listener = server.messageScheduler.listener;
+
+    buf.writeln('<style> .container { max-width: 1600px; } </style>');
 
     h3('Status');
     buf.writeln(
@@ -35,49 +37,54 @@ class MessageSchedulerPage extends DiagnosticPageWithNav {
       return;
     }
 
-    void writeData(MessageData data, {required bool isActive}) {
-      p(data.message.id);
-      buf.write('<blockquote>');
-      p('Pending messages ahead of this: ${data.pendingMessageCount}');
-      var pendingDuration = (data.activeTime ?? now) - data.pendingTime;
-      p('Time spent on pending queue: $pendingDuration');
-      if (isActive) {
-        p('Active messages ahead of this: ${data.activeMessageCount}');
-        p('Time spent running: ${now - data.activeTime!}');
-      }
-      buf.write('</blockquote>');
-    }
-
-    var (:pending, :active) = listener.pendingAndActiveMessages;
-
-    h3('Pending messages');
-    if (pending.isEmpty) {
-      p('none');
-    } else {
-      pending.sort(
-        (first, second) => first.pendingTime.compareTo(second.pendingTime),
-      );
-      for (var data in pending) {
-        writeData(data, isActive: false);
-      }
-    }
-
-    h3('Active messages');
-    if (active.isEmpty) {
-      p('none');
-    } else {
-      active.sort(
-        (first, second) => first.activeTime!.compareTo(second.activeTime!),
-      );
-      for (var data in active) {
-        writeData(data, isActive: true);
-      }
-    }
-
-    var lines = listener.completedMessageLog;
+    var lines = listener.getMessageLog();
     if (lines.isNotEmpty) {
-      h3('Completed messages');
-      p(lines.join('\n'), style: 'white-space: pre');
+      h3('Messages');
+      buf.writeln('<table>');
+      buf.writeln(
+        '<tr><th>Message</th><th>Pending (on pending)</th><th>Active (on pending)</th><th>Pending (on active)</th><th>Active (on active)</th><th>Queue Time</th><th>Process Time</th><th>Cancelled</th></tr>',
+      );
+      for (var line in lines) {
+        var data = jsonDecode(line) as Map<String, dynamic>;
+        buf.writeln('<tr>');
+        buf.writeln('<td>${data['message']}</td>');
+        _writeCollapsibleList(
+          data['pendingMessageCount'] as int,
+          (data['pendingMessages'] as List?)?.cast<String>() ?? [],
+        );
+        _writeCollapsibleList(
+          data['activeOnPendingMessageCount'] as int,
+          (data['activeOnPendingMessages'] as List?)?.cast<String>() ?? [],
+        );
+        _writeCollapsibleList(
+          data['pendingOnActiveMessageCount'] as int,
+          (data['pendingOnActiveMessages'] as List?)?.cast<String>() ?? [],
+        );
+        _writeCollapsibleList(
+          data['activeOnActiveMessageCount'] as int,
+          (data['activeOnActiveMessages'] as List?)?.cast<String>() ?? [],
+        );
+        buf.writeln('<td>${data['queueTime']}</td>');
+        buf.writeln('<td>${data['processTime']}</td>');
+        buf.writeln('<td>${data['wasCancelled']}</td>');
+        buf.writeln('</tr>');
+      }
+      buf.writeln('</table>');
+    }
+  }
+
+  void _writeCollapsibleList(int count, List<String> messages) {
+    if (count > 0) {
+      buf.writeln('<td>');
+      buf.writeln('<details>');
+      buf.writeln('<summary>$count</summary>');
+      for (var message in messages) {
+        buf.writeln('$message<br>');
+      }
+      buf.writeln('</details>');
+      buf.writeln('</td>');
+    } else {
+      buf.writeln('<td>$count</td>');
     }
   }
 }

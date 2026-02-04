@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,13 +27,7 @@ void f() {
   E(0)();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
-          65,
-          2,
-        ),
-      ],
+      [error(diag.extensionOverrideAccessToStaticMember, 65, 2)],
     );
 
     var node = findNode.functionExpressionInvocation('();');
@@ -71,13 +65,7 @@ void f() {
   E('a').empty;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
-          79,
-          5,
-        ),
-      ],
+      [error(diag.extensionOverrideAccessToStaticMember, 79, 5)],
     );
   }
 
@@ -92,13 +80,7 @@ void f() {
   E('a').empty += 'b';
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
-          116,
-          5,
-        ),
-      ],
+      [error(diag.extensionOverrideAccessToStaticMember, 116, 5)],
     );
   }
 
@@ -112,13 +94,7 @@ void f() {
   E('a').empty();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
-          77,
-          5,
-        ),
-      ],
+      [error(diag.extensionOverrideAccessToStaticMember, 77, 5)],
     );
 
     var node = findNode.methodInvocation('empty();');
@@ -158,13 +134,7 @@ void f() {
   E('a').empty = 'b';
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
-          83,
-          5,
-        ),
-      ],
+      [error(diag.extensionOverrideAccessToStaticMember, 83, 5)],
     );
   }
 }

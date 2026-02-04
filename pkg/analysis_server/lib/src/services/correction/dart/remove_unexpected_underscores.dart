@@ -18,10 +18,10 @@ class RemoveUnexpectedUnderscores extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNEXPECTED_UNDERSCORES;
+  FixKind get fixKind => DartFixKind.removeUnexpectedUnderscores;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNEXPECTED_UNDERSCORES_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnexpectedUnderscoresMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

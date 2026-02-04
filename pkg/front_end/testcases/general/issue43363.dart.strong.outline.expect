@@ -2,25 +2,41 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue43363.dart:10:9: Error: Expected a class member, but got 'this'.
+// pkg/front_end/testcases/general/issue43363.dart:10:9: Error: 'this' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
 //         this.y = 2;
 //         ^^^^
 //
-// pkg/front_end/testcases/general/issue43363.dart:10:13: Error: Expected a class member, but got '.'.
+// pkg/front_end/testcases/general/issue43363.dart:10:9: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
 //         this.y = 2;
-//             ^
+//         ^^^^
 //
-// pkg/front_end/testcases/general/issue43363.dart:10:14: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
+// pkg/front_end/testcases/general/issue43363.dart:10:16: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
 //         this.y = 2;
-//              ^
+//                ^
 //
-// pkg/front_end/testcases/general/issue43363.dart:10:14: Error: 'y' is already declared in this scope.
+// pkg/front_end/testcases/general/issue43363.dart:10:18: Error: Expected an identifier, but got '2'.
+// Try inserting an identifier before '2'.
 //         this.y = 2;
-//              ^
-// pkg/front_end/testcases/general/issue43363.dart:7:13: Context: Previous declaration of 'y'.
-//   final int y;
-//             ^
+//                  ^
+//
+// pkg/front_end/testcases/general/issue43363.dart:10:16: Error: Expected ';' after this.
+//         this.y = 2;
+//                ^
+//
+// pkg/front_end/testcases/general/issue43363.dart:10:9: Error: The name of a constructor must match the name of the enclosing class.
+//         this.y = 2;
+//         ^^^^
+//
+// pkg/front_end/testcases/general/issue43363.dart:10:18: Error: Expected a class member, but got '2'.
+//         this.y = 2;
+//                  ^
+//
+// pkg/front_end/testcases/general/issue43363.dart:10:19: Error: Expected a class member, but got ';'.
+//         this.y = 2;
+//                   ^
 //
 import self as self;
 import "dart:core" as core;
@@ -28,6 +44,8 @@ import "dart:core" as core;
 class E extends core::Object {
   final field core::int x;
   final field core::int y;
+  constructor y() → self::E
+    ;
   constructor •() → self::E
     ;
   constructor named() → self::E

@@ -130,7 +130,12 @@ class ElementNameComponents {
     String? classMemberName;
     if (element.enclosingElement is InterfaceElement ||
         element.enclosingElement is ExtensionElement) {
-      classMemberName = element.lookupName;
+      if (element.lookupName case var lookupName?) {
+        if (element is ConstructorElement) {
+          lookupName = '.$lookupName';
+        }
+        classMemberName = lookupName;
+      }
       element = element.enclosingElement!;
     }
 
@@ -168,55 +173,14 @@ class IndexElementInfo {
 
   factory IndexElementInfo(Element element) {
     IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
-    ElementKind elementKind = element.kind;
-    if (elementKind == ElementKind.LIBRARY ||
-        elementKind == ElementKind.COMPILATION_UNIT) {
-      kind = IndexSyntheticElementKind.unit;
-    } else if (element.isSynthetic) {
-      if (elementKind == ElementKind.CONSTRUCTOR) {
-        kind = IndexSyntheticElementKind.constructor;
-        element = element.enclosingElement!;
-      } else if (element is TopLevelFunctionElement &&
-          element.name == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
-        kind = IndexSyntheticElementKind.loadLibrary;
-        element = element.library;
-      } else if (elementKind == ElementKind.FIELD) {
-        var field = element as FieldElement;
-        kind = IndexSyntheticElementKind.field;
-        element = (field.getter ?? field.setter)!;
-      } else if (elementKind == ElementKind.GETTER ||
-          elementKind == ElementKind.SETTER) {
-        var accessor = element as PropertyAccessorElement;
-        var enclosing = element.enclosingElement;
-        bool isEnumGetter = enclosing is EnumElement;
-        if (isEnumGetter && accessor.name == 'index') {
-          kind = IndexSyntheticElementKind.enumIndex;
-          element = enclosing;
-        } else if (isEnumGetter && accessor.name == 'values') {
-          kind = IndexSyntheticElementKind.enumValues;
-          element = enclosing;
-        } else {
-          kind = accessor is GetterElement
-              ? IndexSyntheticElementKind.getter
-              : IndexSyntheticElementKind.setter;
-          element = accessor.variable;
-        }
-      } else if (element is MethodElement) {
-        var enclosing = element.enclosingElement;
-        bool isEnumMethod = enclosing is EnumElement;
-        if (isEnumMethod && element.name == 'toString') {
-          kind = IndexSyntheticElementKind.enumToString;
-          element = enclosing;
-        }
-      } else if (element is TopLevelVariableElement) {
-        kind = IndexSyntheticElementKind.topLevelVariable;
-        element = (element.getter ?? element.setter)!;
-      } else {
-        throw ArgumentError(
-          'Unsupported synthetic element ${element.runtimeType}',
-        );
-      }
+    if (element is GetterElement) {
+      kind = IndexSyntheticElementKind.getter;
+      element = element.variable;
+    } else if (element is SetterElement) {
+      kind = IndexSyntheticElementKind.setter;
+      element = element.variable;
     }
+
     return IndexElementInfo._(element, kind);
   }
 
@@ -524,8 +488,8 @@ class _IndexAssembler {
   _ElementInfo _getElementInfo(Element element) {
     element = element.baseElement;
     return elementMap.putIfAbsent(element, () {
-      var unitElement = getUnitElement(element);
-      int unitId = _getUnitId(unitElement);
+      var libraryFragment = getUnitElement(element);
+      int unitId = _getUnitId(libraryFragment);
       return _newElementInfo(unitId, element);
     });
   }
@@ -542,15 +506,15 @@ class _IndexAssembler {
     });
   }
 
-  /// Add information about [unitElement] to [unitUnitUris] and
+  /// Add information about [libraryFragment] to [unitUnitUris] and
   /// [unitLibraryUris] if necessary, and return the location in those
-  /// arrays representing [unitElement].
-  int _getUnitId(LibraryFragmentImpl unitElement) {
-    return unitMap.putIfAbsent(unitElement, () {
+  /// arrays representing [libraryFragment].
+  int _getUnitId(LibraryFragmentImpl libraryFragment) {
+    return unitMap.putIfAbsent(libraryFragment, () {
       assert(unitLibraryUris.length == unitUnitUris.length);
       int id = unitUnitUris.length;
-      unitLibraryUris.add(_getUriInfo(unitElement.library.uri));
-      unitUnitUris.add(_getUriInfo(unitElement.source.uri));
+      unitLibraryUris.add(_getUriInfo(libraryFragment.library.uri));
+      unitUnitUris.add(_getUriInfo(libraryFragment.source.uri));
       return id;
     });
   }
@@ -652,10 +616,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     // Ignore named parameters of synthetic functions, e.g. created for LUB.
     // These functions are not bound to a source, we cannot index them.
-    if (elementKind == ElementKind.PARAMETER &&
-        element is FormalParameterElement) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement == null || enclosingElement.isSynthetic) {
+    if (element is FormalParameterElement) {
+      if (element.enclosingElement == null) {
         return;
       }
     }
@@ -712,7 +674,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
     if (node.extendsClause == null) {
@@ -720,7 +682,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(
         objectElement,
         IndexRelationKind.IS_EXTENDED_BY,
-        node.name.offset,
+        node.namePart.typeName.offset,
         0,
         true,
       );
@@ -732,14 +694,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // invocation with the name of the class.
     var defaultConstructor = declaredElement.constructors.singleOrNull;
     if (defaultConstructor is ConstructorElementImpl &&
-        defaultConstructor.isSynthetic) {
+        defaultConstructor.isOriginImplicitDefault) {
       defaultConstructor.isDefaultConstructor;
       var superConstructor = defaultConstructor.superConstructor;
       if (superConstructor != null) {
         recordRelation(
           superConstructor,
           IndexRelationKind.IS_INVOKED_BY,
-          node.name,
+          node.namePart.typeName,
           true,
         );
       }
@@ -805,13 +767,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var element = node.declaredFragment!.element;
       var superConstructor = element.superConstructor;
       if (superConstructor != null) {
-        var offset = node.returnType.offset;
-        var end = (node.name ?? node.returnType).end;
+        var range = node.errorRange;
         recordRelationOffset(
           superConstructor,
           IndexRelationKind.IS_INVOKED_BY,
-          offset,
-          end - offset,
+          range.offset,
+          range.length,
           true,
         );
       }
@@ -925,10 +886,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _addSubtype(
-      node.name.lexeme,
+      node.namePart.typeName.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: node.body.members,
     );
 
     var declaredElement = node.declaredFragment!.element;
@@ -985,11 +946,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     _addSubtype(
-      node.name.lexeme,
+      node.primaryConstructor.typeName.lexeme,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: node.body.members,
     );
 
     var declaredElement = node.declaredFragment!.element;
@@ -1106,7 +1069,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitPatternField(PatternField node) {
+  void visitPatternField(PatternField node) {
     var nameNode = node.name;
     if (nameNode != null) {
       var nameToken = nameNode.name;
@@ -1121,13 +1084,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
       recordRelationOffset(
         node.element,
-        IndexRelationKind.IS_REFERENCED_BY,
+        IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD,
         offset,
         length,
         true,
       );
     }
-    return super.visitPatternField(node);
+    super.visitPatternField(node);
   }
 
   @override
@@ -1337,13 +1300,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /// Record the given class as a subclass of its direct superclasses.
-  void _addSubtypeForClassDeclaration(ClassDeclaration node) {
+  void _addSubtypeForClassDeclaration(ClassDeclarationImpl node) {
     _addSubtype(
-      node.name.lexeme,
+      node.namePart.typeName.lexeme,
       superclass: node.extendsClause?.superclass,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: node.body.members,
     );
   }
 
@@ -1364,7 +1327,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       node.name.lexeme,
       onClause: node.onClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: node.body.members,
     );
   }
 
@@ -1375,7 +1338,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     ConstructorElement? constructor,
   ) {
     var seenConstructors = <ConstructorElement?>{};
-    while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
+    while (constructor is ConstructorElementImpl &&
+        constructor.isOriginMixinApplication) {
       var enclosing = constructor.enclosingElement;
       if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
         var superInvocation = constructor.firstFragment.constantInitializers

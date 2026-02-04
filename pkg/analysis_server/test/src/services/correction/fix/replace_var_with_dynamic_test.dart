@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceVarWithDynamicTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_VAR_WITH_DYNAMIC;
+  FixKind get kind => DartFixKind.replaceVarWithDynamic;
 
   Future<void> test_simple() async {
     await resolveTestCode('''
@@ -32,8 +32,8 @@ class A {
   Map<String, dynamic> m;
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode == ParserErrorCode.varAsTypeName;
+      filter: (error) {
+        return error.diagnosticCode == diag.varAsTypeName;
       },
     );
   }

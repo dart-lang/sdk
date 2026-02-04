@@ -27,7 +27,7 @@ class A extends core::Object {
 }
 class B extends self::A {
   constructor •() → self::B
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_35151.dart:10:15: Error: Not a valid initializer.
+    : invalid-initializer "pkg/front_end/testcases/regress/issue_35151.dart:10:15: Error: Not a valid initializer.
 To initialize a field, use the syntax 'name = value'.
   B() : super.a = 42;
               ^"
@@ -35,7 +35,7 @@ To initialize a field, use the syntax 'name = value'.
 }
 class C extends core::Object {
   constructor •() → self::C
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/regress/issue_35151.dart:14:9: Error: Can't access 'super' in a field initializer.
+    : invalid-initializer "pkg/front_end/testcases/regress/issue_35151.dart:14:9: Error: Can't access 'super' in a field initializer.
   C() : super = 42;
         ^^^^^"
     ;

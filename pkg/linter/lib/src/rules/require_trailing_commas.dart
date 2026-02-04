@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,11 +13,12 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Use trailing commas for all parameter lists and argument lists.';
 
-class RequireTrailingCommas extends LintRule {
+class RequireTrailingCommas extends AnalysisRule {
   /// The version when tall-style was introduced in the formatter.
   static final Version language37 = Version(3, 7, 0);
 
@@ -24,7 +26,7 @@ class RequireTrailingCommas extends LintRule {
     : super(name: LintNames.require_trailing_commas, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.requireTrailingCommas;
+  DiagnosticCode get diagnosticCode => diag.requireTrailingCommas;
 
   @override
   void registerNodeProcessors(
@@ -48,7 +50,7 @@ class RequireTrailingCommas extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   late LineInfo _lineInfo;
 
@@ -91,6 +93,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     super.visitFormalParameterList(node);
+
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      if (primary.parent is ExtensionTypeDeclaration) {
+        return;
+      }
+    }
+
     if (node.parameters.isEmpty) return;
     _checkTrailingComma(
       openingToken: node.leftParenthesis,

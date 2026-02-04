@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +34,7 @@ f() {
   E('a') + 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 40, 1)],
+      [error(diag.undefinedExtensionOperator, 40, 1)],
     );
 
     var node = findNode.binary('+ 1');
@@ -87,7 +87,7 @@ f(A a) {
   E(a)[0];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 48, 3)],
+      [error(diag.undefinedExtensionOperator, 48, 3)],
     );
   }
 
@@ -104,7 +104,7 @@ f(A a) {
   E(a)[0];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 93, 3)],
+      [error(diag.undefinedExtensionOperator, 93, 3)],
     );
   }
 
@@ -136,7 +136,7 @@ f(A a) {
   E(a)[0] += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 83, 3)],
+      [error(diag.undefinedExtensionOperator, 83, 3)],
     );
   }
 
@@ -152,8 +152,8 @@ f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedExtensionOperator, 48, 3),
-        error(CompileTimeErrorCode.undefinedExtensionOperator, 48, 3),
+        error(diag.undefinedExtensionOperator, 48, 3),
+        error(diag.undefinedExtensionOperator, 48, 3),
       ],
     );
   }
@@ -171,7 +171,7 @@ f(A a) {
   E(a)[0] += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 93, 3)],
+      [error(diag.undefinedExtensionOperator, 93, 3)],
     );
   }
 
@@ -188,7 +188,7 @@ f(A a) {
   E(a)[0] = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 83, 3)],
+      [error(diag.undefinedExtensionOperator, 83, 3)],
     );
   }
 
@@ -203,7 +203,7 @@ f(A a) {
   E(a)[0] = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 48, 3)],
+      [error(diag.undefinedExtensionOperator, 48, 3)],
     );
   }
 
@@ -240,7 +240,7 @@ f() {
   -E('a');
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionOperator, 33, 1)],
+      [error(diag.undefinedExtensionOperator, 33, 1)],
     );
   }
 }

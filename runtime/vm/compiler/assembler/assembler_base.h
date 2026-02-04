@@ -630,6 +630,8 @@ class AssemblerBase : public StackResource {
 
   virtual void Breakpoint() = 0;
 
+  virtual void StoreStoreFence() = 0;
+
   virtual void SmiTag(Register r) = 0;
 
   virtual void Bind(Label* label) = 0;

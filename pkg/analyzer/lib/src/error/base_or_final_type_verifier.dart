@@ -7,9 +7,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/error/listener.dart';
 
 /// Helper for verifying that subelements of a base or final element must be
@@ -18,9 +20,13 @@ class BaseOrFinalTypeVerifier {
   final LibraryElement _definingLibrary;
   final DiagnosticReporter _diagnosticReporter;
 
+  /// The source file for which diagnostics are being generated.
+  final Source diagnosticSource;
+
   BaseOrFinalTypeVerifier({
     required LibraryElement definingLibrary,
     required DiagnosticReporter diagnosticReporter,
+    required this.diagnosticSource,
   }) : _definingLibrary = definingLibrary,
        _diagnosticReporter = diagnosticReporter;
 
@@ -28,9 +34,9 @@ class BaseOrFinalTypeVerifier {
   /// final, or sealed and that base elements are not implemented outside of its
   /// library. Otherwise, an error is reported on that element.
   ///
-  /// See [CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed],
-  /// [CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed],
-  /// [CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary].
+  /// See [diag.subtypeOfBaseIsNotBaseFinalOrSealed],
+  /// [diag.subtypeOfFinalIsNotBaseFinalOrSealed],
+  /// [diag.baseClassImplementedOutsideOfLibrary].
   void checkElement(
     InterfaceElementImpl element,
     ImplementsClause? implementsClause,
@@ -241,14 +247,12 @@ class BaseOrFinalTypeVerifier {
         baseOrFinalSuperElement.library != element.library) {
       if (baseOrFinalSuperElement.isBase) {
         var error = baseOrFinalSuperElement is MixinElement
-            ? CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
-                  .withArguments(
-                    implementedMixinName: baseOrFinalSuperElement.displayName,
-                  )
-            : CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary
-                  .withArguments(
-                    implementedClassName: baseOrFinalSuperElement.displayName,
-                  );
+            ? diag.baseMixinImplementedOutsideOfLibrary.withArguments(
+                implementedMixinName: baseOrFinalSuperElement.displayName,
+              )
+            : diag.baseClassImplementedOutsideOfLibrary.withArguments(
+                implementedClassName: baseOrFinalSuperElement.displayName,
+              );
         _diagnosticReporter.report(
           error.withContextMessages(contextMessages).at(implementsNamedType),
         );
@@ -279,24 +283,34 @@ class BaseOrFinalTypeVerifier {
           }
         }
         var errorCode = element is MixinElement
-            ? CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase
-            : CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed;
-        _diagnosticReporter.atElement2(
-          element,
-          errorCode,
-          arguments: [element.displayName, baseOrFinalSuperElement.displayName],
-          contextMessages: superElement.isSealed ? contextMessages : null,
+            ? diag.mixinSubtypeOfFinalIsNotBase
+            : diag.subtypeOfFinalIsNotBaseFinalOrSealed;
+        _diagnosticReporter.report(
+          errorCode
+              .withArguments(
+                subtypeName: element.displayName,
+                supertypeName: baseOrFinalSuperElement.displayName,
+              )
+              .withContextMessages(
+                superElement.isSealed ? contextMessages : const [],
+              )
+              .atSourceRange(element.diagnosticRange(diagnosticSource)),
         );
         return true;
       } else if (baseOrFinalSuperElement.isBase) {
         var errorCode = element is MixinElement
-            ? CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase
-            : CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed;
-        _diagnosticReporter.atElement2(
-          element,
-          errorCode,
-          arguments: [element.displayName, baseOrFinalSuperElement.displayName],
-          contextMessages: superElement.isSealed ? contextMessages : null,
+            ? diag.mixinSubtypeOfBaseIsNotBase
+            : diag.subtypeOfBaseIsNotBaseFinalOrSealed;
+        _diagnosticReporter.report(
+          errorCode
+              .withArguments(
+                subtypeName: element.displayName,
+                supertypeName: baseOrFinalSuperElement.displayName,
+              )
+              .withContextMessages(
+                superElement.isSealed ? contextMessages : const [],
+              )
+              .atSourceRange(element.diagnosticRange(diagnosticSource)),
         );
         return true;
       }
@@ -313,23 +327,31 @@ extension on InterfaceElementImpl {
         return element.isBase;
       case MixinElementImpl element:
         return element.isBase;
+      case EnumElementImpl():
+      case ExtensionTypeElementImpl():
+        return false;
     }
-    return false;
   }
 
   bool get isFinal {
     switch (this) {
       case ClassElementImpl element:
         return element.isFinal;
+      case EnumElementImpl():
+      case ExtensionTypeElementImpl():
+      case MixinElementImpl():
+        return false;
     }
-    return false;
   }
 
   bool get isSealed {
     switch (this) {
       case ClassElementImpl element:
         return element.isSealed;
+      case EnumElementImpl():
+      case ExtensionTypeElementImpl():
+      case MixinElementImpl():
+        return false;
     }
-    return false;
   }
 }

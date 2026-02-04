@@ -157,6 +157,16 @@ typedef T = int;
     );
   }
 
+  test_primaryConstructorParameter() async {
+    await assertDiagnostics(
+      r'''
+class A {}
+class B(A);
+''',
+      [lint(19, 1)],
+    );
+  }
+
   test_super() async {
     await assertDiagnostics(
       r'''

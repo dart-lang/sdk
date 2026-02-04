@@ -105,17 +105,18 @@ class PubCommandTest with ResourceProviderMixin {
 
   Future<void> test_doesNotRunConcurrently() async {
     var isRunning = false;
-    processRunner.startHandler = (executable, args, {dir, env}) async {
-      expect(
-        isRunning,
-        isFalse,
-        reason: 'pub commands should not run concurrently',
-      );
-      isRunning = true;
-      await pumpEventQueue(times: 500);
-      isRunning = false;
-      return MockProcess(0, 0, 'a', 'a');
-    };
+    processRunner.startHandler =
+        (executable, args, {workingDirectory, environment}) async {
+          expect(
+            isRunning,
+            isFalse,
+            reason: 'pub commands should not run concurrently',
+          );
+          isRunning = true;
+          await pumpEventQueue(times: 500);
+          isRunning = false;
+          return MockProcess(0, 0, 'a', 'a');
+        };
     await Future.wait([
       pubCommand.outdatedVersions(pubspecPath),
       pubCommand.outdatedVersions(pubspecPath),
@@ -126,7 +127,8 @@ class PubCommandTest with ResourceProviderMixin {
     // Create a process that won't complete (unless it's killed, where
     // the MockProcess will complete it with a non-zero exit code).
     var process = MockProcess(0, Completer<int>().future, '', '');
-    processRunner.startHandler = (executable, args, {dir, env}) => process;
+    processRunner.startHandler =
+        (executable, args, {workingDirectory, environment}) => process;
 
     // Start running the (endless) command.
     var commandFuture = pubCommand.outdatedVersions(pubspecPath);
@@ -141,25 +143,26 @@ class PubCommandTest with ResourceProviderMixin {
   }
 
   Future<void> test_outdated_args() async {
-    processRunner.startHandler = (executable, args, {dir, env}) {
-      expect(executable, Platform.resolvedExecutable);
-      expect(args, equals(['pub', 'outdated', '--show-all', '--json']));
-      expect(dir, equals(convertPath('/home/project')));
-      expect(
-        env!['PUB_ENVIRONMENT'],
-        anyOf(
-          equals('analysis_server.pub_api'),
-          endsWith(':analysis_server.pub_api'),
-        ),
-      );
-      return MockProcess(0, 0, '', '');
-    };
+    processRunner.startHandler =
+        (executable, args, {workingDirectory, environment}) {
+          expect(executable, Platform.resolvedExecutable);
+          expect(args, equals(['pub', 'outdated', '--show-all', '--json']));
+          expect(workingDirectory, equals(convertPath('/home/project')));
+          expect(
+            environment!['PUB_ENVIRONMENT'],
+            anyOf(
+              equals('analysis_server.pub_api'),
+              endsWith(':analysis_server.pub_api'),
+            ),
+          );
+          return MockProcess(0, 0, '', '');
+        };
     await pubCommand.outdatedVersions(pubspecPath);
   }
 
   Future<void> test_outdated_invalidJson() async {
     processRunner.startHandler =
-        (String executable, List<String> args, {dir, env}) =>
+        (executable, args, {workingDirectory, environment}) =>
             MockProcess(1, 0, 'NOT VALID JSON', '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
@@ -178,8 +181,9 @@ class PubCommandTest with ResourceProviderMixin {
       ]
     }
     ''';
-    processRunner.startHandler = (executable, args, {dir, env}) =>
-        MockProcess(1, 0, validJson, '');
+    processRunner.startHandler =
+        (executable, args, {workingDirectory, environment}) =>
+            MockProcess(1, 0, validJson, '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(1));
     var package = result.first;
@@ -212,9 +216,11 @@ class PubCommandTest with ResourceProviderMixin {
     }
     ''';
 
-    processRunner.startHandler = (executable, args, {dir, env}) {
+    processRunner
+        .startHandler = (executable, args, {workingDirectory, environment}) {
       // Return different json based on the directory we were invoked in.
-      var json = dir == resourceProvider.pathContext.dirname(pubspecPath)
+      var json =
+          workingDirectory == resourceProvider.pathContext.dirname(pubspecPath)
           ? pubspecJson1
           : pubspecJson2;
       return MockProcess(1, 0, json, '');
@@ -226,8 +232,9 @@ class PubCommandTest with ResourceProviderMixin {
   }
 
   Future<void> test_outdated_nonZeroExitCode() async {
-    processRunner.startHandler = (executable, args, {dir, env}) =>
-        MockProcess(1, 123, '{}', '');
+    processRunner.startHandler =
+        (executable, args, {workingDirectory, environment}) =>
+            MockProcess(1, 123, '{}', '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
   }
@@ -253,8 +260,9 @@ class PubCommandTest with ResourceProviderMixin {
       ]
     }
     ''';
-    processRunner.startHandler = (executable, args, {dir, env}) =>
-        MockProcess(1, 0, validJson, '');
+    processRunner.startHandler =
+        (executable, args, {workingDirectory, environment}) =>
+            MockProcess(1, 0, validJson, '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(2));
     for (var (index, package) in result.indexed) {

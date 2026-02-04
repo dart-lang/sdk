@@ -104,6 +104,9 @@ vm_common:
       uri: "typed_data/typed_data.dart"
       patches: "_internal/vm/lib/typed_data_patch.dart"
 
+    _vm:
+      uri: "_vm/_vm.dart"
+
     _vmservice:
       uri: "vmservice/vmservice.dart"
 
@@ -223,8 +226,6 @@ wasm_common:
       uri: internal/internal.dart
       patches:
       - _internal/wasm/lib/internal_patch.dart
-    _js_annotations:
-      uri: js/_js_annotations.dart
     _js_string_convert:
       uri: _internal/wasm/lib/js_string_convert.dart
     _js_types:
@@ -267,7 +268,7 @@ wasm_common:
     io:
       uri: io/io.dart
       patches: _internal/wasm/lib/io_patch.dart
-      supported: false
+      support_conditional_import: false
     isolate:
       uri: isolate/isolate.dart
       patches:
@@ -278,9 +279,6 @@ wasm_common:
     js_interop_unsafe:
       uri: js_interop_unsafe/js_interop_unsafe.dart
       patches: _internal/wasm/lib/js_interop_unsafe_patch.dart
-    js_util:
-      uri: js_util/js_util.dart
-      patches: _internal/wasm/lib/js_util_patch.dart
     math:
       uri: math/math.dart
       patches: _internal/wasm/lib/math_patch.dart
@@ -357,12 +355,12 @@ _dart2js_common:
     io:
       uri: "io/io.dart"
       patches: "_internal/js_runtime/lib/io_patch.dart"
-      supported: false
+      support_conditional_import: false
 
     isolate:
       uri: "isolate/isolate.dart"
       patches: "_internal/js_runtime/lib/isolate_patch.dart"
-      supported: false
+      support_conditional_import: false
 
     js:
       uri: "js/js.dart"
@@ -529,15 +527,21 @@ dartdevc:
       uri: "developer/developer.dart"
       patches: "_internal/js_dev_runtime/patch/developer_patch.dart"
 
+    ffi:
+      uri: "ffi/ffi.dart"
+      patches: "_internal/js_dev_runtime/patch/ffi_patch.dart"
+      support_direct_import: with_flag
+      support_conditional_import: false
+
     io:
       uri: "io/io.dart"
       patches: "_internal/js_dev_runtime/patch/io_patch.dart"
-      supported: false
+      support_conditional_import: false
 
     isolate:
       uri: "isolate/isolate.dart"
       patches: "_internal/js_dev_runtime/patch/isolate_patch.dart"
-      supported: false
+      support_conditional_import: false
 
     math:
       uri: "math/math.dart"

@@ -15,6 +15,9 @@
 !update.sh
 !fallback_root_certificates
 
+# Perfetto source is in subdirectory.
+!perfetto
+
 # First exclude pkg from the gitignore, then re-ignore all its contents.
 # See https://github.com/dart-lang/pub/issues/4300.
 !/pkg/
@@ -25,6 +28,7 @@
 !/pkg/hooks_runner.status
 !/pkg/hooks.status
 !/pkg/native_toolchain_c.status
+!/pkg/record_use.status
 
 # These packages are authored in third_party.
 !/pkg/dap

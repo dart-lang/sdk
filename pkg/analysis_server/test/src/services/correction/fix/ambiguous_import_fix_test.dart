@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class ImportAddHideTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_HIDE;
+  FixKind get kind => DartFixKind.importLibraryHide;
 
   Future<void> test_double() async {
     newFile(join(testPackageLibPath, 'lib1.dart'), '''
@@ -144,8 +144,8 @@ import 'lib4.dart';
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib4.dart'",
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
+      filter: (error) {
+        return error.diagnosticCode == diag.ambiguousImport;
       },
     );
   }
@@ -194,8 +194,8 @@ import 'lib3.dart';
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib3.dart'",
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
+      filter: (error) {
+        return error.diagnosticCode == diag.ambiguousImport;
       },
     );
   }
@@ -227,8 +227,8 @@ void foo(int i) {
 }
 ''',
       matchFixMessage: "Hide others to use 'E' from 'lib1.dart'",
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
+      filter: (error) {
+        return error.diagnosticCode == diag.ambiguousImport;
       },
     );
   }
@@ -275,8 +275,8 @@ import 'lib2.dart' hide M;
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib1.dart'",
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
+      filter: (error) {
+        return error.diagnosticCode == diag.ambiguousImport;
       },
     );
   }
@@ -564,8 +564,7 @@ void f() {
 }
 ''',
       matchFixMessage: "Hide others to use 'N' from 'lib2.dart'",
-      errorFilter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
+      filter: (error) => error.diagnosticCode == diag.ambiguousImport,
     );
   }
 
@@ -592,8 +591,7 @@ void f() {
 }
 ''',
       matchFixMessage: "Hide others to use 'N' from 'lib2.dart' as l",
-      errorFilter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
+      filter: (error) => error.diagnosticCode == diag.ambiguousImport,
     );
   }
 
@@ -620,8 +618,8 @@ import 'lib3.dart' hide M;
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib1.dart'",
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
+      filter: (error) {
+        return error.diagnosticCode == diag.ambiguousImport;
       },
     );
     await assertHasFix(
@@ -633,8 +631,8 @@ import 'lib3.dart' hide M;
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib2.dart'",
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
+      filter: (error) {
+        return error.diagnosticCode == diag.ambiguousImport;
       },
     );
     await assertHasFix(
@@ -646,8 +644,8 @@ import 'lib3.dart';
 class C with M {}
 ''',
       matchFixMessage: "Hide others to use 'M' from 'lib3.dart'",
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.ambiguousImport;
+      filter: (error) {
+        return error.diagnosticCode == diag.ambiguousImport;
       },
     );
   }
@@ -706,7 +704,7 @@ void f() {
 @reflectiveTest
 class ImportRemoveShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_REMOVE_SHOW;
+  FixKind get kind => DartFixKind.importLibraryRemoveShow;
 
   Future<void> test_double() async {
     newFile(join(testPackageLibPath, 'lib1.dart'), '''
@@ -861,8 +859,7 @@ void f(N? n, O? o) {
   print(n);
 }
 ''',
-      errorFilter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
+      filter: (error) => error.diagnosticCode == diag.ambiguousImport,
       matchFixMessage: "Remove show to use 'N' from 'lib2.dart'",
     );
   }

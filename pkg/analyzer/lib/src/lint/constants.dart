@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// A diagnostic listener that only records whether any constant-related
 /// diagnostics have been reported.
@@ -26,45 +26,42 @@ class _ConstantDiagnosticListener extends DiagnosticListener {
   @override
   void onDiagnostic(Diagnostic diagnostic) {
     DiagnosticCode diagnosticCode = diagnostic.diagnosticCode;
-    if (diagnosticCode is CompileTimeErrorCode) {
-      switch (diagnosticCode) {
-        case CompileTimeErrorCode.constConstructorConstantFromDeferredLibrary:
-        case CompileTimeErrorCode
-            .constConstructorWithFieldInitializedByNonConst:
-        case CompileTimeErrorCode.constEvalExtensionMethod:
-        case CompileTimeErrorCode.constEvalExtensionTypeMethod:
-        case CompileTimeErrorCode.constEvalMethodInvocation:
-        case CompileTimeErrorCode.constEvalPropertyAccess:
-        case CompileTimeErrorCode.constEvalTypeBool:
-        case CompileTimeErrorCode.constEvalTypeBoolInt:
-        case CompileTimeErrorCode.constEvalTypeBoolNumString:
-        case CompileTimeErrorCode.constEvalTypeInt:
-        case CompileTimeErrorCode.constEvalTypeNum:
-        case CompileTimeErrorCode.constEvalTypeNumString:
-        case CompileTimeErrorCode.constEvalTypeString:
-        case CompileTimeErrorCode.constEvalThrowsException:
-        case CompileTimeErrorCode.constEvalThrowsIdbze:
-        case CompileTimeErrorCode.constEvalForElement:
-        case CompileTimeErrorCode.constMapKeyNotPrimitiveEquality:
-        case CompileTimeErrorCode.constSetElementNotPrimitiveEquality:
-        case CompileTimeErrorCode.constTypeParameter:
-        case CompileTimeErrorCode.constWithNonConst:
-        case CompileTimeErrorCode.constWithNonConstantArgument:
-        case CompileTimeErrorCode.constWithTypeParameters:
-        case CompileTimeErrorCode.constWithTypeParametersConstructorTearoff:
-        case CompileTimeErrorCode.invalidConstant:
-        case CompileTimeErrorCode.missingConstInListLiteral:
-        case CompileTimeErrorCode.missingConstInMapLiteral:
-        case CompileTimeErrorCode.missingConstInSetLiteral:
-        case CompileTimeErrorCode.nonBoolCondition:
-        case CompileTimeErrorCode.nonConstantListElement:
-        case CompileTimeErrorCode.nonConstantMapElement:
-        case CompileTimeErrorCode.nonConstantMapKey:
-        case CompileTimeErrorCode.nonConstantMapValue:
-        case CompileTimeErrorCode.nonConstantRecordField:
-        case CompileTimeErrorCode.nonConstantSetElement:
-          hasConstError = true;
-      }
+    switch (diagnosticCode) {
+      case diag.constConstructorConstantFromDeferredLibrary:
+      case diag.constConstructorWithFieldInitializedByNonConst:
+      case diag.constEvalExtensionMethod:
+      case diag.constEvalExtensionTypeMethod:
+      case diag.constEvalMethodInvocation:
+      case diag.constEvalPropertyAccess:
+      case diag.constEvalTypeBool:
+      case diag.constEvalTypeBoolInt:
+      case diag.constEvalTypeBoolNumString:
+      case diag.constEvalTypeInt:
+      case diag.constEvalTypeNum:
+      case diag.constEvalTypeNumString:
+      case diag.constEvalTypeString:
+      case diag.constEvalThrowsException:
+      case diag.constEvalThrowsIdbze:
+      case diag.constEvalForElement:
+      case diag.constMapKeyNotPrimitiveEquality:
+      case diag.constSetElementNotPrimitiveEquality:
+      case diag.constTypeParameter:
+      case diag.constWithNonConst:
+      case diag.constWithNonConstantArgument:
+      case diag.constWithTypeParameters:
+      case diag.constWithTypeParametersConstructorTearoff:
+      case diag.invalidConstant:
+      case diag.missingConstInListLiteral:
+      case diag.missingConstInMapLiteral:
+      case diag.missingConstInSetLiteral:
+      case diag.nonBoolCondition:
+      case diag.nonConstantListElement:
+      case diag.nonConstantMapElement:
+      case diag.nonConstantMapKey:
+      case diag.nonConstantMapValue:
+      case diag.nonConstantRecordField:
+      case diag.nonConstantSetElement:
+        hasConstError = true;
     }
   }
 }

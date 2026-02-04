@@ -46,7 +46,6 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     String? languageVersion,
     bool flutter = false,
     bool meta = false,
-    bool pedantic = false,
   }) {
     projectFolderPath = resourceProvider.convertPath(projectFolderPath);
 
@@ -81,11 +80,6 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       config.add(name: 'flutter_test', rootPath: libFolder.parent.path);
     }
 
-    if (pedantic) {
-      var libFolder = addPedantic();
-      config.add(name: 'pedantic', rootPath: libFolder.parent.path);
-    }
-
     if (addVectorMathPackageDep) {
       var libFolder = addVectorMath();
       config.add(name: 'vector_math', rootPath: libFolder.parent.path);
@@ -109,7 +103,6 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     String? languageVersion,
     bool flutter = false,
     bool meta = false,
-    bool pedantic = false,
   }) {
     writePackageConfig(
       testPackageRootPath,
@@ -118,7 +111,6 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
       packageName: 'test',
       flutter: flutter,
       meta: meta,
-      pedantic: pedantic,
     );
   }
 }

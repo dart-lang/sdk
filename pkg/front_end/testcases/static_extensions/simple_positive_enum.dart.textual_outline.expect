@@ -1,0 +1,27 @@
+enum A {
+  element;
+
+  static String get enumGetter => "A.enumGetter";
+  static void set enumSetter(num value) {
+    throw "A.enumSetter=";
+  }
+
+  static String enumMethod() => "A.enumMethod";
+}
+
+extension E on A {
+  static String get enumGetter => "E.enumGetter";
+  static String get extensionGetter => "E.extensionGetter";
+  static void set enumSetter(num value) {}
+  static void set extensionSetter(bool value) {}
+  static String enumMethod() => "E.enumMethod";
+  static String extensionMethod() => "E.extensionMethod";
+}
+
+main() {}
+
+expectEqual(a, b) {}
+
+expectThrows(Function() f) {}
+
+expectDoesntThrow(Function() f) {}

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// A verifier that checks for unsafe Unicode text.
 /// See: https://nvd.nist.gov/vuln/detail/CVE-2021-22567
@@ -23,15 +23,15 @@ class UnicodeTextVerifier {
         // If it's not in a string literal, we assume we're in a comment.
         // This can potentially over-report on syntactically incorrect sources
         // (where Unicode is outside a string or comment).
-        var errorCode =
+        var diagnosticCode =
             node is SimpleStringLiteral || node is InterpolationString
-            ? WarningCode.textDirectionCodePointInLiteral
-            : WarningCode.textDirectionCodePointInComment;
+            ? diag.textDirectionCodePointInLiteral
+            : diag.textDirectionCodePointInComment;
         var code = codeUnit.toRadixString(16).toUpperCase();
         _diagnosticReporter.atOffset(
           offset: offset,
           length: 1,
-          diagnosticCode: errorCode,
+          diagnosticCode: diagnosticCode,
           arguments: [code],
         );
       }

@@ -18,7 +18,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/analysis_options/error/option_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -31,12 +31,12 @@ import 'package:yaml_edit/yaml_edit.dart';
 /// The generator used to generate fixes in analysis options files.
 class AnalysisOptionsFixGenerator {
   static const List<DiagnosticCode> codesWithFixes = [
-    AnalysisOptionsWarningCode.deprecatedLint,
-    AnalysisOptionsWarningCode.analysisOptionDeprecatedWithReplacement,
-    AnalysisOptionsWarningCode.duplicateRule,
-    AnalysisOptionsWarningCode.removedLint,
-    AnalysisOptionsWarningCode.undefinedLint,
-    AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
+    diag.deprecatedLint,
+    diag.analysisOptionDeprecatedWithReplacement,
+    diag.duplicateRule,
+    diag.removedLint,
+    diag.undefinedLint,
+    diag.unsupportedOptionWithoutValues,
   ];
 
   /// The resource provider used to access the file system.
@@ -90,8 +90,7 @@ class AnalysisOptionsFixGenerator {
       return fixes;
     }
 
-    if (diagnosticCode ==
-        AnalysisOptionsWarningCode.analysisOptionDeprecatedWithReplacement) {
+    if (diagnosticCode == diag.analysisOptionDeprecatedWithReplacement) {
       var analyzerMap = options['analyzer'];
       if (analyzerMap is! YamlMap) {
         return fixes;
@@ -115,13 +114,12 @@ class AnalysisOptionsFixGenerator {
           strongModeMap,
         );
       }
-    } else if (diagnosticCode == AnalysisOptionsWarningCode.deprecatedLint ||
-        diagnosticCode == AnalysisOptionsWarningCode.duplicateRule ||
-        diagnosticCode == AnalysisOptionsWarningCode.removedLint ||
-        diagnosticCode == AnalysisOptionsWarningCode.undefinedLint) {
+    } else if (diagnosticCode == diag.deprecatedLint ||
+        diagnosticCode == diag.duplicateRule ||
+        diagnosticCode == diag.removedLint ||
+        diagnosticCode == diag.undefinedLint) {
       await _addFix_removeLint(coveringNodePath);
-    } else if (diagnosticCode ==
-        AnalysisOptionsWarningCode.unsupportedOptionWithoutValues) {
+    } else if (diagnosticCode == diag.unsupportedOptionWithoutValues) {
       await _addFix_removeSetting(coveringNodePath);
     }
     return fixes;
@@ -132,7 +130,7 @@ class AnalysisOptionsFixGenerator {
     if (builder != null) {
       _addFixFromBuilder(
         builder,
-        AnalysisOptionsFixKind.REMOVE_LINT,
+        AnalysisOptionsFixKind.removeLint,
         args: [coveringNodePath[0].toString()],
       );
     }
@@ -143,7 +141,7 @@ class AnalysisOptionsFixGenerator {
     if (builder != null) {
       _addFixFromBuilder(
         builder,
-        AnalysisOptionsFixKind.REMOVE_SETTING,
+        AnalysisOptionsFixKind.removeSetting,
         args: [coveringNodePath[0].toString()],
       );
     }
@@ -172,7 +170,7 @@ class AnalysisOptionsFixGenerator {
     });
     _addFixFromBuilder(
       builder,
-      AnalysisOptionsFixKind.REPLACE_WITH_STRICT_CASTS,
+      AnalysisOptionsFixKind.replaceWithStrictCasts,
       args: [coveringNodePath[0].toString()],
     );
   }
@@ -200,7 +198,7 @@ class AnalysisOptionsFixGenerator {
     });
     _addFixFromBuilder(
       builder,
-      AnalysisOptionsFixKind.REPLACE_WITH_STRICT_RAW_TYPES,
+      AnalysisOptionsFixKind.replaceWithStrictRawTypes,
       args: [coveringNodePath[0].toString()],
     );
   }

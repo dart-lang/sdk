@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r"Don't explicitly catch `Error` or types that implement it.";
@@ -20,8 +21,8 @@ class AvoidCatchingErrors extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.avoidCatchingErrorsClass,
-    LinterLintCode.avoidCatchingErrorsSubclass,
+    diag.avoidCatchingErrorsClass,
+    diag.avoidCatchingErrorsSubclass,
   ];
 
   @override
@@ -44,14 +45,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var exceptionType = node.exceptionType?.type;
     if (exceptionType.implementsInterface('Error', 'dart.core')) {
       if (exceptionType.isSameAs('Error', 'dart.core')) {
-        rule.reportAtNode(
-          node,
-          diagnosticCode: LinterLintCode.avoidCatchingErrorsClass,
-        );
+        rule.reportAtNode(node, diagnosticCode: diag.avoidCatchingErrorsClass);
       } else {
         rule.reportAtNode(
           node,
-          diagnosticCode: LinterLintCode.avoidCatchingErrorsSubclass,
+          diagnosticCode: diag.avoidCatchingErrorsSubclass,
           arguments: [exceptionType!.getDisplayString()],
         );
       }

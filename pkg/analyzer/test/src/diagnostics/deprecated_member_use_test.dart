@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -35,7 +33,7 @@ import 'package:foo.bar/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.deprecatedMemberUse, 41, 1)],
+      [error(diag.deprecatedMemberUse, 41, 1)],
     );
   }
 
@@ -53,7 +51,7 @@ import 'package:aaa/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.deprecatedMemberUse, 37, 1)],
+      [error(diag.deprecatedMemberUse, 37, 1)],
     );
   }
 }
@@ -110,7 +108,7 @@ import 'package:aaa/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.deprecatedMemberUse, 37, 1)],
+      [error(diag.deprecatedMemberUse, 37, 1)],
     );
   }
 
@@ -166,7 +164,7 @@ import 'package:aaa/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.deprecatedMemberUse, 37, 1)],
+      [error(diag.deprecatedMemberUse, 37, 1)],
     );
   }
 
@@ -190,7 +188,7 @@ import 'package:aaa/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.deprecatedMemberUse, 37, 1)],
+      [error(diag.deprecatedMemberUse, 37, 1)],
     );
   }
 }
@@ -203,7 +201,7 @@ class DeprecatedMemberUse_PackageConfigWorkspaceTest
   String get externalLibUri => 'package:aaa/a.dart';
 
   Future<void> assertErrorsInCode2(
-    List<ExpectedError> expectedErrors, {
+    List<ExpectedDiagnostic> expectedDiagnostics, {
     required String externalCode,
     required String code,
   }) async {
@@ -212,7 +210,7 @@ class DeprecatedMemberUse_PackageConfigWorkspaceTest
     await assertErrorsInCode('''
 import '$externalLibUri';
 $code
-''', expectedErrors);
+''', expectedDiagnostics);
   }
 
   Future<void> assertNoErrorsInCode2({
@@ -250,7 +248,7 @@ void f() {
   x += 2;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -267,7 +265,7 @@ void f() {
   x += 2;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -298,7 +296,7 @@ void f() {
   x = 0;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -315,7 +313,7 @@ void f() {
   x = 0;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -332,7 +330,7 @@ void f(A a) {
   a();
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 45, 3)],
+      [error(diag.deprecatedMemberUse, 45, 3)],
     );
   }
 
@@ -345,7 +343,7 @@ class A {}
       code: r'''
 void f(A a) {}
 ''',
-      [error(HintCode.deprecatedMemberUse, 36, 1)],
+      [error(diag.deprecatedMemberUse, 36, 1)],
     );
   }
 
@@ -390,7 +388,7 @@ f(A a, A b) {
   a += b;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 45, 6)],
+      [error(diag.deprecatedMemberUse, 45, 6)],
     );
   }
 
@@ -409,7 +407,7 @@ int g(Object s) =>
     _ => 7,
   };
 ''',
-      [error(HintCode.deprecatedMemberUse, 69, 3)],
+      [error(diag.deprecatedMemberUse, 69, 3)],
     );
   }
 
@@ -428,7 +426,7 @@ int g(Object s) =>
     _ => 7,
   };
 ''',
-      [error(HintCode.deprecatedMemberUse, 74, 3)],
+      [error(diag.deprecatedMemberUse, 74, 3)],
     );
   }
 
@@ -450,9 +448,9 @@ void f() {
 }
 ''',
       [
-        error(HintCode.deprecatedMemberUse, 43, 1),
-        error(WarningCode.unusedLocalVariable, 45, 1),
-        error(HintCode.deprecatedMemberUse, 50, 3),
+        error(diag.deprecatedMemberUse, 43, 1),
+        error(diag.unusedLocalVariable, 45, 1),
+        error(diag.deprecatedMemberUse, 50, 3),
       ],
     );
   }
@@ -474,8 +472,8 @@ void f() {
 }
 ''',
       [
-        error(HintCode.deprecatedMemberUse, 43, 1),
-        error(WarningCode.unusedLocalVariable, 45, 1),
+        error(diag.deprecatedMemberUse, 43, 1),
+        error(diag.unusedLocalVariable, 45, 1),
       ],
     );
   }
@@ -497,8 +495,8 @@ void f() {
 }
 ''',
       [
-        error(HintCode.deprecatedMemberUse, 43, 1),
-        error(WarningCode.unusedLocalVariable, 45, 1),
+        error(diag.deprecatedMemberUse, 43, 1),
+        error(diag.unusedLocalVariable, 45, 1),
       ],
     );
   }
@@ -517,9 +515,9 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 39, 1),
+        error(diag.unusedLocalVariable, 39, 1),
         error(
-          HintCode.deprecatedMemberUse,
+          diag.deprecatedMemberUse,
           44,
           5,
           messageContains: ["'A.named' is deprecated and shouldn't be used."],
@@ -545,8 +543,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 45, 1),
-        error(HintCode.deprecatedMemberUse, 50, 3),
+        error(diag.unusedLocalVariable, 45, 1),
+        error(diag.deprecatedMemberUse, 50, 3),
       ],
     );
   }
@@ -568,8 +566,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 45, 1),
-        error(HintCode.deprecatedMemberUse, 50, 1),
+        error(diag.unusedLocalVariable, 45, 1),
+        error(diag.deprecatedMemberUse, 50, 1),
       ],
     );
   }
@@ -584,7 +582,7 @@ library a;
       '''
 export 'package:aaa/a.dart';
 ''',
-      [error(HintCode.deprecatedMemberUse, 0, 28)],
+      [error(diag.deprecatedMemberUse, 0, 28)],
     );
   }
 
@@ -594,12 +592,9 @@ export 'package:aaa/a.dart';
 library a;
 ''');
 
-    await assertErrorsInCode(
-      '''
+    await assertNoErrorsInCode('''
 export 'lib2.dart';
-''',
-      [error(HintCode.deprecatedMemberUseFromSamePackage, 0, 19)],
-    );
+''');
   }
 
   test_extensionOverride() async {
@@ -615,7 +610,7 @@ void f() {
   E(0).foo;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -635,7 +630,7 @@ void f(A a) {
   a.foo;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 48, 3)],
+      [error(diag.deprecatedMemberUse, 48, 3)],
     );
   }
 
@@ -655,7 +650,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 48, 3)],
+      [error(diag.deprecatedMemberUse, 48, 3)],
     );
   }
 
@@ -704,7 +699,7 @@ import 'package:aaa/a.dart';
 ''',
       [
         error(
-          HintCode.deprecatedMemberUse,
+          diag.deprecatedMemberUse,
           24,
           28,
           messageContains: ['package:aaa/a.dart'],
@@ -731,9 +726,9 @@ class C {
 const z = C(x: '');
 ''',
       [
-        error(CompileTimeErrorCode.finalNotInitializedConstructor1, 53, 1),
-        error(ParserErrorCode.missingIdentifier, 82, 1),
-        error(ParserErrorCode.expectedToken, 82, 1),
+        error(diag.finalNotInitializedConstructor1, 53, 1),
+        error(diag.missingIdentifier, 82, 1),
+        error(diag.expectedToken, 82, 1),
       ],
     );
   }
@@ -1006,7 +1001,7 @@ void f(A a) {
   return a[1];
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 52, 4)],
+      [error(diag.deprecatedMemberUse, 52, 4)],
     );
   }
 
@@ -1025,7 +1020,7 @@ enum E {
   }
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 68, 1)],
+      [error(diag.deprecatedMemberUse, 68, 1)],
     );
   }
 
@@ -1042,7 +1037,7 @@ extension E on int {
   }
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 67, 1)],
+      [error(diag.deprecatedMemberUse, 67, 1)],
     );
   }
 
@@ -1063,7 +1058,7 @@ void f() {
   A();
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 43, 1)],
+      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -1083,7 +1078,7 @@ void f() {
   A();
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 43, 1)],
+      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -1106,7 +1101,7 @@ void f() {
       [
         // https://github.com/dart-lang/linter/issues/4752
         // Highlights `A`.
-        error(HintCode.deprecatedMemberUse, 43, 1),
+        error(diag.deprecatedMemberUse, 43, 1),
       ],
     );
   }
@@ -1126,7 +1121,7 @@ f() {
 ''',
       [
         error(
-          HintCode.deprecatedMemberUse,
+          diag.deprecatedMemberUse,
           48,
           7,
           messageContains: ["'A.named' is deprecated and shouldn't be used."],
@@ -1151,7 +1146,7 @@ void f() {
   A();
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 43, 1)],
+      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -1168,7 +1163,7 @@ f() {
   return new A(1);
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 48, 1)],
+      [error(diag.deprecatedMemberUse, 48, 1)],
     );
   }
 
@@ -1188,7 +1183,7 @@ void f(A a) {
   a.foo();
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 48, 3)],
+      [error(diag.deprecatedMemberUse, 48, 3)],
     );
   }
 
@@ -1201,7 +1196,7 @@ int f() => 0;
       code: r'''
 var x = f();
 ''',
-      [error(HintCode.deprecatedMemberUse, 37, 1)],
+      [error(diag.deprecatedMemberUse, 37, 1)],
     );
   }
 
@@ -1216,7 +1211,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.deprecatedMemberUseWithMessage,
+          diag.deprecatedMemberUseWithMessage,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used. 0.9.",
@@ -1236,7 +1231,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.deprecatedMemberUseWithMessage,
+          diag.deprecatedMemberUseWithMessage,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used. 0.9.",
@@ -1256,7 +1251,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.deprecatedMemberUseWithMessage,
+          diag.deprecatedMemberUseWithMessage,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used. Really!",
@@ -1276,7 +1271,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.deprecatedMemberUse,
+          diag.deprecatedMemberUse,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used.",
@@ -1296,7 +1291,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.deprecatedMemberUseWithMessage,
+          diag.deprecatedMemberUseWithMessage,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used. Are you sure?",
@@ -1313,16 +1308,13 @@ class A {
 }
 ''');
 
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 import 'lib2.dart';
 
 void f(A a) {
   a.foo();
 }
-''',
-      [error(HintCode.deprecatedMemberUseFromSamePackage, 39, 3)],
-    );
+''');
   }
 
   test_methodInvocation_inDeprecatedConstructor() async {
@@ -1391,7 +1383,7 @@ void f(A a) {
 ''',
       [
         error(
-          HintCode.deprecatedMemberUseWithMessage,
+          diag.deprecatedMemberUseWithMessage,
           48,
           3,
           text: "'foo' is deprecated and shouldn't be used. 0.9.",
@@ -1425,13 +1417,9 @@ class C {
 var z = C(x: '');
 ''',
       [
-        error(
-          CompileTimeErrorCode.initializingFormalForNonExistentField,
-          21,
-          5,
-        ),
-        error(ParserErrorCode.missingIdentifier, 26, 1),
-        error(CompileTimeErrorCode.undefinedNamedParameter, 42, 1),
+        error(diag.initializingFormalForNonExistentField, 21, 5),
+        error(diag.missingIdentifier, 26, 1),
+        error(diag.undefinedNamedParameter, 42, 1),
       ],
     );
   }
@@ -1449,7 +1437,7 @@ f(A a, A b) {
   return a + b;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 52, 5)],
+      [error(diag.deprecatedMemberUse, 52, 5)],
     );
   }
 
@@ -1461,7 +1449,7 @@ void f({@deprecated int x = 0}) {}
       code: r'''
 void g() => f(x: 1);
 ''',
-      [error(HintCode.deprecatedMemberUse, 43, 1)],
+      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -1509,7 +1497,7 @@ class C {
   C({B this.a = instance});
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 57, 1)],
+      [error(diag.deprecatedMemberUse, 57, 1)],
     );
   }
 
@@ -1568,7 +1556,7 @@ void f() {
   foo(a: 0);
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 47, 1)],
+      [error(diag.deprecatedMemberUse, 47, 1)],
     );
   }
 
@@ -1587,7 +1575,7 @@ void f(A a) {
   a.foo(a: 0);
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 52, 1)],
+      [error(diag.deprecatedMemberUse, 52, 1)],
     );
   }
 
@@ -1603,7 +1591,7 @@ void f(A a) {
   a.foo(0);
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 51, 1)],
+      [error(diag.deprecatedMemberUse, 51, 1)],
     );
   }
 
@@ -1654,6 +1642,117 @@ void f(A a) {
     );
   }
 
+  test_parameterInSuper_explicitInvocation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B() : super(7);
+}
+''',
+      [error(diag.deprecatedMemberUse, 64, 1)],
+    );
+  }
+
+  test_parameterInSuper_explicitInvocation_namedParameter() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A({@deprecated int? p});
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B() : super(p: 7);
+}
+''',
+      [error(diag.deprecatedMemberUse, 64, 1)],
+    );
+  }
+
+  test_parameterInSuper_implicitArgument() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B([super.p]);
+}
+''',
+      [error(diag.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
+  test_parameterInSuper_implicitArgument_alsoDeprecated() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A([@deprecated int? p]);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B([@deprecated super.p]);
+}
+''');
+  }
+
+  test_parameterInSuper_implicitArgument_explicitInvocation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A.named([@deprecated int? p]);
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B([super.p]) : super.named();
+}
+''',
+      [error(diag.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
+  test_parameterInSuper_implicitInvocation_namedParameter() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  A({@deprecated int? p});
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+class B extends A {
+  B({super.p});
+}
+''',
+      [error(diag.deprecatedMemberUse, 55, 7)],
+    );
+  }
+
   test_postfixExpression_deprecatedGetter() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -1667,7 +1766,7 @@ void f() {
   x++;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1699,7 +1798,7 @@ void f() {
   x++;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1716,7 +1815,7 @@ void f() {
   A.foo;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 44, 3)],
+      [error(diag.deprecatedMemberUse, 44, 3)],
     );
   }
 
@@ -1733,7 +1832,7 @@ void f() {
   A.foo;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1750,7 +1849,7 @@ void f() {
   ++x;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 44, 1)],
+      [error(diag.deprecatedMemberUse, 44, 1)],
     );
   }
 
@@ -1767,7 +1866,7 @@ void f() {
   ++x;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 44, 1)],
+      [error(diag.deprecatedMemberUse, 44, 1)],
     );
   }
 
@@ -1786,20 +1885,118 @@ class B extends A {
   }
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 74, 3)],
+      [error(diag.deprecatedMemberUse, 74, 3)],
+    );
+  }
+
+  test_redirectedConstructor_fromFactoryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  @deprecated
+  B();
+}
+''',
+      code: r'''
+class A {
+  factory A.two() = B;
+}
+''',
+      [error(diag.deprecatedMemberUse, 59, 1)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated int? p]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([int? p]) = B;
+}
+''',
+      [error(diag.deprecatedMemberUse, 56, 6)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_deprecatedFunctionTypedParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated void p()?]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([@deprecated void p()?]) = B;
+}
+''',
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_deprecatedParameter() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated int? p]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([@deprecated int? p]) = B;
+}
+''',
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_functionTypedParameter() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B([@deprecated void p()?]);
+}
+''',
+      code: r'''
+class A {
+  factory A.two([void p()?]) = B;
+}
+''',
+      [error(diag.deprecatedMemberUse, 56, 9)],
+    );
+  }
+
+  test_redirectedParameter_redirectingFactoryConstructor_named() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+import 'package:test/test.dart';
+class B extends A {
+  B({@deprecated int? p});
+}
+''',
+      code: r'''
+class A {
+  factory A.two({int? p}) = B;
+}
+''',
+      [error(diag.deprecatedMemberUse, 56, 6)],
     );
   }
 
   test_redirectingConstructorInvocation_namedParameter() async {
-    await assertErrorsInCode(
-      r'''
+    await assertNoErrorsInCode(r'''
 class A {
   A({@deprecated int a = 0}) {}
   A.named() : this(a: 0);
 }
-''',
-      [error(HintCode.deprecatedMemberUseFromSamePackage, 61, 1)],
-    );
+''');
   }
 
   test_setterInvocation() async {
@@ -1818,7 +2015,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 48, 3)],
+      [error(diag.deprecatedMemberUse, 48, 3)],
     );
   }
 
@@ -1832,7 +2029,42 @@ class A {}
 // ignore: unused_import
 import '$externalLibUri' show A;
 ''',
-      [error(HintCode.deprecatedMemberUse, 58, 1)],
+      [error(diag.deprecatedMemberUse, 58, 1)],
+    );
+  }
+
+  test_superConstructor_factoryConstructor() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A();
+  A.two();
+}
+''',
+      code: r'''
+class B extends A {
+  factory B() => B.two();
+  B.two() : super.two();
+}
+''',
+    );
+  }
+
+  test_superConstructor_implicitCall() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A();
+}
+''',
+      code: r'''
+class B extends A {
+  B();
+}
+''',
+      [error(diag.deprecatedMemberUse, 51, 4)],
     );
   }
 
@@ -1851,12 +2083,30 @@ class B extends A {
 ''',
       [
         error(
-          HintCode.deprecatedMemberUse,
+          diag.deprecatedMemberUse,
           57,
           13,
           text: "'A.named' is deprecated and shouldn't be used.",
         ),
       ],
+    );
+  }
+
+  test_superConstructor_redirectingConstructor() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A();
+  A.two();
+}
+''',
+      code: r'''
+class B extends A {
+  B() : this.two();
+  B.two() : super.two();
+}
+''',
     );
   }
 
@@ -1875,7 +2125,7 @@ class B extends A {
 ''',
       [
         error(
-          HintCode.deprecatedMemberUse,
+          diag.deprecatedMemberUse,
           57,
           7,
           text: "'A' is deprecated and shouldn't be used.",
@@ -1895,7 +2145,7 @@ void f() {
   print(x);
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 48, 1)],
+      [error(diag.deprecatedMemberUse, 48, 1)],
     );
   }
 
@@ -1910,7 +2160,7 @@ void f(int a) {
   a = x;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 51, 1)],
+      [error(diag.deprecatedMemberUse, 51, 1)],
     );
   }
 
@@ -1925,7 +2175,7 @@ void f() {
   x + 1;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1941,7 +2191,7 @@ class A {
   A() : f = x;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 66, 1)],
+      [error(diag.deprecatedMemberUse, 66, 1)],
     );
   }
 
@@ -1954,7 +2204,7 @@ int x = 1;
       code: r'''
 int f() => x;
 ''',
-      [error(HintCode.deprecatedMemberUse, 40, 1)],
+      [error(diag.deprecatedMemberUse, 40, 1)],
     );
   }
 
@@ -1969,7 +2219,7 @@ void f() {
   x;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 42, 1)],
+      [error(diag.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1984,7 +2234,7 @@ void f() {
   [for (;x;) 0];
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 49, 1)],
+      [error(diag.deprecatedMemberUse, 49, 1)],
     );
   }
 
@@ -1999,7 +2249,7 @@ void f() {
   for (;x;) {}
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 48, 1)],
+      [error(diag.deprecatedMemberUse, 48, 1)],
     );
   }
 
@@ -2014,7 +2264,7 @@ void f() {
   [if (x) 0];
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 47, 1)],
+      [error(diag.deprecatedMemberUse, 47, 1)],
     );
   }
 
@@ -2029,7 +2279,7 @@ void f() {
   if (x) {}
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 46, 1)],
+      [error(diag.deprecatedMemberUse, 46, 1)],
     );
   }
 
@@ -2044,7 +2294,7 @@ void f() {
   [x];
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 43, 1)],
+      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -2060,8 +2310,8 @@ void f() {
 }
 ''',
       [
-        error(HintCode.deprecatedMemberUse, 47, 1),
-        error(HintCode.deprecatedMemberUse, 50, 1),
+        error(diag.deprecatedMemberUse, 47, 1),
+        error(diag.deprecatedMemberUse, 50, 1),
       ],
     );
   }
@@ -2078,7 +2328,7 @@ void f() {
   g(a: x);
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 70, 1)],
+      [error(diag.deprecatedMemberUse, 70, 1)],
     );
   }
 
@@ -2093,7 +2343,7 @@ int f() {
   return x;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 48, 1)],
+      [error(diag.deprecatedMemberUse, 48, 1)],
     );
   }
 
@@ -2108,7 +2358,7 @@ void f() {
   ({x});
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 44, 1)],
+      [error(diag.deprecatedMemberUse, 44, 1)],
     );
   }
 
@@ -2123,7 +2373,7 @@ void f() {
   [...x];
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 46, 1)],
+      [error(diag.deprecatedMemberUse, 46, 1)],
     );
   }
 
@@ -2141,7 +2391,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 69, 1)],
+      [error(diag.deprecatedMemberUse, 69, 1)],
     );
   }
 
@@ -2161,7 +2411,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 85, 1)],
+      [error(diag.deprecatedMemberUse, 85, 1)],
     );
   }
 
@@ -2176,7 +2426,7 @@ void f() {
   switch (x) {}
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 50, 1)],
+      [error(diag.deprecatedMemberUse, 50, 1)],
     );
   }
 
@@ -2193,7 +2443,7 @@ void f() {
   switch (x) {}
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 66, 1)],
+      [error(diag.deprecatedMemberUse, 66, 1)],
     );
   }
 
@@ -2208,7 +2458,7 @@ void f() {
   -x;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 43, 1)],
+      [error(diag.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -2224,7 +2474,7 @@ void f() {
   var v = x;
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 85, 1)],
+      [error(diag.deprecatedMemberUse, 85, 1)],
     );
   }
 
@@ -2239,7 +2489,7 @@ void f() {
   while (x) {}
 }
 ''',
-      [error(HintCode.deprecatedMemberUse, 49, 1)],
+      [error(diag.deprecatedMemberUse, 49, 1)],
     );
   }
 

@@ -94,9 +94,20 @@ class InlineExpander {
       }
     }
 
-    assert(arguments.positional[0] is StringLiteral,
-        "Code template must be a StringLiteral");
-    String codeTemplate = (arguments.positional[0] as StringLiteral).value;
+    Expression templateArgument = arguments.positional.first;
+    String codeTemplate;
+    if (templateArgument is StringLiteral) {
+      codeTemplate = templateArgument.value;
+    } else {
+      assert(templateArgument is ConstantExpression,
+          "Code template must be a StringLiteral or a ConstantExpression");
+      templateArgument as ConstantExpression;
+      Constant constant = templateArgument.constant;
+      assert(constant is StringConstant,
+          "Constant code template must be a StringConstant");
+      constant as StringConstant;
+      codeTemplate = constant.value;
+    }
     String jsMethodName = _methodCollector.generateMethodName();
     _inlineJSImportName = 'dart2wasm.$jsMethodName';
     _replaceProcedureWithInlineJS =

@@ -31,10 +31,16 @@ class Builtin {
     kIOLibrary,
     kHttpLibrary,
     kCLILibrary,
+    kVMLibrary,
   };
 
   // Setup native resolver method built in library specified in 'id'.
   static void SetNativeResolver(BuiltinLibraryId id);
+
+  // Try setup native resolver method built in library specified in 'id'.
+  //
+  // Returns an error if it occurs otherwise `null`.
+  static Dart_Handle TrySetNativeResolver(BuiltinLibraryId id);
 
   // Check if built in library specified in 'id' is already loaded, if not
   // load it.

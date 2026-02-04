@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -10,10 +11,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid shadowing type parameters.';
 
-class AvoidShadowingTypeParameters extends LintRule {
+class AvoidShadowingTypeParameters extends AnalysisRule {
   AvoidShadowingTypeParameters()
     : super(
         name: LintNames.avoid_shadowing_type_parameters,
@@ -21,8 +23,7 @@ class AvoidShadowingTypeParameters extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidShadowingTypeParameters;
+  DiagnosticCode get diagnosticCode => diag.avoidShadowingTypeParameters;
 
   @override
   void registerNodeProcessors(
@@ -40,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
@@ -84,15 +85,23 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     while (parent != null) {
       if (parent is ClassDeclaration) {
-        _checkForShadowing(typeParameters, parent.typeParameters, 'class');
+        _checkForShadowing(
+          typeParameters,
+          parent.namePart.typeParameters,
+          'class',
+        );
       } else if (parent is EnumDeclaration) {
-        _checkForShadowing(typeParameters, parent.typeParameters, 'enum');
+        _checkForShadowing(
+          typeParameters,
+          parent.namePart.typeParameters,
+          'enum',
+        );
       } else if (parent is ExtensionDeclaration) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'extension');
       } else if (parent is ExtensionTypeDeclaration) {
         _checkForShadowing(
           typeParameters,
-          parent.typeParameters,
+          parent.primaryConstructor.typeParameters,
           'extension type',
         );
       } else if (parent is MethodDeclaration) {

@@ -15,7 +15,13 @@ import 'tag.dart';
 ///
 /// A [BinaryPrinter] can be used to write one file and must then be
 /// discarded.
-class BinaryPrinter implements Visitor<void>, BinarySink {
+class BinaryPrinter
+    with
+        TreeVisitorExperimentExclusionMixin<void>,
+        DartTypeVisitorExperimentExclusionMixin<void>,
+        StatementVisitorExperimentExclusionMixin<void>,
+        ExpressionVisitorExperimentExclusionMixin<void>
+    implements Visitor<void>, BinarySink {
   final VariableIndexer Function() _newVariableIndexer;
   VariableIndexer? _variableIndexer;
   LabelIndexer? _labelIndexer;
@@ -1454,14 +1460,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitInvalidInitializer(InvalidInitializer node) {
     writeByte(Tag.InvalidInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
+    writeStringReference(node.message);
   }
 
   @override
   void visitFieldInitializer(FieldInitializer node) {
     writeByte(Tag.FieldInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeNonNullReference(node.fieldReference);
     writeNode(node.value);
   }
@@ -1469,8 +1476,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitSuperInitializer(SuperInitializer node) {
     writeByte(Tag.SuperInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeNonNullReference(node.targetReference);
     writeArgumentsNode(node.arguments);
   }
@@ -1478,7 +1485,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
     writeByte(Tag.RedirectingInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
     writeNonNullReference(node.targetReference);
     writeArgumentsNode(node.arguments);
@@ -1487,14 +1493,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitLocalInitializer(LocalInitializer node) {
     writeByte(Tag.LocalInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
     writeVariableDeclaration(node.variable);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
     writeByte(Tag.AssertInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
     writeNode(node.statement);
   }
 
@@ -1550,7 +1556,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitInvalidExpression(InvalidExpression node) {
     writeByte(Tag.InvalidExpression);
     writeOffset(node.fileOffset);
-    writeStringReference(node.message ?? '');
+    writeStringReference(node.message);
     writeOptionalNode(node.expression);
   }
 
@@ -1848,6 +1854,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeNonNullReference(node.targetReference);
     writeArgumentsNode(node.arguments);
+  }
+
+  @override
+  void visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) {
+    writeByte(Tag.RedirectingFactoryInvocation);
+    writeOffset(node.fileOffset);
+    writeNonNullReference(node.redirectingFactoryTargetReference);
+    writeNode(node.expression);
   }
 
   @override

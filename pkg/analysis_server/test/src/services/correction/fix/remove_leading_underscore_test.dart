@@ -48,7 +48,7 @@ void f() {
 class RemoveLeadingUnderscoreForLibraryPrefixesTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_LEADING_UNDERSCORE;
+  FixKind get kind => DartFixKind.removeLeadingUnderscore;
 
   @override
   String get lintCode => LintNames.no_leading_underscores_for_library_prefixes;
@@ -69,7 +69,7 @@ core.int i = 1;
 class RemoveLeadingUnderscoreForLocalVariablesTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_LEADING_UNDERSCORE;
+  FixKind get kind => DartFixKind.removeLeadingUnderscore;
 
   @override
   String get lintCode => LintNames.no_leading_underscores_for_local_identifiers;

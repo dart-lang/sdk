@@ -22,6 +22,7 @@ import 'dart:js_interop'
         JSStringToString,
         JSPromise,
         JSPromiseToFuture,
+        ListToJSArray,
         StringToJSString;
 import 'dart:_js_helper' show dartifyRaw, JSValue;
 import 'dart:_js_types';
@@ -201,6 +202,10 @@ external bool get hasDynamicModuleSupport;
 /// `--enable-multi-module-stress-test-mode`.
 external bool get deferredLoadingEnabled;
 
+/// Whether loading deferred modules is implemented via calling out to embedder
+/// with a load id (instead of a module name).
+external bool get deferredLoadingViaEmbedderLoadId;
+
 /// Compiler intrinsic to push an element to a Wasm array in a class field or
 /// variable.
 ///
@@ -234,3 +239,7 @@ abstract interface class IsolateGroup {
   static Object _runSync(Object computation) =>
       throw UnsupportedError("_runSync");
 }
+
+final List<Object> _toStringVisiting = [];
+@patch
+List<Object> get toStringVisiting => _toStringVisiting;

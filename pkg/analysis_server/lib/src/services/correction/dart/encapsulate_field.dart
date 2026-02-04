@@ -61,13 +61,13 @@ class EncapsulateField extends ResolvedCorrectionProducer {
     // Should be in a class or mixin.
     List<ClassMember> classMembers;
     InterfaceElement parentElement;
-    var parent = fieldDeclaration.parent;
+    var parent = fieldDeclaration.parent?.parent;
     switch (parent) {
       case ClassDeclaration():
-        classMembers = parent.members;
+        classMembers = parent.members2;
         parentElement = parent.declaredFragment!.element;
       case MixinDeclaration():
-        classMembers = parent.members;
+        classMembers = parent.body.members;
         parentElement = parent.declaredFragment!.element;
       default:
         return;

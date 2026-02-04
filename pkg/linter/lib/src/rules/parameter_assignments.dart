@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r"Don't reassign references to parameters of functions or methods.";
@@ -26,12 +28,12 @@ bool _isFormalParameterReassigned(
       leftHandSide.element == parameter.declaredFragment?.element;
 }
 
-class ParameterAssignments extends LintRule {
+class ParameterAssignments extends AnalysisRule {
   ParameterAssignments()
     : super(name: LintNames.parameter_assignments, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.parameterAssignments;
+  DiagnosticCode get diagnosticCode => diag.parameterAssignments;
 
   @override
   void registerNodeProcessors(
@@ -41,12 +43,14 @@ class ParameterAssignments extends LintRule {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
+    registry.addFunctionExpression(this, visitor);
+    registry.addConstructorDeclaration(this, visitor);
   }
 }
 
 class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   final FormalParameter parameter;
-  final LintRule rule;
+  final AnalysisRule rule;
   final bool paramIsNotNullByDefault;
   final bool paramDefaultsToNull;
   bool hasBeenAssigned = false;
@@ -91,17 +95,22 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
+    if (!_isFormalParameterReassigned(parameter, node)) return;
+
     if (paramIsNotNullByDefault) {
-      if (_isFormalParameterReassigned(parameter, node)) {
-        reportLint(node);
-      }
-    } else if (paramDefaultsToNull) {
-      if (_isFormalParameterReassigned(parameter, node)) {
+      reportLint(node);
+      return;
+    }
+
+    if (paramDefaultsToNull) {
+      if (node.operator.type.lexeme == '??=') {
         if (hasBeenAssigned) {
           reportLint(node);
         }
         hasBeenAssigned = true;
+      } else {
+        reportLint(node);
       }
     }
 
@@ -141,9 +150,14 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    _checkParameters(node.parameters, node.body);
+  }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
@@ -151,6 +165,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       node.functionExpression.parameters,
       node.functionExpression.body,
     );
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is! FunctionDeclaration) {
+      _checkParameters(node.parameters, node.body);
+    }
   }
 
   @override

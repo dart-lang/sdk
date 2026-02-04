@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -28,7 +29,7 @@ condition() {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 77, 3),
+        error(diag.argumentTypeNotAssignable, 77, 3),
       ],
     );
   }
@@ -497,7 +498,7 @@ bool f<T extends List<int>>(T list) =>
       r'''
 bool le3 = ([].indexOf(1) as int) > -1;
 ''',
-      [lint(11, 27), error(WarningCode.unnecessaryCast, 12, 20)],
+      [lint(11, 27), error(diag.unnecessaryCast, 12, 20)],
     );
   }
 

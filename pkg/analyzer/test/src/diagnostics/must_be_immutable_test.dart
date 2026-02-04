@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -30,7 +30,18 @@ class A {
   int x = 0;
 }
 ''',
-      [error(WarningCode.mustBeImmutable, 50, 1)],
+      [error(diag.mustBeImmutable, 50, 1)],
+    );
+  }
+
+  test_directAnnotation_declaredInPrimaryConstructor() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+@immutable
+class A(var int x);
+''',
+      [error(diag.mustBeImmutable, 50, 1)],
     );
   }
 
@@ -43,7 +54,7 @@ mixin A {
   int x = 0;
 }
 ''',
-      [error(WarningCode.mustBeImmutable, 50, 1)],
+      [error(diag.mustBeImmutable, 50, 1)],
     );
   }
 
@@ -57,7 +68,7 @@ class B extends A {
   int x = 0;
 }
 ''',
-      [error(WarningCode.mustBeImmutable, 61, 1)],
+      [error(diag.mustBeImmutable, 61, 1)],
     );
   }
 
@@ -82,7 +93,7 @@ mixin B {
 }
 class C extends A with B {}
 ''',
-      [error(WarningCode.mustBeImmutable, 86, 1)],
+      [error(diag.mustBeImmutable, 86, 1)],
     );
   }
 
@@ -97,7 +108,7 @@ mixin B {
 }
 class C = A with B;
 ''',
-      [error(WarningCode.mustBeImmutable, 86, 1)],
+      [error(diag.mustBeImmutable, 86, 1)],
     );
   }
 
@@ -112,7 +123,7 @@ mixin B {}
 @immutable
 class C = A with B;
 ''',
-      [error(WarningCode.mustBeImmutable, 86, 1)],
+      [error(diag.mustBeImmutable, 86, 1)],
     );
   }
 

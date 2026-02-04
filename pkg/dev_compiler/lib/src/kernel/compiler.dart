@@ -76,7 +76,12 @@ abstract class Compiler {
 }
 
 class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
-    with OnceConstantVisitorDefaultMixin<js_ast.Expression>
+    with
+        OnceConstantVisitorDefaultMixin<js_ast.Expression>,
+        StatementVisitorInternalNodeMixin<js_ast.Statement>,
+        StatementVisitorExperimentExclusionMixin<js_ast.Statement>,
+        ExpressionVisitorInternalNodeMixin<js_ast.Expression>,
+        ExpressionVisitorExperimentExclusionMixin<js_ast.Expression>
     implements
         StatementVisitor<js_ast.Statement>,
         ExpressionVisitor<js_ast.Expression>,
@@ -1533,13 +1538,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             _usesMixinNew(mixin.classNode)
                 ? _runtimeCall('mixinNew')
                 : _constructorName(''),
-            [if (mixinRti != null) mixinRti],
+            [?mixinRti],
           ]);
         }
 
         var name = ctor.name.text;
         var ctorBody = [
-          if (mixinCtor != null) mixinCtor,
+          ?mixinCtor,
           if (name != '' || hasUnnamedSuper)
             _emitSuperConstructorCall(
               ctor,
@@ -2274,10 +2279,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var initializer = js.statement('#.#.call(this, #);', [
           className,
           _constructorName(init.target.name.text),
-          [
-            if (rtiParam != null) rtiParam,
-            ..._emitArgumentList(init.arguments, types: false),
-          ],
+          [?rtiParam, ..._emitArgumentList(init.arguments, types: false)],
         ]);
         jsInitializers.add(initializer);
       }
@@ -2306,10 +2308,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var rti = _requiresRtiForInstantiation(ctor.enclosingClass)
           ? js_ast.LiteralNull()
           : null;
-      args = [
-        if (rti != null) rti,
-        ..._emitArgumentList(superInit.arguments, types: true),
-      ];
+      args = [?rti, ..._emitArgumentList(superInit.arguments, types: true)];
 
       _currentTypeEnvironment = savedTypeEnvironment;
     }
@@ -2376,12 +2375,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           : _getSymbol(virtualField);
       var jsInit = _visitInitializer(initializer, f.annotations);
       body.add(
-        jsInit
-            .toAssignExpression(
-              js.call('this.#', [access])
-                ..sourceInformation = _nodeStart(hoverInfo),
-            )
-            .toStatement(),
+        jsInit.toAssignExpression(js.call('this.#', [access])).toStatement()
+          ..sourceInformation = _nodeStart(hoverInfo),
       );
     }
 
@@ -7439,7 +7434,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           )
         : null;
     var result = js_ast.New(_emitConstructorName(node.constructedType, ctor), [
-      if (rti != null) rti,
+      ?rti,
       ..._emitArgumentList(args, types: false, target: ctor),
     ]);
     return node.isConst ? _canonicalizeConstObject(result) : result;
@@ -7508,7 +7503,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ? _emitType(type, emitJSInteropGenericClassTypeParametersAsAny: false)
         : null;
     var result = js_ast.Call(_emitConstructorName(type, ctor), [
-      if (rti != null) rti,
+      ?rti,
       ..._emitArgumentList(args, types: false),
     ]);
     return node.isConst ? _canonicalizeConstObject(result) : result;
@@ -7680,36 +7675,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     if (parts.isEmpty) return js.string('');
     return js_ast.Expression.binary(parts, '+');
-  }
-
-  @override
-  js_ast.Expression visitListConcatenation(ListConcatenation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('List concatenation');
-  }
-
-  @override
-  js_ast.Expression visitSetConcatenation(SetConcatenation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('Set concatenation');
-  }
-
-  @override
-  js_ast.Expression visitMapConcatenation(MapConcatenation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('Map concatenation');
-  }
-
-  @override
-  js_ast.Expression visitInstanceCreation(InstanceCreation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('Instance creation');
-  }
-
-  @override
-  js_ast.Expression visitFileUriExpression(FileUriExpression node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('File URI expression');
   }
 
   @override
@@ -8542,43 +8507,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js_ast.Comment('Experiments: ${enabledExperiments.join(', ')}'),
     ];
     return header;
-  }
-
-  @override
-  js_ast.Statement visitIfCaseStatement(IfCaseStatement node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitIfCaseStatement');
-  }
-
-  @override
-  js_ast.Expression visitPatternAssignment(PatternAssignment node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitPatternAssignment');
-  }
-
-  @override
-  js_ast.Statement visitPatternSwitchStatement(PatternSwitchStatement node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitPatternSwitchStatement');
-  }
-
-  @override
-  js_ast.Statement visitPatternVariableDeclaration(
-    PatternVariableDeclaration node,
-  ) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitPatternVariableDeclaration');
-  }
-
-  @override
-  js_ast.Expression visitSwitchExpression(SwitchExpression node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitSwitchExpression');
   }
 
   @override

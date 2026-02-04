@@ -5,8 +5,12 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show ExperimentalFeatures, DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
+import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart'
+    show DeclarationKind;
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
@@ -18,7 +22,8 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 import 'package:kernel/ast.dart' show Version;
 
-import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+import '../api_prototype/experimental_flags.dart'
+    show ExperimentalFeaturesFromVersion;
 import '../base/messages.dart' show Message;
 import '../codes/cfe_codes.dart' show codeNativeClauseShouldBeAnnotation;
 
@@ -454,8 +459,7 @@ String? textualOutline(
   bool throwOnUnexpected = false,
   bool performModelling = false,
   bool returnNullOnError = true,
-  required bool enablePatterns,
-  required bool enableEnhancedParts,
+  required ExperimentalFeatures experimentalFeatures,
   TextualOutlineInfoForTesting? infoForTesting,
 }) {
   List<_Chunk> parsedChunks = <_Chunk>[];
@@ -472,13 +476,9 @@ String? textualOutline(
             languageVersionToken.major,
             languageVersionToken.minor,
           );
-          if (ExperimentalFlag.patterns.enabledVersion >= languageVersion) {
-            enablePatterns = true;
-          }
-          if (ExperimentalFlag.enhancedParts.enabledVersion >=
-              languageVersion) {
-            enableEnhancedParts = true;
-          }
+          experimentalFeatures = new ExperimentalFeaturesFromVersion(
+            languageVersion,
+          );
           parsedChunks.add(
             new _LanguageVersionChunk(
               languageVersionToken.major,
@@ -494,8 +494,7 @@ String? textualOutline(
   TextualOutlineListener listener = new TextualOutlineListener();
   ClassMemberParser classMemberParser = new ClassMemberParser(
     listener,
-    allowPatterns: enablePatterns,
-    enableFeatureEnhancedParts: enableEnhancedParts,
+    experimentalFeatures: experimentalFeatures,
   );
   classMemberParser.parseUnit(firstToken);
   // Coverage-ignore(suite): Not run.
@@ -771,8 +770,7 @@ void main(List<String> args) {
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    enablePatterns: true,
-    enableEnhancedParts: true,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
   )!;
   if (args.length > 1 && args[1] == "--overwrite") {
     f.writeAsStringSync(outline);
@@ -785,8 +783,7 @@ void main(List<String> args) {
         scannerConfiguration,
         throwOnUnexpected: true,
         performModelling: true,
-        enablePatterns: true,
-        enableEnhancedParts: true,
+        experimentalFeatures: const DefaultExperimentalFeatures(),
       );
       if (outline2 != outline) throw "Not the same result every time";
     }
@@ -803,8 +800,7 @@ void main(List<String> args) {
         scannerConfiguration,
         throwOnUnexpected: true,
         performModelling: true,
-        enablePatterns: true,
-        enableEnhancedParts: true,
+        experimentalFeatures: const DefaultExperimentalFeatures(),
       );
       if (outline2 != outline) throw "Not the same result every time";
     }
@@ -833,7 +829,23 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endClassMethod(
+  void endConstructor(
+    DeclarationKind kind,
+    Token beginToken,
+    Token? newToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endMethod(
+    DeclarationKind kind,
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
@@ -855,7 +867,8 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endClassFactoryMethod(
+  void endFactory(
+    DeclarationKind kind,
     Token beginToken,
     Token factoryKeyword,
     Token endToken,
@@ -872,7 +885,8 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endClassFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,
@@ -922,7 +936,7 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,

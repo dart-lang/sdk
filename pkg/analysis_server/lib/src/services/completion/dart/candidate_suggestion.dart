@@ -388,13 +388,27 @@ final class FormalParameterSuggestion extends CandidateSuggestion
 
 /// The information about a candidate suggestion based on the method `call`
 /// defined on the class `Function`.
-final class FunctionCall extends CandidateSuggestion {
-  /// Initialize a newly created candidate suggestion to suggest the method
-  /// `call` defined on the class `Function`.
-  FunctionCall({required super.matcherScore});
+final class FunctionCall extends TypedExecutableSuggestion {
+  final ExecutableElement? element;
 
   @override
-  String get completion => 'call()';
+  final FunctionType type;
+
+  /// Initialize a newly created candidate suggestion to suggest the method
+  /// `call` defined on the class `Function`.
+  FunctionCall({
+    required super.matcherScore,
+    required this.type,
+    required super.replacementRange,
+    required super.importData,
+    required super.kind,
+    required this.element,
+    super.addTypeAnnotation,
+    super.keyword,
+  });
+
+  @override
+  String get baseCompletion => 'call';
 }
 
 /// The information about a candidate suggestion based on a getter.
@@ -433,7 +447,7 @@ final class GetterSuggestion extends TypedImportableSuggestion
   }
 
   @override
-  FunctionType get type => element.type;
+  DartType get type => element.type.returnType;
 
   /// Return the name of the enclosing class or extension.
   ///
@@ -719,7 +733,8 @@ mixin MemberSuggestion implements ElementBasedSuggestion {
 
 /// The information about a candidate suggestion based on a method.
 final class MethodSuggestion extends TypedExecutableSuggestion
-    with MemberSuggestion {
+    with MemberSuggestion
+    implements ElementBasedSuggestion {
   @override
   final MethodElement element;
 
@@ -973,7 +988,8 @@ sealed class ReplacementSuggestion extends CandidateSuggestion {
 
 /// The information about a candidate suggestion for Flutter's `setState` method.
 final class SetStateMethodSuggestion extends TypedExecutableSuggestion
-    with MemberSuggestion, SuggestionData {
+    with MemberSuggestion, SuggestionData
+    implements ElementBasedSuggestion {
   @override
   final MethodElement element;
 
@@ -1526,8 +1542,6 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           distance: suggestion.distance,
           relevance: relevance,
         );
-      case FunctionCall():
-        suggestFunctionCall();
       case IdentifierSuggestion():
         suggestName(
           suggestion.completion,

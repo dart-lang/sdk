@@ -342,15 +342,15 @@ class Search {
     var elements = <Element>[];
 
     void addElement(Element element) {
-      if (!element.isSynthetic && element.displayName == name) {
+      if (element.displayName == name) {
         elements.add(element);
       }
     }
 
     void addElements(InterfaceElement element) {
-      element.getters.forEach(addElement);
-      element.setters.forEach(addElement);
-      element.fields.forEach(addElement);
+      element.getters.where((e) => e.isOriginDeclaration).forEach(addElement);
+      element.setters.where((e) => e.isOriginDeclaration).forEach(addElement);
+      element.fields.where((e) => e.isOriginDeclaration).forEach(addElement);
       element.methods.forEach(addElement);
     }
 
@@ -451,8 +451,8 @@ class Search {
   Future<List<LibraryFragmentSearchMatch>> referencesLibraryFragment(
     LibraryFragment libraryFragment,
   ) async {
-    var legacyElement = libraryFragment as LibraryFragmentImpl;
-    var legacyResults = await _searchReferences_CompilationUnit(legacyElement);
+    var legacyFragment = libraryFragment as LibraryFragmentImpl;
+    var legacyResults = await _searchReferences_CompilationUnit(legacyFragment);
 
     return legacyResults.map((match) {
       return LibraryFragmentSearchMatch(
@@ -552,7 +552,7 @@ class Search {
     var elements = <Element>[];
 
     void addElement(Element element) {
-      if (!element.isSynthetic && regExp.hasMatch(element.displayName)) {
+      if (regExp.hasMatch(element.displayName)) {
         elements.add(element);
       }
     }
@@ -562,15 +562,17 @@ class Search {
       var libraryResult = await _driver.getLibraryByUri(file.uriStr);
       if (libraryResult is LibraryElementResult) {
         var element = libraryResult.element;
-        element.getters.forEach(addElement);
+        element.getters.where((e) => e.isOriginDeclaration).forEach(addElement);
         element.classes.forEach(addElement);
         element.enums.forEach(addElement);
         element.extensions.forEach(addElement);
         element.extensionTypes.forEach(addElement);
         element.topLevelFunctions.forEach(addElement);
         element.mixins.forEach(addElement);
-        element.setters.forEach(addElement);
-        element.topLevelVariables.forEach(addElement);
+        element.setters.where((e) => e.isOriginDeclaration).forEach(addElement);
+        element.topLevelVariables
+            .where((e) => e.isOriginDeclaration)
+            .forEach(addElement);
         element.typeAliases.forEach(addElement);
       }
     }
@@ -730,9 +732,9 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_CompilationUnit(
-    LibraryFragmentImpl element,
+    LibraryFragmentImpl fragment,
   ) async {
-    String path = element.source.fullName;
+    String path = fragment.source.fullName;
 
     var file = _driver.resourceProvider.getFile(path);
     var fileState = _driver.fsState.getExisting(file);
@@ -747,7 +749,7 @@ class Search {
     for (var reference in fileState.referencingFiles) {
       var index = await _driver.getIndex(reference.path);
       if (index != null) {
-        var targetId = index.getLibraryFragmentId(element);
+        var targetId = index.getLibraryFragmentId(fragment);
         for (var i = 0; i < index.libFragmentRefTargets.length; i++) {
           if (index.libFragmentRefTargets[i] == targetId) {
             var refUnit = await _getUnitElement(reference.path);
@@ -795,15 +797,19 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     var getter = field.getter;
     var setter = field.setter;
-    if (!field.isSynthetic) {
+    if (field.isOriginDeclaration) {
       await _addResults(results, field, searchedFiles, const {
         IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+        IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
+            SearchResultKind.REFERENCE_IN_PATTERN_FIELD,
       });
     }
     if (getter != null) {
       await _addResults(results, getter, searchedFiles, const {
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.READ,
+        IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
+            SearchResultKind.REFERENCE_IN_PATTERN_FIELD,
         IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
       });
     }
@@ -821,6 +827,8 @@ class Search {
   ) async {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element.baseElement, searchedFiles, const {
+      IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
+          SearchResultKind.REFERENCE,
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
     });
@@ -834,6 +842,8 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, getter, searchedFiles, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+      IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
+          SearchResultKind.REFERENCE_IN_PATTERN_FIELD,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
     });
     return results;
@@ -850,11 +860,11 @@ class Search {
 
     List<SearchResult> results = <SearchResult>[];
     LibraryElementImpl libraryElement = element.libraryFragment.element;
-    for (var unitElement in libraryElement.fragments) {
-      String unitPath = unitElement.source.fullName;
+    for (var libraryFragment in libraryElement.fragments) {
+      String unitPath = libraryFragment.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
-        var visitor = ImportElementReferencesVisitor(element, unitElement);
+        var visitor = ImportElementReferencesVisitor(element, libraryFragment);
         unitResult.unit.accept(visitor);
         results.addAll(visitor.results);
       }
@@ -872,8 +882,8 @@ class Search {
     }
 
     List<SearchResult> results = <SearchResult>[];
-    for (var unitElement in element.fragments) {
-      String unitPath = unitElement.source.fullName;
+    for (var libraryFragment in element.fragments) {
+      String unitPath = libraryFragment.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResultImpl) {
         var unit = unitResult.unit;
@@ -983,7 +993,10 @@ class Search {
 
     // Prepare the root node for search.
     var rootNode = bindElement.node.thisOrAncestorMatching(
-      (node) => node is SwitchExpression || node is Block,
+      (node) =>
+          node is SwitchExpression ||
+          node is Block ||
+          node is ExpressionFunctionBody,
     );
     if (rootNode == null) {
       return const <SearchResult>[];
@@ -1009,11 +1022,11 @@ class Search {
 
     List<SearchResult> results = <SearchResult>[];
     var libraryElement = element.library;
-    for (var unitElement in libraryElement.fragments) {
-      String unitPath = unitElement.source.fullName;
+    for (var libraryFragment in libraryElement.fragments) {
+      String unitPath = libraryFragment.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
-        var visitor = _LocalReferencesVisitor({element}, unitElement);
+        var visitor = _LocalReferencesVisitor({element}, libraryFragment);
         unitResult.unit.accept(visitor);
         results.addAll(visitor.results);
       }
@@ -1121,6 +1134,7 @@ enum SearchResultKind {
   DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION,
   DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF,
   REFERENCE,
+  REFERENCE_IN_PATTERN_FIELD,
   REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
   REFERENCE_IN_EXTENDS_CLAUSE,
   REFERENCE_IN_WITH_CLAUSE,
@@ -1305,7 +1319,7 @@ class _FindLibraryDeclarations {
   void _addConstructors(List<ConstructorElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.name!);
       }
     }
@@ -1405,7 +1419,7 @@ class _FindLibraryDeclarations {
   void _addFields(List<FieldElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.name!);
       }
     }
@@ -1421,7 +1435,7 @@ class _FindLibraryDeclarations {
   void _addGetters(List<GetterElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.displayName);
       }
     }
@@ -1437,7 +1451,7 @@ class _FindLibraryDeclarations {
   void _addSetters(List<SetterElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.displayName);
       }
     }
@@ -1453,7 +1467,7 @@ class _FindLibraryDeclarations {
   void _addVariables(List<TopLevelVariableElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.name!);
       }
     }
@@ -1557,13 +1571,13 @@ class _IndexRequest {
   /// Return a list of results where an element with the given [elementId] has
   /// a relation with the kind from [relationToResultKind].
   ///
-  /// The function [getEnclosingUnitElement] is used to lazily compute the
+  /// The function [getEnclosingLibraryFragment] is used to lazily compute the
   /// enclosing [LibraryFragmentImpl] if there is a relation of an
   /// interesting kind.
   Future<List<SearchResult>> getRelations(
     int elementId,
     Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-    Future<LibraryFragmentImpl?> Function() getEnclosingUnitElement,
+    Future<LibraryFragmentImpl?> Function() getEnclosingLibraryFragment,
   ) async {
     // Find the first usage of the element.
     int i = _findFirstOccurrence(index.usedElements, elementId);
@@ -1572,7 +1586,7 @@ class _IndexRequest {
     }
     // Create locations for every usage of the element.
     List<SearchResult> results = <SearchResult>[];
-    LibraryFragmentImpl? enclosingUnitElement;
+    LibraryFragmentImpl? enclosingLibraryFragment;
     for (
       ;
       i < index.usedElements.length && index.usedElements[i] == elementId;
@@ -1582,10 +1596,10 @@ class _IndexRequest {
       SearchResultKind? resultKind = relationToResultKind[relationKind];
       if (resultKind != null) {
         int offset = index.usedElementOffsets[i];
-        enclosingUnitElement ??= await getEnclosingUnitElement();
-        if (enclosingUnitElement != null) {
+        enclosingLibraryFragment ??= await getEnclosingLibraryFragment();
+        if (enclosingLibraryFragment != null) {
           var enclosingFragment = _getEnclosingFragment(
-            enclosingUnitElement,
+            enclosingLibraryFragment,
             offset,
           );
           results.add(
@@ -1607,8 +1621,8 @@ class _IndexRequest {
   /// Return the identifier of the [LibraryFragmentImpl] containing the
   /// [element] in the [index] or `-1` if not found.
   int getUnitId(Element element) {
-    var unitElement = getUnitElement(element);
-    return index.getLibraryFragmentId(unitElement);
+    var libraryFragment = getUnitElement(element);
+    return index.getLibraryFragmentId(libraryFragment);
   }
 
   /// Return a list of results where a class members with the given [name] is
@@ -1616,7 +1630,7 @@ class _IndexRequest {
   Future<List<SearchResult>> getUnresolvedMemberReferences(
     String name,
     Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-    Future<LibraryFragmentImpl?> Function() getEnclosingUnitElement,
+    Future<LibraryFragmentImpl?> Function() getEnclosingLibraryFragment,
   ) async {
     // Find the name identifier.
     int nameId = index.getStringId(name);
@@ -1632,16 +1646,16 @@ class _IndexRequest {
 
     // Create results for every usage of the name.
     List<SearchResult> results = <SearchResult>[];
-    LibraryFragmentImpl? enclosingUnitElement;
+    LibraryFragmentImpl? enclosingLibraryFragment;
     for (; i < index.usedNames.length && index.usedNames[i] == nameId; i++) {
       IndexRelationKind relationKind = index.usedNameKinds[i];
       SearchResultKind? resultKind = relationToResultKind[relationKind];
       if (resultKind != null) {
         int offset = index.usedNameOffsets[i];
-        enclosingUnitElement ??= await getEnclosingUnitElement();
-        if (enclosingUnitElement != null) {
+        enclosingLibraryFragment ??= await getEnclosingLibraryFragment();
+        if (enclosingLibraryFragment != null) {
           var enclosingFragment = _getEnclosingFragment(
-            enclosingUnitElement,
+            enclosingLibraryFragment,
             offset,
           );
           results.add(

@@ -41,13 +41,10 @@ List<Element> getChildren(Element parent, [String? name]) {
 /// Returns direct non-synthetic children of the given [InterfaceElement].
 ///
 /// Includes: fields, accessors and methods.
-/// Excludes: constructors and synthetic elements.
+/// Excludes: constructors.
 List<Element> getClassMembers(InterfaceElement clazz, [String? name]) {
   var members = <Element>[];
   visitChildren(clazz, (Element element) {
-    if (element.isSynthetic) {
-      return false;
-    }
     if (element is ConstructorElement) {
       return false;
     }
@@ -81,23 +78,14 @@ Future<Set<InterfaceElement>> getDirectSubClasses(
 /// Return the non-synthetic children of the given [extension]. This includes
 /// fields, accessors and methods, but excludes synthetic elements.
 List<Element> getExtensionMembers(ExtensionElement extension, [String? name]) {
-  var members = <Element>[];
-  visitChildren(extension, (element) {
-    if (element.isSynthetic) {
-      return false;
-    }
-    if (name != null && element.displayName != name) {
-      return false;
-    }
-    if (element is ExecutableElement) {
-      members.add(element);
-    }
-    if (element is FieldElement) {
-      members.add(element);
-    }
-    return false;
-  });
-  return members;
+  return [
+    ...extension.fields.where((e) => e.isOriginDeclaration),
+    ...extension.getters.where((e) => e.isOriginDeclaration),
+    ...extension.setters.where((e) => e.isOriginDeclaration),
+    ...extension.methods,
+  ].where((element) {
+    return name == null || element.displayName == name;
+  }).toList();
 }
 
 /// Returns all implementations of the given [member], including in its
@@ -177,8 +165,6 @@ getHierarchyMembersAndParameters(
       var subClassMembers = getChildren(subClass, name);
       for (var member in subClassMembers) {
         switch (member) {
-          case ConstructorElement():
-            members.add(member);
           case FieldElement():
             members.add(member);
           case MethodElement():
@@ -267,7 +253,7 @@ Future<List<FormalParameterElement>> getHierarchyPositionalParameters(
 ///
 /// Includes: fields, accessors and methods.
 ///
-/// Excludes: constructors and synthetic elements.
+/// Excludes: constructors.
 List<Element> getMembers(InterfaceElement clazz) {
   var classElements = [...clazz.allSupertypes.map((e) => e.element), clazz];
   var members = <Element>[];
@@ -281,7 +267,7 @@ List<Element> getMembers(InterfaceElement clazz) {
 /// its variable, otherwise returns [element].
 Element getSyntheticAccessorVariable(Element element) {
   if (element is PropertyAccessorElement) {
-    if (element.isSynthetic) {
+    if (element.isOriginVariable) {
       return element.variable;
     }
   }

@@ -34,7 +34,10 @@ String? checkAllYaml() {
     return "Error: '$allYamlPath' does not have a 'linter' section.";
   }
 
-  var configuredRules = (linterSection['rules'] as YamlList?)?.cast<String>();
+  var configuredRules = (linterSection['rules'] as YamlList?)
+      ?.cast<String>()
+      .map((s) => s.toLowerCase())
+      .toList();
   if (configuredRules == null) {
     return "Error: '$allYamlPath' does not have a 'rules' section.";
   }
@@ -55,7 +58,7 @@ String? checkAllYaml() {
         (r) =>
             !r.state.isDeprecated && !r.state.isInternal && !r.state.isRemoved,
       )
-      .map((r) => r.name);
+      .map((r) => r.name.toLowerCase());
 
   var extraRules = <String>[];
   var missingRules = <String>[];

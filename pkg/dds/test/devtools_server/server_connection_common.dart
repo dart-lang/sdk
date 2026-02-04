@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:devtools_shared/devtools_test_utils.dart';
 import 'package:test/test.dart';
 
@@ -83,19 +85,35 @@ void runTest({required bool useVmService}) {
       final devToolsUri =
           'http://${event['params']['host']}:${event['params']['port']}';
       final chrome = await Chrome.locate()!.start(url: devToolsUri);
+      final stdoutSub =
+          chrome.process.stdout.transform(utf8.decoder).listen((e) {
+        print('[CHROME STDOUT]: $e');
+      });
+      final stderrSub =
+          chrome.process.stderr.transform(utf8.decoder).listen((e) {
+        print('[CHROME STDERR]: $e');
+      });
 
       // Wait for DevTools to inform server that it's connected.
+      print('Waiting for clients...');
       await testController.waitForClients();
 
       // Close the browser, which will disconnect DevTools SSE connection
       // back to the server.
+      print('Killing Chrome...');
       chrome.kill();
+      await chrome.onExit;
+      await Future.wait([stdoutSub.cancel(), stderrSub.cancel()]);
 
       // Await a long delay to wait for the SSE client to close.
+      print('Delaying to wait for SSE connection to cleanup...');
       await delay(duration: const Duration(seconds: 15));
 
       // Ensure the client is completely removed from the list.
+      print('Expecting no clients...');
       await testController.waitForClients(expectNone: true);
+
+      print('Done!');
     }, timeout: const Timeout.factor(20));
   });
 }

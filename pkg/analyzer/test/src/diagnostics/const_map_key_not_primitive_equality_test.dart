@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -40,7 +40,7 @@ main() {
   const {const A() : 0};
 }
 ''',
-      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 75, 9)],
+      [error(diag.constMapKeyNotPrimitiveEquality, 75, 9)],
     );
   }
 
@@ -51,7 +51,7 @@ main() {
   const {double.infinity: 0};
 }
 ''',
-      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 18, 15)],
+      [error(diag.constMapKeyNotPrimitiveEquality, 18, 15)],
     );
   }
 
@@ -74,7 +74,7 @@ main() {
   const {B.a : 0};
 }
 ''',
-      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 118, 3)],
+      [error(diag.constMapKeyNotPrimitiveEquality, 118, 3)],
     );
   }
 
@@ -94,7 +94,7 @@ main() {
   const {const A(): 42};
 }
 ''',
-      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 121, 9)],
+      [error(diag.constMapKeyNotPrimitiveEquality, 121, 9)],
     );
   }
 
@@ -115,7 +115,7 @@ main() {
   const B({A(): 0});
 }
 ''',
-      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 110, 3)],
+      [error(diag.constMapKeyNotPrimitiveEquality, 110, 3)],
     );
   }
 
@@ -131,7 +131,7 @@ const x = {
   (a: 0, b: const A()): 0,
 };
 ''',
-      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 71, 20)],
+      [error(diag.constMapKeyNotPrimitiveEquality, 71, 20)],
     );
   }
 
@@ -147,7 +147,7 @@ const x = {
   (0, const A()): 0,
 };
 ''',
-      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 71, 14)],
+      [error(diag.constMapKeyNotPrimitiveEquality, 71, 14)],
     );
   }
 
@@ -167,7 +167,7 @@ main() {
   const {const B() : 0};
 }
 ''',
-      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 111, 9)],
+      [error(diag.constMapKeyNotPrimitiveEquality, 111, 9)],
     );
   }
 
@@ -181,7 +181,7 @@ class A {
   int get hashCode => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 11, 3)],
+      [error(diag.constMapKeyNotPrimitiveEquality, 11, 3)],
     );
   }
 

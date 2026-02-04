@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object /*hasConstConstructor*/  {
-  const constructor •({dynamic x = const self::B::•<dynamic>()}) → self::C
+  const constructor •({dynamic x = /*original=self::A::foo*/ const self::B::•<dynamic>()}) → self::C
     : super core::Object::•()
     ;
 }
@@ -16,7 +16,7 @@ abstract class A extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory foo() → self::A /* redirection-target: self::B::•<dynamic>*/
+  static const factory foo() → self::A /* redirection-target: self::B::•<dynamic>*/
     return new self::B::•<dynamic>();
 }
 static method main() → dynamic
@@ -24,5 +24,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue45003_2.dart:6:30 -> InstanceConstant(const B<dynamic>{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue45003_2.dart:6:30 -> InstanceConstant(const B<dynamic>{})
 Extra constant evaluation: evaluated: 2, effectively constant: 1

@@ -11,9 +11,11 @@ import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:http/src/response.dart' as http;
@@ -94,13 +96,13 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.session(),
       _ExpectedEvent.severityAdjustment(
         eventData: {
-          'diagnostic': 'AVOID_DYNAMIC_CALLS',
+          'diagnostic': 'avoid_dynamic_calls',
           'adjustments': '{"ERROR":1}',
         },
       ),
       _ExpectedEvent.severityAdjustment(
         eventData: {
-          'diagnostic': 'AWAIT_ONLY_FUTURES',
+          'diagnostic': 'await_only_futures',
           'adjustments': '{"ignore":1}',
         },
       ),
@@ -124,6 +126,45 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       ),
     ]);
     PluginManager.pluginResponseTimes.clear();
+  }
+
+  Future<void> test_server_contextStructure() async {
+    _defaultStartup();
+
+    // Record a brief working period.
+    manager.analysisComplete(
+      immediateFileCount: 1,
+      immediateFileLineCount: 1,
+      transitiveFileCount: 3,
+      transitiveFileLineCount: 20,
+      transitiveFileUniqueCount: 2,
+      transitiveFileUniqueLineCount: 15,
+      libraryCycleLibraryCounts: [],
+      libraryCycleLineCounts: [],
+      numberOfContexts: 3,
+      contextWorkspaceType: [0, 1, 2],
+      numberOfPackagesInWorkspace: [1, 3, 4],
+    );
+
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.contextStructure(
+        eventData: {
+          'immediateFileCount': 1,
+          'immediateFileLineCount': 1,
+          'transitiveFileCount': 3,
+          'transitiveFileLineCount': 20,
+          'transitiveFileUniqueCount': 2,
+          'transitiveFileUniqueLineCount': 15,
+          'libraryCycleLibraryCounts': _IsPercentiles(),
+          'libraryCycleLineCounts': _IsPercentiles(),
+          'numberOfContexts': 3,
+          'contextWorkspaceType': '[0, 1, 2]',
+          'numberOfPackagesInWorkspace': _IsPercentiles(),
+        },
+      ),
+    ]);
   }
 
   Future<void> test_server_notification() async {
@@ -154,9 +195,17 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     _defaultStartup();
 
     // Record a brief working period.
-    manager.analysisStatusChanged(true);
+    manager.analysisStatusChanged(isWorking: true, statistics: null);
     await Future<void>.delayed(const Duration(milliseconds: 2));
-    manager.analysisStatusChanged(false);
+    manager.analysisStatusChanged(
+      isWorking: false,
+      statistics: AnalysisStatusWorkingStatistics(
+        withFineDependencies: true,
+        changedFiles: {},
+        removedFiles: {},
+        fileCounts: FileCountsStatistics(),
+      ),
+    );
 
     await manager.shutdown();
     analytics.assertEvents([
@@ -206,7 +255,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     var params = AnalysisSetAnalysisRootsParams(['a', 'b', 'c'], ['d', 'e']);
     var request = Request(
       '1',
-      ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+      analysisRequestSetAnalysisRoots,
       params.toJson(clientUriConverter: null),
     );
     manager.startedRequest(request: request, startTime: _now());
@@ -218,11 +267,11 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.request(
         eventData: {
           'latency': _IsPercentiles(),
-          'method': ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+          'method': analysisRequestSetAnalysisRoots,
           'duration': _IsPercentiles(),
-          ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED:
+          analysisRequestSetAnalysisRootsIncluded:
               '{"count":1,"percentiles":[3,3,3,3,3]}',
-          ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED:
+          analysisRequestSetAnalysisRootsExcluded:
               '{"count":1,"percentiles":[2,2,2,2,2]}',
         },
       ),
@@ -234,7 +283,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     var params = AnalysisSetPriorityFilesParams(['a']);
     var request = Request(
       '1',
-      ANALYSIS_REQUEST_SET_PRIORITY_FILES,
+      analysisRequestSetPriorityFiles,
       params.toJson(clientUriConverter: null),
     );
     manager.startedRequest(request: request, startTime: _now());
@@ -246,9 +295,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.request(
         eventData: {
           'latency': _IsPercentiles(),
-          'method': ANALYSIS_REQUEST_SET_PRIORITY_FILES,
+          'method': analysisRequestSetPriorityFiles,
           'duration': _IsPercentiles(),
-          ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES:
+          analysisRequestSetPriorityFilesFiles:
               '{"count":1,"percentiles":[1,1,1,1,1]}',
         },
       ),
@@ -267,7 +316,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     );
     var request = Request(
       '1',
-      EDIT_REQUEST_GET_REFACTORING,
+      editRequestGetRefactoring,
       params.toJson(clientUriConverter: null),
     );
     manager.startedRequest(request: request, startTime: _now());
@@ -279,9 +328,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.request(
         eventData: {
           'latency': _IsPercentiles(),
-          'method': EDIT_REQUEST_GET_REFACTORING,
+          'method': editRequestGetRefactoring,
           'duration': _IsPercentiles(),
-          EDIT_REQUEST_GET_REFACTORING_KIND: '{"RENAME":1}',
+          editRequestGetRefactoringKind: '{"RENAME":1}',
         },
       ),
     ]);
@@ -340,7 +389,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_server_request_noAdditional() async {
     _defaultStartup();
     manager.startedRequest(
-      request: Request('1', SERVER_REQUEST_SHUTDOWN),
+      request: Request('1', serverRequestShutdown),
       startTime: _now(),
     );
     manager.sentResponse(response: Response('1'));
@@ -350,7 +399,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.request(
         eventData: {
           'latency': _IsPercentiles(),
-          'method': SERVER_REQUEST_SHUTDOWN,
+          'method': serverRequestShutdown,
           'duration': _IsPercentiles(),
         },
       ),
@@ -415,7 +464,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
   Future<void> test_startup_withPlugins() async {
     _defaultStartup();
-    manager.changedPlugins(
+    await manager.changedPlugins(
       _MockPluginManager(
         pluginIsolates: [_pluginIsolate('a'), _pluginIsolate('b')],
       ),
@@ -522,6 +571,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     '/some/packages/path',
     TestNotificationManager(),
     InstrumentationService.NULL_SERVICE,
+    SessionLogger(),
     isLegacy: true,
   );
 }
@@ -538,6 +588,9 @@ class _ExpectedEvent {
 
   _ExpectedEvent.commandExecuted({Map<String, Object?>? eventData})
     : this(DashEvent.commandExecuted, eventData);
+
+  _ExpectedEvent.contextStructure({Map<String, Object?>? eventData})
+    : this(DashEvent.contextStructure, eventData);
 
   _ExpectedEvent.lintUsageCount({Map<String, Object?>? eventData})
     : this(DashEvent.lintUsageCount, eventData);
@@ -708,6 +761,17 @@ class _MockPluginManager implements PluginManager {
   List<PluginIsolate> pluginIsolates;
 
   _MockPluginManager({this.pluginIsolates = const []});
+
+  @override
+  Set<String> get contextRootsWithNoPlugins => {};
+
+  @override
+  List<PluginIsolate> get legacyPluginIsolates =>
+      pluginIsolates.where((i) => i.isLegacy).toList();
+
+  @override
+  List<PluginIsolate> get newPluginIsolates =>
+      pluginIsolates.where((i) => !i.isLegacy).toList();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

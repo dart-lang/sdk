@@ -110,15 +110,6 @@ abstract class FieldDeclaration {
   /// The [DartType] of this field declaration.
   abstract DartType fieldType;
 
-  /// Creates the [Initializer] for the invalid initialization of this field.
-  ///
-  /// This is only used for instance fields.
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  });
-
   /// Creates the AST node for this field as the default initializer.
   ///
   /// This is only used for instance fields.
@@ -293,19 +284,6 @@ class RegularFieldDeclaration
   }
 
   @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    return _encoding.buildErroneousInitializer(
-      effect,
-      value,
-      fileOffset: fileOffset,
-    );
-  }
-
-  @override
   void buildFieldInitializer({
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
@@ -431,6 +409,7 @@ class RegularFieldDeclaration
         libraryBuilder.importUri,
         fileUri,
         scope,
+        libraryBuilder.libraryFeatures,
       );
     }
     return (
@@ -695,7 +674,6 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {}
 
   @override
@@ -715,7 +693,6 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {}
 
   @override

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,7 +25,7 @@ void main() {
 class RemoveConstConstConstructorParamTypeMismatchTest
     extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_methodInvocation() async {
     await resolveTestCode(r'''
@@ -102,9 +102,8 @@ void f(int i) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.constConstructorParamTypeMismatch,
+      filter: (error) =>
+          error.diagnosticCode == diag.constConstructorParamTypeMismatch,
     );
   }
 
@@ -137,7 +136,7 @@ void f(int i) {
 @reflectiveTest
 class RemoveConstNonConstantListElementTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_expressionStatement() async {
     await resolveTestCode(r'''
@@ -208,8 +207,7 @@ class B {}
 var v = [const A(), B()];
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
+      filter: (error) => error.diagnosticCode == diag.nonConstantListElement,
     );
   }
 
@@ -233,9 +231,9 @@ Object f() {
   return [const A(), B(), [const A(), B()]];
 }
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.offset == parsedTestCode.positions[0].offset &&
-          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
+          error.diagnosticCode == diag.nonConstantListElement,
     );
     await assertHasFix(
       r'''
@@ -247,9 +245,9 @@ Object f() {
   return [const A(), B(), [const A(), B()]];
 }
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.offset == parsedTestCode.positions[1].offset &&
-          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
+          error.diagnosticCode == diag.nonConstantListElement,
     );
   }
 
@@ -273,9 +271,9 @@ Object f() {
   return [const A(), B(), const [A(), A()]];
 }
 ''',
-      errorFilter: (error) =>
+      filter: (error) =>
           error.offset == parsedTestCode.position.offset &&
-          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
+          error.diagnosticCode == diag.nonConstantListElement,
     );
   }
 
@@ -298,8 +296,7 @@ final x = [const A(), A.nonConst()];
       // TODO(FMorschel): CONST_WITH_NON_CONST and
       // CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE should not be triggered and
       // NON_CONSTANT_LIST_ELEMENT should have the position for the element
-      errorFilter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
+      filter: (error) => error.diagnosticCode == diag.nonConstantListElement,
     );
   }
 }
@@ -307,7 +304,7 @@ final x = [const A(), A.nonConst()];
 @reflectiveTest
 class RemoveConstNonConstantMapElementTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_expressionStatement() async {
     await resolveTestCode(r'''
@@ -365,7 +362,7 @@ var v = {1: null, 2: const A(), ...notConst};
 @reflectiveTest
 class RemoveConstNonConstantMapKeyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_fromDeferredLibrary() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -400,7 +397,7 @@ Object f(dynamic a) {
 @reflectiveTest
 class RemoveConstNonConstantMapValueTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_fromDeferredLibrary() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -452,8 +449,7 @@ class B {}
 var v = {1: const A(), 2: B()};
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.nonConstantMapValue,
+      filter: (error) => error.diagnosticCode == diag.nonConstantMapValue,
     );
   }
 
@@ -474,8 +470,7 @@ class A {
 final v = {1: const A(), 2: A.nonConst()};
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.nonConstantMapValue,
+      filter: (error) => error.diagnosticCode == diag.nonConstantMapValue,
     );
   }
 }
@@ -483,7 +478,7 @@ final v = {1: const A(), 2: A.nonConst()};
 @reflectiveTest
 class RemoveConstNonConstantSetElementTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_fromDeferredLibrary() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -537,8 +532,7 @@ class B {}
 var v = {const A(), B()};
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.nonConstantSetElement,
+      filter: (error) => error.diagnosticCode == diag.nonConstantSetElement,
     );
   }
 
@@ -559,8 +553,7 @@ class A {
 final v = {const A(), A.nonConst()};
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.nonConstantSetElement,
+      filter: (error) => error.diagnosticCode == diag.nonConstantSetElement,
     );
   }
 }
@@ -568,7 +561,7 @@ final v = {const A(), A.nonConst()};
 @reflectiveTest
 class RemoveConstTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONST;
+  FixKind get kind => DartFixKind.removeConst;
 
   Future<void> test_constClass_firstClass() async {
     await resolveTestCode('''
@@ -730,8 +723,8 @@ class B {
 
 var x = B(a1: A(), b: const [0], a2: A());
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst &&
+      filter: (e) {
+        return e.diagnosticCode == diag.constWithNonConst &&
             e.offset == testCode.indexOf('A()');
       },
     );
@@ -770,8 +763,8 @@ class A {}
 
 var x = [A(), if (true) const [0] else const [1]];
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
+      filter: (e) {
+        return e.diagnosticCode == diag.constWithNonConst;
       },
     );
   }
@@ -796,8 +789,8 @@ class B {
 
 var x = [A(), const B(), const B(), A()];
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst &&
+      filter: (e) {
+        return e.diagnosticCode == diag.constWithNonConst &&
             e.offset == testCode.indexOf('A()');
       },
     );
@@ -815,8 +808,8 @@ class A {}
 
 var x = [A(), const [0], const [1]];
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
+      filter: (e) {
+        return e.diagnosticCode == diag.constWithNonConst;
       },
     );
   }
@@ -834,8 +827,8 @@ class A {}
 
 var x = [A(), ...const [0], ...const [1]];
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
+      filter: (e) {
+        return e.diagnosticCode == diag.constWithNonConst;
       },
     );
   }
@@ -852,8 +845,8 @@ class A {}
 
 var x = {0: A(), ...const {1: 2}, ...const {3: 4}};
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
+      filter: (e) {
+        return e.diagnosticCode == diag.constWithNonConst;
       },
     );
   }
@@ -870,8 +863,8 @@ class A {}
 
 var x = {A(), ...const {0}, ...const {1}};
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
+      filter: (e) {
+        return e.diagnosticCode == diag.constWithNonConst;
       },
     );
   }
@@ -888,8 +881,8 @@ class A {}
 
 final x = A(), y = const [0], z = A();
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst &&
+      filter: (e) {
+        return e.diagnosticCode == diag.constWithNonConst &&
             e.offset == testCode.lastIndexOf('A()');
       },
     );
@@ -907,8 +900,8 @@ class A {}
 
 final Object x = A(), y = const [0];
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
+      filter: (e) {
+        return e.diagnosticCode == diag.constWithNonConst;
       },
     );
   }

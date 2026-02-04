@@ -10,9 +10,9 @@ class A extends core::Object /*hasConstConstructor*/  {
   const constructor named() → self::A
     : super core::Object::•()
     ;
-  static factory redir() → self::A /* redirection-target: self::B::• */
+  static const factory redir() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
-  static factory selfRedir() → self::A /* redirection-target: self::A::named */
+  static const factory selfRedir() → self::A /* redirection-target: self::A::named */
     return new self::A::named();
 }
 class B extends self::A /*hasConstConstructor*/  {

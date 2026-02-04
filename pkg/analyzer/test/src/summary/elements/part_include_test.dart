@@ -16,333 +16,6 @@ main() {
 }
 
 abstract class PartIncludeElementTest extends ElementsBaseTest {
-  test_configurations_useDefault() async {
-    declaredVariables = {'dart.library.io': 'false'};
-
-    newFile('$testPackageLibPath/foo.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_io.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_html.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    var library = await buildLibrary(r'''
-part 'foo.dart'
-  if (dart.library.io) 'foo_io.dart'
-  if (dart.library.html) 'foo_html.dart';
-
-class B extends A {}
-''');
-
-    configuration
-      ..elementPrinterConfiguration.withInterfaceTypeElements = true
-      ..withConstructors = false;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: #F1
-      parts
-        part_0
-          uri: package:test/foo.dart
-          partKeywordOffset: 0
-          unit: #F1
-      classes
-        #F2 class B (nameOffset:102) (firstTokenOffset:96) (offset:102)
-          element: <testLibrary>::@class::B
-    #F1 package:test/foo.dart
-      element: <testLibrary>
-      enclosingFragment: #F0
-      previousFragment: #F0
-      classes
-        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
-          element: <testLibrary>::@class::A
-  classes
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: #F2
-      supertype: A
-        element: <testLibrary>::@class::A
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F3
-''');
-  }
-
-  test_configurations_useFirst() async {
-    declaredVariables = {
-      'dart.library.io': 'true',
-      'dart.library.html': 'true',
-    };
-
-    newFile('$testPackageLibPath/foo.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_io.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_html.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    var library = await buildLibrary(r'''
-part 'foo.dart'
-  if (dart.library.io) 'foo_io.dart'
-  if (dart.library.html) 'foo_html.dart';
-
-class B extends A {}
-''');
-
-    configuration
-      ..elementPrinterConfiguration.withInterfaceTypeElements = true
-      ..withConstructors = false;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: #F1
-      parts
-        part_0
-          uri: package:test/foo_io.dart
-          partKeywordOffset: 0
-          unit: #F1
-      classes
-        #F2 class B (nameOffset:102) (firstTokenOffset:96) (offset:102)
-          element: <testLibrary>::@class::B
-    #F1 package:test/foo_io.dart
-      element: <testLibrary>
-      enclosingFragment: #F0
-      previousFragment: #F0
-      classes
-        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
-          element: <testLibrary>::@class::A
-  classes
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: #F2
-      supertype: A
-        element: <testLibrary>::@class::A
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F3
-''');
-  }
-
-  test_configurations_useFirst_eqTrue() async {
-    declaredVariables = {
-      'dart.library.io': 'true',
-      'dart.library.html': 'true',
-    };
-
-    newFile('$testPackageLibPath/foo.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_io.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_html.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    var library = await buildLibrary(r'''
-part 'foo.dart'
-  if (dart.library.io == 'true') 'foo_io.dart'
-  if (dart.library.html == 'true') 'foo_html.dart';
-
-class B extends A {}
-''');
-
-    configuration
-      ..elementPrinterConfiguration.withInterfaceTypeElements = true
-      ..withConstructors = false;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: #F1
-      parts
-        part_0
-          uri: package:test/foo_io.dart
-          partKeywordOffset: 0
-          unit: #F1
-      classes
-        #F2 class B (nameOffset:122) (firstTokenOffset:116) (offset:122)
-          element: <testLibrary>::@class::B
-    #F1 package:test/foo_io.dart
-      element: <testLibrary>
-      enclosingFragment: #F0
-      previousFragment: #F0
-      classes
-        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
-          element: <testLibrary>::@class::A
-  classes
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: #F2
-      supertype: A
-        element: <testLibrary>::@class::A
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F3
-''');
-  }
-
-  test_configurations_useSecond() async {
-    declaredVariables = {
-      'dart.library.io': 'false',
-      'dart.library.html': 'true',
-    };
-
-    newFile('$testPackageLibPath/foo.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_io.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_html.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    var library = await buildLibrary(r'''
-part 'foo.dart'
-  if (dart.library.io) 'foo_io.dart'
-  if (dart.library.html) 'foo_html.dart';
-
-class B extends A {}
-''');
-
-    configuration
-      ..elementPrinterConfiguration.withInterfaceTypeElements = true
-      ..withConstructors = false;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: #F1
-      parts
-        part_0
-          uri: package:test/foo_html.dart
-          partKeywordOffset: 0
-          unit: #F1
-      classes
-        #F2 class B (nameOffset:102) (firstTokenOffset:96) (offset:102)
-          element: <testLibrary>::@class::B
-    #F1 package:test/foo_html.dart
-      element: <testLibrary>
-      enclosingFragment: #F0
-      previousFragment: #F0
-      classes
-        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
-          element: <testLibrary>::@class::A
-  classes
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: #F2
-      supertype: A
-        element: <testLibrary>::@class::A
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F3
-''');
-  }
-
-  test_configurations_useSecond_eqTrue() async {
-    declaredVariables = {
-      'dart.library.io': 'false',
-      'dart.library.html': 'true',
-    };
-
-    newFile('$testPackageLibPath/foo.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_io.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    newFile('$testPackageLibPath/foo_html.dart', r'''
-part of 'test.dart';
-class A {}
-''');
-
-    var library = await buildLibrary(r'''
-part 'foo.dart'
-  if (dart.library.io == 'true') 'foo_io.dart'
-  if (dart.library.html == 'true') 'foo_html.dart';
-
-class B extends A {}
-''');
-
-    configuration
-      ..elementPrinterConfiguration.withInterfaceTypeElements = true
-      ..withConstructors = false;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: #F1
-      parts
-        part_0
-          uri: package:test/foo_html.dart
-          partKeywordOffset: 0
-          unit: #F1
-      classes
-        #F2 class B (nameOffset:122) (firstTokenOffset:116) (offset:122)
-          element: <testLibrary>::@class::B
-    #F1 package:test/foo_html.dart
-      element: <testLibrary>
-      enclosingFragment: #F0
-      previousFragment: #F0
-      classes
-        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
-          element: <testLibrary>::@class::A
-  classes
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: #F2
-      supertype: A
-        element: <testLibrary>::@class::A
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F3
-''');
-  }
-
   test_library_parts() async {
     newFile('$testPackageLibPath/a.dart', 'part of my.lib;');
     newFile('$testPackageLibPath/b.dart', 'part of my.lib;');
@@ -566,7 +239,7 @@ library
         #F2 class A (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::A
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     #F1 package:test/a.dart
@@ -577,7 +250,7 @@ library
         #F4 class B (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -585,14 +258,14 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
 ''');
@@ -623,7 +296,7 @@ library
         #F2 class A (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::A
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     #F1 package:test/a.dart
@@ -634,7 +307,7 @@ library
         #F4 class B (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -642,14 +315,14 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
 ''');

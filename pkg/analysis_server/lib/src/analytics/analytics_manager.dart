@@ -20,6 +20,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:collection/collection.dart';
 import 'package:memory_usage/memory_usage.dart';
 import 'package:meta/meta.dart';
@@ -44,13 +45,13 @@ class AnalyticsManager {
 
   static const openWorkspacePathsKey = 'openWorkspacePaths';
 
-  static const refactoringKindEnumKey = EDIT_REQUEST_GET_REFACTORING_KIND;
+  static const refactoringKindEnumKey = editRequestGetRefactoringKind;
 
-  static const includedKey = ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED;
+  static const includedKey = analysisRequestSetAnalysisRootsIncluded;
 
-  static const excludedKey = ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED;
+  static const excludedKey = analysisRequestSetAnalysisRootsExcluded;
 
-  static const filesKey = ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES;
+  static const filesKey = analysisRequestSetPriorityFilesFiles;
 
   /// The object used to send analytics.
   final Analytics analytics;
@@ -88,6 +89,9 @@ class AnalyticsManager {
   /// or `null` if analysis is currently idle.
   DateTime? _analysisWorkingStart;
 
+  /// Accumulated statistics about analysis working periods.
+  AnalyticsAnalysisWorkingStatistics? _analysisWorkingStatistics;
+
   /// Accumulates durations (in ms) of periods where analysis was working.
   final PercentileCalculator _analysisWorkingDurations = PercentileCalculator();
 
@@ -119,6 +123,8 @@ class AnalyticsManager {
     required int transitiveFileUniqueLineCount,
     required List<int> libraryCycleLibraryCounts,
     required List<int> libraryCycleLineCounts,
+    required List<int> numberOfPackagesInWorkspace,
+    required List<int> contextWorkspaceType,
   }) {
     // This is currently keeping the first report of completed analysis, but we
     // might want to consider alternatives, such as keeping the "largest"
@@ -133,21 +139,37 @@ class AnalyticsManager {
       transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
       libraryCycleLibraryCounts: libraryCycleLibraryCounts,
       libraryCycleLineCounts: libraryCycleLineCounts,
+      contextWorkspaceType: contextWorkspaceType,
+      numberOfPackagesInWorkspace: numberOfPackagesInWorkspace,
     );
   }
 
-  /// Called when analysis status changes to record period durations.
-  void analysisStatusChanged(bool isWorking) {
+  /// Called when analysis status changes to record analysis statistics.
+  ///
+  /// When [isWorking] switches to `false`, we (softly) expect [statistics]
+  /// to be statistics accumulated over just finished working period.
+  void analysisStatusChanged({
+    required bool isWorking,
+    required AnalysisStatusWorkingStatistics? statistics,
+  }) {
     if (isWorking) {
       _analysisWorkingStart ??= DateTime.now();
     } else {
       _finalizeOpenWorkingPeriod();
     }
+
+    if (statistics != null) {
+      var accumulated = _analysisWorkingStatistics ??=
+          AnalyticsAnalysisWorkingStatistics(
+            withFineDependencies: statistics.withFineDependencies,
+          );
+      accumulated.append(statistics);
+    }
   }
 
   /// Record that the set of plugins known to the [pluginManager] has changed.
-  void changedPlugins(PluginManager pluginManager) {
-    _pluginData.recordPlugins(pluginManager);
+  Future<void> changedPlugins(PluginManager pluginManager) async {
+    await _pluginData.recordPlugins(pluginManager);
   }
 
   /// Record the number of [added] folders and [removed] folders.
@@ -299,7 +321,7 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedGetRefactoring(EditGetRefactoringParams params) {
-    var requestData = getRequestData(EDIT_REQUEST_GET_REFACTORING);
+    var requestData = getRequestData(editRequestGetRefactoring);
     requestData.addEnumValue(refactoringKindEnumKey, params.kind.name);
   }
 
@@ -329,16 +351,16 @@ class AnalyticsManager {
 
   /// Record data from the given [params].
   void startedSetAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
-    var requestData = getRequestData(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS);
+    var requestData = getRequestData(analysisRequestSetAnalysisRoots);
     requestData.addValue(includedKey, params.included.length);
     requestData.addValue(excludedKey, params.excluded.length);
   }
 
   /// Record data from the given [params].
   void startedSetPriorityFiles(AnalysisSetPriorityFilesParams params) {
-    var requestData = getRequestData(ANALYSIS_REQUEST_SET_PRIORITY_FILES);
+    var requestData = getRequestData(analysisRequestSetPriorityFiles);
     requestData.addValue(
-      ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES,
+      analysisRequestSetPriorityFilesFiles,
       params.files.length,
     );
   }
@@ -474,6 +496,12 @@ class AnalyticsManager {
       h3('Analysis data');
       buffer.writeln('<ul>');
       li('numberOfContexts: ${json.encode(analysisData.numberOfContexts)}');
+      li(
+        'contextWorkspaceType: ${json.encode(analysisData.contextWorkspaceType.toString())}',
+      );
+      li(
+        'numberOfPackagesPerWorkspace: ${json.encode(analysisData.numberOfPackagesInWorkspace.toAnalyticsString())}',
+      );
       li('immediateFileCount: ${json.encode(analysisData.immediateFileCount)}');
       li(
         'immediateFileLineCount: ${json.encode(analysisData.immediateFileLineCount)}',
@@ -554,6 +582,11 @@ class AnalyticsManager {
               .toAnalyticsString(),
           libraryCycleLineCounts: contextStructure.libraryCycleLineCounts
               .toAnalyticsString(),
+          contextWorkspaceType: contextStructure.contextWorkspaceType
+              .toString(),
+          numberOfPackagesInWorkspace: contextStructure
+              .numberOfPackagesInWorkspace
+              .toAnalyticsString(),
         ),
       );
     }
@@ -561,14 +594,48 @@ class AnalyticsManager {
 
   /// Send information about analysis statistics.
   Future<void> _sendAnalysisStatistics() async {
-    if (_analysisWorkingDurations.valueCount == 0) {
+    var statistics = _analysisWorkingStatistics;
+    if (statistics == null) {
       return;
     }
+
     analytics.send(
       Event.analysisStatistics(
         workingDuration: _analysisWorkingDurations.toAnalyticsString(),
+        withFineDependencies: statistics.withFineDependencies,
+        changedFileUniqueCount: statistics.uniqueChangedFiles.length,
+        removedFileUniqueCount: statistics.uniqueRemovedFiles.length,
+        changedFileEventCount: statistics.changeFileEventCount,
+        removedFileEventCount: statistics.removeFileEventCount,
+        immediateFileCountPercentiles: statistics.immediateFileCountPercentiles
+            .toAnalyticsString(),
+        immediateFileLineCountPercentiles: statistics
+            .immediateFileLineCountPercentiles
+            .toAnalyticsString(),
+        transitiveFileCountPercentiles: statistics
+            .transitiveFileCountPercentiles
+            .toAnalyticsString(),
+        transitiveFileLineCountPercentiles: statistics
+            .transitiveFileLineCountPercentiles
+            .toAnalyticsString(),
+        produceErrorsPotentialFileCount:
+            statistics.produceErrorsPotentialFileCount,
+        produceErrorsPotentialFileLineCount:
+            statistics.produceErrorsPotentialFileLineCount,
+        produceErrorsActualFileCount: statistics.produceErrorsActualFileCount,
+        produceErrorsActualFileLineCount:
+            statistics.produceErrorsActualFileLineCount,
+        produceErrorsDurationMs: statistics.produceErrorsMs,
+        produceErrorsElementsDurationMs: statistics.produceErrorsElementsMs,
+        libraryDiagnosticsBundleFailures: statistics
+            .libraryDiagnosticsBundleRequirementsFailures
+            .entries
+            .map((e) => '${e.key.id}:${e.value}')
+            .join(','),
       ),
     );
+
+    _analysisWorkingStatistics = null;
     _analysisWorkingDurations.clear();
   }
 
@@ -674,7 +741,7 @@ class AnalyticsManager {
     }
   }
 
-  /// Send information about the session.
+  /// Sends information about the session, after the session has ended.
   Future<void> _sendSessionData(SessionData sessionData) async {
     var endTime = DateTime.now().millisecondsSinceEpoch;
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
@@ -687,12 +754,24 @@ class AnalyticsManager {
         duration: duration,
       ),
     );
-    for (var entry in _pluginData.usageCounts.entries) {
+    for (var MapEntry(key: pluginId, value: percentileCalculator)
+        in _pluginData.usageCounts.entries) {
       analytics.send(
         Event.pluginUse(
           count: _pluginData.recordCount,
-          enabled: entry.value.toAnalyticsString(),
-          pluginId: entry.key,
+          enabled: percentileCalculator.toAnalyticsString(),
+          pluginId: pluginId,
+        ),
+      );
+    }
+    for (var counts in _pluginData.counts.values) {
+      analytics.send(
+        Event.plugins(
+          count: counts.pluginCount,
+          lintRuleCounts: counts.lintRuleCounts.toAnalyticsString(),
+          warningRuleCounts: counts.warningRuleCounts.toAnalyticsString(),
+          fixCounts: counts.fixCounts.toAnalyticsString(),
+          assistCounts: counts.assistCounts.toAnalyticsString(),
         ),
       );
     }

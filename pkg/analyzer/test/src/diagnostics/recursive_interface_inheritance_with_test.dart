@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,8 +23,8 @@ class A extends Object {}
 augment class A with A {}
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritanceWith, 6, 1),
-        error(CompileTimeErrorCode.classUsedAsMixin, 47, 1),
+        error(diag.recursiveInterfaceInheritanceWith, 6, 1),
+        error(diag.classUsedAsMixin, 47, 1),
       ],
     );
   }
@@ -34,7 +34,7 @@ augment class A with A {}
       r'''
 mixin class M = Object with M;
 ''',
-      [error(CompileTimeErrorCode.recursiveInterfaceInheritanceWith, 12, 1)],
+      [error(diag.recursiveInterfaceInheritanceWith, 12, 1)],
     );
   }
 }

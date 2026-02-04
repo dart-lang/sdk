@@ -38,7 +38,7 @@ var l3 = ['a', 'b', 'c'];
 @reflectiveTest
 class InlineInvocationTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.INLINE_INVOCATION;
+  FixKind get kind => DartFixKind.inlineInvocation;
 
   @override
   String get lintCode => LintNames.prefer_inlined_adds;

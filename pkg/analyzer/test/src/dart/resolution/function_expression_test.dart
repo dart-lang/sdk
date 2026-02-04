@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -42,7 +43,7 @@ FunctionExpression
             rightBracket: >
           element: dart:core::@class::List
           type: List<T>
-        declaredElement: <testLibraryFragment> T@14
+        declaredFragment: <testLibraryFragment> T@14
           defaultType: List<dynamic>
     rightBracket: >
   parameters: FormalParameterList
@@ -52,7 +53,7 @@ FunctionExpression
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Null Function<T extends List<T>>()
   staticType: Null Function<T extends List<T>>()
@@ -79,7 +80,7 @@ FunctionExpression
           name: num
           element: dart:core::@class::num
           type: num
-        declaredElement: <testLibraryFragment> T@14
+        declaredFragment: <testLibraryFragment> T@14
           defaultType: num
     rightBracket: >
   parameters: FormalParameterList
@@ -89,10 +90,46 @@ FunctionExpression
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Null Function<T extends num>()
   staticType: Null Function<T extends num>()
+''');
+  }
+
+  test_signatureScope_noFormalParameters() async {
+    await assertErrorsInCode(
+      '''
+var f = ({int x = x}) {};
+''',
+      [error(diag.undefinedIdentifier, 18, 1)],
+    );
+
+    var node = findNode.singleFormalParameterList;
+    assertResolvedNodeText(node, r'''
+FormalParameterList
+  leftParenthesis: (
+  leftDelimiter: {
+  parameter: DefaultFormalParameter
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: x
+      declaredFragment: <testLibraryFragment> x@14
+        element: isPublic
+          type: int
+    separator: =
+    defaultValue: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: InvalidType
+    declaredFragment: <testLibraryFragment> x@14
+      element: isPublic
+        type: int
+  rightDelimiter: }
+  rightParenthesis: )
 ''');
   }
 }

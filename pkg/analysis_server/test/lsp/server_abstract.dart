@@ -14,6 +14,7 @@ import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -52,7 +53,6 @@ abstract class AbstractLspAnalysisServerTest
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
         LspReverseRequestHelpersMixin,
-        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
@@ -111,6 +111,7 @@ abstract class AbstractLspAnalysisServerTest
       'c',
       server.notificationManager,
       server.instrumentationService,
+      server.sessionLogger,
       isLegacy: true,
     );
     pluginManager.pluginIsolates.add(pluginIsolate);
@@ -145,12 +146,6 @@ abstract class AbstractLspAnalysisServerTest
 
     return pluginIsolate;
   }
-
-  /// Returns a matcher that checks that the input matches [expected] after
-  /// newlines have been normalized to the current platforms (only in
-  /// [expected]).
-  Matcher equalsNormalized(String expected) =>
-      equals(normalizeNewlinesForPlatform(expected));
 
   void expectContextBuilds() => expect(
     server.contextBuilds - _previousContextBuilds,
@@ -267,6 +262,9 @@ abstract class AbstractLspAnalysisServerTest
 
   @mustCallSuper
   void setUp() {
+    // Reset default in case a single test changed it.
+    failTestOnErrorDiagnostic = true;
+
     httpClient = MockHttpClient();
     processRunner = MockProcessRunner();
     channel = MockLspServerChannel(debugPrintCommunication);
@@ -286,6 +284,7 @@ abstract class AbstractLspAnalysisServerTest
       AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       errorNotifier,
+      SessionLogger(),
       httpClient: httpClient,
       processRunner: processRunner,
       dartFixPromptManager: dartFixPromptManager,
@@ -576,18 +575,6 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  void setDartTextDocumentContentProviderSupport([bool supported = true]) {
-    // These are temporarily versioned with a suffix during dev so if we ship
-    // as an experiment (not LSP standard) without the suffix it will only be
-    // active for matching server/clients.
-    const key = dartExperimentalTextDocumentContentProviderKey;
-    if (supported) {
-      experimentalCapabilities[key] = true;
-    } else {
-      experimentalCapabilities.remove(key);
-    }
-  }
-
   void setDiagnosticCodeDescriptionSupport() {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
@@ -774,9 +761,9 @@ mixin ClientCapabilitiesHelperMixin {
     setTextDocumentDynamicRegistration('synchronization');
   }
 
-  void setWorkDoneProgressSupport() {
+  void setWorkDoneProgressSupport([bool supported = true]) {
     windowCapabilities = extendWindowCapabilities(windowCapabilities, {
-      'workDoneProgress': true,
+      'workDoneProgress': supported,
     });
   }
 
@@ -804,7 +791,6 @@ mixin LspAnalysisServerTestMixin
     on
         LspRequestHelpersMixin,
         LspReverseRequestHelpersMixin,
-        LspNotificationHelpersMixin,
         LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
   late String projectFolderPath,
@@ -829,7 +815,7 @@ mixin LspAnalysisServerTestMixin
   /// initialize.
   ServerCapabilities? _serverCapabilities;
 
-  final validProgressTokens = <ProgressToken>{};
+  final _validProgressTokens = <ProgressToken>{};
 
   /// Default initialization options to be used if [initialize] is not provided
   /// options explicitly.
@@ -894,7 +880,6 @@ mixin LspAnalysisServerTestMixin
   Uri get nonExistentFileUri => pathContext.toUri(nonExistentFilePath);
 
   /// A stream of [NotificationMessage]s from the server.
-  @override
   Stream<NotificationMessage> get notificationsFromServer {
     return serverToClient
         .where((m) => m is NotificationMessage)
@@ -1577,7 +1562,7 @@ mixin LspAnalysisServerTestMixin
       request.params as Map<String, Object?>,
     );
     if (params.token != clientProvidedTestWorkDoneToken &&
-        !validProgressTokens.contains(params.token)) {
+        !_validProgressTokens.contains(params.token)) {
       throw Exception(
         'Server sent a progress notification for a token '
         'that has not been created: ${params.token}',
@@ -1585,7 +1570,7 @@ mixin LspAnalysisServerTestMixin
     }
 
     if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
-      validProgressTokens.remove(params.token);
+      _validProgressTokens.remove(params.token);
     }
 
     if (params.token == analyzingProgressToken) {
@@ -1608,10 +1593,10 @@ mixin LspAnalysisServerTestMixin
     var params = WorkDoneProgressCreateParams.fromJson(
       request.params as Map<String, Object?>,
     );
-    if (validProgressTokens.contains(params.token)) {
+    if (_validProgressTokens.contains(params.token)) {
       throw Exception('Server tried to create already-active progress token');
     }
-    validProgressTokens.add(params.token);
+    _validProgressTokens.add(params.token);
   }
 
   /// Checks whether a notification is likely an error from the server (for

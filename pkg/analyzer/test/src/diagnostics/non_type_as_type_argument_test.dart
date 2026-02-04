@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +34,7 @@ A doOption<A>(
   );
 }
 ''',
-      [error(CompileTimeErrorCode.nonTypeAsTypeArgument, 62, 1)],
+      [error(diag.nonTypeAsTypeArgument, 62, 1)],
     );
   }
 
@@ -45,7 +45,7 @@ int A = 0;
 class B<E> {}
 f(B<A> b) {}
 ''',
-      [error(CompileTimeErrorCode.nonTypeAsTypeArgument, 29, 1)],
+      [error(diag.nonTypeAsTypeArgument, 29, 1)],
     );
   }
 
@@ -55,7 +55,7 @@ f(B<A> b) {}
 class B<E> {}
 f(B<A> b) {}
 ''',
-      [error(CompileTimeErrorCode.nonTypeAsTypeArgument, 18, 1)],
+      [error(diag.nonTypeAsTypeArgument, 18, 1)],
     );
   }
 }

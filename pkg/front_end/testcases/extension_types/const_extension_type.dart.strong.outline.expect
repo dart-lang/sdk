@@ -20,7 +20,7 @@ static const field self::Class<core::int> b1 = const self::Class::•<core::int>
 static const field self::ExtensionType<self::Class<core::int>>% /* erasure=self::Class<core::int>, declared=! */ b2 = const self::ExtensionType|constructor#<self::Class<core::int>>(const self::Class::•<core::int>());
 static const field self::Class<core::bool> b3 = const self::Class::•<core::bool>();
 static const field self::ExtensionType<self::Class<core::bool>>% /* erasure=self::Class<core::bool>, declared=! */ b4 = const self::ExtensionType|constructor#<self::Class<core::bool>>(const self::Class::•<core::bool>());
-static extension-type-member method ExtensionType|constructor#<T extends core::Object? = dynamic>(self::ExtensionType|constructor#::T% id) → self::ExtensionType<self::ExtensionType|constructor#::T%>% /* erasure=self::ExtensionType|constructor#::T%, declared=! */ {
+static extension-type-member const method ExtensionType|constructor#<T extends core::Object? = dynamic>(self::ExtensionType|constructor#::T% id) → self::ExtensionType<self::ExtensionType|constructor#::T%>% /* erasure=self::ExtensionType|constructor#::T%, declared=! */ {
   lowered final self::ExtensionType<self::ExtensionType|constructor#::T%>% /* erasure=self::ExtensionType|constructor#::T%, declared=! */ #this = id;
   return #this;
 }

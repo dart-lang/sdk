@@ -6,10 +6,10 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -33,14 +33,14 @@ class BoolExpressionVerifier {
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an
   /// error is reported on the expression.
   ///
-  /// See [CompileTimeErrorCode.nonBoolCondition].
+  /// See [diag.nonBoolCondition].
   void checkForNonBoolCondition(
     Expression condition, {
     required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     checkForNonBoolExpression(
       condition,
-      diagnosticCode: CompileTimeErrorCode.nonBoolCondition,
+      diagnosticCode: diag.nonBoolCondition,
       whyNotPromoted: whyNotPromoted,
     );
   }
@@ -63,7 +63,7 @@ class BoolExpressionVerifier {
         )) {
       if (type.isDartCoreBool) {
         _nullableDereferenceVerifier.report(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
+          diag.uncheckedUseOfNullableValueAsCondition,
           expression,
           type,
           messages: _resolver.computeWhyNotPromotedMessages(
@@ -88,7 +88,7 @@ class BoolExpressionVerifier {
   }) {
     checkForNonBoolExpression(
       expression,
-      diagnosticCode: CompileTimeErrorCode.nonBoolNegationExpression,
+      diagnosticCode: diag.nonBoolNegationExpression,
       whyNotPromoted: whyNotPromoted,
     );
   }
@@ -104,15 +104,9 @@ class BoolExpressionVerifier {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _diagnosticReporter.atNode(
-        methodName,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
     } else {
-      _diagnosticReporter.atNode(
-        expression,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }
 
     return true;

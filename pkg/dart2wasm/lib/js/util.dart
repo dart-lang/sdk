@@ -14,7 +14,6 @@ enum AnnotationType { import, export, weakExport }
 class CoreTypesUtil {
   final ExtensionIndex extensionIndex;
   final CoreTypes coreTypes;
-  final Procedure allowInteropTarget;
   final Procedure dartifyRawTarget;
   final Procedure functionToJSTarget;
   final Procedure functionToJSCaptureThisTarget;
@@ -69,6 +68,7 @@ class CoreTypesUtil {
   final Procedure jsifyJSArrayBufferImpl; // JS ByteBuffer
   final Procedure jsArrayBufferFromDartByteBuffer; // Wasm ByteBuffer
   final Procedure jsifyFunction;
+  final Procedure thisModuleGetter;
 
   // Classes used in type tests for the converters.
   final Class jsInt8ArrayImplClass;
@@ -168,9 +168,7 @@ class CoreTypesUtil {
   };
 
   CoreTypesUtil(this.coreTypes, this.extensionIndex)
-      : allowInteropTarget = coreTypes.index
-            .getTopLevelProcedure('dart:js_util', 'allowInterop'),
-        dartifyRawTarget = coreTypes.index
+      : dartifyRawTarget = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'dartifyRaw'),
         functionToJSTarget = coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
@@ -271,6 +269,8 @@ class CoreTypesUtil {
             'dart:_js_helper', 'jsArrayBufferFromDartByteBuffer'),
         jsifyFunction = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'jsifyFunction'),
+        thisModuleGetter = coreTypes.index
+            .getTopLevelProcedure('dart:_js_helper', 'get:thisModule'),
         jsInt8ArrayImplClass =
             coreTypes.index.getClass('dart:_js_types', 'JSInt8ArrayImpl'),
         jsUint8ArrayImplClass =

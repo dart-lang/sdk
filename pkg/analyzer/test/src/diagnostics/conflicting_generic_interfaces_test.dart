@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +34,7 @@ class B extends A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(testFile, [
-      error(CompileTimeErrorCode.conflictingGenericInterfaces, 65, 1),
+      error(diag.conflictingGenericInterfaces, 65, 1),
     ]);
   }
 
@@ -46,7 +46,7 @@ class A implements I<int> {}
 class B implements I<String> {}
 class C extends A implements B {}
 ''',
-      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 81, 1)],
+      [error(diag.conflictingGenericInterfaces, 81, 1)],
     );
   }
 
@@ -67,7 +67,7 @@ class A implements I<int> {}
 class B implements I<int?> {}
 class C extends A implements B {}
 ''',
-      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 79, 1)],
+      [error(diag.conflictingGenericInterfaces, 79, 1)],
     );
   }
 
@@ -79,7 +79,7 @@ class B implements A<Object> {}
 class C implements A<Object?> {}
 class D extends B implements C {}
 ''',
-      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 85, 1)],
+      [error(diag.conflictingGenericInterfaces, 85, 1)],
     );
   }
 
@@ -91,7 +91,7 @@ class A implements I<int> {}
 mixin B implements I<String> {}
 class C extends A with B {}
 ''',
-      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 81, 1)],
+      [error(diag.conflictingGenericInterfaces, 81, 1)],
     );
   }
 
@@ -115,7 +115,7 @@ typedef A = I<int>;
 mixin M implements I<String> {}
 class C = A with M;
 ''',
-      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 72, 1)],
+      [error(diag.conflictingGenericInterfaces, 72, 1)],
     );
   }
 
@@ -136,7 +136,7 @@ class A implements I<int> {}
 mixin M implements I<String> {}
 class C = A with M;
 ''',
-      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 81, 1)],
+      [error(diag.conflictingGenericInterfaces, 81, 1)],
     );
   }
 
@@ -150,7 +150,7 @@ enum E implements A, B {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 80, 1)],
+      [error(diag.conflictingGenericInterfaces, 80, 1)],
     );
   }
 
@@ -164,7 +164,7 @@ enum E with M1, M2 {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 82, 1)],
+      [error(diag.conflictingGenericInterfaces, 82, 1)],
     );
   }
 
@@ -177,12 +177,8 @@ class B implements I<num> {}
 extension type C(Never it) implements A, B {}
 ''',
       [
-        error(CompileTimeErrorCode.conflictingGenericInterfaces, 87, 1),
-        error(
-          CompileTimeErrorCode.extensionTypeRepresentationTypeBottom,
-          89,
-          5,
-        ),
+        error(diag.conflictingGenericInterfaces, 87, 1),
+        error(diag.extensionTypeRepresentationTypeBottom, 89, 5),
       ],
     );
   }
@@ -195,7 +191,7 @@ class A implements I<int> {}
 class B implements I<String> {}
 mixin M on A implements B {}
 ''',
-      [error(CompileTimeErrorCode.conflictingGenericInterfaces, 81, 1)],
+      [error(diag.conflictingGenericInterfaces, 81, 1)],
     );
   }
 

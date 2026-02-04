@@ -6,13 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 
 class ReturnTypeVerifier {
@@ -56,9 +56,8 @@ class ReturnTypeVerifier {
 
     if (enclosingExecutable.isGenerativeConstructor) {
       if (expression != null) {
-        _diagnosticReporter.atNode(
-          expression,
-          CompileTimeErrorCode.returnInGenerativeConstructor,
+        _diagnosticReporter.report(
+          diag.returnInGenerativeConstructor.at(expression),
         );
       }
       return;
@@ -107,18 +106,15 @@ class ReturnTypeVerifier {
       if (enclosingExecutable.isGenerator) {
         checkElement(
           _typeProvider.streamElement,
-          CompileTimeErrorCode.illegalAsyncGeneratorReturnType,
+          diag.illegalAsyncGeneratorReturnType,
         );
       } else {
-        checkElement(
-          _typeProvider.futureElement,
-          CompileTimeErrorCode.illegalAsyncReturnType,
-        );
+        checkElement(_typeProvider.futureElement, diag.illegalAsyncReturnType);
       }
     } else if (enclosingExecutable.isGenerator) {
       checkElement(
         _typeProvider.iterableElement,
-        CompileTimeErrorCode.illegalSyncGeneratorReturnType,
+        diag.illegalSyncGeneratorReturnType,
       );
     }
   }
@@ -149,13 +145,13 @@ class ReturnTypeVerifier {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
         _diagnosticReporter.atNode(
           expression,
-          WarningCode.returnOfInvalidTypeFromCatchError,
+          diag.returnOfInvalidTypeFromCatchError,
           arguments: [S, T],
         );
       } else if (enclosingExecutable.isClosure) {
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.returnOfInvalidTypeFromClosure,
+          diag.returnOfInvalidTypeFromClosure,
           arguments: [S, T],
         );
       } else if (enclosingExecutable.isConstructor) {
@@ -165,7 +161,7 @@ class ReturnTypeVerifier {
         // `enclosingExecutable.displayName` is non-`null`.
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.returnOfInvalidTypeFromConstructor,
+          diag.returnOfInvalidTypeFromConstructor,
           arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isFunction) {
@@ -175,7 +171,7 @@ class ReturnTypeVerifier {
         // `enclosingExecutable.displayName` is non-`null`.
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.returnOfInvalidTypeFromFunction,
+          diag.returnOfInvalidTypeFromFunction,
           arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isMethod) {
@@ -185,7 +181,7 @@ class ReturnTypeVerifier {
         // `enclosingExecutable.displayName` is non-`null`.
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.returnOfInvalidTypeFromMethod,
+          diag.returnOfInvalidTypeFromMethod,
           arguments: [S, T, enclosingExecutable.displayName!],
         );
       }
@@ -221,9 +217,10 @@ class ReturnTypeVerifier {
             S,
             strictCasts: _strictCasts,
           )) {
-            _diagnosticReporter.atNode(
-              expression,
-              CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+            _diagnosticReporter.report(
+              diag.recordLiteralOnePositionalNoTrailingCommaByType.at(
+                expression,
+              ),
             );
             return;
           }
@@ -284,9 +281,8 @@ class ReturnTypeVerifier {
       }
     }
 
-    _diagnosticReporter.atToken(
-      statement.returnKeyword,
-      CompileTimeErrorCode.returnWithoutValue,
+    _diagnosticReporter.report(
+      diag.returnWithoutValue.at(statement.returnKeyword),
     );
   }
 

@@ -191,17 +191,20 @@ void KernelFingerprintHelper::CalculateInterfaceMemberNameFingerprint() {
 
 void KernelFingerprintHelper::CalculateInitializerFingerprint() {
   Tag tag = ReadTag();
-  ReadByte();  // read isSynthetic flag.
   switch (tag) {
     case kInvalidInitializer:
+      ReadPosition();                         // read position.
+      CalculateStringReferenceFingerprint();  // read message
       return;
     case kFieldInitializer:
       ReadPosition();  // read position.
+      ReadByte();      // read isSynthetic flag.
       BuildHash(H.DartFieldName(ReadCanonicalNameReference()).Hash());
       CalculateExpressionFingerprint();  // read value.
       return;
     case kSuperInitializer:
       ReadPosition();                       // read position.
+      ReadByte();                           // read isSynthetic flag.
       CalculateCanonicalNameFingerprint();  // read target_reference
       CalculateArgumentsFingerprint();      // read arguments.
       return;
@@ -211,9 +214,11 @@ void KernelFingerprintHelper::CalculateInitializerFingerprint() {
       CalculateArgumentsFingerprint();      // read arguments.
       return;
     case kLocalInitializer:
+      ReadPosition();                             // read position.
       CalculateVariableDeclarationFingerprint();  // read variable.
       return;
     case kAssertInitializer:
+      ReadPosition();  // read position.
       CalculateStatementFingerprint();
       return;
     default:
@@ -719,6 +724,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:
+    case kRedirectingFactoryInvocation:
     // These nodes are internal to the front end and
     // removed by the constant evaluator.
     default:

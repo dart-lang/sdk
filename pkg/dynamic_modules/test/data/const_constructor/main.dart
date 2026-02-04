@@ -5,8 +5,6 @@
 import '../../common/testing.dart' as helper;
 import 'package:expect/expect.dart';
 
-import 'shared/shared.dart'; // ignore: unused_import
-
 /// Verify that default values of const constructor parameters are retained.
 void main() async {
   final result = (await helper.load('entry1.dart')) as String;

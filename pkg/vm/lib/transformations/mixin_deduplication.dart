@@ -3,16 +3,54 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/import_table.dart';
+import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/type_algebra.dart';
 
+import 'pragma.dart';
+
+const String _dedupLibraryName = 'dart:mixin_deduplication';
+
 /// De-duplication of identical mixin applications.
-void transformLibraries(List<Library> libraries) {
-  final deduplicateMixins = new DeduplicateMixinsTransformer();
-  final referenceUpdater = ReferenceUpdater(deduplicateMixins);
+///
+/// Moves all canonicalized mixin application into a new library so that the
+/// users of the mixin application can import that library without importing
+/// everything else from the canonical mixin's source library.
+///
+/// If [useUniqueDeduplicationLibrary] is true, each deduplicated mixin
+/// application will be moved into its own library. This reduces the number of
+/// libraries that need to be imported by the users of the mixin application.
+void transformLibraries(
+  List<Library> libraries,
+  CoreTypes coreTypes,
+  Target target, {
+  bool useUniqueDeduplicationLibrary = false,
+}) {
+  if (libraries.isEmpty) return;
+  final deduplicateMixins = new _DeduplicateMixinsTransformer(
+    coreTypes,
+    target,
+  );
+
+  final Map<Library, Set<Library>> addedImports = {};
+
+  final relocator = _DeduplicateRelocator(
+    libraries.first.enclosingComponent!,
+    addedImports,
+    useUniqueDeduplicationLibrary,
+  );
+
+  final referenceUpdater = _ReferenceUpdater(deduplicateMixins, addedImports);
 
   // Deduplicate mixins and re-resolve super initializers.
   // (this is a shallow transformation)
   libraries.forEach((library) => deduplicateMixins.visitLibrary(library, null));
+
+  relocator.relocateCanonicalClasses(
+    deduplicateMixins._canonicalMixins.values,
+    deduplicateMixins._superRemapped,
+  );
 
   // Do a deep transformation to update references to the removed mixin
   // application classes in the interface targets and types.
@@ -32,11 +70,40 @@ void transformLibraries(List<Library> libraries) {
   // CFE decides to consistently let the interface target point to the mixin
   // class (instead of mixin application).
   libraries.forEach(referenceUpdater.visitLibrary);
+
+  // Add imports to the new mixin deduplication library(-ies).
+  for (final library in relocator.newLibraries) {
+    final importTable = LibraryImportTable(library);
+    for (final importedLibrary in importTable.importedLibraries) {
+      if (library != importedLibrary &&
+          (addedImports[library] ??= {}).add(importedLibrary)) {
+        library.addDependency(LibraryDependency.import(importedLibrary));
+      }
+    }
+  }
 }
 
 /// De-duplication of identical mixin applications.
-void transformComponent(Component component) {
-  transformLibraries(component.libraries);
+///
+/// Moves all canonicalized mixin application into a new library so that the
+/// users of the mixin application can import that library without importing
+/// everything else from the canonical mixin's source library.
+///
+/// If [useUniqueDeduplicationLibrary] is true, each deduplicated mixin
+/// application will be moved into its own library. This reduces the number of
+/// libraries that need to be imported by the users of the mixin application.
+void transformComponent(
+  Component component,
+  CoreTypes coreTypes,
+  Target target, {
+  bool useUniqueDeduplicationLibrary = false,
+}) {
+  transformLibraries(
+    component.libraries,
+    coreTypes,
+    target,
+    useUniqueDeduplicationLibrary: useUniqueDeduplicationLibrary,
+  );
 }
 
 class _DeduplicateMixinKey {
@@ -62,6 +129,12 @@ class _DeduplicateMixinKey {
     final thisSupertype = thisClass.supertype!;
     final otherSupertype = otherClass.supertype!;
     if (thisSupertype.classNode != otherSupertype.classNode) return false;
+
+    // Treat 'dart:*' libraries as distinct from libraries not in 'dart:*'.
+    if (thisClass.enclosingLibrary.importUri.isScheme('dart') !=
+        otherClass.enclosingLibrary.importUri.isScheme('dart')) {
+      return false;
+    }
 
     final thisParameters = thisClass.typeParameters;
     final otherParameters = otherClass.typeParameters;
@@ -119,9 +192,15 @@ class _DeduplicateMixinKey {
   }
 }
 
-class DeduplicateMixinsTransformer extends RemovingTransformer {
+class _DeduplicateMixinsTransformer extends RemovingTransformer {
+  final ConstantPragmaAnnotationParser pragmaParser;
   final _canonicalMixins = new Map<_DeduplicateMixinKey, Class>();
   final _duplicatedMixins = new Map<Class, Class>();
+  final _superRemapped = new Map<Class, Set<Class>>();
+  final CoreTypes coreTypes;
+
+  _DeduplicateMixinsTransformer(this.coreTypes, Target target)
+    : pragmaParser = ConstantPragmaAnnotationParser(coreTypes, target) {}
 
   @override
   TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
@@ -148,6 +227,10 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
       return c;
     }
 
+    if (!_canBeEliminated(c)) {
+      return c;
+    }
+
     Class canonical = _canonicalMixins.putIfAbsent(
       new _DeduplicateMixinKey(c),
       () => c,
@@ -163,6 +246,19 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
     }
 
     return c;
+  }
+
+  bool _canBeEliminated(Class c) {
+    bool isEntryPoint(Annotatable node) =>
+        pragmaParser
+            .parsedPragmas<ParsedEntryPointPragma>(node.annotations)
+            .isNotEmpty;
+    // Cannot eliminate mixin applications which is exported
+    // through a dynamic interface (or one of its members is exported).
+    if (isEntryPoint(c) || c.members.any(isEntryPoint)) {
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -190,14 +286,121 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
   @override
   TreeNode defaultTreeNode(TreeNode node, TreeNode? removalSentinel) =>
       throw 'Unexpected node ${node.runtimeType}: $node';
+
+  /// Corrects forwarding constructors inserted by mixin resolution after
+  /// replacing superclass.
+  void _correctForwardingConstructors(Class c, Class oldSuper, Class newSuper) {
+    for (var constructor in c.constructors) {
+      for (var initializer in constructor.initializers) {
+        if ((initializer is SuperInitializer) &&
+            initializer.target.enclosingClass == oldSuper) {
+          Constructor? replacement = null;
+          for (var c in newSuper.constructors) {
+            if (c.name == initializer.target.name) {
+              replacement = c;
+              break;
+            }
+          }
+          if (replacement == null) {
+            throw 'Unable to find a replacement for $c in $newSuper';
+          }
+          (_superRemapped[c] ??= {}).add(newSuper);
+          initializer.target = replacement;
+        }
+      }
+    }
+  }
+}
+
+class _DeduplicateRelocator {
+  int deduplicatedMixinCount = 0;
+  Library? sharedDedupLibrary;
+  final Component component;
+  final bool useUniqueDeduplicationLibrary;
+  final Map<Library, Set<Library>> addedImports;
+  final List<Library> newLibraries = [];
+  final Uri placeholderFileUri = Uri();
+
+  _DeduplicateRelocator(
+    this.component,
+    this.addedImports,
+    this.useUniqueDeduplicationLibrary,
+  );
+
+  Library getLibraryForClass(int mixinIndex) {
+    if (useUniqueDeduplicationLibrary) {
+      final library = new Library(
+        Uri.parse('$_dedupLibraryName$mixinIndex'),
+        fileUri: placeholderFileUri,
+      )..parent = component;
+      component.libraries.add(library);
+      newLibraries.add(library);
+      return library;
+    }
+    return sharedDedupLibrary ??=
+        (() {
+          final library = new Library(
+            Uri.parse(_dedupLibraryName),
+            fileUri: placeholderFileUri,
+          )..parent = component;
+          component.libraries.add(library);
+          newLibraries.add(library);
+          return library;
+        })();
+  }
+
+  void relocateCanonicalClasses(
+    Iterable<Class> classes,
+    Map<Class, Set<Class>> remappedSupers,
+  ) {
+    for (final cls in classes) {
+      // Leave 'dart:*' libraries in their own libraries as these might be
+      // referenced in VM bootstrapping.
+      if (cls.enclosingLibrary.importUri.isScheme('dart')) continue;
+
+      // Move class to shared library.
+      final oldLibrary = cls.enclosingLibrary;
+      final mixinIndex = deduplicatedMixinCount++;
+      final newLibrary = getLibraryForClass(mixinIndex);
+      oldLibrary.classes.remove(cls);
+      newLibrary.addClass(cls);
+      cls.name =
+          '_MixinApplication$mixinIndex'
+          '${cls.name.substring(cls.name.indexOf('&'))}';
+      cls.clearCanonicalNames();
+      if ((addedImports[oldLibrary] ??= {}).add(newLibrary)) {
+        oldLibrary.addDependency(LibraryDependency.import(newLibrary));
+      }
+      for (final member in cls.constructors) {
+        if (member.name.isPrivate) {
+          // Private constructors belong to the mixin application itself and
+          // should be rescoped to the new library. Other members are copied
+          // from the mixin body and are therefore scoped to the mixin's
+          // library.
+          member.name = Name(member.name.text, newLibrary);
+        }
+      }
+    }
+
+    remappedSupers.forEach((cls, newSupers) {
+      final clsLibrary = cls.enclosingLibrary;
+      for (final newSuper in newSupers) {
+        final newSuperLibrary = newSuper.enclosingLibrary;
+        if ((addedImports[clsLibrary] ??= {}).add(newSuperLibrary)) {
+          clsLibrary.addDependency(LibraryDependency.import(newSuperLibrary));
+        }
+      }
+    });
+  }
 }
 
 /// Rewrites references to the deduplicated mixin application
 /// classes. Updates interface targets and types.
-class ReferenceUpdater extends RecursiveVisitor {
-  final DeduplicateMixinsTransformer transformer;
+class _ReferenceUpdater extends RecursiveVisitor {
+  final _DeduplicateMixinsTransformer transformer;
+  final Map<Library, Set<Library>> _addedImports;
 
-  ReferenceUpdater(this.transformer);
+  _ReferenceUpdater(this.transformer, this._addedImports);
 
   @override
   void visitProcedure(Procedure node) {
@@ -262,6 +465,14 @@ class ReferenceUpdater extends RecursiveVisitor {
     if (c != null && c.isAnonymousMixin) {
       final Class? replacement = transformer._duplicatedMixins[c];
       if (replacement != null) {
+        final replacementLibrary = replacement.enclosingLibrary;
+        final cLibrary = c.enclosingLibrary;
+        if (replacementLibrary != cLibrary &&
+            (_addedImports[cLibrary] ??= {}).add(replacementLibrary)) {
+          c.enclosingLibrary.addDependency(
+            LibraryDependency.import(replacementLibrary),
+          );
+        }
         // The class got removed, so we need to re-resolve the interface target.
         return _findMember(replacement, m!);
       }
@@ -289,28 +500,5 @@ class ReferenceUpdater extends RecursiveVisitor {
       throw 'Unexpected reference to removed mixin application $node';
     }
     super.visitClassReference(node);
-  }
-}
-
-/// Corrects forwarding constructors inserted by mixin resolution after
-/// replacing superclass.
-void _correctForwardingConstructors(Class c, Class oldSuper, Class newSuper) {
-  for (var constructor in c.constructors) {
-    for (var initializer in constructor.initializers) {
-      if ((initializer is SuperInitializer) &&
-          initializer.target.enclosingClass == oldSuper) {
-        Constructor? replacement = null;
-        for (var c in newSuper.constructors) {
-          if (c.name == initializer.target.name) {
-            replacement = c;
-            break;
-          }
-        }
-        if (replacement == null) {
-          throw 'Unable to find a replacement for $c in $newSuper';
-        }
-        initializer.target = replacement;
-      }
-    }
   }
 }

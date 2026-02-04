@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
-import '../analyzer.dart';
 import '../ast.dart';
 
 /// Builds a function that reports a variable node if none of the [predicates]
 /// return `true` for any node inside the [container] node.
 _VisitVariableDeclaration _buildVariableReporter(
   AstNode container,
-  LintRule rule,
+  AnalysisRule rule,
   Map<DartTypePredicate, String> predicates, {
   required _VariableType variableType,
 }) => (VariableDeclaration variable) {
@@ -82,9 +82,10 @@ bool _isPostfixExpressionOperandEqualToVariable(
   VariableElement variableElement,
 ) {
   if (n is PostfixExpression) {
-    var operand = n.operand;
-    return operand is SimpleIdentifier &&
-        _isElementEqualToVariable(operand.element, variableElement);
+    return _isSimpleIdentifierElementEqualToVariable(
+      n.operand,
+      variableElement,
+    );
   }
   return false;
 }
@@ -118,7 +119,7 @@ typedef DartTypePredicate = bool Function(DartType type);
 typedef _VisitVariableDeclaration = void Function(VariableDeclaration node);
 
 abstract class LeakDetectorProcessors extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   LeakDetectorProcessors(this.rule);
 
@@ -198,9 +199,11 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     // Being assigned another reference.
-    if (node.rightHandSide is SimpleIdentifier) {
+    var rightHandSide = node.rightHandSide;
+    if (rightHandSide is SimpleIdentifier) {
+      var assignedElement = node.writeElement;
       if (_isElementEqualToVariable(
-        node.writeElement,
+        assignedElement,
         variable.declaredFragment?.element,
       )) {
         containsValidUse = true;
@@ -210,6 +213,15 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
       var leftHandSide = node.leftHandSide;
       if (leftHandSide is PropertyAccess &&
           leftHandSide.propertyName.token.lexeme == variable.name.lexeme) {
+        containsValidUse = true;
+        return;
+      }
+      // Assigned element is instance member.
+      if (assignedElement == null &&
+          _isSimpleIdentifierElementEqualToVariable(
+            rightHandSide,
+            variableElement,
+          )) {
         containsValidUse = true;
         return;
       }
@@ -310,8 +322,13 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 enum _VariableType { field, local }
 
 extension on Element? {
-  bool matches(VariableElement? requested) => switch (this) {
-    PropertyAccessorElement(:var variable) => variable == requested,
-    _ => false,
-  };
+  bool matches(VariableElement? requested) {
+    var baseElement = this?.baseElement;
+    if (baseElement is PropertyAccessorElement) {
+      return baseElement.variable == requested;
+    } else if (baseElement is FieldElement) {
+      return baseElement == requested;
+    }
+    return false;
+  }
 }

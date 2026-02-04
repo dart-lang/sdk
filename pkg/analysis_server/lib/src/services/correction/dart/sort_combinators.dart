@@ -18,10 +18,10 @@ class SortCombinators extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.SORT_COMBINATORS;
+  FixKind get fixKind => DartFixKind.sortCombinators;
 
   @override
-  FixKind get multiFixKind => DartFixKind.SORT_COMBINATORS_MULTI;
+  FixKind get multiFixKind => DartFixKind.sortCombinatorsMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

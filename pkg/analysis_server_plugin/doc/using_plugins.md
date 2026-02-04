@@ -9,6 +9,8 @@ root of the package or workspace source tree. Analyzer plugins cannot be
 enabled, disabled, or otherwise specified or configured in a nested analysis
 options file
 
+Analyzer plugins are supported starting in Dart 3.10 (Flutter 3.38).
+
 Analyzer plugins are specified in the top-level `plugins` section:
 
 ```yaml
@@ -18,10 +20,11 @@ plugins:
 
 [workspace]: https://dart.dev/tools/pub/workspaces
 
-Note: This is similar to how analyzer plugins are enabled in the [legacy][]
-analyzer plugin system. However, in the legacy system, this `plugins` section
-is listed under the top-level `analyzer` section. In the new analyzer plugin
-system, `plugins` is a top-level section.
+> [!NOTE]
+> This is similar to how analyzer plugins are enabled in the [legacy][] analyzer
+plugin system. However, in the legacy system, this `plugins` section is listed
+under the top-level `analyzer` section. In the new analyzer plugin system,
+`plugins` is a top-level section.
 
 Individual plugins are listed similar to how dependencies are listed in a
 `pubspec.yaml` file; they are listed as a key-value pair, with the package name
@@ -29,7 +32,6 @@ as the key. The value can either be
 
 * a package version constraint, in which case the package is downloaded from
   https://pub.dev,
-* a git dependency,
 * an absolute path.
 
 For example, while developing a plugin locally, it can be enabled as:
@@ -40,11 +42,21 @@ plugins:
     path: /path/to/my_plugin
 ```
 
-Note: after any change is made to the `plugins` section of an
-`analysis_options.yaml` file, the Dart Analysis Server must be restarted to see
-the effects.
+When the analysis server sees that a set of plugins is enabled, it creates a
+synthetic package which depends on each plugin package, which is loaded into a
+separate isolate of the analysis server process. It uses [`dart pub upgrade`][]
+to resolve a compatible set of versions of the plugin packages and their
+dependencies. Note that Dart 3.10 (Flutter 3.38) sets its own constraint on the
+`analysis_server_plugin` package, `^0.3.0`. This may change with each release
+of Dart and Flutter.
+
+> [!NOTE]
+> After any change is made to the `plugins` section of an
+> `analysis_options.yaml` file, the Dart Analysis Server must be restarted to
+> see the effects.
 
 [legacy]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer_plugin/doc/tutorial/tutorial.md
+[`dart pub upgrade`]: https://dart.dev/tools/pub/cmd/pub-upgrade
 
 ## Enabling a lint rule
 

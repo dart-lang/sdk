@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
-import 'package:linter/src/lint_codes.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules/analyzer_public_api.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,18 +19,18 @@ void main() {
 @reflectiveTest
 class AnalyzerPublicApiTest extends LintRuleTest {
   static String get badPartDirective =>
-      LinterLintCode.analyzerPublicApiBadPartDirective.name;
+      diag.analyzerPublicApiBadPartDirective.lowerCaseName;
 
-  static String get badType => LinterLintCode.analyzerPublicApiBadType.name;
+  static String get badType => diag.analyzerPublicApiBadType.lowerCaseName;
 
   static String get experimentalInconsistency =>
-      LinterLintCode.analyzerPublicApiExperimentalInconsistency.name;
+      diag.analyzerPublicApiExperimentalInconsistency.lowerCaseName;
 
   static String get exportsNonPublicName =>
-      LinterLintCode.analyzerPublicApiExportsNonPublicName.name;
+      diag.analyzerPublicApiExportsNonPublicName.lowerCaseName;
 
   static String get implInPublicApi =>
-      LinterLintCode.analyzerPublicApiImplInPublicApi.name;
+      diag.analyzerPublicApiImplInPublicApi.lowerCaseName;
 
   String get libFile => '$testPackageRootPath/lib/file.dart';
 
@@ -2188,6 +2189,7 @@ class C {
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(72, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 74, 1),
     ]);
   }
 
@@ -2217,6 +2219,7 @@ class C extends B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 76, 1),
     ]);
   }
 
@@ -2244,6 +2247,7 @@ class C implements B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 79, 1),
     ]);
   }
 
@@ -2271,6 +2275,7 @@ class C<T extends B> {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 78, 1),
     ]);
   }
 
@@ -2298,6 +2303,7 @@ class C with B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 73, 1),
     ]);
   }
 
@@ -2325,6 +2331,7 @@ extension E on B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(70, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 75, 1),
     ]);
   }
 
@@ -2352,6 +2359,7 @@ void F(B b) {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(65, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 67, 1),
     ]);
   }
 
@@ -2379,6 +2387,7 @@ typedef void F(B b);
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(73, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 75, 1),
     ]);
   }
 
@@ -2406,6 +2415,7 @@ typedef void F<T extends B>(T t);
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(73, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 85, 1),
     ]);
   }
 
@@ -2433,6 +2443,7 @@ mixin M on B {}
 ''');
     await assertDiagnosticsInFile(libFile, [
       lint(66, 1, name: experimentalInconsistency),
+      error(diag.experimentalMemberUse, 71, 1),
     ]);
   }
 

@@ -2,35 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/file_analysis.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/error_verifier.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
 class DuplicateDefinitionVerifier {
   final LibraryElementImpl _currentLibrary;
   final DiagnosticReporter _diagnosticReporter;
-  final DuplicationDefinitionContext context;
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
   final Set<Token> _reportedTokens = Set.identity();
 
-  DuplicateDefinitionVerifier(
-    this._currentLibrary,
-    this._diagnosticReporter,
-    this.context,
-  );
+  DuplicateDefinitionVerifier(this._currentLibrary, this._diagnosticReporter);
 
   /// Check that the exception and stack trace parameters have different names.
   void checkCatchClause(CatchClause node) {
@@ -41,13 +32,12 @@ class DuplicateDefinitionVerifier {
       if (element != null && element.isWildcardVariable) return;
       String exceptionName = exceptionParameter.name.lexeme;
       if (exceptionName == stackTraceParameter.name.lexeme) {
-        _diagnosticReporter.reportError(
+        _diagnosticReporter.report(
           _diagnosticFactory.duplicateDefinitionForNodes(
             _diagnosticReporter.source,
-            CompileTimeErrorCode.duplicateDefinition,
+            diag.duplicateDefinition.withArguments(name: exceptionName),
             stackTraceParameter,
             exceptionParameter,
-            [exceptionName],
           ),
         );
       }
@@ -57,31 +47,35 @@ class DuplicateDefinitionVerifier {
   /// Check that the given list of variable declarations does not define
   /// multiple variables of the same name.
   void checkForVariables(VariableDeclarationListImpl node) {
-    var definedNames = <String, ElementImpl>{};
+    var scope = _DuplicateIdentifierScope(this);
     for (var variable in node.variables) {
-      _checkDuplicateIdentifier(
-        definedNames,
-        variable.name,
-        fragment: variable.declaredFragment,
-      );
+      scope.add(variable.name, node: variable);
     }
   }
 
   /// Check that all of the parameters have unique names.
   void checkParameters(FormalParameterListImpl node) {
-    var definedNames = <String, ElementImpl>{};
+    var scope = _FormalParameterDuplicateIdentifierScope(this);
     for (var parameter in node.parameters) {
+      // The identifier can be null if this is a parameter list for a generic
+      // function type.
       var identifier = parameter.name;
-      if (identifier != null) {
-        // The identifier can be null if this is a parameter list for a generic
-        // function type.
+      if (identifier == null) {
+        continue;
+      }
 
-        // Skip wildcard `super._`.
-        if (!_isSuperFormalWildcard(parameter, identifier)) {
-          _checkDuplicateIdentifier(
-            definedNames,
-            identifier,
-            fragment: parameter.declaredFragment,
+      scope.add(identifier, node: parameter);
+    }
+
+    // For private named parameters, also look for collisions with their public
+    // name and other parameters.
+    for (var parameter in node.parameters) {
+      if (parameter.declaredFragment
+          case FieldFormalParameterFragment fragment) {
+        if (fragment.privateName != null) {
+          scope.checkPublicName(
+            privateName: parameter.name!,
+            publicName: fragment.name!,
           );
         }
       }
@@ -90,31 +84,22 @@ class DuplicateDefinitionVerifier {
 
   /// Check that all of the variables have unique names.
   void checkStatements(List<StatementImpl> statements) {
-    var definedNames = <String, ElementImpl>{};
+    var scope = _DuplicateIdentifierScope(this);
     for (var statement in statements) {
       if (statement is VariableDeclarationStatementImpl) {
         for (var variable in statement.variables.variables) {
-          _checkDuplicateIdentifier(
-            definedNames,
-            variable.name,
-            fragment: variable.declaredFragment,
-          );
+          scope.add(variable.name, node: variable);
         }
       } else if (statement is FunctionDeclarationStatementImpl) {
         if (!_isWildCardFunction(statement)) {
-          _checkDuplicateIdentifier(
-            definedNames,
+          scope.add(
             statement.functionDeclaration.name,
-            fragment: statement.functionDeclaration.declaredFragment,
+            node: statement.functionDeclaration,
           );
         }
       } else if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
-          _checkDuplicateIdentifier(
-            definedNames,
-            variable.node.name,
-            fragment: variable.firstFragment,
-          );
+          scope.add(variable.node.name, node: variable.node);
         }
       }
     }
@@ -122,13 +107,9 @@ class DuplicateDefinitionVerifier {
 
   /// Check that all of the parameters have unique names.
   void checkTypeParameters(TypeParameterListImpl node) {
-    var definedNames = <String, ElementImpl>{};
+    var scope = _DuplicateIdentifierScope(this);
     for (var parameter in node.typeParameters) {
-      _checkDuplicateIdentifier(
-        definedNames,
-        parameter.name,
-        fragment: parameter.declaredFragment,
-      );
+      scope.add(parameter.name, node: parameter);
     }
   }
 
@@ -200,12 +181,11 @@ class DuplicateDefinitionVerifier {
       var name = importPrefix.name;
       if (name != null) {
         if (libraryDeclarations.withName(name) case var existing?) {
-          _diagnosticReporter.reportError(
+          _diagnosticReporter.report(
             _diagnosticFactory.duplicateDefinition(
-              CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
+              diag.prefixCollidesWithTopLevelMember.withArguments(name: name),
               importPrefix.firstFragment,
               existing as ElementImpl,
-              [name],
             ),
           );
         }
@@ -222,76 +202,122 @@ class DuplicateDefinitionVerifier {
     }
 
     for (var member in node.declarations) {
-      if (member is ExtensionDeclarationImpl) {
-        var identifier = member.name;
-        if (identifier != null) {
+      switch (member) {
+        case ClassDeclarationImpl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
-            _checkDuplicateIdentifier(
+            _checkDuplicateFragmentIdentifier(
               definedGetters,
-              identifier,
+              member.namePart.typeName,
               fragment: declaredFragment,
-              setterScope: definedSetters,
             );
           }
-        }
-      } else if (member is NamedCompilationUnitMemberImpl) {
-        var declaredFragment = member.declaredFragment!;
-        _checkDuplicateIdentifier(
-          definedGetters,
-          member.name,
-          fragment: declaredFragment,
-          setterScope: definedSetters,
-        );
-      } else if (member is TopLevelVariableDeclarationImpl) {
-        for (var variable in member.variables.variables) {
-          var declaredFragment = variable.declaredFragment;
-          declaredFragment as TopLevelVariableFragmentImpl;
+        case EnumDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
-            var declaredElement = declaredFragment.element;
-            _checkDuplicateIdentifier(
+            _checkDuplicateFragmentIdentifier(
               definedGetters,
-              variable.name,
-              originFragment: declaredFragment,
-              fragment: declaredElement.getter?.firstFragment,
-              setterScope: definedSetters,
+              member.namePart.typeName,
+              fragment: declaredFragment,
             );
-            if (declaredElement.definesSetter) {
-              _checkDuplicateIdentifier(
+          }
+        case ExtensionDeclarationImpl():
+          var identifier = member.name;
+          if (identifier != null) {
+            var declaredFragment = member.declaredFragment!;
+            if (!declaredFragment.isAugmentation) {
+              _checkDuplicateFragmentIdentifier(
                 definedGetters,
-                variable.name,
-                originFragment: declaredFragment,
-                fragment: declaredElement.setter?.firstFragment,
-                setterScope: definedSetters,
+                identifier,
+                fragment: declaredFragment,
               );
             }
           }
-        }
+        case ExtensionTypeDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateFragmentIdentifier(
+              definedGetters,
+              member.primaryConstructor.typeName,
+              fragment: declaredFragment,
+            );
+          }
+        case FunctionDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            if (declaredFragment is SetterFragment) {
+              _checkDuplicateFragmentIdentifier(
+                definedSetters,
+                member.name,
+                fragment: declaredFragment,
+              );
+            } else {
+              _checkDuplicateFragmentIdentifier(
+                definedGetters,
+                member.name,
+                fragment: declaredFragment,
+              );
+            }
+          }
+        case MixinDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateFragmentIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+            );
+          }
+        case TopLevelVariableDeclarationImpl():
+          for (var variable in member.variables.variables) {
+            var declaredFragment = variable.declaredFragment;
+            declaredFragment as TopLevelVariableFragmentImpl;
+            if (!declaredFragment.isAugmentation) {
+              var declaredElement = declaredFragment.element;
+              if (declaredElement.getter?.firstFragment case var getter?) {
+                _checkDuplicateFragmentIdentifier(
+                  definedGetters,
+                  variable.name,
+                  originFragment: declaredFragment,
+                  fragment: getter,
+                );
+              }
+              if (declaredElement.definesSetter) {
+                if (declaredElement.setter?.firstFragment case var setter?) {
+                  _checkDuplicateFragmentIdentifier(
+                    definedSetters,
+                    variable.name,
+                    originFragment: declaredFragment,
+                    fragment: setter,
+                  );
+                }
+              }
+            }
+          }
+        case TypeAliasImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateFragmentIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+            );
+          }
       }
     }
   }
 
   /// Check whether the given [fragment] defined by the [identifier] is already
-  /// in one of the scopes - [getterScope] or [setterScope], and produce an
-  /// error if it is.
-  void _checkDuplicateIdentifier(
-    Map<String, ElementImpl> getterScope,
+  /// in [scope], and produce an error if it is.
+  void _checkDuplicateFragmentIdentifier(
+    Map<String, ElementImpl> scope,
     Token identifier, {
     FragmentImpl? originFragment,
-    required FragmentImpl? fragment,
-    Map<String, ElementImpl>? setterScope,
+    required FragmentImpl fragment,
   }) {
     if (identifier.isSynthetic) {
       return;
     }
-    if (fragment == null || fragment.element.isWildcardVariable) {
-      return;
-    }
-    if (fragment.isAugmentation) {
-      return;
-    }
-
-    originFragment ??= fragment;
 
     var lookupName = fragment.element.lookupName;
     if (lookupName == null) {
@@ -302,56 +328,18 @@ class DuplicateDefinitionVerifier {
       return;
     }
 
-    DiagnosticCode getDiagnostic(ElementImpl previous, FragmentImpl current) {
-      if (previous is FieldFormalParameterElement &&
-          current is FieldFormalParameterFragment) {
-        return CompileTimeErrorCode.duplicateFieldFormalParameter;
-      }
-      return CompileTimeErrorCode.duplicateDefinition;
-    }
-
-    if (fragment is SetterFragment) {
-      if (setterScope != null) {
-        var previous = setterScope[lookupName];
-        if (previous != null) {
-          _reportedTokens.add(identifier);
-          _diagnosticReporter.reportError(
-            _diagnosticFactory.duplicateDefinition(
-              getDiagnostic(previous, fragment),
-              originFragment,
-              previous,
-              [lookupName],
-            ),
-          );
-        } else {
-          setterScope[lookupName] = fragment.element;
-        }
-      }
+    if (scope[lookupName] case var previous?) {
+      _reportedTokens.add(identifier);
+      _diagnosticReporter.report(
+        _diagnosticFactory.duplicateDefinition(
+          diag.duplicateDefinition.withArguments(name: lookupName),
+          originFragment ?? fragment,
+          previous,
+        ),
+      );
     } else {
-      var previous = getterScope[lookupName];
-      if (previous != null) {
-        _reportedTokens.add(identifier);
-        _diagnosticReporter.reportError(
-          _diagnosticFactory.duplicateDefinition(
-            getDiagnostic(previous, fragment),
-            originFragment,
-            previous,
-            [lookupName],
-          ),
-        );
-      } else {
-        getterScope[lookupName] = fragment.element;
-      }
+      scope[lookupName] = fragment.element;
     }
-  }
-
-  bool _isSuperFormalWildcard(FormalParameter parameter, Token identifier) {
-    if (parameter is DefaultFormalParameter) {
-      parameter = parameter.parameter;
-    }
-    return parameter is SuperFormalParameter &&
-        identifier.lexeme == '_' &&
-        _currentLibrary.featureSet.isEnabled(Feature.wildcard_variables);
   }
 
   bool _isWildCardFunction(FunctionDeclarationStatement statement) =>
@@ -359,607 +347,106 @@ class DuplicateDefinitionVerifier {
       _currentLibrary.hasWildcardVariablesFeatureEnabled;
 }
 
-/// Information to pass from declarations to augmentations.
-class DuplicationDefinitionContext {
-  final Map<InstanceFragmentImpl, _InstanceElementContext>
-  _instanceElementContexts = {};
-}
+/// A single scope where colliding definitions with the same name is an error.
+class _DuplicateIdentifierScope<T extends AstNode> {
+  final DuplicateDefinitionVerifier _verifier;
 
-class MemberDuplicateDefinitionVerifier {
-  final InheritanceManager3 _inheritanceManager;
-  final LibraryElementImpl _currentLibrary;
-  final LibraryFragmentImpl _currentUnit;
-  final DiagnosticReporter _diagnosticReporter;
-  final DuplicationDefinitionContext context;
-  final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
+  final Map<String, (T, Token)> _scope = {};
 
-  MemberDuplicateDefinitionVerifier._(
-    this._inheritanceManager,
-    this._currentLibrary,
-    this._currentUnit,
-    this._diagnosticReporter,
-    this.context,
-  );
+  _DuplicateIdentifierScope(this._verifier);
 
-  void _checkClass(ClassDeclarationImpl node) {
-    _checkClassMembers(node.declaredFragment!, node.members);
-  }
-
-  /// Check that there are no members with the same name.
-  void _checkClassMembers(
-    InstanceFragmentImpl fragment,
-    List<ClassMemberImpl> members,
-  ) {
-    var firstFragment = fragment.element.firstFragment;
-
-    var elementContext = _getElementContext(firstFragment);
-    var constructorNames = elementContext.constructorNames;
-    var instanceScope = elementContext.instanceScope;
-    var staticScope = elementContext.staticScope;
-
-    for (var member in members) {
-      switch (member) {
-        case ConstructorDeclarationImpl():
-          // Augmentations are not declarations, can have multiple.
-          if (member.augmentKeyword != null) {
-            continue;
-          }
-          if (member.returnType.name != firstFragment.name) {
-            // [member] is erroneous; do not count it as a possible duplicate.
-            continue;
-          }
-          var name = member.name?.lexeme ?? 'new';
-          if (!constructorNames.add(name)) {
-            if (name == 'new') {
-              _diagnosticReporter.atConstructorDeclaration(
-                member,
-                CompileTimeErrorCode.duplicateConstructorDefault,
-              );
-            } else {
-              _diagnosticReporter.atConstructorDeclaration(
-                member,
-                CompileTimeErrorCode.duplicateConstructorName,
-                arguments: [name],
-              );
-            }
-          }
-        case FieldDeclarationImpl():
-          for (var field in member.fields.variables) {
-            var fieldFragment = field.declaredFragment!;
-            fieldFragment as FieldFragmentImpl;
-            var fieldElement = fieldFragment.element;
-            _checkDuplicateIdentifier(
-              member.isStatic ? staticScope : instanceScope,
-              field.name,
-              fragment: fieldElement.getter!.firstFragment,
-              originFragment: fieldFragment,
-            );
-            if (fieldElement.setter case var setter?) {
-              _checkDuplicateIdentifier(
-                member.isStatic ? staticScope : instanceScope,
-                field.name,
-                fragment: setter.firstFragment,
-                originFragment: fieldFragment,
-              );
-            }
-            if (fragment is EnumFragmentImpl) {
-              _checkValuesDeclarationInEnum(field.name);
-            }
-          }
-        case MethodDeclarationImpl():
-          _checkDuplicateIdentifier(
-            member.isStatic ? staticScope : instanceScope,
-            member.name,
-            fragment: member.declaredFragment!,
-          );
-          if (fragment is EnumFragmentImpl) {
-            if (!(member.isStatic && member.isSetter)) {
-              _checkValuesDeclarationInEnum(member.name);
-            }
-          }
-      }
-    }
-
-    if (firstFragment is InterfaceFragmentImpl) {
-      _checkConflictingConstructorAndStatic(
-        interfaceElement: firstFragment,
-        staticScope: staticScope,
-      );
-    }
-  }
-
-  void _checkClassStatic(
-    InstanceFragmentImpl fragment,
-    List<ClassMember> members,
-  ) {
-    var firstFragment = fragment.element.firstFragment;
-
-    var elementContext = _getElementContext(firstFragment);
-    var instanceScope = elementContext.instanceScope;
-
-    // Check for local static members conflicting with local instance members.
-    // TODO(scheglov): This code is duplicated for enums. But for classes it is
-    // separated also into ErrorVerifier - where we check inherited.
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration) {
-        if (member.isStatic) {
-          for (VariableDeclaration field in member.fields.variables) {
-            var identifier = field.name;
-            String name = identifier.lexeme;
-            if (instanceScope.containsKey(name)) {
-              if (firstFragment is InterfaceFragmentImpl) {
-                String className = firstFragment.name ?? '';
-                _diagnosticReporter.atToken(
-                  identifier,
-                  CompileTimeErrorCode.conflictingStaticAndInstance,
-                  arguments: [className, name, className],
-                );
-              }
-            }
-          }
-        }
-      } else if (member is MethodDeclaration) {
-        if (member.isStatic) {
-          var identifier = member.name;
-          String name = identifier.lexeme;
-          if (instanceScope.containsKey(name)) {
-            if (firstFragment is InterfaceFragmentImpl) {
-              String className = firstFragment.name ?? '';
-              _diagnosticReporter.atToken(
-                identifier,
-                CompileTimeErrorCode.conflictingStaticAndInstance,
-                arguments: [className, name, className],
-              );
-            }
-          }
-        }
-      }
-    }
-  }
-
-  void _checkConflictingConstructorAndStatic({
-    required InterfaceFragmentImpl interfaceElement,
-    required Map<String, _ScopeEntry> staticScope,
-  }) {
-    for (var constructor in interfaceElement.constructors) {
-      var name = constructor.name;
-
-      // It is already an error to declare a member named 'new'.
-      if (name == 'new') {
-        continue;
-      }
-
-      var state = staticScope[name];
-      switch (state) {
-        case null:
-          // ok
-          break;
-        case _ScopeEntryElement(
-          element: PropertyAccessorElementImpl staticMember2,
-        ):
-          CompileTimeErrorCode errorCode;
-          if (staticMember2.isSynthetic) {
-            errorCode =
-                CompileTimeErrorCode.conflictingConstructorAndStaticField;
-          } else if (staticMember2 is GetterElementImpl) {
-            errorCode =
-                CompileTimeErrorCode.conflictingConstructorAndStaticGetter;
-          } else {
-            errorCode =
-                CompileTimeErrorCode.conflictingConstructorAndStaticSetter;
-          }
-          _diagnosticReporter.atElement2(
-            constructor.asElement2,
-            errorCode,
-            arguments: [name],
-          );
-        case _ScopeEntryElement(element: MethodElementImpl()):
-          _diagnosticReporter.atElement2(
-            constructor.asElement2,
-            CompileTimeErrorCode.conflictingConstructorAndStaticMethod,
-            arguments: [name],
-          );
-        case _ScopeEntryGetterSetterPair():
-          _diagnosticReporter.atElement2(
-            constructor.asElement2,
-            state.getter.isSynthetic
-                ? CompileTimeErrorCode.conflictingConstructorAndStaticField
-                : CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
-            arguments: [name],
-          );
-        case _ScopeEntryElement(:var element):
-          throw StateError(
-            'Unexpected type in duplicate map: ${element.runtimeType}',
-          );
-      }
-    }
-  }
-
-  /// Checks whether the given [fragment] defined by the [identifier] conflicts
-  /// with an element already in [scope], and produces an error if it is.
-  void _checkDuplicateIdentifier(
-    Map<String, _ScopeEntry> scope,
-    Token identifier, {
-    required FragmentImpl fragment,
-    FragmentImpl? originFragment,
-  }) {
-    if (identifier.isSynthetic || fragment.element.isWildcardVariable) {
+  /// Reports an error if there is already a node in this scope with the given
+  /// [identifier] name.
+  ///
+  /// Otherwise, adds [node] to the scope.
+  void add(Token identifier, {required T node}) {
+    if (identifier.isSynthetic) {
       return;
     }
 
-    if (fragment.isAugmentation) {
+    if (_verifier._reportedTokens.contains(identifier)) {
       return;
     }
 
-    var name = switch (fragment) {
-      MethodFragmentImpl() => fragment.element.lookupName ?? '',
-      _ => identifier.lexeme,
-    };
-
-    var scopeEntry = scope[name];
-    switch (scopeEntry) {
-      case null:
-        scope[name] = _ScopeEntryElement(fragment.element);
-      case _ScopeEntryElement(element: GetterElementImpl previous)
-          when fragment is SetterFragmentImpl:
-        scope[name] = _ScopeEntryGetterSetterPair(
-          getter: previous,
-          setter: fragment.element,
-        );
-      case _ScopeEntryElement(element: SetterElementImpl previous)
-          when fragment is GetterFragmentImpl:
-        scope[name] = _ScopeEntryGetterSetterPair(
-          getter: fragment.element,
-          setter: previous,
-        );
-      case _ScopeEntryGetterSetterPair(setter: ElementImpl previous)
-          when fragment is SetterFragmentImpl:
-      case _ScopeEntryGetterSetterPair(getter: ElementImpl previous):
-      case _ScopeEntryElement(element: ElementImpl previous):
-        if (!identical(previous, fragment.element)) {
-          _diagnosticReporter.reportError(
-            _diagnosticFactory.duplicateDefinition(
-              CompileTimeErrorCode.duplicateDefinition,
-              originFragment ?? fragment,
-              previous,
-              [name],
-            ),
-          );
-        }
-    }
-  }
-
-  /// Check that there are no members with the same name.
-  void _checkEnum(EnumDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var firstFragment = fragment.element.firstFragment;
-    var declarationName = firstFragment.name;
-
-    var elementContext = _getElementContext(firstFragment);
-    var staticScope = elementContext.staticScope;
-
-    for (var constant in node.constants) {
-      if (constant.name.lexeme == declarationName) {
-        _diagnosticReporter.atToken(
-          constant.name,
-          CompileTimeErrorCode.enumConstantSameNameAsEnclosing,
-        );
-      }
-      var constantFragment = constant.declaredFragment!;
-      var constantGetter = constantFragment.element.getter!;
-      _checkDuplicateIdentifier(
-        staticScope,
-        constant.name,
-        fragment: constantGetter.firstFragment,
-        originFragment: constantFragment,
-      );
-      _checkValuesDeclarationInEnum(constant.name);
-    }
-
-    _checkClassMembers(fragment, node.members);
-
-    if (declarationName == 'values') {
-      _diagnosticReporter.atToken(
-        node.name,
-        CompileTimeErrorCode.enumWithNameValues,
-      );
-    }
-
-    for (var accessor in fragment.accessors) {
-      if (accessor.isStatic) {
-        continue;
-      }
-      if (accessor.libraryFragment.source != _currentUnit.source) {
-        continue;
-      }
-      var baseName = accessor.displayName;
-      var inherited = _getInheritedMember(fragment.element, baseName);
-      if (inherited is InternalMethodElement) {
-        _diagnosticReporter.atElement2(
-          accessor.asElement2,
-          CompileTimeErrorCode.conflictingFieldAndMethod,
-          arguments: [
-            firstFragment.displayName,
-            baseName,
-            inherited.enclosingElement!.name!,
-          ],
-        );
-      }
-    }
-
-    for (var method in fragment.methods) {
-      if (method.isStatic) {
-        continue;
-      }
-      if (method.libraryFragment.source != _currentUnit.source) {
-        continue;
-      }
-      var baseName = method.displayName;
-      var inherited = _getInheritedMember(fragment.element, baseName);
-      if (inherited is InternalPropertyAccessorElement) {
-        _diagnosticReporter.atElement2(
-          method.asElement2,
-          CompileTimeErrorCode.conflictingMethodAndField,
-          arguments: [
-            firstFragment.displayName,
-            baseName,
-            inherited.enclosingElement.name!,
-          ],
-        );
-      }
-    }
-  }
-
-  void _checkEnumStatic(EnumDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var firstFragment = fragment.element.firstFragment;
-    var declarationName = firstFragment.name;
-    if (declarationName == null) {
+    // Wildcards do not collide.
+    if (identifier.lexeme == '_' &&
+        _verifier._currentLibrary.hasWildcardVariablesFeatureEnabled &&
+        isWildcard(node)) {
       return;
     }
 
-    for (var accessor in fragment.accessors) {
-      if (accessor.libraryFragment.source != _currentUnit.source) {
-        continue;
-      }
-      var baseName = accessor.displayName;
-      if (accessor.isStatic) {
-        var instance = _getInterfaceMember(fragment.element, baseName);
-        if (instance != null && baseName != 'values') {
-          _diagnosticReporter.atElement2(
-            accessor.asElement2,
-            CompileTimeErrorCode.conflictingStaticAndInstance,
-            arguments: [declarationName, baseName, declarationName],
-          );
-        }
-      }
-    }
-
-    for (var method in fragment.methods) {
-      if (method.libraryFragment.source != _currentUnit.source) {
-        continue;
-      }
-      var baseName = method.displayName;
-      if (method.isStatic) {
-        var instance = _getInterfaceMember(fragment.element, baseName);
-        if (instance != null) {
-          _diagnosticReporter.atElement2(
-            method.asElement2,
-            CompileTimeErrorCode.conflictingStaticAndInstance,
-            arguments: [declarationName, baseName, declarationName],
-          );
-        }
-      }
-    }
-  }
-
-  /// Check that there are no members with the same name.
-  void _checkExtension(covariant ExtensionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    _checkClassMembers(fragment, node.members);
-  }
-
-  void _checkExtensionStatic(covariant ExtensionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var firstFragment = fragment.element.firstFragment;
-
-    var elementContext = _getElementContext(firstFragment);
-    var instanceScope = elementContext.instanceScope;
-
-    for (var member in node.members) {
-      if (member is FieldDeclarationImpl) {
-        if (member.isStatic) {
-          for (var field in member.fields.variables) {
-            var identifier = field.name;
-            var name = identifier.lexeme;
-            if (instanceScope.containsKey(name)) {
-              _diagnosticReporter.atToken(
-                identifier,
-                CompileTimeErrorCode.extensionConflictingStaticAndInstance,
-                arguments: [name],
-              );
-            }
-          }
-        }
-      } else if (member is MethodDeclarationImpl) {
-        if (member.isStatic) {
-          var identifier = member.name;
-          var name = identifier.lexeme;
-          if (instanceScope.containsKey(name)) {
-            _diagnosticReporter.atToken(
-              identifier,
-              CompileTimeErrorCode.extensionConflictingStaticAndInstance,
-              arguments: [name],
-            );
-          }
-        }
-      }
-    }
-  }
-
-  void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-    var firstFragment = element.firstFragment;
-    var primaryConstructorName = element.primaryConstructor.name!;
-    var representationGetter = element.representation.getter!;
-    var elementContext = _getElementContext(firstFragment);
-    elementContext.constructorNames.add(primaryConstructorName);
-    if (representationGetter.name case var getterName?) {
-      elementContext.instanceScope[getterName] = _ScopeEntryElement(
-        representationGetter,
+    if (_scope[identifier.lexeme] case (var previousNode, var previousToken)) {
+      _verifier._reportedTokens.add(identifier);
+      _verifier._diagnosticReporter.report(
+        _verifier._diagnosticFactory.duplicateDefinitionForNodes(
+          _verifier._diagnosticReporter.source,
+          getDiagnostic(
+            previousNode,
+            node,
+          ).withArguments(name: identifier.lexeme),
+          identifier,
+          previousToken,
+        ),
       );
-    }
-
-    _checkClassMembers(firstFragment, node.members);
-  }
-
-  void _checkMixin(MixinDeclarationImpl node) {
-    _checkClassMembers(node.declaredFragment!, node.members);
-  }
-
-  void _checkUnit(CompilationUnitImpl node) {
-    for (var node in node.declarations) {
-      switch (node) {
-        case ClassDeclarationImpl():
-          _checkClass(node);
-        case ExtensionDeclarationImpl():
-          _checkExtension(node);
-        case EnumDeclarationImpl():
-          _checkEnum(node);
-        case ExtensionTypeDeclarationImpl():
-          _checkExtensionType(node);
-        case MixinDeclarationImpl():
-          _checkMixin(node);
-        case ClassTypeAliasImpl():
-        case FunctionDeclarationImpl():
-        case FunctionTypeAliasImpl():
-        case GenericTypeAliasImpl():
-        case TopLevelVariableDeclarationImpl():
-        // Do nothing.
-      }
+    } else {
+      _scope[identifier.lexeme] = (node, identifier);
     }
   }
 
-  void _checkUnitStatic(CompilationUnitImpl node) {
-    for (var declaration in node.declarations) {
-      switch (declaration) {
-        case ClassDeclarationImpl():
-          var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.members);
-        case EnumDeclarationImpl():
-          _checkEnumStatic(declaration);
-        case ExtensionDeclarationImpl():
-          _checkExtensionStatic(declaration);
-        case ExtensionTypeDeclarationImpl():
-          var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.members);
-        case MixinDeclarationImpl():
-          var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.members);
-        case ClassTypeAliasImpl():
-        case FunctionDeclarationImpl():
-        case FunctionTypeAliasImpl():
-        case GenericTypeAliasImpl():
-        case TopLevelVariableDeclarationImpl():
-        // Do nothing.
-      }
-    }
-  }
+  /// The diagnostic code to use when [previous] and [current] have the same
+  /// name.
+  DiagnosticWithArguments<LocatableDiagnostic Function({required String name})>
+  getDiagnostic(T previous, T current) => diag.duplicateDefinition;
 
-  void _checkValuesDeclarationInEnum(Token name) {
-    if (name.lexeme == 'values') {
-      _diagnosticReporter.atToken(
-        name,
-        CompileTimeErrorCode.valuesDeclarationInEnum,
-      );
-    }
-  }
+  /// Whether [node] whose name is known to be `_` should be treated as a
+  /// wildcard or not.
+  bool isWildcard(T node) => true;
+}
 
-  _InstanceElementContext _getElementContext(InstanceFragmentImpl element) {
-    return context._instanceElementContexts[element] ??=
-        _InstanceElementContext();
-  }
+/// A [_DuplicateIdentifierScope] for formal parameters.
+///
+/// Handles private named parameters and initializing formals.
+class _FormalParameterDuplicateIdentifierScope
+    extends _DuplicateIdentifierScope<FormalParameter> {
+  _FormalParameterDuplicateIdentifierScope(super.verifier);
 
-  InternalExecutableElement? _getInheritedMember(
-    InterfaceElementImpl element,
-    String baseName,
-  ) {
-    var libraryUri = _currentLibrary.uri;
-
-    var getterName = Name(libraryUri, baseName);
-    var getter = _inheritanceManager.getInherited(element, getterName);
-    if (getter != null) {
-      return getter;
-    }
-
-    var setterName = Name(libraryUri, '$baseName=');
-    return _inheritanceManager.getInherited(element, setterName);
-  }
-
-  InternalExecutableElement? _getInterfaceMember(
-    InterfaceElementImpl element,
-    String baseName,
-  ) {
-    var libraryUri = _currentLibrary.uri;
-
-    var getterName = Name(libraryUri, baseName);
-    var getter = _inheritanceManager.getMember(element, getterName);
-    if (getter != null) {
-      return getter;
-    }
-
-    var setterName = Name(libraryUri, '$baseName=');
-    return _inheritanceManager.getMember(element, setterName);
-  }
-
-  static void checkLibrary({
-    required InheritanceManager3 inheritance,
-    required LibraryVerificationContext libraryVerificationContext,
-    required LibraryElementImpl libraryElement,
-    required Map<FileState, FileAnalysis> files,
+  /// Given a private named parameter with [privateName] and corresponding
+  /// [publicName], checks that the public name doesn't collide with any other
+  /// parameter.
+  void checkPublicName({
+    required Token privateName,
+    required String publicName,
   }) {
-    MemberDuplicateDefinitionVerifier forUnit(FileAnalysis fileAnalysis) {
-      return MemberDuplicateDefinitionVerifier._(
-        inheritance,
-        libraryElement,
-        fileAnalysis.element,
-        fileAnalysis.diagnosticReporter,
-        libraryVerificationContext.duplicationDefinitionContext,
+    if (_scope[publicName] case (var _, var previousToken)) {
+      _verifier._diagnosticReporter.report(
+        _verifier._diagnosticFactory.duplicateDefinitionForNodes(
+          _verifier._diagnosticReporter.source,
+          diag.privateNamedParameterDuplicatePublicName.withArguments(
+            name: publicName,
+          ),
+          privateName,
+          previousToken,
+        ),
       );
     }
-
-    // Check all instance members.
-    for (var fileAnalysis in files.values) {
-      forUnit(fileAnalysis)._checkUnit(fileAnalysis.unit);
-    }
-
-    // Check all static members.
-    for (var fileAnalysis in files.values) {
-      forUnit(fileAnalysis)._checkUnitStatic(fileAnalysis.unit);
-    }
   }
-}
 
-/// Information accumulated for a single declaration and its augmentations.
-class _InstanceElementContext {
-  final Set<String> constructorNames = {};
-  final Map<String, _ScopeEntry> instanceScope = {};
-  final Map<String, _ScopeEntry> staticScope = {};
-}
+  @override
+  DiagnosticWithArguments<LocatableDiagnostic Function({required String name})>
+  getDiagnostic(FormalParameter previous, FormalParameter current) {
+    // When two initializing formals collide, tell the user they can't
+    // initialize the same field twice.
+    if (previous.notDefault is FieldFormalParameter &&
+        current.notDefault is FieldFormalParameter) {
+      return diag.duplicateFieldFormalParameter;
+    }
+    return diag.duplicateDefinition;
+  }
 
-sealed class _ScopeEntry {}
-
-class _ScopeEntryElement extends _ScopeEntry {
-  final ElementImpl element;
-
-  _ScopeEntryElement(this.element)
-    : assert(element is! PropertyInducingElementImpl);
-}
-
-class _ScopeEntryGetterSetterPair extends _ScopeEntry {
-  final GetterElementImpl getter;
-  final SetterElementImpl setter;
-
-  _ScopeEntryGetterSetterPair({required this.getter, required this.setter});
+  @override
+  bool isWildcard(FormalParameter node) {
+    // Since fields can be named `_`, initializing formals are not
+    // considered wildcards.
+    return node.notDefault is! FieldFormalParameter;
+  }
 }

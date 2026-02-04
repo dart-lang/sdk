@@ -20,6 +20,15 @@ class Mutex;
 class SimulatorSetjmpBuffer;
 class Thread;
 
+#define ELEN 64
+#define VLEN 128
+
+COMPILE_ASSERT(ELEN >= 8);
+COMPILE_ASSERT(Utils::IsPowerOfTwo(ELEN));
+COMPILE_ASSERT(VLEN >= ELEN);
+COMPILE_ASSERT(Utils::IsPowerOfTwo(VLEN));
+COMPILE_ASSERT(VLEN <= 0x10000);
+
 // TODO(riscv): Dynamic rounding mode and other FSCR state.
 class Simulator {
  public:
@@ -191,6 +200,7 @@ class Simulator {
   uintx_t get_sp() const { return get_xreg(SP); }
   uintx_t get_fp() const { return get_xreg(FP); }
   uintx_t get_lr() const { return get_xreg(RA); }
+  void set_ss_enabled(bool value) { ss_enabled_ = value; }
   void PrintRegisters();
   void PrintStack();
 
@@ -211,6 +221,7 @@ class Simulator {
   struct PreservedRegisters {
     uintx_t xregs[kNumberOfCpuRegisters];
     double fregs[kNumberOfFpuRegisters];
+    uintx_t ssp;
   };
   void PrepareCall(PreservedRegisters* preserved);
   void ClobberVolatileRegisters();
@@ -248,13 +259,12 @@ class Simulator {
   void InterpretMISCMEM(Instr instr);
   void InterpretSYSTEM(Instr instr);
   void InterpretECALL(Instr instr);
-  void InterpretEBREAK(Instr instr);
-  void InterpretEBREAK(CInstr instr);
   void InterpretAMO(Instr instr);
   void InterpretAMO8(Instr instr);
   void InterpretAMO16(Instr instr);
   void InterpretAMO32(Instr instr);
   void InterpretAMO64(Instr instr);
+  void InterpretAMO128(Instr instr);
   template <typename type>
   void InterpretLR(Instr instr);
   template <typename type>
@@ -281,15 +291,33 @@ class Simulator {
   void InterpretLOADORDERED(Instr instr);
   template <typename type>
   void InterpretSTOREORDERED(Instr instr);
+  template <typename type>
+  void InterpretAMOCAS(Instr instr);
   void InterpretLOADFP(Instr instr);
+  template <typename type>
+  void InterpretLOADV(Instr instr);
   void InterpretSTOREFP(Instr instr);
+  template <typename type>
+  void InterpretSTOREV(Instr instr);
   void InterpretFMADD(Instr instr);
   void InterpretFMSUB(Instr instr);
   void InterpretFNMADD(Instr instr);
   void InterpretFNMSUB(Instr instr);
   void InterpretOPFP(Instr instr);
+  void InterpretOPV(Instr instr);
+  void InterpretOPV_IVV(Instr instr);
+  void InterpretOPV_FVV(Instr instr);
+  void InterpretOPV_MVV(Instr instr);
+  void InterpretOPV_IVI(Instr instr);
+  void InterpretOPV_IVX(Instr instr);
+  template <typename sew_t>
+  void InterpretOPV_IVX(Instr instr);
+  void InterpretOPV_FVF(Instr instr);
+  void InterpretOPV_MVX(Instr instr);
+  void InterpretOPV_CFG(Instr instr);
   DART_NORETURN void IllegalInstruction(Instr instr);
   DART_NORETURN void IllegalInstruction(CInstr instr);
+  DART_NORETURN void Fault(const char* message);
 
   template <typename type>
   type MemoryRead(uintx_t address, Register base);
@@ -335,6 +363,17 @@ class Simulator {
     fregs_[rd] = bit_cast<double>(bits64);
   }
 
+  template <typename T>
+  T* ref_vreg(VRegister vd) {
+    return reinterpret_cast<T*>(&vregs_[vd][0]);
+  }
+  LengthMultiplier vlmul() const {
+    return static_cast<LengthMultiplier>((vtype_ >> 0) & 7);
+  }
+  ElementWidth vsew() const {
+    return static_cast<ElementWidth>((vtype_ >> 3) & 7);
+  }
+
   // Known bad pc value to ensure that the simulator does not execute
   // without being properly setup.
   static constexpr uword kBadLR = -1;
@@ -357,8 +396,18 @@ class Simulator {
   double fregs_[kNumberOfFpuRegisters];
   uint32_t fcsr_ = 0;
 
+  // Zicfissp state
+  bool ss_enabled_ = false;
+  uintx_t ssp_ = 0;
+
+  // V state
+  uint8_t vregs_[kNumberOfVectorRegisters][VLEN / 8];
+  uintx_t vl_;
+  uintx_t vtype_;
+
   // Simulator support.
   char* stack_;
+  char* shadow_stack_;
   uword stack_limit_;
   uword overflow_stack_limit_;
   uword stack_base_;

@@ -28,7 +28,6 @@ import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
 import '../builder/record_type_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
-import '../fragment/fragment.dart' as type;
 import '../kernel/body_builder.dart'
     as type
     show
@@ -38,6 +37,7 @@ import '../kernel/body_builder.dart'
         JumpTarget,
         Label;
 import '../kernel/expression_generator.dart' as type;
+import '../kernel/internal_ast.dart' as type;
 import 'outline_builder.dart' as type;
 
 class ValueKinds {
@@ -45,9 +45,11 @@ class ValueKinds {
       const SingleValueKind<List<type.Expression>>();
   static const ValueKind AnnotationListOrNull =
       const SingleValueKind<List<type.Expression>>(NullValues.Metadata);
-  static const ValueKind Arguments = const SingleValueKind<type.Arguments>();
+  static const ValueKind Argument = const SingleValueKind<type.Argument>();
+  static const ValueKind Arguments =
+      const SingleValueKind<type.ActualArguments>();
   static const ValueKind ArgumentsOrNull =
-      const SingleValueKind<type.Arguments>(NullValues.Arguments);
+      const SingleValueKind<type.ActualArguments>(NullValues.Arguments);
   static const ValueKind ArgumentsTokenOrNull =
       const SingleValueKind<type.Token>(NullValues.Arguments);
   static const ValueKind AssignedVariablesNodeInfo =
@@ -229,8 +231,8 @@ class ValueKinds {
       const SingleValueKind<List<type.TypeBuilder>>();
   static const ValueKind TypeBuilderListOrNull =
       const SingleValueKind<List<type.TypeBuilder>>(NullValues.TypeBuilderList);
-  static const ValueKind TypeParameterFragmentListOrNull =
-      const SingleValueKind<List<type.TypeParameterFragment>>(
+  static const ValueKind NominalTypeParametersOrNull =
+      const SingleValueKind<type.NominalParameters>(
         NullValues.NominalParameters,
       );
   static const ValueKind NominalVariableListOrNull =

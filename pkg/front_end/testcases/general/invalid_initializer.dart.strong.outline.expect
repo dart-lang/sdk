@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor named() → self::Super
+    ;
+}
+class Sub extends self::Super {
+  constructor •() → self::Sub
+    ;
+}
+static method main() → dynamic
+  ;

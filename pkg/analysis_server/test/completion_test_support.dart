@@ -11,7 +11,7 @@ import 'domain_completion_util.dart';
 
 /// A base class for classes containing completion tests.
 abstract class CompletionTestCase extends AbstractCompletionDomainTest {
-  static const String CURSOR_MARKER = '!';
+  static const String _cursorMarker = '!';
 
   List<String> get suggestedCompletions => suggestions
       .map((CompletionSuggestion suggestion) => suggestion.completion)
@@ -23,14 +23,14 @@ abstract class CompletionTestCase extends AbstractCompletionDomainTest {
     bool? isDeprecated,
     Matcher? libraryUri,
   }) {
-    var expectedOffset = completion.indexOf(CURSOR_MARKER);
+    var expectedOffset = completion.indexOf(_cursorMarker);
     if (expectedOffset >= 0) {
-      if (completion.contains(CURSOR_MARKER, expectedOffset + 1)) {
+      if (completion.contains(_cursorMarker, expectedOffset + 1)) {
         fail(
           "Invalid completion, contains multiple cursor positions: '$completion'",
         );
       }
-      completion = completion.replaceFirst(CURSOR_MARKER, '');
+      completion = completion.replaceFirst(_cursorMarker, '');
     } else {
       expectedOffset = completion.length;
     }
@@ -122,16 +122,6 @@ abstract class CompletionTestCase extends AbstractCompletionDomainTest {
     } finally {
       await super.tearDown();
     }
-  }
-
-  @override
-  Future<void> setUp() async {
-    // TODO(dantup): All tests that use this base class support normalization
-    //  however the base class of this (`AbstractCompletionDomainTest`) has a
-    //  lot of other tests classes that do not currently.
-    useLineEndingsForPlatform = true;
-
-    await super.setUp();
   }
 }
 

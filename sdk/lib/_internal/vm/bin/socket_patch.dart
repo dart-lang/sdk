@@ -138,16 +138,12 @@ class NetworkInterface {
 }
 
 void _throwOnBadPort(int port) {
-  // TODO(40614): Remove once non-nullability is sound.
-  ArgumentError.checkNotNull(port, "port");
   if ((port < 0) || (port > 0xFFFF)) {
     throw ArgumentError("Invalid port $port");
   }
 }
 
 void _throwOnBadTtl(int ttl) {
-  // TODO(40614): Remove once non-nullability is sound.
-  ArgumentError.checkNotNull(ttl, "ttl");
   if (ttl < 1 || ttl > 255) {
     throw ArgumentError('Invalid ttl $ttl');
   }
@@ -248,8 +244,6 @@ class _InternetAddress implements InternetAddress {
     String address, {
     InternetAddressType? type,
   }) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(address, 'address');
     if (type == InternetAddressType.unix) {
       var rawAddress = FileSystemEntity._toUtf8Array(address);
       return _InternetAddress(
@@ -318,7 +312,6 @@ class _InternetAddress implements InternetAddress {
   }
 
   static _InternetAddress? tryParse(String address) {
-    checkNotNullable(address, "address");
     final parsedAddress = _parseAddressString(address);
     if (parsedAddress is _InternetAddress) {
       return parsedAddress;
@@ -581,6 +574,9 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   // The owner object is the object that the Socket is being used by, e.g.
   // a HttpServer, a WebSocket connection, a process pipe, etc.
   Object? owner;
+
+  static int _nextSocketId = 0;
+  final int id = _nextSocketId++;
 
   static Future<List<InternetAddress>> lookup(
     String host, {
@@ -1340,7 +1336,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       }
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.readBytes,
           list?.length,
         );
@@ -1358,7 +1354,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       Datagram? result = _nativeRecvFrom();
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.readBytes,
           result?.data.length,
         );
@@ -1402,7 +1398,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       available = _nativeAvailable();
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.readBytes,
           bytesCount,
         );
@@ -1413,8 +1409,6 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       return null;
     }
   }
-
-  static int _fixOffset(int? offset) => offset ?? 0;
 
   // This code issues a native write operation.
   //
@@ -1431,8 +1425,6 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   // when asynchronous write operation completes and this socket receives
   // a [writeEvent].
   int write(List<int> buffer, int offset, int? bytes) {
-    // TODO(40614): Remove once non-nullability is sound.
-    offset = _fixOffset(offset);
     if (bytes == null) {
       if (offset > buffer.length) {
         throw RangeError.value(offset);
@@ -1454,7 +1446,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.writeBytes,
           bufferAndStart.buffer.length - bufferAndStart.start,
         );
@@ -1504,7 +1496,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.writeBytes,
           bufferAndStart.buffer.length - bufferAndStart.start,
         );
@@ -1548,7 +1540,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
       );
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
-          _nativeGetSocketId(),
+          id,
           _SocketProfileType.writeBytes,
           bufferAndStart.buffer.length - bufferAndStart.start,
         );
@@ -1590,7 +1582,7 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   int get port {
     if (localAddress.type == InternetAddressType.unix) return 0;
     if (localPort != 0) return localPort;
-    if (isClosing || isClosed) throw const SocketException.closed();
+    _ensureNotClosingOrClosed();
     var result = _nativeGetPort();
     if (result is OSError) {
       throw result;
@@ -1600,14 +1592,14 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
 
   int get remotePort {
     if (localAddress.type == InternetAddressType.unix) return 0;
-    if (isClosing || isClosed) throw const SocketException.closed();
+    _ensureNotClosingOrClosed();
     return _nativeGetRemotePeer()[1];
   }
 
   InternetAddress get address => localAddress;
 
   InternetAddress get remoteAddress {
-    if (isClosing || isClosed) throw const SocketException.closed();
+    _ensureNotClosingOrClosed();
     var result = _nativeGetRemotePeer();
     var addr = result[0] as List<Object?>;
     var type = InternetAddressType._from(addr[0] as int);
@@ -1948,32 +1940,27 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   dynamic getOption(SocketOption option) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(option, "option");
+    _ensureNotClosingOrClosed();
+
     var result = _nativeGetOption(option._value, address.type._value);
     if (result is OSError) throw result;
     return result;
   }
 
   bool setOption(SocketOption option, value) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(option, "option");
+    _ensureNotClosingOrClosed();
     _nativeSetOption(option._value, address.type._value, value);
     return true;
   }
 
   Uint8List getRawOption(RawSocketOption option) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(option, "option");
-    ArgumentError.checkNotNull(option.value, "option.value");
+    _ensureNotClosingOrClosed();
     _nativeGetRawOption(option.level, option.option, option.value);
     return option.value;
   }
 
   void setRawOption(RawSocketOption option) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(option, "option");
-    ArgumentError.checkNotNull(option.value, "option.value");
+    _ensureNotClosingOrClosed();
     _nativeSetRawOption(option.level, option.option, option.value);
   }
 
@@ -2006,6 +1993,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   void joinMulticast(InternetAddress addr, NetworkInterface? interface) {
+    _ensureNotClosingOrClosed();
+
     final interfaceAddr =
         multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
@@ -2017,6 +2006,8 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
   }
 
   void leaveMulticast(InternetAddress addr, NetworkInterface? interface) {
+    _ensureNotClosingOrClosed();
+
     final interfaceAddr =
         multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
@@ -2029,6 +2020,12 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
 
   bool hasPendingWrite() {
     return Platform.isWindows && _nativeHasPendingWrite();
+  }
+
+  // Native methods are not guarding against closed sockets, which can
+  // lead to crashes.
+  void _ensureNotClosingOrClosed() {
+    if (isClosing || isClosed) throw const SocketException.closed();
   }
 
   @pragma("vm:external-name", "Socket_SetSocketId")
@@ -2192,7 +2189,7 @@ class _RawServerSocket extends Stream<RawSocket>
           if (socket == null) return;
           if (!const bool.fromEnvironment("dart.vm.product")) {
             _SocketProfile.collectNewSocket(
-              socket._nativeGetSocketId(),
+              socket.id,
               _tcpSocket,
               socket.address,
               socket.port,
@@ -2265,7 +2262,7 @@ class _RawSocket extends Stream<RawSocketEvent>
     ).then((socket) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectNewSocket(
-          socket._nativeGetSocketId(),
+          socket.id,
           _tcpSocket,
           socket.address,
           port,
@@ -2292,7 +2289,7 @@ class _RawSocket extends Stream<RawSocketEvent>
       ) {
         if (!const bool.fromEnvironment("dart.vm.product")) {
           _SocketProfile.collectNewSocket(
-            nativeSocket._nativeGetSocketId(),
+            nativeSocket.id,
             _tcpSocket,
             nativeSocket.address,
             port,
@@ -2400,10 +2397,7 @@ class _RawSocket extends Stream<RawSocketEvent>
 
   Future<RawSocket> close() => _socket.close().then<RawSocket>((_) {
     if (!const bool.fromEnvironment("dart.vm.product")) {
-      _SocketProfile.collectStatistic(
-        _socket._nativeGetSocketId(),
-        _SocketProfileType.endTime,
-      );
+      _SocketProfile.collectStatistic(_socket.id, _SocketProfileType.endTime);
     }
     return this;
   });
@@ -3008,7 +3002,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
     ).then((socket) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectNewSocket(
-          socket._nativeGetSocketId(),
+          socket.id,
           _udpSocket,
           socket.address,
           port,
@@ -3034,10 +3028,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
 
   Future close() => _socket.close().then<RawDatagramSocket>((_) {
     if (!const bool.fromEnvironment("dart.vm.product")) {
-      _SocketProfile.collectStatistic(
-        _socket._nativeGetSocketId(),
-        _SocketProfileType.endTime,
-      );
+      _SocketProfile.collectStatistic(_socket.id, _SocketProfileType.endTime);
     }
     return this;
   });

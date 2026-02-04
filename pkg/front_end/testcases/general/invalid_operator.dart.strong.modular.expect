@@ -465,100 +465,100 @@ library;
 //   operator ~(a, {b}) => true;
 //            ^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:137:15: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:137:14: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator ==<T>(a) => true;
-//               ^
+//              ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:138:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:138:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator ><T>(a) => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:139:15: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:139:14: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator <=<T>(a) => true;
-//               ^
+//              ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:140:15: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:140:14: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator >=<T>(a) => true;
-//               ^
+//              ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:141:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:141:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator -<T>() => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:142:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:142:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator -<T>(a) => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:143:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:143:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator +<T>(a) => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:144:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:144:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator /<T>(a) => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:145:15: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:145:14: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator ~/<T>(a) => true;
-//               ^
+//              ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:146:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:146:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator *<T>(a) => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:147:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:147:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator %<T>(a) => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:148:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:148:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator |<T>(a) => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:149:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:149:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator ^<T>(a) => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:150:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:150:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator &<T>(a) => true;
-//              ^
+//             ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:151:15: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:151:14: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator <<<T>(a) => true;
-//               ^
+//              ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:152:15: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:152:14: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator >><T>(a) => true;
-//               ^
+//              ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:153:16: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:153:15: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator []=<T>(a, b) => true;
-//                ^
+//               ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:154:15: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:154:14: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator []<T>(a) => true;
-//               ^
+//              ^^^
 //
-// pkg/front_end/testcases/general/invalid_operator.dart:155:14: Error: Types parameters aren't allowed when defining an operator.
+// pkg/front_end/testcases/general/invalid_operator.dart:155:13: Error: Types parameters aren't allowed when defining an operator.
 // Try removing the type parameters.
 //   operator ~<T>() => true;
-//              ^
+//             ^^^
 //
 // pkg/front_end/testcases/general/invalid_operator.dart:137:12: Error: Can't infer types for '==' as the overridden members don't have a combined signature.
 // Try adding explicit types.

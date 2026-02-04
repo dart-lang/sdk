@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceWithIdentifierTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_IDENTIFIER;
+  FixKind get kind => DartFixKind.replaceWithIdentifier;
 
   @override
   String get lintCode => LintNames.avoid_types_on_closure_parameters;

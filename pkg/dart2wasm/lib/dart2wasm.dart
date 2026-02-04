@@ -19,14 +19,19 @@ final WasmCompilerOptions _d = WasmCompilerOptions.defaultOptions();
 
 final List<Option> options = [
   Flag("help", (o, _) {}, abbr: "h", negatable: false, defaultsTo: false),
+  IntOption("optimization-level",
+      (o, value) => o.translatorOptions.optimizationLevel = value,
+      abbr: "O"),
   Flag("import-shared-memory",
       (o, value) => o.translatorOptions.importSharedMemory = value,
       defaultsTo: _d.translatorOptions.importSharedMemory),
-  Flag("inlining", (o, value) => o.translatorOptions.inlining = value,
-      defaultsTo: _d.translatorOptions.inlining),
-  Flag("minify", (o, value) => o.translatorOptions.minify = value,
-      defaultsTo: _d.translatorOptions.minify),
+  Flag("inlining", (o, value) => o.translatorOptions.inliningOverride = value),
+  Flag("minify", (o, value) => o.translatorOptions.minifyOverride = value),
   Flag("dry-run", (o, value) => o.dryRun = value, defaultsTo: _d.dryRun),
+  StringMultiOption(
+      "phases",
+      (o, values) => o.phases = [...values.map(CompilerPhase.parse)]
+        ..sort((a, b) => a.index.compareTo(b.index))),
   Flag("polymorphic-specialization",
       (o, value) => o.translatorOptions.polymorphicSpecialization = value,
       defaultsTo: _d.translatorOptions.polymorphicSpecialization),
@@ -45,16 +50,22 @@ final List<Option> options = [
       (o, value) => o.translatorOptions.omitExplicitTypeChecks = value,
       defaultsTo: _d.translatorOptions.omitExplicitTypeChecks),
   Flag("omit-implicit-checks",
-      (o, value) => o.translatorOptions.omitImplicitTypeChecks = value,
+      (o, value) => o.translatorOptions.omitImplicitTypeChecksOverride = value,
       defaultsTo: _d.translatorOptions.omitImplicitTypeChecks),
   Flag("omit-bounds-checks", (o, value) {
-    o.translatorOptions.omitBoundsChecks = value;
+    o.translatorOptions.omitBoundsChecksOverride = value;
   }, defaultsTo: _d.translatorOptions.omitBoundsChecks),
   Flag("verbose", (o, value) => o.translatorOptions.verbose = value,
       defaultsTo: _d.translatorOptions.verbose),
   Flag("verify-type-checks",
       (o, value) => o.translatorOptions.verifyTypeChecks = value,
       defaultsTo: _d.translatorOptions.verifyTypeChecks),
+  Flag('enable-protobuf-tree-shaker',
+      (o, value) => o.translatorOptions.enableProtobufTreeShaker = value,
+      defaultsTo: _d.translatorOptions.enableProtobufTreeShaker),
+  Flag('enable-protobuf-mixin-tree-shaker',
+      (o, value) => o.translatorOptions.enableProtobufMixinTreeShaker = value,
+      defaultsTo: _d.translatorOptions.enableProtobufMixinTreeShaker),
   Flag("enable-experimental-wasm-interop",
       (o, value) => o.translatorOptions.enableExperimentalWasmInterop = value,
       defaultsTo: _d.translatorOptions.enableExperimentalWasmInterop),
@@ -96,15 +107,18 @@ final List<Option> options = [
   Flag("no-source-maps",
       (o, value) => o.translatorOptions.generateSourceMaps = !value,
       defaultsTo: !_d.translatorOptions.generateSourceMaps),
+  // Options for deferred loading
   Flag("enable-deferred-loading",
       (o, value) => o.translatorOptions.enableDeferredLoading = value,
       defaultsTo: _d.translatorOptions.enableDeferredLoading),
-  Flag("require-js-string-builtin",
-      (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
-      defaultsTo: _d.translatorOptions.requireJsStringBuiltin),
+  UriOption("load-ids", (o, value) => o.loadsIdsUri = value),
   Flag("enable-multi-module-stress-test-mode",
       (o, value) => o.translatorOptions.enableMultiModuleStressTestMode = value,
       defaultsTo: _d.translatorOptions.enableMultiModuleStressTestMode),
+
+  Flag("require-js-string-builtin",
+      (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
+      defaultsTo: _d.translatorOptions.requireJsStringBuiltin),
 
   // Flags for dynamic modules
   StringOption("dynamic-module-type",
@@ -128,6 +142,15 @@ final List<Option> options = [
   Flag("validate-dynamic-modules",
       (o, value) => o.validateDynamicModules = value,
       defaultsTo: true, negatable: true),
+  UriOption("wasm-opt", (o, value) => o.wasmOptPath = value),
+  // The maximum number of concurrent wasm-opt processes to run. Defaults to the
+  // number of processors on the machine. Use -1 to run with no limit.
+  IntOption("wasm-opt-process-limit",
+      (o, value) => o.maxActiveWasmOptProcesses = value),
+  Flag("save-unopt", (o, value) => o.saveUnopt = value),
+  Flag("strip-wasm", (o, value) => o.stripWasm = value, negatable: true),
+  IntMultiOption("wasm-opt-module-ids",
+      (o, value) => o.moduleIdsToOptimize = value.toSet()),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

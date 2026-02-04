@@ -435,6 +435,24 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  Future<CompilationUnitMember?> getDeclarationNodeFromElement(
+    InstanceElement element, {
+    bool includeExtensions = false,
+  }) async {
+    if (element.library.isInSdk) return null;
+    return switch (element) {
+      ClassElement(:var firstFragment) => getClassDeclaration(firstFragment),
+      EnumElement(:var firstFragment) => getEnumDeclaration(firstFragment),
+      ExtensionElement(:var firstFragment) when includeExtensions =>
+        getExtensionDeclaration(firstFragment),
+      ExtensionTypeElement(:var firstFragment) => getExtensionTypeDeclaration(
+        firstFragment,
+      ),
+      MixinElement(:var firstFragment) => getMixinDeclaration(firstFragment),
+      _ => null,
+    };
+  }
+
   /// Returns the class declaration for the given [fragment], or `null` if there
   /// is no such class.
   Future<EnumDeclaration?> getEnumDeclaration(EnumFragment fragment) async {
@@ -552,21 +570,11 @@ abstract class ResolvedCorrectionProducer
         return type;
       }
     }
-    // `=> myFunction();`.
-    if (parent is ExpressionFunctionBody) {
-      if (_closureReturnType(expression) case var returnType?) {
+    // `=> myFunction();` || `return myFunction();`.
+    if (parent is ExpressionFunctionBody || parent is ReturnStatement) {
+      if (_executableReturnType(expression) case var returnType?) {
         return returnType;
       }
-      var executable = expression.enclosingExecutableElement;
-      return executable?.returnType;
-    }
-    // `return myFunction();`.
-    if (parent is ReturnStatement) {
-      if (_closureReturnType(expression) case var returnType?) {
-        return returnType;
-      }
-      var executable = expression.enclosingExecutableElement;
-      return executable?.returnType;
     }
     // `int v = myFunction();`.
     if (parent is VariableDeclaration) {
@@ -575,7 +583,7 @@ abstract class ResolvedCorrectionProducer
         var variableElement = variableDeclaration.declaredFragment?.element;
         if (variableElement case VariableElement(:var type)) {
           if (type is InvalidType) {
-            return typeProvider.dynamicType;
+            return typeProvider.objectQuestionType;
           }
           return type;
         }
@@ -626,14 +634,27 @@ abstract class ResolvedCorrectionProducer
         }
       }
     }
-    // `v + myFunction();`.
     if (parent is BinaryExpression) {
       var binary = parent;
       var method = binary.element;
+      // `v + myFunction();`.
       if (method != null) {
         if (binary.rightOperand == expression) {
           var parameters = method.formalParameters;
           return parameters.length == 1 ? parameters[0].type : null;
+        }
+      } else if (binary.operator.type == TokenType.QUESTION_QUESTION) {
+        // `v ?? myFunction();`.
+        // This handles when the expression is being assigned somewhere.
+        var type = inferUndefinedExpressionType(binary);
+        if (binary.rightOperand == expression) {
+          return type ?? binary.leftOperand.staticType;
+        } else if (binary.leftOperand == expression) {
+          type ??= binary.rightOperand.staticType;
+          return switch (type) {
+            TypeImpl type => type.withNullability(NullabilitySuffix.question),
+            _ => null,
+          };
         }
       }
     }
@@ -702,12 +723,40 @@ abstract class ResolvedCorrectionProducer
       if (grandParent is ExpressionStatement) {
         return typeProvider.futureType(typeProvider.voidType);
       }
-      var inferredParentType =
-          inferUndefinedExpressionType(parent) ?? typeProvider.dynamicType;
-      if (inferredParentType is InvalidType) {
-        inferredParentType = typeProvider.dynamicType;
+      var inferredParentType = inferUndefinedExpressionType(parent);
+      if (inferredParentType == null || inferredParentType is InvalidType) {
+        inferredParentType = typeProvider.objectQuestionType;
       }
       return typeProvider.futureType(inferredParentType);
+    }
+    // for (int x in myFunction()) { }
+    if (parent
+        case ForEachPartsWithDeclaration(
+              :var iterable,
+              :var type,
+              parent: var statement,
+            ) ||
+            ForEachPartsWithIdentifier(
+              :var iterable,
+              :var type,
+              parent: var statement,
+            ) ||
+            ForEachPartsWithPattern(
+              :var iterable,
+              :var type,
+              parent: var statement,
+            ) when iterable == expression) {
+      var inferredType = type ?? typeProvider.objectQuestionType;
+      if (statement.awaitKeyword != null) {
+        return typeProvider.streamType(inferredType);
+      }
+      return typeProvider.iterableType(inferredType);
+    }
+    if (parent case SwitchExpressionCase(:SwitchExpression parent)) {
+      return inferUndefinedExpressionType(parent);
+    }
+    if (parent is SwitchExpression) {
+      return typeProvider.objectQuestionType;
     }
     // We don't know.
     return null;
@@ -716,9 +765,12 @@ abstract class ResolvedCorrectionProducer
   bool isEnabled(Feature feature) =>
       libraryElement2.featureSet.isEnabled(feature);
 
-  /// Looks if the [expression] is directly inside a closure and returns the
-  /// return type of the closure.
-  DartType? _closureReturnType(Expression expression) {
+  /// Looks if the [expression] is directly inside an executable and returns the
+  /// return type.
+  ///
+  /// - If it is a closure, the return type of the closure.
+  /// - If it is a method, the return type of the method.
+  DartType? _executableReturnType(Expression expression) {
     if (expression.enclosingClosure case FunctionExpression(
       :var correspondingParameter,
       :var staticType,
@@ -726,8 +778,20 @@ abstract class ResolvedCorrectionProducer
       if (correspondingParameter?.type ?? staticType case FunctionType(
         :var returnType,
       )) {
-        return returnType;
+        if (returnType is! InvalidType) {
+          return returnType;
+        }
+        if (correspondingParameter?.baseElement.type case FunctionType(
+          :var returnType,
+        )) {
+          return returnType;
+        }
       }
+    }
+    if (expression.enclosingExecutableElement case ExecutableElement(
+      :var returnType,
+    )) {
+      return returnType;
     }
     return null;
   }
@@ -879,5 +943,19 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// extension members with the [memberName].
   Stream<LibraryElement> librariesWithExtensions(Name memberName) {
     return _context.dartFixContext!.librariesWithExtensions(memberName);
+  }
+}
+
+extension on ForEachParts {
+  DartType? get type {
+    return switch (this) {
+      ForEachPartsWithDeclaration(
+        loopVariable: DeclaredIdentifier(type: TypeAnnotation(:var type)),
+      ) ||
+      ForEachPartsWithIdentifier(
+        identifier: Identifier(staticType: var type),
+      ) => type,
+      _ => null,
+    };
   }
 }

@@ -1298,8 +1298,14 @@ void Object::Init(IsolateGroup* isolate_group) {
   *implicit_static_getter_bytecode_ = CreateVMInternalBytecode(
       KernelBytecode::kVMInternal_ImplicitStaticGetter);
 
+  *implicit_shared_static_getter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitSharedStaticGetter);
+
   *implicit_static_setter_bytecode_ = CreateVMInternalBytecode(
       KernelBytecode::kVMInternal_ImplicitStaticSetter);
+
+  *implicit_shared_static_setter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitSharedStaticSetter);
 
   *method_extractor_bytecode_ =
       CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor);
@@ -2532,6 +2538,14 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FinalizerEntry(), lib);
 
+    lib = Library::LookupLibrary(thread, Symbols::DartVM());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartVM(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kVM, lib);
+
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
     const Error& error = Error::Handle(
@@ -2846,11 +2860,7 @@ void Object::InitializeObject(uword address,
 
   reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
 #if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
-  // GCC warns that TSAN doesn't understand thread fences.
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic ignored "-Wtsan"
-#endif
-  std::atomic_thread_fence(std::memory_order_release);
+  StoreStoreFence();
 #endif
 }
 
@@ -5431,14 +5441,16 @@ void Class::EnsureDeclarationLoaded() const {
 
 // Ensure that top level parsing of the class has been done.
 ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
-  ASSERT(!IsNull());
-  if (is_finalized()) {
-    return Error::null();
-  }
 #if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
-  UNREACHABLE();
+  RELEASE_ASSERT(is_finalized());
   return Error::null();
 #else
+  {
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+    if (is_finalized()) {
+      return Error::null();
+    }
+  }
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_finalized()) {
     return Error::null();
@@ -8434,6 +8446,10 @@ void Function::ClearBytecode() const {
   ClearCode();
 }
 
+bool Function::IsInterpreted(FunctionPtr function) {
+  return function->untag()->code() == StubCode::InterpretCall().ptr();
+}
+
 #endif  // defined(DART_DYNAMIC_MODULES)
 
 bool Function::HasCode(FunctionPtr function) {
@@ -8589,22 +8605,20 @@ void Function::set_awaiter_link(Function::AwaiterLink link) const {
   UNREACHABLE();
 }
 
-bool Function::does_close_over_only_final_and_shared_vars() const {
+bool Function::captures_only_final_not_late_vars() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
-    return ClosureData::Cast(obj).does_close_over_only_final_and_shared_vars();
+    return ClosureData::Cast(obj).captures_only_final_not_late_vars();
   }
   UNREACHABLE();
 }
 
-void Function::set_does_close_over_only_final_and_shared_vars(
-    bool value) const {
+void Function::set_captures_only_final_not_late_vars(bool value) const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
-    ClosureData::Cast(obj).set_does_close_over_only_final_and_shared_vars(
-        value);
+    ClosureData::Cast(obj).set_captures_only_final_not_late_vars(value);
     return;
   }
   UNREACHABLE();
@@ -12192,17 +12206,14 @@ void ClosureData::set_awaiter_link(Function::AwaiterLink link) const {
       link.index);
 }
 
-bool ClosureData::does_close_over_only_final_and_shared_vars() const {
+bool ClosureData::captures_only_final_not_late_vars() const {
   return untag()
-      ->packed_fields_
-      .Read<UntaggedClosureData::DoesCloseOverOnlySharedFields>();
+      ->packed_fields_.Read<UntaggedClosureData::CapturesOnlySharedFields>();
 }
 
-void ClosureData::set_does_close_over_only_final_and_shared_vars(
-    bool value) const {
-  untag()
-      ->packed_fields_
-      .Update<UntaggedClosureData::DoesCloseOverOnlySharedFields>(value);
+void ClosureData::set_captures_only_final_not_late_vars(bool value) const {
+  untag()->packed_fields_.Update<UntaggedClosureData::CapturesOnlySharedFields>(
+      value);
 }
 
 ClosureDataPtr ClosureData::New() {
@@ -13485,14 +13496,8 @@ void Field::SetStaticValue(const Object& value) const {
   const intptr_t id = field_id();
   ASSERT(id >= 0);
 
-  if (is_shared() && !value.IsSmi() && !value.IsImmutable() &&
-      !IsTypedDataBaseClassId(value.GetClassId())) {
-    const String& error = String::Handle(
-        thread->zone(),
-        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
-                             value.ToCString()));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
+  if (FLAG_experimental_shared_data && is_shared()) {
+    FfiCallbackMetadata::EnsureTriviallyImmutable(thread->zone(), value);
   }
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_shared()) {
@@ -15640,6 +15645,10 @@ LibraryPtr Library::FfiLibrary() {
 
 LibraryPtr Library::InternalLibrary() {
   return IsolateGroup::Current()->object_store()->_internal_library();
+}
+
+LibraryPtr Library::VMLibrary() {
+  return IsolateGroup::Current()->object_store()->_vm_library();
 }
 
 LibraryPtr Library::IsolateLibrary() {
@@ -18235,6 +18244,7 @@ ICDataPtr ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 
 ICDataPtr ICData::Clone(const ICData& from) {
   Zone* zone = Thread::Current()->zone();
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
 
   // We have to check the megamorphic bit before accessing the entries of the
   // ICData to ensure all writes to the entries have been flushed and are
@@ -18726,7 +18736,6 @@ void Code::SetPrologueOffset(intptr_t offset) const {
 
 intptr_t Code::GetPrologueOffset() const {
 #if defined(PRODUCT)
-  UNREACHABLE();
   return -1;
 #else
   const Object& object = Object::Handle(untag()->return_address_metadata());
@@ -19426,86 +19435,6 @@ LocalVarDescriptorsPtr Bytecode::GetLocalVarDescriptors() const {
   UNREACHABLE();
 #endif
 }
-
-#if defined(DART_DYNAMIC_MODULES)
-static const int kLocalVariableKindMaxWidth = strlen(
-    bytecode::BytecodeLocalVariablesIterator::kKindNames
-        [bytecode::BytecodeLocalVariablesIterator::kVariableDeclaration]);
-
-static const int kLocalVariableColumnWidths[] = {
-    kLocalVariableKindMaxWidth,  // kind
-    14,                          // start pc
-    14,                          // end pc
-    7,                           // context level
-    7,                           // index
-    7,                           // start token pos
-    7,                           // end token pos
-    7,                           // decl token pos
-};
-#endif
-
-void Bytecode::WriteLocalVariablesInfo(Zone* zone,
-                                       BaseTextBuffer* buffer) const {
-#if defined(DART_DYNAMIC_MODULES)
-  if (!HasLocalVariablesInfo()) return;
-
-  // "*" in a printf format specifier tells it to read the field width from
-  // the printf argument list.
-  buffer->Printf(
-      " %*s %*s %*s %*s %*s %*s %*s %*s name\n", kLocalVariableColumnWidths[0],
-      "kind", kLocalVariableColumnWidths[1], "start pc",
-      kLocalVariableColumnWidths[2], "end pc", kLocalVariableColumnWidths[3],
-      "ctx", kLocalVariableColumnWidths[4], "index",
-      kLocalVariableColumnWidths[5], "start", kLocalVariableColumnWidths[6],
-      "end", kLocalVariableColumnWidths[7], "decl");
-  auto& name = String::Handle(zone);
-  auto& type = AbstractType::Handle(zone);
-  const uword base = PayloadStart();
-  bytecode::BytecodeLocalVariablesIterator iter(zone, *this);
-  while (iter.MoveNext()) {
-    buffer->Printf(" %*s %-#*" Px "", kLocalVariableColumnWidths[0],
-                   iter.KindName(), kLocalVariableColumnWidths[1],
-                   base + iter.StartPC());
-    if (iter.IsVariableDeclaration() || iter.IsScope()) {
-      buffer->Printf(" %-#*" Px "", kLocalVariableColumnWidths[2],
-                     base + iter.EndPC());
-    } else {
-      buffer->Printf(" %*s", kLocalVariableColumnWidths[2], "");
-    }
-    if (iter.IsScope()) {
-      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[3],
-                     iter.ContextLevel());
-    } else {
-      buffer->Printf(" %*s", kLocalVariableColumnWidths[3], "");
-    }
-    if (iter.IsContextVariable() || iter.IsVariableDeclaration()) {
-      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[4], iter.Index());
-    } else {
-      buffer->Printf(" %*s", kLocalVariableColumnWidths[4], "");
-    }
-    if (iter.IsVariableDeclaration() || iter.IsScope()) {
-      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5],
-                     iter.StartTokenPos().ToCString(),
-                     kLocalVariableColumnWidths[6],
-                     iter.EndTokenPos().ToCString());
-
-    } else {
-      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5], "",
-                     kLocalVariableColumnWidths[6], "");
-    }
-    if (iter.IsVariableDeclaration()) {
-      name = iter.Name();
-      type = iter.Type();
-      buffer->Printf(" %*s %s: %s%s", kLocalVariableColumnWidths[7],
-                     iter.DeclarationTokenPos().ToCString(), name.ToCString(),
-                     type.ToCString(), iter.IsCaptured() ? " (captured)" : "");
-    }
-    buffer->AddString("\n");
-  }
-#else
-  UNREACHABLE();
-#endif
-}
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Bytecode::ToCString() const {
@@ -19522,8 +19451,14 @@ static const char* BytecodeStubName(const Bytecode& bytecode) {
              Object::implicit_static_getter_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
   } else if (bytecode.ptr() ==
+             Object::implicit_shared_static_getter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitSharedStaticGetter";
+  } else if (bytecode.ptr() ==
              Object::implicit_static_setter_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_ImplicitStaticSetter";
+  } else if (bytecode.ptr() ==
+             Object::implicit_shared_static_setter_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_ImplicitSharedStaticSetter";
   } else if (bytecode.ptr() == Object::method_extractor_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_MethodExtractor";
   } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {
@@ -26712,13 +26647,14 @@ const char* ExternalTypedData::ToCString() const {
 PointerPtr Pointer::New(uword native_address, Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  IsolateGroup* isolate_group = thread->isolate_group();
 
   const auto& type_args = TypeArguments::Handle(
-      zone, IsolateGroup::Current()->object_store()->type_argument_never());
+      zone, isolate_group->object_store()->type_argument_never());
 
   const Class& cls =
-      Class::Handle(IsolateGroup::Current()->class_table()->At(kPointerCid));
-  cls.EnsureIsAllocateFinalized(Thread::Current());
+      Class::Handle(isolate_group->class_table()->At(kPointerCid));
+  cls.EnsureIsAllocateFinalized(thread);
 
   const auto& result = Pointer::Handle(zone, Object::Allocate<Pointer>(space));
   result.SetTypeArguments(type_args);

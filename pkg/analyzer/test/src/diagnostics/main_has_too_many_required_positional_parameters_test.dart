@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -63,11 +63,7 @@ void main(args, int a, [int b = 0]) {}
 void main(args, int a, int b) {}
 ''');
     assertErrorsInResult([
-      error(
-        CompileTimeErrorCode.mainHasTooManyRequiredPositionalParameters,
-        5,
-        4,
-      ),
+      error(diag.mainHasTooManyRequiredPositionalParameters, 5, 4),
     ]);
   }
 
@@ -76,11 +72,7 @@ void main(args, int a, int b) {}
 void main(args, int a, int b, {int c = 0}) {}
 ''');
     assertErrorsInResult([
-      error(
-        CompileTimeErrorCode.mainHasTooManyRequiredPositionalParameters,
-        5,
-        4,
-      ),
+      error(diag.mainHasTooManyRequiredPositionalParameters, 5, 4),
     ]);
   }
 
@@ -89,12 +81,8 @@ void main(args, int a, int b, {int c = 0}) {}
 void main(args, int a, int b, {required int c}) {}
 ''');
     assertErrorsInResult([
-      error(CompileTimeErrorCode.mainHasRequiredNamedParameters, 5, 4),
-      error(
-        CompileTimeErrorCode.mainHasTooManyRequiredPositionalParameters,
-        5,
-        4,
-      ),
+      error(diag.mainHasRequiredNamedParameters, 5, 4),
+      error(diag.mainHasTooManyRequiredPositionalParameters, 5, 4),
     ]);
   }
 }

@@ -25,6 +25,7 @@ namespace dart {
 // Forward declarations.
 class ProcessedSample;
 class ProcessedSampleBuffer;
+class Profile;
 
 class Sample;
 class SampleBlock;
@@ -64,6 +65,12 @@ class Profiler : public AllStatic {
   // Starts or shuts down the profiler after --profiler is changed via the
   // service protocol.
   static void UpdateRunningState();
+
+  typedef void (*ProfileProcessorCallback)(Profile&);
+
+  static void SetProfileProcessorCallback(ProfileProcessorCallback callback) {
+    process_profile_callback_ = callback;
+  }
 
   static SampleBlockBuffer* sample_block_buffer() {
     return sample_block_buffer_;
@@ -120,6 +127,8 @@ class Profiler : public AllStatic {
   static SampleBlockBuffer* sample_block_buffer_;
 
   static ProfilerCounters counters_;
+
+  static ProfileProcessorCallback process_profile_callback_;
 
   friend class Thread;
 };
@@ -377,8 +386,8 @@ class Sample {
   uword pc_array_[kPCArraySizeInWords];
   uword vm_tag_;
   uword user_tag_;
-  uint32_t state_;
   Sample* next_;
+  uint32_t state_;
   uint32_t allocation_identity_hash_;
 
   using HeadSampleBit = BitField<decltype(state_), bool, 0, 1>;
@@ -623,9 +632,6 @@ class SampleBuffer {
     }
   }
 
-  virtual Sample* ReserveSample() = 0;
-  virtual Sample* ReserveSampleAndLink(Sample* previous) = 0;
-
   Sample* At(intptr_t idx) const {
     ASSERT(idx >= 0);
     ASSERT(idx < capacity_);
@@ -664,8 +670,8 @@ class SampleBlock : public SampleBuffer {
   Isolate* owner() const { return owner_; }
   void set_owner(Isolate* isolate) { owner_ = isolate; }
 
-  virtual Sample* ReserveSample();
-  virtual Sample* ReserveSampleAndLink(Sample* previous);
+  Sample* ReserveSample();
+  static Sample* ReserveSampleAndLink(Sample* previous, Isolate* isolate);
 
   bool TryAllocateFree() {
     State expected = kFree;
@@ -923,17 +929,32 @@ class SampleBlockProcessor : public AllStatic {
   static void Init();
 
   static void Startup();
-  static void Cleanup();
+  static void Cleanup(bool drain = false);
 
  private:
   static constexpr intptr_t kMaxThreads = 4096;
   static bool initialized_;
   static bool shutdown_;
+  static bool drain_;
   static bool thread_running_;
   static ThreadJoinId processor_thread_id_;
   static Monitor* monitor_;
 
   static void ThreadMain(uword parameters);
+};
+
+class NoAllocationSampleFilter : public SampleFilter {
+ public:
+  NoAllocationSampleFilter(Dart_Port port,
+                           intptr_t thread_task_mask,
+                           int64_t time_origin_micros,
+                           int64_t time_extent_micros)
+      : SampleFilter(port,
+                     thread_task_mask,
+                     time_origin_micros,
+                     time_extent_micros) {}
+
+  bool FilterSample(Sample* sample) { return !sample->is_allocation_sample(); }
 };
 
 }  // namespace dart

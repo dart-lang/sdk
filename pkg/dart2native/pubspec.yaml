@@ -15,6 +15,7 @@ executables:
 dependencies:
   code_assets: any
   collection: any
+  front_end: any
   kernel: any
   path: any
 

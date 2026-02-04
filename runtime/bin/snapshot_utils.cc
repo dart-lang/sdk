@@ -175,7 +175,6 @@ static DartUtils::MagicNumber ReadMagicNumberAt(File& file, int64_t offset) {
   return DartUtils::SniffForMagicNumber(header, read_size);
 }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
 class DylibAppSnapshot : public AppSnapshot {
  public:
   DylibAppSnapshot(DartUtils::MagicNumber magic_number,
@@ -214,16 +213,18 @@ class DylibAppSnapshot : public AppSnapshot {
 static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
     DartUtils::MagicNumber magic_number,
     const char* script_name,
-    const char** error) {
+    char** error) {
 #if defined(DART_INCLUDE_SIMULATOR)
-  *error = "running on a simulated architecture";
+  *error = Utils::StrDup("running on a simulated architecture");
   return nullptr;
 #else
-#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_MACOS)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
   // On Linux and OSX, resolve the script path before passing into dlopen()
   // since dlopen will not search the filesystem for paths like 'libtest.so'.
-  CStringUniquePtr absolute_path(realpath(script_name, nullptr));
-  script_name = absolute_path.get();
+  const size_t kPathBufSize = PATH_MAX + 1;
+  char canon_path[kPathBufSize];
+  script_name =
+      File::GetCanonicalPath(nullptr, script_name, canon_path, kPathBufSize);
   if (script_name == nullptr) {
     const intptr_t err = errno;
     const int kBufferSize = 1024;
@@ -237,17 +238,18 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
   if (library == nullptr) {
 #if defined(NATIVE_SHARED_OBJECT_FORMAT_ELF)
     if (*error == nullptr && magic_number != DartUtils::kAotELFMagicNumber) {
-      *error = "not an ELF shared object";
+      *error = Utils::StrDup("not an ELF shared object");
     }
 #elif defined(NATIVE_SHARED_OBJECT_FORMAT_MACHO)
     if (*error == nullptr &&
         magic_number != DartUtils::kAotMachO32MagicNumber &&
         magic_number != DartUtils::kAotMachO64MagicNumber) {
-      *error = "not a Mach-O shared object";
+      *error = Utils::StrDup("not a Mach-O shared object");
     }
 #endif
     if (*error == nullptr) {
-      *error = "unknown failure loading dynamic library (wrong format?)";
+      *error = Utils::StrDup(
+          "unknown failure loading dynamic library (wrong format?)");
     }
     return nullptr;
   }
@@ -280,6 +282,7 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
 #endif  // defined(DART_INCLUDE_SIMULATOR)
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
 class ElfAppSnapshot : public AppSnapshot {
  public:
   ElfAppSnapshot(Dart_LoadedElf* elf,
@@ -317,16 +320,17 @@ class ElfAppSnapshot : public AppSnapshot {
 static AppSnapshot* TryReadAppSnapshotElf(const char* script_name,
                                           uint64_t file_offset,
                                           bool force_load_from_memory) {
-  const char* error = nullptr;
 #if defined(NATIVE_SHARED_OBJECT_FORMAT_ELF)
   if (file_offset == 0 && !force_load_from_memory) {
     // The load as a dynamic library should succeed, since this is a platform
     // that natively understands ELF.
+    char* error = nullptr;
     if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
             DartUtils::kAotELFMagicNumber, script_name, &error)) {
       return snapshot;
     }
     Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
+    free(error);
     return nullptr;
   }
 #endif
@@ -334,6 +338,7 @@ static AppSnapshot* TryReadAppSnapshotElf(const char* script_name,
                 *isolate_data_buffer = nullptr,
                 *isolate_instructions_buffer = nullptr;
   Dart_LoadedElf* handle = nullptr;
+  const char* error = nullptr;
   if (force_load_from_memory) {
     File* const file =
         File::Open(/*namespc=*/nullptr, script_name, File::kRead);
@@ -402,16 +407,17 @@ static AppSnapshot* TryReadAppSnapshotMachODylib(
     const char* script_name,
     uint64_t file_offset,
     bool force_load_from_memory) {
-  const char* error = nullptr;
 #if defined(NATIVE_SHARED_OBJECT_FORMAT_MACHO)
   if (file_offset == 0 && !force_load_from_memory) {
     // The load as a dynamic library should succeed, since this is a platform
     // that natively understands Mach-O.
+    char* error = nullptr;
     if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
             magic_number, script_name, &error)) {
       return snapshot;
     }
     Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
+    free(error);
     return nullptr;
   }
 #endif
@@ -419,6 +425,7 @@ static AppSnapshot* TryReadAppSnapshotMachODylib(
                 *isolate_data_buffer = nullptr,
                 *isolate_instructions_buffer = nullptr;
   Dart_LoadedMachODylib* handle = nullptr;
+  const char* error = nullptr;
   if (force_load_from_memory) {
     File* const file =
         File::Open(/*namespc=*/nullptr, script_name, File::kRead);
@@ -471,12 +478,13 @@ static AppSnapshot* TryReadAppSnapshotAt(const char* script_name,
   if (file_offset == 0) {
     // This is a non-appended snapshot which is not handled by any of the
     // non-native loaders, so attempt to load it as a native dynamic library.
-    const char* error = nullptr;
+    char* error = nullptr;
     if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
             magic_number, script_name, &error)) {
       return snapshot;
     }
     Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
+    free(error);
   }
 
   return nullptr;
@@ -800,6 +808,17 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
   if (magic_number == DartUtils::kAppJITMagicNumber) {
     // Return the JIT snapshot.
     return TryReadAppSnapshotBlobs(script_name, file);
+  }
+  if (magic_number == DartUtils::kAotMachO64MagicNumber) {
+    // Read module snapshot.
+    char* error = nullptr;
+    if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
+            magic_number, script_name, &error)) {
+      return snapshot;
+    }
+    Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
+    free(error);
+    return nullptr;
   }
   // We create a dummy snapshot object just to remember the type which
   // has already been identified by sniffing the magic number.

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class MakeVariableNotFinalTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_VARIABLE_NOT_FINAL;
+  FixKind get kind => DartFixKind.makeVariableNotFinal;
 
   Future<void> test_hasType() async {
     await resolveTestCode('''

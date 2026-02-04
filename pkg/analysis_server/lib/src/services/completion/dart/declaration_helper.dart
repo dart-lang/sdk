@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/completion/dart/visibility_tracker.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -272,7 +273,7 @@ class DeclarationHelper {
     for (var field in containingElement.fields) {
       // Skip fields that are already initialized at their declaration.
       if (!field.isStatic &&
-          !field.isSynthetic &&
+          field.isOriginDeclaration &&
           !fieldsToSkip.contains(field) &&
           (!(field.isFinal || field.isConst) || !field.hasInitializer)) {
         _suggestField(field: field);
@@ -398,8 +399,8 @@ class DeclarationHelper {
           includeSetters: true,
         ),
       );
-    } else if (type is FunctionType) {
-      _suggestFunctionCall();
+    } else if (type case FunctionType functionType) {
+      _suggestFunctionCall(functionType);
       _addMembersOfDartCoreObject();
     } else if (type is DynamicType) {
       _addMembersOfDartCoreObject();
@@ -418,6 +419,15 @@ class DeclarationHelper {
       return;
     }
     AstNode? parent = containingMember.parent ?? containingMember;
+    if (parent is ClassNamePart) {
+      parent = parent.parent;
+    }
+    switch (parent) {
+      case BlockClassBody():
+        parent = parent.parent;
+      case EnumBody():
+        parent = parent.parent;
+    }
     if (parent is EnumConstantDeclaration) {
       assert(node is CommentReference);
       parent = parent.parent;
@@ -428,6 +438,12 @@ class DeclarationHelper {
       parent = parent.parent;
     } else if (parent is CompilationUnit) {
       parent = containingMember;
+    }
+    switch (parent) {
+      case BlockClassBody():
+        parent = parent.parent;
+      case EnumBody():
+        parent = parent.parent;
     }
     CompilationUnitMember? topLevelMember;
     if (parent is CompilationUnitMember) {
@@ -649,7 +665,10 @@ class DeclarationHelper {
   }
 
   /// Add any static members defined by the given [element].
-  void addStaticMembersOfElement(Element element) {
+  void addStaticMembersOfElement(
+    Element element, {
+    bool onlyInvocations = false,
+  }) {
     if (element is TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is InterfaceType) {
@@ -665,6 +684,7 @@ class DeclarationHelper {
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
+          onlyInvocations: onlyInvocations,
         );
       case ExtensionElement():
         _addStaticMembers(
@@ -674,6 +694,7 @@ class DeclarationHelper {
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
+          onlyInvocations: onlyInvocations,
         );
       case InterfaceElement():
         _addStaticMembers(
@@ -683,6 +704,7 @@ class DeclarationHelper {
           containingElement: element,
           fields: element.fields,
           methods: element.methods,
+          onlyInvocations: onlyInvocations,
         );
     }
   }
@@ -828,7 +850,7 @@ class DeclarationHelper {
         if (excludedGetters.contains(getter.name)) {
           continue;
         }
-        if (!getter.isSynthetic) {
+        if (getter.isOriginDeclaration) {
           if (getter.isVisibleIn(libraryElement)) {
             _suggestProperty(
               accessor: getter,
@@ -855,7 +877,7 @@ class DeclarationHelper {
           // Avoid visiting a field twice. All fields induce a getter, but only
           // non-final fields induce a setter, so we don't add a suggestion for
           // a synthetic setter.
-          if (setter.isSynthetic || !setter.isVisibleIn(libraryElement)) {
+          if (setter.isOriginVariable || !setter.isVisibleIn(libraryElement)) {
             continue;
           }
           _suggestProperty(accessor: setter);
@@ -905,7 +927,7 @@ class DeclarationHelper {
             // Do not add synthetic setters, as these may prevent adding getters,
             // they are both tracked with the same name in the
             // [VisibilityTracker].
-            if (element.isSynthetic) {
+            if (element.isOriginVariable) {
               break;
             }
             _suggestTopLevelProperty(element, importData);
@@ -1081,6 +1103,9 @@ class DeclarationHelper {
     var referencingInterface = _referencingInterfaceFor(element);
     var members = element.inheritedMembers;
     for (var member in members.values) {
+      if (!member.isVisibleIn(request.libraryElement)) {
+        continue;
+      }
       switch (member) {
         case MethodElement():
           if (member.isOperator) {
@@ -1181,7 +1206,21 @@ class DeclarationHelper {
     }
     if ((type.isDartCoreFunction && !onlySuper) ||
         type.allSupertypes.any((type) => type.isDartCoreFunction)) {
-      _suggestFunctionCall(); // from builder
+      FunctionType functionType;
+      if (type case FunctionType function) {
+        functionType = function;
+      } else if (type.allSupertypes.whereType<FunctionType>().firstOrNull
+          case var function?) {
+        functionType = function;
+      } else {
+        functionType = FunctionTypeImpl(
+          typeParameters: const [],
+          parameters: const [],
+          returnType: DynamicTypeImpl.instance,
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }
+      _suggestFunctionCall(functionType); // from builder
     }
     // Add members from extensions. Members from extensions accessible in the
     // same library as the completion location are suggested in this pass.
@@ -1262,6 +1301,8 @@ class DeclarationHelper {
         case FunctionExpression():
           _visitParameterList(currentNode.parameters);
           _visitTypeParameterList(currentNode.typeParameters);
+        case GuardedPattern():
+          _visitPattern(currentNode.pattern);
         case IfElement():
           _visitIfElement(currentNode);
         case IfStatement():
@@ -1347,7 +1388,7 @@ class DeclarationHelper {
     var referencingInterface = _referencingInterfaceFor(element);
 
     for (var accessor in element.getters) {
-      if ((!accessor.isSynthetic || accessor.isEnumValues) &&
+      if ((accessor.isOriginDeclaration || accessor.isEnumValues) &&
           (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(
           accessor: accessor,
@@ -1358,7 +1399,8 @@ class DeclarationHelper {
     }
 
     for (var accessor in element.setters) {
-      if (!accessor.isSynthetic && (!mustBeStatic || accessor.isStatic)) {
+      if (accessor.isOriginDeclaration &&
+          (!mustBeStatic || accessor.isStatic)) {
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
@@ -1368,7 +1410,7 @@ class DeclarationHelper {
     }
 
     for (var field in element.fields) {
-      if (!field.isSynthetic && (!mustBeStatic || field.isStatic)) {
+      if (field.isOriginDeclaration && (!mustBeStatic || field.isStatic)) {
         _suggestField(
           field: field,
           referencingInterface: referencingInterface,
@@ -1386,20 +1428,21 @@ class DeclarationHelper {
       }
     }
     var thisType = element.thisType;
-    if (thisType is InterfaceType) {
-      _addExtensionMembers(
-        type: thisType,
-        excludedGetters: {},
-        includeMethods: true,
-        includeSetters: true,
-      );
-    } else if (thisType is RecordType) {
+    _addExtensionMembers(
+      type: thisType,
+      excludedGetters: {},
+      includeMethods: true,
+      includeSetters: true,
+    );
+    if (thisType is RecordType) {
       _addFieldsOfRecordType(
         type: thisType,
         excludedFields: {},
         isKeywordNeeded: false,
         isTypeNeeded: false,
       );
+    } else if (thisType is FunctionType) {
+      _suggestFunctionCall(thisType);
     }
   }
 
@@ -1475,26 +1518,32 @@ class DeclarationHelper {
     required Element containingElement,
     required List<FieldElement> fields,
     required List<MethodElement> methods,
+    required bool onlyInvocations,
   }) {
     for (var getter in getters) {
       if (getter.isStatic &&
-          !getter.isSynthetic &&
-          getter.isVisibleIn(request.libraryElement)) {
+          getter.isOriginDeclaration &&
+          getter.isVisibleIn(request.libraryElement) &&
+          (!onlyInvocations ||
+              getter.returnType is FunctionType ||
+              getter.returnType.isDartCoreFunction)) {
         _suggestProperty(accessor: getter);
       }
     }
     for (var setter in setters) {
       if (setter.isStatic &&
-          !setter.isSynthetic &&
+          setter.isOriginDeclaration &&
           setter.isVisibleIn(request.libraryElement)) {
         _suggestProperty(accessor: setter);
       }
     }
     for (var field in fields) {
       if (field.isStatic &&
-          (!field.isSynthetic ||
-              (containingElement is EnumElement && field.name == 'values')) &&
-          field.isVisibleIn(request.libraryElement)) {
+          (field.isOriginDeclaration || field.isOriginEnumValues) &&
+          field.isVisibleIn(request.libraryElement) &&
+          (!onlyInvocations ||
+              field.type is FunctionType ||
+              field.type.isDartCoreFunction)) {
         if (field.isEnumConstant) {
           var enumElement = field.enclosingElement;
           var matcherScore = state.matcher.score(
@@ -1561,12 +1610,12 @@ class DeclarationHelper {
     }
     if (!mustBeType) {
       for (var element in library.getters) {
-        if (!element.isSynthetic) {
+        if (element.isOriginDeclaration) {
           _suggestTopLevelProperty(element, null);
         }
       }
       for (var element in library.setters) {
-        if (!element.isSynthetic) {
+        if (element.isOriginDeclaration) {
           if (element.correspondingGetter == null) {
             _suggestTopLevelProperty(element, null);
           }
@@ -1581,7 +1630,7 @@ class DeclarationHelper {
         _suggestTopLevelFunction(element, null);
       }
       for (var element in library.topLevelVariables) {
-        if (!element.isSynthetic) {
+        if (element.isOriginDeclaration) {
           _suggestTopLevelVariable(element, null);
         }
       }
@@ -1602,10 +1651,10 @@ class DeclarationHelper {
     var firstMember = list.first;
     if (mustBeAssignable) {
       if (firstMember case SetterElementImpl(
-        :var isSynthetic,
+        :var isOriginVariable,
         :var correspondingGetter,
       )) {
-        if (isSynthetic && correspondingGetter != null) {
+        if (isOriginVariable && correspondingGetter != null) {
           return correspondingGetter;
         } else {
           return firstMember;
@@ -1614,10 +1663,10 @@ class DeclarationHelper {
       for (var i = 1; i < list.length; i++) {
         var member = list[i];
         if (member case SetterElementImpl(
-          :var isSynthetic,
+          :var isOriginVariable,
           :var correspondingGetter,
         )) {
-          if (isSynthetic && correspondingGetter != null) {
+          if (isOriginVariable && correspondingGetter != null) {
             return correspondingGetter;
           } else {
             return member;
@@ -1701,7 +1750,7 @@ class DeclarationHelper {
     double matcherScore, {
     ImportData? importData,
   }) {
-    if (element.isSynthetic) {
+    if (element.isOriginVariable) {
       if (element is GetterElement) {
         var variable = element.variable;
         if (variable is TopLevelVariableElement) {
@@ -1732,6 +1781,11 @@ class DeclarationHelper {
 
   /// Returns `true` if the [identifier] is a wildcard (a single `_`).
   bool _isWildcard(String? identifier) => identifier == '_';
+
+  bool _matchesContextType(ExecutableElement element) {
+    return request.contextType == element.type ||
+        (request.contextType?.isDartCoreFunction ?? false);
+  }
 
   /// Record that the given [operation] should be performed in the second pass.
   void _recordOperation(NotImportedOperation operation) {
@@ -1810,6 +1864,10 @@ class DeclarationHelper {
       return;
     }
 
+    if (mustBeConstant && !element.isConst) {
+      return;
+    }
+
     if (!element.isVisibleIn(request.libraryElement)) {
       return;
     }
@@ -1837,16 +1895,26 @@ class DeclarationHelper {
     // TODO(keertip): Compute the completion string.
     var matcherScore = state.matcher.score(matcherName);
     if (matcherScore != -1) {
-      var isTearOff =
-          preferNonInvocation || (mustBeConstant && !element.isConst);
+      if (_matchesContextType(element) && !preferNonInvocation) {
+        var suggestion = ConstructorSuggestion(
+          importData: importData,
+          element: element,
+          hasClassName: hasClassName,
+          isTearOff: true,
+          isRedirect: isConstructorRedirect,
+          suggestUnnamedAsNew: true,
+          matcherScore: matcherScore,
+        );
+        collector.addSuggestion(suggestion);
+      }
 
       var suggestion = ConstructorSuggestion(
         importData: importData,
         element: element,
         hasClassName: hasClassName,
-        isTearOff: isTearOff,
+        isTearOff: preferNonInvocation,
         isRedirect: isConstructorRedirect,
-        suggestUnnamedAsNew: suggestUnnamedAsNew || isTearOff,
+        suggestUnnamedAsNew: suggestUnnamedAsNew || preferNonInvocation,
         matcherScore: matcherScore,
       );
       collector.addSuggestion(suggestion);
@@ -1985,10 +2053,26 @@ class DeclarationHelper {
   }
 
   /// Adds a suggestion for the method `call` defined on the class `Function`.
-  void _suggestFunctionCall() {
+  void _suggestFunctionCall(
+    FunctionType type, {
+    ExecutableElement? element,
+    Keyword? keyword,
+    bool addTypeAnnotation = false,
+  }) {
     var matcherScore = state.matcher.score('call');
     if (matcherScore != -1) {
-      collector.addSuggestion(FunctionCall(matcherScore: matcherScore));
+      collector.addSuggestion(
+        FunctionCall(
+          matcherScore: matcherScore,
+          type: type,
+          replacementRange: state.request.replacementRange,
+          importData: null,
+          kind: _executableSuggestionKind,
+          element: element,
+          addTypeAnnotation: addTypeAnnotation,
+          keyword: keyword,
+        ),
+      );
     }
   }
 
@@ -2005,6 +2089,14 @@ class DeclarationHelper {
       if (_isWildcard(element.name)) return;
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
+        if (_matchesContextType(element) && !preferNonInvocation) {
+          var suggestion = LocalFunctionSuggestion(
+            kind: CompletionSuggestionKind.IDENTIFIER,
+            element: element,
+            matcherScore: matcherScore,
+          );
+          collector.addSuggestion(suggestion);
+        }
         var suggestion = LocalFunctionSuggestion(
           kind: _executableSuggestionKind,
           element: element,
@@ -2036,7 +2128,7 @@ class DeclarationHelper {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(element: method, importData: importData)) {
       if (mustBeAssignable ||
-          mustBeConstant ||
+          mustBeConstant && !method.isStatic ||
           (mustBeNonVoid && method.returnType is VoidType)) {
         return;
       }
@@ -2055,6 +2147,21 @@ class DeclarationHelper {
         if (method.name == 'setState' &&
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
+          if (_matchesContextType(method) && !preferNonInvocation) {
+            var suggestion = SetStateMethodSuggestion(
+              kind: CompletionSuggestionKind.IDENTIFIER,
+              element: method,
+              replacementRange: state.request.replacementRange,
+              importData: importData,
+              referencingInterface: referencingInterface,
+              matcherScore: matcherScore,
+              indent: state.indent,
+              endOfLine: state.endOfLine,
+              addTypeAnnotation: addTypeAnnotation,
+              keyword: keyword,
+            );
+            collector.addSuggestion(suggestion);
+          }
           var suggestion = SetStateMethodSuggestion(
             element: method,
             replacementRange: state.request.replacementRange,
@@ -2067,6 +2174,22 @@ class DeclarationHelper {
             keyword: keyword,
           );
           collector.addSuggestion(suggestion);
+          return;
+        }
+        if (_matchesContextType(method) && !preferNonInvocation) {
+          var suggestion = MethodSuggestion(
+            kind: CompletionSuggestionKind.IDENTIFIER,
+            replacementRange: state.request.replacementRange,
+            element: method,
+            importData: importData,
+            matcherScore: matcherScore,
+            referencingInterface: referencingInterface,
+            addTypeAnnotation: addTypeAnnotation,
+            keyword: keyword,
+          );
+          collector.addSuggestion(suggestion);
+        }
+        if (mustBeConstant && (method.isStatic || !preferNonInvocation)) {
           return;
         }
         var suggestion = MethodSuggestion(
@@ -2170,7 +2293,7 @@ class DeclarationHelper {
             keyword = Keyword.VAR;
           }
         }
-        if (accessor.isSynthetic) {
+        if (accessor.isOriginVariable) {
           // Avoid visiting a field twice. All fields induce a getter, but only
           // non-final fields induce a setter, so we don't add a suggestion for a
           // synthetic setter.
@@ -2276,10 +2399,10 @@ class DeclarationHelper {
       } else {
         var matcherScore = state.matcher.score(element.displayName);
         if (matcherScore != -1) {
-          if (element.isSynthetic) {
+          if (element.isOriginGetterSetter) {
             var getter = element.getter;
             if (getter != null) {
-              if (getter.isSynthetic) {
+              if (getter.isOriginVariable) {
                 var variable = getter.variable;
                 if (variable is FieldElement) {
                   var suggestion = FieldSuggestion(
@@ -2342,13 +2465,24 @@ class DeclarationHelper {
   ) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeAssignable ||
-          mustBeConstant ||
           (mustBeNonVoid && element.returnType is VoidType) ||
           mustBeType) {
         return;
       }
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
+        if (_matchesContextType(element) && !preferNonInvocation) {
+          var suggestion = TopLevelFunctionSuggestion(
+            kind: CompletionSuggestionKind.IDENTIFIER,
+            importData: importData,
+            element: element,
+            matcherScore: matcherScore,
+          );
+          collector.addSuggestion(suggestion);
+        }
+        if (!preferNonInvocation && mustBeConstant) {
+          return;
+        }
         var suggestion = TopLevelFunctionSuggestion(
           importData: importData,
           element: element,
@@ -2730,7 +2864,7 @@ extension on GetterElement {
   bool get isEnumValues =>
       name == 'values' &&
       isStatic &&
-      isSynthetic &&
+      isOriginVariable &&
       enclosingElement is EnumElement;
 }
 
@@ -2751,7 +2885,7 @@ extension on Element {
 extension on PropertyAccessorElement {
   /// Whether this accessor is an accessor for a constant variable.
   bool get isConst {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.isConst;
     }
     return false;

@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show ConstantPatternContext, Parser;
+    show ConstantPatternContext, ExperimentalFeatures, Parser;
 import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart'
     show AwaitOrYieldContext, ForPartsContext, PatternContext;
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
@@ -36,13 +36,11 @@ class TestParser extends Parser {
   TestParser(
     Listener listener,
     this.trace, {
-    required bool allowPatterns,
-    required bool enableEnhancedParts,
+    required ExperimentalFeatures experimentalFeatures,
   }) : super(
          listener,
          useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-         allowPatterns: allowPatterns,
-         enableFeatureEnhancedParts: enableEnhancedParts,
+         experimentalFeatures: experimentalFeatures,
        );
 
   String createTrace() {
@@ -77,15 +75,6 @@ class TestParser extends Parser {
     } finally {
       _inhibitPrinting = previousInhibitPrinting;
     }
-  }
-
-  @override
-  Uri? get uri {
-    doPrint('uri()');
-    indent++;
-    var result = super.uri;
-    indent--;
-    return result;
   }
 
   @override
@@ -954,6 +943,7 @@ class TestParser extends Parser {
     Token token,
     Token beginToken,
     Token classKeyword,
+    Token? constToken,
     String className,
   ) {
     doPrint(
@@ -961,10 +951,17 @@ class TestParser extends Parser {
       '$token, '
       '$beginToken, '
       '$classKeyword, '
+      '$constToken, '
       '$className)',
     );
     indent++;
-    var result = super.parseClass(token, beginToken, classKeyword, className);
+    var result = super.parseClass(
+      token,
+      beginToken,
+      classKeyword,
+      constToken,
+      className,
+    );
     indent--;
     return result;
   }
@@ -1212,6 +1209,40 @@ class TestParser extends Parser {
       augmentToken,
       extensionKeyword,
     );
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePrimaryConstructorOpt(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
+    doPrint(
+      'parsePrimaryConstructorOpt('
+      '$token, '
+      '$constKeyword, '
+      '$forExtensionType)',
+    );
+    indent++;
+    var result = super.parsePrimaryConstructorOpt(
+      token,
+      constKeyword,
+      forExtensionType,
+    );
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePrimaryConstructorBody(Token token) {
+    doPrint(
+      'parsePrimaryConstructorBody('
+      '$token)',
+    );
+    indent++;
+    var result = super.parsePrimaryConstructorBody(token);
     indent--;
     return result;
   }
@@ -1862,6 +1893,7 @@ class TestParser extends Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     DeclarationKind kind,
     String? enclosingDeclarationName,
@@ -1880,6 +1912,7 @@ class TestParser extends Parser {
       '$beforeType, '
       '$typeInfo, '
       '$getOrSet, '
+      '$newToken, '
       '$name, '
       '$kind, '
       '$enclosingDeclarationName, '
@@ -1898,6 +1931,7 @@ class TestParser extends Parser {
       beforeType,
       typeInfo,
       getOrSet,
+      newToken,
       name,
       kind,
       enclosingDeclarationName,
@@ -1915,6 +1949,7 @@ class TestParser extends Parser {
     Token? externalToken,
     Token? staticOrCovariant,
     Token? varFinalOrConst,
+    bool hasName,
   ) {
     doPrint(
       'parseFactoryMethod('
@@ -1923,7 +1958,8 @@ class TestParser extends Parser {
       '$beforeStart, '
       '$externalToken, '
       '$staticOrCovariant, '
-      '$varFinalOrConst)',
+      '$varFinalOrConst, '
+      '$hasName)',
     );
     indent++;
     var result = super.parseFactoryMethod(
@@ -1933,6 +1969,7 @@ class TestParser extends Parser {
       externalToken,
       staticOrCovariant,
       varFinalOrConst,
+      hasName,
     );
     indent--;
     return result;
@@ -3500,6 +3537,7 @@ class TestParser extends Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     DeclarationKind kind,
     String? enclosingDeclarationName,
   ) {
@@ -3517,6 +3555,7 @@ class TestParser extends Parser {
       '$beforeType, '
       '$typeInfo, '
       '$getOrSet, '
+      '$newToken, '
       '$kind, '
       '$enclosingDeclarationName)',
     );
@@ -3534,6 +3573,7 @@ class TestParser extends Parser {
       beforeType,
       typeInfo,
       getOrSet,
+      newToken,
       kind,
       enclosingDeclarationName,
     );

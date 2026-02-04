@@ -27,7 +27,7 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.UPDATE_SDK_CONSTRAINTS;
+  FixKind get fixKind => DartFixKind.updateSdkConstraints;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

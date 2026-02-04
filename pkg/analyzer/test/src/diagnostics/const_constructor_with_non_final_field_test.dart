@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -45,6 +45,15 @@ class B implements A {
 ''');
   }
 
+  test_constGenerativeNamed_hasAbstractVariableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  abstract int x;
+  const A();
+}
+''');
+  }
+
   test_constGenerativeNamed_hasNonFinal() async {
     await assertErrorsInCode(
       r'''
@@ -53,7 +62,7 @@ class A {
   const A.a();
 }
 ''',
-      [error(CompileTimeErrorCode.constConstructorWithNonFinalField, 31, 3)],
+      [error(diag.constConstructorWithNonFinalField, 31, 3)],
     );
   }
 
@@ -65,7 +74,7 @@ class A {
   const A();
 }
 ''',
-      [error(CompileTimeErrorCode.constConstructorWithNonFinalField, 31, 1)],
+      [error(diag.constConstructorWithNonFinalField, 31, 1)],
     );
   }
 }

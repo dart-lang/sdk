@@ -166,15 +166,13 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
       server.recentPerformance.completion.add(completionPerformance);
 
       var analysisSession = resolvedUnit.analysisSession;
-      var enclosingNode = resolvedUnit.parsedUnit;
 
       var completionRequest = DartCompletionRequest(
         analysisSession: analysisSession,
         fileState: resolvedUnit.fileState,
         filePath: resolvedUnit.path,
         fileContent: resolvedUnit.content,
-        libraryFragment: resolvedUnit.unitElement,
-        enclosingNode: enclosingNode,
+        libraryFragment: resolvedUnit.libraryFragment,
         offset: offset,
         unit: resolvedUnit.parsedUnit,
         dartdocDirectiveInfo: server.getDartdocDirectiveInfoForSession(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -24,7 +24,7 @@ main() {
   p; // use
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 38, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 38, 1)],
     );
 
     var node = findNode.simple('p; // use');
@@ -46,8 +46,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 47, 1),
-        error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 52, 1),
+        error(diag.unusedLocalVariable, 47, 1),
+        error(diag.prefixIdentifierNotFollowedByDot, 52, 1),
       ],
     );
 
@@ -89,8 +89,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 66, 1),
-        error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 76, 1),
+        error(diag.unusedLocalVariable, 66, 1),
+        error(diag.prefixIdentifierNotFollowedByDot, 76, 1),
       ],
     );
 
@@ -187,7 +187,7 @@ f() {
 ''',
       [
         // String extensions are found but `_` is not bound.
-        error(CompileTimeErrorCode.undefinedIdentifier, 86, 1),
+        error(diag.undefinedIdentifier, 86, 1),
       ],
     );
   }

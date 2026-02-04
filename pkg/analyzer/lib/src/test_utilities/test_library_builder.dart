@@ -187,6 +187,7 @@ class _LibraryBuilder {
     required _Scope classScope,
   }) {
     var fragment = ConstructorFragmentImpl(name: spec.name);
+    fragment.isOriginDeclaration = true;
     fragment.isConst = spec.isConst;
     fragment.isFactory = spec.isFactory;
 
@@ -344,8 +345,10 @@ class _LibraryBuilder {
       );
       libraryFragment.addFunction(functionFragment);
     }
-    libraryElement.topLevelFunctions = libraryFragment.functions.map((element) {
-      return element.element;
+    libraryElement.topLevelFunctions = libraryFragment.functions.map((
+      fragment,
+    ) {
+      return fragment.element;
     }).toList();
   }
 }

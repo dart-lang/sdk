@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class RemoveUnusedLocalVariableTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
+  FixKind get kind => DartFixKind.removeUnusedLocalVariable;
 
   Future<void> test_assigned() async {
     await resolveTestCode(r'''
@@ -264,14 +264,10 @@ void f() {
   var v = 1;
 }
 ''');
-    await assertHasFix(
-      r'''
+    await assertHasFix(r'''
 void f() {
 }
-''',
-      errorFilter: (e) =>
-          e.diagnosticCode != CompileTimeErrorCode.referencedBeforeDeclaration,
-    );
+''', filter: (e) => e.diagnosticCode != diag.referencedBeforeDeclaration);
   }
 }
 
@@ -279,7 +275,7 @@ void f() {
 class RemoveUnusedLocalVariableTest_DeclaredVariablePattern
     extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
+  FixKind get kind => DartFixKind.removeUnusedLocalVariable;
 
   Future<void> test_logicalAndPattern_typed_left() async {
     await resolveTestCode(r'''

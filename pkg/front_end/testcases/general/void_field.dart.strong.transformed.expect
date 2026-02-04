@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef T<unrelated X extends core::Object? = dynamic> = void;
+class C extends core::Object {
+  field void field1;
+  field void field2 = self::value;
+  field void field3;
+  constructor •(void field1) → self::C
+    : self::C::field1 = field1, self::C::field3 = self::value, super core::Object::•()
+    ;
+}
+static field void value = null;

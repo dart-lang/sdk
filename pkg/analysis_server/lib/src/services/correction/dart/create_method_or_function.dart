@@ -146,7 +146,6 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   }) async {
     // build method source
     await builder.addDartFileEdit(targetFile, (builder) {
-      var eol = builder.eol;
       builder.addInsertion(insertOffset, (builder) {
         if (leadingEol) {
           builder.writeln();
@@ -159,6 +158,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         // append return type
         if (builder.writeType(
           functionType.returnType,
+          typeParametersInScope: functionType.typeParameters,
           groupName: 'RETURN_TYPE',
         )) {
           builder.write(' ');
@@ -175,7 +175,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           builder.write(' async');
         }
         // close method
-        builder.write(' {$eol$prefix}');
+        builder.write(' {}');
         if (trailingEol) {
           builder.writeln();
         }
@@ -220,31 +220,14 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     required bool isStatic,
   }) async {
     var name = (node as SimpleIdentifier).name;
-    // prepare environment
-    var targetSource = targetClassElement.firstFragment.libraryFragment.source;
     // prepare insert offset
-    CompilationUnitMember? targetNode;
-    List<ClassMember>? classMembers;
-    if (targetClassElement is MixinElement) {
-      var fragment = targetClassElement.firstFragment;
-      var node = targetNode = await getMixinDeclaration(fragment);
-      classMembers = node?.members;
-    } else if (targetClassElement is ClassElement) {
-      var fragment = targetClassElement.firstFragment;
-      var node = targetNode = await getClassDeclaration(fragment);
-      classMembers = node?.members;
-    } else if (targetClassElement is ExtensionTypeElement) {
-      var fragment = targetClassElement.firstFragment;
-      var node = targetNode = await getExtensionTypeDeclaration(fragment);
-      classMembers = node?.members;
-    } else if (targetClassElement is EnumElement) {
-      var fragment = targetClassElement.firstFragment;
-      var node = targetNode = await getEnumDeclaration(fragment);
-      classMembers = node?.members;
-    }
-    if (targetNode == null || classMembers == null) {
+    var targetNode = await getDeclarationNodeFromElement(targetClassElement);
+    if (targetNode == null) {
       return;
     }
+    // prepare environment
+    var targetSource = targetClassElement.firstFragment.libraryFragment.source;
+    var classMembers = targetNode.classMembers;
     var insertOffset = targetNode.end - 1;
     // prepare prefix
     var prefix = '  ';

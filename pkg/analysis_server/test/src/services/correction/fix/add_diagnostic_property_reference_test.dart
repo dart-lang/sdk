@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -643,8 +643,7 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -657,10 +656,7 @@ class C extends Widget with Diagnosticable {
     properties.add(DiagnosticsProperty<ClassNotInScope<bool>>('onChanged', onChanged));
   }
 }
-''',
-      errorFilter: (error) =>
-          error.diagnosticCode != CompileTimeErrorCode.undefinedClass,
-    );
+''', filter: (error) => error.diagnosticCode != diag.undefinedClass);
   }
 
   Future<void> test_typeOutOfScopeGetter() async {
@@ -677,8 +673,7 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -691,10 +686,7 @@ class C extends Widget with Diagnosticable {
     properties.add(DiagnosticsProperty<ClassNotInScope<bool>>('onChanged', onChanged));
   }
 }
-''',
-      errorFilter: (error) =>
-          error.diagnosticCode != CompileTimeErrorCode.undefinedClass,
-    );
+''', filter: (error) => error.diagnosticCode != diag.undefinedClass);
   }
 
   Future<void> test_varField() async {

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ class A {
 @A
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 32, 2)],
+      [error(diag.invalidAnnotation, 32, 2)],
     );
   }
 
@@ -39,7 +39,7 @@ class A {
 @A.foo
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 38, 6)],
+      [error(diag.invalidAnnotation, 38, 6)],
     );
   }
 
@@ -53,7 +53,7 @@ class A {
 @A.foo()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 38, 8)],
+      [error(diag.invalidAnnotation, 38, 8)],
     );
   }
 
@@ -65,7 +65,7 @@ get V => 0;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 12, 2)],
+      [error(diag.invalidAnnotation, 12, 2)],
     );
   }
 
@@ -81,7 +81,7 @@ import 'lib.dart' as p;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 24, 4)],
+      [error(diag.invalidAnnotation, 24, 4)],
     );
   }
 
@@ -97,7 +97,7 @@ import 'lib.dart' as p;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 24, 4)],
+      [error(diag.invalidAnnotation, 24, 4)],
     );
   }
 
@@ -113,7 +113,7 @@ import 'lib.dart' as p;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 24, 4)],
+      [error(diag.invalidAnnotation, 24, 4)],
     );
   }
 
@@ -136,7 +136,7 @@ void f() {
   var b; // ignore:unused_local_variable
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 28, 5)],
+      [error(diag.invalidAnnotation, 28, 5)],
     );
   }
 
@@ -149,7 +149,7 @@ void f() {
   var b; // ignore:unused_local_variable
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 28, 2)],
+      [error(diag.invalidAnnotation, 28, 2)],
     );
   }
 
@@ -169,7 +169,7 @@ import 'annotations.dart' as pref;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 35, 19)],
+      [error(diag.invalidAnnotation, 35, 19)],
     );
   }
 
@@ -187,7 +187,7 @@ const Property property = const Property(42);
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 116, 14)],
+      [error(diag.invalidAnnotation, 116, 14)],
     );
   }
 
@@ -199,7 +199,7 @@ final V = 0;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 13, 2)],
+      [error(diag.invalidAnnotation, 13, 2)],
     );
   }
 
@@ -211,7 +211,7 @@ typedef V();
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 13, 2)],
+      [error(diag.invalidAnnotation, 13, 2)],
     );
   }
 
@@ -223,7 +223,7 @@ import 'dart:math' as p;
 @p.sin(0)
 class B {}
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 26, 9)],
+      [error(diag.invalidAnnotation, 26, 9)],
     );
   }
 
@@ -235,7 +235,7 @@ import 'dart:math' as p;
 @p.sin.cos(0)
 class B {}
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 26, 13)],
+      [error(diag.invalidAnnotation, 26, 13)],
     );
   }
 
@@ -249,7 +249,7 @@ class A {
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAnnotation, 28, 4)],
+      [error(diag.invalidAnnotation, 28, 4)],
     );
   }
 }

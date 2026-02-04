@@ -152,9 +152,10 @@ void SetupCoreLibrariesForUnitTest() {
   Dart_EnterScope();
   bool ok = bin::DartUtils::SetOriginalWorkingDirectory();
   RELEASE_ASSERT(ok);
-  Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(
+  Dart_Handle result = bin::DartUtils::SetupCoreLibraries(
       /*is_service_isolate=*/false,
-      /*trace_loading=*/false, /*flag_profile_microtasks=*/false);
+      /*trace_loading=*/false,
+      /*flag_profile_microtasks=*/false, bin::DartIoSettings{});
   Dart_ExitScope();
 
   RELEASE_ASSERT(!Dart_IsError(result));

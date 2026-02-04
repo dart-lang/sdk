@@ -73,14 +73,4 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     }
     return result;
   }
-
-  MemberLookupResult? lookupLocalMemberByName(
-    Name name, {
-    bool required = false,
-  }) {
-    if (name.isPrivate && libraryBuilder.library != name.library) {
-      return null;
-    }
-    return lookupLocalMember(name.text, required: required);
-  }
 }

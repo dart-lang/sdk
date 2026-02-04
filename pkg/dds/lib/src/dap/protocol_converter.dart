@@ -469,31 +469,6 @@ class ProtocolConverter {
     }
   }
 
-  Future<dap.Variable> convertFieldRefToVariable(
-    ThreadInfo thread,
-    vm.FieldRef fieldRef, {
-    required bool allowCallingToString,
-    required VariableFormat? format,
-  }) async {
-    final field = await thread.getObject(fieldRef);
-    if (field is vm.Field) {
-      return convertVmResponseToVariable(
-        thread,
-        field.staticValue,
-        name: fieldRef.name,
-        allowCallingToString: allowCallingToString,
-        evaluateName: fieldRef.name,
-        format: format,
-      );
-    } else {
-      return dap.Variable(
-        name: fieldRef.name ?? '<unnamed field>',
-        value: '<unavailable>',
-        variablesReference: 0,
-      );
-    }
-  }
-
   /// Converts a [vm.Response] into to a [dap.Variable].
   ///
   /// If provided, [name] is used as the variables name (for example the field
@@ -609,8 +584,7 @@ class ProtocolConverter {
     final uriIsPackage = uri?.isScheme('package') ?? false;
     final sourcePathUri =
         uri != null ? await thread.resolveUriToPath(uri) : null;
-    var canShowSource =
-        sourcePathUri != null && _adapter.isSupportedFileScheme(sourcePathUri);
+    var canShowSource = sourcePathUri != null && sourcePathUri.isScheme('file');
 
     // If we don't have a local source file but the source is a "dart:" uri we
     // might still be able to download the source from the VM.
@@ -639,7 +613,7 @@ class ProtocolConverter {
     }
 
     // LSP uses 0 for unknown lines.
-    var (line, col) = lineCol ?? (0, 0);
+    final (line, col) = lineCol ?? (0, 0);
 
     // If a source would be considered not-debuggable (for example it's in the
     // SDK and debugSdkLibraries=false) then we should also mark it as

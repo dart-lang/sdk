@@ -8,7 +8,7 @@ class A {
 
 const S = 'S';
 
-foo(var p) {
+foo(p) {
   switch (p) {
     case S:
       break;

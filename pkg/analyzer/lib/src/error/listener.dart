@@ -4,8 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:analyzer/dart/ast/ast.dart'
-    show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,9 +11,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
@@ -144,7 +145,7 @@ Expected types: $expectedTypes''');
 @AnalyzerPublicApi(message: 'Exported by package:analyzer/error/listener.dart')
 class DiagnosticReporter {
   /// The diagnostic listener to which diagnostics are reported.
-  final DiagnosticOrErrorListener _diagnosticListener;
+  final DiagnosticListener _diagnosticListener;
 
   /// The source to be used when reporting diagnostics.
   final Source _source;
@@ -175,22 +176,18 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     // TODO(brianwilkerson): Consider extending this method to take any
     //  declaration and compute the correct range for the name of that
     //  declaration. This might make it easier to be consistent.
-    if (node.name case var nameToken?) {
-      var offset = node.returnType.offset;
-      return atOffset(
-        offset: offset,
-        length: nameToken.end - offset,
-        diagnosticCode: diagnosticCode,
-        arguments: arguments,
-      );
-    } else {
-      return atNode(node.returnType, diagnosticCode, arguments: arguments);
-    }
+    var range = node.errorRange;
+    return atOffset(
+      offset: range.offset,
+      length: range.length,
+      diagnosticCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
   }
 
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
@@ -204,7 +201,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     var nonSynthetic = element.nonSynthetic;
     return atOffset(
@@ -213,8 +209,6 @@ class DiagnosticReporter {
       length: nonSynthetic.name?.length ?? 0,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -229,7 +223,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     return atOffset(
       diagnosticCode: diagnosticCode,
@@ -237,8 +230,6 @@ class DiagnosticReporter {
       length: entity.length,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -253,7 +244,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     return atOffset(
       diagnosticCode: diagnosticCode,
@@ -261,13 +251,10 @@ class DiagnosticReporter {
       length: node.length,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
-  /// Reports a diagnostic with the given [diagnosticCode] (or [errorCode],
-  /// deprecated) and [arguments].
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
   ///
   /// The location of the diagnostic is specified by the given [offset] and
   /// [length].
@@ -277,21 +264,10 @@ class DiagnosticReporter {
   Diagnostic atOffset({
     required int offset,
     required int length,
-    @Deprecated("Use 'diagnosticCode' instead") DiagnosticCode? errorCode,
-    DiagnosticCode? diagnosticCode,
+    required DiagnosticCode diagnosticCode,
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
-    if ((errorCode == null && diagnosticCode == null) ||
-        (errorCode != null && diagnosticCode != null)) {
-      throw ArgumentError(
-        "Exactly one of 'errorCode' (deprecated) and 'diagnosticCode' should be given",
-      );
-    }
-
-    diagnosticCode ??= errorCode!;
-
     if (arguments != null) {
       var invalid = arguments
           .whereNotType<String>()
@@ -313,11 +289,30 @@ class DiagnosticReporter {
       diagnosticCode: diagnosticCode,
       arguments: arguments ?? const [],
       contextMessages: contextMessages ?? [],
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
     reportError(diagnostic);
     return diagnostic;
+  }
+
+  /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
+  ///
+  /// The [range] is used to compute the location of the diagnostic.
+  ///
+  /// The reported [Diagnostic] is returned so that the caller may attach
+  /// additional information to it (for example, using an expando).
+  Diagnostic atSourceRange(
+    SourceRange range,
+    DiagnosticCode diagnosticCode, {
+    List<Object>? arguments,
+    List<DiagnosticMessage>? contextMessages,
+  }) {
+    return atOffset(
+      offset: range.offset,
+      length: range.length,
+      diagnosticCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
   }
 
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].
@@ -331,7 +326,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     return atOffset(
       diagnosticCode: diagnosticCode,
@@ -339,8 +333,6 @@ class DiagnosticReporter {
       length: span.length,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -355,7 +347,6 @@ class DiagnosticReporter {
     DiagnosticCode diagnosticCode, {
     List<Object>? arguments,
     List<DiagnosticMessage>? contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     return atOffset(
       diagnosticCode: diagnosticCode,
@@ -363,8 +354,6 @@ class DiagnosticReporter {
       length: token.length,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -382,7 +371,6 @@ class DiagnosticReporter {
     required DiagnosticCode diagnosticCode,
     required List<Object> arguments,
     required List<DiagnosticMessage> contextMessages,
-    @Deprecated('Use an expando instead') Object? data,
   }) {
     contextMessages.addAll(
       convertTypeNames(
@@ -399,8 +387,6 @@ class DiagnosticReporter {
       diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use
-      data: data,
     );
   }
 }

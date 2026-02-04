@@ -39,7 +39,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     var constructorDeclaration = node.parent;
     if (constructorDeclaration is! ConstructorDeclaration) return;
 
-    var classDeclaration = constructorDeclaration.parent;
+    var classDeclaration = constructorDeclaration.parent?.parent;
     if (classDeclaration is! ClassDeclaration) return;
 
     var classElement = classDeclaration.declaredFragment!.element;

@@ -60,6 +60,7 @@ void runTestCase(
     matcher: new ConstantPragmaAnnotationParser(coreTypes, target),
     config: tfaConfig,
     treeShakeProtobufs: true,
+    treeShakeProtobufMixins: true,
     useRapidTypeAnalysis: useRapidTypeAnalysis,
   );
 

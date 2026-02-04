@@ -396,7 +396,7 @@ class ActivationFrame : public ZoneAllocated {
   ClosurePtr GetClosure();
   ObjectPtr GetReceiver();
 
-  const Context& GetSavedCurrentContext();
+  const Context& GetSavedCurrentContext(intptr_t* index = nullptr);
   ObjectPtr GetSuspendStateVar();
   ObjectPtr GetSuspendableFunctionData();
 
@@ -462,6 +462,7 @@ class ActivationFrame : public ZoneAllocated {
   const Function& function_;
   const Closure& closure_;
 
+  bool context_initialized_ = false;
   bool token_pos_initialized_ = false;
   TokenPosition token_pos_ = TokenPosition::kNoSource;
   intptr_t try_index_ = -1;

@@ -287,9 +287,7 @@ void f() {
   ({0, 1:2});
 }
 ''');
-    await assertNoFix(
-      errorFilter: lintNameFilter(LintNames.always_specify_types),
-    );
+    await assertNoFix(filter: lintNameFilter(LintNames.always_specify_types));
   }
 
   Future<void> test_setOrMapLiteral_map() async {
@@ -480,6 +478,33 @@ class SpecifyNonObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.specify_nonobvious_local_variable_types;
+
+  Future<void> test_enclosingClass() async {
+    // Having the empty line is intentional. See:
+    // https://github.com/dart-lang/sdk/issues/62272#issuecomment-3675406780
+    await resolveTestCode('''
+
+class Foo<T extends Foo<T>> {
+  List<T> list = [];
+  void m() {
+    for (var element in list) {
+      element;
+    }
+  }
+}
+''');
+    await assertHasFix('''
+
+class Foo<T extends Foo<T>> {
+  List<T> list = [];
+  void m() {
+    for (T element in list) {
+      element;
+    }
+  }
+}
+''');
+  }
 
   Future<void> test_listPattern_destructured() async {
     await resolveTestCode('''

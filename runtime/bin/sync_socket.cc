@@ -84,7 +84,7 @@ void FUNCTION_NAME(SynchronousSocket_LookupRequest)(Dart_NativeArguments args) {
     error = Dart_ListSetAt(entry, 1, as_string);
     DART_CHECK_ERROR_AND_CLEANUP(error, addresses);
 
-    RawAddr raw = addr->addr();
+    const auto& raw = addr->addr();
     Dart_Handle data = SocketAddress::ToTypedData(raw);
     DART_CHECK_ERROR_AND_CLEANUP(data, addresses);
 
@@ -301,7 +301,7 @@ void FUNCTION_NAME(SynchronousSocket_GetRemotePeer)(Dart_NativeArguments args) {
       Dart_ListSetAt(entry, 1, Dart_NewStringFromCString(addr->as_string()));
   DART_CHECK_ERROR_AND_CLEANUP(error, addr);
 
-  RawAddr raw = addr->addr();
+  const auto& raw = addr->addr();
   error = Dart_ListSetAt(entry, 2, SocketAddress::ToTypedData(raw));
   DART_CHECK_ERROR_AND_CLEANUP(error, addr);
 

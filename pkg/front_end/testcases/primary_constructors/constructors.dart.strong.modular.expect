@@ -1,0 +1,231 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::int i;
+  constructor •(core::int i) → self::C1
+    : self::C1::i = i, super core::Object::•()
+    ;
+}
+class C2 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor •(core::int i) → self::C2
+    : self::C2::i = i, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  field core::int i;
+  constructor named({required core::int i}) → self::C3
+    : self::C3::i = i, super core::Object::•()
+    ;
+}
+class C4 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor named({required core::int i}) → self::C4
+    : self::C4::i = i, super core::Object::•()
+    ;
+}
+class C5 extends core::Object {
+  field core::int i;
+  constructor _(core::int i) → self::C5
+    : self::C5::i = i, super core::Object::•()
+    ;
+  static factory •(core::int i) → self::C5
+    return new self::C5::_(i);
+}
+class C6 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor _(core::int i) → self::C6
+    : self::C6::i = i, super core::Object::•()
+    ;
+  static factory •(core::int i) → self::C6
+    return new self::C6::_(i);
+}
+class C7 extends core::Object {
+  field core::int i;
+  constructor _({required core::int i}) → self::C7
+    : self::C7::i = i, super core::Object::•()
+    ;
+  static factory •({required core::int i}) → self::C7 /* redirection-target: self::C7::_ */
+    return new self::C7::_(i: i);
+}
+class C8 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor _(core::int i) → self::C8
+    : self::C8::i = i, super core::Object::•()
+    ;
+  static const factory •(core::int i) → self::C8 /* redirection-target: self::C8::_ */
+    return new self::C8::_(i);
+}
+class C9 extends core::Object {
+  field core::int i;
+  constructor _(core::int i) → self::C9
+    : self::C9::i = i, super core::Object::•()
+    ;
+  static factory named(core::int i) → self::C9
+    return new self::C9::_(i);
+}
+class C10 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor _(core::int i) → self::C10
+    : self::C10::i = i, super core::Object::•()
+    ;
+  static factory named(core::int i) → self::C10
+    return new self::C10::_(i);
+}
+class C11 extends core::Object {
+  field core::int i;
+  constructor _({required core::int i}) → self::C11
+    : self::C11::i = i, super core::Object::•()
+    ;
+  static factory named({required core::int i}) → self::C11 /* redirection-target: self::C11::_ */
+    return new self::C11::_(i: i);
+}
+class C12 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor _(core::int i) → self::C12
+    : self::C12::i = i, super core::Object::•()
+    ;
+  static const factory named(core::int i) → self::C12 /* redirection-target: self::C12::_ */
+    return new self::C12::_(i);
+}
+class C13 extends core::Object {
+  field core::int i;
+  constructor •(core::int i) → self::C13
+    : this self::C13::_(i)
+    ;
+  constructor _(core::int i) → self::C13
+    : self::C13::i = i, super core::Object::•()
+    ;
+}
+class C14 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor •(core::int i) → self::C14
+    : this self::C14::_(i)
+    ;
+  const constructor _(core::int i) → self::C14
+    : self::C14::i = i, super core::Object::•()
+    ;
+}
+class C15 extends core::Object {
+  field core::int i;
+  constructor named({required core::int i}) → self::C15
+    : this self::C15::_(i)
+    ;
+  constructor _(core::int i) → self::C15
+    : self::C15::i = i, super core::Object::•()
+    ;
+}
+class C16 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor named({required core::int i}) → self::C16
+    : this self::C16::_(i)
+    ;
+  const constructor _(core::int i) → self::C16
+    : self::C16::i = i, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  new self::C1::•(0);
+  new self::C1::•(1);
+  new self::C2::•(0);
+  new self::C2::•(1);
+  #C2;
+  new self::C3::named(i: 0);
+  new self::C3::named(i: 1);
+  new self::C4::named(i: 0);
+  new self::C4::named(i: 1);
+  #C3;
+  self::C5::•(0);
+  self::C5::•(1);
+  new self::C5::_(2);
+  new self::C5::_(3);
+  self::C6::•(0);
+  self::C6::•(1);
+  new self::C6::_(2);
+  new self::C6::_(3);
+  #C5;
+  new self::C7::_(i: 0);
+  new self::C7::_(i: 1);
+  new self::C7::_(i: 2);
+  new self::C7::_(i: 3);
+  new self::C8::_(0);
+  new self::C8::_(1);
+  #C6;
+  new self::C8::_(3);
+  new self::C8::_(4);
+  #C8;
+  self::C9::named(0);
+  self::C9::named(1);
+  new self::C9::_(2);
+  new self::C9::_(3);
+  self::C10::named(0);
+  self::C10::named(1);
+  new self::C10::_(2);
+  new self::C10::_(3);
+  #C9;
+  new self::C11::_(i: 0);
+  new self::C11::_(i: 1);
+  new self::C11::_(i: 2);
+  new self::C11::_(i: 3);
+  new self::C12::_(0);
+  new self::C12::_(1);
+  #C10;
+  new self::C12::_(3);
+  new self::C12::_(4);
+  #C11;
+  new self::C13::•(0);
+  new self::C13::•(1);
+  new self::C13::_(2);
+  new self::C13::_(3);
+  new self::C14::•(0);
+  new self::C14::•(1);
+  #C12;
+  new self::C14::_(3);
+  new self::C14::_(4);
+  #C13;
+  new self::C15::named(i: 0);
+  new self::C15::named(i: 1);
+  new self::C15::_(2);
+  new self::C15::_(3);
+  new self::C16::named(i: 0);
+  new self::C16::named(i: 1);
+  #C14;
+  new self::C16::_(3);
+  new self::C16::_(4);
+  #C15;
+}
+
+constants  {
+  #C1 = 2
+  #C2 = self::C2 {i:#C1}
+  #C3 = self::C4 {i:#C1}
+  #C4 = 4
+  #C5 = self::C6 {i:#C4}
+  #C6 = self::C8 {i:#C1}
+  #C7 = 5
+  #C8 = self::C8 {i:#C7}
+  #C9 = self::C10 {i:#C4}
+  #C10 = self::C12 {i:#C1}
+  #C11 = self::C12 {i:#C7}
+  #C12 = self::C14 {i:#C1}
+  #C13 = self::C14 {i:#C7}
+  #C14 = self::C16 {i:#C1}
+  #C15 = self::C16 {i:#C7}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constructors.dart:
+- C2. (from org-dartlang-testcase:///constructors.dart:14:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- C4.named (from org-dartlang-testcase:///constructors.dart:26:13)
+- C6._ (from org-dartlang-testcase:///constructors.dart:42:13)
+- C8._ (from org-dartlang-testcase:///constructors.dart:59:13)
+- C10._ (from org-dartlang-testcase:///constructors.dart:75:13)
+- C12._ (from org-dartlang-testcase:///constructors.dart:92:13)
+- C14. (from org-dartlang-testcase:///constructors.dart:106:9)
+- C14._ (from org-dartlang-testcase:///constructors.dart:108:13)
+- C16.named (from org-dartlang-testcase:///constructors.dart:122:13)
+- C16._ (from org-dartlang-testcase:///constructors.dart:124:13)

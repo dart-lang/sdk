@@ -43,6 +43,8 @@ abstract class AstVisitor<R> {
 
   R? visitBlock(Block node);
 
+  R? visitBlockClassBody(BlockClassBody node);
+
   R? visitBlockFunctionBody(BlockFunctionBody node);
 
   R? visitBooleanLiteral(BooleanLiteral node);
@@ -107,9 +109,13 @@ abstract class AstVisitor<R> {
 
   R? visitDoubleLiteral(DoubleLiteral node);
 
+  R? visitEmptyClassBody(EmptyClassBody node);
+
   R? visitEmptyFunctionBody(EmptyFunctionBody node);
 
   R? visitEmptyStatement(EmptyStatement node);
+
+  R? visitEnumBody(EnumBody node);
 
   R? visitEnumConstantArguments(EnumConstantArguments node);
 
@@ -235,6 +241,8 @@ abstract class AstVisitor<R> {
 
   R? visitNamedType(NamedType node);
 
+  R? visitNameWithTypeParameters(NameWithTypeParameters node);
+
   R? visitNativeClause(NativeClause node);
 
   R? visitNativeFunctionBody(NativeFunctionBody node);
@@ -275,6 +283,12 @@ abstract class AstVisitor<R> {
 
   R? visitPrefixExpression(PrefixExpression node);
 
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
+
+  R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node);
+
+  R? visitPrimaryConstructorName(PrimaryConstructorName node);
+
   R? visitPropertyAccess(PropertyAccess node);
 
   R? visitRecordLiteral(RecordLiteral node);
@@ -297,8 +311,10 @@ abstract class AstVisitor<R> {
 
   R? visitRelationalPattern(RelationalPattern node);
 
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node);
 
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node);
 
   R? visitRestPatternElement(RestPatternElement node);

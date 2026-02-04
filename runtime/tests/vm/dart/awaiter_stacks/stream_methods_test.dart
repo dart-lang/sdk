@@ -12,6 +12,7 @@
 // stack traces when unwinding through various built-in [Stream] methods.
 import 'dart:async';
 
+import 'package:expect/expect.dart';
 import 'harness.dart' as harness;
 
 Future<void> baz() async {
@@ -34,8 +35,21 @@ Stream<String> foo() async* {
   await baz();
 }
 
-Future<void> runTest(Future<void> Function(Stream<String> stream) body) async {
-  await body(foo());
+Stream<String> Function() stream(Iterable<String> elements) {
+  return () => Stream.fromIterable(elements);
+}
+
+Future<void> runTest(
+  Future<void> Function(Stream<String> stream) body, {
+  Stream<String> Function() source = foo,
+  bool expectedToThrow = false,
+}) async {
+  try {
+    await body(source());
+  } catch (e, st) {
+    Expect.isTrue(expectedToThrow, 'Not expecting exception');
+    await harness.checkExpectedStack(st);
+  }
 }
 
 Future<void> main() async {
@@ -59,9 +73,55 @@ Future<void> main() async {
   await runTest((s) => s.first);
   await runTest((s) => s.last);
   await runTest((s) => s.single);
+  await runTest((s) => s.singleWhere((element) => true));
   await runTest((s) => s.firstWhere((element) => true));
   await runTest((s) => s.lastWhere((element) => true));
   await runTest((s) => s.elementAt(0));
+
+  // Check that error caused by empty stream also produces good stack traces.
+  await runTest(
+    (s) => s.reduce((a, b) => ''),
+    source: stream([]),
+    expectedToThrow: true,
+  );
+  await runTest((s) => s.first, source: stream([]), expectedToThrow: true);
+  await runTest((s) => s.last, source: stream([]), expectedToThrow: true);
+  await runTest((s) => s.single, source: stream([]), expectedToThrow: true);
+  await runTest(
+    (s) => s.single,
+    source: stream(['1', '2']),
+    expectedToThrow: true,
+  );
+  await runTest(
+    (s) => s.single,
+    source: stream(['1', '2']),
+    expectedToThrow: true,
+  );
+  await runTest(
+    (s) => s.singleWhere((_) => true),
+    source: stream([]),
+    expectedToThrow: true,
+  );
+  await runTest(
+    (s) => s.singleWhere((_) => true),
+    source: stream(['1', '2']),
+    expectedToThrow: true,
+  );
+  await runTest(
+    (s) => s.firstWhere((element) => true),
+    source: stream([]),
+    expectedToThrow: true,
+  );
+  await runTest(
+    (s) => s.lastWhere((element) => true),
+    source: stream([]),
+    expectedToThrow: true,
+  );
+  await runTest(
+    (s) => s.elementAt(0),
+    source: stream([]),
+    expectedToThrow: true,
+  );
 
   harness.updateExpectations();
 }
@@ -1226,6 +1286,93 @@ final currentExpectations = [
   """
 #0    foo (%test%)
 <asynchronous suspension>
+#1    Stream.singleWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#2    runTest (%test%)
+<asynchronous suspension>
+#3    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    baz (%test%)
+#1    foo (%test%)
+<asynchronous suspension>
+#2    Stream.singleWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#3    runTest (%test%)
+<asynchronous suspension>
+#4    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    baz (%test%)
+<asynchronous suspension>
+#1    foo (%test%)
+<asynchronous suspension>
+#2    Stream.singleWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#3    runTest (%test%)
+<asynchronous suspension>
+#4    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    bar (%test%)
+<asynchronous suspension>
+#1    foo (%test%)
+<asynchronous suspension>
+#2    Stream.singleWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#3    runTest (%test%)
+<asynchronous suspension>
+#4    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    baz (%test%)
+#1    bar (%test%)
+<asynchronous suspension>
+#2    foo (%test%)
+<asynchronous suspension>
+#3    Stream.singleWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#4    runTest (%test%)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    baz (%test%)
+<asynchronous suspension>
+#1    bar (%test%)
+<asynchronous suspension>
+#2    foo (%test%)
+<asynchronous suspension>
+#3    Stream.singleWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#4    runTest (%test%)
+<asynchronous suspension>
+#5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    baz (%test%)
+#1    foo (%test%)
+<asynchronous suspension>
+#2    Stream.singleWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#3    runTest (%test%)
+<asynchronous suspension>
+#4    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    baz (%test%)
+<asynchronous suspension>
+#1    foo (%test%)
+<asynchronous suspension>
+#2    Stream.singleWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#3    runTest (%test%)
+<asynchronous suspension>
+#4    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    foo (%test%)
+<asynchronous suspension>
 #1    Stream.firstWhere.<anonymous closure> (stream.dart)
 <asynchronous suspension>
 #2    runTest (%test%)
@@ -1441,6 +1588,83 @@ final currentExpectations = [
 #4    runTest (%test%)
 <asynchronous suspension>
 #5    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.reduce.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.first.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.last.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.single.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.single.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.single.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.singleWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.singleWhere.<anonymous closure>.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.firstWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.lastWhere.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
+<asynchronous suspension>""",
+  """
+#0    Stream.elementAt.<anonymous closure> (stream.dart)
+<asynchronous suspension>
+#1    runTest (%test%)
+<asynchronous suspension>
+#2    main (%test%)
 <asynchronous suspension>""",
 ];
 // CURRENT EXPECTATIONS END

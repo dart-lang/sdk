@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -44,7 +44,7 @@ class B extends A {
 @reflectiveTest
 class RemoveUnnecessaryFinalMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_FINAL_MULTI;
+  FixKind get kind => DartFixKind.removeUnnecessaryFinalMulti;
 
   Future<void> test_multi() async {
     await resolveTestCode('''
@@ -54,7 +54,7 @@ class A {
   int v2;
 }
 ''');
-    await assertHasFixAllFix(WarningCode.unnecessaryFinal, '''
+    await assertHasFixAllFix(diag.unnecessaryFinal, '''
 class A {
   A(this.v1, this.v2);
   int v1;
@@ -67,7 +67,7 @@ class A {
 @reflectiveTest
 class RemoveUnnecessaryFinalTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_FINAL;
+  FixKind get kind => DartFixKind.removeUnnecessaryFinal;
 
   Future<void> test_positional() async {
     await resolveTestCode('''

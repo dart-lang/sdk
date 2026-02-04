@@ -1,0 +1,7 @@
+class C {
+  int? _x;
+  int? _y;
+  C({this._x}) : _y = _x;
+}
+
+main() {}

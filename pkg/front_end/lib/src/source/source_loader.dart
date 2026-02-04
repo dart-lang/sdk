@@ -19,6 +19,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 import 'package:front_end/src/kernel/internal_ast.dart'
     show VariableDeclarationImpl;
 import 'package:kernel/ast.dart';
@@ -410,6 +412,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     bool isPatch = false,
     required bool mayImplementRestrictedTypes,
   }) {
+    final bool isDartLib = importUri.isScheme('dart');
     return new SourceCompilationUnitImpl(
       importUri: importUri,
       fileUri: fileUri,
@@ -421,10 +424,14 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       resolveInLibrary: null,
       indexedLibrary: referencesFromIndex,
       referenceIsPartOwner: referenceIsPartOwner,
-      isUnsupported:
-          origin?.isUnsupported ??
-          importUri.isScheme('dart') &&
-              !target.uriTranslator.isLibrarySupported(importUri.path),
+      conditionalImportSupported:
+          origin?.conditionalImportSupported ??
+          isDartLib && target.uriTranslator.isLibrarySupported(importUri.path),
+      importability:
+          origin?.importability ??
+          (isDartLib
+              ? target.uriTranslator.isLibraryImportable(importUri.path)
+              : Importability.always),
       isAugmenting: origin != null,
       forAugmentationLibrary: isAugmentation,
       forPatchLibrary: isPatch,
@@ -460,7 +467,8 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
           libraryName,
           libraryExists: compilationUnit != null,
           isSynthetic: compilationUnit?.isSynthetic ?? true,
-          isUnsupported: compilationUnit?.isUnsupported ?? true,
+          conditionalImportSupported:
+              compilationUnit?.conditionalImportSupported ?? false,
           dartLibrarySupport: target.backendTarget.dartLibrarySupport,
         )
         ? "true"
@@ -713,7 +721,71 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
         accessor.fileUri,
       );
     }
+    _issueErrorsOnUnsupportedDartColonImports(
+      libraryBuilder,
+      uri,
+      accessor,
+      charOffset,
+      noLength,
+    );
     return libraryBuilder;
+  }
+
+  void _issueErrorsOnUnsupportedDartColonImports(
+    CompilationUnit libraryBuilder,
+    Uri uri,
+    CompilationUnit accessor,
+    int charOffset,
+    int length,
+  ) {
+    final Uri importUri = libraryBuilder.importUri;
+    // Only check for imports of unsupported dart:* libraries.
+    if (!importUri.isScheme('dart')) {
+      return;
+    }
+    // Untranslatable dart uris are handled in [tokenize].
+    if (libraryBuilder.fileUri.isScheme(untranslatableUriScheme)) {
+      return;
+    }
+
+    // dart:* libraries (and their patch files) are not restricted from
+    // importing other dart:* libraries.
+    if (accessor.importUri.isScheme('dart') ||
+        (accessor is SourceCompilationUnit &&
+            accessor.originImportUri.isScheme('dart'))) {
+      return;
+    }
+
+    final TargetFlags flags = target.backendTarget.flags;
+    final DartLibrarySupport dartLibrarySupport =
+        target.backendTarget.dartLibrarySupport;
+
+    Message? diagnostic;
+    final Importability importability = libraryBuilder.importability;
+    final bool importableWithFlag =
+        (importability == Importability.withFlag &&
+        // Coverage-ignore(suite): Not run.
+        flags.includeUnsupportedPlatformLibraryStubs);
+    if (!dartLibrarySupport.computeDartLibrarySupport(
+      importUri.path,
+      isSupportedBySpec:
+          (importability == Importability.always || importableWithFlag),
+    )) {
+      diagnostic = codeUnavailableDartLibrary.withArguments(uri: importUri);
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (importableWithFlag) {
+      // Display a warning for each import of an unsupported library.
+      diagnostic = codeUnsupportedPlatformDartLibraryImport.withArguments(
+        uri: importUri,
+      );
+    }
+
+    if (diagnostic == null) {
+      return;
+    }
+
+    accessor.addProblem(diagnostic, charOffset, length, accessor.fileUri);
   }
 
   /// Reads the library [uri] as an entry point. This is used for reading the
@@ -761,6 +833,15 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       } else {
         addProblem(codePlatformPrivateLibraryAccess, -1, noLength, null);
       }
+    }
+    if (firstLibrary != null) {
+      _issueErrorsOnUnsupportedDartColonImports(
+        libraryBuilder,
+        uri,
+        firstLibrary,
+        -1,
+        noLength,
+      );
     }
     return libraryBuilder;
   }
@@ -969,10 +1050,6 @@ severity: $severity
       allComponentProblems.add(formattedMessage);
     }
     return formattedMessage;
-  }
-
-  MemberBuilder getDuplicatedFieldInitializerError() {
-    return target.getDuplicatedFieldInitializerError(this);
   }
 
   MemberBuilder getNativeAnnotation() => target.getNativeAnnotation(this);
@@ -1352,9 +1429,9 @@ severity: $severity
         );
         DietParser parser = new DietParser(
           new ForwardingListener(),
-          allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-          enableFeatureEnhancedParts:
-              libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+          experimentalFeatures: new LibraryExperimentalFeatures(
+            libraryBuilder.libraryFeatures,
+          ),
         );
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
@@ -1366,9 +1443,9 @@ severity: $severity
         );
         Parser parser = new Parser(
           new ForwardingListener(),
-          allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-          enableFeatureEnhancedParts:
-              libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+          experimentalFeatures: new LibraryExperimentalFeatures(
+            libraryBuilder.libraryFeatures,
+          ),
         );
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
@@ -1383,9 +1460,9 @@ severity: $severity
     );
     DietParser parser = new DietParser(
       listener,
-      allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-      enableFeatureEnhancedParts:
-          libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+      experimentalFeatures: new LibraryExperimentalFeatures(
+        libraryBuilder.libraryFeatures,
+      ),
     );
     parser.parseUnit(tokens);
     for (SourceCompilationUnit compilationUnit in libraryBuilder.parts) {
@@ -1402,9 +1479,9 @@ severity: $severity
       );
       DietParser parser = new DietParser(
         listener,
-        allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts:
-            libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+        experimentalFeatures: new LibraryExperimentalFeatures(
+          libraryBuilder.libraryFeatures,
+        ),
       );
       parser.parseUnit(tokens);
     }
@@ -3245,6 +3322,8 @@ abstract class Map<K, V> extends Iterable {
   Iterable<MapEntry<K, V>> get entries;
   void operator []=(K key, V value) {}
   void addAll(Map<K, V> other) {}
+  V? operator [](Object key);
+  bool containsKey(Object key);
 }
 
 abstract class pragma {

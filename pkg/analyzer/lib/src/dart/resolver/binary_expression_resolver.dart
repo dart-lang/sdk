@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -19,7 +18,8 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
@@ -70,7 +70,7 @@ class BinaryExpressionResolver {
     if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
       _diagnosticReporter.atToken(
         node.operator,
-        CompileTimeErrorCode.notBinaryOperator,
+        diag.notBinaryOperator,
         arguments: [operator.lexeme],
       );
     }
@@ -85,7 +85,7 @@ class BinaryExpressionResolver {
   }) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
-      diagnosticCode: CompileTimeErrorCode.nonBoolOperand,
+      diagnosticCode: diag.nonBoolOperand,
       arguments: [operator],
       whyNotPromoted: whyNotPromoted,
     );
@@ -100,7 +100,7 @@ class BinaryExpressionResolver {
 
     var flowAnalysis = _resolver.flowAnalysis;
     var flow = flowAnalysis.flow;
-    ExpressionInfo<SharedTypeView>? leftInfo;
+    ExpressionInfo? leftInfo;
     var leftExtensionOverride = left is ExtensionOverride;
     if (!leftExtensionOverride) {
       leftInfo = flow?.equalityOperand_end(left);
@@ -146,14 +146,14 @@ class BinaryExpressionResolver {
     );
 
     void reportNullComparison(SyntacticEntity start, SyntacticEntity end) {
-      var errorCode = notEqual
-          ? WarningCode.unnecessaryNullComparisonAlwaysNullFalse
-          : WarningCode.unnecessaryNullComparisonAlwaysNullTrue;
+      var diagnosticCode = notEqual
+          ? diag.unnecessaryNullComparisonAlwaysNullFalse
+          : diag.unnecessaryNullComparisonAlwaysNullTrue;
       var offset = start.offset;
       _diagnosticReporter.atOffset(
         offset: offset,
         length: end.end - offset,
-        diagnosticCode: errorCode,
+        diagnosticCode: diagnosticCode,
       );
     }
 
@@ -405,7 +405,7 @@ class BinaryExpressionResolver {
         // safe to assume `extension.name` is non-`null`.
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.undefinedExtensionOperator,
+          diag.undefinedExtensionOperator,
           arguments: [methodName, extension.name!],
         );
       }
@@ -417,9 +417,8 @@ class BinaryExpressionResolver {
     var leftType = leftOperand.typeOrThrow;
 
     if (identical(leftType, NeverTypeImpl.instance)) {
-      _resolver.diagnosticReporter.atNode(
-        leftOperand,
-        WarningCode.receiverOfTypeNever,
+      _resolver.diagnosticReporter.report(
+        diag.receiverOfTypeNever.at(leftOperand),
       );
       return;
     }
@@ -444,13 +443,13 @@ class BinaryExpressionResolver {
       if (leftOperand is SuperExpression) {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.undefinedSuperOperator,
+          diag.undefinedSuperOperator,
           arguments: [methodName, leftType],
         );
       } else {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.undefinedOperator,
+          diag.undefinedOperator,
           arguments: [methodName, leftType],
         );
       }

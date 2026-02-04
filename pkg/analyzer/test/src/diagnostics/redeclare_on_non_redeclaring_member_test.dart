@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -34,7 +34,7 @@ extension type E(C c) implements C {
   int get i => 0;
 }
 ''',
-      [error(WarningCode.redeclareOnNonRedeclaringMember, 106, 1)],
+      [error(diag.redeclareOnNonRedeclaringMember, 106, 1)],
     );
   }
 
@@ -65,7 +65,7 @@ extension type E(C c) implements C {
   void n() {}
 }
 ''',
-      [error(WarningCode.redeclareOnNonRedeclaringMember, 103, 1)],
+      [error(diag.redeclareOnNonRedeclaringMember, 103, 1)],
     );
   }
 
@@ -83,7 +83,7 @@ class D implements C {
 ''',
       [
         // No REDECLARE_ON_NON_REDECLARING_MEMBER warning.
-        error(WarningCode.invalidAnnotationTarget, 72, 9),
+        error(diag.invalidAnnotationTarget, 72, 9),
       ],
     );
   }
@@ -117,10 +117,7 @@ extension type E(A it) implements A {
   void _foo() {}
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 51, 4),
-        error(WarningCode.unusedElement, 122, 4),
-      ],
+      [error(diag.unusedElement, 51, 4), error(diag.unusedElement, 122, 4)],
     );
   }
 
@@ -138,7 +135,7 @@ extension type E(C c) implements C {
 ''',
       [
         // No REDECLARE_ON_NON_REDECLARING_MEMBER warning.
-        error(WarningCode.invalidAnnotationTarget, 86, 9),
+        error(diag.invalidAnnotationTarget, 86, 9),
       ],
     );
   }
@@ -155,7 +152,7 @@ extension type E(C c) implements C {
   set i(int i) {}
 }
 ''',
-      [error(WarningCode.redeclareOnNonRedeclaringMember, 102, 1)],
+      [error(diag.redeclareOnNonRedeclaringMember, 102, 1)],
     );
   }
 

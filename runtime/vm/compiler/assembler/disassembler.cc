@@ -50,7 +50,12 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
   }
   THR_Print("%s", human_buffer);
   if (object != nullptr) {
-    THR_Print("   %s", object->ToCString());
+    if (object->IsString()) {
+      *object = String::EscapeSpecialCharacters(String::Cast(*object));
+      THR_Print("   \"%s\"", object->ToCString());
+    } else {
+      THR_Print("   %s", object->ToCString());
+    }
   }
   THR_Print("\n");
 }

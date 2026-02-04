@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class MakeClassAbstractTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_CLASS_ABSTRACT;
+  FixKind get kind => DartFixKind.makeClassAbstract;
 
   Future<void> test_declaresAbstractMethod() async {
     await resolveTestCode('''

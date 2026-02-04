@@ -27,7 +27,7 @@ class RemoveDeadCodeClassicTest extends FixProcessorTest
 /// `sound-flow-analysis` feature
 mixin RemoveDeadCodeClassicTestCases on FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_DEAD_CODE;
+  FixKind get kind => DartFixKind.removeDeadCode;
 
   Future<void> test_and() async {
     await resolveTestCode('''
@@ -141,9 +141,7 @@ void f(int i, int j) => j;
 void f(int i, int j) => false ? i : throw j..abs();
 ''';
     await resolveTestCode(code);
-    await assertNoFix(
-      errorFilter: (error) => error.offset == code.indexOf('i :'),
-    );
+    await assertNoFix(filter: (error) => error.offset == code.indexOf('i :'));
   }
 
   Future<void> test_conditionalExpression_trueCondition() async {
@@ -165,9 +163,7 @@ void f(int i, int j) => i;
 void f(int i, int j) => true ? throw i : j..abs();
 ''';
     await resolveTestCode(code);
-    await assertNoFix(
-      errorFilter: (error) => error.offset == code.indexOf('j..'),
-    );
+    await assertNoFix(filter: (error) => error.offset == code.indexOf('j..'));
   }
 
   Future<void> test_do_returnInBody() async {
@@ -270,7 +266,7 @@ void f(bool c) {
     return;
   print('');
 }
-''', errorFilter: (error) => error.length == 12);
+''', filter: (error) => error.length == 12);
   }
 
   Future<void> test_doWhile_break_outerDoLabel() async {
@@ -301,7 +297,7 @@ void f(bool c) {
   } while (c);
   print('');
 }
-''', errorFilter: (error) => error.length == 12);
+''', filter: (error) => error.length == 12);
   }
 
   Future<void> test_doWhile_break_outerLabel() async {
@@ -328,7 +324,7 @@ void f(bool c) {
     print('');
   }
 }
-''', errorFilter: (error) => error.length == 12);
+''', filter: (error) => error.length == 12);
   }
 
   Future<void> test_else_if_false() async {
@@ -403,7 +399,7 @@ f() => [for (; false; 1, 2) 0];
 ''');
     await assertHasFix('''
 f() => [for (; false; ) 0];
-''', errorFilter: (error) => error.length == 4);
+''', filter: (error) => error.length == 4);
   }
 
   Future<void> test_forElementParts_updaters_multiple_comma() async {
@@ -412,7 +408,7 @@ f() => [for (; false; 1, 2,) 0];
 ''');
     await assertHasFix('''
 f() => [for (; false; ) 0];
-''', errorFilter: (error) => error.length == 4);
+''', filter: (error) => error.length == 4);
   }
 
   Future<void> test_forElementParts_updaters_throw() async {
@@ -461,7 +457,7 @@ void f() {
 void f() {
   for (; false; ) {}
 }
-''', errorFilter: (error) => error.length == 4);
+''', filter: (error) => error.length == 4);
   }
 
   Future<void> test_forParts_updaters_multiple_comma() async {
@@ -474,7 +470,7 @@ void f() {
 void f() {
   for (; false; ) {}
 }
-''', errorFilter: (error) => error.length == 4);
+''', filter: (error) => error.length == 4);
   }
 
   Future<void> test_forParts_updaters_throw() async {
@@ -925,7 +921,7 @@ class C {
     s = '$i';
   }
 }
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_conditional_unnecessaryNullCheck_notEqualsNull() async {
@@ -944,7 +940,7 @@ class C {
     s = '$i';
   }
 }
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_castEqualsNull() async {
@@ -960,7 +956,7 @@ String? f(int? i) {
 String? f(int? i) {
   return '$i';
 }
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_castEqualsNull_withTargetSideEffect() async {
@@ -974,7 +970,7 @@ String? f(int i, int? Function(int) g) {
   return '$i';
 }
 ''');
-    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+    await assertNoFix(filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_identifierEqualsNull() async {
@@ -988,7 +984,7 @@ String? f(int i) {
 String? f(int i) {
   return '$i';
 }
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_nonNullAssertEqualsNull() async {
@@ -1004,7 +1000,7 @@ String? f(int? i) {
 String? f(int? i) {
   return '$i';
 }
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_nonNullAssertEqualsNull_withTargetSideEffect() async {
@@ -1017,7 +1013,7 @@ String? f(int i, int? Function(int) g) {
   return '$i';
 }
 ''');
-    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+    await assertNoFix(filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_nullEqualsPropertyAccess_withTargetSideEffect() async {
@@ -1031,7 +1027,7 @@ String? f(int i, int Function(int) g) {
   return '$i';
 }
 ''');
-    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+    await assertNoFix(filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_postfixOperatorEqualsNull() async {
@@ -1043,7 +1039,7 @@ String? f(int i) {
   return '$i';
 }
 ''');
-    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+    await assertNoFix(filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_prefixedIdentifierEqualsNull() async {
@@ -1059,7 +1055,7 @@ String? f(int i) {
 String? f(int i) {
   return '$i';
 }
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_propertyAccessEqualsNull() async {
@@ -1077,7 +1073,7 @@ String? f(int i) {
 String? f(int i) {
   return '$i';
 }
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_propertyAccessEqualsNull_nullAware() async {
@@ -1093,7 +1089,7 @@ String? f(int i) {
 String? f(int i) {
   return '$i';
 }
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void>
@@ -1108,7 +1104,7 @@ String? f(int i, int Function(int) g) {
   return '$i';
 }
 ''');
-    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+    await assertNoFix(filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_propertyAccessEqualsNull_super() async {
@@ -1134,7 +1130,7 @@ class C extends B {
     return '${super.foo}';
   }
 }
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_if_propertyAccessEqualsNull_withTargetSideEffect() async {
@@ -1148,7 +1144,7 @@ String? f(int i, int Function(int) g) {
   return '$i';
 }
 ''');
-    await assertNoFix(errorFilter: _ignoreNullSafetyWarnings);
+    await assertNoFix(filter: _ignoreNullSafetyWarnings);
   }
 
   Future<void> test_ifNull() async {
@@ -1157,14 +1153,14 @@ void f(int i, int j) => i ?? j;
 ''');
     await assertHasFix('''
 void f(int i, int j) => i;
-''', errorFilter: _ignoreNullSafetyWarnings);
+''', filter: _ignoreNullSafetyWarnings);
   }
 
   /// Error filter ignoring warnings that frequently occur in conjunction with
   /// code that is dead due to sound flow analysis.
   bool _ignoreNullSafetyWarnings(Diagnostic diagnostic) => !const {
-    'DEAD_NULL_AWARE_EXPRESSION',
-    'INVALID_NULL_AWARE_OPERATOR',
-    'UNNECESSARY_NULL_COMPARISON',
-  }.contains(diagnostic.diagnosticCode.name);
+    'dead_null_aware_expression',
+    'invalid_null_aware_operator',
+    'unnecessary_null_comparison',
+  }.contains(diagnostic.diagnosticCode.lowerCaseName);
 }

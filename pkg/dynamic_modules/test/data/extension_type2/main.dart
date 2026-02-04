@@ -5,10 +5,10 @@
 import '../../common/testing.dart' as helper;
 import 'package:expect/expect.dart';
 
-import 'shared/shared.dart'; // ignore: unused_import
-
 void main() async {
-  final result = (await helper.load('entry1.dart')) as int;
-  Expect.equals(1, result);
+  final result = (await helper.load('entry1.dart')) as List;
+  Expect.equals(1, result[0] as int);
+  Expect.equals(52, (result[1] as int Function(int)).call(10));
+  Expect.equals(53, (result[2] as int Function(int)).call(10));
   helper.done();
 }

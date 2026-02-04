@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -482,8 +482,7 @@ void f(A a) {
   a.foo2 += 2;
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 class A {
   int get foo => 0;
   set foo(int _) {}
@@ -492,10 +491,7 @@ class A {
 void f(A a) {
   a.foo += 2;
 }
-''',
-      errorFilter: (e) =>
-          e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
-    );
+''', filter: (e) => e.diagnosticCode == diag.undefinedGetter);
   }
 
   Future<void> test_getterSetter_qualified_static() async {
@@ -509,8 +505,7 @@ void f() {
   A.foo2 += 2;
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 class A {
   static int get foo => 0;
   static set foo(int _) {}
@@ -519,10 +514,7 @@ class A {
 void f() {
   A.foo += 2;
 }
-''',
-      errorFilter: (e) =>
-          e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
-    );
+''', filter: (e) => e.diagnosticCode == diag.undefinedGetter);
   }
 
   Future<void> test_getterSetter_unqualified() async {

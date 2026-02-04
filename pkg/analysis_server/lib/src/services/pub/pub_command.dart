@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/utilities/process.dart';
+import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:path/path.dart' as path;
 
@@ -120,7 +121,7 @@ class PubCommand {
     try {
       _instrumentationService.logInfo('Starting pub command $args');
       var process = await _processRunner.start(
-        Platform.resolvedExecutable,
+        sdk.dart,
         ['pub', ...args],
         workingDirectory: workingDirectory,
         environment: {_pubEnvironmentKey: _pubEnvironmentValue},

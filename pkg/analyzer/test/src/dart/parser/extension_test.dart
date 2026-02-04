@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -27,8 +27,9 @@ ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -50,8 +51,9 @@ ExtensionDeclaration
       TypeParameter
         name: T
     rightBracket: >
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -60,7 +62,7 @@ ExtensionDeclaration
 augment extension E on int {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.extensionAugmentationHasOnClause, 20, 2),
+      error(diag.extensionAugmentationHasOnClause, 20, 2),
     ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
@@ -73,8 +75,141 @@ ExtensionDeclaration
     onKeyword: on
     extendedType: NamedType
       name: int
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_body_getter() {
+    var parseResult = parseStringWithErrors(r'''
+extension E on int {
+  int get foo => 0;
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: int
+        propertyKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_body_method() {
+    var parseResult = parseStringWithErrors(r'''
+extension E on int {
+  void foo() {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_body_setter() {
+    var parseResult = parseStringWithErrors(r'''
+extension E on int {
+  set foo(int _) {}
+}
+''');
+    parseResult.assertNoErrors();
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: int
+            name: _
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody() {
+    var parseResult = parseStringWithErrors(r'''
+extension A on int {
+  this;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody
+        thisKeyword: this
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
 ''');
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -30,7 +30,7 @@ void f(Object? x) {
   if (x case _ && 0) {}
 }
 ''',
-      [error(WarningCode.unnecessaryWildcardPattern, 33, 1)],
+      [error(diag.unnecessaryWildcardPattern, 33, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ void f(Object? x) {
   if (x case 0 && _) {}
 }
 ''',
-      [error(WarningCode.unnecessaryWildcardPattern, 38, 1)],
+      [error(diag.unnecessaryWildcardPattern, 38, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ void f(Object? x) {
   if (x case (_) && 0) {}
 }
 ''',
-      [error(WarningCode.unnecessaryWildcardPattern, 34, 1)],
+      [error(diag.unnecessaryWildcardPattern, 34, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ void f(int x) {
   if (x case int _ && > 0) {}
 }
 ''',
-      [error(WarningCode.unnecessaryWildcardPattern, 29, 5)],
+      [error(diag.unnecessaryWildcardPattern, 29, 5)],
     );
   }
 
@@ -98,7 +98,7 @@ void f(Object? x) {
   if (x case _ || 0) {}
 }
 ''',
-      [error(WarningCode.deadCode, 35, 4)],
+      [error(diag.deadCode, 35, 4)],
     );
   }
 
@@ -167,7 +167,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(WarningCode.unnecessaryWildcardPattern, 45, 1)],
+      [error(diag.unnecessaryWildcardPattern, 45, 1)],
     );
   }
 
@@ -191,7 +191,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.unnecessaryWildcardPattern, 49, 1)],
+      [error(diag.unnecessaryWildcardPattern, 49, 1)],
     );
   }
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -78,7 +78,7 @@ class A {
   static int f = 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 46, 16)],
+      [error(diag.invalidAnnotationTarget, 46, 16)],
     );
   }
 
@@ -91,7 +91,7 @@ class A {
   static int get f => 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 46, 16)],
+      [error(diag.invalidAnnotationTarget, 46, 16)],
     );
   }
 
@@ -104,7 +104,7 @@ class A {
   static void m() {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 46, 16)],
+      [error(diag.invalidAnnotationTarget, 46, 16)],
     );
   }
 
@@ -117,7 +117,7 @@ class A {
   static void set f(int value) {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 46, 16)],
+      [error(diag.invalidAnnotationTarget, 46, 16)],
     );
   }
 
@@ -131,7 +131,7 @@ class C {
   C();
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 47, 16)],
+      [error(diag.invalidAnnotationTarget, 47, 16)],
     );
   }
 
@@ -146,7 +146,7 @@ enum E {
   void m() {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 58, 16)],
+      [error(diag.invalidAnnotationTarget, 58, 16)],
     );
   }
 
@@ -160,7 +160,7 @@ extension E on String {
   void m() {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 61, 16)],
+      [error(diag.invalidAnnotationTarget, 61, 16)],
     );
   }
 
@@ -183,7 +183,7 @@ import 'package:meta/meta.dart';
 @mustBeOverridden
 void m() {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 35, 16)],
+      [error(diag.invalidAnnotationTarget, 35, 16)],
     );
   }
 }
@@ -250,7 +250,7 @@ class A {
   static int f = 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 46, 13)],
+      [error(diag.invalidAnnotationTarget, 46, 13)],
     );
   }
 
@@ -263,7 +263,7 @@ class A {
   static int get f => 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 46, 13)],
+      [error(diag.invalidAnnotationTarget, 46, 13)],
     );
   }
 
@@ -276,7 +276,7 @@ class A {
   static void m() {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 46, 13)],
+      [error(diag.invalidAnnotationTarget, 46, 13)],
     );
   }
 
@@ -289,7 +289,7 @@ class A {
   static void set f(int value) {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 46, 13)],
+      [error(diag.invalidAnnotationTarget, 46, 13)],
     );
   }
 
@@ -303,7 +303,7 @@ class C {
   C();
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 47, 13)],
+      [error(diag.invalidAnnotationTarget, 47, 13)],
     );
   }
 
@@ -318,7 +318,7 @@ enum E {
   void m() {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 58, 13)],
+      [error(diag.invalidAnnotationTarget, 58, 13)],
     );
   }
 
@@ -332,7 +332,7 @@ extension E on String {
   void m() {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 61, 13)],
+      [error(diag.invalidAnnotationTarget, 61, 13)],
     );
   }
 
@@ -355,7 +355,7 @@ import 'package:meta/meta.dart';
 @mustCallSuper
 void m() {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 35, 13)],
+      [error(diag.invalidAnnotationTarget, 35, 13)],
     );
   }
 }
@@ -378,7 +378,7 @@ class C {
   void m() {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 47, 9)],
+      [error(diag.invalidAnnotationTarget, 47, 9)],
     );
   }
 
@@ -441,7 +441,7 @@ extension type E(C c) {
   static int get g => 0; 
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 100, 9)],
+      [error(diag.invalidAnnotationTarget, 100, 9)],
     );
   }
 
@@ -459,7 +459,7 @@ extension type E(C c) {
   static void m() {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 95, 9)],
+      [error(diag.invalidAnnotationTarget, 95, 9)],
     );
   }
 
@@ -477,7 +477,7 @@ extension type E(C c) {
   static set g(int i) {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 99, 9)],
+      [error(diag.invalidAnnotationTarget, 99, 9)],
     );
   }
 }
@@ -535,7 +535,7 @@ class A {
 @A()
 mixin M {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 98, 1)],
+      [error(diag.invalidAnnotationTarget, 98, 1)],
     );
   }
 
@@ -552,7 +552,7 @@ class A {
 @A()
 int x = 0;
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 98, 1)],
+      [error(diag.invalidAnnotationTarget, 98, 1)],
     );
   }
 
@@ -571,8 +571,39 @@ const a = A();
 @a
 int x = 0;
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 114, 1)],
+      [error(diag.invalidAnnotationTarget, 114, 1)],
     );
+  }
+
+  void test_constructor_class() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+@A()
+class C {}
+''',
+      [error(diag.invalidAnnotationTarget, 100, 1)],
+    );
+  }
+
+  void test_constructor_classWithPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+@A()
+class C(final int i);
+''');
   }
 
   void test_constructor_constructor() async {
@@ -590,6 +621,36 @@ class C {
 ''');
   }
 
+  void test_constructor_enumWithPrimaryConstructor() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+@A()
+enum C(int i) {
+  a(1), b(2), c(3);
+}
+''');
+  }
+
+  void test_constructor_extensionType() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.constructor})
+class A {
+  const A();
+}
+
+@A()
+extension type C(int i);
+''');
+  }
+
   void test_constructor_method() async {
     await assertErrorsInCode(
       '''
@@ -604,7 +665,7 @@ class C {
   @A() void m() {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 112, 1)],
+      [error(diag.invalidAnnotationTarget, 112, 1)],
     );
   }
 
@@ -621,7 +682,7 @@ class A {
 @A()
 class C {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 98, 1)],
+      [error(diag.invalidAnnotationTarget, 98, 1)],
     );
   }
 
@@ -652,7 +713,7 @@ class A {
 @A()
 class C {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 97, 1)],
+      [error(diag.invalidAnnotationTarget, 97, 1)],
     );
   }
 
@@ -699,7 +760,7 @@ class C {
   @A() int f = 7;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 110, 1)],
+      [error(diag.invalidAnnotationTarget, 110, 1)],
     );
   }
 
@@ -716,7 +777,7 @@ class A {
 @A()
 class C {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 98, 1)],
+      [error(diag.invalidAnnotationTarget, 98, 1)],
     );
   }
 
@@ -793,7 +854,7 @@ class C {
   int M(int x) => 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 109, 1)],
+      [error(diag.invalidAnnotationTarget, 109, 1)],
     );
   }
 
@@ -810,7 +871,7 @@ class A {
 @A()
 int get x => 0;
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 97, 1)],
+      [error(diag.invalidAnnotationTarget, 97, 1)],
     );
   }
 
@@ -827,7 +888,7 @@ class A {
 @A()
 set x(_x) {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 97, 1)],
+      [error(diag.invalidAnnotationTarget, 97, 1)],
     );
   }
 
@@ -862,7 +923,7 @@ class C {
   int m(int x) => x;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 107, 1)],
+      [error(diag.invalidAnnotationTarget, 107, 1)],
     );
   }
 
@@ -881,7 +942,7 @@ class C {
   set x(int _x) {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 107, 1)],
+      [error(diag.invalidAnnotationTarget, 107, 1)],
     );
   }
 
@@ -912,7 +973,7 @@ class A {
 @A()
 class C {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 96, 1)],
+      [error(diag.invalidAnnotationTarget, 96, 1)],
     );
   }
 
@@ -957,7 +1018,7 @@ class C {
   int get x => 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 107, 1)],
+      [error(diag.invalidAnnotationTarget, 107, 1)],
     );
   }
 
@@ -1008,7 +1069,7 @@ class C {
   set x(int _x) {}
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 107, 1)],
+      [error(diag.invalidAnnotationTarget, 107, 1)],
     );
   }
 
@@ -1025,7 +1086,7 @@ class A {
 @A()
 int f(int x) => x;
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 95, 1)],
+      [error(diag.invalidAnnotationTarget, 95, 1)],
     );
   }
 
@@ -1042,7 +1103,7 @@ class A {
 @A()
 class C {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 98, 1)],
+      [error(diag.invalidAnnotationTarget, 98, 1)],
     );
   }
 
@@ -1073,7 +1134,7 @@ class A {
 @A()
 int x = 0;
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 117, 1)],
+      [error(diag.invalidAnnotationTarget, 117, 1)],
     );
   }
 
@@ -1132,7 +1193,7 @@ class A {
 
 void f({@A() required int x}) {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 114, 1)],
+      [error(diag.invalidAnnotationTarget, 114, 1)],
     );
   }
 
@@ -1148,7 +1209,18 @@ class A {
 
 void f(@A() int x) {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 113, 1)],
+      [error(diag.invalidAnnotationTarget, 113, 1)],
+    );
+  }
+
+  void test_overridableMember_class_visibleForOverriding() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+@visibleForOverriding
+class C {}
+''',
+      [error(diag.invalidAnnotationTarget, 34, 20)],
     );
   }
 
@@ -1167,7 +1239,32 @@ class C {
   C();
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 118, 1)],
+      [error(diag.invalidAnnotationTarget, 118, 1)],
+    );
+  }
+
+  void test_overridableMember_enumConstant() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+enum E {
+  @nonVirtual
+  a,
+  b, c
+}
+''',
+      [error(diag.invalidAnnotationTarget, 45, 10)],
+    );
+  }
+
+  void test_overridableMember_extensionType_visibleForOverride() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+@visibleForOverriding
+extension type E(int i) {}
+''',
+      [error(diag.invalidAnnotationTarget, 34, 20)],
     );
   }
 
@@ -1219,7 +1316,7 @@ enum E {
   int x() => 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 129, 1)],
+      [error(diag.invalidAnnotationTarget, 129, 1)],
     );
   }
 
@@ -1238,7 +1335,7 @@ extension E on int {
   int x() => 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 129, 1)],
+      [error(diag.invalidAnnotationTarget, 129, 1)],
     );
   }
 
@@ -1290,6 +1387,25 @@ class C {
 ''');
   }
 
+  void test_overridableMember_staticField() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.overridableMember})
+class A {
+  const A();
+}
+
+class C {
+  @A()
+  static int x = 0;
+}
+''',
+      [error(diag.invalidAnnotationTarget, 118, 1)],
+    );
+  }
+
   void test_overridableMember_staticMethod() async {
     await assertErrorsInCode(
       '''
@@ -1305,7 +1421,62 @@ class C {
   static int x() => 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 118, 1)],
+      [error(diag.invalidAnnotationTarget, 118, 1)],
+    );
+  }
+
+  void test_overridableMember_topLevelField_visibleForOverriding() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+@visibleForOverriding var a = 1, b;
+''',
+      [error(diag.invalidAnnotationTarget, 34, 20)],
+    );
+  }
+
+  void test_overridableMember_topLevelFunction_visibleForOverriding() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+@visibleForOverriding void foo() {}
+''',
+      [error(diag.invalidAnnotationTarget, 34, 20)],
+    );
+  }
+
+  void test_overridableMember_topLevelGetter_nonVirtual() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+@nonVirtual
+int get a => 1;
+''',
+      [error(diag.invalidAnnotationTarget, 35, 10)],
+    );
+  }
+
+  void test_overridableMember_topLevelSetter_nonVirtual() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+
+@nonVirtual
+set a(int value) {}
+''',
+      [error(diag.invalidAnnotationTarget, 35, 10)],
+    );
+  }
+
+  void test_overridableMember_typedef() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+@nonVirtual
+typedef bool predicate(Object o);
+''',
+      [error(diag.invalidAnnotationTarget, 34, 10)],
     );
   }
 
@@ -1322,7 +1493,7 @@ class A {
 @A()
 void f(int x) {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 98, 1)],
+      [error(diag.invalidAnnotationTarget, 98, 1)],
     );
   }
 
@@ -1354,7 +1525,7 @@ class C {
   int get x => 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 107, 1)],
+      [error(diag.invalidAnnotationTarget, 107, 1)],
     );
   }
 
@@ -1373,7 +1544,7 @@ class C {
   int m(int x) => x;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 107, 1)],
+      [error(diag.invalidAnnotationTarget, 107, 1)],
     );
   }
 
@@ -1422,7 +1593,7 @@ class B {
   int f = 0;
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 117, 1)],
+      [error(diag.invalidAnnotationTarget, 117, 1)],
     );
   }
 
@@ -1498,7 +1669,7 @@ class A {
 extension on C {}
 class C {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 93, 1)],
+      [error(diag.invalidAnnotationTarget, 93, 1)],
     );
   }
 
@@ -1556,7 +1727,7 @@ class A {
 
 void f(@A() p) {}
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 109, 1)],
+      [error(diag.invalidAnnotationTarget, 109, 1)],
     );
   }
 

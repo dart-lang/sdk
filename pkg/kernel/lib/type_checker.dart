@@ -108,6 +108,7 @@ abstract class TypeChecker {
 }
 
 class TypeCheckingVisitor
+    with StatementVisitorExperimentExclusionMixin<void>
     implements
         ExpressionVisitor<DartType>,
         StatementVisitor<void>,
@@ -971,10 +972,11 @@ class TypeCheckingVisitor
     // TODO(asgerf): Store interface targets on for-in loops or desugar them,
     // instead of doing the ad-hoc resolution here.
     if (node.isAsync) {
-      checkAssignable(node, getStreamElementType(iterable), node.variable.type);
+      checkAssignable(
+          node, getStreamElementType(iterable), node.expressionVariable.type);
     } else {
       checkAssignable(
-          node, getIterableElementType(iterable), node.variable.type);
+          node, getIterableElementType(iterable), node.expressionVariable.type);
     }
     visitStatement(node.body);
   }
@@ -1022,7 +1024,7 @@ class TypeCheckingVisitor
 
   @override
   void visitForStatement(ForStatement node) {
-    node.variables.forEach(visitVariableDeclaration);
+    node.variableInitializations.forEach(visitVariableInitialization);
     if (node.condition != null) {
       node.condition = checkExpressionAndAssignability(
           node.condition!, environment.coreTypes.boolNonNullableRawType);
@@ -1092,6 +1094,11 @@ class TypeCheckingVisitor
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    visitVariableInitialization(node);
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
     if (node.initializer != null) {
       node.initializer =
           checkExpressionAndAssignability(node.initializer!, node.type);
@@ -1344,5 +1351,25 @@ class TypeCheckingVisitor
   @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     // TODO(johnniwinther): Implement this.
+  }
+
+  @override
+  DartType visitVariableRead(VariableRead node) {
+    // TODO(cstefantsova): Implement visitVariableRead.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType visitVariableWrite(VariableWrite node) {
+    // TODO(cstefantsova): Implement visitVariableWrite.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType visitRedirectingFactoryInvocation(
+      RedirectingFactoryInvocation node) {
+    return node.expression.accept(this);
   }
 }

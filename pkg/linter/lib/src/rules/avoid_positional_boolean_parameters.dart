@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,11 +13,12 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid positional boolean parameters.';
 
-class AvoidPositionalBooleanParameters extends LintRule {
+class AvoidPositionalBooleanParameters extends AnalysisRule {
   AvoidPositionalBooleanParameters()
     : super(
         name: LintNames.avoid_positional_boolean_parameters,
@@ -24,8 +26,7 @@ class AvoidPositionalBooleanParameters extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidPositionalBooleanParameters;
+  DiagnosticCode get diagnosticCode => diag.avoidPositionalBooleanParameters;
 
   @override
   void registerNodeProcessors(
@@ -41,7 +42,7 @@ class AvoidPositionalBooleanParameters extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
 
   _Visitor(this.rule, this.context);

@@ -18,7 +18,7 @@ class RemoveUnusedLabel extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_LABEL;
+  FixKind get fixKind => DartFixKind.removeUnusedLabel;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

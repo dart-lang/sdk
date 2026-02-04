@@ -17,10 +17,10 @@ class RemoveConstructorName extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_CONSTRUCTOR_NAME;
+  FixKind get fixKind => DartFixKind.removeConstructorName;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_CONSTRUCTOR_NAME_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeConstructorNameMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

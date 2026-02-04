@@ -68,7 +68,7 @@ SHELL_ARG_SEPERATOR="--"
 MJS_FILE=""
 WASM_FILE=""
 LINEAR_WASM_FILES=()
-ARGS=()
+EXTRA_JS_FILES=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --d8)
@@ -94,6 +94,11 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
+    *.js)
+      EXTRA_JS_FILES+=("$1")
+      shift
+      ;;
+
     *.wasm)
       if [ -z "$WASM_FILE" ]; then
         # First wasm file is the actual dart program
@@ -114,4 +119,4 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-exec "$SHELL_BIN" "${SHELL_OPTIONS[@]}" "$RUN_WASM" $SHELL_ARG_SEPERATOR "$MJS_FILE" "$WASM_FILE" "${LINEAR_WASM_FILES[@]}" -- "$@"
+exec "$SHELL_BIN" "${SHELL_OPTIONS[@]}" "${EXTRA_JS_FILES[@]}" "$RUN_WASM" $SHELL_ARG_SEPERATOR "$MJS_FILE" "$WASM_FILE" "${LINEAR_WASM_FILES[@]}" -- "$@"

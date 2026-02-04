@@ -262,6 +262,7 @@ class _Annotator extends RecursiveVisitor {
         annotateMember(tearOff as Member);
       }
     }
+    node.declaredRepresentationType.accept(this);
   }
 }
 
@@ -350,6 +351,7 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
   final Set<Class> annotatedClasses = Set<Class>.identity();
   final Set<Member> annotatedMembers = Set<Member>.identity();
   final Set<Class> _annotatedConstantClasses = Set<Class>.identity();
+  final Set<Class> _annotatedSuperTypes = Set<Class>.identity();
   final Set<Constant> _visitedConstants = Set<Constant>.identity();
   final Map<Class, _ClassInfo> _classInfos = Map<Class, _ClassInfo>.identity();
 
@@ -360,6 +362,7 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
   ) {
     annotatedClasses.addAll(explicitlyUsedClasses);
     annotatedMembers.addAll(explicitlyUsedMembers);
+    explicitlyUsedClasses.forEach(annotateSuperTypes);
   }
 
   void annotateMixinUses(Set<Class> extendableClasses) {
@@ -388,6 +391,7 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
       annotateConstantClass(node.enclosingClass);
       node.visitChildren(this);
     }
+    annotateSuperTypes(node.enclosingClass);
   }
 
   @override
@@ -396,6 +400,12 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
     if (node.isRedirectingFactory) {
       final target = node.function.redirectingFactoryTarget?.target;
       target?.acceptReference(this);
+    }
+    if (node.isFactory) {
+      annotateSuperTypes(node.enclosingClass!);
+    }
+    if (node.isConst) {
+      node.visitChildren(this);
     }
   }
 
@@ -445,6 +455,19 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
       final superclass = node.superclass;
       if (superclass != null) {
         annotateConstantClass(superclass);
+      }
+    }
+  }
+
+  /// Annotate all types mentioned in the chain of supertypes of the given
+  /// class as they can be referenced by a dynamic module when allocating
+  /// an instance of the class.
+  void annotateSuperTypes(Class node) {
+    if (_annotatedSuperTypes.add(node)) {
+      final supertype = node.supertype;
+      if (supertype != null) {
+        visitList(supertype.typeArguments, this);
+        annotateSuperTypes(supertype.classNode);
       }
     }
   }

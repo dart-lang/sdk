@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ExtendClassForMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.EXTEND_CLASS_FOR_MIXIN;
+  FixKind get kind => DartFixKind.extendClassForMixin;
 
   Future<void> test_missingClass_withExtends() async {
     await resolveTestCode('''

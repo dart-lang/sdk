@@ -1,0 +1,8 @@
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<E extends dart.core::String>(dart.core::List<#lib1::debugExpr::E> x) → dynamic
+  return (() → #lib1::debugExpr::E {
+    dart.core::List<#lib1::debugExpr::E> y = dart.core::_GrowableList::•<#lib1::debugExpr::E>(0);
+    y.{dart.core::List::addAll}(x){(dart.core::Iterable<#lib1::debugExpr::E>) → void};
+    return y.{dart.core::Iterable::last}{#lib1::debugExpr::E};
+  })(){() → #lib1::debugExpr::E};

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,16 +12,17 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 import '../util/scope.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 
-class UnnecessaryThis extends LintRule {
+class UnnecessaryThis extends AnalysisRule {
   UnnecessaryThis()
     : super(name: LintNames.unnecessary_this, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryThis;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryThis;
 
   @override
   void registerNodeProcessors(
@@ -34,7 +36,7 @@ class UnnecessaryThis extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   final RuleContext context;
 

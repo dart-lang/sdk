@@ -89,13 +89,13 @@ static extension-type-member method ExtensionType4|constructor#(core::int it) �
 }
 static extension-type-member synthetic method ExtensionType4|constructor#_#new#tearOff(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   return self::ExtensionType4|constructor#(it);
-static extension-type-member method ExtensionType4|constructor#constructor(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ExtensionType4|constructor#constructor(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */ {
   lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this = it;
   return #this;
 }
 static extension-type-member synthetic method ExtensionType4|constructor#_#constructor#tearOff(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */
   return self::ExtensionType4|constructor#constructor(it);
-static extension-type-member method ExtensionType4|constructor#redirect(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ExtensionType4|constructor#redirect(core::int it) → self::ExtensionType4% /* erasure=core::int, declared=! */ {
   lowered final self::ExtensionType4% /* erasure=core::int, declared=! */ #this;
   #this = self::ExtensionType4|constructor#(it);
   return #this;

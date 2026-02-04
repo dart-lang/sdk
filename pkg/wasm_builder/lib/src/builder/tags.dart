@@ -41,6 +41,6 @@ class TagsBuilder with Builder<ir.Tags> {
   @override
   ir.Tags forceBuild() {
     finalizeImportsAndDefinitions(_imported, _defined);
-    return ir.Tags(_defined, _imported);
+    return ir.Tags(_imported, _defined);
   }
 }

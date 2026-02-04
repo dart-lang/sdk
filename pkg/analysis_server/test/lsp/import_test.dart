@@ -30,6 +30,66 @@ class ImportTest extends AbstractLspAnalysisServerTest {
     return (uri: toUri(filePath), filePath: filePath, code: code);
   }
 
+  Future<void> test_annotationConstructor() async {
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+class A {
+  const A();
+}
+''');
+    await _verifyGoToImports(
+      TestCode.parse('''
+[!import 'other.dart';!]
+
+@A^()
+void foo() {}
+'''),
+    );
+  }
+
+  Future<void> test_annotationConstructor_prefixed() async {
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+class A {
+  const A();
+}
+''');
+    await _verifyGoToImports(
+      TestCode.parse('''
+[!import 'other.dart' as p;!]
+
+@p.A^()
+void foo() {}
+'''),
+    );
+  }
+
+  Future<void> test_annotationVariable() async {
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+const value = 42;
+''');
+    await _verifyGoToImports(
+      TestCode.parse('''
+[!import 'other.dart';!]
+
+@value^
+void foo() {}
+'''),
+    );
+  }
+
+  Future<void> test_annotationVariable_prefixed() async {
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+const value = 42;
+''');
+    await _verifyGoToImports(
+      TestCode.parse('''
+[!import 'other.dart' as p;!]
+
+@p.value^
+void foo() {}
+'''),
+    );
+  }
+
   Future<void> test_constant() async {
     await _verifyGoToImports(
       TestCode.parse('''

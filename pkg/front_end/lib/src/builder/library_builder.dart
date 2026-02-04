@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 import 'package:kernel/ast.dart' show Library, Version;
 
 import '../base/export.dart' show Export;
@@ -70,9 +72,22 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// Returns the language [Version] used for this library.
   Version get languageVersion;
 
-  /// If true, the library is not supported through the 'dart.library.*' value
+  /// If false, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.
-  bool get isUnsupported;
+  bool get conditionalImportSupported;
+
+  /// Specifies when the library is importable on the target platform.
+  ///
+  /// If [importability] is [Importability.always], or is
+  /// [Importability.withFlag] when the
+  /// `--include-unsupported-platform-library-stubs` flag is specified, the
+  /// library can be imported.
+  ///
+  /// If [importability] is [Importability.never], or is
+  /// [Importability.withFlag] when
+  /// `--include-unsupported-platform-library-stubs` is not specified, imports
+  /// of this library will result in a compilation error.
+  Importability get importability;
 
   /// [Iterator] for all declarations declared in this library of type [T].
   ///
@@ -93,11 +108,7 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// If [constructorName] is null or the empty string, it's assumed to be an
   /// unnamed constructor. it's an error if [constructorName] starts with
   /// `"_"`, and [bypassLibraryPrivacy] is false.
-  MemberBuilder getConstructor(
-    String className, {
-    String constructorName,
-    bool bypassLibraryPrivacy = false,
-  });
+  MemberBuilder getConstructor(String className, {String constructorName});
 
   void becomeCoreLibrary();
 
@@ -107,8 +118,11 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// Lookups the required member [name] declared in this library.
   ///
   /// If no member is found an internal problem is reported.
-  NamedBuilder? lookupRequiredLocalMember(String name);
+  NamedBuilder lookupRequiredLocalMember(String name);
 
+  /// Records the location of an import or export of this library from
+  /// [accessor], but only on source libraries (saving it on dill libraries will
+  /// cause leaks).
   void recordAccess(
     CompilationUnit accessor,
     int charOffset,
@@ -192,13 +206,9 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   }
 
   @override
-  MemberBuilder getConstructor(
-    String className, {
-    String? constructorName,
-    bool bypassLibraryPrivacy = false,
-  }) {
+  MemberBuilder getConstructor(String className, {String? constructorName}) {
     constructorName ??= "";
-    if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
+    if (constructorName.startsWith("_")) {
       return internalProblem(
         codeInternalProblemPrivateConstructorAccess.withArgumentsOld(
           constructorName,
@@ -207,9 +217,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
         null,
       );
     }
-    Builder? cls = (bypassLibraryPrivacy ? libraryNameSpace : exportNameSpace)
-        .lookup(className)
-        ?.getable;
+    Builder? cls = exportNameSpace.lookup(className)?.getable;
     if (cls is TypeAliasBuilder) {
       // Coverage-ignore-block(suite): Not run.
       TypeAliasBuilder aliasBuilder = cls;
@@ -257,7 +265,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   }
 
   @override
-  NamedBuilder? lookupRequiredLocalMember(String name) {
+  NamedBuilder lookupRequiredLocalMember(String name) {
     NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
     if (builder == null) {
       internalProblem(
@@ -275,7 +283,9 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     int charOffset,
     int length,
     Uri fileUri,
-  ) {}
+  ) {
+    // We can't save this here, it will cause leaks.
+  }
 
   @override
   String toString() {

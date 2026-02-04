@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -166,7 +166,7 @@ var r = (a: 1, a: 2);
 ''',
       [
         // No Lint.
-        error(CompileTimeErrorCode.duplicateFieldName, 15, 1),
+        error(diag.duplicateFieldName, 15, 1),
       ],
     );
   }
@@ -179,7 +179,7 @@ var a = (hashCode: 1);
 ''',
       [
         // No Lint.
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 9, 8),
+        error(diag.invalidFieldNameFromObject, 9, 8),
       ],
     );
   }
@@ -192,7 +192,7 @@ var r = (0, $1: 2);
 ''',
       [
         // No Lint.
-        error(CompileTimeErrorCode.invalidFieldNamePositional, 12, 2),
+        error(diag.invalidFieldNamePositional, 12, 2),
       ],
     );
   }
@@ -205,7 +205,7 @@ var a = (_x: 1);
 ''',
       [
         // No Lint.
-        error(CompileTimeErrorCode.invalidFieldNamePrivate, 9, 2),
+        error(diag.invalidFieldNamePrivate, 9, 2),
       ],
     );
   }
@@ -433,7 +433,7 @@ f() {
   } catch(__, ___) {}
 }
 ''',
-      [lint(24, 2), error(WarningCode.unusedCatchStack, 28, 3), lint(28, 3)],
+      [lint(24, 2), error(diag.unusedCatchStack, 28, 3), lint(28, 3)],
     );
   }
 
@@ -689,9 +689,9 @@ C<int>;
 ''',
       [
         // No lint
-        error(ParserErrorCode.missingFunctionParameters, 15, 1),
-        error(CompileTimeErrorCode.duplicateDefinition, 15, 1),
-        error(ParserErrorCode.missingFunctionBody, 21, 1),
+        error(diag.missingFunctionParameters, 15, 1),
+        error(diag.duplicateDefinition, 15, 1),
+        error(diag.missingFunctionBody, 21, 1),
       ],
     );
   }
@@ -799,6 +799,27 @@ class C {
 }
 ''',
       [lint(19, 3)],
+    );
+  }
+
+  test_primaryConstructor_lowerCase() async {
+    await assertNoDiagnostics(r'''
+class C.named();
+''');
+  }
+
+  test_primaryConstructor_underscores() async {
+    await assertNoDiagnostics(r'''
+class C.___();
+    ''');
+  }
+
+  test_primaryConstructor_upperCase() async {
+    await assertDiagnostics(
+      r'''
+class C.Named();
+''',
+      [lint(8, 5)],
     );
   }
 

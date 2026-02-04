@@ -24,7 +24,7 @@ def CheckNodeTextExpectationsCollectorUpdatingIsDisabled(input_api, output_api):
     for git_file in input_api.AffectedTestableFiles():
         filename = git_file.AbsoluteLocalPath()
         if (filename == node_text_expectations_file):
-            isEnabledLine = re.compile('static const updatingIsEnabled = (.*);')
+            isEnabledLine = re.compile('defaultValue: (.*),')
             for line in git_file.NewContents():
                 m = isEnabledLine.search(line)
                 if (m is not None):
@@ -35,7 +35,7 @@ def CheckNodeTextExpectationsCollectorUpdatingIsDisabled(input_api, output_api):
                         return [
                             output_api.PresubmitError(
                                 'NodeTextExpectationsCollector.updatingIsEnabled '
-                                'must be `false`')
+                                'must default to `false`')
                         ]
             return [
                 output_api.PresubmitError(

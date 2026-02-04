@@ -15,20 +15,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-
-AstNode? _tweakLocatedNode(AstNode? node, int offset) {
-  if (node is RepresentationDeclaration) {
-    var extensionTypeDeclaration = node.parent;
-    if (extensionTypeDeclaration is ExtensionTypeDeclaration) {
-      if (extensionTypeDeclaration.name.end == offset) {
-        node = extensionTypeDeclaration;
-      }
-    }
-  }
-  return node;
-}
 
 typedef StaticOptions = Either2<bool, RenameOptions>;
 
@@ -63,7 +50,6 @@ class PrepareRenameHandler
 
     return (unit, offset).mapResults((result, offset) async {
       var node = result.unit.nodeCovering(offset: offset);
-      node = _tweakLocatedNode(node, offset);
       var element = node?.getElement(useMockForImport: true);
 
       if (node == null || element == null) {
@@ -88,7 +74,7 @@ class PrepareRenameHandler
       var initStatus = await refactoring.checkInitialConditions();
       if (initStatus.hasFatalError) {
         return error(
-          ServerErrorCodes.RenameNotValid,
+          ServerErrorCodes.renameNotValid,
           initStatus.problem!.message,
         );
       }
@@ -159,7 +145,6 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       offset,
     ) async {
       var node = result.unit.nodeCovering(offset: offset);
-      node = _tweakLocatedNode(node, offset);
       var element = node?.getElement(useMockForImport: true);
       if (node == null || element == null) {
         return success(null);
@@ -186,7 +171,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       }
       if (initStatus.hasFatalError) {
         return error(
-          ServerErrorCodes.RenameNotValid,
+          ServerErrorCodes.renameNotValid,
           initStatus.problem!.message,
         );
       }
@@ -196,7 +181,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       var optionsStatus = refactoring.checkNewName();
       if (optionsStatus.hasError) {
         return error(
-          ServerErrorCodes.RenameNotValid,
+          ServerErrorCodes.renameNotValid,
           optionsStatus.problem!.message,
         );
       }
@@ -208,7 +193,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       }
       if (finalStatus.hasFatalError) {
         return error(
-          ServerErrorCodes.RenameNotValid,
+          ServerErrorCodes.renameNotValid,
           finalStatus.problem!.message,
         );
       } else if (finalStatus.hasError || finalStatus.hasWarning) {
@@ -217,7 +202,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
         // If this change would produce errors but we can't prompt the user,
         // just fail with the message.
         if (prompt == null) {
-          return error(ServerErrorCodes.RenameNotValid, finalStatus.message!);
+          return error(ServerErrorCodes.renameNotValid, finalStatus.message!);
         }
 
         // Set the completer to complete to show that request is paused, and

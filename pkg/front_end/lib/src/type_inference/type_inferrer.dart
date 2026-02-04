@@ -37,16 +37,10 @@ abstract class TypeInferrer {
   ExtensionScope get extensionScope;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<
-    TreeNode,
-    Statement,
-    Expression,
-    VariableDeclaration,
-    SharedTypeView
-  >
+  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
   get flowAnalysis;
 
-  AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
+  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables;
 
   /// Performs full type inference on the given field initializer.
   ExpressionInferenceResult inferFieldInitializer({
@@ -112,13 +106,7 @@ class TypeInferrerImpl implements TypeInferrer {
   TypeAnalyzerOptions typeAnalyzerOptions;
 
   @override
-  late final FlowAnalysis<
-    TreeNode,
-    Statement,
-    Expression,
-    VariableDeclaration,
-    SharedTypeView
-  >
+  late final FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
   flowAnalysis = new FlowAnalysis(
     operations,
     assignedVariables,
@@ -126,7 +114,7 @@ class TypeInferrerImpl implements TypeInferrer {
   );
 
   @override
-  final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
+  final AssignedVariables<TreeNode, ExpressionVariable> assignedVariables;
 
   final InferenceDataForTesting? dataForTesting;
 
@@ -281,7 +269,8 @@ class TypeInferrerImpl implements TypeInferrer {
     required FunctionType targetType,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(fileUri: fileUri);
-    List<Expression> positionalArguments = <Expression>[];
+    List<Argument> arguments = [];
+    int positionalCount = 0;
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.positionalParameters) {
       flowAnalysis.declare(
@@ -289,9 +278,10 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      positionalArguments.add(new VariableGet(parameter));
+      Expression variableGet = new VariableGet(parameter);
+      arguments.add(new PositionalArgument(variableGet));
+      positionalCount++;
     }
-    List<NamedExpression> namedArguments = <NamedExpression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.namedParameters) {
       flowAnalysis.declare(
@@ -299,15 +289,18 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      namedArguments.add(
-        new NamedExpression(parameter.name!, new VariableGet(parameter)),
+      NamedExpression namedExpression = new NamedExpression(
+        parameter.name!,
+        new VariableGet(parameter),
       );
+      arguments.add(new NamedArgument(namedExpression));
     }
     // If arguments are created using [ArgumentsImpl], and the
     // type arguments are omitted, they are to be inferred.
-    ArgumentsImpl targetInvocationArguments = new ArgumentsImpl(
-      positionalArguments,
-      named: namedArguments,
+    ActualArguments targetInvocationArguments = new ActualArguments(
+      argumentList: arguments,
+      hasNamedBeforePositional: false,
+      positionalCount: positionalCount,
     )..fileOffset = fileOffset;
 
     InvocationInferenceResult result = visitor.inferInvocation(
@@ -315,6 +308,7 @@ class TypeInferrerImpl implements TypeInferrer {
       typeContext,
       fileOffset,
       new InvocationTargetFunctionType(targetType),
+      null,
       targetInvocationArguments,
       staticTarget: target,
     );
@@ -393,7 +387,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     InterfaceType? thisType,
     SourceLibraryBuilder libraryBuilder,
     this.extensionScope,
-    AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
+    AssignedVariables<TreeNode, ExpressionVariable> assignedVariables,
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,
   ) : impl = new TypeInferrerImpl(
@@ -406,17 +400,11 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       );
 
   @override
-  AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
+  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables =>
       impl.assignedVariables;
 
   @override
-  FlowAnalysis<
-    TreeNode,
-    Statement,
-    Expression,
-    VariableDeclaration,
-    SharedTypeView
-  >
+  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
   get flowAnalysis => impl.flowAnalysis;
 
   @override

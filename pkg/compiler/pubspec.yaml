@@ -23,6 +23,7 @@ dependencies:
   kernel: any
   meta: any
   mmap: any
+  record_use: any
   shell_arg_splitter: any
   vm_service: any
 

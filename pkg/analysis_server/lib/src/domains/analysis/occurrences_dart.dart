@@ -88,8 +88,16 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    if (node.declaredFragment?.element case var element?) {
+      _addOccurrence(element, node.name);
+    }
+    super.visitCatchClauseParameter(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment!.element, node.namePart.typeName);
 
     super.visitClassDeclaration(node);
   }
@@ -108,7 +116,8 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     } else {
       _addOccurrence(
         node.declaredFragment!.element,
-        node.returnType.beginToken,
+        // TODO(scheglov): support primary constructors
+        node.typeName!.beginToken,
       );
     }
 
@@ -124,6 +133,8 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
       if (element != null) {
         _addOccurrence(element, node.type.name);
       }
+      // Still visit the import prefix if there is one.
+      node.type.importPrefix?.accept(this);
       return; // skip visitNamedType.
     }
 
@@ -172,7 +183,7 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment!.element, node.namePart.typeName);
 
     super.visitEnumDeclaration(node);
   }
@@ -195,7 +206,10 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(
+      node.declaredFragment!.element,
+      node.primaryConstructor.typeName,
+    );
 
     super.visitExtensionTypeDeclaration(node);
   }
@@ -250,7 +264,9 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    _addOccurrence(node.element!, node.name);
+    if (node.element case var element?) {
+      _addOccurrence(element, node.name);
+    }
 
     super.visitImportPrefixReference(node);
   }
@@ -294,12 +310,12 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    if (node.constructorName case var constructorName?) {
-      _addOccurrence(node.constructorFragment!.element, constructorName.name);
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      _addOccurrence(primary.declaredFragment!.element, node.name);
     }
 
-    super.visitRepresentationDeclaration(node);
+    super.visitPrimaryConstructorName(node);
   }
 
   @override
@@ -326,8 +342,8 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     // for the constructor (not the type).
     if (node.parent case ConstructorDeclaration(
       :var name,
-      :var returnType,
-    ) when name == null && node == returnType) {
+      :var typeName,
+    ) when name == null && node == typeName) {
       return;
     }
 
@@ -400,7 +416,7 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
       canonicalElement = canonicalElement.field;
     } else if (canonicalElement case PropertyAccessorElement(
       :var variable,
-    ) when !variable.isSynthetic) {
+    ) when variable.isOriginDeclaration) {
       canonicalElement = variable;
     }
     return canonicalElement?.baseElement;

@@ -1,4 +1,4 @@
-## 2.0.1-wip
+## 2.0.1
 
 - Include support for `package:protobuf` 5.0.
 

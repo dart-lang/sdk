@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
@@ -11,11 +12,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/variance_checker.dart';
 
 const _desc = r"Avoid using 'FutureOr<void>' as the type of a result.";
 
-class AvoidFutureOrVoid extends LintRule {
+class AvoidFutureOrVoid extends AnalysisRule {
   AvoidFutureOrVoid()
     : super(
         name: LintNames.avoid_futureor_void,
@@ -24,7 +26,7 @@ class AvoidFutureOrVoid extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidFutureorVoid;
+  DiagnosticCode get diagnosticCode => diag.avoidFutureorVoid;
 
   @override
   void registerNodeProcessors(
@@ -42,7 +44,7 @@ class AvoidFutureOrVoid extends LintRule {
     registry.addMethodDeclaration(this, visitor);
     registry.addMixinOnClause(this, visitor);
     registry.addObjectPattern(this, visitor);
-    registry.addRepresentationDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
     registry.addTypeParameter(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
     registry.addWithClause(this, visitor);
@@ -50,7 +52,7 @@ class AvoidFutureOrVoid extends LintRule {
 }
 
 class _FutureOrVarianceChecker extends VarianceChecker {
-  final LintRule rule;
+  final AnalysisRule rule;
   _FutureOrVarianceChecker(this.rule);
 
   @override
@@ -72,7 +74,7 @@ class _FutureOrVarianceChecker extends VarianceChecker {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
   final VarianceChecker checker;
 
@@ -126,8 +128,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitObjectPattern(ObjectPattern node) => checker.checkOut(node.type);
 
   @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) =>
-      checker.checkOut(node.fieldType);
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    for (var formalParameter in node.formalParameters.parameters) {
+      if (formalParameter is SimpleFormalParameter) {
+        checker.checkOut(formalParameter.type);
+      }
+    }
+  }
 
   @override
   void visitTypeParameter(TypeParameter node) => checker.checkInOut(node.bound);

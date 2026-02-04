@@ -71,6 +71,8 @@ final tests = <IsolateTest>[
     final cObjectId2 = cInstanceRef2.id!;
     expect(cObjectId2, 'objects/1/1');
 
+    await service.callMethod('_collectAllGarbage', isolateId: isolateId);
+
     final cInstance2 = await service.getObject(isolateId, cObjectId2);
     expect(cInstance2.type, 'Instance');
 
@@ -188,6 +190,8 @@ final tests = <IsolateTest>[
       idZone3.id!,
     );
 
+    await service.callMethod('_collectAllGarbage', isolateId: isolateId);
+
     try {
       await service.getObject(isolateId, cObjectId1);
       fail('successfully retrieved object using expired ID');
@@ -222,6 +226,8 @@ final tests = <IsolateTest>[
       isolateId,
       idZone4.id!,
     );
+
+    await service.callMethod('_collectAllGarbage', isolateId: isolateId);
 
     try {
       await service.evaluateInFrame(

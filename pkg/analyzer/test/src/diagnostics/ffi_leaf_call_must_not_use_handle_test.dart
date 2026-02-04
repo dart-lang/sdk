@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ doThings() {
   f();
 }
 ''',
-      [error(FfiCode.leafCallMustNotReturnHandle, 224, 10)],
+      [error(diag.leafCallMustNotReturnHandle, 224, 10)],
     );
   }
 
@@ -44,7 +44,7 @@ doThings() {
   f(MyClass());
 }
 ''',
-      [error(FfiCode.leafCallMustNotTakeHandle, 241, 10)],
+      [error(diag.leafCallMustNotTakeHandle, 241, 10)],
     );
   }
 
@@ -60,7 +60,7 @@ base class A extends NativeFieldWrapperClass1 {
   external Object get foo;
 }
 ''',
-      [error(FfiCode.leafCallMustNotReturnHandle, 200, 3)],
+      [error(diag.leafCallMustNotReturnHandle, 200, 3)],
     );
   }
 
@@ -75,7 +75,7 @@ doThings() {
   l.lookupFunction<NativeReturnsHandle, ReturnsHandle>("timesFour", isLeaf:true);
 }
 ''',
-      [error(FfiCode.leafCallMustNotReturnHandle, 195, 19)],
+      [error(diag.leafCallMustNotReturnHandle, 195, 19)],
     );
   }
 
@@ -91,7 +91,7 @@ doThings() {
   l.lookupFunction<NativeTakesHandle, TakesHandle>("timesFour", isLeaf:true);
 }
 ''',
-      [error(FfiCode.leafCallMustNotTakeHandle, 216, 17)],
+      [error(diag.leafCallMustNotTakeHandle, 216, 17)],
     );
   }
 
@@ -103,7 +103,7 @@ import 'dart:ffi';
 @Native<Handle Function()>(symbol: 'foo', isLeaf:true)
 external Object get foo;
 ''',
-      [error(FfiCode.leafCallMustNotReturnHandle, 95, 3)],
+      [error(diag.leafCallMustNotReturnHandle, 95, 3)],
     );
   }
 }

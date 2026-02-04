@@ -72,6 +72,7 @@ augment class Foo {
       'print((1 + 2) * 3);',
       '{\n    print((1 + 2) * 3);\n  }',
       'void a(String b) {\n    print((1 + 2) * 3);\n  }',
+      '{\n  void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
       'augment class Foo {\n  void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
     ]);
   }
@@ -95,6 +96,7 @@ class Foo<T> {
       'String',
       "String a = 'test'",
       "String a = 'test';",
+      "{\n  String a = 'test';\n}",
       "class Foo<T> {\n  String a = 'test';\n}",
     ]);
   }
@@ -118,6 +120,7 @@ augment class Foo {
     _expectRegions(regions, [
       'String',
       "augment String get a => 'test2';",
+      "{\n  augment String get a => 'test2';\n}",
       "augment class Foo {\n  augment String get a => 'test2';\n}",
     ]);
   }
@@ -141,6 +144,7 @@ augment class Foo {
     _expectRegions(regions, [
       '()',
       'augment Foo();',
+      '{\n  augment Foo();\n}',
       'augment class Foo {\n  augment Foo();\n}',
     ]);
   }
@@ -206,6 +210,11 @@ extension type E<T>(int it) {
       'void foo() {\n'
           '    (1 + 2) * 3;\n'
           '  }',
+      '{\n'
+          '  void void foo() {\n'
+          '    (1 + 2) * 3;\n'
+          '  }\n'
+          '}',
       'extension type E<T>(int it) {\n'
           '  void void foo() {\n'
           '    (1 + 2) * 3;\n'
@@ -227,6 +236,7 @@ class C<T> {
       '(int, int)',
       '(int, int) r = (0, 1)',
       '(int, int) r = (0, 1);',
+      '{\n  (int, int) r = (0, 1);\n}',
       'class C<T> {\n  (int, int) r = (0, 1);\n}',
     ]);
   }
@@ -250,6 +260,7 @@ class Foo<T> {
       'print((1 + 2) * 3);',
       '{\n    print((1 + 2) * 3);\n  }',
       'void a(String b) {\n    print((1 + 2) * 3);\n  }',
+      '{\n  void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
       'class Foo<T> {\n  void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
     ]);
   }
@@ -282,6 +293,7 @@ augment class Foo {
       'print((1 + 2) * 3);',
       '{\n    print((1 + 2) * 3);\n  }',
       'augment void f() {\n    print((1 + 2) * 3);\n  }',
+      '{\n  augment void f() {\n    print((1 + 2) * 3);\n  }\n}',
       'augment class Foo {\n  augment void f() {\n    print((1 + 2) * 3);\n  }\n}',
     ]);
   }
@@ -328,6 +340,7 @@ class Foo<T> {
       'return [?(1 + 2) * 3];',
       '{\n    return [?(1 + 2) * 3];\n  }',
       'List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }',
+      '{\n  List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }\n}',
       'class Foo<T> {\n  List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }\n}',
     ]);
   }
@@ -351,6 +364,7 @@ class Foo<T> {
       'return {?(1 + 2) * 3: b};',
       '{\n    return {?(1 + 2) * 3: b};\n  }',
       'Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }',
+      '{\n  Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }\n}',
       'class Foo<T> {\n  Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }\n}',
     ]);
   }
@@ -374,6 +388,7 @@ class Foo<T> {
       'return {b: ?(1 + 2) * 3};',
       '{\n    return {b: ?(1 + 2) * 3};\n  }',
       'Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }',
+      '{\n  Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }\n}',
       'class Foo<T> {\n  Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }\n}',
     ]);
   }
@@ -397,6 +412,7 @@ class Foo<T> {
       'return {?(1 + 2) * 3};',
       '{\n    return {?(1 + 2) * 3};\n  }',
       'Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }',
+      '{\n  Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }\n}',
       'class Foo<T> {\n  Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }\n}',
     ]);
   }
@@ -417,6 +433,7 @@ class Foo<T> {
       'print((1 + 2) * 3)',
       '=> print((1 + 2) * 3);',
       'void a(String b) => print((1 + 2) * 3);',
+      '{\n  void a(String b) => print((1 + 2) * 3);\n}',
       'class Foo<T> {\n  void a(String b) => print((1 + 2) * 3);\n}',
     ]);
   }
@@ -449,6 +466,7 @@ augment mixin Foo {
       'print((1 + 2) * 3);',
       '{\n    print((1 + 2) * 3);\n  }',
       'augment void a(String b) {\n    print((1 + 2) * 3);\n  }',
+      '{\n  augment void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
       'augment mixin Foo {\n  augment void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
     ]);
   }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -16,13 +16,13 @@ class IfStatementTest extends PartialCodeTest {
       'if_statement',
       [
         TestDescriptor('keyword', 'if', [
-          ParserErrorCode.missingIdentifier,
-          ParserErrorCode.expectedToken,
+          diag.missingIdentifier,
+          diag.expectedToken,
         ], "if (_s_)"),
         TestDescriptor(
           'leftParen',
           'if (',
-          [ParserErrorCode.missingIdentifier, ScannerErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "if (_s_)",
           failing: [
             'assert',
@@ -34,9 +34,7 @@ class IfStatementTest extends PartialCodeTest {
             'switch',
           ],
         ),
-        TestDescriptor('condition', 'if (a', [
-          ScannerErrorCode.expectedToken,
-        ], "if (a)"),
+        TestDescriptor('condition', 'if (a', [diag.expectedToken], "if (a)"),
       ],
       PartialCodeTest.statementSuffixes,
       head: 'f() { ',
@@ -49,25 +47,21 @@ class IfStatementTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'if',
-          [
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.expectedToken, diag.missingIdentifier, diag.expectedToken],
           "if (_s_);",
           allFailing: true,
         ),
         TestDescriptor(
           'leftParen',
           'if (',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "if (_s_);",
           allFailing: true,
         ),
         TestDescriptor(
           'condition',
           'if (a',
-          [ParserErrorCode.expectedToken],
+          [diag.expectedToken],
           "if (a);",
           allFailing: true,
         ),

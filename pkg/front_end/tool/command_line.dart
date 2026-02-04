@@ -56,6 +56,7 @@ const List<Option> optionSpecification = [
   Options.forceStaticFieldLowering,
   Options.forceNoExplicitGetterCalls,
   Options.forceConstructorTearOffLowering,
+  Options.forceClosureContextLowering,
   Options.help,
   Options.librariesJson,
   Options.noDefines,
@@ -128,6 +129,9 @@ ProcessedOptions analyzeCommandLine(
         .forceConstructorTearOffLowering
         .read(parsedOptions),
     forceLateLoweringSentinelForTesting: Options.forceLateLoweringSentinel.read(
+      parsedOptions,
+    ),
+    isClosureContextLoweringEnabled: Options.forceClosureContextLowering.read(
       parsedOptions,
     ),
   );

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,13 +27,7 @@ class A {
   int call(int x) => x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          41,
-          1,
-        ),
-      ],
+      [error(diag.patternTypeMismatchInIrrefutableContext, 41, 1)],
     );
   }
 
@@ -60,13 +54,7 @@ void f(int a, num x) {
   (a) = x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          26,
-          1,
-        ),
-      ],
+      [error(diag.patternTypeMismatchInIrrefutableContext, 26, 1)],
     );
   }
 
@@ -82,12 +70,8 @@ class A {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          24,
-          19,
-        ),
-        error(WarningCode.unusedLocalVariable, 42, 1),
+        error(diag.patternTypeMismatchInIrrefutableContext, 24, 19),
+        error(diag.unusedLocalVariable, 42, 1),
       ],
     );
   }
@@ -99,7 +83,7 @@ void f(dynamic x) {
   var (int a) = x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 31, 1)],
+      [error(diag.unusedLocalVariable, 31, 1)],
     );
   }
 
@@ -110,7 +94,7 @@ void f(int x) {
   var (num a) = x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 27, 1)],
+      [error(diag.unusedLocalVariable, 27, 1)],
     );
   }
 
@@ -122,12 +106,8 @@ void f(num x) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          23,
-          5,
-        ),
-        error(WarningCode.unusedLocalVariable, 27, 1),
+        error(diag.patternTypeMismatchInIrrefutableContext, 23, 5),
+        error(diag.unusedLocalVariable, 27, 1),
       ],
     );
   }
@@ -140,12 +120,8 @@ void f(List<Object> x) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          31,
-          8,
-        ),
-        error(WarningCode.unusedLocalVariable, 37, 1),
+        error(diag.patternTypeMismatchInIrrefutableContext, 31, 8),
+        error(diag.unusedLocalVariable, 37, 1),
       ],
     );
   }
@@ -158,12 +134,8 @@ void f(Object x) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          25,
-          3,
-        ),
-        error(WarningCode.unusedLocalVariable, 26, 1),
+        error(diag.patternTypeMismatchInIrrefutableContext, 25, 3),
+        error(diag.unusedLocalVariable, 26, 1),
       ],
     );
   }
@@ -176,12 +148,8 @@ void f(Object x) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          25,
-          19,
-        ),
-        error(WarningCode.unusedLocalVariable, 42, 1),
+        error(diag.patternTypeMismatchInIrrefutableContext, 25, 19),
+        error(diag.unusedLocalVariable, 42, 1),
       ],
     );
   }
@@ -194,12 +162,8 @@ void f(Object x) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          25,
-          17,
-        ),
-        error(WarningCode.unusedLocalVariable, 40, 1),
+        error(diag.patternTypeMismatchInIrrefutableContext, 25, 17),
+        error(diag.unusedLocalVariable, 40, 1),
       ],
     );
   }
@@ -211,13 +175,7 @@ void f(int a) {
   (a) = 1.2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          19,
-          1,
-        ),
-      ],
+      [error(diag.patternTypeMismatchInIrrefutableContext, 19, 1)],
     );
   }
 
@@ -229,12 +187,8 @@ void f(Object x) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          25,
-          4,
-        ),
-        error(WarningCode.unusedLocalVariable, 26, 1),
+        error(diag.patternTypeMismatchInIrrefutableContext, 25, 4),
+        error(diag.unusedLocalVariable, 26, 1),
       ],
     );
   }
@@ -247,12 +201,8 @@ void f(({int foo}) x) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          30,
-          4,
-        ),
-        error(WarningCode.unusedLocalVariable, 31, 1),
+        error(diag.patternTypeMismatchInIrrefutableContext, 30, 4),
+        error(diag.unusedLocalVariable, 31, 1),
       ],
     );
   }

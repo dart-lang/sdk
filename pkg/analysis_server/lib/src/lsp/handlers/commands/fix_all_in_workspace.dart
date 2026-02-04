@@ -43,14 +43,14 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
 
     if (!clientCapabilities.applyEdit) {
       return error(
-        ServerErrorCodes.FeatureDisabled,
+        ServerErrorCodes.featureDisabled,
         '"$commandName" is only available for clients that support workspace/applyEdit',
       );
     }
 
     if (!clientCapabilities.changeAnnotations) {
       return error(
-        ServerErrorCodes.FeatureDisabled,
+        ServerErrorCodes.featureDisabled,
         '"$commandName" is only available for clients that support change annotations',
       );
     }
@@ -58,29 +58,35 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
     var workspace = DartChangeWorkspace(await server.currentSessions);
     var processor = BulkFixProcessor(server.instrumentationService, workspace);
 
-    var result = await processor.fixErrors(
-      server.contextManager.analysisContexts,
-    );
-    var errorMessage = result.errorMessage;
-    if (errorMessage != null) {
-      return error(ErrorCodes.RequestFailed, errorMessage);
-    }
+    progress.begin('Computing fixes…');
+    try {
+      var result = await processor.fixErrors(
+        server.contextManager.analysisContexts,
+      );
 
-    var changeBuilder = result.builder!;
-    var change = changeBuilder.sourceChange;
-    if (change.edits.isEmpty) {
-      return success(null);
-    }
+      var errorMessage = result.errorMessage;
+      if (errorMessage != null) {
+        return error(ErrorCodes.RequestFailed, errorMessage);
+      }
 
-    var edit = createWorkspaceEdit(
-      server,
-      clientCapabilities,
-      change,
-      annotateChanges: requireConfirmation
-          ? ChangeAnnotations.requireConfirmation
-          : ChangeAnnotations.include,
-    );
-    return sendWorkspaceEditToClient(edit);
+      var changeBuilder = result.builder!;
+      var change = changeBuilder.sourceChange;
+      if (change.edits.isEmpty) {
+        return success(null);
+      }
+
+      var edit = createWorkspaceEdit(
+        server,
+        clientCapabilities,
+        change,
+        annotateChanges: requireConfirmation
+            ? ChangeAnnotations.requireConfirmation
+            : ChangeAnnotations.include,
+      );
+      return sendWorkspaceEditToClient(edit);
+    } finally {
+      progress.end();
+    }
   }
 }
 

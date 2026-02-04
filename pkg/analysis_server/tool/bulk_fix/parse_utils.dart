@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -37,9 +38,10 @@ class BulkFixDetails {
             classElement.allSupertypes.any(
               (element) => element.element.name == 'CorrectionProducer',
             )) {
-          var correctionName = classDecl.name.lexeme;
+          var correctionName = classDecl.namePart.typeName.lexeme;
 
-          for (var method in classDecl.members.whereType<MethodDeclaration>()) {
+          for (var method
+              in classDecl.members2.whereType<MethodDeclaration>()) {
             if (method.name.lexeme == 'canBeAppliedInBulk') {
               var hasComment =
                   method.returnType?.beginToken.precedingComments != null;

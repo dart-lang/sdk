@@ -28,21 +28,26 @@ import 'internal_ast.dart';
 class Forest {
   const Forest();
 
-  ArgumentsImpl createArguments(
-    int fileOffset,
-    List<Expression> positional, {
-    List<NamedExpression>? named,
-    List<Object?>? argumentsOriginalOrder,
+  ActualArguments createArguments(
+    int fileOffset, {
+    required List<Argument> arguments,
+    required bool hasNamedBeforePositional,
+    required int positionalCount,
   }) {
-    return new ArgumentsImpl(
-      positional,
-      named: named,
-      argumentsOriginalOrder: argumentsOriginalOrder,
+    return new ActualArguments(
+      argumentList: arguments,
+      hasNamedBeforePositional: hasNamedBeforePositional,
+      positionalCount: positionalCount,
     )..fileOffset = fileOffset;
   }
 
-  ArgumentsImpl createArgumentsEmpty(int fileOffset) {
-    return createArguments(fileOffset, []);
+  ActualArguments createArgumentsEmpty(int fileOffset) {
+    return createArguments(
+      fileOffset,
+      arguments: [],
+      hasNamedBeforePositional: false,
+      positionalCount: 0,
+    );
   }
 
   /// Return a representation of a boolean literal at the given [fileOffset].
@@ -192,7 +197,7 @@ class Forest {
   LoadLibrary createLoadLibrary(
     int fileOffset,
     LibraryDependency dependency,
-    ArgumentsImpl? arguments,
+    ActualArguments? arguments,
   ) {
     return new LoadLibraryImpl(dependency, arguments)..fileOffset = fileOffset;
   }
@@ -282,7 +287,7 @@ class Forest {
 
   ForElement createForElement(
     int fileOffset,
-    List<VariableDeclaration> variables,
+    List<VariableInitialization> variables,
     Expression? condition,
     List<Expression> updates,
     Expression body,
@@ -295,7 +300,7 @@ class Forest {
     int fileOffset, {
     required PatternVariableDeclaration patternVariableDeclaration,
     required List<VariableDeclaration> intermediateVariables,
-    required List<VariableDeclaration> variables,
+    required List<VariableInitialization> variables,
     required Expression? condition,
     required List<Expression> updates,
     required Expression body,
@@ -312,7 +317,7 @@ class Forest {
 
   ForMapEntry createForMapEntry(
     int fileOffset,
-    List<VariableDeclaration> variables,
+    List<VariableInitialization> variables,
     Expression? condition,
     List<Expression> updates,
     MapLiteralEntry body,
@@ -325,7 +330,7 @@ class Forest {
     int fileOffset, {
     required PatternVariableDeclaration patternVariableDeclaration,
     required List<VariableDeclaration> intermediateVariables,
-    required List<VariableDeclaration> variables,
+    required List<VariableInitialization> variableInitializations,
     required Expression? condition,
     required List<Expression> updates,
     required MapLiteralEntry body,
@@ -333,7 +338,7 @@ class Forest {
     return new PatternForMapEntry(
       patternVariableDeclaration: patternVariableDeclaration,
       intermediateVariables: intermediateVariables,
-      variables: variables,
+      variables: variableInitializations,
       condition: condition,
       updates: updates,
       body: body,
@@ -342,7 +347,7 @@ class Forest {
 
   ForInElement createForInElement(
     int fileOffset,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Expression iterable,
     Expression? synthesizedAssignment,
     Statement? expressionEffects,
@@ -363,7 +368,7 @@ class Forest {
 
   ForInMapEntry createForInMapEntry(
     int fileOffset,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Expression iterable,
     Expression? synthesizedAssignment,
     Statement? expressionEffects,
@@ -505,7 +510,7 @@ class Forest {
   /// Return a representation of a for statement.
   Statement createForStatement(
     int fileOffset,
-    List<VariableDeclaration>? variables,
+    List<VariableInitialization>? variables,
     Expression? condition,
     List<Expression> updaters,
     Statement body,
@@ -620,8 +625,6 @@ class Forest {
   Expression createThrow(int fileOffset, Expression expression) {
     return new Throw(expression)..fileOffset = fileOffset;
   }
-
-  bool isThrow(Object? o) => o is Throw;
 
   Statement createTryStatement(
     int fileOffset,
@@ -753,9 +756,10 @@ class Forest {
   Expression createExpressionInvocation(
     int fileOffset,
     Expression expression,
-    ArgumentsImpl arguments,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
   ) {
-    return new ExpressionInvocation(expression, arguments)
+    return new ExpressionInvocation(expression, typeArguments, arguments)
       ..fileOffset = fileOffset;
   }
 
@@ -763,12 +767,14 @@ class Forest {
     int fileOffset,
     Expression expression,
     Name name,
-    ArgumentsImpl arguments, {
+    TypeArguments? typeArguments,
+    ActualArguments arguments, {
     required bool isNullAware,
   }) {
     return new MethodInvocation(
       expression,
       name,
+      typeArguments,
       arguments,
       isNullAware: isNullAware,
     )..fileOffset = fileOffset;
@@ -778,10 +784,15 @@ class Forest {
     int fileOffset,
     Name name,
     Procedure procedure,
-    ArgumentsImpl arguments,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
   ) {
-    return new InternalSuperMethodInvocation(name, arguments, procedure)
-      ..fileOffset = fileOffset;
+    return new InternalSuperMethodInvocation(
+      name,
+      typeArguments,
+      arguments,
+      procedure,
+    )..fileOffset = fileOffset;
   }
 
   NullCheck createNullCheck(int fileOffset, Expression expression) {
@@ -941,7 +952,7 @@ class Forest {
 
   AssignedVariablePattern createAssignedVariablePattern(
     int fileOffset,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
   ) {
     return new AssignedVariablePattern(variable)..fileOffset = fileOffset;
   }
@@ -1149,12 +1160,14 @@ class Forest {
   DotShorthandInvocation createDotShorthandInvocation(
     int fileOffset,
     Name name,
-    ArgumentsImpl arguments, {
+    TypeArguments? typeArguments,
+    ActualArguments arguments, {
     required int nameOffset,
     required bool isConst,
   }) {
     return new DotShorthandInvocation(
       name,
+      typeArguments,
       arguments,
       nameOffset: nameOffset,
       isConst: isConst,
@@ -1221,7 +1234,7 @@ class _VariablesDeclaration extends AuxiliaryStatement {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableDeclaration(
+      printer.writeVariableInitialization(
         declarations[index],
         includeModifiersAndType: index == 0,
       );

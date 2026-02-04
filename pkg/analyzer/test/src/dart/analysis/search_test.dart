@@ -471,13 +471,9 @@ testFile
     codeOffset: 0 + 79
   CONSTRUCTOR new
     offset: 15 1:16
-    codeOffset: 16 + 8
+    codeOffset: 15 + 9
     className: E
     parameters: (int it)
-  FIELD it
-    offset: 21 1:22
-    codeOffset: 16 + 8
-    className: E
   GETTER g
     offset: 37 2:11
     codeOffset: 29 + 15
@@ -833,6 +829,56 @@ class A {}
     }
   }
 
+  test_sameNameDeclarations_class() async {
+    await resolveTestCode('''
+class Foo {
+  Foo.bar() {
+    bar();
+  }
+  void bar() => Foo.bar();
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
+testFile
+  CLASS Foo
+    offset: 6 1:7
+    codeOffset: 0 + 69
+  CONSTRUCTOR bar
+    offset: 18 2:7
+    codeOffset: 14 + 26
+    className: Foo
+    parameters: ()
+  METHOD bar
+    offset: 48 5:8
+    codeOffset: 43 + 24
+    className: Foo
+    parameters: ()
+''',
+    );
+    Element element = findElement2.constructor('bar');
+    await assertElementReferencesText(element, '''
+<testLibraryFragment> bar@48
+  60 5:20 |.bar| INVOCATION qualified
+''');
+    element = findElement2.method('bar');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> bar@18
+  30 3:5 |bar| INVOCATION
+''');
+  }
+
   test_searchMemberReferences_qualified_resolved() async {
     await resolveTestCode('''
 class C {
@@ -955,8 +1001,8 @@ class A {
     var element = findElement2.getter('foo');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> f@5
-  35 2:16 |foo| REFERENCE qualified
-  62 3:16 || REFERENCE qualified
+  35 2:16 |foo| REFERENCE_IN_PATTERN_FIELD qualified
+  62 3:16 || REFERENCE_IN_PATTERN_FIELD qualified
 ''');
   }
 
@@ -993,7 +1039,7 @@ Random v2;
 <testLibraryFragment> v2@38
   31 3:1 |Random| REFERENCE
 dart:math new@null
-  402 16:20 |Random| REFERENCE
+  406 20:20 |Random| REFERENCE
 ''');
   }
 
@@ -2917,6 +2963,20 @@ void f(x) {
   38 4:3 |v| READ_WRITE
   48 5:3 |v| READ
   53 6:3 |v| READ
+''');
+  }
+
+  test_searchReferences_VariablePatternElement_expressionFunctionBody() async {
+    await resolveTestCode('''
+List<int> f(Map<int, String> map) => [
+  for (var MapEntry(:key) in map.entries)
+    key,
+];
+''');
+    var element = findNode.bindPatternVariableElement('key)');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> f@10
+  85 3:5 |key| READ
 ''');
   }
 

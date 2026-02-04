@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -9,15 +10,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Sort constructor declarations before other members.';
 
-class SortConstructorsFirst extends LintRule {
+class SortConstructorsFirst extends AnalysisRule {
   SortConstructorsFirst()
     : super(name: LintNames.sort_constructors_first, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sortConstructorsFirst;
+  DiagnosticCode get diagnosticCode => diag.sortConstructorsFirst;
 
   @override
   void registerNodeProcessors(
@@ -32,7 +34,7 @@ class SortConstructorsFirst extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -42,7 +44,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var member in members) {
       if (member is ConstructorDeclaration) {
         if (other) {
-          rule.reportAtNode(member.returnType);
+          // TODO(scheglov): support primary constructors
+          rule.reportAtNode(member.typeName);
         }
       } else {
         other = true;
@@ -52,16 +55,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    check(node.members);
+    if (node.body case BlockClassBody body) {
+      check(body.members);
+    }
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    check(node.members);
+    check(node.body.members);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    check(node.members);
+    if (node.body case BlockClassBody body) {
+      check(body.members);
+    }
   }
 }

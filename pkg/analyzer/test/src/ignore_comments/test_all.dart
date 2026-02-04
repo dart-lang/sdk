@@ -11,5 +11,5 @@ main() {
   defineReflectiveSuite(() {
     diagnostic_suppression_test.main();
     ignore_info.main();
-  }, name: 'src');
+  }, name: 'ignore_comments');
 }

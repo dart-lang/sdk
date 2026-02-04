@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -36,7 +36,7 @@ f() {
   E.g;
 }
 ''',
-      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 51, 1)],
+      [error(diag.staticAccessToInstanceMember, 51, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ f() {
   E.m();
 }
 ''',
-      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 47, 1)],
+      [error(diag.staticAccessToInstanceMember, 47, 1)],
     );
   }
 
@@ -64,7 +64,7 @@ f() {
   E.s = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 56, 1)],
+      [error(diag.staticAccessToInstanceMember, 56, 1)],
     );
   }
 
@@ -77,7 +77,7 @@ class A {
 main() {
   A.m();
 }''',
-      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 34, 1)],
+      [error(diag.staticAccessToInstanceMember, 34, 1)],
     );
   }
 
@@ -90,7 +90,7 @@ class A {
 main() {
   A.m;
 }''',
-      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 34, 1)],
+      [error(diag.staticAccessToInstanceMember, 34, 1)],
     );
   }
 
@@ -103,7 +103,7 @@ class A {
 main() {
   A.f;
 }''',
-      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 34, 1)],
+      [error(diag.staticAccessToInstanceMember, 34, 1)],
     );
   }
 
@@ -115,7 +115,7 @@ class C<T> {
 }
 var x = C.t;
 ''',
-      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 43, 1)],
+      [error(diag.staticAccessToInstanceMember, 43, 1)],
     );
   }
 
@@ -128,7 +128,7 @@ class A {
 main() {
   A.f;
 }''',
-      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 40, 1)],
+      [error(diag.staticAccessToInstanceMember, 40, 1)],
     );
   }
 
@@ -141,7 +141,7 @@ class A {
 main() {
   A.f = 42;
 }''',
-      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 39, 1)],
+      [error(diag.staticAccessToInstanceMember, 39, 1)],
     );
   }
 

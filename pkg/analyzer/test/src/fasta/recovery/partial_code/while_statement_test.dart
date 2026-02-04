@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -19,44 +19,40 @@ class WhileStatementTest extends PartialCodeTest {
           'keyword',
           'while',
           [
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
+            diag.expectedToken,
+            diag.missingIdentifier,
+            diag.missingIdentifier,
+            diag.expectedToken,
           ],
           "while (_s_)",
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
           ],
         ),
         TestDescriptor(
           'leftParen',
           'while (',
           [
-            ScannerErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
+            diag.expectedToken,
+            diag.missingIdentifier,
+            diag.missingIdentifier,
+            diag.expectedToken,
           ],
           "while (_s_)",
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
           ],
         ),
         TestDescriptor(
           'condition',
           'while (a',
-          [
-            ScannerErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.expectedToken, diag.missingIdentifier, diag.expectedToken],
           "while (a)",
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
           ],
         ),
       ],
@@ -70,14 +66,14 @@ class WhileStatementTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'while',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "while (_s_)",
           failing: ['break', 'continue'],
         ),
         TestDescriptor(
           'leftParen',
           'while (',
-          [ParserErrorCode.missingIdentifier, ScannerErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "while (_s_)",
           failing: [
             'assert',
@@ -94,7 +90,7 @@ class WhileStatementTest extends PartialCodeTest {
         TestDescriptor(
           'condition',
           'while (a',
-          [ScannerErrorCode.expectedToken],
+          [diag.expectedToken],
           "while (a)",
           failing: ['break', 'continue'],
         ),

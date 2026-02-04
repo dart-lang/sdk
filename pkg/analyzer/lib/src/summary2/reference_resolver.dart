@@ -65,29 +65,34 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitBlockClassBody(BlockClassBody node) {
+    node.members.accept(this);
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var outerScope = scope;
 
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
-      element.typeParameters.map((e) => e.asElement2).toList(),
+      fragment.typeParameters.map((e) => e.asElement2).toList(),
     );
 
     node.metadata.accept(this);
-    node.typeParameters?.accept(this);
+    node.namePart.accept(this);
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    scope = InstanceScope(scope, element.asElement2);
+    scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
-    node.members.accept(this);
+    node.body.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -97,11 +102,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     var outerScope = scope;
 
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
 
     scope = TypeParameterScope(
       scope,
-      element.typeParameters.map((e) => e.asElement2).toList(),
+      fragment.typeParameters.map((e) => e.asElement2).toList(),
     );
     LinkingNodeContext(node, scope);
 
@@ -143,6 +148,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEmptyClassBody(EmptyClassBody node) {}
+
+  @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     var outerScope = scope;
 
@@ -155,14 +163,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.typeParameters?.accept(this);
+    node.namePart.accept(this);
     node.implementsClause?.accept(this);
     node.withClause?.accept(this);
 
     scope = InstanceScope(scope, element);
     LinkingNodeContext(node, scope);
 
-    node.members.accept(this);
+    node.body.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     for (var field in fragment.fields) {
@@ -201,7 +209,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = ExtensionScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
-    node.members.accept(this);
+    node.body.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -226,15 +234,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     );
 
     node.metadata.accept(this);
-    node.typeParameters?.accept(this);
-    node.representation.accept(this);
+    node.primaryConstructor.accept(this);
     node.implementsClause?.accept(this);
 
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
-    LinkingNodeContext(node.representation, scope);
 
-    node.members.accept(this);
+    node.body.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -431,7 +437,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = InstanceScope(scope, fragment.asElement2);
     LinkingNodeContext(node, scope);
 
-    node.members.accept(this);
+    node.body.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -492,6 +498,23 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    node.typeParameters?.accept(this);
+  }
+
+  @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {}
+
+  @override
+  void visitPrimaryConstructorDeclaration(
+    covariant PrimaryConstructorDeclarationImpl node,
+  ) {
+    LinkingNodeContext(node, scope);
+    node.typeParameters?.accept(this);
+    node.formalParameters.accept(this);
+  }
+
+  @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
     node.positionalFields.accept(this);
     node.namedFields?.accept(this);
@@ -520,11 +543,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     RecordTypeAnnotationPositionalField node,
   ) {
     node.type.accept(this);
-  }
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    node.fieldType.accept(this);
   }
 
   @override

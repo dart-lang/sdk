@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid returning `null` for `void`.';
 
@@ -20,8 +21,8 @@ class AvoidReturningNullForVoid extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.avoidReturningNullForVoidFromFunction,
-    LinterLintCode.avoidReturningNullForVoidFromMethod,
+    diag.avoidReturningNullForVoidFromFunction,
+    diag.avoidReturningNullForVoidFromMethod,
   ];
 
   @override
@@ -64,12 +65,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       FunctionExpression() => (
         parent.declaredFragment?.element.returnType,
         parent.body.isAsynchronous,
-        LinterLintCode.avoidReturningNullForVoidFromFunction,
+        diag.avoidReturningNullForVoidFromFunction,
       ),
       MethodDeclaration() => (
         parent.declaredFragment?.element.returnType,
         parent.body.isAsynchronous,
-        LinterLintCode.avoidReturningNullForVoidFromMethod,
+        diag.avoidReturningNullForVoidFromMethod,
       ),
       _ => throw StateError('Unexpected type'),
     };

@@ -8,7 +8,7 @@ import 'package:compiler/src/js/js.dart' show js;
 
 testExpression(String expression, [String expect = ""]) {
   jsAst.Node node = js(expression);
-  String jsText = jsAst.prettyPrint(node, allowVariableMinification: false);
+  String jsText = jsAst.prettyPrint(node);
   if (expect == "") {
     Expect.stringEquals(expression, jsText);
   } else {

@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -24,10 +27,22 @@ import 'plugin_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PluginManagerTest);
     defineReflectiveTests(PluginManagerFromDiskTest);
+    defineReflectiveTests(PluginManagerLegacyTest);
+    defineReflectiveTests(PluginManagerParseDepfileTest);
+    defineReflectiveTests(PluginManagerTest);
   });
 }
+
+typedef RunSyncHandler =
+    io.ProcessResult Function(
+      String executable,
+      List<String> arguments, {
+      String? workingDirectory,
+      Map<String, String>? environment,
+      Encoding? stderrEncoding,
+      Encoding? stdoutEncoding,
+    });
 
 @reflectiveTest
 class PluginManagerFromDiskTest extends PluginTestSupport {
@@ -42,18 +57,15 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       '',
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
     );
   }
 
-  @SkippedTest(
-    reason: 'flaky timeouts',
-    issue: 'https://github.com/dart-lang/sdk/issues/38629',
-  )
   Future<void> test_addPluginToContextRoot() async {
     var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
-      test: (String pluginPath) async {
+      test: (pluginPath) async {
         var contextRoot = _newContextRoot(pkgPath);
         await manager.addPluginToContextRoot(
           contextRoot,
@@ -205,7 +217,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           watcher.ChangeType.MODIFY,
           path.join(pkgPath, 'lib', 'lib.dart'),
         );
-        var responses = await manager.broadcastWatchEvent(watchEvent);
+        var responses = manager.broadcastWatchEvent(watchEvent);
         expect(responses, hasLength(1));
         var response = await responses[0];
         expect(response, isNotNull);
@@ -377,22 +389,17 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 }
 
 @reflectiveTest
-class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
-  late String byteStorePath;
-  late String sdkPath;
-  late TestNotificationManager notificationManager;
+class PluginManagerLegacyTest with ResourceProviderMixin, _ContextRoot {
   late PluginManager manager;
 
   void setUp() {
-    byteStorePath = resourceProvider.convertPath('/byteStore');
-    sdkPath = resourceProvider.convertPath('/sdk');
-    notificationManager = TestNotificationManager();
     manager = PluginManager(
       resourceProvider,
-      byteStorePath,
-      sdkPath,
-      notificationManager,
+      resourceProvider.convertPath('/byteStore'),
+      resourceProvider.convertPath('/sdk'),
+      TestNotificationManager(),
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
     );
   }
 
@@ -405,7 +412,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     expect(responses, hasLength(0));
   }
 
-  void test_pathsFor_withPackageConfigJsonFile() {
+  void test_pathsFor_legacy_withPackageConfigJsonFile() {
     //
     // Build the minimal directory structure for a plugin package that includes
     // a '.dart_tool/package_config.json' file.
@@ -421,7 +428,7 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     expect(files.packageConfig, packageConfigFile);
   }
 
-  void test_pathsFor_withPubspec_inBlazeWorkspace() {
+  void test_pathsFor_legacy_withPubspec_inBlazeWorkspace() {
     //
     // Build a Blaze workspace containing four packages, including the plugin.
     //
@@ -495,6 +502,270 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
 
   void test_stopAll_none() {
     manager.stopAll();
+  }
+}
+
+@reflectiveTest
+class PluginManagerParseDepfileTest with ResourceProviderMixin {
+  void test_driveLetters() {
+    var content = r'c:\\target: c:\\dep1.dart c:\\dep2.dart';
+    var dependencies = PluginManager.parseDepfile(content);
+    expect(dependencies, [r'c:\dep1.dart', r'c:\dep2.dart']);
+  }
+
+  void test_parseDepfile_backslashes() {
+    var content = r'target: foo\\bar\ dep1.dart';
+    var dependencies = PluginManager.parseDepfile(content);
+    expect(dependencies, [r'foo\bar dep1.dart']);
+  }
+
+  void test_parseDepfile_empty() {
+    var content = 'target: ';
+    var dependencies = PluginManager.parseDepfile(content);
+    expect(dependencies, isEmpty);
+  }
+
+  void test_parseDepfile_emptyDependencies() {
+    var content = 'target:   ';
+    var dependencies = PluginManager.parseDepfile(content);
+    expect(dependencies, isEmpty);
+  }
+
+  void test_parseDepfile_escapedSpace() {
+    var content = r'target: /some/path\ with/space/a.dart';
+    var dependencies = PluginManager.parseDepfile(content);
+    expect(dependencies, [r'/some/path with/space/a.dart']);
+  }
+
+  void test_parseDepfile_multipleDependencies() {
+    var content = 'target: dep1.dart dep2.dart dep3.dart\n';
+    var dependencies = PluginManager.parseDepfile(content);
+    expect(dependencies, ['dep1.dart', 'dep2.dart', 'dep3.dart']);
+  }
+
+  void test_parseDepfile_noColon() {
+    var content = 'target dep1.dart';
+    var dependencies = PluginManager.parseDepfile(content);
+    expect(dependencies, null);
+  }
+
+  void test_parseDepfile_singleDependency() {
+    var content = 'target: dep1.dart';
+    var dependencies = PluginManager.parseDepfile(content);
+    expect(dependencies, ['dep1.dart']);
+  }
+
+  void test_parseDepfile_trailingEscapedSpace() {
+    var content = r'target: dep1.dart\  dep2.dart\ ';
+    var dependencies = PluginManager.parseDepfile(content);
+    expect(dependencies, ['dep1.dart ', 'dep2.dart ']);
+  }
+}
+
+@reflectiveTest
+class PluginManagerTest with ResourceProviderMixin {
+  late MockProcessRunner processRunner;
+  late PluginManager manager;
+
+  late String pluginDirPath;
+  late File pubspecFile;
+  late File pluginScriptFile;
+  late File twoFile;
+  late File packageConfigFile;
+  late File aotFile;
+  late int aotFileModificationStampBefore;
+  late File depfile;
+
+  String get aotFilePath =>
+      resourceProvider.convertPath('/plugin/bin/plugin.aot');
+
+  RunSyncHandler get writeAotSnapshotHandler {
+    return simpleRunSyncHandler((_, arguments) {
+      // Touch the AOT snapshot file.
+      resourceProvider.getFile(aotFilePath).writeAsStringSync('');
+    });
+  }
+
+  void expectAotSnapshotIsRewritten() => expect(
+    aotFile.modificationStamp,
+    greaterThan(aotFileModificationStampBefore),
+  );
+
+  void setUp() {
+    processRunner = MockProcessRunner();
+    manager = PluginManager(
+      resourceProvider,
+      resourceProvider.convertPath('/byteStore'),
+      resourceProvider.convertPath('/sdk'),
+      TestNotificationManager(),
+      InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
+      processRunner: processRunner,
+    );
+  }
+
+  /// Returns a simple handler for [MockProcessRunner.runSyncHandler], which
+  /// just calls [fn], without consideration for the parameters.
+  ///
+  /// The handler also returns a simple [io.ProcessResult] with no stderr or
+  /// stdout text, and an exit code of 1.
+  ///
+  /// As the signature for the handler is very long, this function just serves
+  /// as a convenience function, for when the parameters are not used.
+  RunSyncHandler simpleRunSyncHandler(
+    void Function(String executable, List<String> arguments) fn,
+  ) {
+    return (
+      executable,
+      arguments, {
+      environment,
+      workingDirectory,
+      stderrEncoding,
+      stdoutEncoding,
+    }) {
+      fn(executable, arguments);
+      return io.ProcessResult(
+        1 /* pid */,
+        0 /* exitCode */,
+        '' /* stdout */,
+        '' /* stderr */,
+      );
+    };
+  }
+
+  void test_pathsFor() {
+    late File packageConfigFile;
+
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, _) {
+      packageConfigFile = newPackageConfigJsonFile('/plugin', '');
+    });
+
+    writeAllFiles();
+
+    var files = manager.filesFor(
+      pluginDirPath,
+      isLegacyPlugin: false,
+      builtAsAot: true,
+    );
+
+    expect(files.execution, aotFile);
+    expect(files.packageConfig, packageConfigFile);
+  }
+
+  void test_pathsFor_aotIsNewest() {
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, arguments) {
+      // We should not be re-compiling in this case.
+      expect(arguments, isNot(contains('compile')));
+    });
+
+    writeAllFiles();
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expect(aotFileModificationStampBefore, aotFile.modificationStamp);
+  }
+
+  void test_pathsFor_dependencyIsNewer() {
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
+
+    writeAllFiles();
+    twoFile.writeAsStringSync('');
+    depfile.writeAsStringSync('target: ${twoFile.path}');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expectAotSnapshotIsRewritten();
+  }
+
+  void test_pathsFor_depfileHasBadPath() {
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
+
+    writeAllFiles();
+    depfile.writeAsStringSync('target: not/absolute');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expectAotSnapshotIsRewritten();
+  }
+
+  void test_pathsFor_depfileIsMalformed() {
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
+
+    writeAllFiles();
+    depfile.writeAsStringSync('target');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expectAotSnapshotIsRewritten();
+  }
+
+  void test_pathsFor_depfileIsMissing() {
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
+
+    writeAllFiles();
+    depfile.delete();
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expectAotSnapshotIsRewritten();
+  }
+
+  void test_pathsFor_noAot() {
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, _) {
+      newPackageConfigJsonFile('/plugin', '');
+    });
+
+    writeAllFiles();
+
+    var files = manager.filesFor(pluginDirPath, isLegacyPlugin: false);
+    expect(files.execution, pluginScriptFile);
+    expect(files.packageConfig, packageConfigFile);
+  }
+
+  void test_pathsFor_packageConfigIsNewer() {
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
+
+    writeAllFiles();
+    packageConfigFile.writeAsStringSync('');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expectAotSnapshotIsRewritten();
+  }
+
+  void test_pathsFor_pluginScriptIsNewer() {
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
+
+    writeAllFiles();
+    pluginScriptFile.writeAsStringSync('');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expectAotSnapshotIsRewritten();
+  }
+
+  void test_pathsFor_pubspecIsNewer() {
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
+
+    writeAllFiles();
+    pubspecFile.writeAsStringSync('');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expectAotSnapshotIsRewritten();
+  }
+
+  // Builds the minimal directory structure for a plugin package.
+  void writeAllFiles() {
+    pluginDirPath = newFolder('/plugin').path;
+    pluginScriptFile = newFile('/plugin/bin/plugin.dart', '''
+import 'two.dart';
+''');
+    twoFile = newFile('/plugin/bin/two.dart', '');
+    depfile = newFile(
+      '/plugin/bin/depfile.txt',
+      'target: ${pluginScriptFile.path}',
+    );
+    pubspecFile = newFile('/plugin/pubspec.yaml', '''
+name: my_plugin
+environment:
+  sdk: ^3.10.0
+''');
+    packageConfigFile = newPackageConfigJsonFile('/plugin', '');
+    aotFile = newFile('/plugin/bin/plugin.aot', '');
+    aotFileModificationStampBefore = aotFile.modificationStamp;
   }
 }
 

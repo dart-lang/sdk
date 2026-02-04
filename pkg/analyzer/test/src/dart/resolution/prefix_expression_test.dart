@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -71,7 +70,7 @@ void f(int x) {
   !x;
 }
 ''',
-      [error(CompileTimeErrorCode.nonBoolNegationExpression, 19, 1)],
+      [error(diag.nonBoolNegationExpression, 19, 1)],
     );
 
     var node = findNode.prefix('!x');
@@ -98,13 +97,7 @@ void f(A? a) {
   !a?.foo;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
-          55,
-          6,
-        ),
-      ],
+      [error(diag.uncheckedUseOfNullableValueAsCondition, 55, 6)],
     );
 
     assertResolvedNodeText(findNode.prefix('!a'), r'''
@@ -136,8 +129,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.missingAssignableSelector, 28, 5),
-        error(CompileTimeErrorCode.nonBoolNegationExpression, 28, 5),
+        error(diag.missingAssignableSelector, 28, 5),
+        error(diag.nonBoolNegationExpression, 28, 5),
       ],
     );
 
@@ -160,7 +153,7 @@ void f(int x) {
   ++ ++ x;
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 24, 1)],
+      [error(diag.missingAssignableSelector, 24, 1)],
     );
 
     var node = findNode.prefix('++ ++ x');
@@ -197,7 +190,7 @@ void f(A a) {
   ++a;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 28, 2)],
+      [error(diag.undefinedOperator, 28, 2)],
     );
 
     var node = findNode.prefix('++a');
@@ -338,7 +331,7 @@ void f() {
   ++x;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 15, 1)],
+      [error(diag.undefinedIdentifier, 15, 1)],
     );
 
     var node = findNode.prefix('++x');
@@ -446,7 +439,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.augmentedExpressionNotOperator, 65, 9)],
+      [error(diag.augmentedExpressionNotOperator, 65, 9)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -484,7 +477,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.augmentedExpressionIsSetter, 69, 9)],
+      [error(diag.augmentedExpressionIsSetter, 69, 9)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -568,13 +561,7 @@ void f(A? a) {
   -a?.foo;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          50,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 50, 1)],
     );
 
     assertResolvedNodeText(findNode.prefix('-a'), r'''
@@ -660,7 +647,7 @@ void f(C c) {
   ++Ext(c);
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 103, 1)],
+      [error(diag.missingAssignableSelector, 103, 1)],
     );
 
     var node = findNode.prefix('++Ext');
@@ -697,7 +684,7 @@ void f() {
   ++int;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 15, 3)],
+      [error(diag.assignmentToType, 15, 3)],
     );
 
     var node = findNode.prefix('++int');
@@ -1057,7 +1044,7 @@ void f<T extends num>(T x) {
   ++x;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 31, 3)],
+      [error(diag.invalidAssignment, 31, 3)],
     );
 
     var node = findNode.prefix('++x');
@@ -1203,7 +1190,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 29, 5)],
+      [error(diag.missingAssignableSelector, 29, 5)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -1231,7 +1218,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 51, 1)],
+      [error(diag.missingAssignableSelector, 51, 1)],
     );
 
     var node = findNode.prefix('++switch');
@@ -1316,7 +1303,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.augmentedExpressionNotOperator, 77, 9)],
+      [error(diag.augmentedExpressionNotOperator, 77, 9)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -1345,13 +1332,7 @@ void f(A? a) {
   ~a?.foo;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          50,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 50, 1)],
     );
 
     assertResolvedNodeText(findNode.prefix('~a'), r'''

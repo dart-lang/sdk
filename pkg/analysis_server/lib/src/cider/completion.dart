@@ -73,7 +73,6 @@ class CiderCompletionComputer {
       }
 
       var analysisSession = resolvedUnit.analysisSession;
-      var enclosingNode = resolvedUnit.parsedUnit;
 
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;
@@ -83,8 +82,7 @@ class CiderCompletionComputer {
         fileState: resolvedUnit.fileState,
         filePath: resolvedUnit.path,
         fileContent: resolvedUnit.content,
-        libraryFragment: resolvedUnit.unitElement,
-        enclosingNode: enclosingNode,
+        libraryFragment: resolvedUnit.libraryFragment,
         offset: offset,
         unit: resolvedUnit.parsedUnit,
       );
@@ -117,7 +115,7 @@ class CiderCompletionComputer {
           _logger.run('Add imported suggestions', () {
             suggestions.addAll(
               _importedLibrariesSuggestions(
-                target: resolvedUnit.unitElement,
+                target: resolvedUnit.libraryFragment,
                 performance: performance,
               ),
             );

@@ -113,6 +113,27 @@ void f() {
 ''');
   }
 
+  Future<void> test_class_field() async {
+    await resolveTestCode('''
+class F {
+  final v1 = () => 42;
+
+  void f() {
+    v1();
+  }
+}
+''');
+    await assertHasFix('''
+class F {
+  int v1() => 42;
+
+  void f() {
+    v1();
+  }
+}
+''');
+  }
+
   Future<void> test_declaration_different() async {
     await resolveTestCode('''
 void f() {
@@ -245,6 +266,23 @@ void f() {
   g();
   h = () {};
   h();
+}
+''');
+  }
+
+  Future<void> test_top_level_declaration() async {
+    await resolveTestCode('''
+final v1 = () => 42;
+
+void f() {
+  v1();
+}
+''');
+    await assertHasFix('''
+int v1() => 42;
+
+void f() {
+  v1();
 }
 ''');
   }

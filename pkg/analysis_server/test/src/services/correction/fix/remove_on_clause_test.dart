@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveOnClauseMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ON_CLAUSE_MULTI;
+  FixKind get kind => DartFixKind.removeOnClauseMulti;
 
   Future<void> test_singleFile() async {
     newFile('$testPackageLibPath/a.dart', '''
@@ -35,23 +35,20 @@ augment extension E on int { }
 
 augment extension E on num { }
 ''');
-    await assertHasFixAllFix(
-      ParserErrorCode.extensionAugmentationHasOnClause,
-      '''
+    await assertHasFixAllFix(diag.extensionAugmentationHasOnClause, '''
 part of 'a.dart';
 
 augment extension E { }
 
 augment extension E { }
-''',
-    );
+''');
   }
 }
 
 @reflectiveTest
 class RemoveOnClauseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ON_CLAUSE;
+  FixKind get kind => DartFixKind.removeOnClause;
 
   Future<void> test_it() async {
     newFile('$testPackageLibPath/a.dart', '''

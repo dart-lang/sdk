@@ -4,15 +4,15 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field core::List<self::A> field;
-  constructor named1({core::List<self::A> field = const <self::A>[const self::B::•<dynamic>(0, s: "")]}) → self::C
+  constructor named1({core::List<self::A> field = const <self::A>[/*original=self::A::redir1*/ const self::B::•<dynamic>(0, s: "")]}) → self::C
     ;
-  constructor named2({core::List<self::A> field = const <self::A>[const self::B::•<dynamic>(0, s: "")]}) → self::C
+  constructor named2({core::List<self::A> field = const <self::A>[/*original=self::A::redir1*/ const self::B::•<dynamic>(0, s: "")]}) → self::C
     ;
 }
 abstract class A extends core::Object {
-  static factory redir1(core::int x, {required core::String s}) → self::A /* redirection-target: self::B::•<dynamic>*/
+  static const factory redir1(core::int x, {required core::String s}) → self::A /* redirection-target: self::B::•<dynamic>*/
     return new self::B::•<dynamic>(x, s: s);
-  static factory redir2(core::int x, {required core::String s}) → self::A /* redirection-target: self::B::•<dynamic>*/
+  static const factory redir2(core::int x, {required core::String s}) → self::A /* redirection-target: self::B::•<dynamic>*/
     return new self::B::•<dynamic>(x, s: s);
 }
 class B<X extends core::Object? = dynamic> extends core::Object implements self::A /*hasConstConstructor*/  {

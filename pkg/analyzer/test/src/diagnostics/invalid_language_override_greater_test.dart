@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -29,7 +29,7 @@ class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
 // @dart = ${latestVersion.major}.${latestVersion.minor + 1}
 class A {}
 ''',
-      [error(WarningCode.invalidLanguageVersionOverrideGreater, 0, 15)],
+      [error(diag.invalidLanguageVersionOverrideGreater, 0, 15)],
     );
     _assertUnitLanguageVersion(package: latestVersion, override: null);
   }

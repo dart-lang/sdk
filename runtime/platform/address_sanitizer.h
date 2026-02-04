@@ -19,6 +19,16 @@
 
 #if defined(USING_ADDRESS_SANITIZER)
 extern "C" void __asan_unpoison_memory_region(void const volatile*, size_t);
+extern "C" void __asan_load1(void*);
+extern "C" void __asan_load2(void*);
+extern "C" void __asan_load4(void*);
+extern "C" void __asan_load8(void*);
+extern "C" void __asan_load16(void*);
+extern "C" void __asan_store1(void*);
+extern "C" void __asan_store2(void*);
+extern "C" void __asan_store4(void*);
+extern "C" void __asan_store8(void*);
+extern "C" void __asan_store16(void*);
 #define NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
 #define ASAN_UNPOISON(ptr, len) __asan_unpoison_memory_region(ptr, len)
 #else  // defined(USING_ADDRESS_SANITIZER)

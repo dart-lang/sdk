@@ -359,6 +359,8 @@ typedef Dart_Handle (*Dart_DeferredLoadCompleteErrorType)(intptr_t,
 typedef Dart_Handle (*Dart_LoadScriptFromKernelType)(const uint8_t*, intptr_t);
 typedef Dart_Handle (*Dart_LoadScriptFromBytecodeType)(const uint8_t*,
                                                        intptr_t);
+typedef Dart_Handle (*Dart_LoadModuleSnapshotType)(const uint8_t*,
+                                                   const uint8_t*);
 typedef Dart_Handle (*Dart_RootLibraryType)();
 typedef Dart_Handle (*Dart_SetRootLibraryType)(Dart_Handle);
 typedef Dart_Handle (*Dart_GetTypeType)(Dart_Handle,
@@ -440,6 +442,15 @@ typedef Dart_Handle (*Dart_CreateAppAOTSnapshotAsElfsType)(
 typedef Dart_Handle (*Dart_CreateAppAOTSnapshotAsBinaryType)(
     Dart_AotBinaryFormat,
     Dart_StreamingWriteCallback,
+    void*,
+    bool,
+    void*,
+    const char*,
+    const char*);
+typedef Dart_Handle (*Dart_CreateAppAOTSnapshotAndRelocatableObjectType)(
+    Dart_AotBinaryFormat,
+    Dart_StreamingWriteCallback,
+    void*,
     void*,
     bool,
     void*,
@@ -713,6 +724,7 @@ static Dart_DeferredLoadCompleteErrorType Dart_DeferredLoadCompleteErrorFn =
     NULL;
 static Dart_LoadScriptFromKernelType Dart_LoadScriptFromKernelFn = NULL;
 static Dart_LoadScriptFromBytecodeType Dart_LoadScriptFromBytecodeFn = NULL;
+static Dart_LoadModuleSnapshotType Dart_LoadModuleSnapshotFn = NULL;
 static Dart_RootLibraryType Dart_RootLibraryFn = NULL;
 static Dart_SetRootLibraryType Dart_SetRootLibraryFn = NULL;
 static Dart_GetTypeType Dart_GetTypeFn = NULL;
@@ -756,6 +768,8 @@ static Dart_CreateAppAOTSnapshotAsElfsType Dart_CreateAppAOTSnapshotAsElfsFn =
     NULL;
 static Dart_CreateAppAOTSnapshotAsBinaryType
     Dart_CreateAppAOTSnapshotAsBinaryFn = NULL;
+static Dart_CreateAppAOTSnapshotAndRelocatableObjectType
+    Dart_CreateAppAOTSnapshotAndRelocatableObjectFn = NULL;
 static Dart_CreateVMAOTSnapshotAsAssemblyType
     Dart_CreateVMAOTSnapshotAsAssemblyFn = NULL;
 static Dart_SortClassesType Dart_SortClassesFn = NULL;
@@ -1262,6 +1276,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     Dart_LoadScriptFromBytecodeFn =
         (Dart_LoadScriptFromBytecodeType)GetProcAddress(
             process, "Dart_LoadScriptFromBytecode");
+    Dart_LoadModuleSnapshotFn = (Dart_LoadModuleSnapshotType)GetProcAddress(
+        process, "Dart_LoadModuleSnapshot");
     Dart_RootLibraryFn =
         (Dart_RootLibraryType)GetProcAddress(process, "Dart_RootLibrary");
     Dart_SetRootLibraryFn =
@@ -1346,6 +1362,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     Dart_CreateAppAOTSnapshotAsBinaryFn =
         (Dart_CreateAppAOTSnapshotAsBinaryType)GetProcAddress(
             process, "Dart_CreateAppAOTSnapshotAsBinary");
+    Dart_CreateAppAOTSnapshotAndRelocatableObjectFn =
+        (Dart_CreateAppAOTSnapshotAndRelocatableObjectType)GetProcAddress(
+            process, "Dart_CreateAppAOTSnapshotAndRelocatableObject");
     Dart_CreateVMAOTSnapshotAsAssemblyFn =
         (Dart_CreateVMAOTSnapshotAsAssemblyType)GetProcAddress(
             process, "Dart_CreateVMAOTSnapshotAsAssembly");
@@ -2445,6 +2464,11 @@ Dart_Handle Dart_LoadScriptFromBytecode(const uint8_t* kernel_buffer,
   return Dart_LoadScriptFromBytecodeFn(kernel_buffer, kernel_size);
 }
 
+Dart_Handle Dart_LoadModuleSnapshot(const uint8_t* snapshot_data,
+                                    const uint8_t* snapshot_instructions) {
+  return Dart_LoadModuleSnapshotFn(snapshot_data, snapshot_instructions);
+}
+
 Dart_Handle Dart_RootLibrary() {
   return Dart_RootLibraryFn();
 }
@@ -2655,6 +2679,20 @@ Dart_Handle Dart_CreateAppAOTSnapshotAsBinary(
   return Dart_CreateAppAOTSnapshotAsBinaryFn(format, callback, callback_data,
                                              stripped, debug_callback_data,
                                              identifier, path);
+}
+
+Dart_Handle Dart_CreateAppAOTSnapshotAndRelocatableObject(
+    Dart_AotBinaryFormat format,
+    Dart_StreamingWriteCallback callback,
+    void* snapshot_callback_data,
+    void* object_callback_data,
+    bool stripped,
+    void* debug_callback_data,
+    const char* identifier,
+    const char* path) {
+  return Dart_CreateAppAOTSnapshotAndRelocatableObjectFn(
+      format, callback, snapshot_callback_data, object_callback_data, stripped,
+      debug_callback_data, identifier, path);
 }
 
 Dart_Handle Dart_CreateVMAOTSnapshotAsAssembly(

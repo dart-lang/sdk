@@ -35,14 +35,9 @@
 library;
 
 import 'dart:_internal' show Since;
-import 'dart:_js_annotations' show JSExport;
 import 'dart:_js_types';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
-
-// To support an easier transition, we allow users to use `@staticInterop`
-// classes - with or without the `@anonymous` annotation.
-export 'dart:_js_annotations' show staticInterop, anonymous, JSExport;
 
 /// An annotation on a JavaScript interop declaration.
 ///
@@ -74,6 +69,103 @@ export 'dart:_js_annotations' show staticInterop, anonymous, JSExport;
 class JS {
   final String? name;
   const JS([this.name]);
+}
+
+// To support an easier transition, we allow users to use `@staticInterop`
+// classes - with or without the `@anonymous` annotation.
+
+class _StaticInterop {
+  const _StaticInterop();
+}
+
+/// [staticInterop] enables the [JS] annotated class to be treated as a "static"
+/// interop class.
+///
+/// These classes allow interop with native types, like the ones in `dart:html`.
+/// These classes implicitly all erase to the internal interceptor
+/// `JavaScriptObject`, so they can be freely casted to and from other
+/// [staticInterop] types, `dart:html` types, and `JSObject` from
+/// `dart:js_interop`. Non-[staticInterop] `package:js` types can be casted to
+/// [staticInterop] types, but the reverse can fail if the underlying value is a
+/// `@Native`-reserved type (like `dart:html` types).
+///
+/// [staticInterop] classes have the following restrictions:
+///  - They must contain a [JS] annotation, either from this library or from
+///    `dart:js_interop`.
+///  - They should not contain any instance members, inherited or otherwise, and
+///    should instead use static extension members, which can be external or
+///    non-external.
+///  - They can only contain factories and `static` members. They can be
+///    combined with [anonymous] to make external factories create new
+///    JavaScript object literals instead.
+///  - They should not implement, extend, or mixin non-[staticInterop] classes
+///    and vice-versa.
+///  - The annotation should only be applied to non-mixin classes and no other
+///    declarations.
+const _StaticInterop staticInterop = _StaticInterop();
+
+class _Anonymous {
+  const _Anonymous();
+}
+
+/// An annotation that indicates a [JS] annotated class is structural and does
+/// not have a known JavaScript prototype.
+///
+/// A class marked with [anonymous] allows external factories with named
+/// parameters. Invoking these factories creates JavaScript object literals with
+/// name-value pairs corresponding to any named parameters and their values. If
+/// there are no named parameters, an empty JavaScript object is created.
+///
+/// [anonymous] classes have the following restrictions:
+///   - They must contain a [JS] annotation, either from this library or from
+///     `dart:js_interop`. If the latter, the class must also contain
+///     [staticInterop].
+///   - They cannot contain any non-external members unless it's a
+///     [staticInterop] class, in which case it can also contain non-external
+///     factories and static methods.
+///   - They cannot contain any external generative constructors.
+///   - Any external factory must not contain any positional parameters.
+///   - They cannot extend or be extended by a non-[JS] annotated class.
+///   - The annotation should only be applied to non-mixin classes and no other
+///     declarations.
+const _Anonymous anonymous = _Anonymous();
+
+/// Annotation to allow Dart classes to be wrapped with a JS object using
+/// `dart:js_interop`'s `createJSInteropWrapper`.
+///
+/// When an instance of a class annotated with this annotation is passed to
+/// `createJSInteropWrapper`, the method returns a JS object that contains
+/// a property for each of the class' instance members. When called, these
+/// properties forward to the instance's corresponding members.
+///
+/// You can either annotate specific instance members to only wrap those members
+/// or you can annotate the entire class, which will include all of its instance
+/// members.
+///
+/// By default, the property will have the same name as the corresponding
+/// instance member. You can change the property name of a member in the JS
+/// object by providing a [name] in the @[JSExport] annotation on the member,
+/// like so:
+/// ```
+/// class Export {
+///   @JSExport('printHelloWorld')
+///   void printMessage() => print('Hello World!');
+/// }
+/// ```
+/// which will then set the property 'printHelloWorld' in the JS object to
+/// forward to `printMessage`.
+///
+/// Classes and mixins in the hierarchy of the annotated class are included only
+/// if they are annotated as well or specific members in them are annotated. If
+/// a superclass does not have an annotation anywhere, its members are not
+/// included. If members are overridden, only the overriding member will
+/// be wrapped as long as it or its class has this annotation.
+///
+/// Only concrete instance members can and will be wrapped, and it's an error to
+/// annotate other members with this annotation.
+class JSExport {
+  final String name;
+  const JSExport([this.name = '']);
 }
 
 /// A non-nullish JavaScript value.
@@ -437,8 +529,128 @@ extension type JSBoolean._(JSBooleanRepType _jsBoolean) implements JSAny {}
 /// A JavaScript string.
 extension type JSString._(JSStringRepType _jsString) implements JSAny {}
 
+@JS('Symbol')
+external JSSymbol _constructSymbol([String? description]);
+
 /// A JavaScript `Symbol`.
-extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {}
+@JS('Symbol')
+extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
+  // TODO(srujzs): See if this can be made `const` so it can be used in similar
+  // situations to a Dart symbol literal.
+  /// Creates a new, unique JavaScript `Symbol`.
+  ///
+  /// If [description] is provided, it's used for debugging but not to access
+  /// the symbol itself.
+  @Since('3.11')
+  JSSymbol([String? description])
+    : _jsSymbol =
+          (description == null
+                  ? _constructSymbol()
+                  : _constructSymbol(description))
+              ._jsSymbol;
+
+  /// Searches for an existing symbol in a runtime-wide symbol registry with the
+  /// given key and returns it if found.
+  ///
+  /// Otherwise, creates a new symbol with this key, adds it to the global
+  /// registry, and returns it.
+  @Since('3.11')
+  @JS('for')
+  external static JSSymbol forKey(String key);
+
+  /// See [`Symbol.asyncIterator`].
+  ///
+  /// [`Symbol.asyncIterator`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator
+  @Since('3.11')
+  external static JSSymbol get asyncIterator;
+
+  /// See [`Symbol.hasInstance`].
+  ///
+  /// [`Symbol.hasInstance`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/hasInstance
+  @Since('3.11')
+  external static JSSymbol get hasInstance;
+
+  /// See [`Symbol.isConcatSpreadable`].
+  ///
+  /// [`Symbol.isConcatSpreadable`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/isConcatSpreadable
+  @Since('3.11')
+  external static JSSymbol get isConcatSpreadable;
+
+  /// See [`Symbol.iterator`].
+  ///
+  /// [`Symbol.iterator`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/iterator
+  @Since('3.11')
+  external static JSSymbol get iterator;
+
+  /// See [`Symbol.match`].
+  ///
+  /// [`Symbol.match`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/match
+  @Since('3.11')
+  external static JSSymbol get match;
+
+  /// See [`Symbol.matchAll`].
+  ///
+  /// [`Symbol.matchAll`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/matchAll
+  @Since('3.11')
+  external static JSSymbol get matchAll;
+
+  /// See [`Symbol.replace`].
+  ///
+  /// [`Symbol.replace`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/replace
+  @Since('3.11')
+  external static JSSymbol get replace;
+
+  /// See [`Symbol.search`].
+  ///
+  /// [`Symbol.search`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/search
+  @Since('3.11')
+  external static JSSymbol get search;
+
+  /// See [`Symbol.species`].
+  ///
+  /// [`Symbol.species`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/species
+  @Since('3.11')
+  external static JSSymbol get species;
+
+  /// See [`Symbol.split`].
+  ///
+  /// [`Symbol.split`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/split
+  @Since('3.11')
+  external static JSSymbol get split;
+
+  /// See [`Symbol.toPrimitive`].
+  ///
+  /// [`Symbol.toPrimitive`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toPrimitive
+  @Since('3.11')
+  external static JSSymbol get toPrimitive;
+
+  /// See [`Symbol.toStringTag`].
+  ///
+  /// [`Symbol.toStringTag`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toStringTag
+  @Since('3.11')
+  external static JSSymbol get toStringTag;
+
+  /// See [`Symbol.unscopables`].
+  ///
+  /// [`Symbol.unscopables`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/unscopables
+  @Since('3.11')
+  external static JSSymbol get unscopables;
+
+  @Since('3.11')
+  @JS('keyFor')
+  external static String? _keyFor(JSSymbol symbol);
+
+  /// Returns the shared symbol key from the global symbol registry for this
+  /// symbol (as registered with [forKey]), if this symbol was created with
+  /// [JSSymbol.forKey].
+  @Since('3.11')
+  String? get key => _keyFor(this);
+
+  /// A string containing the description of the symbol, as passed to
+  /// [JSSymbol.new].
+  @Since('3.11')
+  external String get description;
+}
 
 /// A JavaScript `BigInt`.
 extension type JSBigInt._(JSBigIntRepType _jsBigInt) implements JSAny {}

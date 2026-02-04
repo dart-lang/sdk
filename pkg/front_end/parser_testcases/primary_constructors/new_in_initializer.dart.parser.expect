@@ -1,0 +1,23 @@
+NOTICE: Stream was rewritten by parser!
+
+class C {
+new() : *synthetic*=this.*synthetic*{}new ()= *synthetic*;0;
+const new() {}this.new ()= *synthetic*;0;
+new() : *synthetic*=this.*synthetic*{}new ()= *synthetic*;0 *synthetic*(){}
+const new() : *synthetic*=this.*synthetic*{}new ()= *synthetic*;0 *synthetic*(){}
+new named() : *synthetic*=this.*synthetic*{}new ()= *synthetic*;0;
+const new named() : *synthetic*=this.*synthetic*{}new ()= *synthetic*;0;
+new named() : *synthetic*=this.*synthetic*{}new ()= *synthetic*;0 *synthetic*(){}
+const new named() : *synthetic*=this.*synthetic*{}new ()= *synthetic*;0 *synthetic*(){}
+}
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+new[KeywordToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken].[SimpleToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]new[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]0[StringToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]this[KeywordToken].[SimpleToken]new[StringToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]0[StringToken];[SimpleToken]
+new[KeywordToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken].[SimpleToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]new[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]0[StringToken] [SyntheticStringToken]([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken].[SimpleToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]new[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]0[StringToken] [SyntheticStringToken]([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken].[SimpleToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]new[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]0[StringToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken].[SimpleToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]new[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]0[StringToken];[SimpleToken]
+new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken].[SimpleToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]new[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]0[StringToken] [SyntheticStringToken]([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken].[SimpleToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]new[KeywordToken] ([SyntheticBeginToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]0[StringToken] [SyntheticStringToken]([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+}[SimpleToken][SimpleToken]

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class Bar with Comparable<int> {
   int compareTo(int x) => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 15, 15)],
+      [error(diag.classUsedAsMixin, 15, 15)],
     );
   }
 
@@ -41,7 +41,7 @@ class Bar with Comparable<int> {
 class Foo {}
 class Bar with Foo {}
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 28, 3)],
+      [error(diag.classUsedAsMixin, 28, 3)],
     );
   }
 
@@ -70,7 +70,7 @@ class Foo {}
 import 'foo.dart';
 class Bar with Foo {}
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 34, 3)],
+      [error(diag.classUsedAsMixin, 34, 3)],
     );
   }
 
@@ -97,7 +97,7 @@ class Foo {}
 import 'foo.dart';
 class Bar with Foo {}
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 50, 3)],
+      [error(diag.classUsedAsMixin, 50, 3)],
     );
   }
 
@@ -123,7 +123,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar with FooTypedef {}
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 34, 10)],
+      [error(diag.classUsedAsMixin, 34, 10)],
     );
   }
 
@@ -163,7 +163,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 60, 10)],
+      [error(diag.classUsedAsMixin, 60, 10)],
     );
   }
 

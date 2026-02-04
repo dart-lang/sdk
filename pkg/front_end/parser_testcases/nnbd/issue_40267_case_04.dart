@@ -1,3 +1,4 @@
+// @dart=2.19
 main() {
   switch(a) {
     // Parse as conditional (with missing colon for the case).

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show VariableDeclaration;
+import 'package:kernel/ast.dart' show ExpressionVariable;
 
 import '../base/lookup_result.dart';
 import '../builder/builder.dart';
@@ -18,7 +18,7 @@ class VariableBuilderImpl extends NamedBuilderImpl
   final Uri fileUri;
 
   @override
-  final VariableDeclaration variable;
+  final ExpressionVariable variable;
 
   VariableBuilderImpl(this.name, this.variable, this.fileUri);
 
@@ -43,7 +43,7 @@ class VariableBuilderImpl extends NamedBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  String get fullNameForErrors => variable.name ?? "<unnamed>";
+  String get fullNameForErrors => variable.cosmeticName ?? "<unnamed>";
 
   @override
   String toString() => 'VariableBuilderImpl($fullNameForErrors)';

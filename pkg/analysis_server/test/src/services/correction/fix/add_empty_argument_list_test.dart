@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,17 +30,14 @@ class A {
 @A
 main() {}
 ''');
-    await assertHasFixAllFix(
-      CompileTimeErrorCode.noAnnotationConstructorArguments,
-      '''
+    await assertHasFixAllFix(diag.noAnnotationConstructorArguments, '''
 class A {
   const A();
 }
 @A()
 @A()
 main() {}
-''',
-    );
+''');
   }
 }
 

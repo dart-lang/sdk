@@ -99,12 +99,13 @@ class RuntimeFinalizer {
     }
     if (!requireJsBuiltin) {
       sb.writeln(
-          '${indent}S: new Proxy({}, { get(_, prop) { return prop; } }),');
+          '$indent"": new Proxy({}, { get(_, prop) { return prop; } }),');
     }
     return '$sb';
   }
 
   String generate(
+      String mainModuleName,
       Iterable<Procedure> translatedProcedures,
       List<String> constantStrings,
       bool requireJsBuiltin,
@@ -113,7 +114,7 @@ class RuntimeFinalizer {
 
     final builtins = [
       'builtins: [\'js-string\']',
-      if (requireJsBuiltin) 'importedStringConstants: \'S\'',
+      if (requireJsBuiltin) 'importedStringConstants: \'\'',
     ];
 
     String internalizedStrings =
@@ -132,6 +133,7 @@ class RuntimeFinalizer {
     final moduleLoadingHelperMethods = supportsAdditionalModuleLoading
         ? moduleLoadingHelperTemplate.instantiate({
             ...jsStringBuiltinPolyfillImportVars,
+            'MAIN_MODULE_NAME': mainModuleName,
           })
         : '';
 
@@ -161,10 +163,6 @@ class RuntimeFinalizer {
 JSMethods performJSInteropTransformations(List<Library> libraries,
     CoreTypes coreTypes, ClassHierarchy classHierarchy) {
   Set<Library> transitiveImportingJSInterop = {
-    ...calculateTransitiveImportsOfJsInteropIfUsed(
-        libraries, Uri.parse("package:js/js.dart")),
-    ...calculateTransitiveImportsOfJsInteropIfUsed(
-        libraries, Uri.parse("dart:_js_annotations")),
     ...calculateTransitiveImportsOfJsInteropIfUsed(
         libraries, Uri.parse("dart:_js_helper")),
     ...calculateTransitiveImportsOfJsInteropIfUsed(

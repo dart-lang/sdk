@@ -8,7 +8,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
@@ -21,7 +21,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: CompileTimeErrorCode.invalidAssignment,
+    diagnosticCode: diag.invalidAssignment,
     arguments: [
       ['x'],
       ['y'],
@@ -32,7 +32,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: WarningCode.assignmentOfDoNotStore,
+    diagnosticCode: diag.assignmentOfDoNotStore,
     arguments: [
       ['x'],
     ],
@@ -42,7 +42,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: WarningCode.unusedLocalVariable,
+    diagnosticCode: diag.unusedLocalVariable,
     arguments: [
       ['x'],
     ],
@@ -52,7 +52,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: CompileTimeErrorCode.useOfVoidResult,
+    diagnosticCode: diag.useOfVoidResult,
   );
 
   // We in-line a lint code here in order to avoid adding a dependency on the
@@ -61,7 +61,11 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: LintCode('annotate_overrides', ''),
+    diagnosticCode: LintCode(
+      'annotate_overrides',
+      '',
+      uniqueName: 'LintCode.annotate_overrides',
+    ),
   );
 
   group('ErrorProcessor', () {
@@ -98,6 +102,21 @@ analyzer:
   strong-mode: true
 ''');
       expect(context.getProcessor(unused_local_variable), isNull);
+    });
+
+    test('applies to analyzer warning even if lower case', () {
+      var errorProcessor = ErrorProcessor('cast_from_null_always_fails');
+      expect(
+        errorProcessor.appliesTo(
+          Diagnostic.tmp(
+            source: TestSource(),
+            offset: 0,
+            length: 1,
+            diagnosticCode: diag.castFromNullAlwaysFails,
+          ),
+        ),
+        true,
+      );
     });
   });
 

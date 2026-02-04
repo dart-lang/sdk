@@ -5,6 +5,7 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
@@ -110,7 +111,10 @@ class ParserTestListener implements Listener {
 """);
 
   ParserCreatorListener listener = new ParserCreatorListener(out);
-  ClassMemberParser parser = new ClassMemberParser(listener);
+  ClassMemberParser parser = new ClassMemberParser(
+    listener,
+    experimentalFeatures: const DefaultExperimentalFeatures(),
+  );
   parser.parseUnit(firstToken);
 
   out.writeln("}");
@@ -153,6 +157,22 @@ class ParserCreatorListener extends Listener {
   }
 
   @override
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token? newToken,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    currentMethodName = name.lexeme;
+  }
+
+  @override
   void beginMethod(
     DeclarationKind declarationKind,
     Token? augmentToken,
@@ -178,7 +198,8 @@ class ParserCreatorListener extends Listener {
   }
 
   @override
-  void endClassMethod(
+  void endMethod(
+    DeclarationKind kind,
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
@@ -266,6 +287,7 @@ class ParserCreatorListener extends Listener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,

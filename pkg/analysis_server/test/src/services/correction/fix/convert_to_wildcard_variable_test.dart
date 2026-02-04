@@ -12,6 +12,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToWildcardVariableTest);
+    defineReflectiveTests(ConvertUnnecessaryUnderscoresBulkTest);
     defineReflectiveTests(ConvertUnnecessaryUnderscoresTest);
   });
 }
@@ -170,6 +171,25 @@ void f() {
 ''');
     // Converting the simple identifier `x` would result in invalid code.
     await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class ConvertUnnecessaryUnderscoresBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_underscores;
+
+  Future<void> test_bulk() async {
+    await resolveTestCode(r'''
+void f(int __) {
+  int ___ = 0;
+}
+''');
+    await assertHasFix(r'''
+void f(int _) {
+  int _ = 0;
+}
+''');
   }
 }
 

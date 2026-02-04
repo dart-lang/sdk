@@ -2,5 +2,9 @@ set noparent
 alexmarkov@google.com
 sra@google.com
 vegorov@google.com
+
 # Global owners.
 file:/OWNERS
+
+# Add the VM team as owners of vm_offsets.g.dart in order to simplify updating auto-generated VM offsets.
+per-file lib/runtime/vm_offsets.g.dart=file:/tools/OWNERS_VM

@@ -136,14 +136,14 @@ then that is used instead.''',
     // AOT compilation isn't supported on ia32. Currently, generating an
     // executable only supports AOT runtimes, so these commands are disabled.
     if (Platform.version.contains('ia32')) {
-      stderr.write("'dart build' is not supported on x86 architectures.");
+      stderr.writeln("'dart build' is not supported on x86 architectures.");
       return 64;
     }
     final args = argResults!;
 
     var target = args.option('target');
     if (target == null) {
-      stderr.write(
+      stderr.writeln(
         'There are multiple possible targets in the `bin/` directory, '
         "and the 'target' argument wasn't specified.",
       );
@@ -252,13 +252,20 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
       verbose: verbose,
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
     );
-    final buildResult = await progress(
-      'Running build hooks',
-      builder.buildNativeAssetsAOT,
-    );
-    if (buildResult == null) {
-      stderr.writeln('Running build hooks failed.');
-      return 255;
+    final showProgress = verbosity != Verbosity.error.name;
+    BuildResult? buildResult;
+    final hasHooks = await builder.hasHooks();
+    if (hasHooks) {
+      buildResult = await (showProgress
+          ? progress(
+              'Running build hooks',
+              builder.buildNativeAssetsAOT,
+            )
+          : builder.buildNativeAssetsAOT());
+      if (buildResult == null) {
+        stderr.writeln('Running build hooks failed.');
+        return 255;
+      }
     }
 
     final tempDir = Directory.systemTemp.createTempSync();
@@ -296,22 +303,31 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
         if (first) {
           // Multiple executables are only supported with recorded uses
           // disabled, so don't re-invoke link hooks.
-          linkResult = await progress(
-            'Running link hooks',
-            () => builder.linkNativeAssetsAOT(
-              recordedUsagesPath: recordedUsagesPath,
-              buildResult: buildResult,
-            ),
-          );
-        }
-        if (linkResult == null) {
-          stderr.writeln('Running link hooks failed.');
-          return 255;
+          if (hasHooks) {
+            linkResult = await (showProgress
+                ? progress(
+                    'Running link hooks',
+                    () => builder.linkNativeAssetsAOT(
+                      recordedUsagesPath: recordedUsagesPath,
+                      buildResult: buildResult!,
+                    ),
+                  )
+                : builder.linkNativeAssetsAOT(
+                    recordedUsagesPath: recordedUsagesPath,
+                    buildResult: buildResult!,
+                  ));
+            if (linkResult == null) {
+              stderr.writeln('Running link hooks failed.');
+              return 255;
+            }
+          }
         }
 
         final allAssets = [
-          ...buildResult.encodedAssets,
-          ...linkResult.encodedAssets
+          if (hasHooks) ...[
+            ...buildResult!.encodedAssets,
+            ...linkResult!.encodedAssets
+          ]
         ];
 
         final staticAssets = allAssets

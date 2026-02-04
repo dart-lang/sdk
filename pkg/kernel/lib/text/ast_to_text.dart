@@ -137,7 +137,7 @@ String componentToString(Component node) {
 }
 
 class NameSystem {
-  final Namer<VariableDeclaration> variables =
+  final Namer<ExpressionVariable> variables =
       new NormalNamer<VariableDeclaration>('#t');
   final Namer<Reference> libraries = new NormalNamer<Reference>('#lib');
   final Namer<TypeParameter> typeParameters =
@@ -146,10 +146,12 @@ class NameSystem {
       new NormalNamer<StructuralParameter>('#T');
   final Namer<TreeNode> labels = new NormalNamer<TreeNode>('#L');
   final Namer<Constant> constants = new ConstantNamer('#C');
+  final Namer<VariableContext> contexts =
+      new NormalNamer<VariableContext>('#ctx');
   final Disambiguator<Reference, CanonicalName> prefixes =
       new Disambiguator<Reference, CanonicalName>();
 
-  String nameVariable(VariableDeclaration node) => variables.getName(node);
+  String nameVariable(ExpressionVariable node) => variables.getName(node);
   String nameLibrary(Reference node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   String nameStructuralParameter(StructuralParameter node) =>
@@ -157,6 +159,7 @@ class NameSystem {
   String nameSwitchCase(SwitchCase node) => labels.getName(node);
   String nameLabeledStatement(LabeledStatement node) => labels.getName(node);
   String nameConstant(Constant node) => constants.getName(node);
+  String nameVariableContext(VariableContext node) => contexts.getName(node);
 
   final RegExp pathSeparator = new RegExp('[\\/]');
 
@@ -224,7 +227,7 @@ class NameSystem {
 }
 
 abstract class Annotator {
-  String annotateVariable(Printer printer, VariableDeclaration node);
+  String annotateVariable(Printer printer, VariableInitialization node);
   String annotateReturn(Printer printer, FunctionNode node);
   String annotateField(Printer printer, Field node);
 }
@@ -344,11 +347,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  String getVariableName(VariableDeclaration node) {
-    return node.name ?? syntheticNames.nameVariable(node);
+  String getVariableName(ExpressionVariable node) {
+    return node.cosmeticName ?? syntheticNames.nameVariable(node);
   }
 
-  String getVariableReference(VariableDeclaration node) {
+  String getVariableReference(ExpressionVariable node) {
     return getVariableName(node);
   }
 
@@ -419,8 +422,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeWord(name);
     }
     List<String> flags = [];
-    if (library.isUnsupported) {
-      flags.add('isUnsupported');
+    if (!library.conditionalImportSupported &&
+        library.importUri.isScheme('dart')) {
+      flags.add('!conditionalImportSupported');
     }
     if (flags.isNotEmpty) {
       writeWord('/*${flags.join(',')}*/');
@@ -744,6 +748,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeTypeParameterList(function.typeParameters);
     writeParameterList(function.positionalParameters, function.namedParameters,
         function.requiredParameterCount);
+    if (function.contexts case List<VariableContext> contexts) {
+      ensureSpace();
+      writeWord('/*');
+      for (VariableContext context in contexts) {
+        writeWord(syntheticNames.nameVariableContext(context));
+      }
+      writeWord('*/');
+    }
     writeReturnType(
         function.returnType, annotator?.annotateReturn(this, function));
     if (initializers != null && initializers.isNotEmpty) {
@@ -782,6 +794,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       }
       writeWord('*/');
     }
+    if (function.scope case Scope scope?) {
+      writeScope(scope);
+    }
     Statement? body = function.body;
     if (body != null) {
       writeFunctionBody(body, terminateLine: terminateLine);
@@ -814,6 +829,10 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         endLine();
       }
     } else if (body is Block) {
+      ensureSpace();
+      if (body.scope case Scope scope?) {
+        writeScope(scope);
+      }
       ensureSpace();
       endLine('{');
       ++indentation;
@@ -869,6 +888,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   void writeBody(Statement body) {
     if (body is Block) {
+      if (body.scope case Scope scope?) {
+        writeScope(scope);
+      }
       endLine(' {');
       ++indentation;
       body.statements.forEach(writeNode);
@@ -1022,7 +1044,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeWord(getTypedefReference(typedefNode));
   }
 
-  void writeVariableReference(VariableDeclaration variable) {
+  void writeVariableReference(ExpressionVariable variable) {
     final bool highlight = shouldHighlight(variable);
     if (highlight) {
       startHighlight(variable);
@@ -1086,6 +1108,108 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
+  void writeScope(Scope scope, {String separator = ','}) {
+    endLine('/* scope=[');
+    ++indentation;
+    for (VariableContext context in scope.contexts) {
+      writeVariableContext(context, separator: separator);
+    }
+    --indentation;
+    writeIndentation();
+    writeWord('] */');
+  }
+
+  void writeVariableContext(VariableContext context, {String separator = ','}) {
+    writeIndentation();
+    writeWord('${syntheticNames.nameVariableContext(context)}:');
+    switch (context.captureKind) {
+      case CaptureKind.captured:
+        writeWord('captured');
+      case CaptureKind.notCaptured:
+        writeWord('not-captured');
+      case CaptureKind.assertCaptured:
+        writeWord('assert-captured');
+    }
+    ensureSpace();
+    if (context.variables.isEmpty) {
+      writeSymbol('VariableContext([])');
+      return;
+    }
+    endLine('VariableContext([');
+    ++indentation;
+    context.variables.forEach(writeNode);
+    --indentation;
+    writeIndentation();
+    endLine('])${separator}');
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    writeIndentation();
+    writeExpressionVariable(node);
+    endLine(';');
+  }
+
+  void writeExpressionVariable(ExpressionVariable node) {
+    if (showOffsets) writeWord("[${node.fileOffset}]");
+    if (showMetadata) writeMetadata(node);
+
+    switch (node) {
+      case LocalVariable():
+        writeWord('local-variable');
+      case PositionalParameter():
+        writeWord('positional-parameter');
+      case NamedParameter():
+        writeWord('named-parameter');
+      case ThisVariable():
+        writeWord('this-variable');
+      case SyntheticVariable():
+        writeWord('synthetic-variable');
+      case VariableDeclaration():
+        writeWord('variable-declaration');
+    }
+
+    // TODO(cstefantsova): Should [Variable]s have annotations?
+    // writeAnnotationList(node.annotations, separateLines: false);
+    if (node.hasIsLowered) {
+      writeModifier(node.isLowered, 'lowered');
+    }
+    if (node.hasIsLate) {
+      writeModifier(node.isLate, 'late');
+    }
+    if (node.hasIsRequired) {
+      writeModifier(node.isRequired, 'required');
+    }
+    if (node.hasIsCovariantByDeclaration) {
+      writeModifier(node.isCovariantByDeclaration, 'covariant-by-declaration');
+    }
+    if (node.hasIsCovariantByClass) {
+      writeModifier(node.isCovariantByClass, 'covariant-by-class');
+    }
+    if (node.hasIsFinal) {
+      writeModifier(node.isFinal, 'final');
+    }
+    if (node.hasIsConst) {
+      writeModifier(node.isConst, 'const');
+    }
+    if (node.hasIsSynthesized) {
+      writeModifier(
+          node.isSynthesized && node.cosmeticName != null, 'synthesized');
+    }
+    if (node.hasIsHoisted) {
+      writeModifier(node.isHoisted, 'hoisted');
+    }
+    if (node.hasIsWildcard) {
+      writeModifier(node.isWildcard, 'wildcard');
+    }
+    if (node.hasIsErroneouslyInitialized) {
+      writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
+    }
+    // TODO(cstefantsova): Adapt [Annotator] for [Variable]s.
+    // writeAnnotatedType(node.type, annotator?.annotateVariable(this, node));
+    writeWord(getVariableName(node));
+  }
+
   @override
   void visitLibrary(Library node) {}
 
@@ -1140,6 +1264,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isExtensionMember, 'extension-member');
     writeModifier(node.isExtensionTypeMember, 'extension-type-member');
     writeModifier(node.isSynthetic, 'synthetic');
+    writeModifier(node.isConst, 'const');
     writeModifier(node.isErroneous, 'erroneous');
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
@@ -1462,9 +1587,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitInvalidExpression(InvalidExpression node) {
     writeWord('invalid-expression');
-    if (node.message != null) {
-      writeWord('"${escapeString(node.message!)}"');
-    }
+    writeWord('"${escapeString(node.message)}"');
     if (node.expression != null) {
       writeSpaced('in');
       writeNode(node.expression!);
@@ -1631,6 +1754,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeWord(node.isConst ? 'const' : 'new');
     writeMemberReferenceFromReference(node.targetReference);
     writeNode(node.arguments);
+  }
+
+  @override
+  void visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) {
+    write('/*original=');
+    writeMemberReferenceFromReference(node.redirectingFactoryTargetReference);
+    write('*/');
+    writeNode(node.expression);
   }
 
   @override
@@ -2032,7 +2163,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitVariableGet(VariableGet node) {
-    writeVariableReference(node.variable);
+    writeVariableReference(node.expressionVariable);
     DartType? promotedType = node.promotedType;
     if (promotedType != null) {
       writeSymbol('{');
@@ -2044,7 +2175,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitVariableSet(VariableSet node) {
-    writeVariableReference(node.variable);
+    writeVariableReference(node.expressionVariable);
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -2224,6 +2355,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitBlock(Block node) {
     writeIndentation();
+    if (node.scope case Scope scope?) {
+      writeScope(scope);
+    }
     writeBlockBody(node.statements);
   }
 
@@ -2302,8 +2436,12 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void visitForStatement(ForStatement node) {
     writeIndentation();
     writeSpaced('for');
+    if (node.scope case Scope scope?) {
+      writeScope(scope);
+      ensureSpace();
+    }
     writeSymbol('(');
-    writeList(node.variables, writeVariableDeclaration);
+    writeList(node.variableInitializations, writeVariableInitialization);
     writeComma(';');
     Expression? condition = node.condition;
     if (condition != null) {
@@ -2322,8 +2460,16 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeSpaced('await');
     }
     writeSpaced('for');
+    if (node.scope case Scope scope?) {
+      writeScope(scope);
+      ensureSpace();
+    }
     writeSymbol('(');
-    writeVariableDeclaration(node.variable, useVarKeyword: true);
+    if (node.expressionVariable case VariableDeclaration variable) {
+      writeVariableDeclaration(variable, useVarKeyword: true);
+    } else {
+      writeExpressionVariable(node.expressionVariable);
+    }
     writeSpaced('in');
     writeExpression(node.iterable);
     writeSymbol(')');
@@ -2437,6 +2583,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeVariableDeclaration(stackTrace);
     }
     writeSymbol(')');
+    if (node.scope case Scope scope?) {
+      writeScope(scope);
+    }
     writeBody(node.body);
   }
 
@@ -2466,6 +2615,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void visitVariableDeclaration(VariableDeclaration node) {
     writeIndentation();
     writeVariableDeclaration(node, useVarKeyword: true);
+    endLine(';');
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
+    writeIndentation();
+    writeVariableInitialization(node);
     endLine(';');
   }
 
@@ -2514,6 +2670,38 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
+  void writeVariableInitialization(
+    VariableInitialization node,
+  ) {
+    if (node is VariableDeclaration) {
+      writeVariableDeclaration(node);
+    } else {
+      if (showOffsets) writeWord("[${node.fileOffset}]");
+      if (showMetadata) writeMetadata(node);
+      writeAnnotationList(node.annotations, separateLines: false);
+      writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
+      bool hasImplicitInitializer = node.initializer is NullLiteral ||
+          (node.initializer is ConstantExpression &&
+              (node.initializer as ConstantExpression).constant
+                  is NullConstant);
+      if ((node.initializer == null || hasImplicitInitializer) &&
+          node.hasDeclaredInitializer) {
+        writeModifier(node.hasDeclaredInitializer, 'has-declared-initializer');
+      } else if (node.initializer != null &&
+          !hasImplicitInitializer &&
+          !node.hasDeclaredInitializer) {
+        writeModifier(
+            node.hasDeclaredInitializer, 'has-no-declared-initializer');
+      }
+      writeWord(getVariableName(node.variable));
+      Expression? initializer = node.initializer;
+      if (initializer != null) {
+        writeSpaced(':=');
+        writeExpression(initializer);
+      }
+    }
+  }
+
   @override
   void visitArguments(Arguments node) {
     if (node.types.isNotEmpty) {
@@ -2544,6 +2732,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitInvalidInitializer(InvalidInitializer node) {
     writeWord('invalid-initializer');
+    writeWord('"${escapeString(node.message)}"');
   }
 
   @override
@@ -3132,6 +3321,10 @@ class Precedence implements ExpressionVisitor<int> {
   int visitConstructorInvocation(ConstructorInvocation node) => CALLEE;
 
   @override
+  int visitRedirectingFactoryInvocation(RedirectingFactoryInvocation node) =>
+      CALLEE;
+
+  @override
   int visitNot(Not node) => PREFIX;
 
   @override
@@ -3300,6 +3493,12 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitPatternAssignment(PatternAssignment node) => EXPRESSION;
+
+  @override
+  int visitVariableRead(VariableRead node) => PRIMARY;
+
+  @override
+  int visitVariableWrite(VariableWrite node) => EXPRESSION;
 }
 
 String procedureKindToString(ProcedureKind kind) {

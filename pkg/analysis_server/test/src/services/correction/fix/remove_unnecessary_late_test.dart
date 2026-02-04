@@ -36,7 +36,7 @@ final String s2 = '';
 @reflectiveTest
 class RemoveUnnecessaryLateTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_LATE;
+  FixKind get kind => DartFixKind.removeUnnecessaryLate;
 
   @override
   String get lintCode => LintNames.unnecessary_late;

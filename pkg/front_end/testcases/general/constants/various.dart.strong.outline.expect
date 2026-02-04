@@ -128,7 +128,7 @@ class ExtendsFoo1 extends self::Foo {
 }
 class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {
   const constructor •() → self::ExtendsFoo2
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
+    : invalid-initializer "pkg/front_end/testcases/general/constants/various.dart:131:9: Error: The implicitly called unnamed constructor from 'Foo' has required parameters.
 Try adding an explicit super initializer with the required arguments.
   const ExtendsFoo2();
         ^"
@@ -173,8 +173,8 @@ const bool.fromEnvironment(\"bar\", defaultValue: null);
                                                 ^" in null as{TypeError} core::bool);
 static const field core::bool notBarFromEnvOrNull = !self::barFromEnvOrNull;
 static const field core::bool conditionalOnNull = self::barFromEnvOrNull ?{core::bool} true : false;
-static const field core::bool nullAwareOnNullTrue = let final core::bool #t2 = self::barFromEnvOrNull in #t2 == null ?{core::bool} true : #t2;
-static const field core::bool nullAwareOnNullFalse = let final core::bool #t3 = self::barFromEnvOrNull in #t3 == null ?{core::bool} false : #t3;
+static const field core::bool nullAwareOnNullTrue = let final core::bool #t1 = self::barFromEnvOrNull in #t1 == null ?{core::bool} true : #t1;
+static const field core::bool nullAwareOnNullFalse = let final core::bool #t2 = self::barFromEnvOrNull in #t2 == null ?{core::bool} false : #t2;
 static const field core::bool andOnFalse = self::nullAwareOnNullFalse && self::nullAwareOnNullTrue;
 static const field core::bool andOnFalse2 = self::nullAwareOnNullTrue && self::nullAwareOnNullFalse;
 static const field core::bool andOnNull = self::barFromEnvOrNull && true;
@@ -263,10 +263,10 @@ static const field self::FooWithHashCodeField fooWithHashCodeField1 = const self
 static const field self::FooWithHashCodeField fooWithHashCodeField2 = const self::FooWithHashCodeField::•(42);
 static const field core::bool fooWithHashCodeFieldIdentical = core::identical(self::fooWithHashCodeField1, self::fooWithHashCodeField2);
 static const field core::bool fooWithHashCodeFieldEqual = self::fooWithHashCodeField1 =={core::Object::==}{(core::Object) → core::bool} self::fooWithHashCodeField2;
-static const field core::Symbol barFoo = const _in::Symbol::•("Foo");
-static const field core::Symbol barFooEqual = const _in::Symbol::•("Foo=");
-static const field core::Symbol tripleShiftSymbol = const _in::Symbol::•(">>>");
-static const field core::Symbol symbolWithDots = const _in::Symbol::•("I.Have.Dots");
+static const field core::Symbol barFoo = /*original=core::Symbol::•*/ const _in::Symbol::•("Foo");
+static const field core::Symbol barFooEqual = /*original=core::Symbol::•*/ const _in::Symbol::•("Foo=");
+static const field core::Symbol tripleShiftSymbol = /*original=core::Symbol::•*/ const _in::Symbol::•(">>>");
+static const field core::Symbol symbolWithDots = /*original=core::Symbol::•*/ const _in::Symbol::•("I.Have.Dots");
 static const field core::int circularity1 = self::circularity2;
 static const field core::int circularity2 = self::circularity3;
 static const field core::int circularity3 = self::circularity4;
@@ -351,10 +351,10 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:142:58 
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:143:44 -> BoolConstant(true)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:144:40 -> InstanceConstant(const FooWithHashCodeField{FooWithHashCodeField.x: 42, FooWithHashCodeField.y: 5, FooWithHashCodeField.hashCode: 1764})
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:144:65 -> InstanceConstant(const FooWithHashCodeField{FooWithHashCodeField.x: 42, FooWithHashCodeField.y: 5, FooWithHashCodeField.hashCode: 1764})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:146:29 -> SymbolConstant(#Foo)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:147:34 -> SymbolConstant(#Foo=)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:148:40 -> SymbolConstant(#>>>)
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:149:37 -> SymbolConstant(#I.Have.Dots)
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///various.dart:146:29 -> SymbolConstant(#Foo)
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///various.dart:147:34 -> SymbolConstant(#Foo=)
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///various.dart:148:40 -> SymbolConstant(#>>>)
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///various.dart:149:37 -> SymbolConstant(#I.Have.Dots)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:171:7 -> InstanceConstant(const ClassWithTypeArguments<int, int, int>{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:173:7 -> InstanceConstant(const ClassWithTypeArguments<dynamic, dynamic, dynamic>{})
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:175:1 -> BoolConstant(false)

@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:expect/expect.dart' show Expect;
 import 'package:path/path.dart' as path;
+
+import 'util.dart';
 
 Future main() async {
   if (!Platform.isLinux && !Platform.isMacOS) return;
@@ -40,43 +42,6 @@ Future main() async {
     final wasmBytes = outFile.readAsBytesSync();
     outFile.renameSync(outDart2WasmFilename);
 
-    expectEqualBytes(vmBytes, wasmBytes);
+    Expect.listEquals(vmBytes, wasmBytes);
   });
 }
-
-Future run(List<String> command) async {
-  print('Running: ${command.join(' ')}');
-  final result = await Process.run(command.first, command.skip(1).toList());
-  if (result.exitCode != 0) {
-    print('-> Failed with exit code ${result.exitCode}');
-    print('-> stdout:\n${result.stdout}');
-    print('-> stderr:\n${result.stderr}');
-    throw 'Subprocess failed';
-  }
-}
-
-void expectEqualBytes(Uint8List a, Uint8List b) {
-  if (a.length != b.length) {
-    throw 'Mismatch in length ${a.length} vs ${b.length}';
-  }
-  for (int i = 0; i < a.length; ++i) {
-    if (a[i] != b[i]) {
-      throw 'Mismatch at offset $i ${a[i]} vs ${b[i]}';
-    }
-  }
-}
-
-Future withTempDir(Future Function(String directory) fun) async {
-  final dir = Directory.systemTemp.createTempSync('dart2wasm_self_compile');
-  try {
-    print('Running with temporary directory: ${dir.path}');
-    return await fun(dir.path);
-  } finally {
-    if (!keepTemporaryDirectory) {
-      dir.deleteSync(recursive: true);
-    }
-  }
-}
-
-final bool keepTemporaryDirectory =
-    (Platform.environment['KEEP_TEMPORARY_DIRECTORIES'] ?? 'false') != 'false';

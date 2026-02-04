@@ -13,7 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
-import '../lint_codes.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     'Do not expose implementation details through the analyzer public API.';
@@ -30,11 +30,11 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.analyzerPublicApiBadPartDirective,
-    LinterLintCode.analyzerPublicApiBadType,
-    LinterLintCode.analyzerPublicApiExperimentalInconsistency,
-    LinterLintCode.analyzerPublicApiExportsNonPublicName,
-    LinterLintCode.analyzerPublicApiImplInPublicApi,
+    diag.analyzerPublicApiBadPartDirective,
+    diag.analyzerPublicApiBadType,
+    diag.analyzerPublicApiExperimentalInconsistency,
+    diag.analyzerPublicApiExportsNonPublicName,
+    diag.analyzerPublicApiImplInPublicApi,
   ];
 
   @override
@@ -119,7 +119,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (badNames != null) {
       rule.reportAtNode(
         node,
-        diagnosticCode: LinterLintCode.analyzerPublicApiExportsNonPublicName,
+        diagnosticCode: diag.analyzerPublicApiExportsNonPublicName,
         arguments: [badNames.join(', ')],
       );
     }
@@ -136,7 +136,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!partElement.includedFragment!.source.uri.isInAnalyzerPublicLib) {
       rule.reportAtNode(
         node,
-        diagnosticCode: LinterLintCode.analyzerPublicApiBadPartDirective,
+        diagnosticCode: diag.analyzerPublicApiBadPartDirective,
       );
     }
   }
@@ -171,7 +171,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         fragment.nameOffset!,
         name.length,
-        diagnosticCode: LinterLintCode.analyzerPublicApiImplInPublicApi,
+        diagnosticCode: diag.analyzerPublicApiImplInPublicApi,
       );
     }
     var isUsageSiteExperimental = fragment.element.metadata.hasExperimental;
@@ -274,12 +274,12 @@ class _Visitor extends SimpleAstVisitor<void> {
             type,
             kind: _ProblematicTypeUseKind.useOfExperimentalType,
           );
-    late var offsetAndLength = _offsetAndLengthForFragment(fragment);
+    var offsetAndLength = _offsetAndLengthForFragment(fragment);
     if (nonPublicProblems.isNotEmpty) {
       rule.reportAtOffset(
         offsetAndLength.offset,
         offsetAndLength.length,
-        diagnosticCode: LinterLintCode.analyzerPublicApiBadType,
+        diagnosticCode: diag.analyzerPublicApiBadType,
         arguments: [nonPublicProblems.join(', ')],
       );
     }
@@ -287,8 +287,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         offsetAndLength.offset,
         offsetAndLength.length,
-        diagnosticCode:
-            LinterLintCode.analyzerPublicApiExperimentalInconsistency,
+        diagnosticCode: diag.analyzerPublicApiExperimentalInconsistency,
         arguments: [nonPublicProblems.join(', ')],
       );
     }
@@ -329,6 +328,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   ({int length, int offset}) _offsetAndLengthForFragment(Fragment fragment) {
     while (true) {
+      if (fragment.element case PropertyAccessorElement element) {
+        if (element.isOriginVariable) {
+          // ignore: parameter_assignments
+          fragment = element.variable.firstFragment;
+        }
+      }
+      if (fragment.element case FieldElement element) {
+        if (element.isOriginDeclaringFormalParameter) {
+          // ignore:experimental_member_use, parameter_assignments
+          fragment = element.declaringFormalParameter!.firstFragment;
+        }
+      }
+
       if (fragment.nameOffset != null) {
         return (offset: fragment.nameOffset!, length: fragment.name!.length);
       } else if (fragment case PropertyAccessorFragment()
@@ -436,19 +448,19 @@ extension on String {
 extension on Element {
   bool get isInAnalyzerPublicApi {
     if (this case PropertyAccessorElement(
-      isSynthetic: true,
+      isOriginVariable: true,
       :var variable,
     ) when variable.isInAnalyzerPublicApi) {
       return true;
     }
     if (this case PropertyInducingElement(
-      isSynthetic: true,
+      isOriginGetterSetter: true,
       :var getter?,
     ) when getter.isInAnalyzerPublicApi) {
       return true;
     }
     if (this case PropertyInducingElement(
-      isSynthetic: true,
+      isOriginGetterSetter: true,
       :var setter?,
     ) when setter.isInAnalyzerPublicApi) {
       return true;

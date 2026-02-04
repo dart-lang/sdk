@@ -486,7 +486,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitIsolateGroupBoundIsolate,
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
                            T1, T2);
     } else {
       const intptr_t kPCRelativeLoadOffset = 12;
@@ -1038,6 +1038,16 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                         /*preserve_registers=*/false);
     rt.Call(kDeoptimizeFillFrameRuntimeEntry, 1);
   }
+  if (FLAG_target_thread_sanitizer) {
+    __ mv(CALLEE_SAVED_TEMP, A0);                   // Frames created
+    __ TsanFuncExit(/*preserve_registers=*/false);  // Optimized frame.
+    Label loop;
+    __ Bind(&loop);
+    __ li(A0, 42);
+    __ TsanFuncEntry(/*preserve_registers=*/false);  // Unoptimized frames.
+    __ subi(CALLEE_SAVED_TEMP, CALLEE_SAVED_TEMP, 1);
+    __ bnez(CALLEE_SAVED_TEMP, &loop);
+  }
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into T1.
     __ LoadFromOffset(
@@ -1302,18 +1312,39 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
                     target::Array::data_offset() - kHeapObjectTag);
     // R3: iterator which initially points to the start of the variable
     // data area to be initialized.
-    Label loop;
-    __ Bind(&loop);
-    for (intptr_t offset = 0; offset < target::kObjectAlignment;
-         offset += target::kCompressedWordSize) {
-      __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
-                                            Address(T3, offset), NULL_REG);
+
+    if (__ Supports(RV_V)) {
+      Register remaining_length = TMP;
+      Register vl = TMP2;
+      __ SmiUntag(remaining_length, AllocateArrayABI::kLengthReg);
+      Label loop;
+      __ Bind(&loop);
+#if XLEN == 32
+      __ vsetvli(vl, remaining_length, e32, m8, ta, ma);
+      __ vmvvx(V0, NULL_REG);
+      __ vse32v(V0, Address(T3));
+#else
+      __ vsetvli(vl, remaining_length, e64, m8, ta, ma);
+      __ vmvvx(V0, NULL_REG);
+      __ vse64v(V0, Address(T3));
+#endif
+      __ sub(remaining_length, remaining_length, vl);
+      __ AddShifted(T3, T3, vl, target::kWordSizeLog2);  // Bump dest.
+      __ bnez(remaining_length, &loop);
+    } else {
+      Label loop;
+      __ Bind(&loop);
+      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+           offset += target::kCompressedWordSize) {
+        __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                              Address(T3, offset), NULL_REG);
+      }
+      // Safe to only check every kObjectAlignment bytes instead of each word.
+      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+      __ addi(T3, T3, target::kObjectAlignment);
+      __ bltu(T3, T4, &loop);
+      __ WriteAllocationCanary(T4);  // Fix overshoot.
     }
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-    __ addi(T3, T3, target::kObjectAlignment);
-    __ bltu(T3, T4, &loop);
-    __ WriteAllocationCanary(T4);  // Fix overshoot.
 
     // Done allocating and initializing the array.
     // AllocateArrayABI::kResultReg: new object.
@@ -1407,6 +1438,9 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 
 #if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
   __ sx(GP, Address(A3, target::Thread::saved_shadow_call_stack_offset()));
+  // TODO(riscv): Enable once Fuchsia/Android have Zimop in their baseline.
+  // __ ssrdp(TMP);
+  // __ sx(TMP, Address(A3, target::Thread::saved_ss_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -1625,10 +1659,26 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
     // Initialize the context variables.
     // A0: new object.
     // T1: number of context variables.
-    {
+    __ AddImmediate(T3, A0,
+                    target::Context::variable_offset(0) - kHeapObjectTag);
+    if (__ Supports(RV_V)) {
+      Register vl = TMP2;
+      Label loop;
+      __ Bind(&loop);
+#if XLEN == 32
+      __ vsetvli(vl, T1, e32, m8, ta, ma);
+      __ vmvvx(V0, NULL_REG);
+      __ vse32v(V0, Address(T3));
+#else
+      __ vsetvli(vl, T1, e64, m8, ta, ma);
+      __ vmvvx(V0, NULL_REG);
+      __ vse64v(V0, Address(T3));
+#endif
+      __ sub(T1, T1, vl);                                // Remaining elements.
+      __ AddShifted(T3, T3, vl, target::kWordSizeLog2);  // Bump dest.
+      __ bnez(T1, &loop);
+    } else {
       Label loop, done;
-      __ AddImmediate(T3, A0,
-                      target::Context::variable_offset(0) - kHeapObjectTag);
       __ Bind(&loop);
       __ subi(T1, T1, 1);
       __ bltz(T1, &done);
@@ -1787,11 +1837,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ addi(T3, A1, target::Object::tags_offset() - kHeapObjectTag);
     // T3: Untagged address of header word (amo's do not support offsets).
     __ li(TMP2, ~(1 << target::UntaggedObject::kNotMarkedBit));
-#if XLEN == 32
-    __ amoandw(TMP2, TMP2, Address(T3, 0));
-#else
-    __ amoandd(TMP2, TMP2, Address(T3, 0));
-#endif
+    __ amoandx(TMP2, TMP2, Address(T3, 0));
     __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kNotMarkedBit);
     __ beqz(TMP2, &done);  // Was already clear -> lost race.
 
@@ -1861,11 +1907,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ addi(T3, A0, target::Object::tags_offset() - kHeapObjectTag);
     // T3: Untagged address of header word (amo's do not support offsets).
     __ li(TMP2, ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-#if XLEN == 32
-    __ amoandw(TMP2, TMP2, Address(T3, 0));
-#else
-    __ amoandd(TMP2, TMP2, Address(T3, 0));
-#endif
+    __ amoandx(TMP2, TMP2, Address(T3, 0));
     __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
     __ beqz(TMP2, &done);  // Was already clear -> lost race.
 
@@ -1905,11 +1947,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ srli(A6, A6, target::kBitsPerWordLog2);
     __ slli(A6, A6, target::kWordSizeLog2);
     __ add(TMP2, TMP2, A6);  // Card word address.
-#if XLEN == 32
-    __ amoorw(ZR, TMP, Address(TMP2, 0));
-#else
-    __ amoord(ZR, TMP, Address(TMP2, 0));
-#endif
+    __ amoorx(ZR, TMP, Address(TMP2, 0));
     __ ret();
   }
 }
@@ -2962,7 +3000,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   ASSERT(kExceptionObjectReg == A0);
   ASSERT(kStackTraceObjectReg == A1);
   __ mv(THR, A3);
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     Label again, done;
     __ lx(CALLEE_SAVED_TEMP,
           Address(THR, target::Thread::top_exit_frame_info_offset()));
@@ -2991,6 +3029,12 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   // and Exceptions::JumpToFrame, otherwise the shadow call stack might
   // eventually overflow.
   __ lx(GP, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
+  // TODO(riscv): Enable once Fuchsia/Android have Zimop in their baseline.
+  // __ lx(TMP, Address(THR, target::Thread::saved_ss_offset()));
+  // Label ss_disabled;
+  // __ beqz(TMP, &ss_disabled);
+  // __ csrw(0x011, TMP);
+  // __ Bind(&ss_disabled);
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -3511,17 +3555,53 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ AddImmediate(T3, A0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
         A0, FieldAddress(A0, target::PointerBase::data_offset()), T3);
-    Label loop;
-    __ Bind(&loop);
-    for (intptr_t offset = 0; offset < target::kObjectAlignment;
-         offset += target::kWordSize) {
-      __ sx(ZR, Address(T3, offset));
+
+    if (__ Supports(RV_V) && element_size <= 8) {
+      Register remaining_length = TMP;
+      Register vl = TMP2;
+      __ SmiUntag(remaining_length, AllocateTypedDataArrayABI::kLengthReg);
+      Label loop;
+      __ Bind(&loop);
+      switch (element_size) {
+        case 1:
+          __ vsetvli(vl, remaining_length, e8, m8, ta, ma);
+          __ vmvvx(V0, ZR);
+          __ vse8v(V0, Address(T3));
+          break;
+        case 2:
+          __ vsetvli(vl, remaining_length, e16, m8, ta, ma);
+          __ vmvvx(V0, ZR);
+          __ vse16v(V0, Address(T3));
+          break;
+        case 4:
+          __ vsetvli(vl, remaining_length, e32, m8, ta, ma);
+          __ vmvvx(V0, ZR);
+          __ vse32v(V0, Address(T3));
+          break;
+        case 8:
+          __ vsetvli(vl, remaining_length, e64, m8, ta, ma);
+          __ vmvvx(V0, ZR);
+          __ vse64v(V0, Address(T3));
+          break;
+        default:
+          UNREACHABLE();
+      }
+      __ sub(remaining_length, remaining_length, vl);
+      __ AddShifted(T3, T3, vl, scale_shift);  // Bump dest.
+      __ bnez(remaining_length, &loop);
+    } else {
+      Label loop;
+      __ Bind(&loop);
+      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+           offset += target::kWordSize) {
+        __ sx(ZR, Address(T3, offset));
+      }
+      // Safe to only check every kObjectAlignment bytes instead of each word.
+      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+      __ addi(T3, T3, target::kObjectAlignment);
+      __ bltu(T3, T4, &loop);
+      __ WriteAllocationCanary(T4);  // Fix overshoot.
     }
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-    __ addi(T3, T3, target::kObjectAlignment);
-    __ bltu(T3, T4, &loop);
-    __ WriteAllocationCanary(T4);  // Fix overshoot.
 
     __ Ret();
 

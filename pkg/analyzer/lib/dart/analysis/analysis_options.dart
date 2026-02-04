@@ -7,16 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
-
-@Deprecated("The 'PluginSource' classes are no longer public API")
-export 'package:analyzer/src/dart/analysis/analysis_options.dart'
-    show
-        GitPluginSource,
-        PathPluginSource,
-        PluginConfiguration,
-        PluginSource,
-        VersionedPluginSource;
 
 /// A set of analysis options used to control the behavior of an analysis
 /// context.
@@ -54,14 +44,6 @@ abstract class AnalysisOptions {
   /// [lint] is `true`.
   // ignore: analyzer_public_api_bad_type
   List<AbstractAnalysisRule> get lintRules;
-
-  /// The plugin configurations for each plugin which is configured in analysis
-  /// options.
-  ///
-  /// These are distinct from the legacy plugins found at
-  /// [enabledLegacyPluginNames].
-  @Deprecated('This will be removed without replacement')
-  List<PluginConfiguration> get pluginConfigurations;
 
   /// Whether implicit casts should be reported as potential problems.
   bool get strictCasts;

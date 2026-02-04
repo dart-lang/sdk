@@ -1,0 +1,17 @@
+class C1 {
+  new ()= ;
+  42;
+}
+
+class C2 {
+  new() = ;
+  42;
+}
+
+class C3 {
+  C3() = C3;
+}
+
+class C4 {
+  C4.name() = C4;
+}

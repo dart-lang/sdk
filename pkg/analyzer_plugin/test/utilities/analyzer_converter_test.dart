@@ -9,8 +9,8 @@ import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/src/dart/analysis/analysis_options.dart' as analyzer;
 import 'package:analyzer/src/dart/element/element.dart' as analyzer;
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as analyzer;
-import 'package:analyzer/src/error/codes.dart' as analyzer;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:test/test.dart';
@@ -38,7 +38,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     var diagnosticCode = analyzerDiagnostic.diagnosticCode;
     expect(pluginError, isNotNull);
     var location = pluginError.location;
-    expect(pluginError.code, diagnosticCode.name.toLowerCase());
+    expect(pluginError.code, diagnosticCode.lowerCaseName);
     expect(pluginError.correction, diagnosticCode.correctionMessage);
     expect(location, isNotNull);
     expect(location.file, analyzerDiagnostic.source.fullName);
@@ -78,7 +78,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
       source: testSource,
       offset: offset,
       length: 5,
-      diagnosticCode: analyzer.CompileTimeErrorCode.awaitInWrongContext,
+      diagnosticCode: diag.awaitInWrongContext,
       contextMessages: contextMessages,
     );
   }
@@ -186,7 +186,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
         (analyzer.AnalysisOptionsBuilder()
               ..errorProcessors.add(
                 analyzer.ErrorProcessor(
-                  analyzerErrors[0].diagnosticCode.name,
+                  analyzerErrors[0].diagnosticCode.lowerCaseName,
                   severity,
                 ),
               ))
@@ -233,7 +233,7 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
         (analyzer.AnalysisOptionsBuilder()
               ..errorProcessors.add(
                 analyzer.ErrorProcessor(
-                  analyzerErrors[0].diagnosticCode.name,
+                  analyzerErrors[0].diagnosticCode.lowerCaseName,
                   severity,
                 ),
               ))

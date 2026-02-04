@@ -45,6 +45,7 @@ agree
 agreeing
 ahe
 ai
+aid
 aiki
 ainv
 aka
@@ -225,6 +226,7 @@ caller's
 callers
 callsite
 came
+camel
 canary
 canonicalizer
 canonicalizing
@@ -381,6 +383,7 @@ counted
 counters
 covariances
 coverage
+covering
 cp
 cpu
 cr
@@ -453,6 +456,7 @@ delegating
 delim
 delimit
 delimiting
+delivered
 demands
 demangle
 demangled
@@ -862,6 +866,7 @@ implementers
 impls
 imply
 implying
+importability
 importantly
 imprecise
 improperly
@@ -904,6 +909,7 @@ initializations
 initializer's
 injecting
 inlines
+insensitive
 insertion
 insists
 inspect
@@ -991,6 +997,7 @@ jvm
 k
 kallentu
 kb
+kebab
 kernel's
 keyed
 kick
@@ -1684,6 +1691,7 @@ severities
 sh
 sha
 shadowed
+shadows
 shaker
 shaking
 shallow
@@ -1734,6 +1742,7 @@ slowing
 smi
 smith
 sn
+snake
 socket
 sockets
 soft
@@ -1745,6 +1754,7 @@ sortable
 sourcemap
 sourcemaps
 spaced
+spanned
 spans
 sparse
 spawn
@@ -1961,6 +1971,7 @@ tolerant
 tolerate
 tolerated
 tolerates
+tooling
 toplevel
 topmost
 topological

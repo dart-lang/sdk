@@ -17,7 +17,7 @@ class RemoveUnnecessaryLibraryDirective extends ResolvedCorrectionProducer {
       CorrectionApplicability.automaticallyButOncePerFile;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_LIBRARY_DIRECTIVE;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryLibraryDirective;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

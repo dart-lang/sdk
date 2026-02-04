@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,8 +16,7 @@ main() {
 @reflectiveTest
 class FinalInitializedByMultipleInitializersTest
     extends PubPackageResolutionTest {
-  static const _errorCode =
-      CompileTimeErrorCode.fieldInitializedByMultipleInitializers;
+  static const _errorCode = diag.fieldInitializedByMultipleInitializers;
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation2_bothInitialize() async {
@@ -170,7 +169,56 @@ class A {
 ''');
   }
 
-  test_class_two_initializers() async {
+  test_class_primaryConstructor_multiple_names() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  int f1;
+  int f2;
+  this : f1 = 0, f1 = 0, f2 = 0, f2 = 0;
+}
+''',
+      [error(_errorCode, 49, 2), error(_errorCode, 65, 2)],
+    );
+  }
+
+  test_class_primaryConstructor_three_initializers() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  int f;
+  this : f = 0, f = 1, f = 2;
+}
+''',
+      [error(_errorCode, 37, 1), error(_errorCode, 44, 1)],
+    );
+  }
+
+  test_class_primaryConstructor_two_initializers() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  int f;
+  this : f = 0, f = 1;
+}
+''',
+      [error(_errorCode, 37, 1)],
+    );
+  }
+
+  test_class_two_initializers_initInDeclaration() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int x = 0;
+  A() : x = 0, x = 1 {}
+}
+''',
+      [error(_errorCode, 38, 1)],
+    );
+  }
+
+  test_class_two_initializers_noInitInDeclaration() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -202,10 +250,7 @@ enum E {
   const E() : x = 0, x = 1;
 }
 ''',
-      [
-        error(CompileTimeErrorCode.constEvalThrowsException, 11, 1),
-        error(_errorCode, 50, 1),
-      ],
+      [error(diag.constEvalThrowsException, 11, 1), error(_errorCode, 50, 1)],
     );
   }
 }

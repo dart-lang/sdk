@@ -635,6 +635,13 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       var libraryElement = parent.declaredFragment!.element;
       return validateCreateFunction(_searchEngine, libraryElement, name);
     }
+    // Stop up through BlockClassBody or EnumBody.
+    switch (parent) {
+      case BlockClassBody():
+        parent = parent.parent!;
+      case EnumBody():
+        parent = parent.parent!;
+    }
     // method of class
     InterfaceElement? interfaceElement;
     if (parent is ClassDeclaration) {

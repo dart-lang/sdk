@@ -150,12 +150,6 @@ class _DartNavigationCollector {
   ) {
     if (offset == null || length == null || fragment == null) return;
 
-    // If this fragment is for a synthetic element, use the first fragment for
-    // the non-synthetic element.
-    if (fragment.element.isSynthetic) {
-      fragment = fragment.element.nonSynthetic.firstFragment;
-    }
-
     if (fragment.element == DynamicElementImpl.instance) {
       return;
     }
@@ -230,7 +224,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     var element = node.element;
-    if (element is ConstructorElement && element.isSynthetic) {
+    if (element is ConstructorElement && element.isOriginImplicitDefault) {
       element = element.enclosingElement;
     }
     var name = node.name;
@@ -268,8 +262,19 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    var fragment = node.declaredFragment;
+    if (fragment == null) return;
+    computer._addRegionForFragment(node.name, fragment);
+    super.visitCatchClauseParameter(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegionForFragment(node.name, node.declaredFragment);
+    computer._addRegionForFragment(
+      node.namePart.typeName,
+      node.declaredFragment,
+    );
     super.visitClassDeclaration(node);
   }
 
@@ -327,11 +332,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
     if (nameToken == null) {
       computer._addRegionForElement(
-        node.returnType,
+        // TODO(scheglov): support primary constructors
+        node.typeName!,
         node.declaredFragment?.element,
       );
     } else {
-      node.returnType.accept(this);
+      // TODO(scheglov): support primary constructors
+      node.typeName!.accept(this);
       computer._addRegionForFragment(nameToken, node.declaredFragment);
     }
 
@@ -359,7 +366,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       var classNameTargetElement = node.name != null
           ? namedType.element
           : element;
-      computer._addRegionForElement(namedType.name, classNameTargetElement);
+      computer._addRegionForElement(
+        namedType.name,
+        classNameTargetElement?.nonSynthetic,
+      );
     }
     // <TypeA, TypeB>
     namedType.typeArguments?.accept(this);
@@ -412,14 +422,32 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    computer._addRegionForFragment(
+      node.namePart.typeName,
+      node.declaredFragment,
+    );
+    super.visitEnumDeclaration(node);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     _addUriDirectiveRegion(node, node.libraryExport?.uri);
     super.visitExportDirective(node);
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
     computer._addRegionForFragment(node.name, node.declaredFragment);
+    super.visitExtensionDeclaration(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    computer._addRegionForFragment(
+      node.primaryConstructor.typeName,
+      node.declaredFragment,
+    );
     super.visitExtensionTypeDeclaration(node);
   }
 
@@ -440,6 +468,18 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    computer._addRegionForFragment(node.name, node.declaredFragment);
+    super.visitFunctionTypeAlias(node);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    computer._addRegionForFragment(node.name, node.declaredFragment);
+    super.visitGenericTypeAlias(node);
   }
 
   @override
@@ -489,10 +529,33 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    computer._addRegionForFragment(node.name, node.declaredFragment);
+    super.visitMixinDeclaration(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     node.importPrefix?.accept(this);
     computer._addRegionForElement(node.name, node.element);
     node.typeArguments?.accept(this);
+  }
+
+  @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    if (node.parent case ClassDeclaration declaration) {
+      computer._addRegionForFragment(
+        node.typeName,
+        declaration.declaredFragment,
+      );
+    }
+    if (node.parent case EnumDeclaration declaration) {
+      computer._addRegionForFragment(
+        node.typeName,
+        declaration.declaredFragment,
+      );
+    }
+    super.visitNameWithTypeParameters(node);
   }
 
   @override
@@ -563,30 +626,34 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.parent case ExtensionTypeDeclaration declaration) {
+      computer._addRegionForFragment(
+        node.typeName,
+        declaration.declaredFragment,
+      );
+    }
+    super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      computer._addRegionForFragment(node.name, primary.declaredFragment);
+    }
+    super.visitPrimaryConstructorName(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
-    Element? element = node.element;
-    if (element != null && element.isSynthetic) {
-      element = element.enclosingElement;
-    }
+    var element = node.element?.nonSynthetic;
     // add region
     computer._addRegionForElement(node.thisKeyword, element);
     computer._addRegionForElement(node.constructorName, element);
     // process arguments
     node.argumentList.accept(this);
-  }
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    if (node.constructorName?.name case var constructorName?) {
-      computer._addRegionForElement(
-        constructorName,
-        node.constructorFragment?.element,
-      );
-    }
-    computer._addRegionForFragment(node.fieldName, node.fieldFragment);
-    super.visitRepresentationDeclaration(node);
   }
 
   @override
@@ -621,10 +688,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    Element? element = node.element;
-    if (element != null && element.isSynthetic) {
-      element = element.enclosingElement;
-    }
+    var element = node.element?.nonSynthetic;
     // add region
     computer._addRegionForElement(node.superKeyword, element);
     computer._addRegionForElement(node.constructorName, element);

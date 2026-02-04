@@ -20,7 +20,7 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_CONSTRUCTOR;
+  FixKind get fixKind => DartFixKind.removeConstructor;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -63,16 +63,16 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
   }
 
   _Container? _findContainer() {
-    switch (node) {
+    switch (node.parent) {
       case ExtensionDeclaration extension:
         return _Container(
-          leftBracket: extension.leftBracket,
-          members: extension.members,
+          leftBracket: extension.body.leftBracket,
+          members: extension.body.members,
         );
       case MixinDeclaration mixin:
         return _Container(
-          leftBracket: mixin.leftBracket,
-          members: mixin.members,
+          leftBracket: mixin.body.leftBracket,
+          members: mixin.body.members,
         );
       default:
         return null;

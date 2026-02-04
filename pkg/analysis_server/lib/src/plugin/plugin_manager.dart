@@ -8,11 +8,13 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform, Process, ProcessResult;
+import 'dart:io' show Platform, ProcessResult;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
@@ -87,6 +89,9 @@ class PluginManager {
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;
 
+  /// The session logger that is being used by the analysis server.
+  final SessionLogger sessionLogger;
+
   /// A table mapping the paths of plugins to information about those plugins.
   final Map<String, PluginIsolate> _pluginMap = <String, PluginIsolate>{};
 
@@ -117,15 +122,24 @@ class PluginManager {
   /// the analysis server.
   Completer<void> initializedCompleter = Completer();
 
-  /// Initialize a newly created plugin manager. The notifications from the
-  /// running plugins will be handled by the given [_notificationManager].
+  final ProcessRunner _processRunner;
+
+  /// The set of context root paths with no configured _new_ plugins.
+  final contextRootsWithNoPlugins = <String>{};
+
+  /// Initializes a newly created plugin manager.
+  ///
+  /// The notifications from the running plugins will be handled by the given
+  /// [_notificationManager].
   PluginManager(
     this._resourceProvider,
     this._byteStorePath,
     this._sdkPath,
     this._notificationManager,
     this.instrumentationService,
-  );
+    this.sessionLogger, {
+    ProcessRunner processRunner = const ProcessRunner(),
+  }) : _processRunner = processRunner;
 
   /// All of the legacy plugins that are currently known.
   List<PluginIsolate> get legacyPluginIsolates =>
@@ -154,56 +168,62 @@ class PluginManager {
     required bool isLegacyPlugin,
   }) async {
     var pluginIsolate = _pluginMap[path];
-    var isNew = false;
-    if (pluginIsolate == null) {
-      isNew = true;
-      PluginFiles pluginFiles;
-      try {
-        pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
-      } catch (exception, stackTrace) {
-        pluginIsolate = PluginIsolate(
-          path,
-          null,
-          null,
-          _notificationManager,
-          instrumentationService,
-          isLegacy: isLegacyPlugin,
-        );
-        pluginIsolate.reportException(CaughtException(exception, stackTrace));
-        _pluginMap[path] = pluginIsolate;
-        return;
-      }
+    if (pluginIsolate != null) {
+      pluginIsolate.addContextRoot(contextRoot);
+      return;
+    }
+
+    var startedSuccessfully = true;
+    PluginFiles pluginFiles;
+    try {
+      pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
+    } catch (exception, stackTrace) {
       pluginIsolate = PluginIsolate(
         path,
-        pluginFiles.execution.path,
-        pluginFiles.packageConfig.path,
+        null,
+        null,
         _notificationManager,
         instrumentationService,
+        sessionLogger,
         isLegacy: isLegacyPlugin,
       );
+      pluginIsolate.reportException(CaughtException(exception, stackTrace));
       _pluginMap[path] = pluginIsolate;
-      try {
-        instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
-        var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
-        unawaited(
-          session?.onDone.then((_) {
-            if (_pluginMap[path] == pluginIsolate) {
-              _pluginMap.remove(path);
-              _notifyPluginsChanged();
-            }
-          }),
-        );
-      } catch (exception, stackTrace) {
-        // Record the exception (for debugging purposes) and record the fact
-        // that we should not try to communicate with the plugin.
-        pluginIsolate.reportException(CaughtException(exception, stackTrace));
-        isNew = false;
-      }
-
-      _notifyPluginsChanged();
+      return;
     }
+    pluginIsolate = PluginIsolate(
+      path,
+      pluginFiles.execution.path,
+      pluginFiles.packageConfig.path,
+      _notificationManager,
+      instrumentationService,
+      sessionLogger,
+      isLegacy: isLegacyPlugin,
+    );
+    try {
+      instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
+      var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
+      unawaited(
+        session?.onDone.then((_) {
+          if (_pluginMap[path] == pluginIsolate) {
+            _pluginMap.remove(path);
+            _notifyPluginsChanged();
+          }
+        }),
+      );
+    } catch (exception, stackTrace) {
+      // Record the exception (for debugging purposes) and record the fact
+      // that we should not try to communicate with the plugin.
+      pluginIsolate.reportException(CaughtException(exception, stackTrace));
+      startedSuccessfully = false;
+    }
+
+    _pluginMap[path] = pluginIsolate;
+
+    _notifyPluginsChanged();
+
     pluginIsolate.addContextRoot(contextRoot);
-    if (isNew) {
+    if (startedSuccessfully) {
       var analysisSetSubscriptionsParams = _analysisSetSubscriptionsParams;
       if (analysisSetSubscriptionsParams != null) {
         pluginIsolate.sendRequest(analysisSetSubscriptionsParams);
@@ -238,39 +258,36 @@ class PluginManager {
     return responseMap;
   }
 
-  /// Broadcast the given [watchEvent] to all of the plugins that are analyzing
-  /// in contexts containing the file associated with the event. Return a list
-  /// containing futures that will complete when each of the plugins have sent a
-  /// response.
-  Future<List<Future<Response>>> broadcastWatchEvent(
-    watcher.WatchEvent watchEvent,
-  ) async {
+  /// Broadcasts the given [watchEvent] to all of the plugins that are analyzing
+  /// in contexts containing the file associated with the event.
+  ///
+  /// Returns a list containing futures that will complete when each of the
+  /// plugins have sent a response.
+  List<Future<Response>> broadcastWatchEvent(watcher.WatchEvent watchEvent) {
     var filePath = watchEvent.path;
-
-    /// Return `true` if the given glob [pattern] matches the file being
-    /// watched.
-    bool matches(String pattern) => Glob(
-      _resourceProvider.pathContext.separator,
-      pattern,
-    ).matches(filePath);
 
     WatchEvent? event;
     var responses = <Future<Response>>[];
+    var separator = _resourceProvider.pathContext.separator;
     for (var pluginIsolate in _pluginMap.values) {
       var session = pluginIsolate.currentSession;
-      var interestingFiles = session?.interestingFiles;
-      if (session != null &&
-          pluginIsolate.isAnalyzing(filePath) &&
-          interestingFiles != null &&
-          interestingFiles.any(matches)) {
-        // The list of interesting file globs is `null` if the plugin has not
-        // yet responded to the plugin.versionCheck request. If that happens
-        // then the plugin hasn't had a chance to analyze anything yet, and
-        // hence it does not needed to get watch events.
-        event ??= _convertWatchEvent(watchEvent);
-        var params = AnalysisHandleWatchEventsParams([event]);
-        responses.add(session.sendRequest(params));
+      if (session == null) continue;
+      if (!pluginIsolate.isAnalyzing(filePath)) continue;
+      var interestingGlobs = session.interestingFileGlobs;
+
+      // The list of interesting file globs is `null` if the isolate has not yet
+      // responded to the 'plugin.versionCheck' request. If that happens, then
+      // the isolate hasn't had a chance to analyze anything yet; hence, it
+      // it does not need to get watch events, yet.
+      if (interestingGlobs == null) continue;
+
+      if (!interestingGlobs.any((g) => Glob(separator, g).matches(filePath))) {
+        continue;
       }
+
+      event ??= _convertWatchEvent(watchEvent);
+      var params = AnalysisHandleWatchEventsParams([event]);
+      responses.add(session.sendRequest(params));
     }
     return responses;
   }
@@ -283,24 +300,38 @@ class PluginManager {
   ///
   /// Throws a [PluginException] if there is a problem that prevents the plugin
   /// from being executing.
+  ///
+  /// [builtAsAot] can be passed in during a test, to simulate a different flow.
   @visibleForTesting
-  PluginFiles filesFor(String pluginPath, {required bool isLegacyPlugin}) {
+  PluginFiles filesFor(
+    String pluginPath, {
+    required bool isLegacyPlugin,
+    @visibleForTesting bool builtAsAot = _builtAsAot,
+  }) {
     var pluginFolder = _resourceProvider.getFolder(pluginPath);
     var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
     if (!pubspecFile.exists) {
       // If there's no pubspec file, then we don't need to copy the package
       // because we won't be running pub.
-      return _computeFiles(pluginFolder);
+      return _computeFiles(pluginFolder, builtAsAot: builtAsAot);
     }
     var workspace = BlazeWorkspace.find(_resourceProvider, pluginFolder.path);
     if (workspace != null) {
       // Similarly, we won't be running pub if we're in a workspace because
       // there is exactly one version of each package.
-      return _computeFiles(pluginFolder, workspace: workspace);
+      return _computeFiles(
+        pluginFolder,
+        builtAsAot: builtAsAot,
+        workspace: workspace,
+      );
     }
 
     if (!isLegacyPlugin) {
-      return _computeFiles(pluginFolder, pubCommand: 'upgrade');
+      return _computeFiles(
+        pluginFolder,
+        builtAsAot: builtAsAot,
+        pubCommand: 'upgrade',
+      );
     }
 
     // Copy the plugin directory to a unique subdirectory of the plugin
@@ -313,10 +344,18 @@ class PluginManager {
       var executionFolder = parentFolder.getChildAssumingFolder(
         pluginFolder.shortName,
       );
-      return _computeFiles(executionFolder, pubCommand: 'upgrade');
+      return _computeFiles(
+        executionFolder,
+        builtAsAot: builtAsAot,
+        pubCommand: 'upgrade',
+      );
     }
     var executionFolder = pluginFolder.copyTo(parentFolder);
-    return _computeFiles(executionFolder, pubCommand: 'get');
+    return _computeFiles(
+      executionFolder,
+      builtAsAot: builtAsAot,
+      pubCommand: 'get',
+    );
   }
 
   /// Return a list of all of the plugin isolates that are currently associated
@@ -344,6 +383,10 @@ class PluginManager {
     var stateName = _uniqueDirectoryName(pluginPath);
     return stateFolder.getChildAssumingFolder(stateName);
   }
+
+  /// The path to the "plugin state" folder for a plugin at [pluginPath].
+  String pluginStateFolderPath(String pluginPath) =>
+      pluginStateFolder(pluginPath).path;
 
   /// The given [contextRoot] is no longer being analyzed.
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
@@ -435,7 +478,10 @@ class PluginManager {
   /// content overlays to those specified by the [params]. As a side-effect,
   /// update the overlay state so that it can be sent to any newly started
   /// plugins.
-  void setAnalysisUpdateContentParams(AnalysisUpdateContentParams params) {
+  void setAnalysisUpdateContentParams(
+    AnalysisUpdateContentParams params, {
+    String? precomputedNewContentForChange,
+  }) {
     for (var plugin in _pluginMap.values) {
       plugin.sendRequest(params);
     }
@@ -447,12 +493,18 @@ class PluginManager {
       } else if (overlay is AddContentOverlay) {
         _overlayState[file] = overlay;
       } else if (overlay is ChangeContentOverlay) {
-        var previousOverlay = _overlayState[file]!;
-        var newContent = SourceEdit.applySequence(
-          previousOverlay.content,
-          overlay.edits,
-        );
-        _overlayState[file] = AddContentOverlay(newContent);
+        if (precomputedNewContentForChange != null) {
+          _overlayState[file] = AddContentOverlay(
+            precomputedNewContentForChange,
+          );
+        } else {
+          var previousOverlay = _overlayState[file]!;
+          var newContent = SourceEdit.applySequence(
+            previousOverlay.content,
+            overlay.edits,
+          );
+          _overlayState[file] = AddContentOverlay(newContent);
+        }
       } else {
         throw ArgumentError('Invalid class of overlay: ${overlay.runtimeType}');
       }
@@ -474,15 +526,16 @@ class PluginManager {
 
   /// Compiles [entrypoint] to an AOT snapshot and records timing to the
   /// instrumentation log.
-  ProcessResult _compileAotSnapshot(String entrypoint) {
+  ProcessResult _compileAotSnapshot(File entrypoint) {
     instrumentationService.logInfo(
       'Running "dart compile aot-snapshot $entrypoint".',
     );
 
     var stopwatch = Stopwatch()..start();
-    var result = Process.runSync(
+    var depfile = entrypoint.parent.getChildAssumingFile('depfile.txt');
+    var result = _processRunner.runSync(
       sdk.dart,
-      ['compile', 'aot-snapshot', entrypoint],
+      ['compile', 'aot-snapshot', '--depfile', depfile.path, entrypoint.path],
       stderrEncoding: utf8,
       stdoutEncoding: utf8,
     );
@@ -498,9 +551,30 @@ class PluginManager {
   /// Compiles [pluginFile], in [pluginFolder], to an AOT snapshot, and returns
   /// the [File] for the snapshot.
   File _compileAsAot({required File pluginFile, required Folder pluginFolder}) {
+    try {
+      // Potentially use existing snapshot.
+      var aotSnapshotFile = _existingAotSnapshot(
+        resourceProvider: _resourceProvider,
+        pluginFile: pluginFile,
+        pluginFolder: pluginFolder,
+      );
+      if (aotSnapshotFile != null) {
+        instrumentationService.logInfo(
+          'Using existing plugin AOT snapshot at '
+          "'${aotSnapshotFile.path}'",
+        );
+        return aotSnapshotFile;
+      }
+    } catch (error, stackTrace) {
+      instrumentationService.logException(
+        'Exception while checking an existing plugin AOT snapshot: '
+        '"$error"\n$stackTrace',
+      );
+    }
+
     // When the Dart Analysis Server is built as AOT, then all spawned
     // Isolates must also be built as AOT.
-    var aotResult = _compileAotSnapshot(pluginFile.path);
+    var aotResult = _compileAotSnapshot(pluginFile);
     if (aotResult.exitCode != 0) {
       var buffer = StringBuffer();
       buffer.writeln(
@@ -523,9 +597,10 @@ class PluginManager {
   /// Computes the plugin files, given that the plugin should exist in
   /// [pluginFolder].
   ///
-  /// Runs `pub` if [pubCommand] is not `null`.
+  /// Runs `pub <pubCommand>` in [pluginFolder] if [pubCommand] is not `null`.
   PluginFiles _computeFiles(
     Folder pluginFolder, {
+    required bool builtAsAot,
     String? pubCommand,
     Workspace? workspace,
   }) {
@@ -540,7 +615,10 @@ class PluginManager {
         .getChildAssumingFile(file_paths.packageConfigJson);
 
     if (pubCommand != null) {
-      var pubResult = _runPubCommand(pubCommand, pluginFolder);
+      var pubResult = _runPubCommand(
+        pubCommand,
+        workingDirectory: pluginFolder,
+      );
       String? exceptionReason;
       if (pubResult.exitCode != 0) {
         var buffer = StringBuffer();
@@ -558,7 +636,7 @@ class PluginManager {
         throw PluginException(exceptionReason);
       }
 
-      if (_builtAsAot) {
+      if (builtAsAot) {
         // Update the entrypoint path to be the AOT-compiled file.
         pluginFile = _compileAsAot(
           pluginFile: pluginFile,
@@ -586,7 +664,7 @@ class PluginManager {
       }
     }
 
-    if (_builtAsAot) {
+    if (builtAsAot) {
       // Update the entrypoint path to be the AOT-compiled file.
       pluginFile = _compileAsAot(
         pluginFile: pluginFile,
@@ -680,6 +758,56 @@ class PluginManager {
     return packageConfigFile;
   }
 
+  /// Returns a viable existing plugin AOT snapshot, if it exists and its
+  /// modification timestamp is newer than all of its dependencies, and `null`
+  /// otherwise.
+  ///
+  /// The dependencies of an AOT snapshot are the pubspec file, the
+  /// entrypoint file, and all of the files referenced in the depfile which
+  /// is generated by the `dart compile` command.
+  File? _existingAotSnapshot({
+    required ResourceProvider resourceProvider,
+    required File pluginFile,
+    required Folder pluginFolder,
+  }) {
+    var aotSnapshotFile = pluginFolder
+        .getChildAssumingFolder('bin')
+        .getChildAssumingFile('plugin.aot');
+    if (!aotSnapshotFile.exists) return null;
+    var snapshotModificationStamp = aotSnapshotFile.modificationStamp;
+
+    if (pluginFile.modificationStamp > snapshotModificationStamp) return null;
+    var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
+    if (pubspecFile.modificationStamp > snapshotModificationStamp) return null;
+
+    var depfile = pluginFolder
+        .getChildAssumingFolder('bin')
+        .getChildAssumingFile('depfile.txt');
+    if (!depfile.exists) return null;
+
+    var content = depfile.readAsStringSync();
+    var dependencies = parseDepfile(content);
+    if (dependencies == null) {
+      // Malformed depfile content.
+      return null;
+    }
+
+    for (var dependencyPath in dependencies) {
+      var file = _resourceProvider.getFile(dependencyPath);
+      if (!file.exists) {
+        // Something has certainly changed on disk; do not use the cached
+        // snapshot.
+        return null;
+      }
+      if (file.modificationStamp > snapshotModificationStamp) {
+        // Snapshot is stale.
+        return null;
+      }
+    }
+
+    return aotSnapshotFile;
+  }
+
   void _notifyPluginsChanged() => _pluginsChanged.add(null);
 
   /// Return the names of packages that are listed as dependencies in the given
@@ -700,20 +828,23 @@ class PluginManager {
   }
 
   /// Runs (and records timing to the instrumentation log) a Pub command
-  /// [pubCommand] in [folder].
-  ProcessResult _runPubCommand(String pubCommand, Folder folder) {
+  /// [pubCommand] in [workingDirectory].
+  ProcessResult _runPubCommand(
+    String pubCommand, {
+    required Folder workingDirectory,
+  }) {
     instrumentationService.logInfo(
-      'Running "pub $pubCommand" in "${folder.path}".',
+      'Running "pub $pubCommand" in "${workingDirectory.path}".',
     );
 
     var stopwatch = Stopwatch()..start();
-    var result = Process.runSync(
+    var result = _processRunner.runSync(
       sdk.dart,
       ['pub', pubCommand],
+      workingDirectory: workingDirectory.path,
+      environment: {_pubEnvironmentKey: _getPubEnvironmentValue()},
       stderrEncoding: utf8,
       stdoutEncoding: utf8,
-      workingDirectory: folder.path,
-      environment: {_pubEnvironmentKey: _getPubEnvironmentValue()},
     );
     stopwatch.stop();
 
@@ -728,6 +859,50 @@ class PluginManager {
   String _uniqueDirectoryName(String path) {
     var bytes = md5.convert(path.codeUnits).bytes;
     return hex.encode(bytes);
+  }
+
+  /// Parses Ninja-style depfile content, returning a list of dependency paths.
+  ///
+  /// Returns `null` if the text is not valid depfile content.
+  ///
+  /// The format is:
+  ///
+  ///     target: dependency1 dependency2 ...
+  ///
+  /// See https://ninja-build.org/manual.html#_depfile.
+  @visibleForTesting
+  static List<String>? parseDepfile(String content) {
+    var colonIndex = content.indexOf(': ');
+    if (colonIndex < 0) {
+      // Not a valid depfile.
+      return null;
+    }
+    var dependenciesString = content
+        .substring(colonIndex + 1)
+        .trimLeft()
+        .replaceAll(RegExp(r'[\r\n]'), '');
+    var dependencies = <String>[];
+    var start = 0;
+    while (start < dependenciesString.length) {
+      var index = start;
+      while (index < dependenciesString.length) {
+        var char = dependenciesString[index];
+        if (char == ' ') {
+          break;
+        } else if (char == r'\') {
+          index++;
+        }
+        index++;
+      }
+      dependencies.add(
+        dependenciesString
+            .substring(start, index)
+            .replaceAll(r'\\', r'\')
+            .replaceAll(r'\ ', ' '),
+      );
+      start = index + 1;
+    }
+    return dependencies.where((p) => p.isNotEmpty).toList();
   }
 
   /// Record the fact that the given [pluginIsolate] responded to a request with

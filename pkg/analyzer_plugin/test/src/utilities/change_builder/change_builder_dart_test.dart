@@ -174,6 +174,79 @@ class A {}
     await _assertwriteType2('(int, int)');
   }
 
+  Future<void> test_writeType_recursive() async {
+    // We were getting a stack overflow here.
+    // See https://github.com/dart-lang/sdk/issues/62272
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+class A<T extends A<T>> {
+  T? field;
+}
+''';
+    addSource(path, content);
+    var unitResult = await resolveFile(path);
+    var field = unitResult.libraryElement.getClass('A')!.getField('field')!;
+    var type = field.type;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(type);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('A<dynamic>?'));
+  }
+
+  Future<void> test_writeType_recursive2() async {
+    // We were getting a stack overflow here.
+    // See https://github.com/dart-lang/sdk/issues/62272
+
+    // This code would not compile, but we want to ensure that we don't
+    // overflow trying to write the type. See:
+    // https://dart-review.googlesource.com/c/sdk/+/469201/comment/47df5fb9_7bb1402a/
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+class B<O> {}
+class A<T extends B<A<T>>> {
+  T? field;
+}
+''';
+    addSource(path, content);
+    var unitResult = await resolveFile(path);
+    var field = unitResult.libraryElement.getClass('A')!.getField('field')!;
+    var type = field.type;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(type);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('B<A<dynamic>>?'));
+  }
+
+  Future<void> test_writeType_twoEqualTypeArguments() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+Map<int, int>? field;
+''';
+    addSource(path, content);
+    var unitResult = await resolveFile(path);
+    var field = unitResult.libraryElement.getTopLevelVariable('field')!;
+    var type = field.type;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(type);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('Map<int, int>?'));
+  }
+
   Future<void> test_writeTypeParameter_extends_keyword_canWriteType() async {
     var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = '''

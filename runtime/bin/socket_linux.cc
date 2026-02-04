@@ -43,8 +43,7 @@ static intptr_t Create(const RawAddr& addr) {
 }
 
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
-  intptr_t result = TEMP_FAILURE_RETRY(
-      connect(fd, &addr.addr, SocketAddress::GetAddrLength(addr)));
+  intptr_t result = TEMP_FAILURE_RETRY(connect(fd, &addr.addr, addr.size));
   if ((result == 0) || (errno == EINPROGRESS)) {
     return fd;
   }
@@ -65,8 +64,7 @@ intptr_t Socket::CreateUnixDomainConnect(const RawAddr& addr) {
   if (fd < 0) {
     return fd;
   }
-  intptr_t result = TEMP_FAILURE_RETRY(connect(
-      fd, (struct sockaddr*)&addr.un, SocketAddress::GetAddrLength(addr)));
+  intptr_t result = TEMP_FAILURE_RETRY(connect(fd, &addr.addr, addr.size));
   if (result == 0 || errno == EAGAIN) {
     return fd;
   }
@@ -85,8 +83,8 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   VOID_NO_RETRY_EXPECTED(
       setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
 
-  intptr_t result = TEMP_FAILURE_RETRY(
-      bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
+  intptr_t result =
+      TEMP_FAILURE_RETRY(bind(fd, &source_addr.addr, source_addr.size));
   if (result != 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
@@ -102,15 +100,14 @@ intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
     return fd;
   }
 
-  intptr_t result = TEMP_FAILURE_RETRY(
-      bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
+  intptr_t result =
+      TEMP_FAILURE_RETRY(bind(fd, &source_addr.addr, source_addr.size));
   if (result != 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
 
-  result = TEMP_FAILURE_RETRY(connect(fd, (struct sockaddr*)&addr.un,
-                                      SocketAddress::GetAddrLength(addr)));
+  result = TEMP_FAILURE_RETRY(connect(fd, &addr.addr, addr.size));
   if (result == 0 || errno == EAGAIN) {
     return fd;
   }
@@ -170,8 +167,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
     return -1;
   }
 
-  if (NO_RETRY_EXPECTED(
-          bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
+  if (NO_RETRY_EXPECTED(bind(fd, &addr.addr, addr.size)) < 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
@@ -199,8 +195,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
         setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)));
   }
 
-  if (NO_RETRY_EXPECTED(
-          bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
+  if (NO_RETRY_EXPECTED(bind(fd, &addr.addr, addr.size)) < 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
@@ -226,8 +221,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
 intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
                                                   intptr_t backlog) {
   intptr_t fd = Create(addr);
-  if (NO_RETRY_EXPECTED(bind(fd, (struct sockaddr*)&addr.un,
-                             SocketAddress::GetAddrLength(addr))) < 0) {
+  if (NO_RETRY_EXPECTED(bind(fd, &addr.addr, addr.size)) < 0) {
     FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
@@ -254,10 +248,9 @@ static bool IsTemporaryAcceptError(int error) {
 
 intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;
-  struct sockaddr clientaddr;
-  socklen_t addrlen = sizeof(clientaddr);
-  socket = TEMP_FAILURE_RETRY(
-      accept4(fd, &clientaddr, &addrlen, SOCK_NONBLOCK | SOCK_CLOEXEC));
+  RawAddr client_addr;
+  socket = TEMP_FAILURE_RETRY(accept4(fd, &client_addr.addr, &client_addr.size,
+                                      SOCK_NONBLOCK | SOCK_CLOEXEC));
   if (socket == -1) {
     if (IsTemporaryAcceptError(errno)) {
       // We need to signal to the caller that this is actually not an

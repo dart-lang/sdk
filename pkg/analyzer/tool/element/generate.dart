@@ -121,6 +121,10 @@ mixin _${fragmentName}Mixin {
       for (var modifier in generateFragment.modifiers) {
         var name = modifier.name;
         var constName = name.removePrefixOrSelf('is').toScreamingSnake();
+        // TODO(scheglov): remove after removing `isSynthetic`.
+        if (fragmentName == 'FragmentImpl' && name == 'isSynthetic') {
+          out.writeln("@Deprecated('Use isOriginX instead')");
+        }
         out.write('''
 ${modifier.documentationComment ?? ''}
 bool get $name {

@@ -32,7 +32,7 @@
 ///             }
 ///             "mirrors": {
 ///                "uri": "mirrors/mirrors.dart",
-///                "supported": false
+///                "support_conditional_import": false
 ///             }
 ///         }
 ///       }
@@ -61,23 +61,45 @@
 ///     which will be resolved relative to the location of the library
 ///     specification file.
 ///
-///   - The "supported" entry on the library information is optional. The value
-///     is a boolean indicating whether the library is supported in the
-///     underlying target.  However, since the libraries are assumed to be
-///     supported by default, we only expect users to use `false`.
+///   - The "support_conditional_import" entry on the library information is
+///     optional. The value is a boolean indicating whether the library is
+///     supported in the underlying target.  However, since the libraries are
+///     assumed to be supported by default, we only expect users to use
+///     `false`.
 ///
 ///     The purpose of this value is to configure conditional imports and
 ///     environment constants. By default every platform library that is
 ///     available in the "libraries" section implicitly defines an environment
 ///     variable `dart.library.name` as `"true"`, to indicate that the library
 ///     is supported.  Some backends allow imports to an unsupported platform
-///     library (turning a static error into a runtime error when the library is
-///     eventually accessed). These backends can use `supported: false` to
-///     report that such library is still not supported in conditional imports
-///     and const `fromEnvironment` expressions.
+///     library (turning a static error into a runtime error when the library
+///     is eventually accessed). These backends can use
+///     `support_conditional_import: false` to report that such library is
+///     still not supported in conditional imports and const `fromEnvironment`
+///     expressions.
 ///
 ///     Internal libraries are never supported through conditional imports and
 ///     const `fromEnvironment` expressions.
+///
+///   - The "support_direct_import" entry on the library information is
+///     optional. The value is an enumerated type indicating whether the library
+///     is allowed to be imported by the underlying target. This property can
+///     take one of the following values:
+///
+///       - "always": the library is supported by the underlying target and
+///          can always be imported. This is the default.
+///       - "never": the library is not supported by the underlying target and
+///          imports of the library will be treated as compile time errors.
+///       - "with_flag": the library is only supported when the
+///         `--include-unsupported-platform-library-stubs` flag is set. If the
+///          flag is not set, imports of the library will be treated as
+///          compile time errors. Otherwise, the import will be allowed.
+///
+///     Some backends allow imports to an unsupported platform library (turning
+///     a static error into a runtime error when the library is eventually
+///     accessed). These backends can use `support_direct_import: "with_flag"`
+///     to control access to these libraries, allowing for developer tooling to
+///     handle code which imports unsupported libraries for a given platform.
 ///
 ///   - The "include" entry is a list of maps, each containing either a "path"
 ///     and a "target" entry, or only a "target" entry.
@@ -314,17 +336,36 @@ class LibrariesSpecification {
           _reportError(messagePatchesMustBeListOrString(libraryName));
         }
 
-        dynamic supported = data['supported'] ?? true;
-        if (supported is! bool) {
-          _reportError(messageSupportedIsNotABool(supported));
+        final Object supportConditionalImport =
+            data['support_conditional_import'] ?? true;
+        if (supportConditionalImport is! bool) {
+          _reportError(
+            messagePropertyIsNotABool(
+              'support_conditional_import',
+              supportConditionalImport,
+            ),
+          );
         }
+
+        final Object? supportDirectImportRaw = data['support_direct_import'];
+        final Importability? importability = supportDirectImportRaw == null
+            ? Importability.always
+            : Importability.fromJson(supportDirectImportRaw);
+        if (importability == null) {
+          _reportError(
+            messageSupportDirectImportIsNotValidValue(supportDirectImportRaw!),
+          );
+        }
+
         libraries[libraryName] = new LibraryInfo(
           libraryName,
           uri,
           patches,
           // Internal libraries are never supported through conditional
           // imports and const `fromEnvironment` expressions.
-          isSupported: supported && !libraryName.startsWith('_'),
+          supportConditionalImport:
+              supportConditionalImport && !libraryName.startsWith('_'),
+          importability: importability,
         );
       });
       currentTargets.remove(targetName);
@@ -362,13 +403,42 @@ class LibrariesSpecification {
           'uri': pathFor(lib.uri),
           'patches': lib.patches.map(pathFor).toList(),
         };
-        if (!lib.isSupported) {
-          libraries[name]['supported'] = false;
+        if (!lib.supportConditionalImport) {
+          libraries[name]['support_conditional_import'] = false;
+        }
+        if (lib.importability != Importability.always) {
+          libraries[name]['support_direct_import'] = lib.importability.value;
         }
       });
       result[targetName] = {'libraries': libraries};
     });
     return result;
+  }
+}
+
+/// Determines whether or not a `dart:*` library is importable for a given
+/// platform.
+enum Importability {
+  /// This `dart:*` library is always importable on the target platform.
+  always(value: 'always'),
+
+  /// This `dart:*` library is only importable on the target platform when
+  /// `--include-unsupported-platform-library-stubs` is provided to the CFE.
+  withFlag(value: 'with_flag'),
+
+  /// This `dart:*` library is never importable on the target platform.
+  never(value: 'never');
+
+  const Importability({required this.value});
+
+  final String value;
+
+  static Importability? fromJson(Object? value) {
+    if (value is! String) return null;
+    if (value == always.value) return always;
+    if (value == withFlag.value) return withFlag;
+    if (value == never.value) return never;
+    return null;
   }
 }
 
@@ -404,13 +474,19 @@ class LibraryInfo {
 
   /// Whether the library is supported and thus `dart.library.name` is "true"
   /// for conditional imports and fromEnvironment constants.
-  final bool isSupported;
+  final bool supportConditionalImport;
+
+  /// Whether the library is importable for a given target platform.
+  ///
+  /// If not explicitly provided, this field defaults to [Importability.always].
+  final Importability importability;
 
   const LibraryInfo(
     this.name,
     this.uri,
     this.patches, {
-    this.isSupported = true,
+    this.supportConditionalImport = true,
+    this.importability = Importability.always,
   });
 
   /// The import uri for the defined library.
@@ -495,6 +571,19 @@ String messageUnsupportedUriScheme(String uriValue, Uri specUri) =>
 String messagePatchesMustBeListOrString(String libraryName) =>
     '"patches" entry for "$libraryName" is not a list or a string.';
 
-String messageSupportedIsNotABool(Object supportedValue) =>
-    '"supported" entry: expected a `bool` but '
-    'got a `${supportedValue.runtimeType}` ("$supportedValue").';
+String messagePropertyIsNotABool(String key, Object value) =>
+    '"$key" entry: expected a `bool` but '
+    'got a `${value.runtimeType}` ("$value").';
+
+String messageOnlyOnePropertyCanBeDefined(List<String> properties) {
+  return 'Only one of the following properties can be defined: '
+      '${properties.map((e) => '`$e`').join(',')}.';
+}
+
+String messageSupportDirectImportIsNotValidValue(Object value) {
+  final String values = Importability.values
+      .map((e) => '`${e.value}`')
+      .join(',');
+  return '"support_direct_import" entry: expected one of $values but got a '
+      '`${value.runtimeType}` ("$value").';
+}

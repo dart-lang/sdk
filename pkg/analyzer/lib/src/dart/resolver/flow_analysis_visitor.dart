@@ -92,8 +92,7 @@ class FlowAnalysisHelper {
     AstNodeImpl,
     StatementImpl,
     ExpressionImpl,
-    PromotableElementImpl,
-    SharedTypeView
+    PromotableElementImpl
   >?
   flow;
 
@@ -188,8 +187,7 @@ class FlowAnalysisHelper {
           AstNodeImpl,
           StatementImpl,
           ExpressionImpl,
-          PromotableElementImpl,
-          SharedTypeView
+          PromotableElementImpl
         >(
           typeOperations,
           assignedVariables!,
@@ -962,7 +960,7 @@ class TypeSystemOperations
     if (field is! FieldElement) {
       return PropertyNonPromotabilityReason.isNotField;
     }
-    if (field.isSynthetic && !property.isSynthetic) {
+    if (field.isOriginGetterSetter) {
       // The field is synthetic but not the property; this means that what was
       // declared by the user was the property (the getter).
       return PropertyNonPromotabilityReason.isNotField;

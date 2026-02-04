@@ -243,6 +243,17 @@ class TestPluginManager implements PluginManager {
       StreamController.broadcast();
 
   @override
+  final contextRootsWithNoPlugins = <String>{};
+
+  @override
+  List<PluginIsolate> get legacyPluginIsolates =>
+      pluginIsolates.where((e) => e.isLegacy).toList();
+
+  @override
+  List<PluginIsolate> get newPluginIsolates =>
+      pluginIsolates.where((e) => !e.isLegacy).toList();
+
+  @override
   Stream<void> get pluginsChanged => pluginsChangedController.stream;
 
   @override
@@ -264,15 +275,16 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Future<List<Future<plugin.Response>>> broadcastWatchEvent(
-    WatchEvent watchEvent,
-  ) async {
+  List<Future<plugin.Response>> broadcastWatchEvent(WatchEvent watchEvent) {
     return [];
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw Exception('Unexpected invocation of ${invocation.memberName}');
+
+  @override
+  String pluginStateFolderPath(String pluginPath) => '/some/path';
 
   @override
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
@@ -300,8 +312,9 @@ class TestPluginManager implements PluginManager {
 
   @override
   void setAnalysisUpdateContentParams(
-    plugin.AnalysisUpdateContentParams params,
-  ) {
+    plugin.AnalysisUpdateContentParams params, {
+    String? precomputedNewContentForChange,
+  }) {
     analysisUpdateContentParams = params;
   }
 }

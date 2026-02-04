@@ -35,7 +35,6 @@ Cq-Include-Trybots: luci.dart.try:analyzer-linux-release-try,dart2js-minified-li
 
 rm -rf tests/co19/src.git
 
-GIT_EDITOR=true git cl upload
-ISSUE=$(git config --get branch.cl-co19-roll-co19-to-$NEW.gerritissue)
+GIT_EDITOR=true git cl upload --reviewers=athom@google.com,eernst@google.com \
+  --send-mail --auto-submit
 
-git cl web

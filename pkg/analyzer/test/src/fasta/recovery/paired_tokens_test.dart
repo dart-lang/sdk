@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'recovery_test_support.dart';
@@ -26,7 +26,7 @@ class AngleBracketsTest extends AbstractRecoveryTest {
       '''
 List<List<int>
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 List<List<int>> _s_;
 ''',
@@ -38,7 +38,7 @@ List<List<int>> _s_;
       '''
 List<List<int> f;
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 List<List<int>> f;
 ''',
@@ -51,7 +51,7 @@ List<List<int>> f;
       '''
 Map<List<int, List<String>>
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 Map<List<int>, List<String>> _s_;
 ''',
@@ -64,7 +64,7 @@ Map<List<int>, List<String>> _s_;
       '''
 Map<List<int, List<String>> f;
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 Map<List<int, List<String>>> f;
 ''',
@@ -76,7 +76,7 @@ Map<List<int, List<String>>> f;
       '''
 List<int double> f;
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 List<int, double> f;
 ''',
@@ -89,7 +89,7 @@ List<int, double> f;
       '''
 List<int
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 List<int> _s_;
 ''',
@@ -101,7 +101,7 @@ List<int> _s_;
       '''
 List<int f;
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 List<int> f;
 ''',
@@ -114,17 +114,17 @@ List<int> f;
 f<T>>() => null;
 ''',
       [
-        ParserErrorCode.topLevelOperator,
-        ParserErrorCode.missingFunctionParameters,
-        ParserErrorCode.missingFunctionBody,
+        diag.topLevelOperator,
+        diag.missingFunctionParameters,
+        diag.missingFunctionBody,
       ],
       '''
 f<T> > () => null;
 ''',
       expectedDiagnosticsInValidCode: [
-        ParserErrorCode.topLevelOperator,
-        ParserErrorCode.missingFunctionParameters,
-        ParserErrorCode.missingFunctionBody,
+        diag.topLevelOperator,
+        diag.missingFunctionParameters,
+        diag.missingFunctionBody,
       ],
     );
   }
@@ -134,10 +134,7 @@ f<T> > () => null;
       '''
 f<T extends Function()() => null;
 ''',
-      [
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.missingFunctionParameters,
-      ],
+      [diag.expectedToken, diag.missingFunctionParameters],
       '''
 f<T extends Function()>() => null;
 ''',
@@ -149,10 +146,7 @@ f<T extends Function()>() => null;
       '''
 f<T extends Function<X>()() => null;
 ''',
-      [
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.missingFunctionParameters,
-      ],
+      [diag.expectedToken, diag.missingFunctionParameters],
       '''
 f<T extends Function<X>()>() => null;
 ''',
@@ -164,7 +158,7 @@ f<T extends Function<X>()>() => null;
       '''
 f<T>=() => null;
 ''',
-      [ParserErrorCode.unexpectedToken],
+      [diag.unexpectedToken],
       '''
 f<T>() => null;
 ''',
@@ -176,7 +170,7 @@ f<T>() => null;
       '''
 f<T extends List<int>>=() => null;
 ''',
-      [ParserErrorCode.unexpectedToken],
+      [diag.unexpectedToken],
       '''
 f<T extends List<int>>() => null;
 ''',
@@ -188,10 +182,7 @@ f<T extends List<int>>() => null;
       '''
 f<T() => null;
 ''',
-      [
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.missingFunctionParameters,
-      ],
+      [diag.expectedToken, diag.missingFunctionParameters],
       '''
 f<T>() => null;
 ''',
@@ -203,10 +194,7 @@ f<T>() => null;
       '''
 f<T extends List<int>() => null;
 ''',
-      [
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.missingFunctionParameters,
-      ],
+      [diag.expectedToken, diag.missingFunctionParameters],
       '''
 f<T extends List<int>>() => null;
 ''',
@@ -224,7 +212,7 @@ f(x) {
   if (x != null) {
 }
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(x) {
   if (x != null) {}
@@ -243,7 +231,7 @@ f(x) {
   while (x == null) {}
 }
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(x) {
   if (x != null) {}
@@ -261,7 +249,7 @@ f(x) {
 f(x) {
 class C {}
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(x) {}
 class C {}
@@ -277,7 +265,7 @@ class C {}
 f(x) {
 g(y) => y;
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(x) {}
 g(y) => y;
@@ -290,7 +278,7 @@ g(y) => y;
       '''
 f(x) {
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(x) {}
 ''',
@@ -305,7 +293,7 @@ f(x) {}
 f(x) {
 int y = 0;
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(x) {}
 int y = 0;
@@ -322,7 +310,7 @@ class BracketsTest extends AbstractRecoveryTest {
       '''
 f(x) => l[x
 ''',
-      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [diag.expectedToken, diag.expectedToken],
       '''
 f(x) => l[x];
 ''',
@@ -334,7 +322,7 @@ f(x) => l[x];
       '''
 f(x) => l?[x
 ''',
-      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [diag.expectedToken, diag.expectedToken],
       '''
 f(x) => l?[x];
 ''',
@@ -346,7 +334,7 @@ f(x) => l?[x];
       '''
 var x = [[0], [1];
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 var x = [[0], [1]];
 ''',
@@ -358,7 +346,7 @@ var x = [[0], [1]];
       '''
 var x = [[0], [1, [2]];
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 var x = [[0], [1, [2]]];
 ''',
@@ -370,7 +358,7 @@ var x = [[0], [1, [2]]];
       '''
 var x = [0 1];
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 var x = [0, 1];
 ''',
@@ -382,7 +370,7 @@ var x = [0, 1];
       '''
 var x = [0, 1
 ''',
-      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [diag.expectedToken, diag.expectedToken],
       '''
 var x = [0, 1];
 ''',
@@ -402,7 +390,7 @@ f(x) {
   if (x
 }
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(x) {
   if (x);
@@ -421,7 +409,7 @@ f(x) {
   while(x != null) {}
 }
 ''',
-      [ScannerErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(x) {
   if (x);
@@ -438,7 +426,7 @@ f(x) {
 f(x
 class C {}
 ''',
-      [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
+      [diag.expectedToken, diag.missingFunctionBody],
       '''
 f(x) {}
 class C {}
@@ -451,7 +439,7 @@ class C {}
       '''
 f(x
 ''',
-      [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
+      [diag.expectedToken, diag.missingFunctionBody],
       '''
 f(x) {}
 ''',

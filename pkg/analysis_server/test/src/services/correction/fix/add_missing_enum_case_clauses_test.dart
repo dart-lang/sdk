@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,8 +31,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
     var hasError = false;
     return (error) {
       if (!hasError &&
-          error.diagnosticCode ==
-              StaticWarningCode.missingEnumConstantInSwitch) {
+          error.diagnosticCode == diag.missingEnumConstantInSwitch) {
         hasError = true;
         return true;
       }
@@ -41,7 +40,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
   }
 
   Future<void> assertHasFixWithFilter(String expected) async {
-    await assertHasFix(expected, errorFilter: _filter);
+    await assertHasFix(expected, filter: _filter);
   }
 
   Future<void> test_empty_language219() async {
@@ -274,7 +273,7 @@ void f(E e) {
   switch(e
 }
 ''');
-    await assertNoFix(errorFilter: _filter);
+    await assertNoFix(filter: _filter);
   }
 
   Future<void> test_notBrackets_language219() async {

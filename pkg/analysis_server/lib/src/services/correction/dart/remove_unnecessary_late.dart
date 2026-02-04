@@ -17,10 +17,10 @@ class RemoveUnnecessaryLate extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_LATE;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryLate;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_LATE_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryLateMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

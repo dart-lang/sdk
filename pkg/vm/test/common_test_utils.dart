@@ -38,9 +38,7 @@ Future<Component> compileTestCaseToKernelProgram(
   Directory? tempDirectory;
   try {
     final platformFileName =
-        (target is WasmTarget)
-            ? target.platformFile
-            : 'vm_platform.dill';
+        (target is WasmTarget) ? target.platformFile : 'vm_platform.dill';
     final platformKernel = computePlatformBinariesLocation().resolve(
       platformFileName,
     );

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -25,7 +24,7 @@ Stream<int> f() async* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 49, 6)],
+      [error(diag.returnInGenerator, 49, 6)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -61,11 +60,11 @@ FunctionDeclaration
               staticType: int
             semicolon: ;
         rightBracket: }
-    declaredElement: <testLibraryFragment> f@34
+    declaredFragment: <testLibraryFragment> f@34
       element: <testLibrary>::@function::f
         type: Stream<int> Function()
     staticType: Stream<int> Function()
-  declaredElement: <testLibraryFragment> f@34
+  declaredFragment: <testLibraryFragment> f@34
     element: <testLibrary>::@function::f
       type: Stream<int> Function()
 ''');
@@ -78,7 +77,7 @@ import 'dart:async';
 
 Stream<int> f() async* => 0;
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 45, 2)],
+      [error(diag.returnInGenerator, 45, 2)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -109,11 +108,11 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: <testLibraryFragment> f@34
+    declaredFragment: <testLibraryFragment> f@34
       element: <testLibrary>::@function::f
         type: Stream<int> Function()
     staticType: Stream<int> Function()
-  declaredElement: <testLibraryFragment> f@34
+  declaredFragment: <testLibraryFragment> f@34
     element: <testLibrary>::@function::f
       type: Stream<int> Function()
 ''');
@@ -194,7 +193,7 @@ FunctionDeclaration
               rightBracket: >
             element: dart:core::@class::List
             type: List<T>
-          declaredElement: <testLibraryFragment> T@7
+          declaredFragment: <testLibraryFragment> T@7
             defaultType: List<dynamic>
       rightBracket: >
     parameters: FormalParameterList
@@ -204,11 +203,11 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment> m@5
+    declaredFragment: <testLibraryFragment> m@5
       element: <testLibrary>::@function::m
         type: void Function<T extends List<T>>()
     staticType: void Function<T extends List<T>>()
-  declaredElement: <testLibraryFragment> m@5
+  declaredFragment: <testLibraryFragment> m@5
     element: <testLibrary>::@function::m
       type: void Function<T extends List<T>>()
 ''');
@@ -238,7 +237,7 @@ FunctionDeclaration
             name: num
             element: dart:core::@class::num
             type: num
-          declaredElement: <testLibraryFragment> T@7
+          declaredFragment: <testLibraryFragment> T@7
             defaultType: num
       rightBracket: >
     parameters: FormalParameterList
@@ -248,11 +247,11 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment> m@5
+    declaredFragment: <testLibraryFragment> m@5
       element: <testLibrary>::@function::m
         type: void Function<T extends num>()
     staticType: void Function<T extends num>()
-  declaredElement: <testLibraryFragment> m@5
+  declaredFragment: <testLibraryFragment> m@5
     element: <testLibrary>::@function::m
       type: void Function<T extends num>()
 ''');
@@ -265,7 +264,7 @@ void f() {
   void m<T extends List<T>>() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
@@ -295,7 +294,7 @@ FunctionDeclaration
               rightBracket: >
             element: dart:core::@class::List
             type: List<T>
-          declaredElement: <testLibraryFragment> T@20
+          declaredFragment: <testLibraryFragment> T@20
             defaultType: List<dynamic>
       rightBracket: >
     parameters: FormalParameterList
@@ -305,11 +304,11 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment> m@18
+    declaredFragment: <testLibraryFragment> m@18
       element: m@18
         type: void Function<T extends List<T>>()
     staticType: void Function<T extends List<T>>()
-  declaredElement: <testLibraryFragment> m@18
+  declaredFragment: <testLibraryFragment> m@18
     element: m@18
       type: void Function<T extends List<T>>()
 ''');
@@ -322,7 +321,7 @@ void f() {
   void m<T extends num>() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
@@ -344,7 +343,7 @@ FunctionDeclaration
             name: num
             element: dart:core::@class::num
             type: num
-          declaredElement: <testLibraryFragment> T@20
+          declaredFragment: <testLibraryFragment> T@20
             defaultType: num
       rightBracket: >
     parameters: FormalParameterList
@@ -354,11 +353,11 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment> m@18
+    declaredFragment: <testLibraryFragment> m@18
       element: m@18
         type: void Function<T extends num>()
     staticType: void Function<T extends num>()
-  declaredElement: <testLibraryFragment> m@18
+  declaredFragment: <testLibraryFragment> m@18
     element: m@18
       type: void Function<T extends num>()
 ''');
@@ -369,7 +368,7 @@ FunctionDeclaration
       '''
 int get foo(double a) => 0;
 ''',
-      [error(ParserErrorCode.getterWithParameters, 11, 1)],
+      [error(diag.getterWithParameters, 11, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -390,7 +389,7 @@ FunctionDeclaration
           element: dart:core::@class::double
           type: double
         name: a
-        declaredElement: <testLibraryFragment> a@19
+        declaredFragment: <testLibraryFragment> a@19
           element: isPublic
             type: double
       rightParenthesis: )
@@ -400,11 +399,11 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: <testLibraryFragment> foo@8
+    declaredFragment: <testLibraryFragment> foo@8
       element: <testLibrary>::@getter::foo
         type: int Function(double)
     staticType: int Function(double)
-  declaredElement: <testLibraryFragment> foo@8
+  declaredFragment: <testLibraryFragment> foo@8
     element: <testLibrary>::@getter::foo
       type: int Function(double)
 ''');
@@ -417,7 +416,7 @@ Iterable<int> f() sync* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 28, 6)],
+      [error(diag.returnInGenerator, 28, 6)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -453,11 +452,11 @@ FunctionDeclaration
               staticType: int
             semicolon: ;
         rightBracket: }
-    declaredElement: <testLibraryFragment> f@14
+    declaredFragment: <testLibraryFragment> f@14
       element: <testLibrary>::@function::f
         type: Iterable<int> Function()
     staticType: Iterable<int> Function()
-  declaredElement: <testLibraryFragment> f@14
+  declaredFragment: <testLibraryFragment> f@14
     element: <testLibrary>::@function::f
       type: Iterable<int> Function()
 ''');
@@ -468,7 +467,7 @@ FunctionDeclaration
       '''
 Iterable<int> f() sync* => 0;
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 24, 2)],
+      [error(diag.returnInGenerator, 24, 2)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -499,11 +498,11 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: <testLibraryFragment> f@14
+    declaredFragment: <testLibraryFragment> f@14
       element: <testLibrary>::@function::f
         type: Iterable<int> Function()
     staticType: Iterable<int> Function()
-  declaredElement: <testLibraryFragment> f@14
+  declaredFragment: <testLibraryFragment> f@14
     element: <testLibrary>::@function::f
       type: Iterable<int> Function()
 ''');
@@ -514,7 +513,7 @@ FunctionDeclaration
       '''
 _() {}
 ''',
-      [error(WarningCode.unusedElement, 0, 1)],
+      [error(diag.unusedElement, 0, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -529,11 +528,11 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment> _@0
+    declaredFragment: <testLibraryFragment> _@0
       element: <testLibrary>::@function::_
         type: dynamic Function()
     staticType: dynamic Function()
-  declaredElement: <testLibraryFragment> _@0
+  declaredFragment: <testLibraryFragment> _@0
     element: <testLibrary>::@function::_
       type: dynamic Function()
 ''');
@@ -547,7 +546,7 @@ FunctionDeclaration
 
 _() {}
 ''',
-      [error(WarningCode.unusedElement, 44, 1)],
+      [error(diag.unusedElement, 44, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -562,11 +561,11 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment> _@44
+    declaredFragment: <testLibraryFragment> _@44
       element: <testLibrary>::@function::_
         type: dynamic Function()
     staticType: dynamic Function()
-  declaredElement: <testLibraryFragment> _@44
+  declaredFragment: <testLibraryFragment> _@44
     element: <testLibrary>::@function::_
       type: dynamic Function()
 ''');
@@ -580,10 +579,7 @@ FunctionDeclaration
       r'''
 void f<_ extends void Function<_>(_, _), _>() {}
 ''',
-      [
-        error(CompileTimeErrorCode.undefinedClass, 34, 1),
-        error(CompileTimeErrorCode.undefinedClass, 37, 1),
-      ],
+      [error(diag.undefinedClass, 34, 1), error(diag.undefinedClass, 37, 1)],
     );
 
     var node = findNode.typeParameter('<_>');
@@ -602,7 +598,7 @@ TypeParameter
       typeParameters
         TypeParameter
           name: _
-          declaredElement: <testLibraryFragment> _@31
+          declaredFragment: <testLibraryFragment> _@31
             defaultType: null
       rightBracket: >
     parameters: FormalParameterList
@@ -612,7 +608,7 @@ TypeParameter
           name: _
           element: <null>
           type: InvalidType
-        declaredElement: <testLibraryFragment> null@null
+        declaredFragment: <testLibraryFragment> null@null
           element: isPrivate
             type: InvalidType
       parameter: SimpleFormalParameter
@@ -620,11 +616,11 @@ TypeParameter
           name: _
           element: <null>
           type: InvalidType
-        declaredElement: <testLibraryFragment> null@null
+        declaredFragment: <testLibraryFragment> null@null
           element: isPrivate
             type: InvalidType
       rightParenthesis: )
-    declaredElement: GenericFunctionTypeElement
+    declaredFragment: GenericFunctionTypeElement
       parameters
         <empty>
           kind: required positional
@@ -637,7 +633,7 @@ TypeParameter
       returnType: void
       type: void Function<_>(InvalidType, InvalidType)
     type: void Function<_>(InvalidType, InvalidType)
-  declaredElement: <testLibraryFragment> _@7
+  declaredFragment: <testLibraryFragment> _@7
     defaultType: void Function<_>(InvalidType, InvalidType)
 ''');
   }

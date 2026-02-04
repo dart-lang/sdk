@@ -43,8 +43,8 @@ class PluginsPage extends DiagnosticPageWithNav {
         ['Bootstrap package path:', id],
         if (isolate.executionPath case var executionPath?)
           ['Execution path:', executionPath.wordBreakOnSlashes],
-        if (isolate.packagesPath case var packagesPath?)
-          ['Packages file path', packagesPath.wordBreakOnSlashes],
+        if (isolate.packageConfigPath case var packageConfigPath?)
+          ['Package config path', packageConfigPath.wordBreakOnSlashes],
       ]);
 
       if (data.name == null) {

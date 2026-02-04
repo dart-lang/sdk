@@ -520,9 +520,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     }
 
     return [
-      if (shouldIncludeKind(DartCodeActionKind.SortMembers))
+      if (shouldIncludeKind(DartCodeActionKind.sortMembers))
         createAction(
-          DartCodeActionKind.SortMembers,
+          DartCodeActionKind.sortMembers,
           'Sort Members',
           Commands.sortMembers,
         ),
@@ -533,8 +533,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           Commands.organizeImports,
         ),
       if (serverSupportsCommand(Commands.fixAll) &&
-          shouldIncludeKind(DartCodeActionKind.FixAll))
-        createAction(DartCodeActionKind.FixAll, 'Fix All', Commands.fixAll),
+          shouldIncludeKind(DartCodeActionKind.fixAll))
+        createAction(DartCodeActionKind.fixAll, 'Fix All', Commands.fixAll),
     ];
   }
 

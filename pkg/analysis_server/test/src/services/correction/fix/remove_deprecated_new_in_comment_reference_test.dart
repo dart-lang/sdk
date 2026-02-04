@@ -37,7 +37,7 @@ class A {
 @reflectiveTest
 class RemoveDeprecatedNewInCommentReferenceTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE;
+  FixKind get kind => DartFixKind.removeDeprecatedNewInCommentReference;
 
   Future<void> test_named() async {
     await resolveTestCode('''

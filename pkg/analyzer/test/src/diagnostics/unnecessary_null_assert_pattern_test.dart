@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,8 +23,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 33, 1),
-        error(StaticWarningCode.unnecessaryNullAssertPattern, 34, 1),
+        error(diag.unusedLocalVariable, 33, 1),
+        error(diag.unnecessaryNullAssertPattern, 34, 1),
       ],
     );
   }
@@ -36,7 +36,7 @@ void f(int? x) {
   if (x case var a!) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 34, 1)],
+      [error(diag.unusedLocalVariable, 34, 1)],
     );
   }
 
@@ -51,8 +51,8 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedClass, 0, 11),
-        error(CompileTimeErrorCode.undefinedFunction, 26, 11),
+        error(diag.undefinedClass, 0, 11),
+        error(diag.undefinedFunction, 26, 11),
       ],
     );
   }
@@ -67,7 +67,7 @@ void f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 0, 11)],
+      [error(diag.undefinedClass, 0, 11)],
     );
   }
 
@@ -81,8 +81,8 @@ class A<T extends num> {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 60, 1),
-        error(StaticWarningCode.unnecessaryNullAssertPattern, 61, 1),
+        error(diag.unusedLocalVariable, 60, 1),
+        error(diag.unnecessaryNullAssertPattern, 61, 1),
       ],
     );
   }
@@ -96,7 +96,7 @@ class A<T> {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 48, 1)],
+      [error(diag.unusedLocalVariable, 48, 1)],
     );
   }
 }

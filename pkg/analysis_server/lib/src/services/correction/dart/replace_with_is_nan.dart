@@ -20,7 +20,7 @@ class ReplaceWithIsNan extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_IS_NAN;
+  FixKind get fixKind => DartFixKind.replaceWithIsNaN;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

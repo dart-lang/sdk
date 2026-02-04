@@ -40,9 +40,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     class ^A {}
     ''');
 
-    await provideConfig(initialize, {
-      if (preference != null) 'documentation': preference,
-    });
+    await provideConfig(initialize, {'documentation': ?preference});
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
     var hover = await getHover(mainFileUri, code.position.position);
@@ -474,7 +472,7 @@ Type: `String`''';
     await openFile(mainFileUri, '');
     await expectLater(
       () => getHover(mainFileUri, Position(line: 999, character: 999)),
-      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+      throwsA(isResponseError(ServerErrorCodes.invalidFileLineCol)),
     );
   }
 
@@ -628,11 +626,31 @@ print();
     String [!a^bc!] = '';
     ''', contains('This is a string.'));
 
-  Future<void> test_method_callMethod() async {
+  Future<void> test_method_callMethod_invocation() async {
     var content = '''
 /// f doc.
 void f(int i) {
   f.[!call^!](1);
+}
+''';
+    var expected = '''
+```dart
+void f(int i)
+```
+Type: `void Function(int)`
+
+Declared in _package:test/main.dart_.
+
+---
+f doc.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_method_callMethod_tearOff() async {
+    var content = '''
+/// f doc.
+void f(int i) {
+  f.[!call^!];
 }
 ''';
     var expected = '''
@@ -901,12 +919,93 @@ Type: `String`
     await assertStringContents(content, equals(expectedHoverContent));
   }
 
+  Future<void> test_range_binaryOperator() async {
+    var content = '''
+var i = 1;
+var a = i [!+^!] i;
+''';
+    var expected = '''
+```dart
+num +(num other)
+```
+Declared in `num` in _dart:core_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_range_compoundAssignment() async {
+    var content = '''
+void f(int i) {
+  i [!+=^!] 1;
+}
+''';
+    var expected = '''
+```dart
+num +(num other)
+```
+Declared in `num` in _dart:core_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_range_conditional_colon() async {
+    var content = '''
+var i = 1;
+int f(bool a, int x) {
+  return a
+    ? x
+    [!:^!] x + 1;
+}
+''';
+    var expected = 'Type: `int`';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_range_conditional_question() async {
+    var content = '''
+var i = 1;
+int f(bool a, int x) {
+  return a
+    [!?^!] x
+    : x + 1;
+}
+''';
+    var expected = 'Type: `int`';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_range_multiLineConstructorCall() => assertStringContents('''
     final a = new [!Str^ing.fromCharCodes!]([
       1,
       2,
     ]);
     ''', contains('String.fromCharCodes('));
+
+  Future<void> test_range_postfix() async {
+    var content = '''
+int f(int i) {
+  return i[!+^+!];
+}
+''';
+    var expected = '''
+```dart
+num +(num other)
+```
+Declared in `num` in _dart:core_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_range_prefix() async {
+    var content = '''
+int f(int i) {
+  return [!+^+!]i;
+}
+''';
+    var expected = '''
+```dart
+num +(num other)
+```
+Declared in `num` in _dart:core_.''';
+    await assertStringContents(content, equals(expected));
+  }
 
   Future<void> test_recordLiteral_named() => assertStringContents(r'''
 void f(({int f1, int f2}) r) {
@@ -1223,6 +1322,34 @@ int get _
 Type: `int`
 
 Declared in _package:test/main.dart_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_tryCatch_error() async {
+    var content = '''
+void foo() {
+  try {} on Exception catch ([!err^or!], stack) {}
+}
+''';
+    var expected = '''
+```dart
+Exception error
+```
+Type: `Exception`''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_tryCatch_stack() async {
+    var content = '''
+void foo() {
+  try {} on Exception catch (error, [!stac^k!]) {}
+}
+''';
+    var expected = '''
+```dart
+StackTrace stack
+```
+Type: `StackTrace`''';
     await assertStringContents(content, equals(expected));
   }
 

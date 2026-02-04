@@ -341,7 +341,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const Script& script = Script::Handle(zone(), function.script());
 
   bool const_constructor_hit = false;
-  if (function.IsConstructor() && function.is_const()) {
+  if (function.IsFunction() && function.is_const()) {
     for (TokenPosition hit :
          script_table_entries_[script_index]->const_constructor_hits) {
       if (hit == begin_pos) {

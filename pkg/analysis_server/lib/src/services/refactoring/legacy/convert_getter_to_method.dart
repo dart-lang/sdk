@@ -63,7 +63,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       await Future.forEach(elements, (Element member) async {
         if (member is FieldElement) {
           var getter = member.getter;
-          if (getter != null && !getter.isSynthetic) {
+          if (getter != null && getter.isOriginDeclaration) {
             await _updateElementDeclaration(getter);
             return _updateElementReferences(getter);
           }
@@ -87,7 +87,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       );
     }
 
-    if (element.isSynthetic) {
+    if (!element.isOriginDeclaration) {
       return RefactoringStatus.fatal(
         'Only explicit getters can be converted to methods.',
       );
@@ -140,6 +140,9 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {
+      if (reference.isReferenceInPatternField) {
+        continue;
+      }
       var refRange = reference.range;
       // insert "()"
       var edit = SourceEdit(refRange.end, 0, '()');

@@ -450,6 +450,13 @@ void defineCompileTests() {
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
 
+    var magic = (await File(outFile).readAsBytes()).sublist(0, 4);
+    if (Platform.isMacOS) {
+      expect(magic, equals([0xCF, 0xFA, 0xED, 0xFE])); // Mach-O
+    } else {
+      expect(magic, equals([0x7F, 0x45, 0x4C, 0x46])); // ELF
+    }
+
     final Directory binDir = File(Platform.resolvedExecutable).parent;
     result = Process.runSync(
       path.join(binDir.path, 'dartaotruntime'),
@@ -460,6 +467,45 @@ void defineCompileTests() {
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
+
+  for (var sanitizer in ['asan', 'msan', 'tsan']) {
+    test('Compile and run aot snapshot - $sanitizer', () async {
+      final p = project(
+          mainSrc:
+              'void main() { print(const String.fromEnvironment("dart.vm.$sanitizer")); }');
+      final inFile =
+          path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+      final outFile = path.canonicalize(path.join(p.dirPath, 'main.aot'));
+
+      var result = await p.run(
+        [
+          'compile',
+          'aot-snapshot',
+          '--target-sanitizer',
+          sanitizer,
+          '-v',
+          '-o',
+          'main.aot',
+          inFile,
+        ],
+      );
+
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(File(outFile).existsSync(), true,
+          reason: 'File not found: $outFile');
+
+      final Directory binDir = File(Platform.resolvedExecutable).parent;
+      result = Process.runSync(
+        path.join(binDir.path, 'dartaotruntime_$sanitizer'),
+        [outFile],
+      );
+
+      expect(result.stdout, contains('true'));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+    }, skip: !Platform.isLinux);
+  }
 
   test('Compile and run kernel snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love kernel"); }');
@@ -685,7 +731,7 @@ void main() {
 
     expect(result.stderr, isEmpty);
     // This value should be consistent as long as --random_seed is processed.
-    expect(result.stdout, contains('64'));
+    expect(result.stdout, contains('21'));
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
@@ -813,24 +859,6 @@ void main() {}
       true,
       reason: 'File not found: $exeOutFile',
     );
-  }, skip: isRunningOnIA32);
-
-  test('Compile wasm with wrong output filename', () async {
-    final p = project(mainSrc: 'void main() {}');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final result = await p.run(
-      [
-        'compile',
-        'wasm',
-        '-o',
-        'foo',
-        inFile,
-      ],
-    );
-
-    expect(result.stderr,
-        contains('Error: The output file "foo" does not end with ".wasm"'));
-    expect(result.exitCode, genericErrorExitCode);
   }, skip: isRunningOnIA32);
 
   test('Compile wasm with error', () async {

@@ -44,12 +44,12 @@ class ElementWalker {
   ElementWalker.forClass(ClassFragmentImpl this.fragment)
     : _constructors = fragment.isMixinApplication
           ? null
-          : fragment.constructors.where(_isNotSynthetic).toList(),
+          : fragment.constructors.where((f) => f.isOriginDeclaration).toList(),
       _functions = fragment.methods,
-      _getters = fragment.getters.where(_isNotSynthetic).toList(),
-      _setters = fragment.setters.where(_isNotSynthetic).toList(),
+      _getters = fragment.getters.where((f) => f.isOriginDeclaration).toList(),
+      _setters = fragment.setters.where((f) => f.isOriginDeclaration).toList(),
       _typeParameters = fragment.typeParameters,
-      _variables = fragment.fields.where(_isNotSynthetic).toList();
+      _variables = fragment.fields.where((f) => f.isOriginDeclaration).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
@@ -62,21 +62,25 @@ class ElementWalker {
        _extensions = fragment.extensions,
        _extensionTypes = fragment.extensionTypes,
        _functions = fragment.functions,
-       _getters = fragment.getters.where(_isNotSynthetic).toList(),
+       _getters = fragment.getters.where((f) => f.isOriginDeclaration).toList(),
        _mixins = fragment.mixins,
-       _setters = fragment.setters.where(_isNotSynthetic).toList(),
+       _setters = fragment.setters.where((f) => f.isOriginDeclaration).toList(),
        _typedefs = fragment.typeAliases,
-       _variables = fragment.topLevelVariables.where(_isNotSynthetic).toList();
+       _variables = fragment.topLevelVariables
+           .where((f) => f.isOriginDeclaration)
+           .toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a enum
   /// element.
   ElementWalker.forEnum(EnumFragmentImpl this.fragment)
-    : _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
+    : _constructors = fragment.constructors
+          .where((f) => f.isOriginDeclaration)
+          .toList(),
       _functions = fragment.methods,
-      _getters = fragment.getters.where(_isNotSynthetic).toList(),
-      _setters = fragment.setters.where(_isNotSynthetic).toList(),
+      _getters = fragment.getters.where((f) => f.isOriginDeclaration).toList(),
+      _setters = fragment.setters.where((f) => f.isOriginDeclaration).toList(),
       _typeParameters = fragment.typeParameters,
-      _variables = fragment.fields.where(_isNotSynthetic).toList();
+      _variables = fragment.fields.where((f) => f.isOriginDeclaration).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
@@ -89,18 +93,18 @@ class ElementWalker {
   /// element.
   ElementWalker.forExtension(ExtensionFragmentImpl this.fragment)
     : _functions = fragment.methods,
-      _getters = fragment.getters.where(_isNotSynthetic).toList(),
-      _setters = fragment.setters.where(_isNotSynthetic).toList(),
+      _getters = fragment.getters.where((f) => f.isOriginDeclaration).toList(),
+      _setters = fragment.setters.where((f) => f.isOriginDeclaration).toList(),
       _typeParameters = fragment.typeParameters,
-      _variables = fragment.fields.where(_isNotSynthetic).toList();
+      _variables = fragment.fields.where((f) => f.isOriginDeclaration).toList();
 
   ElementWalker.forExtensionType(ExtensionTypeFragmentImpl this.fragment)
     : _constructors = fragment.constructors,
       _functions = fragment.methods,
-      _getters = fragment.getters.where(_isNotSynthetic).toList(),
-      _setters = fragment.setters.where(_isNotSynthetic).toList(),
+      _getters = fragment.getters.where((f) => f.isOriginDeclaration).toList(),
+      _setters = fragment.setters.where((f) => f.isOriginDeclaration).toList(),
       _typeParameters = fragment.typeParameters,
-      _variables = fragment.fields.where(_isNotSynthetic).toList();
+      _variables = fragment.fields.where((f) => f.isOriginDeclaration).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
@@ -117,12 +121,14 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a mixin
   /// element.
   ElementWalker.forMixin(MixinFragmentImpl this.fragment)
-    : _constructors = fragment.constructors.where(_isNotSynthetic).toList(),
+    : _constructors = fragment.constructors
+          .where((f) => f.isOriginDeclaration)
+          .toList(),
       _functions = fragment.methods,
-      _getters = fragment.getters.where(_isNotSynthetic).toList(),
-      _setters = fragment.setters.where(_isNotSynthetic).toList(),
+      _getters = fragment.getters.where((f) => f.isOriginDeclaration).toList(),
+      _setters = fragment.setters.where((f) => f.isOriginDeclaration).toList(),
       _typeParameters = fragment.typeParameters,
-      _variables = fragment.fields.where(_isNotSynthetic).toList();
+      _variables = fragment.fields.where((f) => f.isOriginDeclaration).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a parameter
   /// element.
@@ -133,9 +139,7 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
   ElementWalker.forTypedef(TypeAliasFragmentImpl this.fragment)
-    : _parameters = (fragment.aliasedElement as GenericFunctionTypeFragmentImpl)
-          .formalParameters,
-      _typeParameters = fragment.typeParameters;
+    : _typeParameters = fragment.typeParameters;
 
   void consumeLocalElements() {
     _functionIndex = _functions!.length;
@@ -210,10 +214,10 @@ class ElementWalker {
   /// from their corresponding "get" method calls; if not, throws a
   /// [StateError].
   void validate() {
-    void check(List<FragmentImpl>? elements, int index) {
-      if (elements != null && elements.length != index) {
+    void check(List<FragmentImpl>? fragments, int index) {
+      if (fragments != null && fragments.length != index) {
         throw StateError(
-          'Unmatched ${elements[index].runtimeType} ${elements[index]}',
+          'Unmatched ${fragments[index].runtimeType} ${fragments[index]}',
         );
       }
     }
@@ -229,6 +233,4 @@ class ElementWalker {
     check(_typeParameters, _typeParameterIndex);
     check(_variables, _variableIndex);
   }
-
-  static bool _isNotSynthetic(FragmentImpl e) => !e.isSynthetic;
 }

@@ -16,6 +16,7 @@ package:analysis_server_plugin/edit/assist/dart_assist_context.dart:
     workspace (getter: ChangeWorkspace)
 package:analysis_server_plugin/edit/correction_utils.dart:
   CorrectionUtils (class extends Object):
+    fromUnitAndContent (constructor: CorrectionUtils Function(CompilationUnit, String))
     new (constructor: CorrectionUtils Function(ParsedUnitResult))
     endOfLine (getter: String)
     oneIndent (getter: String)
@@ -94,6 +95,7 @@ package:analysis_server_plugin/edit/dart/correction_producer.dart:
     typeSystem (getter: TypeSystem)
     unitResult (getter: ResolvedUnitResult)
     getClassDeclaration (method: Future<ClassDeclaration?> Function(ClassFragment))
+    getDeclarationNodeFromElement (method: Future<CompilationUnitMember?> Function(InstanceElement, {bool includeExtensions}))
     getEnumDeclaration (method: Future<EnumDeclaration?> Function(EnumFragment))
     getExtensionDeclaration (method: Future<ExtensionDeclaration?> Function(ExtensionFragment))
     getExtensionTypeDeclaration (method: Future<ExtensionTypeDeclaration?> Function(ExtensionTypeFragment))
@@ -145,7 +147,7 @@ package:analysis_server_plugin/registry.dart:
   PluginRegistry (class extends Object):
     new (constructor: PluginRegistry Function())
     registerAssist (method: void Function(CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
-    registerFixForRule (method: void Function(LintCode, CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
+    registerFixForRule (method: void Function(DiagnosticCode, CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
     registerLintRule (method: void Function(AbstractAnalysisRule))
     registerWarningRule (method: void Function(AbstractAnalysisRule))
 dart:async:
@@ -162,6 +164,9 @@ dart:core:
   int (referenced)
 package:_fe_analyzer_shared/src/base/errors.dart:
   Diagnostic (referenced)
+  DiagnosticCode (referenced)
+package:_fe_analyzer_shared/src/base/source_range.dart:
+  SourceRange (referenced)
 package:_fe_analyzer_shared/src/scanner/token.dart:
   Token (referenced)
 package:analyzer/analysis_rule/analysis_rule.dart:
@@ -182,6 +187,7 @@ package:analyzer/dart/element/element.dart:
   EnumFragment (referenced)
   ExtensionFragment (referenced)
   ExtensionTypeFragment (referenced)
+  InstanceElement (referenced)
   InterfaceElement (referenced)
   LibraryElement (referenced)
   MixinFragment (referenced)
@@ -193,11 +199,11 @@ package:analyzer/dart/element/type_system.dart:
   TypeSystem (referenced)
 package:analyzer/instrumentation/service.dart:
   InstrumentationService (referenced)
-package:analyzer/source/source_range.dart:
-  SourceRange (referenced)
 package:analyzer/src/dart/ast/ast.dart:
   AstNode (referenced)
   ClassDeclaration (referenced)
+  CompilationUnit (referenced)
+  CompilationUnitMember (referenced)
   EnumDeclaration (referenced)
   Expression (referenced)
   ExtensionDeclaration (referenced)
@@ -207,8 +213,6 @@ package:analyzer/src/dart/ast/ast.dart:
 package:analyzer/src/dart/element/inheritance_manager3.dart:
   InheritanceManager3 (referenced)
   Name (referenced)
-package:analyzer/src/dart/error/lint_codes.dart:
-  LintCode (referenced)
 package:analyzer_plugin/protocol/protocol_common.dart:
   SourceChange (referenced)
 package:analyzer_plugin/utilities/assist/assist.dart:

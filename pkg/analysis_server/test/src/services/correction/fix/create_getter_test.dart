@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -261,6 +262,204 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_futureIterable_int() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    for (int v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Future<Iterable<int>> get test => null;
+
+  Future<void> f() async {
+    for (int v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_futureIterable_nullableObject() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    for (var v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Future<Iterable<Object?>> get test => null;
+
+  Future<void> f() async {
+    for (var v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_futureStream_NullableObject() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    await for (var v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Future<Stream<Object?>> get test => null;
+
+  Future<void> f() async {
+    await for (var v in await test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_generics() async {
+    await resolveTestCode('''
+class A {}
+
+T? g<T>(A a) => a.getter;
+''');
+    await assertHasFix('''
+class A {
+  Object? get getter => null;
+}
+
+T? g<T>(A a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_bound() async {
+    await resolveTestCode('''
+class A {}
+
+T? g<T extends int>(A a) => a.getter;
+''');
+    await assertHasFix('''
+class A {
+  int? get getter => null;
+}
+
+T? g<T extends int>(A a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_class() async {
+    await resolveTestCode('''
+class A<T> {}
+
+O? g<O>(A<O> a) => a.getter;
+''');
+    await assertHasFix('''
+class A<T> {
+  T? get getter => null;
+}
+
+O? g<O>(A<O> a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_class_ambiguous() async {
+    await resolveTestCode('''
+class A<T, U> {}
+
+O? g<O extends num>(A<O, O> a) => a.getter;
+''');
+    await assertHasFix('''
+class A<T, U> {
+  num? get getter => null;
+}
+
+O? g<O extends num>(A<O, O> a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_lint() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_declare_return_types]);
+    await resolveTestCode('''
+class A {}
+
+T? g<T extends dynamic>(A a) => a.getter;
+''');
+    await assertHasFix('''
+class A {
+  dynamic get getter => null;
+}
+
+T? g<T extends dynamic>(A a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_noLint() async {
+    await resolveTestCode('''
+class A {}
+
+T? g<T extends dynamic>(A a) => a.getter;
+''');
+    await assertHasFix('''
+class A {
+  get getter => null;
+}
+
+T? g<T extends dynamic>(A a) => a.getter;
+''');
+  }
+
+  Future<void> test_generics_pattern() async {
+    await resolveTestCode('''
+class A<O> {}
+
+void foo<T extends A<O>, O>(T a) {
+  if (a case T(:O getter)) {
+    print(getter);
+  }
+}
+''');
+    await assertHasFix('''
+class A<O> {
+  O get getter => null;
+}
+
+void foo<T extends A<O>, O>(T a) {
+  if (a case T(:O getter)) {
+    print(getter);
+  }
+}
+''');
+  }
+
+  Future<void> test_generics_unqualified() async {
+    await resolveTestCode('''
+class A<T> {
+  T? m() => getter;
+}
+''');
+    await assertHasFix('''
+class A<T> {
+  T? get getter => null;
+
+  T? m() => getter;
+}
+''');
+  }
+
   Future<void> test_guard() async {
     await resolveTestCode('''
 class A {
@@ -298,6 +497,94 @@ void f(A a) {
   var x = a;
   int v = x.test;
   print(v);
+}
+''');
+  }
+
+  Future<void> test_ifNull_LHS() async {
+    await resolveTestCode('''
+class A {
+  late int Function() _f;
+
+  void f() {
+    _defaultF ?? _f;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  late int Function() _f;
+
+  int Function()? get _defaultF => null;
+
+  void f() {
+    _defaultF ?? _f;
+  }
+}
+''');
+  }
+
+  Future<void> test_ifNull_LHS_return() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _defaultF ?? _f;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _defaultF ?? _f;
+  }
+
+  int Function()? get _defaultF => null;
+}
+''');
+  }
+
+  Future<void> test_ifNull_RHS() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+
+  void f() {
+    _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+
+  int Function()? get _defaultF => null;
+
+  void f() {
+    _f ?? _defaultF;
+  }
+}
+''');
+  }
+
+  Future<void> test_ifNull_RHS_return() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+
+  int Function() get _defaultF => null;
 }
 ''');
   }
@@ -375,6 +662,101 @@ extension E on String {
 ''');
     // This should be handled by create extension member fixes
     await assertNoFix();
+  }
+
+  Future<void> test_iterable_identifier() async {
+    await resolveTestCode('''
+class C {
+  void f() {
+    int v;
+    for (v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Iterable<int> get test => null;
+
+  void f() {
+    int v;
+    for (v in test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_iterable_int() async {
+    await resolveTestCode('''
+class C {
+  void f() {
+    for (int v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Iterable<int> get test => null;
+
+  void f() {
+    for (int v in test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_iterable_nullableObject() async {
+    await resolveTestCode('''
+class C {
+  void f() {
+    for (var v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Iterable<Object?> get test => null;
+
+  void f() {
+    for (var v in test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/62093')
+  Future<void> test_iterable_recordDestructuring() async {
+    await resolveTestCode('''
+class C {
+  void f() {
+    for (var (int v) in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Iterable<(int,)> get test => null;
+
+  void f() {
+    for (var (int v) in test) {
+      print(v);
+    }
+  }
+}
+''');
   }
 
   Future<void> test_location_afterLastGetter() async {
@@ -622,6 +1004,102 @@ class A {
 ''', target: part1Path);
   }
 
+  Future<void> test_privateAlias() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class A {
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+typedef _F = int Function(int v);
+void f(A a) {
+  _F v = a.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+class A {
+  int Function(int v) get test => null;
+}
+''', target: join(testPackageLibPath, 'a.dart'));
+  }
+
+  Future<void> test_privateAlias_2() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+typedef _F = int Function(int v);
+class A {
+  set test(_F f) {}
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class C {
+  void m(A a) {
+    a.test = test;
+  }
+}
+''');
+    await assertHasFix('''
+import 'a.dart';
+class C {
+  int Function(int v) get test => null;
+
+  void m(A a) {
+    a.test = test;
+  }
+}
+''');
+  }
+
+  Future<void> test_privateType_privateAlias() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class A {
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class _C {}
+typedef _T = _C;
+void f(A a) {
+  _T v = a.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+class A {
+  Object get test => null;
+}
+''', target: join(testPackageLibPath, 'a.dart'));
+  }
+
+  Future<void> test_privateType_privateAlias_2() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class _C {}
+typedef _T = _C;
+class A {
+  set test(_T t) {}
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class C {
+  void m(A a) {
+    a.test = test;
+  }
+}
+''');
+    await assertHasFix('''
+import 'a.dart';
+class C {
+  Object get test => null;
+
+  void m(A a) {
+    a.test = test;
+  }
+}
+''');
+  }
+
   Future<void> test_qualified_instance() async {
     await resolveTestCode('''
 class A {
@@ -815,6 +1293,52 @@ void f(String s) {
 ''');
     // This should be handled by create extension member fixes
     await assertNoFix();
+  }
+
+  Future<void> test_stream_int() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    await for (int v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Stream<int> get test => null;
+
+  Future<void> f() async {
+    await for (int v in test) {
+      print(v);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_stream_nullableObject() async {
+    await resolveTestCode('''
+class C {
+  Future<void> f() async {
+    await for (var v in test) {
+      print(v);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  Stream<Object?> get test => null;
+
+  Future<void> f() async {
+    await for (var v in test) {
+      print(v);
+    }
+  }
+}
+''');
   }
 
   Future<void> test_unqualified_instance_asInvocationArgument() async {

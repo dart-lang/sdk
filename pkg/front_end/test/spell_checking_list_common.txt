@@ -102,6 +102,7 @@ alias
 aliased
 aliases
 alignment
+alike
 all
 allocated
 allocating
@@ -523,6 +524,8 @@ collection
 collections
 collector
 collects
+collide
+colliding
 colon
 colons
 color
@@ -822,6 +825,7 @@ deliberately
 delimited
 delimiter
 delimiters
+deliver
 delta
 demote
 demoted
@@ -867,6 +871,7 @@ deserialize
 deserialized
 designed
 desired
+destructively
 desugar
 desugared
 desugaring
@@ -947,6 +952,7 @@ distinct
 distinction
 distinguish
 distinguishes
+distinguishing
 divide
 division
 divisor
@@ -1083,6 +1089,7 @@ enumeration
 enumerations
 enums
 environment
+environments
 equal
 equalities
 equality
@@ -1128,6 +1135,7 @@ examined
 examining
 example
 examples
+exceed
 exceeded
 except
 exception
@@ -1138,6 +1146,7 @@ exclude
 excluded
 excludes
 excluding
+exclusion
 exclusive
 executable
 executed
@@ -1525,6 +1534,7 @@ implicitly
 implied
 implies
 import
+importable
 important
 imported
 importer
@@ -1935,6 +1945,7 @@ measurably
 measure
 measurements
 mechanism
+mechanisms
 medium
 meet
 member
@@ -2759,6 +2770,7 @@ satisfying
 save
 saved
 says
+scaffolding
 scalar
 scan
 scanned
@@ -2820,6 +2832,7 @@ serialized
 serializes
 serializing
 serious
+served
 set
 sets
 setter
@@ -2951,6 +2964,7 @@ spending
 split
 splits
 splitter
+spot
 spread
 spreadable
 spreads
@@ -3459,6 +3473,7 @@ visiting
 visitor
 visitor's
 visual
+visually
 vm
 void
 vowel

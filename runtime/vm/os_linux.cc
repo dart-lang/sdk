@@ -593,6 +593,50 @@ void OS::DebugBreak() {
   __builtin_trap();
 }
 
+namespace {
+void PerfCtrlDisable() {
+  if (FLAG_perf_ctl_fd > 0 && FLAG_perf_ctl_fd_ack > 0) {
+    ssize_t result = write(FLAG_perf_ctl_fd, "disable", 7);
+    ASSERT_EQUAL(result, 7);
+    char ack[5];
+    // We'll just assume this returns "ack\n\0";
+    result = read(FLAG_perf_ctl_fd_ack, ack, 5);
+    ASSERT_EQUAL(result, 5);
+  }
+}
+
+void PerfCtrlEnable() {
+  if (FLAG_perf_ctl_fd > 0 && FLAG_perf_ctl_fd_ack > 0) {
+    ssize_t result = write(FLAG_perf_ctl_fd, "enable", 6);
+    ASSERT_EQUAL(result, 6);
+    char ack[5];
+    // We'll just assume this returns "ack\n\0";
+    result = read(FLAG_perf_ctl_fd_ack, ack, 5);
+    ASSERT_EQUAL(result, 5);
+  }
+}
+}  // namespace
+
+void OS::NotifyBeforeGC() {
+  if (FLAG_perf_ctl_usage == 1) {
+    // Pause on GC.
+    PerfCtrlDisable();
+  } else if (FLAG_perf_ctl_usage == 2) {
+    // Start on GC.
+    PerfCtrlEnable();
+  }
+}
+
+void OS::NotifyAfterGC() {
+  if (FLAG_perf_ctl_usage == 1) {
+    // Pause on GC: GC is done, so start again.
+    PerfCtrlEnable();
+  } else if (FLAG_perf_ctl_usage == 2) {
+    // Start on GC: GC is done, so stop again.
+    PerfCtrlDisable();
+  }
+}
+
 DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));

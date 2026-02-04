@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ class B extends A {
   foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingMethodAndField, 49, 3)],
+      [error(diag.conflictingMethodAndField, 49, 3)],
     );
   }
 
@@ -39,7 +39,7 @@ class B extends A {
   foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingMethodAndField, 50, 3)],
+      [error(diag.conflictingMethodAndField, 50, 3)],
     );
   }
 
@@ -66,7 +66,7 @@ augment class B {
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.conflictingMethodAndField, 44, 3),
+      error(diag.conflictingMethodAndField, 44, 3),
     ]);
   }
 
@@ -91,7 +91,7 @@ augment class B {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.conflictingMethodAndField, 76, 3),
+      error(diag.conflictingMethodAndField, 76, 3),
     ]);
 
     await assertErrorsInFile2(b, []);
@@ -107,7 +107,7 @@ class B extends A {
   foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingMethodAndField, 50, 3)],
+      [error(diag.conflictingMethodAndField, 50, 3)],
     );
   }
 
@@ -123,7 +123,7 @@ enum E with M {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingMethodAndField, 61, 3)],
+      [error(diag.conflictingMethodAndField, 61, 3)],
     );
   }
 
@@ -150,7 +150,7 @@ augment enum E {;
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.conflictingMethodAndField, 44, 3),
+      error(diag.conflictingMethodAndField, 44, 3),
     ]);
   }
 
@@ -176,7 +176,7 @@ augment enum E {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.conflictingMethodAndField, 77, 3),
+      error(diag.conflictingMethodAndField, 77, 3),
     ]);
 
     await assertErrorsInFile2(b, []);
@@ -194,7 +194,7 @@ enum E with M {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingMethodAndField, 61, 3)],
+      [error(diag.conflictingMethodAndField, 61, 3)],
     );
   }
 

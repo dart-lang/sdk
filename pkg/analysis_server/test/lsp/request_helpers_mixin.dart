@@ -91,26 +91,6 @@ mixin LspEditHelpersMixin {
   }
 }
 
-/// Helpers to simplify handling LSP notifications.
-mixin LspNotificationHelpersMixin {
-  /// A stream of [DartTextDocumentContentDidChangeParams] for any
-  /// `dart/textDocumentContentDidChange` notifications.
-  Stream<DartTextDocumentContentDidChangeParams>
-  get dartTextDocumentContentDidChangeNotifications => notificationsFromServer
-      .where(
-        (notification) =>
-            notification.method ==
-            CustomMethods.dartTextDocumentContentDidChange,
-      )
-      .map(
-        (message) => DartTextDocumentContentDidChangeParams.fromJson(
-          message.params as Map<String, Object?>,
-        ),
-      );
-
-  Stream<NotificationMessage> get notificationsFromServer;
-}
-
 mixin LspProgressNotificationsMixin {
   Stream<NotificationMessage> get notificationsFromServer;
 
@@ -458,17 +438,6 @@ mixin LspRequestHelpersMixin {
     );
     _assertMinimalCompletionListPayload(completions);
     return completions;
-  }
-
-  Future<DartTextDocumentContent?> getDartTextDocumentContent(Uri uri) {
-    var request = makeRequest(
-      CustomMethods.dartTextDocumentContent,
-      DartTextDocumentContentParams(uri: uri),
-    );
-    return expectSuccessfulResponseTo(
-      request,
-      DartTextDocumentContent.fromJson,
-    );
   }
 
   Future<Either2<List<Location>, List<LocationLink>>> getDefinition(

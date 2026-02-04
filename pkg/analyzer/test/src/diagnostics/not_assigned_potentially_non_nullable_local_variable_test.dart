@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -89,8 +88,8 @@ void f() {
 ''',
       [
         _notAssignedError(22, 1),
-        error(WarningCode.deadCode, 28, 2),
-        error(StaticWarningCode.deadNullAwareExpression, 28, 1),
+        error(diag.deadCode, 28, 2),
+        error(diag.deadNullAwareExpression, 28, 1),
       ],
     );
   }
@@ -105,8 +104,8 @@ void f() {
 ''',
       [
         _notAssignedError(22, 1),
-        error(WarningCode.deadCode, 28, 2),
-        error(StaticWarningCode.deadNullAwareExpression, 28, 1),
+        error(diag.deadCode, 28, 2),
+        error(diag.deadNullAwareExpression, 28, 1),
         _notAssignedError(28, 1),
       ],
     );
@@ -131,10 +130,7 @@ void f() {
   v;
 }
 ''',
-      [
-        error(WarningCode.deadCode, 30, 4),
-        error(StaticWarningCode.deadNullAwareExpression, 33, 1),
-      ],
+      [error(diag.deadCode, 30, 4), error(diag.deadNullAwareExpression, 33, 1)],
     );
   }
 
@@ -148,8 +144,8 @@ void f(int a) {
 }
 ''',
       [
-        error(WarningCode.deadCode, 29, 10),
-        error(StaticWarningCode.deadNullAwareExpression, 32, 7),
+        error(diag.deadCode, 29, 10),
+        error(diag.deadNullAwareExpression, 32, 7),
         _notAssignedError(43, 1),
       ],
     );
@@ -562,7 +558,7 @@ void f() {
   v;
 }
 ''',
-      [error(WarningCode.deadCode, 51, 2)],
+      [error(diag.deadCode, 51, 2)],
     );
   }
 
@@ -577,10 +573,7 @@ void f() {
   v;
 }
 ''',
-      [
-        error(WarningCode.unusedLocalVariable, 31, 1),
-        error(WarningCode.deadCode, 61, 2),
-      ],
+      [error(diag.unusedLocalVariable, 31, 1), error(diag.deadCode, 61, 2)],
     );
   }
 
@@ -596,7 +589,7 @@ void f(bool b) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 31, 2),
+        error(diag.unusedLocalVariable, 31, 2),
         _notAssignedError(75, 2),
         _notAssignedError(85, 2),
         _notAssignedError(95, 2),
@@ -718,8 +711,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 17, 1),
-        error(WarningCode.unusedElement, 38, 1),
+        error(diag.unusedLocalVariable, 17, 1),
+        error(diag.unusedElement, 38, 1),
         _notAssignedError(64, 1),
       ],
     );
@@ -742,7 +735,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 40, 1), _notAssignedError(94, 2)],
+      [error(diag.unusedElement, 40, 1), _notAssignedError(94, 2)],
     );
   }
 
@@ -762,7 +755,7 @@ void f() {
   v2 = 0;
 }
 ''',
-      [error(WarningCode.unusedElement, 44, 1), _notAssignedError(62, 2)],
+      [error(diag.unusedElement, 44, 1), _notAssignedError(62, 2)],
     );
   }
 
@@ -779,7 +772,7 @@ void f() {
   v;
 }
 ''',
-      [error(WarningCode.unusedElement, 28, 1), _notAssignedError(52, 1)],
+      [error(diag.unusedElement, 28, 1), _notAssignedError(52, 1)],
     );
   }
 
@@ -792,7 +785,7 @@ f() {
   FutureOr<int?> v;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 45, 1)],
+      [error(diag.unusedLocalVariable, 45, 1)],
     );
   }
 
@@ -832,7 +825,7 @@ void f() {
   v;
 }
 ''',
-      [error(WarningCode.deadCode, 33, 25)],
+      [error(diag.deadCode, 33, 25)],
     );
   }
 
@@ -895,7 +888,7 @@ void f() {
   v;
 }
 ''',
-      [error(WarningCode.deadCode, 33, 25)],
+      [error(diag.deadCode, 33, 25)],
     );
   }
 
@@ -1022,7 +1015,7 @@ void f() {
   int v;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
   }
 
@@ -1288,7 +1281,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 45, 8)],
+      [error(diag.deadCode, 45, 8)],
     );
   }
 
@@ -1302,7 +1295,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(WarningCode.deadCode, 52, 8)],
+      [error(diag.deadCode, 52, 8)],
     );
   }
 
@@ -1316,7 +1309,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 56, 8)],
+      [error(diag.deadCode, 56, 8)],
     );
   }
 
@@ -1507,7 +1500,7 @@ f() {
   dynamic v;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 16, 1)],
+      [error(diag.unusedLocalVariable, 16, 1)],
     );
   }
 
@@ -1518,7 +1511,7 @@ f() {
   var v;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 12, 1)],
+      [error(diag.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1529,7 +1522,7 @@ f() {
   void v;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 13, 1)],
+      [error(diag.unusedLocalVariable, 13, 1)],
     );
   }
 
@@ -1613,7 +1606,7 @@ void f(bool b) {
   v;
 }
 ''',
-      [error(WarningCode.deadCode, 131, 2)],
+      [error(diag.deadCode, 131, 2)],
     );
   }
 
@@ -1693,12 +1686,8 @@ void f(bool b) {
 }
 ''',
       [
-        error(WarningCode.deadCode, 81, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          81,
-          1,
-        ),
+        error(diag.deadCode, 81, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 81, 1),
       ],
     );
   }
@@ -1716,19 +1705,15 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.deadCode, 114, 2),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          114,
-          1,
-        ),
+        error(diag.deadCode, 114, 2),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 114, 1),
       ],
     );
   }
 
-  ExpectedError _notAssignedError(int offset, int length) {
+  ExpectedDiagnostic _notAssignedError(int offset, int length) {
     return error(
-      CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
+      diag.notAssignedPotentiallyNonNullableLocalVariable,
       offset,
       length,
     );

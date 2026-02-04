@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class NotInstantiatedBoundTest extends PubPackageResolutionTest {
 class A<K, V extends List<K>> {}
 class C<T extends A> {}
 ''',
-      [error(CompileTimeErrorCode.notInstantiatedBound, 51, 1)],
+      [error(diag.notInstantiatedBound, 51, 1)],
     );
   }
 
@@ -31,7 +31,7 @@ class C<T extends A> {}
 class A<K, V extends List<List<K>>> {}
 class C<T extends A> {}
 ''',
-      [error(CompileTimeErrorCode.notInstantiatedBound, 57, 1)],
+      [error(diag.notInstantiatedBound, 57, 1)],
     );
   }
 
@@ -81,8 +81,8 @@ class A<T extends B<A>> {}
 class B<T extends A<B>> {}
 ''',
       [
-        error(CompileTimeErrorCode.notInstantiatedBound, 20, 1),
-        error(CompileTimeErrorCode.notInstantiatedBound, 47, 1),
+        error(diag.notInstantiatedBound, 20, 1),
+        error(diag.notInstantiatedBound, 47, 1),
       ],
     );
   }
@@ -95,9 +95,9 @@ class B<T extends A> {} // points to b
 class C<T extends A> {} // points to a cyclical type
 ''',
       [
-        error(CompileTimeErrorCode.notInstantiatedBound, 18, 1),
-        error(CompileTimeErrorCode.notInstantiatedBound, 57, 1),
-        error(CompileTimeErrorCode.notInstantiatedBound, 96, 1),
+        error(diag.notInstantiatedBound, 18, 1),
+        error(diag.notInstantiatedBound, 57, 1),
+        error(diag.notInstantiatedBound, 96, 1),
       ],
     );
   }
@@ -107,7 +107,7 @@ class C<T extends A> {} // points to a cyclical type
       r'''
 class A<T extends void Function(A)> {}
 ''',
-      [error(CompileTimeErrorCode.notInstantiatedBound, 32, 1)],
+      [error(diag.notInstantiatedBound, 32, 1)],
     );
   }
 
@@ -116,7 +116,7 @@ class A<T extends void Function(A)> {}
       r'''
 class A<T extends void Function<U extends A>()> {}
 ''',
-      [error(CompileTimeErrorCode.notInstantiatedBound, 42, 1)],
+      [error(diag.notInstantiatedBound, 42, 1)],
     );
   }
 
@@ -128,9 +128,9 @@ class C<T extends F> {}
 class D<T extends C> {}
 ''',
       [
-        error(CompileTimeErrorCode.typeAliasCannotReferenceItself, 8, 1),
-        error(CompileTimeErrorCode.notInstantiatedBound, 38, 1),
-        error(CompileTimeErrorCode.notInstantiatedBound, 62, 1),
+        error(diag.typeAliasCannotReferenceItself, 8, 1),
+        error(diag.notInstantiatedBound, 38, 1),
+        error(diag.notInstantiatedBound, 62, 1),
       ],
     );
   }
@@ -148,7 +148,7 @@ class C<T extends F> {}
 class A<K, V extends K> {}
 class C<T extends A> {}
 ''',
-      [error(CompileTimeErrorCode.notInstantiatedBound, 45, 1)],
+      [error(diag.notInstantiatedBound, 45, 1)],
     );
   }
 
@@ -161,8 +161,8 @@ class C<T extends A> {}
 class D<T extends B> {}
 ''',
       [
-        error(CompileTimeErrorCode.notInstantiatedBound, 87, 1),
-        error(CompileTimeErrorCode.notInstantiatedBound, 111, 1),
+        error(diag.notInstantiatedBound, 87, 1),
+        error(diag.notInstantiatedBound, 111, 1),
       ],
     );
   }
@@ -173,7 +173,7 @@ class D<T extends B> {}
 class A<K, V extends K> {}
 class C<T extends List<A>> {}
 ''',
-      [error(CompileTimeErrorCode.notInstantiatedBound, 50, 1)],
+      [error(diag.notInstantiatedBound, 50, 1)],
     );
   }
 
@@ -183,7 +183,7 @@ class C<T extends List<A>> {}
 class A<K, V extends List<K>> {}
 typedef void F<T extends A>();
 ''',
-      [error(CompileTimeErrorCode.notInstantiatedBound, 58, 1)],
+      [error(diag.notInstantiatedBound, 58, 1)],
     );
   }
 
@@ -193,7 +193,7 @@ typedef void F<T extends A>();
 class A<K, V extends List<List<K>>> {}
 typedef void F<T extends A>();
 ''',
-      [error(CompileTimeErrorCode.notInstantiatedBound, 64, 1)],
+      [error(diag.notInstantiatedBound, 64, 1)],
     );
   }
 
@@ -210,7 +210,7 @@ typedef void F<T extends C>();
 class A<K, V extends K> {}
 typedef void F<T extends A>();
 ''',
-      [error(CompileTimeErrorCode.notInstantiatedBound, 52, 1)],
+      [error(diag.notInstantiatedBound, 52, 1)],
     );
   }
 }

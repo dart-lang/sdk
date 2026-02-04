@@ -1,0 +1,5 @@
+// @dart = 3.9
+
+extension type ET1(var int a) {}
+
+extension type ET2(final int a) {}

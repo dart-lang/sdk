@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -22,9 +22,9 @@ class SwitchStatementTest extends PartialCodeTest {
           'keyword',
           'switch',
           [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedSwitchStatementBody,
-            ParserErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedSwitchStatementBody,
+            diag.expectedToken,
           ],
           "switch (_s_) {}",
           failing: ['block'],
@@ -33,9 +33,9 @@ class SwitchStatementTest extends PartialCodeTest {
           'leftParen',
           'switch (',
           [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedSwitchStatementBody,
-            ScannerErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedSwitchStatementBody,
+            diag.expectedToken,
           ],
           "switch (_s_) {}",
           failing: [
@@ -51,24 +51,21 @@ class SwitchStatementTest extends PartialCodeTest {
         TestDescriptor(
           'expression',
           'switch (a',
-          [
-            ParserErrorCode.expectedSwitchStatementBody,
-            ScannerErrorCode.expectedToken,
-          ],
+          [diag.expectedSwitchStatementBody, diag.expectedToken],
           "switch (a) {}",
           failing: ['block'],
         ),
         TestDescriptor(
           'rightParen',
           'switch (a)',
-          [ParserErrorCode.expectedSwitchStatementBody],
+          [diag.expectedSwitchStatementBody],
           "switch (a) {}",
           failing: ['block'],
         ),
         TestDescriptor(
           'leftBrace',
           'switch (a) {',
-          [ScannerErrorCode.expectedToken],
+          [diag.expectedToken],
           "switch (a) {}",
           failing: allExceptEof,
         ),

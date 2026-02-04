@@ -38,10 +38,15 @@ inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
 }
 
 inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
-  if (strerror_r(err, buffer, bufsize) != 0) {
+#if defined(__USE_GNU) && __ANDROID_API__ >= 23
+  return strerror_r(err, buffer, bufsize);
+#else
+  int result = strerror_r(err, buffer, bufsize);
+  if (result != 0) {
     snprintf(buffer, bufsize, "%s", "strerror_r failed");
   }
   return buffer;
+#endif
 }
 
 }  // namespace dart

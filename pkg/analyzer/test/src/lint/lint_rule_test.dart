@@ -73,12 +73,14 @@ class TestRule extends MultiAnalysisRule {
     'test_rule',
     'Test rule.',
     correctionMessage: 'Try test rule.',
+    uniqueName: 'LintCode.test_rule',
   );
 
   static const LintCode customCode = LintCode(
     'hash_and_equals',
     'Override `==` if overriding `hashCode`.',
     correctionMessage: 'Implement `==`.',
+    uniqueName: 'LintCode.hash_and_equals',
   );
 
   TestRule() : super(name: 'test_rule', description: '');

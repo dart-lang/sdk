@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS('library')
-library static_interop_library;
+library;
 
-import 'package:js/js.dart';
+import 'dart:js_interop';
 
 @JS()
 @staticInterop

@@ -14,7 +14,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
@@ -340,13 +340,13 @@ Future<void> visitLibraryAtUri(AnalysisSession session, String uri) async {
   final libPath = session.uriConverter.uriToPath(Uri.parse(uri));
   var result = await session.getResolvedLibrary(libPath!);
   if (result is ResolvedLibraryResult) {
-    visitLibrary(result.element2);
+    visitLibrary(result.element);
   } else {
     throw StateError('Unable to resolve "$uri"');
   }
 }
 
-void visitLibrary(LibraryElement2 library) {
+void visitLibrary(LibraryElement library) {
   // This uses the element model to traverse the code. The element model
   // represents the semantic structure of the code. A library consists of
   // one or more compilation units.
@@ -358,7 +358,7 @@ void visitLibrary(LibraryElement2 library) {
   // to visit typedefs, etc.
   for (var variable in library.topLevelVariables) {
     if (variable.isPublic) {
-      addToTable(typeString(variable.type), variable.name3!, [
+      addToTable(typeString(variable.type), variable.name!, [
         voidEncoding,
         voidEncoding,
       ], isMethod: false);
@@ -368,7 +368,7 @@ void visitLibrary(LibraryElement2 library) {
     if (function.isPublic) {
       addToTable(
         typeString(function.returnType),
-        function.name3!,
+        function.name!,
         protoString(null, function.formalParameters),
       );
     }
@@ -380,57 +380,57 @@ void visitLibrary(LibraryElement2 library) {
   }
 }
 
-void visitClass(ClassElement2 classElement) {
+void visitClass(ClassElement classElement) {
   // Classes that cause too many false divergences.
-  if (classElement.name3 == 'ProcessInfo' ||
-      classElement.name3 == 'Platform' ||
-      classElement.name3!.startsWith('FileSystem')) {
+  if (classElement.name == 'ProcessInfo' ||
+      classElement.name == 'Platform' ||
+      classElement.name!.startsWith('FileSystem')) {
     return;
   }
   // Every class element contains elements for the members, viz. `methods` visits
   // methods, `fields` visits fields, `accessors` visits getters and setters, etc.
   // There are also accessors to get the superclass, mixins, interfaces, type
   // parameters, etc.
-  for (var constructor in classElement.constructors2) {
+  for (var constructor in classElement.constructors) {
     if (constructor.isPublic &&
         constructor.isFactory &&
-        constructor.name3 != 'new') {
+        constructor.name != 'new') {
       addToTable(
         typeString(classElement.thisType),
-        '${classString(classElement)}.${constructor.name3}',
+        '${classString(classElement)}.${constructor.name}',
         protoString(null, constructor.formalParameters),
       );
     }
   }
-  for (var method in classElement.methods2) {
+  for (var method in classElement.methods) {
     if (method.isPublic && !method.isOperator) {
       if (method.isStatic) {
         addToTable(
           typeString(method.returnType),
-          '${classString(classElement)}.${method.name3}',
+          '${classString(classElement)}.${method.name}',
           protoString(null, method.formalParameters),
         );
       } else {
         addToTable(
           typeString(method.returnType),
-          method.name3!,
+          method.name!,
           protoString(classElement.thisType, method.formalParameters),
         );
       }
     }
   }
-  for (var accessor in classElement.getters2) {
+  for (var accessor in classElement.getters) {
     if (accessor.isPublic) {
-      var variable = accessor.variable3!;
+      var variable = accessor.variable;
       if (accessor.isStatic) {
         addToTable(
           typeString(variable.type),
-          '${classElement.name3}.${variable.name3}',
+          '${classElement.name}.${variable.name}',
           [voidEncoding, voidEncoding],
           isMethod: false,
         );
       } else {
-        addToTable(typeString(variable.type), variable.name3!, [
+        addToTable(typeString(variable.type), variable.name!, [
           typeString(classElement.thisType),
           voidEncoding,
         ], isMethod: false);
@@ -440,7 +440,7 @@ void visitClass(ClassElement2 classElement) {
 }
 
 // Function that returns the explicit class name.
-String classString(ClassElement2 classElement) {
+String classString(ClassElement classElement) {
   switch (typeString(classElement.thisType)) {
     case setIntEncoding:
       return 'Set<int>';
@@ -449,7 +449,7 @@ String classString(ClassElement2 classElement) {
     case mapIntStringEncoding:
       return 'Map<int, String>';
     default:
-      return classElement.name3!;
+      return classElement.name!;
   }
 }
 

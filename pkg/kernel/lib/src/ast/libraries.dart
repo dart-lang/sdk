@@ -29,7 +29,9 @@ class Library extends NamedNode
   }
 
   static const int SyntheticFlag = 1 << 0;
-  static const int IsUnsupportedFlag = 1 << 1;
+  static const int SupportConditionalImportsFlag = 1 << 1;
+  static const int AlwaysImportableFlag = 1 << 2;
+  static const int ImportableWithFlagFlag = 1 << 3;
 
   int flags = 0;
 
@@ -42,9 +44,32 @@ class Library extends NamedNode
 
   /// If true, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.
-  bool get isUnsupported => flags & IsUnsupportedFlag != 0;
-  void set isUnsupported(bool value) {
-    flags = value ? (flags | IsUnsupportedFlag) : (flags & ~IsUnsupportedFlag);
+  bool get conditionalImportSupported =>
+      flags & SupportConditionalImportsFlag != 0;
+  void set conditionalImportSupported(bool value) {
+    flags = value
+        ? (flags | SupportConditionalImportsFlag)
+        : (flags & ~SupportConditionalImportsFlag);
+  }
+
+  /// Specifies if the library is importable on the target platform.
+  Importability get importability {
+    if (flags & AlwaysImportableFlag != 0) {
+      return Importability.always;
+    }
+    if (flags & ImportableWithFlagFlag != 0) {
+      return Importability.withFlag;
+    }
+    return Importability.never;
+  }
+
+  void set importability(Importability value) {
+    flags = flags & ~(AlwaysImportableFlag | ImportableWithFlagFlag);
+    if (value == Importability.always) {
+      flags |= AlwaysImportableFlag;
+    } else if (value == Importability.withFlag) {
+      flags |= ImportableWithFlagFlag;
+    }
   }
 
   String? name;

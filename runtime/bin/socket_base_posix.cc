@@ -25,23 +25,18 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket) {
-  if (unnamed_unix_socket) {
+SocketAddress::SocketAddress(const RawAddr& addr) : addr_(addr) {
+  if (addr.is_unnamed_unix_socket()) {
     // This is an unnamed unix domain socket.
     as_string_[0] = 0;
-  } else if (sa->sa_family == AF_UNIX) {
-    struct sockaddr_un* un = ((struct sockaddr_un*)sa);
-    memmove(as_string_, un->sun_path, sizeof(un->sun_path));
+  } else if (addr.ss.ss_family == AF_UNIX) {
+    memmove(as_string_, addr.un.sun_path, sizeof(addr.un.sun_path));
   } else {
-    ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-    if (!SocketBase::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa),
-                                          as_string_, INET6_ADDRSTRLEN)) {
+    if (!SocketBase::FormatNumericAddress(addr, as_string_,
+                                          kMaxAddressStringLength)) {
       as_string_[0] = 0;
     }
   }
-  socklen_t salen =
-      GetAddrLength(*reinterpret_cast<RawAddr*>(sa), unnamed_unix_socket);
-  memmove(reinterpret_cast<void*>(&addr_), sa, salen);
 }
 
 bool SocketBase::Initialize() {
@@ -52,8 +47,7 @@ bool SocketBase::Initialize() {
 bool SocketBase::FormatNumericAddress(const RawAddr& addr,
                                       char* address,
                                       int len) {
-  socklen_t salen = SocketAddress::GetAddrLength(addr);
-  return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, salen, address, len,
+  return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, addr.size, address, len,
                                         nullptr, 0, NI_NUMERICHOST)) == 0);
 }
 
@@ -87,9 +81,8 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
                               RawAddr* addr,
                               SocketOpKind sync) {
   ASSERT(fd >= 0);
-  socklen_t addr_len = sizeof(addr->ss);
   ssize_t read_bytes = TEMP_FAILURE_RETRY(
-      recvfrom(fd, buffer, num_bytes, 0, &addr->addr, &addr_len));
+      recvfrom(fd, buffer, num_bytes, 0, &addr->addr, &addr->size));
   if ((sync == kAsync) && (read_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the read would block we need to retry and therefore return 0
     // as the number of bytes written.
@@ -206,9 +199,8 @@ intptr_t SocketBase::SendTo(intptr_t fd,
                             const RawAddr& addr,
                             SocketOpKind sync) {
   ASSERT(fd >= 0);
-  ssize_t written_bytes =
-      TEMP_FAILURE_RETRY(sendto(fd, buffer, num_bytes, 0, &addr.addr,
-                                SocketAddress::GetAddrLength(addr)));
+  ssize_t written_bytes = TEMP_FAILURE_RETRY(
+      sendto(fd, buffer, num_bytes, 0, &addr.addr, addr.size));
   ASSERT(EAGAIN == EWOULDBLOCK);
   if ((sync == kAsync) && (written_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the would block we need to retry and therefore return 0 as
@@ -279,28 +271,16 @@ intptr_t SocketBase::SendMessage(intptr_t fd,
   return written_bytes;
 }
 
-bool SocketBase::GetSocketName(intptr_t fd, SocketAddress* p_sa) {
+bool SocketBase::GetSocketName(intptr_t fd, RawAddr* raw) {
   ASSERT(fd >= 0);
-  ASSERT(p_sa != nullptr);
-  RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (NO_RETRY_EXPECTED(getsockname(fd, &raw.addr, &size))) {
-    return false;
-  }
-
-  // sockaddr_un contains sa_family_t sun_family and char[] sun_path.
-  // If size is the size of sa_family_t, this is an unnamed socket and
-  // sun_path contains garbage.
-  new (p_sa) SocketAddress(&raw.addr,
-                           /*unnamed_unix_socket=*/size == sizeof(sa_family_t));
-  return true;
+  ASSERT(raw != nullptr);
+  return NO_RETRY_EXPECTED(getsockname(fd, &raw->addr, &raw->size)) == 0;
 }
 
 intptr_t SocketBase::GetPort(intptr_t fd) {
   ASSERT(fd >= 0);
   RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (NO_RETRY_EXPECTED(getsockname(fd, &raw.addr, &size))) {
+  if (NO_RETRY_EXPECTED(getsockname(fd, &raw.addr, &raw.size))) {
     return 0;
   }
   return SocketAddress::GetAddrPort(raw);
@@ -309,19 +289,11 @@ intptr_t SocketBase::GetPort(intptr_t fd) {
 SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   ASSERT(fd >= 0);
   RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
+  if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &raw.size))) {
     return nullptr;
   }
-  // sockaddr_un contains sa_family_t sun_family and char[] sun_path.
-  // If size is the size of sa_family_t, this is an unnamed socket and
-  // sun_path contains garbage.
-  if (size == sizeof(sa_family_t)) {
-    *port = 0;
-    return new SocketAddress(&raw.addr, /*unnamed_unix_socket=*/true);
-  }
   *port = SocketAddress::GetAddrPort(raw);
-  return new SocketAddress(&raw.addr);
+  return new SocketAddress(raw);
 }
 
 intptr_t SocketBase::GetStdioHandle(intptr_t num) {
@@ -333,9 +305,8 @@ bool SocketBase::ReverseLookup(const RawAddr& addr,
                                intptr_t host_len,
                                OSError** os_error) {
   ASSERT(host_len >= NI_MAXHOST);
-  int status = NO_RETRY_EXPECTED(
-      getnameinfo(&addr.addr, SocketAddress::GetAddrLength(addr), host,
-                  host_len, nullptr, 0, NI_NAMEREQD));
+  int status = NO_RETRY_EXPECTED(getnameinfo(
+      &addr.addr, addr.size, host, host_len, nullptr, 0, NI_NAMEREQD));
   if (status != 0) {
     ASSERT(*os_error == nullptr);
     *os_error =
@@ -396,9 +367,9 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
   for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
       char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
-      addresses->SetAt(
-          i, new InterfaceSocketAddress(ifa->ifa_addr, ifa_name,
-                                        if_nametoindex(ifa->ifa_name)));
+      addresses->SetAt(i, new InterfaceSocketAddress(
+                              RawAddr::FromInet4or6(ifa->ifa_addr), ifa_name,
+                              if_nametoindex(ifa->ifa_name)));
       i++;
     }
   }

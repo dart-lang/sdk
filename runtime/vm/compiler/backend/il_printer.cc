@@ -1253,7 +1253,7 @@ void TsanFuncEntryExitInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
-void TsanReadWriteInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+void SanReadWriteInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   instance()->PrintTo(f);
   f->Printf(" . %s", slot().Name());
   if (kind_ == kRead) {
@@ -1263,7 +1263,7 @@ void TsanReadWriteInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
-void TsanReadWriteIndexedInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+void SanReadWriteIndexedInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   array()->PrintTo(f);
   f->AddString(", ");
   index()->PrintTo(f);
@@ -1520,7 +1520,7 @@ void TryEntryInstr::PrintTo(BaseTextBuffer* f) const {
     for (intptr_t i = 0; i < phis()->length(); ++i) {
       if ((*phis())[i] == nullptr) continue;
       f->AddString("\n      ");
-      (*phis())[i] -> PrintTo(f);
+      (*phis())[i]->PrintTo(f);
     }
     f->AddString("\n}");
   }

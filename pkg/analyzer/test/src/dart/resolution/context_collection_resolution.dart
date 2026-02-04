@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
@@ -24,16 +25,20 @@ import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
-import '../../../generated/test_support.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
+
+// TODO(FMorschel): Review both PubPackageResolutionTest classes
+export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
+    show ExpectedDiagnostic;
 
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
@@ -69,8 +74,6 @@ class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
 /// [AnalysisContextCollection] based implementation of [ResolutionTest].
 abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
-  static bool _lintRulesAreRegistered = false;
-
   /// The byte store that is reused between tests. This allows reusing all
   /// unlinked and linked summaries for SDK, so that tests run much faster.
   /// However nothing is preserved between Dart VM runs, so changes to the
@@ -242,14 +245,14 @@ abstract class ContextResolutionTest
 
   @mustCallSuper
   void setUp() {
-    if (!_lintRulesAreRegistered) {
-      registerLintRules();
-      _lintRulesAreRegistered = true;
-    }
+    registerLintRules();
   }
 
   @mustCallSuper
   Future<void> tearDown() async {
+    for (var rule in Registry.ruleRegistry.rules) {
+      Registry.ruleRegistry.unregisterLintRule(rule);
+    }
     await disposeAnalysisContextCollection();
   }
 
@@ -363,7 +366,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
     bool angularMeta = false,
     bool ffi = false,
     bool flutter = false,
-    bool js = false,
     bool meta = false,
   }) {
     config = config.copy();
@@ -375,8 +377,24 @@ class PubPackageResolutionTest extends ContextResolutionTest
     );
 
     if (angularMeta) {
-      var angularMetaPath = addAngularMeta().parent.path;
-      config.add(name: 'angular_meta', rootPath: angularMetaPath);
+      var angularMetaRootPath = '/packages/angular_meta';
+      newFile('$angularMetaRootPath/lib/angular_meta.dart', r'''
+library angular.meta;
+
+const _VisibleForTemplate visibleForTemplate = const _VisibleForTemplate();
+
+const _VisibleOutsideTemplate visibleOutsideTemplate =
+    const _VisibleOutsideTemplate();
+
+class _VisibleForTemplate {
+  const _VisibleForTemplate();
+}
+
+class _VisibleOutsideTemplate {
+  const _VisibleOutsideTemplate();
+}
+''');
+      config.add(name: 'angular_meta', rootPath: angularMetaRootPath);
     }
 
     if (ffi) {
@@ -390,11 +408,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
       var flutterPath = addFlutter().parent.path;
       config.add(name: 'flutter', rootPath: flutterPath);
-    }
-
-    if (js) {
-      var jsPath = addJs().parent.path;
-      config.add(name: 'js', rootPath: jsPath);
     }
 
     if (meta || flutter) {
@@ -427,6 +440,11 @@ mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
 mixin WithoutEnhancedEnumsMixin on PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => '2.16';
+}
+
+mixin WithoutPrivateNamedParametersMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '3.9';
 }
 
 mixin WithStrictCastsMixin on PubPackageResolutionTest {

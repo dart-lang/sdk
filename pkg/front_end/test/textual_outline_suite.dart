@@ -22,6 +22,7 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
+import 'testing/experimental_features.dart';
 import 'utils/kernel_chain.dart' show MatchContext;
 import 'utils/suite_utils.dart';
 import 'testing/environment_keys.dart';
@@ -111,6 +112,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
     Uint8List bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
       TextualOutlineInfoForTesting info = new TextualOutlineInfoForTesting();
+      ExperimentalFeaturesFromFlags experimentalFeatures =
+          new ExperimentalFeaturesFromFlags(experimentalFlags);
       String? result = textualOutline(
         bytes,
         new ScannerConfiguration(
@@ -122,14 +125,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         throwOnUnexpected: true,
         performModelling: modelled,
         returnNullOnError: false,
-        enablePatterns: isExperimentEnabled(
-          ExperimentalFlag.patterns,
-          explicitExperimentalFlags: experimentalFlags,
-        ),
-        enableEnhancedParts: isExperimentEnabled(
-          ExperimentalFlag.enhancedParts,
-          explicitExperimentalFlags: experimentalFlags,
-        ),
+        experimentalFeatures: experimentalFeatures,
         infoForTesting: info,
       );
       if (result == null) {
@@ -174,7 +170,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
           formatterExceptionSt = st;
           if (e is FormatterException) {
             for (var error in e.errors) {
-              if (error.diagnosticCode.name == "EXPERIMENT_NOT_ENABLED") {
+              if (error.diagnosticCode.lowerCaseName.toUpperCase() ==
+                  "EXPERIMENT_NOT_ENABLED") {
                 allowFormatterCrash = true;
               }
             }

@@ -13,14 +13,16 @@ void main() {
       test('without published diagnostic docs', () {
         expect(
           _customCode.url,
-          equals('https://dart.dev/lints/${_customCode.name}'),
+          equals('https://dart.dev/lints/${_customCode.lowerCaseName}'),
         );
       });
 
       test('with published diagnostic docs', () {
         expect(
           _customCodeWithDocs.url,
-          equals('https://dart.dev/diagnostics/${_customCodeWithDocs.name}'),
+          equals(
+            'https://dart.dev/diagnostics/${_customCodeWithDocs.lowerCaseName}',
+          ),
         );
       });
     });
@@ -28,16 +30,18 @@ void main() {
 }
 
 const LintCode _customCode = LinterLintCode(
-  'hash_and_equals',
-  'Override `==` if overriding `hashCode`.',
+  name: 'hash_and_equals',
+  problemMessage: 'Override `==` if overriding `hashCode`.',
   correctionMessage: 'Implement `==`.',
   expectedTypes: [],
+  uniqueName: 'LintCode.hash_and_equals',
 );
 
 const LintCode _customCodeWithDocs = LinterLintCode(
-  'hash_and_equals',
-  'Override `==` if overriding `hashCode`.',
+  name: 'hash_and_equals',
+  problemMessage: 'Override `==` if overriding `hashCode`.',
   correctionMessage: 'Implement `==`.',
   hasPublishedDocs: true,
   expectedTypes: [],
+  uniqueName: 'LintCode.hash_and_equals',
 );

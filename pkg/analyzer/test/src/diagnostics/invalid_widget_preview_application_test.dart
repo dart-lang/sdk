@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,7 +39,7 @@ abstract class B extends StatelessWidget {
   }
 }
 ''',
-      [error(WarningCode.invalidWidgetPreviewApplication, 133, 7)],
+      [error(diag.invalidWidgetPreviewApplication, 133, 7)],
     );
   }
 
@@ -55,12 +55,44 @@ class B extends StatelessWidget {
   B();
 }
 ''',
-      [error(CompileTimeErrorCode.noAnnotationConstructorArguments, 123, 8)],
+      [error(diag.noAnnotationConstructorArguments, 123, 8)],
+    );
+  }
+
+  // @Preview cannot be applied to external constructors.
+  test_invalidExternalConstructor() async {
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class B extends StatelessWidget {
+  @Preview()
+  external B();
+}
+''',
+      [error(diag.invalidWidgetPreviewApplication, 124, 7)],
     );
   }
 
   // @Preview cannot be applied to external functions.
-  test_invalidExternalFunction() async {
+  test_invalidExternalStaticFunction() async {
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class B extends StatelessWidget {
+  @Preview()
+  external static Widget foo();
+}
+''',
+      [error(diag.invalidWidgetPreviewApplication, 124, 7)],
+    );
+  }
+
+  // @Preview cannot be applied to external top-level functions.
+  test_invalidExternalTopLevelFunction() async {
     await assertErrorsInCode(
       '''
 import 'package:flutter/widgets.dart';
@@ -68,20 +100,8 @@ import 'package:flutter/widget_previews.dart';
 
 @Preview()
 external Widget foo();
-
-class B extends StatelessWidget {
-  @Preview()
-  external B();
-
-  @Preview()
-  external static Widget foo();
-}
 ''',
-      [
-        error(WarningCode.invalidWidgetPreviewApplication, 88, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 159, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 189, 7),
-      ],
+      [error(diag.invalidWidgetPreviewApplication, 88, 7)],
     );
   }
 
@@ -99,7 +119,7 @@ class B {
   }
 }
 ''',
-      [error(WarningCode.invalidWidgetPreviewApplication, 100, 7)],
+      [error(diag.invalidWidgetPreviewApplication, 100, 7)],
     );
   }
 
@@ -117,31 +137,32 @@ Widget foo() {
   }
   return nested();
 }
-
-class B {
-  static Widget foo() {
-   @Preview()
-    Widget nested() {
-      return Text('Foo');
-    } 
-    return nested();
-  }
-}
 ''',
-      [
-        error(WarningCode.invalidWidgetPreviewApplication, 105, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 223, 7),
-      ],
+      [error(diag.invalidWidgetPreviewApplication, 105, 7)],
     );
   }
 
-  // @Preview cannot be applied to:
-  //
-  //  - Enums members
-  //  - Extension methods
-  //  - Extension type members
-  //  - Mixin members
-  test_invalidParentContext() async {
+  // @Preview cannot be applied to enum members.
+  test_invalidParentContext_enumMember() async {
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widget_previews.dart';
+
+enum B {
+  a,
+  b,
+  c;
+
+  @Preview()
+  const B();
+}
+''',
+      [error(diag.invalidWidgetPreviewApplication, 76, 7)],
+    );
+  }
+
+  // @Preview cannot be applied to extension methods.
+  test_invalidParentContext_extensionMethod() async {
     await assertErrorsInCode(
       '''
 import 'package:flutter/widgets.dart';
@@ -152,23 +173,25 @@ class Foo extends StatelessWidget {
   Widget build(BuildContext context) => Text('Foo');
 }
 
-enum B {
-  a,
-  b,
-  c;
-
-  @Preview()
-  const B();
-}
-
-extension on Foo {
+extension E on Foo {
   @Preview()
   Widget invalidExtensionPreview() => Text('Invalid');
 }
+''',
+      [error(diag.invalidWidgetPreviewApplication, 215, 7)],
+    );
+  }
 
-mixin PreviewMixin {
-  @Preview()
-  Widget invalidMixinPreview() => Text('Invalid');
+  // @Preview cannot be applied to extension type members.
+  test_invalidParentContext_extensionTypeMember() async {
+    await assertErrorsInCode(
+      '''
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class Foo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Text('Foo');
 }
 
 extension type FooExtensionType(Foo foo) {
@@ -176,20 +199,36 @@ extension type FooExtensionType(Foo foo) {
   Widget invalidExtensionTypePreview() => Text('Invalid');
 }
 ''',
-      [
-        error(WarningCode.invalidWidgetPreviewApplication, 219, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 267, 7),
-        error(WarningCode.unusedElement, 286, 23),
-        error(WarningCode.invalidWidgetPreviewApplication, 359, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 469, 7),
-      ],
+      [error(diag.invalidWidgetPreviewApplication, 237, 7)],
     );
   }
 
-  // @Preview cannot be applied to members of private classes.
-  test_invalidPrivateClass() async {
+  // @Preview cannot be applied to extension type members.
+  test_invalidParentContext_mixinMember() async {
     await assertErrorsInCode(
       '''
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class Foo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Text('Foo');
+}
+
+mixin PreviewMixin {
+  @Preview()
+  Widget invalidMixinPreview() => Text('Invalid');
+}
+''',
+      [error(diag.invalidWidgetPreviewApplication, 215, 7)],
+    );
+  }
+
+  // @Preview cannot be applied to constructors of private classes.
+  test_invalidPrivateClass_constructor() async {
+    await assertErrorsInCode(
+      '''
+// ignore_for_file: unused_element
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -197,9 +236,47 @@ class _B extends StatelessWidget {
   @Preview()
   _B();
 
-  @Preview()
-  factory _B.foo() => _B();
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''',
+      [error(diag.invalidWidgetPreviewApplication, 160, 7)],
+    );
+  }
 
+  // @Preview cannot be applied to factory constructors of private classes.
+  test_invalidPrivateClass_factoryConstructor() async {
+    await assertErrorsInCode(
+      '''
+// ignore_for_file: unused_element
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class _B extends StatelessWidget {
+  @Preview()
+  factory _B.foo() => throw '';
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''',
+      [error(diag.invalidWidgetPreviewApplication, 160, 7)],
+    );
+  }
+
+  // @Preview cannot be applied to instance members of private classes.
+  test_invalidPrivateClass_instanceMember() async {
+    await assertErrorsInCode(
+      '''
+// ignore_for_file: unused_element
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class _B extends StatelessWidget {
   @Preview()
   static Widget bar() => Text('Bar');
 
@@ -209,45 +286,7 @@ class _B extends StatelessWidget {
   }
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 93, 2),
-        error(WarningCode.invalidWidgetPreviewApplication, 125, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 147, 7),
-        error(WarningCode.unusedElement, 170, 3),
-        error(WarningCode.invalidWidgetPreviewApplication, 189, 7),
-        error(WarningCode.unusedElement, 215, 3),
-      ],
-    );
-  }
-
-  // @Preview cannot be applied to private generative or factory constructors.
-  test_invalidPrivateClassConstructors() async {
-    await assertErrorsInCode(
-      '''
-import 'package:flutter/widgets.dart';
-import 'package:flutter/widget_previews.dart';
-
-class B extends StatelessWidget {
-  @Preview()
-  B._();
-
-  @Preview()
-  factory B._foo() => B();
-
-  B();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-''',
-      [
-        error(WarningCode.invalidWidgetPreviewApplication, 124, 7),
-        error(WarningCode.unusedElement, 138, 1),
-        error(WarningCode.invalidWidgetPreviewApplication, 147, 7),
-        error(WarningCode.unusedElement, 169, 4),
-      ],
+      [error(diag.invalidWidgetPreviewApplication, 160, 7)],
     );
   }
 
@@ -271,9 +310,57 @@ class B extends StatelessWidget {
 }
 ''',
       [
-        error(WarningCode.invalidWidgetPreviewApplication, 124, 7),
-        error(WarningCode.unusedElement, 150, 4),
+        error(diag.invalidWidgetPreviewApplication, 124, 7),
+        error(diag.unusedElement, 150, 4),
       ],
+    );
+  }
+
+  // @Preview cannot be applied to private factory constructors.
+  test_invalidPrivateConstructor_factory() async {
+    await assertErrorsInCode(
+      '''
+// ignore_for_file: unused_element
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class B extends StatelessWidget {
+  @Preview()
+  factory B._foo() => B();
+
+  B();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''',
+      [error(diag.invalidWidgetPreviewApplication, 159, 7)],
+    );
+  }
+
+  // @Preview cannot be applied to private generative constructors.
+  test_invalidPrivateConstructor_generative() async {
+    await assertErrorsInCode(
+      '''
+// ignore_for_file: unused_element
+import 'package:flutter/widgets.dart';
+import 'package:flutter/widget_previews.dart';
+
+class B extends StatelessWidget {
+  @Preview()
+  B._();
+
+  B();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''',
+      [error(diag.invalidWidgetPreviewApplication, 159, 7)],
     );
   }
 
@@ -281,6 +368,7 @@ class B extends StatelessWidget {
   test_invalidPrivateTopLevel() async {
     await assertErrorsInCode(
       '''
+// ignore_for_file: unused_element
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -289,10 +377,7 @@ Widget _foo() {
   return Text('Foo');
 }
 ''',
-      [
-        error(WarningCode.invalidWidgetPreviewApplication, 88, 7),
-        error(WarningCode.unusedElement, 105, 4),
-      ],
+      [error(diag.invalidWidgetPreviewApplication, 123, 7)],
     );
   }
 

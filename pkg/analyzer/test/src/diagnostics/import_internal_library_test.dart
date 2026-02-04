@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,8 +27,8 @@ class ImportInternalLibraryTest extends PubPackageResolutionTest {
 import 'dart:_internal';
 ''',
       [
-        error(CompileTimeErrorCode.importInternalLibrary, 7, 16),
-        error(WarningCode.unusedImport, 7, 16),
+        error(diag.importInternalLibrary, 7, 16),
+        error(diag.unusedImport, 7, 16),
       ],
     );
   }
@@ -39,9 +39,7 @@ import 'dart:_internal';
 import 'dart:_wasm';
 ''');
     await resolveFile2(file);
-    assertErrorsInResolvedUnit(result, [
-      error(WarningCode.unusedImport, 7, 12),
-    ]);
+    assertErrorsInResolvedUnit(result, [error(diag.unusedImport, 7, 12)]);
   }
 
   test_wasm_fromTest() async {
@@ -50,8 +48,8 @@ import 'dart:_wasm';
 import 'dart:_wasm';
 ''',
       [
-        error(CompileTimeErrorCode.importInternalLibrary, 7, 12),
-        error(WarningCode.unusedImport, 7, 12),
+        error(diag.importInternalLibrary, 7, 12),
+        error(diag.unusedImport, 7, 12),
       ],
     );
   }
@@ -62,9 +60,7 @@ import 'dart:_wasm';
 import 'dart:_wasm';
 ''');
     await resolveFile2(file);
-    assertErrorsInResolvedUnit(result, [
-      error(WarningCode.unusedImport, 7, 12),
-    ]);
+    assertErrorsInResolvedUnit(result, [error(diag.unusedImport, 7, 12)]);
   }
 
   String _newPackage(String packageName) {

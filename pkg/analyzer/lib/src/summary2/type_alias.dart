@@ -101,7 +101,7 @@ class _Finder {
           }
           if (typeNode is ClassDeclaration) {
             if (visited.add(typeNode)) {
-              _typeParameterList(typeNode.typeParameters);
+              _typeParameterList(typeNode.namePart.typeParameters);
             }
           } else if (typeNode is ClassTypeAlias) {
             if (visited.add(typeNode)) {

@@ -23,6 +23,7 @@ export 'token_constants.dart' show EOF_TOKEN;
 export 'token_impl.dart'
     show
         StringTokenImpl,
+        correspondingPublicName,
         isBinaryOperator,
         isMinusOperator,
         isTernaryOperator,

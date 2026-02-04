@@ -24,7 +24,6 @@ import '../api_prototype/experimental_flags.dart'
 import '../api_prototype/file_system.dart' show FileSystem;
 import '../base/compiler_context.dart' show CompilerContext;
 import '../base/crash.dart' show withCrashReporting;
-import '../base/loader.dart' show Loader;
 import '../base/messages.dart'
     show
         FormattedMessage,
@@ -171,7 +170,6 @@ class KernelTarget {
   /// Shared with [CompilerContext].
   Map<Uri, Source> get uriToSource => context.uriToSource;
 
-  MemberBuilder? _cachedDuplicatedFieldInitializerError;
   MemberBuilder? _cachedNativeAnnotation;
 
   final ProcessedOptions _options;
@@ -208,17 +206,6 @@ class KernelTarget {
   }
 
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
-
-  /// Returns a reference to the constructor used for creating a runtime error
-  /// when a final field is initialized twice. The constructor is expected to
-  /// accept a single argument which is the name of the field.
-  MemberBuilder getDuplicatedFieldInitializerError(Loader loader) {
-    return _cachedDuplicatedFieldInitializerError ??= loader.coreLibrary
-        .getConstructor(
-          "_DuplicatedFieldInitializerError",
-          bypassLibraryPrivacy: true,
-        );
-  }
 
   /// Returns a reference to the constructor used for creating `native`
   /// annotations. The constructor is expected to accept a single argument of
@@ -1454,6 +1441,10 @@ class KernelTarget {
       }
       bool isRedirecting = false;
       for (Initializer initializer in constructor.initializers) {
+        assert(
+          initializer is! AuxiliaryInitializer,
+          "Unexpected auxiliary initializer $initializer.",
+        );
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
             classBuilder.libraryBuilder.addProblem(
@@ -1484,15 +1475,21 @@ class KernelTarget {
               offset = cls.fileOffset;
               fileUri = cls.fileUri;
             }
+            Message message = codeSuperclassHasNoDefaultConstructor
+                .withArgumentsOld(cls.superclass!.name);
             classBuilder.libraryBuilder.addProblem(
-              codeSuperclassHasNoDefaultConstructor.withArgumentsOld(
-                cls.superclass!.name,
-              ),
+              message,
               offset,
               noLength,
               fileUri,
             );
-            initializer = new InvalidInitializer();
+            String text = context
+                .format(
+                  message.withLocation(fileUri, offset, noLength),
+                  CfeSeverity.error,
+                )
+                .plain;
+            initializer = new InvalidInitializer(text);
           } else {
             initializer = new SuperInitializer(
               superTarget,

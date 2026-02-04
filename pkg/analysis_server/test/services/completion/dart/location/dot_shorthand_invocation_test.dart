@@ -134,8 +134,6 @@ void f() {
 suggestions
   named
     kind: constructorInvocation
-  notConstant
-    kind: constructor
 ''');
   }
 
@@ -156,8 +154,6 @@ replacement
 suggestions
   named
     kind: constructorInvocation
-  notConstant
-    kind: constructor
 ''');
   }
 
@@ -178,8 +174,6 @@ replacement
 suggestions
   named
     kind: constructorInvocation
-  notConstant
-    kind: constructor
 ''');
   }
 
@@ -263,58 +257,6 @@ replacement
 suggestions
   new
     kind: constructorInvocation
-''');
-  }
-
-  Future<void> test_invalid_type() async {
-    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
-    newFile(join(testPackageLibPath, 'private.dart'), '''
-class _C {
-  _C._();
-  // ignore: unused_element
-  static _C method() => _C._();
-}
-
-void foo(_C c) {}
-''');
-    await computeSuggestions('''
-import 'private.dart';
-
-void f() {
-  foo(.m^());
-}
-''');
-    assertResponse(r'''
-replacement
-  left: 1
-suggestions
-''');
-  }
-
-  Future<void> test_invalid_type_typedef() async {
-    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
-    newFile(join(testPackageLibPath, 'private.dart'), '''
-class _C {
-  _C._();
-  // ignore: unused_element
-  static _C method() => _C._();
-}
-
-typedef C = _C;
-
-void foo(C c) {}
-''');
-    await computeSuggestions('''
-import 'private.dart';
-
-void f() {
-  foo(.m^());
-}
-''');
-    assertResponse(r'''
-replacement
-  left: 1
-suggestions
 ''');
   }
 

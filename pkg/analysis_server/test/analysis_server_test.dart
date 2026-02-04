@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -58,6 +59,7 @@ class AnalysisServerTest with ResourceProviderMixin {
       AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       errorNotifier,
+      SessionLogger(),
     );
     errorNotifier.server = server;
   }
@@ -180,10 +182,10 @@ class X extends A with M {}
     errorNotifier.logException(Exception('dummy exception'));
 
     var errors = channel.notificationsReceived.where(
-      (notification) => notification.event == SERVER_NOTIFICATION_ERROR,
+      (notification) => notification.event == serverNotificationError,
     );
     expect(
-      errors.single.params![SERVER_NOTIFICATION_ERROR_MESSAGE],
+      errors.single.params![serverNotificationErrorMessage],
       contains('dummy exception'),
     );
   }
@@ -196,10 +198,10 @@ class X extends A with M {}
     );
 
     var errors = channel.notificationsReceived.where(
-      (notification) => notification.event == SERVER_NOTIFICATION_ERROR,
+      (notification) => notification.event == serverNotificationError,
     );
     expect(
-      errors.single.params![SERVER_NOTIFICATION_ERROR_MESSAGE],
+      errors.single.params![serverNotificationErrorMessage],
       contains('dummy exception'),
     );
   }
@@ -221,7 +223,7 @@ class A {}
     // At least one notification indicating analysis is in progress.
     expect(
       notifications.any((Notification notification) {
-        if (notification.event == SERVER_NOTIFICATION_STATUS) {
+        if (notification.event == serverNotificationStatus) {
           var params = ServerStatusParams.fromNotification(
             notification,
             clientUriConverter: server.uriConverter,
@@ -260,7 +262,7 @@ class A {}
     // At least one notification indicating analysis is in progress.
     expect(
       notifications.any((Notification notification) {
-        if (notification.event == SERVER_NOTIFICATION_STATUS) {
+        if (notification.event == serverNotificationStatus) {
           var params = ServerStatusParams.fromNotification(
             notification,
             clientUriConverter: server.uriConverter,
@@ -302,7 +304,7 @@ analyzer:
     await pumpEventQueue(times: 5000);
     expect(
       channel.notificationsReceived.any((notification) {
-        return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
+        return notification.event == analysisNotificationNavigation;
       }),
       isTrue,
     );
@@ -326,14 +328,14 @@ analyzer:
     await pumpEventQueue(times: 5000);
     expect(
       channel.notificationsReceived.any((notification) {
-        return notification.event == ANALYSIS_NOTIFICATION_NAVIGATION;
+        return notification.event == analysisNotificationNavigation;
       }),
       isTrue,
     );
   }
 
   Future<void> test_shutdown() {
-    var request = Request('my28', SERVER_REQUEST_SHUTDOWN);
+    var request = Request('my28', serverRequestShutdown);
     return channel.simulateRequestFromClient(request).then((Response response) {
       expect(response.id, equals('my28'));
       expect(response.error, isNull);

@@ -5,6 +5,7 @@
 #include <limits>
 #include <memory>
 
+#include "include/bin/dart_io_api.h"
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
@@ -5903,8 +5904,8 @@ ISOLATE_UNIT_TEST_CASE(ToCString) {
   {
     TransitionVMToNative transition(thread);
     bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-    bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
     bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+    bin::SetupDartIoLibrary({});
     bin::VmService::SetNativeResolver();
   }
 
@@ -5931,8 +5932,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
   {
     TransitionVMToNative transition(thread);
     bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
-    bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
     bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+    bin::SetupDartIoLibrary({});
     bin::VmService::SetNativeResolver();
   }
 
@@ -7974,6 +7975,9 @@ FutureOr<T?> bar<T>() { return null; }
 
 static void GenerateInvokeInstantiateTAVStub(compiler::Assembler* assembler) {
   __ EnterDartFrame(0);
+  if (FLAG_target_thread_sanitizer) {
+    __ TsanFuncEntry();
+  }
 
   // Load the arguments into the right stub calling convention registers.
   const intptr_t uninstantiated_offset =
@@ -7995,6 +7999,9 @@ static void GenerateInvokeInstantiateTAVStub(compiler::Assembler* assembler) {
   // Set the return from the stub.
   __ MoveRegister(CallingConventions::kReturnReg,
                   InstantiationABI::kResultTypeArgumentsReg);
+  if (FLAG_target_thread_sanitizer) {
+    __ TsanFuncExit();
+  }
   __ LeaveDartFrame();
   __ Ret();
 }

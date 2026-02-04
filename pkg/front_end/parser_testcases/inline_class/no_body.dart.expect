@@ -1,10 +1,6 @@
 Problems reported:
 
-parser/inline_class/no_body:1:7: A class declaration must have a body, even if it is empty.
-class C;
-      ^
-
-parser/inline_class/no_body:1:8: Unexpected token ';'.
+parser/inline_class/no_body:1:8: This requires the experimental 'primary-constructors' language feature to be enabled.
 class C;
        ^
 
@@ -24,27 +20,15 @@ parser/inline_class/no_body:3:19: Unexpected token ';'.
 extension E on int;
                   ^
 
-parser/inline_class/no_body:4:25: An extension type declaration must have a body, even if it is empty.
-extension type ET1(int i);
-                        ^
-
-parser/inline_class/no_body:4:26: Unexpected token ';'.
+parser/inline_class/no_body:4:26: This requires the experimental 'primary-constructors' language feature to be enabled.
 extension type ET1(int i);
                          ^
 
-parser/inline_class/no_body:5:38: An extension type declaration must have a body, even if it is empty.
-extension type ET2(int i) implements Foo;
-                                     ^^^
-
-parser/inline_class/no_body:5:41: Unexpected token ';'.
+parser/inline_class/no_body:5:41: This requires the experimental 'primary-constructors' language feature to be enabled.
 extension type ET2(int i) implements Foo;
                                         ^
 
-parser/inline_class/no_body:6:43: An extension type declaration must have a body, even if it is empty.
-extension type ET3(int i) implements Foo, Bar;
-                                          ^^^
-
-parser/inline_class/no_body:6:46: Unexpected token ';'.
+parser/inline_class/no_body:6:46: This requires the experimental 'primary-constructors' language feature to be enabled.
 extension type ET3(int i) implements Foo, Bar;
                                              ^
 
@@ -55,26 +39,15 @@ beginCompilationUnit(class)
     handleIdentifier(C, classOrMixinDeclaration)
     handleNoTypeVariables(;)
     beginClassDeclaration(class, null, null, null, null, null, null, null, null, C)
+      handleNoPrimaryConstructor(C, null, false)
       handleNoType(C)
       handleClassExtends(null, 1)
       handleClassNoWithClause()
       handleImplements(null, 0)
       handleClassHeader(class, class, null)
-      handleNoType(C)
-      handleClassExtends(null, 1)
-      handleClassNoWithClause()
-      handleImplements(null, 0)
-      handleRecoverDeclarationHeader(DeclarationHeaderKind.Class)
-      handleRecoverableError(ExpectedClassBody, C, C)
-      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
-      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
-    endClassDeclaration(class, })
-  endTopLevelDeclaration(})
-  beginMetadataStar(;)
-  endMetadataStar(0)
-  beginTopLevelMember(;)
-    handleRecoverableError(Message[Template(UnexpectedToken), Unexpected token ';'., null, {lexeme: ;}], ;, ;)
-    handleInvalidTopLevelDeclaration(;)
+      handleExperimentNotEnabled(ExperimentalFlag.primaryConstructors, ;, ;)
+      handleNoClassBody(;)
+    endClassDeclaration(class, ;)
   endTopLevelDeclaration(;)
   beginMetadataStar(mixin)
   endMetadataStar(0)
@@ -133,25 +106,13 @@ beginCompilationUnit(class)
             handleType(int, null)
             handleIdentifier(i, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
-          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+          endFormalParameter(null, null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false)
+      endPrimaryConstructor((, null, false, true)
       handleImplements(null, 0)
-      handleNoType())
-      handleClassExtends(null, 1)
-      handleClassNoWithClause()
-      handleImplements(null, 0)
-      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
-      handleRecoverableError(ExpectedExtensionTypeBody, ), ))
-      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
-      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
-    endExtensionTypeDeclaration(extension, null, extension, type, })
-  endTopLevelDeclaration(})
-  beginMetadataStar(;)
-  endMetadataStar(0)
-  beginTopLevelMember(;)
-    handleRecoverableError(Message[Template(UnexpectedToken), Unexpected token ';'., null, {lexeme: ;}], ;, ;)
-    handleInvalidTopLevelDeclaration(;)
+      handleExperimentNotEnabled(ExperimentalFlag.primaryConstructors, ;, ;)
+      handleNoExtensionTypeBody(;)
+    endExtensionTypeDeclaration(extension, null, extension, type, ;)
   endTopLevelDeclaration(;)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -168,28 +129,16 @@ beginCompilationUnit(class)
             handleType(int, null)
             handleIdentifier(i, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
-          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+          endFormalParameter(null, null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false)
+      endPrimaryConstructor((, null, false, true)
       handleIdentifier(Foo, typeReference)
       handleNoTypeArguments(;)
       handleType(Foo, null)
       handleImplements(implements, 1)
-      handleNoType(Foo)
-      handleClassExtends(null, 1)
-      handleClassNoWithClause()
-      handleImplements(null, 0)
-      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
-      handleRecoverableError(ExpectedExtensionTypeBody, Foo, Foo)
-      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
-      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
-    endExtensionTypeDeclaration(extension, null, extension, type, })
-  endTopLevelDeclaration(})
-  beginMetadataStar(;)
-  endMetadataStar(0)
-  beginTopLevelMember(;)
-    handleRecoverableError(Message[Template(UnexpectedToken), Unexpected token ';'., null, {lexeme: ;}], ;, ;)
-    handleInvalidTopLevelDeclaration(;)
+      handleExperimentNotEnabled(ExperimentalFlag.primaryConstructors, ;, ;)
+      handleNoExtensionTypeBody(;)
+    endExtensionTypeDeclaration(extension, null, extension, type, ;)
   endTopLevelDeclaration(;)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -206,9 +155,9 @@ beginCompilationUnit(class)
             handleType(int, null)
             handleIdentifier(i, formalParameterDeclaration)
             handleFormalParameterWithoutValue())
-          endFormalParameter(null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
+          endFormalParameter(null, null, null, null, i, null, null, FormalParameterKind.requiredPositional, MemberKind.PrimaryConstructor)
         endFormalParameters(1, (, ), MemberKind.PrimaryConstructor)
-      endPrimaryConstructor((, null, false)
+      endPrimaryConstructor((, null, false, true)
       handleIdentifier(Foo, typeReference)
       handleNoTypeArguments(,)
       handleType(Foo, null)
@@ -216,20 +165,8 @@ beginCompilationUnit(class)
       handleNoTypeArguments(;)
       handleType(Bar, null)
       handleImplements(implements, 2)
-      handleNoType(Bar)
-      handleClassExtends(null, 1)
-      handleClassNoWithClause()
-      handleImplements(null, 0)
-      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
-      handleRecoverableError(ExpectedExtensionTypeBody, Bar, Bar)
-      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
-      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
-    endExtensionTypeDeclaration(extension, null, extension, type, })
-  endTopLevelDeclaration(})
-  beginMetadataStar(;)
-  endMetadataStar(0)
-  beginTopLevelMember(;)
-    handleRecoverableError(Message[Template(UnexpectedToken), Unexpected token ';'., null, {lexeme: ;}], ;, ;)
-    handleInvalidTopLevelDeclaration(;)
+      handleExperimentNotEnabled(ExperimentalFlag.primaryConstructors, ;, ;)
+      handleNoExtensionTypeBody(;)
+    endExtensionTypeDeclaration(extension, null, extension, type, ;)
   endTopLevelDeclaration(;)
-endCompilationUnit(12, )
+endCompilationUnit(8, )

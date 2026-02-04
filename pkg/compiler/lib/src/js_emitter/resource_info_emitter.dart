@@ -8,7 +8,8 @@
 ///
 /// .../foo_resource.dart:
 ///
-///     @pragma('dart2js:resource-identifer')
+///     @pragma('dart2js:resource-identifier')
+///     @pragma('dart2js:noInline')
 ///     Resource getResource(String group, int index) { ... }
 ///
 /// .../my_resources.dart:
@@ -29,8 +30,8 @@
 ///
 /// Some of the calls above are tree-shaken. Some are placed in one 'part' file
 /// and the others in a different 'part' file. The generated resources file
-/// contains the constant arguments to the calls, arranged by resource identifer
-/// and 'part' file.
+/// contains the constant arguments to the calls, arranged by resource
+/// identifier and 'part' file.
 ///
 /// `main.js.resources.json`:
 /// ```json
@@ -54,7 +55,7 @@
 ///             {"1": "group1", "2": 100},
 ///            ]}
 ///        ]},
-///     -- next identifer
+///     -- next identifier
 ///    ]
 /// }
 /// ```
@@ -65,15 +66,10 @@
 
 library;
 
-import 'dart:convert' show jsonDecode;
-import 'dart:io' show Platform;
-
-// ignore: implementation_imports
-import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+import 'package:record_use/record_use_internal.dart';
 
 import '../js/js.dart' as js;
-import '../universe/resource_identifier.dart'
-    show ResourceIdentifier, ResourceIdentifierLocation;
+import '../universe/resource_identifier.dart' show ResourceIdentifier;
 
 class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
   final ResourceInfoCollector _collector;
@@ -91,87 +87,46 @@ class _AnnotationMonitor implements js.JavaScriptAnnotationMonitor {
 }
 
 class ResourceInfoCollector {
-  final Map<_ResourceIdentifierKey, _ResourceIdentifierInfo> _identifierMap =
-      {};
+  final Map<Identifier, List<CallReference>> callMap = {};
+  //TODO(mosum): Also register the part file of the definition.
+  final Map<Identifier, String> loadingUnits = {};
 
   js.JavaScriptAnnotationMonitor monitorFor(String fileName) {
     return _AnnotationMonitor(this, fileName);
   }
 
-  void _register(String filename, ResourceIdentifier identifier) {
-    final key = _ResourceIdentifierKey(identifier.name, identifier.uri);
-    final info = _identifierMap[key] ??= _ResourceIdentifierInfo(key);
-    if (identifier.nonconstant) info.nonconstant = true;
-    (info._files[filename] ??= []).add(identifier);
+  /// Save a [resourceIdentifier] in the [callMap].
+  void _register(String loadingUnit, ResourceIdentifier resourceIdentifier) {
+    final identifier = Identifier(
+      importUri: resourceIdentifier.uri.toString(),
+      scope: resourceIdentifier.parent,
+      name: resourceIdentifier.name,
+    );
+    callMap
+        .putIfAbsent(identifier, () => [])
+        .add(
+          CallWithArguments(
+            loadingUnit: loadingUnit,
+            namedArguments: {},
+            positionalArguments: resourceIdentifier.arguments,
+            location: resourceIdentifier.location,
+          ),
+        );
   }
 
-  Object finish(Map<String, String> environment) {
-    Map<String, Object> json = {
-      '_comment': r'Resources referenced by annotated resource identifers',
+  Map<String, dynamic> finish(Map<String, String> environment) => Recordings(
+    metadata: Metadata.fromJson({
+      'comment': 'Resources referenced by annotated resource identifiers',
       'AppTag': 'TBD',
       'environment': environment,
-      'identifiers': _identifierMap.values.toList()
-        ..sort(_ResourceIdentifierInfo.compare),
-    };
-    return json;
-  }
-}
-
-class _ResourceIdentifierKey {
-  final String name;
-  final Uri uri;
-
-  _ResourceIdentifierKey(this.name, this.uri);
-
-  @override
-  bool operator ==(Object other) =>
-      other is _ResourceIdentifierKey && name == other.name && uri == other.uri;
-
-  @override
-  late final int hashCode = Object.hash(name, uri);
-}
-
-class _ResourceIdentifierInfo {
-  final _ResourceIdentifierKey _key;
-  bool nonconstant = false;
-  final Map<String, List<ResourceIdentifier>> _files = {};
-  _ResourceIdentifierInfo(this._key);
-
-  static int compare(_ResourceIdentifierInfo a, _ResourceIdentifierInfo b) {
-    int r = a._key.name.compareTo(b._key.name);
-    if (r != 0) return r;
-    return a._key.uri.toString().compareTo(b._key.uri.toString());
-  }
-
-  Map<String, dynamic> toJson() {
-    final files = _files.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
-    return {
-      "name": _key.name,
-      "uri": _key.uri.toString(),
-      "nonconstant": nonconstant,
-      "files": [
-        for (final entry in files)
-          {
-            "filename": entry.key,
-            "references": [
-              for (final resourceIdentifier in entry.value)
-                {
-                  if (resourceIdentifier.location != null)
-                    '@': _locationToJson(resourceIdentifier.location!),
-                  ...jsonDecode(resourceIdentifier.arguments),
-                },
-            ],
-          },
-      ],
-    };
-  }
-
-  Map<String, dynamic> _locationToJson(ResourceIdentifierLocation location) {
-    return {
-      'uri': fe.relativizeUri(Uri.base, location.uri, Platform.isWindows),
-      if (location.line != null) 'line': location.line,
-      if (location.column != null) 'column': location.column,
-    };
-  }
+      "version": version.toString(),
+    }),
+    callsForDefinition: callMap.map(
+      (key, value) => MapEntry(
+        Definition(identifier: key, loadingUnit: loadingUnits[key]),
+        value,
+      ),
+    ),
+    instancesForDefinition: {},
+  ).toJson();
 }

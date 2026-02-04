@@ -4,12 +4,14 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Verifies that the return type of the getter matches the parameter type
 /// of the corresponding setter. Where "match" means "subtype" in non-nullable,
@@ -19,9 +21,13 @@ class GetterSetterTypesVerifier {
   final TypeSystemImpl _typeSystem;
   final DiagnosticReporter _diagnosticReporter;
 
+  /// The source file for which diagnostics are being generated.
+  final Source diagnosticSource;
+
   GetterSetterTypesVerifier({
     required this.library,
     required DiagnosticReporter diagnosticReporter,
+    required this.diagnosticSource,
   }) : _typeSystem = library.typeSystem,
        _diagnosticReporter = diagnosticReporter;
 
@@ -96,10 +102,17 @@ class GetterSetterTypesVerifier {
               setterName = '$setterClassName.$setterName';
             }
 
-            _diagnosticReporter.atElement2(
-              errorElement,
-              CompileTimeErrorCode.getterNotSubtypeSetterTypes,
-              arguments: [getterName, getterType, setterType, setterName],
+            _diagnosticReporter.report(
+              diag.getterNotSubtypeSetterTypes
+                  .withArguments(
+                    getterName: getterName,
+                    getterType: getterType,
+                    setterType: setterType,
+                    setterName: setterName,
+                  )
+                  .atSourceRange(
+                    errorElement.diagnosticRange(diagnosticSource),
+                  ),
             );
           }
         }
@@ -137,10 +150,15 @@ class GetterSetterTypesVerifier {
 
     var getterType = _getGetterType(getter);
     if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
-      _diagnosticReporter.atElement2(
-        getter,
-        CompileTimeErrorCode.getterNotSubtypeSetterTypes,
-        arguments: [name, getterType, setterType, name],
+      _diagnosticReporter.report(
+        diag.getterNotSubtypeSetterTypes
+            .withArguments(
+              getterName: name,
+              getterType: getterType,
+              setterType: setterType,
+              setterName: name,
+            )
+            .atSourceRange(getter.diagnosticRange(diagnosticSource)),
       );
     }
   }

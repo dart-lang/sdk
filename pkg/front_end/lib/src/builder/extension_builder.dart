@@ -16,18 +16,12 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
 
   /// Looks up extension member by [name] taking privacy into account.
   ///
-  /// If [setter] is `true` the sought member is a setter or assignable field.
-  /// If [required] is `true` and no member is found an internal problem is
-  /// reported.
-  ///
-  /// If the extension member is a duplicate, `null` is returned.
-  MemberLookupResult? lookupLocalMemberByName(
-    Name name, {
-    bool required = false,
-  });
+  /// If [name] is `[]` or `[]=` then the `operator []` and `operator []=`
+  /// members are returned as the [MemberLookupResult.getable] and
+  /// [MemberLookupResult.setable], respectively.
+  MemberLookupResult? lookupExtensionMemberByName(Name name);
 }
 
-// Coverage-ignore(suite): Not run.
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
     implements ExtensionBuilder {
@@ -48,9 +42,80 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   Nullability computeNullabilityWithArguments(
     List<TypeBuilder>? typeArguments, {
     required Map<TypeParameterBuilder, TraversalState>
     typeParametersTraversalState,
   }) => Nullability.nonNullable;
+
+  @override
+  MemberLookupResult? lookupExtensionMemberByName(Name name) {
+    if (name.isPrivate && libraryBuilder.library != name.library) {
+      return null;
+    }
+
+    MemberLookupResult? result = lookupLocalMember(name.text, required: false);
+    if (result != null && result.isInvalidLookup) {
+      return result;
+    }
+
+    if (name == indexGetName) {
+      // We need to find `operator []=` as well.
+      MemberLookupResult? setterResult = lookupLocalMember(
+        indexSetName.text,
+        required: false,
+      );
+      if (setterResult != null && !setterResult.isInvalidLookup) {
+        if (result != null) {
+          // Return `operator []` and `operator []=` as the getable and
+          // setable results, respectively.
+          return new GetableSetableMemberResult(
+            result.getable!,
+            setterResult.getable!,
+            isStatic: result.isStatic,
+          );
+          // Return `operator []=` as the setable result.
+        } else {
+          return new SetableMemberResult(
+            setterResult.getable!,
+            isStatic: setterResult.isStatic,
+          );
+        }
+      } else {
+        // Return `operator []` as the getable result.
+        return result;
+      }
+    } else if (name == indexSetName) {
+      // We need to find `operator []` as well.
+      MemberLookupResult? getterResult = lookupLocalMember(
+        indexGetName.text,
+        required: false,
+      );
+      if (getterResult != null && !getterResult.isInvalidLookup) {
+        if (result != null) {
+          // Return `operator []` and `operator []=` as the getable and
+          // setable results, respectively.
+          return new GetableSetableMemberResult(
+            getterResult.getable!,
+            result.getable!,
+            isStatic: result.isStatic,
+          );
+        } else {
+          // Return `operator []` as the getable result.
+          return getterResult;
+        }
+      } else if (result != null) {
+        // Return `operator []=` as the setable result.
+        return new SetableMemberResult(
+          result.getable!,
+          isStatic: result.isStatic,
+        );
+      } else {
+        return null;
+      }
+    } else {
+      return result;
+    }
+  }
 }

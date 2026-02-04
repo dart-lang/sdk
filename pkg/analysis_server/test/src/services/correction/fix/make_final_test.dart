@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,7 +28,7 @@ void main() {
 @reflectiveTest
 class NonFinalFieldInEnumTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   Future<void> test_field_type() async {
     await resolveTestCode('''
@@ -88,7 +89,7 @@ class C {
 @reflectiveTest
 class PreferFinalFieldsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_fields;
@@ -128,7 +129,7 @@ class C {
 class PreferFinalFieldsWithNullSafetyTest extends FixProcessorLintTest
     with WithNullSafetyLintMixin {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_fields;
@@ -167,7 +168,7 @@ class C {
 @reflectiveTest
 class PreferFinalInForEachTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_in_for_each;
@@ -182,7 +183,7 @@ f() {
 f() {
   var l = [ for (final i in [1, 2]) i + 3 ];
 }
-''', errorFilter: (e) => e.diagnosticCode != WarningCode.unusedLocalVariable);
+''', filter: (e) => e.diagnosticCode != diag.unusedLocalVariable);
   }
 
   Future<void> test_listPattern() async {
@@ -195,7 +196,7 @@ f() {
 f() {
   for (final [i, j] in [[1, 2]]) { }
 }
-''', errorFilter: (e) => e.diagnosticCode != WarningCode.unusedLocalVariable);
+''', filter: (e) => e.diagnosticCode != diag.unusedLocalVariable);
   }
 
   Future<void> test_mapPattern() async {
@@ -208,7 +209,7 @@ f() {
 f() {
   for (final {'i' : j} in [{'i' : 1}]) { }
 }
-''', errorFilter: (e) => e.diagnosticCode != WarningCode.unusedLocalVariable);
+''', filter: (e) => e.diagnosticCode != diag.unusedLocalVariable);
   }
 
   Future<void> test_noType() async {
@@ -237,7 +238,7 @@ class A {
 
 f() {
   for (var A(:a) in [A(1)]) { }
-} 
+}
 ''');
     await assertHasFix('''
 class A {
@@ -247,8 +248,8 @@ class A {
 
 f() {
   for (final A(:a) in [A(1)]) { }
-} 
-''', errorFilter: (e) => e.diagnosticCode != WarningCode.unusedLocalVariable);
+}
+''', filter: (e) => e.diagnosticCode != diag.unusedLocalVariable);
   }
 
   Future<void> test_recordPattern() async {
@@ -261,7 +262,7 @@ f() {
 f() {
   for (final (i, j) in [(1, 2)]) { }
 }
-''', errorFilter: (e) => e.diagnosticCode != WarningCode.unusedLocalVariable);
+''', filter: (e) => e.diagnosticCode != diag.unusedLocalVariable);
   }
 
   Future<void> test_type() async {
@@ -319,7 +320,7 @@ f() {
 @reflectiveTest
 class PreferFinalLocalTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_locals;
@@ -464,6 +465,13 @@ void f() {
 @reflectiveTest
 class PreferFinalParametersBulkTest extends BulkFixProcessorTest {
   @override
+  List<String> get experiments => super.experiments
+      .where(
+        (experiment) => experiment != Feature.primary_constructors.enableString,
+      )
+      .toList();
+
+  @override
   String get lintCode => LintNames.prefer_final_parameters;
 
   Future<void> test_singleFile() async {
@@ -485,7 +493,14 @@ void fn(final String test, final int other) {
 @reflectiveTest
 class PreferFinalParametersTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.MAKE_FINAL;
+  List<String> get experiments => super.experiments
+      .where(
+        (experiment) => experiment != Feature.primary_constructors.enableString,
+      )
+      .toList();
+
+  @override
+  FixKind get kind => DartFixKind.makeFinal;
 
   @override
   String get lintCode => LintNames.prefer_final_parameters;

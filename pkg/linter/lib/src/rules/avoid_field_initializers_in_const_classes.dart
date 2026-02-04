@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,11 +11,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid field initializers in const classes.';
 
-class AvoidFieldInitializersInConstClasses extends LintRule {
+class AvoidFieldInitializersInConstClasses extends AnalysisRule {
   AvoidFieldInitializersInConstClasses()
     : super(
         name: LintNames.avoid_field_initializers_in_const_classes,
@@ -23,7 +25,7 @@ class AvoidFieldInitializersInConstClasses extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidFieldInitializersInConstClasses;
+      diag.avoidFieldInitializersInConstClasses;
 
   @override
   void registerNodeProcessors(
@@ -56,7 +58,7 @@ class HasParameterReferenceVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -90,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
     if (!node.fields.isFinal) return;
     // only const class
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     if (parent is ClassDeclaration) {
       var declaredElement = parent.declaredFragment?.element;
       if (declaredElement == null) return;

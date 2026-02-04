@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassDeclarationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -95,9 +97,9 @@ class C extends A {}
 class X extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 48, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 27, 1),
+        error(diag.recursiveInterfaceInheritance, 48, 1),
       ],
     );
 
@@ -109,7 +111,7 @@ class X extends A {}
       r'''
 class A extends Function {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 16, 8)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 16, 8)],
     );
     var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
@@ -121,7 +123,7 @@ class A extends Function {}
 // @dart = 2.19
 class A extends Function {}
 ''',
-      [error(WarningCode.deprecatedExtendsFunction, 32, 8)],
+      [error(diag.deprecatedExtendsFunction, 32, 8)],
     );
     var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
@@ -134,7 +136,7 @@ mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 53, 8)],
+      [error(diag.classUsedAsMixin, 53, 8)],
     );
 
     assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
@@ -148,7 +150,7 @@ mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
 ''',
-      [error(WarningCode.deprecatedMixinFunction, 69, 8)],
+      [error(diag.deprecatedMixinFunction, 69, 8)],
     );
 
     assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
@@ -168,10 +170,956 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 33, 1),
-        error(WarningCode.unusedLocalVariable, 150, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 33, 1),
+        error(diag.unusedLocalVariable, 150, 1),
       ],
     );
+  }
+
+  test_nameWithTypeParameters_hasTypeParameters() async {
+    var code = r'''
+class A<T extends int> {}
+''';
+
+    await assertNoErrorsInCode(code);
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          declaredFragment: <testLibraryFragment> T@8
+            defaultType: int
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_nameWithTypeParameters_noTypeParameters() async {
+    var code = r'''
+class A {}
+''';
+
+    await assertNoErrorsInCode(code);
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_default_namedOptional_final() async {
+    await assertNoErrorsInCode(r'''
+class A({final int a = 0});
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          keyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@19
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@class::A::@field::a
+        separator: =
+        defaultValue: IntegerLiteral
+          literal: 0
+          staticType: int
+        declaredFragment: <testLibraryFragment> a@19
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@class::A::@field::a
+      rightDelimiter: }
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function({int a})
+  body: EmptyClassBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() async {
+    await assertNoErrorsInCode(r'''
+class A({required final int a});
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      leftDelimiter: {
+      parameter: DefaultFormalParameter
+        parameter: SimpleFormalParameter
+          requiredKeyword: required
+          keyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@28
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@class::A::@field::a
+        declaredFragment: <testLibraryFragment> a@28
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@class::A::@field::a
+      rightDelimiter: }
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function({required int a})
+  body: EmptyClassBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_functionTyped_final() async {
+    await assertNoErrorsInCode(r'''
+class A(final int a(String x));
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: FunctionTypedFormalParameter
+        keyword: final
+        returnType: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: a
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: SimpleFormalParameter
+            type: NamedType
+              name: String
+              element: dart:core::@class::String
+              type: String
+            name: x
+            declaredFragment: <testLibraryFragment> x@27
+              element: isPublic
+                type: String
+          rightParenthesis: )
+        declaredFragment: <testLibraryFragment> a@18
+          element: isFinal isPublic
+            type: int Function(String)
+            field: <testLibrary>::@class::A::@field::a
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int Function(String))
+  body: EmptyClassBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_simple_final() async {
+    await assertNoErrorsInCode(r'''
+class A(final int a) {}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: a
+        declaredFragment: <testLibraryFragment> a@18
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@class::A::@field::a
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_simple_var() async {
+    await assertNoErrorsInCode(r'''
+class A(var int a) {}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: var
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: a
+        declaredFragment: <testLibraryFragment> a@16
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@class::A::@field::a
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_field_staticConst() async {
+    await assertNoErrorsInCode(r'''
+class A(final String a, final bool b) {
+  static const int foo = 0;
+  static const int bar = 1;
+}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        name: a
+        declaredFragment: <testLibraryFragment> a@21
+          element: isFinal isPublic
+            type: String
+            field: <testLibrary>::@class::A::@field::a
+      parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: bool
+          element: dart:core::@class::bool
+          type: bool
+        name: b
+        declaredFragment: <testLibraryFragment> b@35
+          element: isFinal isPublic
+            type: bool
+            field: <testLibrary>::@class::A::@field::b
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(String, bool)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          variables
+            VariableDeclaration
+              name: foo
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+                staticType: int
+              declaredFragment: <testLibraryFragment> foo@59
+        semicolon: ;
+        declaredFragment: <null>
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          variables
+            VariableDeclaration
+              name: bar
+              equals: =
+              initializer: IntegerLiteral
+                literal: 1
+                staticType: int
+              declaredFragment: <testLibraryFragment> bar@87
+        semicolon: ;
+        declaredFragment: <null>
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_fieldFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(int this.a) {
+  final int a;
+}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: FieldFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        thisKeyword: this
+        period: .
+        name: a
+        declaredFragment: <testLibraryFragment> a@17
+          element: isFinal isPublic
+            type: int
+            field: <testLibrary>::@class::A::@field::a
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        fields: VariableDeclarationList
+          keyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          variables
+            VariableDeclaration
+              name: a
+              declaredFragment: <testLibraryFragment> a@34
+        semicolon: ;
+        declaredFragment: <null>
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_hasTypeParameters_named() async {
+    await assertNoErrorsInCode(r'''
+class A<T>.named(T t) {}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@8
+            defaultType: dynamic
+      rightBracket: >
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: t
+        declaredFragment: <testLibraryFragment> t@19
+          element: isPublic
+            type: T
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> named@11
+      element: <testLibrary>::@class::A::@constructor::named
+        type: A<T> Function(T)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_hasTypeParameters_unnamed() async {
+    await assertNoErrorsInCode(r'''
+class A<T>(T t) {}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@8
+            defaultType: dynamic
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: t
+        declaredFragment: <testLibraryFragment> t@13
+          element: isPublic
+            type: T
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A<T> Function(T)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_noTypeParameters_named() async {
+    await assertNoErrorsInCode(r'''
+class A.named(int a) {}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: a
+        declaredFragment: <testLibraryFragment> a@18
+          element: isPublic
+            type: int
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> named@8
+      element: <testLibrary>::@class::A::@constructor::named
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_noTypeParameters_unnamed() async {
+    await assertNoErrorsInCode(r'''
+class A(int a) {}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: a
+        declaredFragment: <testLibraryFragment> a@12
+          element: isPublic
+            type: int
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(int)
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructor_superFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(final int a);
+class B(super.a) extends A;
+''');
+
+    var node = findNode.classDeclaration('class B');
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: B
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SuperFormalParameter
+        superKeyword: super
+        period: .
+        name: a
+        declaredFragment: <testLibraryFragment> a@36
+          element: hasImplicitType isFinal isPublic
+            type: int
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::B::@constructor::new
+        type: B Function(int)
+  extendsClause: ExtendsClause
+    extendsKeyword: extends
+    superclass: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+  body: EmptyClassBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> B@28
+''');
+  }
+
+  test_primaryConstructorBody_duplicate() async {
+    await assertNoErrorsInCode(r'''
+class A(bool x, bool y) {
+  this : assert(x) {
+    y;
+  }
+  this : assert(!x) {
+    !y;
+  }
+}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: bool
+          element: dart:core::@class::bool
+          type: bool
+        name: x
+        declaredFragment: <testLibraryFragment> x@13
+          element: isPublic
+            type: bool
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: bool
+          element: dart:core::@class::bool
+          type: bool
+        name: y
+        declaredFragment: <testLibraryFragment> y@21
+          element: isPublic
+            type: bool
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(bool, bool)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: SimpleIdentifier
+              token: x
+              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: y
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
+                token: x
+                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                staticType: bool
+              element: <null>
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: PrefixExpression
+                  operator: !
+                  operand: SimpleIdentifier
+                    token: y
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                    staticType: bool
+                  element: <null>
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  this : assert(x) {
+    y;
+  }
+}
+''',
+      [
+        error(diag.primaryConstructorBodyWithoutDeclaration, 12, 29),
+        error(diag.undefinedIdentifier, 26, 1),
+        error(diag.undefinedIdentifier, 35, 1),
+      ],
+    );
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: x
+        element: <null>
+        staticType: InvalidType
+      rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: y
+            element: <null>
+            staticType: InvalidType
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(final bool a) {
+  this : assert(a);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_fieldFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(this.a) {
+  final bool a;
+  this : assert(a);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_simpleFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(bool a) {
+  this : assert(a);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryInitializerScope_superFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(final bool a);
+class B(super.a) extends A {
+  this : assert(a);
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+        staticType: bool
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_primaryParameterScope_fieldFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(this.a) {
+  final int a;
+  this {
+    a;
+    foo;
+  }
+  void foo() {}
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@getter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@method::foo
+            staticType: void Function()
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_primaryParameterScope_simpleFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(int a) {
+  this {
+    a;
+    foo;
+  }
+  void foo() {}
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@method::foo
+            staticType: void Function()
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_primaryParameterScope_superFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class A(final int a);
+class B(super.a) extends A {
+  this {
+    a;
+    foo;
+  }
+  void foo() {}
+}
+''');
+
+    var node = findNode.singlePrimaryConstructorBody;
+    assertResolvedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@getter::a
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::B::@method::foo
+            staticType: void Function()
+          semicolon: ;
+      rightBracket: }
+''');
   }
 }

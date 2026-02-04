@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,19 +11,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/ascii_utils.dart';
 import '../utils.dart';
 
 const _desc = r'Name non-constant identifiers using lowerCamelCase.';
 
-class NonConstantIdentifierNames extends LintRule {
+class NonConstantIdentifierNames extends AnalysisRule {
   NonConstantIdentifierNames()
     : super(name: LintNames.non_constant_identifier_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.nonConstantIdentifierNames;
+  DiagnosticCode get diagnosticCode => diag.nonConstantIdentifierNames;
 
   @override
   void registerNodeProcessors(
@@ -39,6 +40,7 @@ class NonConstantIdentifierNames extends LintRule {
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
     registry.addPatternField(this, visitor);
+    registry.addPrimaryConstructorName(this, visitor);
     registry.addRecordLiteral(this, visitor);
     registry.addRecordTypeAnnotation(this, visitor);
     registry.addVariableDeclaration(this, visitor);
@@ -47,7 +49,7 @@ class NonConstantIdentifierNames extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -87,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    checkIdentifier(node.representation.constructorName?.name);
+    checkIdentifier(node.primaryConstructor.constructorName?.name);
   }
 
   @override
@@ -127,6 +129,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (pattern is DeclaredVariablePattern) {
       checkIdentifier(pattern.name);
     }
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    checkIdentifier(node.name, underscoresOk: true);
   }
 
   @override

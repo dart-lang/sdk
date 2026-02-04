@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveLexemeMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_LEXEME_MULTI;
+  FixKind get kind => DartFixKind.removeLexemeMulti;
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_singleFile() async {
@@ -36,7 +36,7 @@ augment abstract class A {}
 
 augment final class A {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.augmentationModifierExtra, '''
+    await assertHasFixAllFix(diag.augmentationModifierExtra, '''
 part of 'a.dart';
 
 augment class A {}
@@ -49,7 +49,7 @@ augment class A {}
 @reflectiveTest
 class RemoveLexemeTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_LEXEME;
+  FixKind get kind => DartFixKind.removeLexeme;
 
   Future<void> test_abstract_static_field() async {
     await resolveTestCode('''
@@ -390,18 +390,18 @@ var f = <int,int>{};
   Future<void> test_localFunctionDeclarationModifier_abstract() async {
     await resolveTestCode(r'''
 class C {
-  m() { 
-    abstract f() {} 
+  m() {
+    abstract f() {}
     f();
-  } 
+  }
 }
 ''');
     await assertHasFix('''
 class C {
-  m() { 
-    f() {} 
+  m() {
+    f() {}
     f();
-  } 
+  }
 }
 ''');
   }

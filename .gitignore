@@ -123,3 +123,6 @@ runtime/tools/heapsnapshot/.dart_tool
 .cipd
 .gclient
 .gclient_*
+
+# Gemini CLI
+.gemini

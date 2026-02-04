@@ -10,7 +10,10 @@
 #include <utility>
 
 #include "lib/stacktrace.h"
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/memory_sanitizer.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/unicode.h"
 #include "vm/app_snapshot.h"
 #include "vm/bytecode_reader.h"
@@ -36,6 +39,7 @@
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/message_snapshot.h"
+#include "vm/module_snapshot.h"
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
@@ -1577,23 +1581,23 @@ DART_EXPORT void Dart_StopProfiling() {
 }
 
 DART_EXPORT void Dart_ThreadDisableProfiling() {
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
   OSThread* os_thread = OSThread::Current();
   if (os_thread == nullptr) {
     return;
   }
   os_thread->DisableThreadInterrupts();
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_INCLUDE_PROFILER)
 }
 
 DART_EXPORT void Dart_ThreadEnableProfiling() {
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
   OSThread* os_thread = OSThread::Current();
   if (os_thread == nullptr) {
     return;
   }
   os_thread->EnableThreadInterrupts();
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_INCLUDE_PROFILER)
 }
 
 DART_EXPORT void Dart_AddSymbols(const char* dso_name,
@@ -5414,6 +5418,30 @@ StringPtr Api::GetEnvironmentValue(Thread* thread, const String& name) {
 #endif
     }
 
+    if (name.Equals(Symbols::DartVMASAN())) {
+#ifdef USING_ADDRESS_SANITIZER
+      return Symbols::True().ptr();
+#else
+      return Symbols::False().ptr();
+#endif
+    }
+
+    if (name.Equals(Symbols::DartVMMSAN())) {
+#ifdef USING_MEMORY_SANITIZER
+      return Symbols::True().ptr();
+#else
+      return Symbols::False().ptr();
+#endif
+    }
+
+    if (name.Equals(Symbols::DartVMTSAN())) {
+#ifdef USING_THREAD_SANITIZER
+      return Symbols::True().ptr();
+#else
+      return Symbols::False().ptr();
+#endif
+    }
+
     if (name.Equals(Symbols::DartDeveloperTimeline())) {
 #ifdef SUPPORT_TIMELINE
       return Symbols::True().ptr();
@@ -5633,6 +5661,39 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromBytecode(const uint8_t* buffer,
       "%s: Cannot load bytecode as dynamic modules are disabled.",
       CURRENT_FUNC);
 #endif  // defined(DART_DYNAMIC_MODULES)
+}
+
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadModuleSnapshot(const uint8_t* snapshot_data,
+                        const uint8_t* snapshot_instructions) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot load module snapshots on an AOT runtime.",
+                       CURRENT_FUNC);
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  CHECK_CALLBACK_STATE(T);
+
+#if defined(SUPPORT_TIMELINE)
+  TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                             "ReadModuleSnapshot");
+#endif  // defined(SUPPORT_TIMELINE)
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
+  if (snapshot == nullptr) {
+    return Api::NewError("Invalid snapshot");
+  }
+  if (snapshot->kind() != Snapshot::kModule) {
+    return Api::NewError("Invalid snapshot kind");
+  }
+
+  const Error& error = Error::Handle(
+      module_snapshot::ReadModuleSnapshot(T, snapshot, snapshot_instructions));
+  if (!error.IsNull()) {
+    return Api::NewHandle(T, error.ptr());
+  }
+
+  return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle Dart_RootLibrary() {
@@ -6008,6 +6069,9 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // If this is an auxiliary isolate inside a larger isolate group, we will not
   // re-initialize the growth policy.
   if (I->group()->ContainsOnlyOneIsolate()) {
+    // Helper tasks like the background compile might be running. Avoid data
+    // races on the growth policy.
+    GcSafepointOperationScope safepoint(T);
     I->group()->heap()->old_space()->EvaluateAfterLoading();
   }
 
@@ -6613,7 +6677,7 @@ static constexpr intptr_t kAssemblyInitialSize = 512 * KB;
 static constexpr intptr_t kInitialSize = 2 * MB;
 static constexpr intptr_t kInitialDebugSize = 1 * MB;
 
-static void CreateAppAOTSnapshot(
+static void CreateAppAOTSnapshotHelper(
     Dart_StreamingWriteCallback callback,
     void* callback_data,
     bool strip,
@@ -6623,7 +6687,8 @@ static void CreateAppAOTSnapshot(
     LoadingUnitSerializationData* unit,
     uint32_t program_hash,
     const char* identifier,
-    const char* path) {
+    const char* path,
+    void* object_callback_data) {
   Thread* T = Thread::Current();
 
   NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
@@ -6668,6 +6733,14 @@ static void CreateAppAOTSnapshot(
                                          : kInitialSize,
                                      callback, callback_data);
 
+  // Should not be directly used below as writing to it when
+  // [object_callback_data] is null causes a crash. Instead, use
+  // [object_stream], which is appropriately nullptr in this case.
+  StreamingWriteStream object_stream_value(kInitialSize, callback,
+                                           object_callback_data);
+  StreamingWriteStream* object_stream =
+      object_callback_data != nullptr ? &object_stream_value : nullptr;
+
   auto const use_output_writer = [&](ImageWriter* image_writer) {
     FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data,
                               &isolate_snapshot_data, image_writer,
@@ -6690,9 +6763,15 @@ static void CreateAppAOTSnapshot(
     so = new (Z)
         ElfWriter(Z, &output_stream, SharedObjectWriter::Type::Snapshot, dwarf);
   } else if (format == Dart_AotBinaryFormat_MachO_Dylib) {
+    MachOWriter* object_writer = nullptr;
+    if (object_stream != nullptr) {
+      object_writer = new (Z)
+          MachOWriter(Z, object_stream, SharedObjectWriter::Type::Object,
+                      identifier, path, dwarf);
+    }
     so = new (Z)
         MachOWriter(Z, &output_stream, SharedObjectWriter::Type::Snapshot,
-                    identifier, path, dwarf);
+                    identifier, path, dwarf, object_writer);
   }
 
   if (format == Dart_AotBinaryFormat_Assembly) {
@@ -6701,11 +6780,42 @@ static void CreateAppAOTSnapshot(
                                         strip, debug_so);
     use_output_writer(&assembly_writer);
   } else {
-    BlobImageWriter blob_writer(T, &vm_snapshot_instructions,
-                                &isolate_snapshot_instructions,
-                                deobfuscation_trie, debug_so, so);
+    BlobImageWriter blob_writer(
+        T, &vm_snapshot_instructions, &isolate_snapshot_instructions,
+        deobfuscation_trie, debug_so, so,
+        /*needs_unique_names=*/object_callback_data != nullptr);
     use_output_writer(&blob_writer);
   }
+}
+
+static void CreateAppAOTProgramSnapshot(Dart_StreamingWriteCallback callback,
+                                        void* callback_data,
+                                        bool strip,
+                                        Dart_AotBinaryFormat format,
+                                        void* debug_callback_data,
+                                        const char* identifier = nullptr,
+                                        const char* path = nullptr,
+                                        void* object_callback_data = nullptr) {
+  CreateAppAOTSnapshotHelper(
+      callback, callback_data, strip, format, debug_callback_data,
+      /*units=*/nullptr,
+      /*unit=*/nullptr,
+      /*program_hash=*/0, identifier, path, object_callback_data);
+}
+
+static void CreateAppAOTUnitSnapshot(
+    Dart_StreamingWriteCallback callback,
+    void* callback_data,
+    bool strip,
+    Dart_AotBinaryFormat format,
+    void* debug_callback_data,
+    GrowableArray<LoadingUnitSerializationData*>* units,
+    LoadingUnitSerializationData* unit,
+    uint32_t program_hash) {
+  CreateAppAOTSnapshotHelper(callback, callback_data, strip, format,
+                             debug_callback_data, units, unit, program_hash,
+                             /*identifier=*/nullptr, /*path=*/nullptr,
+                             /*object_callback_data=*/nullptr);
 }
 
 static void Split(Dart_CreateLoadingUnitCallback next_callback,
@@ -6743,10 +6853,9 @@ static void Split(Dart_CreateLoadingUnitCallback next_callback,
       next_callback(next_callback_data, id, &write_callback_data,
                     &write_debug_callback_data);
     }
-    CreateAppAOTSnapshot(write_callback, write_callback_data, strip, format,
-                         write_debug_callback_data, &data, data[id],
-                         program_hash, /*identifier=*/nullptr,
-                         /*path=*/nullptr);
+    CreateAppAOTUnitSnapshot(write_callback, write_callback_data, strip, format,
+                             write_debug_callback_data, &data, data[id],
+                             program_hash);
     {
       TransitionVMToNative transition(T);
       close_callback(write_callback_data);
@@ -6776,10 +6885,9 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   // Mark as not split.
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
-  CreateAppAOTSnapshot(callback, callback_data, strip,
-                       Dart_AotBinaryFormat_Assembly, debug_callback_data,
-                       nullptr, nullptr, 0, /*identifier=*/nullptr,
-                       /*path=*/nullptr);
+  CreateAppAOTProgramSnapshot(callback, callback_data, strip,
+                              Dart_AotBinaryFormat_Assembly,
+                              debug_callback_data);
 
   return Api::Success();
 #endif
@@ -6855,9 +6963,8 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   // Mark as not split.
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
-  CreateAppAOTSnapshot(callback, callback_data, strip, Dart_AotBinaryFormat_Elf,
-                       debug_callback_data, nullptr, nullptr, 0,
-                       /*identifier=*/nullptr, /*path=*/nullptr);
+  CreateAppAOTProgramSnapshot(callback, callback_data, strip,
+                              Dart_AotBinaryFormat_Elf, debug_callback_data);
 
   return Api::Success();
 #endif
@@ -6909,9 +7016,42 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
   // Mark as not split.
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
-  CreateAppAOTSnapshot(callback, callback_data, strip, format,
-                       debug_callback_data, nullptr, nullptr, 0, identifier,
-                       path);
+  CreateAppAOTProgramSnapshot(callback, callback_data, strip, format,
+                              debug_callback_data, identifier, path);
+
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAndRelocatableObject(
+    Dart_AotBinaryFormat format,
+    Dart_StreamingWriteCallback callback,
+    void* snapshot_callback_data,
+    void* object_callback_data,
+    bool strip,
+    void* debug_callback_data,
+    const char* identifier,
+    const char* path) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  if (format != Dart_AotBinaryFormat_MachO_Dylib) {
+    return Api::NewError(
+        "Relocatable objects are currently only supported for Mach-O output.");
+  }
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  CHECK_NULL(callback);
+
+  // Mark as not split.
+  T->isolate_group()->object_store()->set_loading_units(Object::null_array());
+
+  CreateAppAOTProgramSnapshot(callback, snapshot_callback_data, strip, format,
+                              debug_callback_data, identifier, path,
+                              object_callback_data);
 
   return Api::Success();
 #endif
@@ -7120,7 +7260,7 @@ DART_EXPORT bool Dart_IsPrecompiledRuntime() {
 }
 
 DART_EXPORT void Dart_DumpNativeStackTrace(void* context) {
-#if !defined(PRODUCT) || defined(DART_PRECOMPILER)
+#if defined(DART_INCLUDE_PROFILER)
   Profiler::DumpStackTrace(context);
 #endif
 }

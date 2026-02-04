@@ -39,6 +39,19 @@ class B {
     );
   }
 
+  test_classMemberNames_extension() {
+    DefinedNames names = _computeDefinedNames('''
+extension E on int {
+  int a;
+  void b() {}
+  int get c => 0;
+  set d(int _) {}
+}
+''');
+    expect(names.topLevelNames, unorderedEquals(['E']));
+    expect(names.classMemberNames, unorderedEquals(['a', 'b', 'c', 'd']));
+  }
+
   test_classMemberNames_extensionType() {
     DefinedNames names = _computeDefinedNames('''
 extension type A.named(int it) {

@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/base/messages.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
-import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/identifiers.dart' show Identifier;
 import '../base/local_scope.dart';
@@ -104,7 +102,7 @@ abstract class BodyBuilderContext {
   /// in the same class.
   Initializer buildRedirectingInitializer(
     Builder constructorBuilder,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   }) {
     return declarationContext.buildRedirectingInitializer(
@@ -350,25 +348,16 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError('${runtimeType}.prepareInitializers');
   }
 
-  /// Adds [initializer] to generative constructor currently being built.
-  bool addInitializer(
-    CompilerContext compilerContext,
-    ProblemReporting problemReporting,
-    Initializer initializer,
-    Uri fileUri,
-  ) {
-    throw new UnsupportedError('${runtimeType}.addInitializer');
+  /// This registers [initializers] as the fully resolved initializers of a
+  /// constructor.
+  void registerInitializers(List<Initializer> initializers) {
+    throw new UnsupportedError('${runtimeType}.initializers');
   }
 
-  /// Adds the inferred [Initializer] from the [inferenceResult] to generative
-  /// constructor currently being built.
-  bool addInferredInitializer(
-    CompilerContext compilerContext,
-    ProblemReporting problemReporting,
-    InitializerInferenceResult inferenceResult,
-    Uri fileUri,
-  ) {
-    throw new UnsupportedError('${runtimeType}.addInferredInitializer');
+  /// This marks a constructor as erroneous.
+  // TODO(johnniwinther): Avoid this.
+  void markAsErroneous() {
+    throw new UnsupportedError('${runtimeType}.markAsErroneous');
   }
 
   /// Infers the [initializer].
@@ -464,7 +453,7 @@ abstract class BodyBuilderDeclarationContext {
 
   Initializer buildRedirectingInitializer(
     Builder constructorBuilder,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   }) {
     throw new UnsupportedError('${runtimeType}.buildRedirectingInitializer');
@@ -574,10 +563,10 @@ class _SourceClassBodyBuilderDeclarationContext
   @override
   Initializer buildRedirectingInitializer(
     covariant SourceConstructorBuilder constructorBuilder,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   }) {
-    return new RedirectingInitializer(
+    return new InternalRedirectingInitializer(
       constructorBuilder.invokeTarget as Constructor,
       arguments,
     )..fileOffset = fileOffset;
@@ -679,7 +668,7 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
   @override
   Initializer buildRedirectingInitializer(
     covariant SourceConstructorBuilder constructorBuilder,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   }) {
     return new ExtensionTypeRedirectingInitializer(

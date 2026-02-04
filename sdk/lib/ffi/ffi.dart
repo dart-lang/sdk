@@ -396,6 +396,32 @@ abstract final class NativeCallable<T extends Function> {
     throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
   }
 
+  /// Constructs a [NativeCallable] that can be invoked from any thread.
+  ///
+  /// When the native code invokes the function [nativeFunction],
+  /// the [callback] will be executed within the isolate group
+  /// of the [Isolate] which originally constructed the callable.
+  /// Specifically, this means that an attempt to access any
+  /// static or global field which is not shared between
+  /// isolates in a group will result in a [Error].
+  ///
+  /// If an exception is thrown by the [callback], the
+  /// native function will return the `exceptionalReturn`,
+  /// which must be assignable to the return type of
+  /// the [callback].
+  ///
+  /// [callback] and [exceptionalReturn] must be
+  /// _trivially shareable_.
+  ///
+  /// This callback must be [close]d when it is no longer
+  /// needed. An [Isolate] that created the callback will
+  /// be kept alive until [close] is called.
+  ///
+  /// After [NativeCallable.close] is called, invoking
+  /// the [nativeFunction] from native code will cause
+  /// undefined behavior.
+  ///
+  /// NOTE: This is an experimental feature and may change in the future.
   factory NativeCallable.isolateGroupBound(
     @DartRepresentationOf("T") Function callback, {
     Object? exceptionalReturn,
@@ -496,7 +522,8 @@ abstract final class NativeCallable<T extends Function> {
   /// By default, [NativeCallable]s keep the [Isolate] that created them alive
   /// until [close] is called. If [keepIsolateAlive] is set to `false`, the
   /// isolate may exit even if the [NativeCallable] isn't closed.
-  external bool keepIsolateAlive;
+  external bool get keepIsolateAlive;
+  external set keepIsolateAlive(bool value);
 }
 
 //
@@ -2418,7 +2445,7 @@ extension IntAddress on int {
   /// The `.address` is evaluated just before calling into native code when
   /// invoking a leaf [Native] external function. This ensures the Dart garbage
   /// collector will not move the object that the address points in to.
-  external Pointer<Never> address;
+  external Pointer<Never> get address;
 }
 
 @Since('3.5')
@@ -2469,7 +2496,7 @@ extension DoubleAddress on double {
   /// The `.address` is evaluated just before calling into native code when
   /// invoking a leaf [Native] external function. This ensures the Dart garbage
   /// collector will not move the object that the address points in to.
-  external Pointer<Never> address;
+  external Pointer<Never> get address;
 }
 
 @Since('3.5')
@@ -2517,7 +2544,7 @@ extension BoolAddress on bool {
   /// The `.address` is evaluated just before calling into native code when
   /// invoking a leaf [Native] external function. This ensures the Dart garbage
   /// collector will not move the object that the address points in to.
-  external Pointer<Never> address;
+  external Pointer<Never> get address;
 }
 
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].

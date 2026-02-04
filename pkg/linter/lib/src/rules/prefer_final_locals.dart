@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,17 +12,18 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
 
-class PreferFinalLocals extends LintRule {
+class PreferFinalLocals extends AnalysisRule {
   PreferFinalLocals()
     : super(name: LintNames.prefer_final_locals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalLocals;
+  DiagnosticCode get diagnosticCode => diag.preferFinalLocals;
 
   @override
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];
@@ -51,7 +53,7 @@ class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

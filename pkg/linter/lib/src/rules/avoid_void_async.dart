@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,15 +13,16 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid `async` functions that return `void`.';
 
-class AvoidVoidAsync extends LintRule {
+class AvoidVoidAsync extends AnalysisRule {
   AvoidVoidAsync()
     : super(name: LintNames.avoid_void_async, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidVoidAsync;
+  DiagnosticCode get diagnosticCode => diag.avoidVoidAsync;
 
   @override
   void registerNodeProcessors(
@@ -34,7 +36,7 @@ class AvoidVoidAsync extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

@@ -96,6 +96,9 @@ class FutureOrNormalizer extends ReplacementVisitor {
         throw UnsupportedError(
           '`ExtensionType`s must be erased before `FutureOr` normalization.',
         );
+      // ignore: unreachable_switch_case
+      case ExperimentalType():
+        throwUnsupportedExperimentalType(typeArgument);
       case AuxiliaryType():
         throwUnsupportedAuxiliaryType(typeArgument);
       case InvalidType():

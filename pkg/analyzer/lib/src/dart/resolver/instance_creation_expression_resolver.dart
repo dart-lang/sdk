@@ -6,7 +6,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [InstanceCreationExpression] and
@@ -72,9 +73,8 @@ class InstanceCreationExpressionResolver {
       dotShorthandContextType,
     );
 
-    if (dotShorthandContextType case InterfaceTypeImpl(
-      element: var contextElement,
-    ) when contextElement.isAccessibleIn(_resolver.definingLibrary)) {
+    if (dotShorthandContextType is InterfaceTypeImpl) {
+      InterfaceElementImpl? contextElement = dotShorthandContextType.element;
       // This branch will be true if we're resolving an explicitly marked
       // const constructor invocation. It's completely unresolved, unlike a
       // rewritten [DotShorthandConstructorInvocation] that resulted from
@@ -85,10 +85,13 @@ class InstanceCreationExpressionResolver {
             when element.isAccessibleIn(_resolver.definingLibrary)) {
           node.element = element;
         } else {
-          _resolver.diagnosticReporter.atNode(
-            node.constructorName,
-            CompileTimeErrorCode.constWithUndefinedConstructor,
-            arguments: [contextType, node.constructorName.name],
+          _resolver.diagnosticReporter.report(
+            diag.constWithUndefinedConstructor
+                .withArguments(
+                  className: contextElement.displayName,
+                  constructorName: node.constructorName.name,
+                )
+                .at(node.constructorName),
           );
         }
       }
@@ -99,15 +102,13 @@ class InstanceCreationExpressionResolver {
           contextElement.isAbstract &&
           constructorElement != null &&
           !constructorElement.isFactory) {
-        _resolver.diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.instantiateAbstractClass,
+        _resolver.diagnosticReporter.report(
+          diag.instantiateAbstractClass.at(node),
         );
       } else if (typeArguments != null) {
         _resolver.diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode
-              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
           arguments: [
             dotShorthandContextType.getDisplayString(),
             node.constructorName.name,
@@ -115,14 +116,9 @@ class InstanceCreationExpressionResolver {
         );
       }
     } else {
-      _resolver.diagnosticReporter.atNode(
-        node,
-        CompileTimeErrorCode.dotShorthandMissingContext,
+      _resolver.diagnosticReporter.report(
+        diag.dotShorthandMissingContext.at(node),
       );
-      // Prevents `constructorElementToInfer` (called by
-      // `_resolveDotShorthandConstructorInvocation`) from considering the
-      // context type to be valid.
-      dotShorthandContextType = InvalidTypeImpl.instance;
     }
 
     _resolveDotShorthandConstructorInvocation(

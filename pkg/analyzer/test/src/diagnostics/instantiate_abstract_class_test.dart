@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,8 +25,8 @@ void f() {
   var a = const A<int>();
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 54, 1),
-        error(CompileTimeErrorCode.instantiateAbstractClass, 64, 6),
+        error(diag.unusedLocalVariable, 54, 1),
+        error(diag.instantiateAbstractClass, 64, 6),
       ],
     );
 
@@ -43,8 +43,8 @@ void f() {
   A a = const A();
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 49, 1),
-        error(CompileTimeErrorCode.instantiateAbstractClass, 59, 1),
+        error(diag.unusedLocalVariable, 49, 1),
+        error(diag.instantiateAbstractClass, 59, 1),
       ],
     );
   }
@@ -57,7 +57,7 @@ void f() {
   new A<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.instantiateAbstractClass, 40, 6)],
+      [error(diag.instantiateAbstractClass, 40, 6)],
     );
 
     assertType(findNode.instanceCreation('new A<int>'), 'A<int>');
@@ -72,7 +72,7 @@ void f() {
   new B();
 }
 ''',
-      [error(CompileTimeErrorCode.instantiateAbstractClass, 52, 1)],
+      [error(diag.instantiateAbstractClass, 52, 1)],
     );
   }
 
@@ -84,7 +84,7 @@ void f() {
   new A();
 }
 ''',
-      [error(CompileTimeErrorCode.instantiateAbstractClass, 37, 1)],
+      [error(diag.instantiateAbstractClass, 37, 1)],
     );
   }
 
@@ -96,7 +96,7 @@ void f() {
   A<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.instantiateAbstractClass, 36, 6)],
+      [error(diag.instantiateAbstractClass, 36, 6)],
     );
 
     assertType(findNode.instanceCreation('A<int>'), 'A<int>');
@@ -111,7 +111,7 @@ void f() {
   B();
 }
 ''',
-      [error(CompileTimeErrorCode.instantiateAbstractClass, 48, 1)],
+      [error(diag.instantiateAbstractClass, 48, 1)],
     );
   }
 
@@ -123,7 +123,7 @@ void f() {
   A();
 }
 ''',
-      [error(CompileTimeErrorCode.instantiateAbstractClass, 33, 1)],
+      [error(diag.instantiateAbstractClass, 33, 1)],
     );
   }
 }

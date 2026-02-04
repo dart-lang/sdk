@@ -2,27 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../analyzer.dart';
+import '../../diagnostic.dart' as diag;
 
 const _desc = r'Sort pub dependencies alphabetically.';
 
-class SortPubDependencies extends LintRule {
+class SortPubDependencies extends AnalysisRule {
   SortPubDependencies()
     : super(name: LintNames.sort_pub_dependencies, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sortPubDependencies;
+  DiagnosticCode get diagnosticCode => diag.sortPubDependencies;
 
   @override
   PubspecVisitor<void> get pubspecVisitor => Visitor(this);
 }
 
 class Visitor extends PubspecVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   Visitor(this.rule);
 

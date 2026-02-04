@@ -113,24 +113,30 @@ TypeConstantValue createType(CommonElements commonElements, DartType type) {
 /// typeof(X) === "number" && Math.floor(X) === X
 ///
 /// We consistently match that runtime semantics at compile time as well.
-bool isInt(ConstantValue constant) =>
-    constant is IntConstantValue ||
-    constant.isMinusZero ||
-    constant.isPositiveInfinity ||
-    constant.isNegativeInfinity;
+bool isInt(ConstantValue constant) {
+  constant = _unwrap(constant);
+
+  return constant is IntConstantValue ||
+      constant.isMinusZero ||
+      constant.isPositiveInfinity ||
+      constant.isNegativeInfinity;
+}
 
 /// Returns true if the [constant] is a double at runtime.
-bool isDouble(ConstantValue constant) =>
-    constant is DoubleConstantValue && !constant.isMinusZero;
+bool isDouble(ConstantValue constant) {
+  constant = _unwrap(constant);
+  return constant is DoubleConstantValue && !constant.isMinusZero;
+}
 
 /// Returns true if the [constant] is a string at runtime.
-bool isString(ConstantValue constant) => constant is StringConstantValue;
+bool isString(ConstantValue constant) =>
+    _unwrap(constant) is StringConstantValue;
 
 /// Returns true if the [constant] is a boolean at runtime.
-bool isBool(ConstantValue constant) => constant is BoolConstantValue;
+bool isBool(ConstantValue constant) => _unwrap(constant) is BoolConstantValue;
 
 /// Returns true if the [constant] is null at runtime.
-bool isNull(ConstantValue constant) => constant is NullConstantValue;
+bool isNull(ConstantValue constant) => _unwrap(constant) is NullConstantValue;
 
 bool isSubtype(DartTypes types, DartType s, DartType t) {
   // At runtime, an integer is both an integer and a double: the
@@ -277,6 +283,8 @@ class BitNotOperation implements UnaryOperation {
 
   @override
   IntConstantValue? fold(ConstantValue constant) {
+    constant = _unwrap(constant);
+
     if (isInt(constant)) {
       // In JavaScript we don't check for -0 and treat it as if it was zero.
       if (constant.isMinusZero) {
@@ -299,6 +307,8 @@ class NegateOperation implements UnaryOperation {
 
   @override
   NumConstantValue? fold(ConstantValue constant) {
+    constant = _unwrap(constant);
+
     NumConstantValue? fold(ConstantValue constant) {
       if (constant is IntConstantValue) {
         return createInt(-constant.intValue);
@@ -326,6 +336,8 @@ class NotOperation implements UnaryOperation {
 
   @override
   BoolConstantValue? fold(ConstantValue constant) {
+    constant = _unwrap(constant);
+
     if (constant is BoolConstantValue) {
       return createBool(!constant.boolValue);
     }
@@ -339,6 +351,9 @@ abstract class BinaryBitOperation implements BinaryOperation {
 
   @override
   IntConstantValue? fold(ConstantValue left, ConstantValue right) {
+    left = _unwrap(left);
+    right = _unwrap(right);
+
     IntConstantValue? fold(ConstantValue left, ConstantValue right) {
       if (left is IntConstantValue && right is IntConstantValue) {
         BigInt? resultValue = foldInts(left.intValue, right.intValue);
@@ -495,6 +510,9 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
 
   @override
   NumConstantValue? fold(ConstantValue left, ConstantValue right) {
+    left = _unwrap(left);
+    right = _unwrap(right);
+
     NumConstantValue? fold(ConstantValue left, ConstantValue right) {
       if (left is NumConstantValue && right is NumConstantValue) {
         Object? foldedValue;
@@ -633,6 +651,9 @@ class AddOperation implements BinaryOperation {
 
   @override
   ConstantValue? fold(ConstantValue left, ConstantValue right) {
+    left = _unwrap(left);
+    right = _unwrap(right);
+
     ConstantValue? fold(ConstantValue left, ConstantValue right) {
       if (left is IntConstantValue && right is IntConstantValue) {
         BigInt result = left.intValue + right.intValue;
@@ -661,6 +682,8 @@ abstract class RelationalNumOperation implements BinaryOperation {
 
   @override
   BoolConstantValue? fold(ConstantValue left, ConstantValue right) {
+    left = _unwrap(left);
+    right = _unwrap(right);
     if (left is NumConstantValue && right is NumConstantValue) {
       bool foldedValue;
       if (left is IntConstantValue && right is IntConstantValue) {
@@ -737,6 +760,8 @@ class EqualsOperation implements BinaryOperation {
 
   @override
   BoolConstantValue? fold(ConstantValue left, ConstantValue right) {
+    left = _unwrap(left);
+    right = _unwrap(right);
     // Numbers need to be treated specially because: NaN != NaN, -0.0 == 0.0,
     // and 1 == 1.0.
     if (left is IntConstantValue && right is IntConstantValue) {
@@ -770,6 +795,8 @@ class IdentityOperation implements BinaryOperation {
 
   @override
   BoolConstantValue fold(ConstantValue left, ConstantValue right) {
+    left = _unwrap(left);
+    right = _unwrap(right);
     // NaNs are not identical to anything. This is a web platform departure from
     // standard Dart. If we make `identical(double.nan, double.nan)` be `true`,
     // this constant folding will be incorrect. TODOs below for cross-reference.
@@ -799,7 +826,9 @@ class IfNullOperation implements BinaryOperation {
 
   @override
   ConstantValue fold(ConstantValue left, ConstantValue right) {
-    if (left is NullConstantValue) return right;
+    if (_unwrap(left) is NullConstantValue) {
+      return right;
+    }
     return left;
   }
 }
@@ -812,6 +841,8 @@ class CodeUnitAtOperation implements BinaryOperation {
 
   @override
   NumConstantValue? fold(ConstantValue left, ConstantValue right) {
+    left = _unwrap(left);
+    right = _unwrap(right);
     if (left is StringConstantValue && right is IntConstantValue) {
       String string = left.stringValue;
       int index = right.intValue.toInt();
@@ -831,6 +862,7 @@ class RoundOperation implements UnaryOperation {
 
   @override
   NumConstantValue? fold(ConstantValue constant) {
+    constant = _unwrap(constant);
     // Be careful to round() only values that do not throw on either the host or
     // target platform.
     NumConstantValue? tryToRound(double value) {
@@ -873,6 +905,7 @@ class ToIntOperation implements UnaryOperation {
 
   @override
   NumConstantValue? fold(ConstantValue constant) {
+    constant = _unwrap(constant);
     if (constant is IntConstantValue) {
       double value = constant.doubleValue;
       // The code below is written to work for any `double`, even though
@@ -899,6 +932,9 @@ class _IndexOperation implements BinaryOperation {
 
   @override
   ConstantValue? fold(ConstantValue left, ConstantValue right) {
+    left = _unwrap(left);
+    right = _unwrap(right);
+
     if (left is ListConstantValue) {
       if (right is IntConstantValue) {
         List<ConstantValue> entries = left.entries;
@@ -1005,4 +1041,8 @@ class JavaScriptMapConstant extends MapConstantValue {
       return [...keys, ...values];
     }
   }
+}
+
+ConstantValue _unwrap(ConstantValue value) {
+  return value is DeferredGlobalConstantValue ? value.referenced : value;
 }

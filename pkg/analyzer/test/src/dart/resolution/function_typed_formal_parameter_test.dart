@@ -33,11 +33,11 @@ FunctionTypedFormalParameter
     typeParameters
       TypeParameter
         name: T
-        declaredElement: <testLibraryFragment> T@14
+        declaredFragment: <testLibraryFragment> T@14
           defaultType: null
       TypeParameter
         name: U
-        declaredElement: <testLibraryFragment> U@17
+        declaredFragment: <testLibraryFragment> U@17
           defaultType: null
     rightBracket: >
   parameters: FormalParameterList
@@ -48,7 +48,7 @@ FunctionTypedFormalParameter
         element: #E1 U
         type: U
       name: a
-      declaredElement: <testLibraryFragment> a@22
+      declaredFragment: <testLibraryFragment> a@22
         element: isPublic
           type: U
     parameter: SimpleFormalParameter
@@ -57,11 +57,11 @@ FunctionTypedFormalParameter
         element: #E2 V
         type: V
       name: b
-      declaredElement: <testLibraryFragment> b@27
+      declaredFragment: <testLibraryFragment> b@27
         element: isPublic
           type: V
     rightParenthesis: )
-  declaredElement: <testLibraryFragment> p@12
+  declaredFragment: <testLibraryFragment> p@12
     element: isPublic
       type: T Function<T, U>(U, V)
 ''');
@@ -88,11 +88,11 @@ FunctionTypedFormalParameter
         element: dart:core::@class::int
         type: int
       name: a
-      declaredElement: <testLibraryFragment> a@18
+      declaredFragment: <testLibraryFragment> a@18
         element: isPublic
           type: int
     rightParenthesis: )
-  declaredElement: <testLibraryFragment> p@12
+  declaredFragment: <testLibraryFragment> p@12
     element: isPublic
       type: void Function(int)
 ''');

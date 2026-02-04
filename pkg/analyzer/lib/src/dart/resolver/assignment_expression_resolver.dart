@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -17,7 +16,8 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [AssignmentExpression]s.
@@ -148,22 +148,26 @@ class AssignmentExpressionResolver {
         rightType,
         strictCasts: strictCasts,
       )) {
-        _diagnosticReporter.atNode(
-          right,
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
+        _diagnosticReporter.report(
+          diag.recordLiteralOnePositionalNoTrailingCommaByType.at(right),
         );
         return;
       }
     }
 
-    _diagnosticReporter.atNode(
-      right,
-      CompileTimeErrorCode.invalidAssignment,
-      arguments: [rightType, writeType],
-      contextMessages: _resolver.computeWhyNotPromotedMessages(
-        right,
-        whyNotPromoted?.call(),
-      ),
+    _diagnosticReporter.report(
+      diag.invalidAssignment
+          .withArguments(
+            actualStaticType: rightType,
+            expectedStaticType: writeType,
+          )
+          .withContextMessages(
+            _resolver.computeWhyNotPromotedMessages(
+              right,
+              whyNotPromoted?.call(),
+            ),
+          )
+          .at(right),
     );
   }
 
@@ -171,7 +175,7 @@ class AssignmentExpressionResolver {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [CompileTimeErrorCode.useOfVoidResult].
+  /// See [diag.useOfVoidResult].
   // TODO(scheglov): this is duplicate
   bool _checkForUseOfVoidResult(Expression expression) {
     if (!identical(expression.staticType, VoidTypeImpl.instance)) {
@@ -180,15 +184,9 @@ class AssignmentExpressionResolver {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _diagnosticReporter.atNode(
-        methodName,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
     } else {
-      _diagnosticReporter.atNode(
-        expression,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }
 
     return true;
@@ -238,10 +236,7 @@ class AssignmentExpressionResolver {
     // Example: `y += 0`, is not allowed.
     if (operatorType != TokenType.EQ) {
       if (leftType is VoidType) {
-        _diagnosticReporter.atToken(
-          operator,
-          CompileTimeErrorCode.useOfVoidResult,
-        );
+        _diagnosticReporter.report(diag.useOfVoidResult.at(operator));
         return;
       }
     }
@@ -272,7 +267,7 @@ class AssignmentExpressionResolver {
     if (result.needsGetterError) {
       _diagnosticReporter.atToken(
         operator,
-        CompileTimeErrorCode.undefinedOperator,
+        diag.undefinedOperator,
         arguments: [methodName, leftType],
       );
     }
@@ -397,17 +392,16 @@ class AssignmentExpressionShared {
         if (element.isFinal) {
           if (element.isLate) {
             if (isForEachIdentifier || assigned) {
-              _errorReporter.atNode(
-                left,
-                CompileTimeErrorCode.lateFinalLocalAlreadyAssigned,
+              _errorReporter.report(
+                diag.lateFinalLocalAlreadyAssigned.at(left),
               );
             }
           } else {
             if (isForEachIdentifier || !unassigned) {
-              _errorReporter.atNode(
-                left,
-                CompileTimeErrorCode.assignmentToFinalLocal,
-                arguments: [element.name!],
+              _errorReporter.report(
+                diag.assignmentToFinalLocal
+                    .withArguments(variableName: element.name!)
+                    .at(left),
               );
             }
           }

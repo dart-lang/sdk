@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class DeprecatedExtendsFunctionTest extends PubPackageResolutionTest {
       '''
 class A extends Function {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 16, 8)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 16, 8)],
     );
   }
 
@@ -30,7 +30,7 @@ class A extends Function {}
 // @dart = 2.19
 class A extends Function {}
 ''',
-      [error(WarningCode.deprecatedExtendsFunction, 32, 8)],
+      [error(diag.deprecatedExtendsFunction, 32, 8)],
     );
   }
 
@@ -41,7 +41,7 @@ class A extends Function {}
 typedef F = Function;
 class A extends F {}
 ''',
-      [error(WarningCode.deprecatedExtendsFunction, 54, 1)],
+      [error(diag.deprecatedExtendsFunction, 54, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ class A extends F {}
 class Function {}
 class A extends Function {}
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 22, 8)],
+      [error(diag.builtInIdentifierAsTypeName, 22, 8)],
     );
   }
 }

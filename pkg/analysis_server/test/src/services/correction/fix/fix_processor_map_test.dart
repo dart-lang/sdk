@@ -48,7 +48,11 @@ class FixProcessorMapTest {
       required CorrectionProducerContext context,
     }) => MockCorrectionProducer();
 
-    var lintCode = LintCode('test_rule', 'Test rule.');
+    var lintCode = LintCode(
+      'test_rule',
+      'Test rule.',
+      uniqueName: 'LintCode.test_rule',
+    );
     expect(registeredFixGenerators.lintProducers[lintCode], null);
     registeredFixGenerators.registerFixForLint(lintCode, generator);
     expect(
@@ -76,7 +80,7 @@ class FixProcessorMapTest {
         }
       }
       if (bulkCount > 1) {
-        var name = key.name;
+        var name = key.lowerCaseName;
         if (!codesAllowedToHaveMultipleBulkFixes.contains(name)) {
           unexpectedBulkCodes.add(name);
         }

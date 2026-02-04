@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class RenameMethodParameterTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.RENAME_METHOD_PARAMETER;
+  FixKind get kind => DartFixKind.renameMethodParameter;
 
   @override
   String get lintCode => LintNames.avoid_renaming_method_parameters;

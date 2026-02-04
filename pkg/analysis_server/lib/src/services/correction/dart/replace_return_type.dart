@@ -26,7 +26,7 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_newType];
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE;
+  FixKind get fixKind => DartFixKind.replaceReturnType;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -74,8 +74,8 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
         _newType = newType!.getDisplayString();
 
         await builder.addDartFileEdit(file, (builder) {
-          if (builder.canWriteType(newType)) {
-            builder.addReplacement(range.node(returnType!), (builder) {
+          if (builder.canWriteType(newType, offset: returnType!.offset)) {
+            builder.addReplacement(range.node(returnType), (builder) {
               builder.writeType(newType);
             });
           }

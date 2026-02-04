@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -15,7 +14,8 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -518,10 +518,10 @@ class TypedLiteralResolver {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _diagnosticReporter.atNode(
-        node,
-        WarningCode.inferenceFailureOnCollectionLiteral,
-        arguments: ['List'],
+      _diagnosticReporter.report(
+        diag.inferenceFailureOnCollectionLiteral
+            .withArguments(collection: 'List')
+            .at(node),
       );
     }
 
@@ -635,14 +635,10 @@ class TypedLiteralResolver {
       inferenceLogWriter?.exitGenericInference(failed: true);
     }
     if (mustBeAMap && mustBeASet) {
-      _diagnosticReporter.atNode(
-        literal,
-        CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth,
-      );
+      _diagnosticReporter.report(diag.ambiguousSetOrMapLiteralBoth.at(literal));
     } else {
-      _diagnosticReporter.atNode(
-        literal,
-        CompileTimeErrorCode.ambiguousSetOrMapLiteralEither,
+      _diagnosticReporter.report(
+        diag.ambiguousSetOrMapLiteralEither.at(literal),
       );
     }
     return _typeProvider.dynamicType;
@@ -789,10 +785,10 @@ class TypedLiteralResolver {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _diagnosticReporter.atNode(
-        node,
-        WarningCode.inferenceFailureOnCollectionLiteral,
-        arguments: [node.isMap ? 'Map' : 'Set'],
+      _diagnosticReporter.report(
+        diag.inferenceFailureOnCollectionLiteral
+            .withArguments(collection: node.isMap ? 'Map' : 'Set')
+            .at(node),
       );
     }
     // TODO(brianwilkerson): Decide whether the literalType needs to be made

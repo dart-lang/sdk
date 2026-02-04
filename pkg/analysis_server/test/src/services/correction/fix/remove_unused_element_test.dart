@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class RemoveUnreachableFromMainTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_ELEMENT;
+  FixKind get kind => DartFixKind.removeUnusedElement;
 
   @override
   String get lintCode => LintNames.unreachable_from_main;
@@ -57,7 +57,7 @@ class C {
 @reflectiveTest
 class RemoveUnusedElementTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_ELEMENT;
+  FixKind get kind => DartFixKind.removeUnusedElement;
 
   Future<void> test_class_constructor_first() async {
     await resolveTestCode(r'''
@@ -176,12 +176,8 @@ enum E {
     await resolveTestCode(r'''
 enum _MyEnum {A, B, C}
 ''');
-    await assertHasFix(
-      r'''
-''',
-      errorFilter: (diagnostic) =>
-          diagnostic.diagnosticCode == WarningCode.unusedElement,
-    );
+    await assertHasFix(r'''
+''', filter: (diagnostic) => diagnostic.diagnosticCode == diag.unusedElement);
   }
 
   Future<void> test_functionLocal_notUsed_noReference() async {

@@ -27,7 +27,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_oldName, _newName];
 
   @override
-  FixKind get fixKind => DartFixKind.RENAME_METHOD_PARAMETER;
+  FixKind get fixKind => DartFixKind.renameMethodParameter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -43,7 +43,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
     if (methodParameters == null) return;
 
     Fragment? declaredFragment;
-    if (method.parent case Declaration declaration) {
+    if (method.parent?.parent case Declaration declaration) {
       declaredFragment = declaration.declaredFragment;
     }
 

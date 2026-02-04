@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -9,15 +10,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid control flow in `finally` blocks.';
 
-class ControlFlowInFinally extends LintRule {
+class ControlFlowInFinally extends AnalysisRule {
   ControlFlowInFinally()
     : super(name: LintNames.control_flow_in_finally, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.controlFlowInFinally;
+  DiagnosticCode get diagnosticCode => diag.controlFlowInFinally;
 
   @override
   void registerNodeProcessors(
@@ -36,7 +38,7 @@ class ControlFlowInFinally extends LintRule {
 /// configurability given that reporting throw statements in a finally clause is
 /// controversial.
 mixin ControlFlowInFinallyBlockReporter {
-  LintRule get rule;
+  AnalysisRule get rule;
 
   void reportIfFinallyAncestorExists(
     AstNode node, {
@@ -86,7 +88,7 @@ mixin ControlFlowInFinallyBlockReporter {
 class _Visitor extends SimpleAstVisitor<void>
     with ControlFlowInFinallyBlockReporter {
   @override
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

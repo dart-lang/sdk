@@ -80,14 +80,14 @@ class ExecuteCommandHandler
     var handler = commandHandlers[params.command];
     if (handler == null) {
       return error(
-        ServerErrorCodes.UnknownCommand,
+        ServerErrorCodes.unknownCommand,
         '${params.command} is not a valid command identifier',
       );
     }
 
     if (handler.requiresTrustedCaller && !message.isTrustedCaller) {
       return error(
-        ServerErrorCodes.UnknownCommand,
+        ServerErrorCodes.unknownCommand,
         '${params.command} can only be called by the owning process',
       );
     }
@@ -123,7 +123,7 @@ class ExecuteCommandHandler
     } else {
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidCommandArguments,
+          code: ServerErrorCodes.invalidCommandArguments,
           message: '${params.command} requires a single Map argument',
         ),
       );

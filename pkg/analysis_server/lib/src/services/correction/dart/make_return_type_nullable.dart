@@ -19,7 +19,7 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.MAKE_RETURN_TYPE_NULLABLE;
+  FixKind get fixKind => DartFixKind.makeReturnTypeNullable;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

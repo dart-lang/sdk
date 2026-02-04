@@ -2013,6 +2013,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   Class& cls = Class::Handle(zone, raw_class);
   if (cls.IsNull()) return false;
   if (!cls.is_finalized()) return false;
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (Array::Handle(cls.current_functions()).IsNull()) return false;
 
   if (class_is_abstract_return != nullptr) {
@@ -2229,30 +2230,6 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   }
 }
 
-bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
-                                                  const Class& type_class,
-                                                  compiler::Label* is_subtype) {
-  HierarchyInfo* hi = Thread::Current()->hierarchy_info();
-  if (hi != nullptr) {
-    const CidRangeVector& ranges =
-        hi->SubtypeRangesForClass(type_class,
-                                  /*include_abstract=*/false,
-                                  /*exclude_null=*/false);
-    if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
-      GenerateCidRangesCheck(assembler(), class_id_reg, ranges, is_subtype);
-      return true;
-    }
-  }
-
-  // We don't have cid-ranges for subclasses, so we'll just test against the
-  // class directly if it's non-abstract.
-  if (!type_class.is_abstract()) {
-    __ CompareImmediate(class_id_reg, type_class.id());
-    __ BranchIf(EQUAL, is_subtype);
-  }
-  return false;
-}
-
 bool FlowGraphCompiler::GenerateCidRangesCheck(
     compiler::Assembler* assembler,
     Register class_id_reg,
@@ -2397,9 +2374,9 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
           source, type, is_instance_lbl, is_not_instance_lbl);
       // Fall through to runtime call.
     }
-    const bool has_fall_through = GenerateInstantiatedTypeNoArgumentsTest(
+    const auto type_test_outcome = GenerateInstantiatedTypeNoArgumentsTest(
         source, type, is_instance_lbl, is_not_instance_lbl);
-    if (has_fall_through) {
+    if (type_test_outcome == TypeTestOutcome::kNotConclusive) {
       // If test non-conclusive so far, try the inlined type-test cache.
       // 'type' is known at compile time.
       return GenerateSubtype1TestCacheLookup(
@@ -2549,13 +2526,14 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
 
 // Generates quick and subtype cache tests for an instantiated non-generic type.
 // Jumps to 'is_instance' or 'is_not_instance' respectively, if any generated
-// check is conclusive. Returns whether the code will fall through for further
-// type checking because the checks are not exhaustive.
+// check is conclusive. Returns TypeTestOutcome::kNotConclusive if the code
+// will fall through for further type checking because the checks are not
+// exhaustive.
 //
 // See [GenerateInlineInstanceof] for calling convention.
 //
 // Uses kScratchReg, so this implementation cannot be shared with IA32.
-bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
+TypeTestOutcome FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     const InstructionSource& source,
     const AbstractType& type,
     compiler::Label* is_instance_lbl,
@@ -2584,37 +2562,58 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ CompareImmediate(kScratchReg, kBoolCid);
     __ BranchIf(EQUAL, is_instance_lbl);
     __ Jump(is_not_instance_lbl);
-    return false;
+    return TypeTestOutcome::kConclusive;
   }
   // Custom checking for numbers (Smi, Mint and Double).
   // Note that instance is not Smi (checked above).
   if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType()) {
     GenerateNumberTypeCheck(kScratchReg, type, is_instance_lbl,
                             is_not_instance_lbl);
-    return false;
+    return TypeTestOutcome::kConclusive;
   }
   if (type.IsStringType()) {
     GenerateStringTypeCheck(kScratchReg, is_instance_lbl, is_not_instance_lbl);
-    return false;
+    return TypeTestOutcome::kConclusive;
   }
   if (type.IsDartFunctionType()) {
     // Check if instance is a closure.
     __ CompareImmediate(kScratchReg, kClosureCid);
     __ BranchIf(EQUAL, is_instance_lbl);
-    return true;
+    __ Jump(is_not_instance_lbl);
+    return TypeTestOutcome::kConclusive;
   }
   if (type.IsDartRecordType()) {
     // Check if instance is a record.
     __ CompareImmediate(kScratchReg, kRecordCid);
     __ BranchIf(EQUAL, is_instance_lbl);
-    return true;
+    __ Jump(is_not_instance_lbl);
+    return TypeTestOutcome::kConclusive;
   }
 
   // Fast case for cid-range based checks.
   // Warning: This code destroys the contents of [kScratchReg], so this should
-  // be the last check in this method. It returns whether the checks were
-  // exhaustive, so we negate it to indicate whether we'll fall through.
-  return !GenerateSubtypeRangeCheck(kScratchReg, type_class, is_instance_lbl);
+  // be the last check in this method.
+  if (auto const hi = thread()->hierarchy_info()) {
+    const CidRangeVector& ranges =
+        hi->SubtypeRangesForClass(type_class,
+                                  /*include_abstract=*/false,
+                                  /*exclude_null=*/false);
+    if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
+      GenerateCidRangesCheck(assembler(), kScratchReg, ranges, is_instance_lbl);
+      // Fall through if subtype range checks are not exhaustive for [type].
+      return hi->CanUseSubtypeRangeCheckFor(type)
+                 ? TypeTestOutcome::kConclusive
+                 : TypeTestOutcome::kNotConclusive;
+    }
+  }
+
+  // We don't have cid-ranges for subclasses, so we'll just test against the
+  // class directly if it's non-abstract.
+  if (!type_class.is_abstract()) {
+    __ CompareImmediate(kScratchReg, type_class.id());
+    __ BranchIf(EQUAL, is_instance_lbl);
+  }
+  return TypeTestOutcome::kNotConclusive;
 }
 
 // Generates inlined check if 'type' is a type parameter or type itself.
@@ -3087,7 +3086,6 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitCodeAtSlowPathEntry(compiler);
   LocationSummary* locs = instruction()->locs();
   const bool has_frame = compiler->flow_graph().graph_entry()->NeedsFrame();
-  bool need_tsan_exit = false;
   if (use_shared_stub) {
     if (!has_frame) {
 #if !defined(TARGET_ARCH_IA32)
@@ -3095,7 +3093,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ set_constant_pool_allowed(false);
 #endif
       __ EnterDartFrame(0);
-      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+      if (FLAG_target_thread_sanitizer) {
         __ TsanFuncEntry();
       }
     }
@@ -3111,14 +3109,9 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Save registers as they are needed for lazy deopt / exception handling.
     compiler->SaveLiveRegisters(locs);
     PushArgumentsForRuntimeCall(compiler);
-    if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
-      need_tsan_exit = true;
-      __ TsanFuncEntry(/*preserve_registers=*/false);
-    }
     // We need to emit TsanFuncEntry/Exit separately so the pc descriptors,  etc
     // are recordered for the call's return address.
-    bool tsan_enter_exit = false;
-    __ CallRuntime(runtime_entry_, num_args, tsan_enter_exit);
+    __ CallRuntime(runtime_entry_, num_args, /*tsan_enter_exit=*/false);
   }
   const intptr_t deopt_id = instruction()->deopt_id();
   compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kOther, deopt_id,
@@ -3145,8 +3138,6 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   if (!use_shared_stub) {
     __ Breakpoint();
-  } else if (need_tsan_exit) {
-    __ TsanFuncExit(/*preserve_registers=*/false);
   }
 }
 
@@ -3295,17 +3286,6 @@ void LateInitializationErrorSlowPath::EmitSharedStubCall(
 void FieldAccessErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
   __ PushObject(Field::ZoneHandle(OriginalField()));
-}
-
-void ThrowIfValueCantBeSharedSlowPath::PushArgumentsForRuntimeCall(
-    FlowGraphCompiler* compiler) {
-  __ PushObject(Field::ZoneHandle(OriginalField()));
-  __ PushRegister(value());
-}
-
-void ThrowIfValueCantBeSharedSlowPath::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  ThrowErrorSlowPathCode::EmitNativeCode(compiler);
 }
 
 void FlowGraphCompiler::EmitNativeMove(

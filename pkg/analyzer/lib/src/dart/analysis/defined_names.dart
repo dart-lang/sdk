@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// Compute the [DefinedNames] for the given [unit].
 DefinedNames computeDefinedNames(CompilationUnit unit) {
@@ -27,27 +27,37 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
   }
 
   void appendTopLevelName(CompilationUnitMember member) {
-    if (member is NamedCompilationUnitMember) {
-      appendName(names.topLevelNames, member.name);
-      if (member is ClassDeclaration) {
-        member.members.forEach(appendClassMemberName);
-      }
-      if (member is EnumDeclaration) {
-        for (var constant in member.constants) {
+    switch (member) {
+      case ClassDeclaration():
+        appendName(names.topLevelNames, member.namePart.typeName);
+        if (member.body case BlockClassBody body) {
+          body.members.forEach(appendClassMemberName);
+        }
+      case EnumDeclaration():
+        appendName(names.topLevelNames, member.namePart.typeName);
+        for (var constant in member.body.constants) {
           appendName(names.classMemberNames, constant.name);
         }
-        member.members.forEach(appendClassMemberName);
-      }
-      if (member is ExtensionTypeDeclaration) {
-        member.members.forEach(appendClassMemberName);
-      }
-      if (member is MixinDeclaration) {
-        member.members.forEach(appendClassMemberName);
-      }
-    } else if (member is TopLevelVariableDeclaration) {
-      for (VariableDeclaration variable in member.variables.variables) {
-        appendName(names.topLevelNames, variable.name);
-      }
+        member.body.members.forEach(appendClassMemberName);
+      case ExtensionDeclaration():
+        appendName(names.topLevelNames, member.name);
+        member.body.members.forEach(appendClassMemberName);
+      case ExtensionTypeDeclaration():
+        appendName(names.topLevelNames, member.primaryConstructor.typeName);
+        if (member.body case BlockClassBody body) {
+          body.members.forEach(appendClassMemberName);
+        }
+      case FunctionDeclaration():
+        appendName(names.topLevelNames, member.name);
+      case MixinDeclaration():
+        appendName(names.topLevelNames, member.name);
+        member.body.members.forEach(appendClassMemberName);
+      case TopLevelVariableDeclaration():
+        for (VariableDeclaration variable in member.variables.variables) {
+          appendName(names.topLevelNames, variable.name);
+        }
+      case TypeAlias():
+        appendName(names.topLevelNames, member.name);
     }
   }
 

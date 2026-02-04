@@ -134,9 +134,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
   Set<StructuralParameter> structuralParametersInScope =
       new Set<StructuralParameter>();
-  Set<VariableDeclaration> variableDeclarationsInScope =
-      new Set<VariableDeclaration>();
-  final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
+  Set<ExpressionVariable> variableDeclarationsInScope =
+      new Set<ExpressionVariable>();
+  final List<ExpressionVariable> variableStack = <ExpressionVariable>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
 
@@ -286,7 +286,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitTreeNode(node);
   }
 
-  void declareVariable(VariableDeclaration variable) {
+  void declareVariable(ExpressionVariable variable) {
     if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
     }
@@ -294,7 +294,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     variableStack.add(variable);
   }
 
-  void undeclareVariable(VariableDeclaration variable) {
+  void undeclareVariable(ExpressionVariable variable) {
     variableDeclarationsInScope.remove(variable);
   }
 
@@ -342,7 +342,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     structuralParametersInScope.removeAll(parameters);
   }
 
-  void checkVariableInScope(VariableDeclaration variable, TreeNode where) {
+  void checkVariableInScope(ExpressionVariable variable, TreeNode where) {
     if (!variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }
@@ -417,7 +417,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name, node.fileUri);
     currentLibrary = node;
-    super.visitLibrary(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    visitList(node.dependencies, this);
+    visitList(node.parts, this);
+    visitList(node.typedefs, this);
+    visitList(node.classes, this);
+    visitList(node.extensions, this);
+    visitList(node.extensionTypeDeclarations, this);
+    visitList(node.procedures, this);
+    visitList(node.fields, this);
+    exitParent(oldParent);
     currentLibrary = null;
     exitTreeNode(node);
     _extensionsMembers = null;
@@ -463,6 +473,25 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       }
     }
     return _extensionsMembers!;
+  }
+
+  @override
+  void visitLibraryPart(LibraryPart node) {
+    enterTreeNode(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    exitParent(oldParent);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitLibraryDependency(LibraryDependency node) {
+    enterTreeNode(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    visitList(node.combinators, this);
+    exitParent(oldParent);
+    exitTreeNode(node);
   }
 
   Map<Reference, ExtensionTypeMemberDescriptor> _computeExtensionTypeMembers(
@@ -518,7 +547,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     _computeExtensionMembers(node.enclosingLibrary);
     declareTypeParameters(node.typeParameters);
     final TreeNode? oldParent = enterParent(node);
-    node.visitChildren(this);
+    _visitAnnotations(node.annotations);
+    visitList(node.typeParameters, this);
+    node.onType.accept(this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
     currentExtension = null;
@@ -548,7 +579,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             "Found $type.");
       }
     }
-    node.visitChildren(this);
+    _visitAnnotations(node.annotations);
+    visitList(node.typeParameters, this);
+    node.declaredRepresentationType.accept(this);
+    visitList(node.procedures, this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
     currentExtensionTypeDeclaration = null;
@@ -570,7 +604,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentParent = node;
     // Visit children without checking the parent pointer on the typedef itself
     // since this can be called from a context other than its true parent.
-    node.visitChildren(this);
+    _visitAnnotations(node.annotations);
+    visitList(node.typeParameters, this);
+    node.type?.accept(this);
     currentParent = savedParent;
     typeParametersInScope = savedTypeParameters;
     typedefState[node] = TypedefState.Done;
@@ -667,10 +703,25 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     node.initializer?.accept(this);
     node.type.accept(this);
     classTypeParametersAreInScope = false;
-    visitList(node.annotations, this);
+    _visitAnnotations(node.annotations);
     exitParent(oldParent);
     currentMember = null;
     exitTreeNode(node);
+  }
+
+  void _visitAnnotations(List<Expression> annotations) {
+    for (Expression annotation in annotations) {
+      if (stage >= VerificationStage.afterConstantEvaluation) {
+        if (!(annotation is ConstantExpression ||
+            annotation is InvalidExpression)) {
+          problem(
+              annotation,
+              "Unexpected annotation $annotation (${annotation.runtimeType}). "
+              "Expected a ConstantExpression or InvalidExpression.");
+        }
+      }
+      annotation.accept(this);
+    }
   }
 
   @override
@@ -742,7 +793,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     node.function.accept(this);
     classTypeParametersAreInScope = false;
-    visitList(node.annotations, this);
+    _visitAnnotations(node.annotations);
     exitParent(oldParent);
     // TODO(johnniwinther): Enable this invariant. Possibly by removing bodies
     // from external procedures declared with a body or by removing the external
@@ -788,7 +839,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     exitLocalScope(stackHeight);
     classTypeParametersAreInScope = false;
-    visitList(node.annotations, this);
+    _visitAnnotations(node.annotations);
     exitParent(oldParent);
     // TODO(johnniwinther): Enable this invariant. Possibly by removing bodies
     // from external constructors declared with a body or by removing the
@@ -815,7 +866,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     declareTypeParameters(node.typeParameters);
     TreeNode? oldParent = enterParent(node);
     classTypeParametersAreInScope = false;
-    visitList(node.annotations, this);
+    _visitAnnotations(node.annotations);
     classTypeParametersAreInScope = true;
     visitList(node.typeParameters, this);
     visitList(node.fields, this);
@@ -905,11 +956,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitForInStatement(ForInStatement node) {
-    visitWithLocalScope(node);
-  }
-
-  @override
   void visitLet(Let node) {
     if (_isCompileTimeErrorEncoding(node)) return;
     visitWithLocalScope(node);
@@ -993,6 +1039,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    return _verifyVariableInitialization(node);
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
+    return _verifyVariableInitialization(node);
+  }
+
+  void _verifyVariableInitialization(VariableInitialization node) {
     enterTreeNode(node);
     TreeNode? parent = node.parent;
     if (parent is! Block &&
@@ -1009,8 +1064,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "VariableDeclaration must be a direct child of a Block, "
           "not ${parent.runtimeType}.");
     }
-    visitChildren(node);
-    declareVariable(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    node.initializer?.accept(this);
+    exitParent(oldParent);
+    declareVariable(node.variable);
     if (afterConst && node.isConst && constantLocalsShouldBeRemoved) {
       Expression? initializer = node.initializer;
       if (!(initializer is InvalidExpression ||
@@ -1023,15 +1081,21 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
+  void visitLocalVariable(LocalVariable node) {
+    declareVariable(node);
+  }
+
+  @override
   void visitVariableGet(VariableGet node) {
     enterTreeNode(node);
-    checkVariableInScope(node.variable, node);
+    checkVariableInScope(node.expressionVariable, node);
     visitChildren(node);
     if (constantsAreAlwaysInlined &&
         afterConst &&
-        node.variable.isConst &&
+        node.expressionVariable.isConst &&
         !inUnevaluatedConstant) {
-      problem(node, "VariableGet of const variable '${node.variable}'.");
+      problem(
+          node, "VariableGet of const variable '${node.expressionVariable}'.");
     }
     exitTreeNode(node);
   }
@@ -1039,7 +1103,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitVariableSet(VariableSet node) {
     enterTreeNode(node);
-    checkVariableInScope(node.variable, node);
+    checkVariableInScope(node.expressionVariable, node);
     visitChildren(node);
     exitTreeNode(node);
   }
@@ -1794,6 +1858,116 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     super.visitSwitchStatement(node);
   }
+
+  @override
+  void visitListConcatenation(ListConcatenation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitSetConcatenation(SetConcatenation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitMapConcatenation(MapConcatenation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitInstanceCreation(InstanceCreation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitFileUriExpression(FileUriExpression node) {
+    if (!target.supportsFileUriExpression) {
+      if (stage >= VerificationStage.afterConstantEvaluation) {
+        if (!inUnevaluatedConstant) {
+          problem(node, "Unexpected internal node $node.");
+        }
+      }
+    }
+  }
+
+  @override
+  void visitPatternAssignment(PatternAssignment node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitIfCaseStatement(IfCaseStatement node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternSwitchStatement(PatternSwitchStatement node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void defaultPattern(Pattern node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternGuard(PatternGuard node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternSwitchCase(PatternSwitchCase node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
 }
 
 class VerifyGetStaticType extends RecursiveVisitor {
@@ -1925,4 +2099,18 @@ class AllowedTypes implements DartTypeVisitor<bool> {
 
   @override
   bool visitVoidType(VoidType node) => true;
+
+  @override
+  bool visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  bool visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }

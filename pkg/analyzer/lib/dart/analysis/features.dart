@@ -3,12 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Information about a single language feature whose presence or absence
 /// depends on the supported Dart SDK version, and possibly on the presence of
 /// experimental flags.
 abstract class Feature {
+  /// Feature information for anonymous methods.
+  @experimental
+  static final anonymous_methods = ExperimentalFeatures.anonymous_methods;
+
   /// Feature information for augmentations.
   static final augmentations = ExperimentalFeatures.augmentations;
 
@@ -77,13 +82,20 @@ abstract class Feature {
   /// Feature information for patterns.
   static final patterns = ExperimentalFeatures.patterns;
 
+  /// Feature information for primary constructors.
+  static final primary_constructors = ExperimentalFeatures.primary_constructors;
+
+  /// Feature information for private named parameters.
+  static final private_named_parameters =
+      ExperimentalFeatures.private_named_parameters;
+
   /// Feature information for records.
   static final records = ExperimentalFeatures.records;
 
   /// Feature information for spread collections.
   static final spread_collections = ExperimentalFeatures.spread_collections;
 
-  // Feature information for sealed classes.
+  /// Feature information for sealed classes.
   static final sealed_class = ExperimentalFeatures.sealed_class;
 
   /// Feature information for set literals.
@@ -91,6 +103,9 @@ abstract class Feature {
 
   /// Feature information for sound flow analysis.
   static final sound_flow_analysis = ExperimentalFeatures.sound_flow_analysis;
+
+  /// Feature information for static extensions.
+  static final static_extensions = ExperimentalFeatures.static_extensions;
 
   /// Feature information for super parameters.
   static final super_parameters = ExperimentalFeatures.super_parameters;

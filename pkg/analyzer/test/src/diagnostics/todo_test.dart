@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -15,6 +15,16 @@ main() {
 
 @reflectiveTest
 class TodoTest extends PubPackageResolutionTest {
+  test_eof() async {
+    await assertErrorsInCode(
+      r'''
+main() {}
+// TODO: Implement something else
+''',
+      [error(diag.todo, 13, 30, text: 'TODO: Implement something else')],
+    );
+  }
+
   test_fixme() async {
     await assertErrorsInCode(
       r'''
@@ -22,7 +32,7 @@ main() {
   // FIXME: Implement
 }
 ''',
-      [error(TodoCode.fixme, 14, 16, text: 'FIXME: Implement')],
+      [error(diag.fixme, 14, 16, text: 'FIXME: Implement')],
     );
   }
 
@@ -33,7 +43,7 @@ main() {
   // HACK: This is a hack
 }
 ''',
-      [error(TodoCode.hack, 14, 20, text: 'HACK: This is a hack')],
+      [error(diag.hack, 14, 20, text: 'HACK: This is a hack')],
     );
   }
 
@@ -46,8 +56,8 @@ main() {
 }
 ''',
       [
-        error(TodoCode.todo, 14, 15, text: 'TODO: Implement'),
-        error(TodoCode.todo, 38, 15, text: 'TODO: Implement'),
+        error(diag.todo, 14, 15, text: 'TODO: Implement'),
+        error(diag.todo, 38, 15, text: 'TODO: Implement'),
       ],
     );
   }
@@ -78,25 +88,25 @@ main() {
 ''',
       [
         error(
-          TodoCode.todo,
+          diag.todo,
           14,
           64,
           text: 'TODO(a): Implement something that is too long for one line',
         ),
         error(
-          TodoCode.todo,
+          diag.todo,
           129,
           61,
           text: 'TODO: Implement something that is too long for one line',
         ),
         error(
-          TodoCode.todo,
+          diag.todo,
           241,
           64,
           text: 'TODO(a): Implement something that is too long for one line',
         ),
         error(
-          TodoCode.todo,
+          diag.todo,
           362,
           61,
           text: 'TODO: Implement something that is too long for one line',
@@ -112,7 +122,7 @@ main() {
   // TODO: Implement
 }
 ''',
-      [error(TodoCode.todo, 14, 15, text: 'TODO: Implement')],
+      [error(diag.todo, 14, 15, text: 'TODO: Implement')],
     );
   }
 
@@ -136,13 +146,13 @@ main() {
 ''',
       [
         error(
-          TodoCode.todo,
+          diag.todo,
           20,
           67,
           text: 'TODO: Implement something that is too long for one line',
         ),
-        error(TodoCode.todo, 117, 25, text: 'TODO: Implement something'),
-        error(TodoCode.todo, 202, 25, text: 'TODO: Implement something'),
+        error(diag.todo, 117, 25, text: 'TODO: Implement something'),
+        error(diag.todo, 202, 25, text: 'TODO: Implement something'),
       ],
     );
   }
@@ -154,7 +164,7 @@ main() {
 /// This is the function documentation
 void f() {}
 ''',
-      [error(TodoCode.todo, 3, 25, text: 'TODO: Implement something')],
+      [error(diag.todo, 3, 25, text: 'TODO: Implement something')],
     );
   }
 
@@ -169,7 +179,7 @@ main() {
 ''',
       [
         error(
-          TodoCode.todo,
+          diag.todo,
           14,
           61,
           text: 'TODO: Implement something that is too long for one line',
@@ -189,7 +199,7 @@ main() {
 ''',
       [
         error(
-          TodoCode.todo,
+          diag.todo,
           14,
           61,
           text: 'TODO: Implement something that is too long for one line',
@@ -209,13 +219,13 @@ main() {
 ''',
       [
         error(
-          TodoCode.todo,
+          diag.todo,
           14,
           61,
           text: 'TODO: Implement something that is too long for one line',
         ),
         error(
-          TodoCode.todo,
+          diag.todo,
           82,
           59,
           text: 'TODO: This is a separate todo that is accidentally indented',
@@ -245,19 +255,19 @@ main() {
 ''',
       [
         error(
-          TodoCode.todo,
+          diag.todo,
           14,
           61,
           text: 'TODO: Implement something that is too long for one line',
         ),
         error(
-          TodoCode.todo,
+          diag.todo,
           116,
           61,
           text: 'TODO: Implement something that is too long for one line',
         ),
         error(
-          TodoCode.todo,
+          diag.todo,
           220,
           61,
           text: 'TODO: Implement something that is too long for one line',
@@ -273,7 +283,7 @@ main() {
   // UNDONE: This was undone
 }
 ''',
-      [error(TodoCode.undone, 14, 23, text: 'UNDONE: This was undone')],
+      [error(diag.undone, 14, 23, text: 'UNDONE: This was undone')],
     );
   }
 }

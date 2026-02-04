@@ -5,10 +5,10 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/enclosing_type_parameters_flag.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/extension_type.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -45,6 +46,19 @@ LinkResult link({
   return LinkResult(resolutionBytes: linker.resolutionBytes);
 }
 
+/// Information about a declaring formal parameter, used while linking.
+class DeclaringFormalParameterInfo {
+  final ast.FormalParameterImpl node;
+  final FieldFragmentImpl fieldFragment;
+  final FormalParameterFragmentImpl formalFragment;
+
+  DeclaringFormalParameterInfo({
+    required this.node,
+    required this.fieldFragment,
+    required this.formalFragment,
+  });
+}
+
 class Linker {
   final LinkedElementFactory elementFactory;
   final String apiSignature;
@@ -53,6 +67,9 @@ class Linker {
   final Map<Uri, LibraryBuilder> builders = {};
 
   final Map<Object, ast.AstNode> elementNodes = Map.identity();
+
+  final Map<ast.FormalParameterImpl, DeclaringFormalParameterInfo>
+  declaringFormalParameters = Map.identity();
 
   late InheritanceManager3 inheritance; // TODO(scheglov): cache it
 
@@ -76,10 +93,10 @@ class Linker {
     return builders.containsKey(dartCoreUri);
   }
 
-  /// If the [element] is part of a library being linked, return the node
+  /// If the [fragment] is part of a library being linked, return the node
   /// from which it was created.
-  ast.AstNode? getLinkingNode(FragmentImpl element) {
-    return elementNodes[element];
+  ast.AstNode? getLinkingNode(FragmentImpl fragment) {
+    return elementNodes[fragment];
   }
 
   /// If the [fragment] is part of a library being linked, return the node
@@ -243,6 +260,7 @@ class Linker {
     _computeFieldPromotability();
     SuperConstructorResolver(this).perform();
     _performTopLevelInference();
+    buildExtensionTypes(this);
     _resolveConstructors();
     _resolveConstantInitializers();
     _resolveDefaultValues();
@@ -288,12 +306,18 @@ class Linker {
         ...element.mixins,
       ].nonNulls.any((type) => computeFor(type.element));
 
-      hasNonFinalField |= element.fields.any((field) {
-        return !field.isFinal &&
-            !field.isConst &&
-            !field.isStatic &&
-            !field.isSynthetic;
-      });
+      hasNonFinalField |= !element.fields
+          .where((field) => field.isInstanceField)
+          .every((field) {
+            // If has storage...
+            if ((field.isOriginDeclaration && !field.isAbstract) ||
+                field.isOriginDeclaringFormalParameter) {
+              // ...then must be final
+              return field.isFinal || field.isConst;
+            }
+            // Otherwise we don't care.
+            return true;
+          });
 
       return element.hasNonFinalField = hasNonFinalField;
     }

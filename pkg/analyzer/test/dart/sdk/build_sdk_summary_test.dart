@@ -73,6 +73,7 @@ embedded_libs:
       librarySummaryPaths: [],
       resourceProvider: resourceProvider,
       sdkSummaryPath: sdkSummaryFile.path,
+      withFineDependencies: true,
     );
 
     var analysisContext = collection.contextFor(myPackageRoot.path);
@@ -117,6 +118,7 @@ embedded_libs:
       librarySummaryPaths: [],
       resourceProvider: resourceProvider,
       sdkSummaryPath: sdkSummaryFile.path,
+      withFineDependencies: true,
     );
 
     var analysisContext = collection.contextFor(myPackageRoot.path);

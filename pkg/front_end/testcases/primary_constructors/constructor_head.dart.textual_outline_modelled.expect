@@ -1,0 +1,71 @@
+class C1 {
+  new ();
+}
+
+class C10 {
+  new named() : x = 0;
+  var x;
+}
+
+class C11 {
+  new named() {}
+}
+
+class C12 {
+  new named() : x = 0 {}
+  var x;
+}
+
+class C13 {
+  const new named();
+}
+
+class C14 {
+  const new named() : x = 0;
+  final x;
+}
+
+class C15 {
+  const new named() {}
+}
+
+class C16 {
+  const new named() : x = 0 {}
+  final x;
+}
+
+class C2 {
+  new () : x = 0;
+  var x;
+}
+
+class C3 {
+  new () {}
+}
+
+class C4 {
+  new () : x = 0 {}
+  var x;
+}
+
+class C5 {
+  const new ();
+}
+
+class C6 {
+  const new () : x = 0;
+  var x;
+}
+
+class C7 {
+  const new () {}
+}
+
+class C8 {
+  const new () : x = 0 {}
+  var x;
+}
+
+class C9 {
+  new named();
+}

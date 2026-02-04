@@ -15,15 +15,20 @@ void main() {
 @reflectiveTest
 class AvoidRelativeLibImportsTest extends LintRuleTest {
   @override
-  bool get addJsPackageDep => true;
+  String get lintRule => LintNames.avoid_relative_lib_imports;
 
   @override
-  String get lintRule => LintNames.avoid_relative_lib_imports;
+  void setUp() {
+    newPackage('foo').addFile('lib/foo.dart', r'''
+class Foo {}
+''');
+    super.setUp();
+  }
 
   test_externalPackage() async {
     await assertNoDiagnostics(r'''
-/// This provides [JS].
-import 'package:js/js.dart';
+/// This provides [Foo].
+import 'package:foo/foo.dart';
 ''');
   }
 

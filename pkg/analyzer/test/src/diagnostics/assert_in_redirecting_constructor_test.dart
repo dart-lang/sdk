@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class A {
   A.name() {}
 }
 ''',
-      [error(CompileTimeErrorCode.assertInRedirectingConstructor, 23, 13)],
+      [error(diag.assertInRedirectingConstructor, 23, 13)],
     );
   }
 
@@ -53,7 +53,7 @@ class A {
   A.name() {}
 }
 ''',
-      [error(CompileTimeErrorCode.assertInRedirectingConstructor, 36, 13)],
+      [error(diag.assertInRedirectingConstructor, 36, 13)],
     );
   }
 
@@ -66,7 +66,7 @@ enum E {
   const E.name();
 }
 ''',
-      [error(CompileTimeErrorCode.assertInRedirectingConstructor, 37, 13)],
+      [error(diag.assertInRedirectingConstructor, 37, 13)],
     );
   }
 
@@ -98,7 +98,7 @@ enum E {
   const E.name();
 }
 ''',
-      [error(CompileTimeErrorCode.assertInRedirectingConstructor, 50, 13)],
+      [error(diag.assertInRedirectingConstructor, 50, 13)],
     );
   }
 }

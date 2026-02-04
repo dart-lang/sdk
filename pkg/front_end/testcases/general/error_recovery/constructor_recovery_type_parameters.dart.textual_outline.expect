@@ -1,0 +1,7 @@
+class C {
+  C<T>() : this();
+  C;
+  operator!<T>() : this();
+  C<T() >(): this();
+  C<T>=() : this();
+}

@@ -7,14 +7,32 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 
 /// The information about a request for a list of snippets within a Dart file.
 class DartSnippetRequest {
-  /// The resolved unit for the file that snippets are being requested for.
-  final ResolvedUnitResult unit;
+  /// The analysis session that produced the elements of the request.
+  final AnalysisSession analysisSession;
+
+  /// The type provider used when resolving the compilation [unit].
+  final TypeProvider typeProvider;
+
+  /// The file resource.
+  final File file;
+
+  /// The file resource.
+  final String content;
+
+  /// The parsed, unresolved compilation unit for the [content].
+  final CompilationUnit compilationUnit;
+
+  /// The element representing the library containing the compilation [unit].
+  final LibraryElement libraryElement;
 
   /// The path of the file snippets are being requested for.
   final String filePath;
@@ -30,15 +48,33 @@ class DartSnippetRequest {
   /// replaced if the snippet is selected.
   late final SourceRange replacementRange;
 
-  DartSnippetRequest({required this.unit, required this.offset})
-    : filePath = unit.path {
+  DartSnippetRequest({required ResolvedUnitResult unit, required this.offset})
+    : analysisSession = unit.session,
+      typeProvider = unit.typeProvider,
+      file = unit.file,
+      content = unit.content,
+      compilationUnit = unit.unit,
+      libraryElement = unit.libraryElement,
+      filePath = unit.path {
     var target = CompletionTarget.forOffset(unit.unit, offset);
     context = _getContext(target);
     replacementRange = target.computeReplacementRange(offset);
   }
 
-  /// The analysis session that produced the elements of the request.
-  AnalysisSession get analysisSession => unit.session;
+  DartSnippetRequest.fromCompletionResult({
+    required ResolvedForCompletionResultImpl unit,
+    required this.offset,
+    required this.file,
+  }) : analysisSession = unit.analysisSession,
+       typeProvider = unit.libraryFragment.element.typeProvider,
+       content = unit.content,
+       compilationUnit = unit.parsedUnit,
+       libraryElement = unit.libraryFragment.element,
+       filePath = unit.path {
+    var target = CompletionTarget.forOffset(unit.parsedUnit, offset);
+    context = _getContext(target);
+    replacementRange = target.computeReplacementRange(offset);
+  }
 
   /// The resource provider associated with this request.
   ResourceProvider get resourceProvider => analysisSession.resourceProvider;
@@ -82,11 +118,19 @@ class DartSnippetRequest {
       }
 
       if (node is VariableDeclaration) {
-        return SnippetContext.inExpression;
+        return node.isConst
+            ? SnippetContext.inConstantExpression
+            : SnippetContext.inExpression;
       }
 
       if (node is VariableDeclarationList) {
         return SnippetContext.inIdentifierDeclaration;
+      }
+
+      if (node is DotShorthandInvocation ||
+          node is DotShorthandConstructorInvocation ||
+          node is DotShorthandPropertyAccess) {
+        return SnippetContext.inDotShorthand;
       }
 
       if (node is PropertyAccess ||
@@ -114,7 +158,9 @@ class DartSnippetRequest {
       }
 
       if (node is Expression) {
-        return SnippetContext.inExpression;
+        return node.inConstantContext
+            ? SnippetContext.inConstantExpression
+            : SnippetContext.inExpression;
       }
 
       if (node is Annotation) {
@@ -127,9 +173,19 @@ class DartSnippetRequest {
 
       if (node is ClassDeclaration ||
           node is ExtensionDeclaration ||
-          node is MixinDeclaration ||
-          node is EnumDeclaration) {
+          node is MixinDeclaration) {
         return SnippetContext.inClass;
+      }
+
+      if (node is EnumConstantArguments) {
+        return SnippetContext.inConstantExpression;
+      }
+
+      if (node is EnumDeclaration) {
+        var semicolon = node.body.semicolon;
+        return semicolon == null || target.offset <= semicolon.offset
+            ? SnippetContext.inEnumConstants
+            : SnippetContext.inEnumMembers;
       }
 
       node = node.parent;

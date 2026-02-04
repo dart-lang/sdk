@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -47,9 +47,9 @@ void f() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [error(WarningCode.unusedField, 66, 2)]);
+    await assertErrorsInFile2(lib1, [error(diag.unusedField, 66, 2)]);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 38, 13),
+      error(diag.invalidUseOfVisibleForTemplateMember, 38, 13),
     ]);
   }
 
@@ -72,9 +72,9 @@ void f() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [error(WarningCode.unusedField, 66, 2)]);
+    await assertErrorsInFile2(lib1, [error(diag.unusedField, 66, 2)]);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 38, 1),
+      error(diag.invalidUseOfVisibleForTemplateMember, 38, 1),
     ]);
   }
 
@@ -116,7 +116,7 @@ void f(A a) {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 39, 3),
+      error(diag.invalidUseOfVisibleForTemplateMember, 39, 3),
     ]);
   }
 
@@ -164,7 +164,7 @@ void f(A a) {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 39, 3),
+      error(diag.invalidUseOfVisibleForTemplateMember, 39, 3),
     ]);
   }
 
@@ -209,7 +209,7 @@ void f(C c) {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 39, 3),
+      error(diag.invalidUseOfVisibleForTemplateMember, 39, 3),
     ]);
   }
 
@@ -303,7 +303,7 @@ void f(A a) {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 39, 3),
+      error(diag.invalidUseOfVisibleForTemplateMember, 39, 3),
     ]);
   }
 
@@ -349,7 +349,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 36, 1),
+      error(diag.invalidUseOfVisibleForTemplateMember, 36, 1),
     ]);
   }
 
@@ -434,7 +434,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 73, 3),
+      error(diag.invalidUseOfVisibleForTemplateMember, 73, 3),
     ]);
   }
 
@@ -457,7 +457,7 @@ class B extends A {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 63, 3),
+      error(diag.invalidUseOfVisibleForTemplateMember, 63, 3),
     ]);
   }
 
@@ -534,7 +534,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 40, 3),
+      error(diag.invalidUseOfVisibleForTemplateMember, 40, 3),
     ]);
   }
 
@@ -664,7 +664,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 34, 3),
+      error(diag.invalidUseOfVisibleForTemplateMember, 34, 3),
     ]);
   }
 
@@ -685,7 +685,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTemplateMember, 34, 3),
+      error(diag.invalidUseOfVisibleForTemplateMember, 34, 3),
     ]);
   }
 }

@@ -52,8 +52,11 @@ class DartEntryScope : public TransitionToGenerated {
 #if defined(USING_SAFE_STACK)
     // Remember the safestack pointer at entry so it can be restored in
     // Exceptions::JumpToFrame when a Dart exception jumps over C++ frames.
-    saved_safestack_limit_ = OSThread::GetCurrentSafestackPointer();
-    thread->set_saved_safestack_limit(saved_safestack_limit_);
+    saved_safestack_ = thread->saved_safestack();
+    thread->set_saved_safestack(OSThread::GetCurrentSafestackPointer());
+#endif
+#if defined(USING_SHADOW_CALL_STACK)
+    saved_shadow_call_stack_ = thread->saved_shadow_call_stack();
 #endif
 
     saved_api_scope_ = thread->api_top_scope();
@@ -67,8 +70,11 @@ class DartEntryScope : public TransitionToGenerated {
       thread()->ExitApiScope();
     }
 
+#if defined(USING_SHADOW_CALL_STACK)
+    thread()->set_saved_shadow_call_stack(saved_shadow_call_stack_);
+#endif
 #if defined(USING_SAFE_STACK)
-    thread()->set_saved_safestack_limit(saved_safestack_limit_);
+    thread()->set_saved_safestack(saved_safestack_);
 #endif
 
     ASSERT(thread()->long_jump_base() == nullptr);
@@ -78,7 +84,10 @@ class DartEntryScope : public TransitionToGenerated {
  private:
   LongJumpScope* saved_long_jump_base_;
 #if defined(USING_SAFE_STACK)
-  uword saved_safestack_limit_ = 0;
+  uword saved_safestack_ = 0;
+#endif
+#if defined(USING_SHADOW_CALL_STACK)
+  uword saved_shadow_call_stack_ = 0;
 #endif
   ApiLocalScope* saved_api_scope_;
 };
@@ -102,21 +111,14 @@ static ObjectPtr InvokeDartCode(uword entry_point,
                                 const Array& arguments_descriptor,
                                 const Array& arguments,
                                 Thread* thread) {
-  DartEntryScope dart_entry_scope(thread);
-
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
 #if defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_use_simulator) {
-    auto invoke = [&](uword entry_point, uword arguments_descriptor,
-                      uword arguments, Thread* thread) -> uword {
-      return Simulator::Current()->Call(stub, entry_point, arguments_descriptor,
-                                        arguments,
-                                        reinterpret_cast<int64_t>(thread));
-    };
-    uword result =
-        invoke(entry_point, static_cast<uword>(arguments_descriptor.ptr()),
-               static_cast<uword>(arguments.ptr()), thread);
-    return static_cast<ObjectPtr>(result);
+    return static_cast<ObjectPtr>(
+        static_cast<intptr_t>(Simulator::Current()->Call(
+            stub, entry_point, static_cast<uword>(arguments_descriptor.ptr()),
+            static_cast<uword>(arguments.ptr()),
+            reinterpret_cast<uword>(thread))));
   }
 #endif
   auto invoke = reinterpret_cast<invokestub>(stub);
@@ -140,13 +142,11 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
   ASSERT(!function.IsNull());
 
 #if defined(DART_DYNAMIC_MODULES)
-  if (function.HasBytecode()) {
+  if (function.IsInterpreted()) {
     // SuspendLongJumpScope suspend_long_jump_scope(thread);
     TransitionToGenerated transition(thread);
     return Interpreter::Current()->Call(function, arguments_descriptor,
                                         arguments, thread);
-  } else {
-    ASSERT(!function.is_declared_in_bytecode());
   }
 #endif  // defined(DART_DYNAMIC_MODULES)
 
@@ -159,6 +159,10 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
     }
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+  // Loading the function's current code must be after the safepoint transition,
+  // otherwise it might have already been replaced before we call it.
+  DartEntryScope dart_entry_scope(thread);
 
   ASSERT(function.HasCode());
 
@@ -187,6 +191,10 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
 
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
+
+  // Loading the code's raw pointer must be after the safepoint transition,
+  // otherwise it might have been moved before we call it.
+  DartEntryScope dart_entry_scope(thread);
 
   return InvokeDartCode(
 #if defined(DART_PRECOMPILED_RUNTIME)

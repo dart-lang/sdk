@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,15 +11,16 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Property getter recursively returns itself.';
 
-class RecursiveGetters extends LintRule {
+class RecursiveGetters extends AnalysisRule {
   RecursiveGetters()
     : super(name: LintNames.recursive_getters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.recursiveGetters;
+  DiagnosticCode get diagnosticCode => diag.recursiveGetters;
 
   @override
   void registerNodeProcessors(
@@ -32,7 +34,7 @@ class RecursiveGetters extends LintRule {
 }
 
 class _BodyVisitor extends RecursiveAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final ExecutableElement element;
   _BodyVisitor(this.element, this.rule);
 
@@ -69,7 +71,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

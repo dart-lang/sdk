@@ -18,19 +18,24 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.SORT_UNNAMED_CONSTRUCTOR_FIRST;
+  FixKind get fixKind => DartFixKind.sortUnnamedConstructorFirst;
 
   @override
-  FixKind get multiFixKind => DartFixKind.SORT_UNNAMED_CONSTRUCTOR_FIRST_MULTI;
+  FixKind get multiFixKind => DartFixKind.sortUnnamedConstructorFirstMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var clazz = coveringNode?.parent?.parent;
+    var clazz = coveringNode?.parent?.parent?.parent;
     if (clazz is! ClassDeclaration) {
       return;
     }
 
-    var members = clazz.members;
+    var body = clazz.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
+    var members = body.members;
     var constructors = members.whereType<ConstructorDeclaration>().toList();
 
     var firstConstructor = constructors.firstOrNull;
@@ -60,7 +65,7 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
       var firstIndex = members.indexOf(firstConstructor);
       var tokenBeforeFirst = firstIndex != 0
           ? members[firstIndex - 1].endToken
-          : clazz.leftBracket;
+          : body.leftBracket;
       builder.addSimpleInsertion(
         tokenBeforeFirst.end,
         utils.getRangeText(moveRange),

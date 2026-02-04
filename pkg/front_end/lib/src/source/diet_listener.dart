@@ -23,7 +23,8 @@ import '../base/identifiers.dart'
         Identifier,
         OperatorIdentifier,
         QualifiedNameIdentifier,
-        SimpleIdentifier;
+        SimpleIdentifier,
+        OmittedIdentifier;
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/scope.dart';
 import '../codes/cfe_codes.dart'
@@ -127,7 +128,9 @@ class DietListener extends StackListenerImpl {
     bool hasName,
   ) {
     debugEvent("PartOf");
-    if (hasName) discard(1);
+    if (hasName) {
+      discard(1);
+    }
     discard(1); // Metadata.
   }
 
@@ -326,7 +329,9 @@ class DietListener extends StackListenerImpl {
     );
     debugEvent("FunctionTypeAlias");
 
-    if (equals == null) pop(); // endToken
+    if (equals == null) {
+      pop(); // endToken
+    }
     pop(); // name
     // Metadata is handled in [SourceTypeAliasBuilder.buildOutlineExpressions].
     pop(); // metadata
@@ -334,7 +339,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endClassFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,
@@ -346,8 +352,8 @@ class DietListener extends StackListenerImpl {
     Token beginToken,
     Token endToken,
   ) {
-    debugEvent("Fields");
-    buildFields(count, beginToken, false);
+    debugEvent("endFields");
+    _buildFields(count, beginToken, false);
   }
 
   @override
@@ -420,7 +426,7 @@ class DietListener extends StackListenerImpl {
     Token endToken,
   ) {
     debugEvent("TopLevelFields");
-    buildFields(count, beginToken, true);
+    _buildFields(count, beginToken, true);
   }
 
   @override
@@ -454,6 +460,12 @@ class DietListener extends StackListenerImpl {
       // gotten very confused and we need to ignore the results.
       push(new ParserRecovery(token.charOffset));
     }
+  }
+
+  @override
+  void handleNoIdentifier(Token token, IdentifierContext context) {
+    debugEvent("handleNoIdentifier");
+    push(new OmittedIdentifier(token));
   }
 
   @override
@@ -683,7 +695,33 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endClassFactoryMethod(
+  void endFactory(
+    DeclarationKind kind,
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    debugEvent("Factory");
+    switch (kind) {
+      case DeclarationKind.Class:
+      case DeclarationKind.Enum:
+      case DeclarationKind.ExtensionType:
+      case DeclarationKind.Mixin:
+        _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+      case DeclarationKind.Extension:
+        // Skip the declaration. An error as already been produced by the
+        // parser.
+        pop(); // bodyToken
+        pop(); // name
+        pop(); // metadata
+        checkEmpty(beginToken.charOffset);
+      // Coverage-ignore(suite): Not run.
+      case DeclarationKind.TopLevel:
+        throw new UnsupportedError("Unexpected factory kind $kind.");
+    }
+  }
+
+  void _endClassFactoryMethod(
     Token beginToken,
     Token factoryKeyword,
     Token endToken,
@@ -695,7 +733,6 @@ class DietListener extends StackListenerImpl {
         /* metadata token */ ValueKinds.TokenOrNull,
       ]),
     );
-    debugEvent("ClassFactoryMethod");
     Token bodyToken = pop() as Token;
     Object? name = pop();
     Token? metadata = pop() as Token?;
@@ -722,36 +759,6 @@ class DietListener extends StackListenerImpl {
         buildFunctionBody(functionBodyBuildingContext, bodyToken, metadata);
       }
     }
-  }
-
-  @override
-  void endExtensionFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("ExtensionFactoryMethod");
-    pop(); // bodyToken
-    pop(); // name
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    // Skip the declaration. An error as already been produced by the parser.
-  }
-
-  @override
-  void endExtensionConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("ExtensionConstructor");
-    pop(); // bodyToken
-    pop(); // name
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    // Skip the declaration. An error as already been produced by the parser.
   }
 
   @override
@@ -790,103 +797,46 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endClassMethod(
+  void endMethod(
+    DeclarationKind kind,
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      false,
-    );
+    _endClassMethod(getOrSet, beginToken, beginParam);
   }
 
   @override
-  void endClassConstructor(
-    Token? getOrSet,
+  void endConstructor(
+    DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      true,
-    );
+    switch (kind) {
+      case DeclarationKind.Class:
+      case DeclarationKind.Enum:
+      case DeclarationKind.ExtensionType:
+      case DeclarationKind.Mixin:
+        _endClassConstructor(beginToken, beginParam);
+      case DeclarationKind.Extension:
+        // Skip the declaration. An error as already been produced by the
+        // parser.
+        pop(); // bodyToken
+        pop(); // name
+        pop(); // metadata
+        checkEmpty(beginToken.charOffset);
+      // Coverage-ignore(suite): Not run.
+      case DeclarationKind.TopLevel:
+        throw new UnsupportedError("Unexpected constructor kind $kind.");
+    }
   }
 
-  @override
-  void endMixinMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      false,
-    );
-  }
-
-  @override
-  void endExtensionMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      false,
-    );
-  }
-
-  @override
-  void endMixinConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      true,
-    );
-  }
-
-  void _endClassMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-    bool isConstructor,
-  ) {
+  void _endClassMethod(Token? getOrSet, Token beginToken, Token beginParam) {
     debugEvent("Method");
     assert(
       checkState(beginToken, [
@@ -906,22 +856,18 @@ class DietListener extends StackListenerImpl {
     Identifier identifier = name as Identifier;
 
     FunctionFragment functionFragment;
-    if (isConstructor) {
-      functionFragment = _offsetMap.lookupConstructor(identifier);
-    } else {
-      ProcedureKind kind = computeProcedureKind(getOrSet);
-      switch (kind) {
-        case ProcedureKind.Method:
-        case ProcedureKind.Operator:
-          functionFragment = _offsetMap.lookupMethod(identifier);
-        case ProcedureKind.Getter:
-          functionFragment = _offsetMap.lookupGetter(identifier);
-        case ProcedureKind.Setter:
-          functionFragment = _offsetMap.lookupSetter(identifier);
-        // Coverage-ignore(suite): Not run.
-        case ProcedureKind.Factory:
-          throw new UnsupportedError("Unexpected procedure kind: $kind");
-      }
+    ProcedureKind kind = computeProcedureKind(getOrSet);
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Operator:
+        functionFragment = _offsetMap.lookupMethod(identifier);
+      case ProcedureKind.Getter:
+        functionFragment = _offsetMap.lookupGetter(identifier);
+      case ProcedureKind.Setter:
+        functionFragment = _offsetMap.lookupSetter(identifier);
+      // Coverage-ignore(suite): Not run.
+      case ProcedureKind.Factory:
+        throw new UnsupportedError("Unexpected procedure kind: $kind");
     }
     FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
@@ -930,7 +876,36 @@ class DietListener extends StackListenerImpl {
     }
   }
 
-  void buildFields(int count, Token token, bool isTopLevel) {
+  void _endClassConstructor(Token beginToken, Token beginParam) {
+    debugEvent("Method");
+    assert(
+      checkState(beginToken, [
+        /* bodyToken */ ValueKinds.Token,
+        /* name */ ValueKinds.IdentifierOrParserRecovery,
+        /* metadata token */ ValueKinds.TokenOrNull,
+      ]),
+    );
+    // TODO(danrubel): Consider removing the beginParam parameter
+    // and using bodyToken, but pushing a NullValue on the stack
+    // in handleNoFormalParameters rather than the supplied token.
+    pop(); // bodyToken
+    Object? name = pop();
+    Token? metadata = pop() as Token?;
+    checkEmpty(beginToken.charOffset);
+    if (name is ParserRecovery || currentClassIsParserRecovery) return;
+    Identifier identifier = name as Identifier;
+
+    FunctionFragment functionFragment = _offsetMap.lookupConstructor(
+      identifier,
+    );
+    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+        .createFunctionBodyBuildingContext();
+    if (functionBodyBuildingContext.shouldBuild) {
+      buildFunctionBody(functionBodyBuildingContext, beginParam, metadata);
+    }
+  }
+
+  void _buildFields(int count, Token token, bool isTopLevel) {
     assert(
       checkState(
         token,
@@ -1024,6 +999,38 @@ class DietListener extends StackListenerImpl {
       currentDeclaration = _offsetMap.lookupUnnamedDeclaration(beginToken);
     }
     _memberScope = currentDeclaration.bodyScope;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoClassBody(Token semicolonToken) {
+    assert(
+      checkState(semicolonToken, [
+        ValueKinds.Token,
+        ValueKinds.IdentifierOrParserRecoveryOrNull,
+        ValueKinds.TokenOrNull,
+      ]),
+    );
+    debugEvent("NoClassBody");
+    pop(); // Begin token
+    pop(); // Name
+    pop(); // Annotation begin token.
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoExtensionTypeBody(Token semicolonToken) {
+    assert(
+      checkState(semicolonToken, [
+        ValueKinds.Token,
+        ValueKinds.IdentifierOrParserRecoveryOrNull,
+        ValueKinds.TokenOrNull,
+      ]),
+    );
+    debugEvent("NoExtensionTypeBody");
+    pop(); // Begin token
+    pop(); // Name
+    pop(); // Annotation begin token.
   }
 
   @override
@@ -1135,6 +1142,7 @@ class DietListener extends StackListenerImpl {
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
+    bool forExtensionType,
   ) {
     assert(
       checkState(beginToken, [
@@ -1162,18 +1170,38 @@ class DietListener extends StackListenerImpl {
       );
     }
 
-    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody],
-    // assuming that it is currently the [compilationUnitScope], so we reset it
-    // here.
+    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody] and
+    // [beginEnumBody], assuming that it is currently the
+    // [compilationUnitScope], so we reset it here.
     _memberScope = outermostScope;
   }
 
   @override
-  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
-    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody],
-    // assuming that it is currently the [compilationUnitScope], so we reset it
-    // here.
+  void handleNoPrimaryConstructor(
+    Token token,
+    Token? constKeyword,
+    bool forExtensionType,
+  ) {
+    // The [memberScope] is set in [beginClassOrMixinOrExtensionBody] and
+    // [beginEnumBody], assuming that it is currently the
+    // [compilationUnitScope], so we reset it here.
     _memberScope = outermostScope;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    debugEvent("endPrimaryConstructorBody");
+    assert(
+      checkState(beginToken, [/* metadata token */ ValueKinds.TokenOrNull]),
+    );
+    // TODO(primary-constructors): Implement primary constructor body.
+    pop() as Token?;
+    checkEmpty(beginToken.charOffset);
   }
 
   @override
@@ -1189,9 +1217,9 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
-    assert(checkState(enumKeyword, [ValueKinds.IdentifierOrParserRecovery]));
-    debugEvent("Enum");
+  void beginEnumBody(Token token) {
+    assert(checkState(token, [ValueKinds.IdentifierOrParserRecovery]));
+    debugEvent("EnumBody");
     Object? name = pop();
 
     assert(_memberScope == outermostScope);
@@ -1208,7 +1236,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -1240,59 +1268,6 @@ class DietListener extends StackListenerImpl {
     Token leftBrace,
   ) {
     debugEvent("EnumHeader");
-  }
-
-  @override
-  void endEnumConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      true,
-    );
-  }
-
-  @override
-  void endEnumMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      false,
-    );
-  }
-
-  @override
-  void endEnumFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("Fields");
-    buildFields(count, beginToken, false);
   }
 
   @override

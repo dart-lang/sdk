@@ -19,16 +19,19 @@ void main() {
   });
 }
 
-class AbstractWildCardTest extends AbstractCompletionDriverTest {
-  @override
-  Set<String> allowedIdentifiers = {'_', '__', '___', 'T'};
-
+class AbstractWildcardTest extends AbstractCompletionDriverTest {
   @override
   bool get includeKeywords => false;
+
+  @override
+  Future<void> setUp() async {
+    allowedIdentifiers = {'_', '__', '___', 'T'};
+    await super.setUp();
+  }
 }
 
 @reflectiveTest
-class WildcardCatchClauseTest extends AbstractWildCardTest {
+class WildcardCatchClauseTest extends AbstractWildcardTest {
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -68,7 +71,7 @@ suggestions
 
 /// Fields are binding so not technically wildcards but look just like them.
 @reflectiveTest
-class WildcardFieldTest extends AbstractWildCardTest {
+class WildcardFieldTest extends AbstractWildcardTest {
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -106,7 +109,7 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardForLoopTest extends AbstractWildCardTest {
+class WildcardForLoopTest extends AbstractWildcardTest {
   Future<void> test_forEach_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -173,7 +176,7 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardImportPrefixTest extends AbstractWildCardTest {
+class WildcardImportPrefixTest extends AbstractWildcardTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
@@ -252,7 +255,7 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardLocalVariableTest extends AbstractWildCardTest {
+class WildcardLocalVariableTest extends AbstractWildcardTest {
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -301,7 +304,7 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardParameterTest extends AbstractWildCardTest {
+class WildcardParameterTest extends AbstractWildcardTest {
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 void p(Object o) {}
@@ -336,7 +339,7 @@ suggestions
 /// Top level variables are binding so not technically wildcards but look just
 /// like them.
 @reflectiveTest
-class WildcardTopLevelVariableTest extends AbstractWildCardTest {
+class WildcardTopLevelVariableTest extends AbstractWildcardTest {
   Future<void> test_argumentList() async {
     await computeSuggestions('''
 int _ = 0;
@@ -356,7 +359,7 @@ suggestions
 }
 
 @reflectiveTest
-class WildcardTypeParameterTest extends AbstractWildCardTest {
+class WildcardTypeParameterTest extends AbstractWildcardTest {
   Future<void> test_constructor_formalParameterList() async {
     await computeSuggestions('''
 class C<T, _> {

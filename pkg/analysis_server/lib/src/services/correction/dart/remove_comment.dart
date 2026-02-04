@@ -21,7 +21,7 @@ class RemoveComment extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_COMMENT;
+  FixKind get fixKind => DartFixKind.removeComment;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -57,9 +57,8 @@ class _RemoveIgnoreComment extends RemoveComment {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_IGNORE_COMMENT;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryIgnoreComment;
 
   @override
-  FixKind get multiFixKind =>
-      DartFixKind.REMOVE_UNNECESSARY_IGNORE_COMMENT_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryIgnoreCommentMulti;
 }

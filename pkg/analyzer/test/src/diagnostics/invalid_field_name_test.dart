@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,10 +22,10 @@ class InvalidFieldName_RecordLiteralTest extends PubPackageResolutionTest {
 var r = (hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
 ''',
       [
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 9, 8),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 22, 12),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 39, 11),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 55, 8),
+        error(diag.invalidFieldNameFromObject, 9, 8),
+        error(diag.invalidFieldNameFromObject, 22, 12),
+        error(diag.invalidFieldNameFromObject, 39, 11),
+        error(diag.invalidFieldNameFromObject, 55, 8),
       ],
     );
   }
@@ -42,10 +42,10 @@ var r = (hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
 var r = (0, hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
 ''',
       [
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 12, 8),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 25, 12),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 42, 11),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 58, 8),
+        error(diag.invalidFieldNameFromObject, 12, 8),
+        error(diag.invalidFieldNameFromObject, 25, 12),
+        error(diag.invalidFieldNameFromObject, 42, 11),
+        error(diag.invalidFieldNameFromObject, 58, 8),
       ],
     );
   }
@@ -55,7 +55,7 @@ var r = (0, hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
       r'''
 var r = (0, $1: 2);
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePositional, 12, 2)],
+      [error(diag.invalidFieldNamePositional, 12, 2)],
     );
   }
 
@@ -64,7 +64,7 @@ var r = (0, $1: 2);
       r'''
 var r = ($1: 2, 1);
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePositional, 9, 2)],
+      [error(diag.invalidFieldNamePositional, 9, 2)],
     );
   }
 
@@ -85,7 +85,7 @@ var r = (0, $2: 2);
       r'''
 var r = (_a: 1, b: 2);
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePrivate, 9, 2)],
+      [error(diag.invalidFieldNamePrivate, 9, 2)],
     );
   }
 }
@@ -99,10 +99,10 @@ class InvalidFieldName_RecordTypeAnnotationTest
 void f(({int hashCode, int noSuchMethod, int runtimeType, int toString}) r) {}
 ''',
       [
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 13, 8),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 27, 12),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 45, 11),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 62, 8),
+        error(diag.invalidFieldNameFromObject, 13, 8),
+        error(diag.invalidFieldNameFromObject, 27, 12),
+        error(diag.invalidFieldNameFromObject, 45, 11),
+        error(diag.invalidFieldNameFromObject, 62, 8),
       ],
     );
   }
@@ -120,10 +120,10 @@ void g((int hashAll,) r) {}
 void f((int hashCode, int noSuchMethod, int runtimeType, int toString) r) {}
 ''',
       [
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 12, 8),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 26, 12),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 44, 11),
-        error(CompileTimeErrorCode.invalidFieldNameFromObject, 61, 8),
+        error(diag.invalidFieldNameFromObject, 12, 8),
+        error(diag.invalidFieldNameFromObject, 26, 12),
+        error(diag.invalidFieldNameFromObject, 44, 11),
+        error(diag.invalidFieldNameFromObject, 61, 8),
       ],
     );
   }
@@ -133,7 +133,7 @@ void f((int hashCode, int noSuchMethod, int runtimeType, int toString) r) {}
       r'''
 void f((int, String, {int $2}) r) {}
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePositional, 26, 2)],
+      [error(diag.invalidFieldNamePositional, 26, 2)],
     );
   }
 
@@ -154,7 +154,7 @@ void f(({int $22}) r) {}
       r'''
 void f((int $2, int b) r) {}
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePositional, 12, 2)],
+      [error(diag.invalidFieldNamePositional, 12, 2)],
     );
   }
 
@@ -175,7 +175,7 @@ void f((int $4, int b) r) {}
       r'''
 void f(({int _a}) r) {}
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePrivate, 13, 2)],
+      [error(diag.invalidFieldNamePrivate, 13, 2)],
     );
   }
 
@@ -184,7 +184,7 @@ void f(({int _a}) r) {}
       r'''
 void f((int _a, int b) r) {}
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePrivate, 12, 2)],
+      [error(diag.invalidFieldNamePrivate, 12, 2)],
     );
   }
 
@@ -193,7 +193,7 @@ void f((int _a, int b) r) {}
       r'''
 void f(({int _, int b}) r) {}
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePrivate, 13, 1)],
+      [error(diag.invalidFieldNamePrivate, 13, 1)],
     );
   }
 
@@ -205,7 +205,7 @@ void f(({int _, int b}) r) {}
 
 void f(({int _, int b}) r) {}
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePrivate, 57, 1)],
+      [error(diag.invalidFieldNamePrivate, 57, 1)],
     );
   }
 
@@ -223,7 +223,7 @@ void f((int _, int b) r) {}
 
 void f((int _, int b) r) {}
 ''',
-      [error(CompileTimeErrorCode.invalidFieldNamePrivate, 56, 1)],
+      [error(diag.invalidFieldNamePrivate, 56, 1)],
     );
   }
 }

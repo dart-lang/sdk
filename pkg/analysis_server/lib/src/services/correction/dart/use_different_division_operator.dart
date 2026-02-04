@@ -26,13 +26,13 @@ class UseDifferentDivisionOperator extends MultiCorrectionProducer {
           TokenType.SLASH => [
             _UseDifferentDivisionOperator(
               context: context,
-              fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
+              fixKind: DartFixKind.useEffectiveIntegerDivision,
             ),
           ],
           TokenType.TILDE_SLASH => [
             _UseDifferentDivisionOperator(
               context: context,
-              fixKind: DartFixKind.USE_DIVISION,
+              fixKind: DartFixKind.useDivision,
             ),
           ],
           _ => const [],
@@ -42,13 +42,13 @@ class UseDifferentDivisionOperator extends MultiCorrectionProducer {
           TokenType.SLASH_EQ => [
             _UseDifferentDivisionOperator(
               context: context,
-              fixKind: DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION,
+              fixKind: DartFixKind.useEffectiveIntegerDivision,
             ),
           ],
           TokenType.TILDE_SLASH_EQ => [
             _UseDifferentDivisionOperator(
               context: context,
-              fixKind: DartFixKind.USE_DIVISION,
+              fixKind: DartFixKind.useDivision,
             ),
           ],
           _ => const [],

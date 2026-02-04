@@ -12,7 +12,7 @@ Future<void> main() async {
   test('httpGet', () async {
     final response = await httpGet('http://example.com');
     expect(response, contains('Hello world!'));
-  });
+  }, timeout: Timeout(Duration(minutes: 1)));
 
   test('httpServe', () async {
     final completer = Completer<String>();
@@ -24,5 +24,5 @@ Future<void> main() async {
     final request = await completer.future;
     expect(request, contains('www.example.com'));
     callWhenDone();
-  });
+  }, timeout: Timeout(Duration(minutes: 1)));
 }

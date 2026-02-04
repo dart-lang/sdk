@@ -10,7 +10,9 @@ import 'dart:math';
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/diagnostic_message.dart';
 import 'package:_fe_analyzer_shared/src/base/source.dart';
+import 'package:_fe_analyzer_shared/src/base/source_range.dart';
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
+import 'package:source_span/source_span.dart';
 
 import 'customized_codes.dart';
 
@@ -35,23 +37,6 @@ String formatList(String pattern, List<Object?>? arguments) {
   });
 }
 
-/// A diagnostic code associated with an `AnalysisError`.
-///
-/// Generally, messages should follow the [Guide for Writing
-/// Diagnostics](https://github.com/dart-lang/sdk/blob/main/pkg/front_end/lib/src/base/diagnostics.md).
-@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-@Deprecated("Use 'DiagnosticCode' instead.")
-typedef ErrorCode = DiagnosticCode;
-
-/// The severity of a [DiagnosticCode].
-@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-@Deprecated("Use 'DiagnosticSeverity' instead.")
-typedef ErrorSeverity = DiagnosticSeverity;
-
-@AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
-@Deprecated("Use 'DiagnosticType' instead.")
-typedef ErrorType = DiagnosticType;
-
 /// A diagnostic, as defined by the [Diagnostic Design Guidelines][guidelines]:
 ///
 /// > An indication of a specific problem at a specific location within the
@@ -71,10 +56,6 @@ class Diagnostic {
   /// being reported. The list will be empty if there are no such messages.
   final List<DiagnosticMessage> contextMessages;
 
-  /// Data associated with this diagnostic, specific for [diagnosticCode].
-  @Deprecated('Use an expando instead')
-  final Object? data;
-
   /// A description of how to fix the problem, or `null` if there is no such
   /// description.
   final String? correctionMessage;
@@ -89,15 +70,11 @@ class Diagnostic {
     required this.source,
     required int offset,
     required int length,
-    DiagnosticCode? diagnosticCode,
-    @Deprecated("Pass a value for 'diagnosticCode' instead")
-    DiagnosticCode? errorCode,
+    required this.diagnosticCode,
     required String message,
     this.correctionMessage,
     this.contextMessages = const [],
-    @Deprecated('Use an expando instead') this.data,
-  }) : diagnosticCode = _useNonNullCodeBetween(diagnosticCode, errorCode),
-       problemMessage = new DiagnosticMessageImpl(
+  }) : problemMessage = new DiagnosticMessageImpl(
          filePath: source.fullName,
          length: length,
          message: message,
@@ -109,31 +86,27 @@ class Diagnostic {
   ///
   /// The diagnostic is associated with the given [source] and is located at the
   /// given [offset] with the given [length]. The diagnostic will have the given
-  /// [errorCode] and the list of [arguments] will be used to complete the
+  /// [diagnosticCode] and the list of [arguments] will be used to complete the
   /// message and correction. If any [contextMessages] are provided, they will
   /// be recorded with the diagnostic.
   factory Diagnostic.tmp({
     required Source source,
     required int offset,
     required int length,
-    DiagnosticCode? diagnosticCode,
-    @Deprecated("Pass a value for 'diagnosticCode' instead")
-    DiagnosticCode? errorCode,
+    required DiagnosticCode diagnosticCode,
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
-    @Deprecated('Use an expando instead') Object? data,
   }) {
-    DiagnosticCode code = _useNonNullCodeBetween(diagnosticCode, errorCode);
     assert(
-      arguments.length == code.numParameters,
-      'Message $code requires ${code.numParameters} '
-      'argument${code.numParameters == 1 ? '' : 's'}, but '
+      arguments.length == diagnosticCode.numParameters,
+      'Message $diagnosticCode requires ${diagnosticCode.numParameters} '
+      'argument${diagnosticCode.numParameters == 1 ? '' : 's'}, but '
       '${arguments.length} '
       'argument${arguments.length == 1 ? ' was' : 's were'} '
       'provided',
     );
-    String message = formatList(code.problemMessage, arguments);
-    String? correctionTemplate = code.correctionMessage;
+    String message = formatList(diagnosticCode.problemMessage, arguments);
+    String? correctionTemplate = diagnosticCode.correctionMessage;
     String? correctionMessage;
     if (correctionTemplate != null) {
       correctionMessage = formatList(correctionTemplate, arguments);
@@ -143,12 +116,10 @@ class Diagnostic {
       source: source,
       offset: offset,
       length: length,
-      diagnosticCode: code,
+      diagnosticCode: diagnosticCode,
       message: message,
       correctionMessage: correctionMessage,
       contextMessages: contextMessages,
-      // ignore: deprecated_member_use_from_same_package
-      data: data,
     );
   }
 
@@ -233,35 +204,6 @@ class Diagnostic {
     buffer.write(message);
     return buffer.toString();
   }
-
-  /// The non-`null` [DiagnosticCode] value between the two parameters.
-  static DiagnosticCode _useNonNullCodeBetween(
-    DiagnosticCode? diagnosticCode,
-    DiagnosticCode? errorCode,
-  ) {
-    if ((diagnosticCode == null) == (errorCode == null)) {
-      throw new ArgumentError(
-        "Exactly one of 'diagnosticCode' and 'errorCode' may be passed",
-      );
-    }
-    return diagnosticCode ?? errorCode!;
-  }
-}
-
-/// Private subtype of [DiagnosticCode] that supports runtime checking of
-/// parameter types.
-abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCode {
-  final List<ExpectedType>? expectedTypes;
-
-  const DiagnosticCodeWithExpectedTypes({
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.name,
-    required super.problemMessage,
-    required super.uniqueName,
-    this.expectedTypes,
-  });
 }
 
 /// An error code associated with an `AnalysisError`.
@@ -273,55 +215,43 @@ abstract class DiagnosticCode {
   /// Regular expression for identifying positional arguments in error messages.
   static final RegExp _positionalArgumentRegExp = new RegExp(r'\{(\d+)\}');
 
-  /**
-   * The name of the error code.
-   */
-  final String name;
+  final String _name;
 
-  /**
-   * The unique name of this error code.
-   */
-  final String uniqueName;
+  final String _uniqueName;
 
   final String _problemMessage;
 
   final String? _correctionMessage;
 
-  /**
-   * Return `true` if diagnostics with this code have documentation for them
-   * that has been published.
-   */
+  /// Return `true` if diagnostics with this code have documentation for them
+  /// that has been published.
   final bool hasPublishedDocs;
 
-  /**
-   * Whether this error is caused by an unresolved identifier.
-   */
+  /// Whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
 
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [problemMessage]
-   * template. The correction associated with the error will be created from the
-   * given [correctionMessage] template.
-   */
+  /// Initialize a newly created error code to have the given [name]. The
+  /// message associated with the error will be created from the given
+  /// [problemMessage] template. The correction associated with the error will
+  /// be created from the given [correctionMessage] template.
   const DiagnosticCode({
     String? correctionMessage,
     this.hasPublishedDocs = false,
     this.isUnresolvedIdentifier = false,
-    required this.name,
+    required String name,
     required String problemMessage,
-    required this.uniqueName,
-  }) : _correctionMessage = correctionMessage,
+    required String uniqueName,
+  }) : _name = name,
+       _uniqueName = uniqueName,
+       _correctionMessage = correctionMessage,
        _problemMessage = problemMessage;
 
-  /**
-   * The template used to create the correction to be displayed for this
-   * diagnostic, or `null` if there is no correction information for this
-   * diagnostic. The correction should indicate how the user can fix the
-   * diagnostic.
-   */
+  /// The template used to create the correction to be displayed for this
+  /// diagnostic, or `null` if there is no correction information for this
+  /// diagnostic. The correction should indicate how the user can fix the
+  /// diagnostic.
   String? get correctionMessage =>
-      customizedCorrections[uniqueName] ?? _correctionMessage;
+      customizedCorrections[lowerCaseUniqueName] ?? _correctionMessage;
 
   @Deprecated("Use 'diagnosticSeverity' instead")
   DiagnosticSeverity get errorSeverity => severity;
@@ -329,6 +259,19 @@ abstract class DiagnosticCode {
   /// Whether a finding of this diagnostic is ignorable via comments such as
   /// `// ignore:` or `// ignore_for_file:`.
   bool get isIgnorable => severity != DiagnosticSeverity.ERROR;
+
+  /// The name of the error code, converted to all lower case.
+  String get lowerCaseName => _name.toLowerCase();
+
+  /// The unique name of this error code, converted to all lower case.
+  String get lowerCaseUniqueName => _uniqueName.toLowerCase();
+
+  /// The name of the error code.
+  ///
+  /// Deprecated. Please use [lowerCaseName] instead so that names are matched
+  /// in a case insensitive fashion.
+  @Deprecated('Please use lowerCaseName')
+  String get name => _name;
 
   int get numParameters {
     int result = 0;
@@ -344,48 +287,78 @@ abstract class DiagnosticCode {
     return result;
   }
 
-  /**
-   * The template used to create the problem message to be displayed for this
-   * diagnostic. The problem message should indicate what is wrong and why it is
-   * wrong.
-   */
+  /// The template used to create the problem message to be displayed for this
+  /// diagnostic. The problem message should indicate what is wrong and why it
+  /// is wrong.
   String get problemMessage =>
-      customizedMessages[uniqueName] ?? _problemMessage;
+      customizedMessages[lowerCaseUniqueName] ?? _problemMessage;
 
-  /**
-   * The severity of the diagnostic.
-   */
+  /// The severity of the diagnostic.
   DiagnosticSeverity get severity;
 
-  /**
-   * The type of the error.
-   */
+  /// The type of the error.
   DiagnosticType get type;
 
-  /**
-   * Return a URL that can be used to access documentation for diagnostics with
-   * this code, or `null` if there is no published documentation.
-   */
+  /// The unique name of this error code.
+  ///
+  /// Deprecated. Please use [lowerCaseUniqueName] instead so that names are
+  /// matched in a case insensitive fashion.
+  @Deprecated('Please use lowerCaseUniqueName')
+  String get uniqueName => _uniqueName;
+
+  /// Return a URL that can be used to access documentation for diagnostics with
+  /// this code, or `null` if there is no published documentation.
   String? get url {
     if (hasPublishedDocs) {
-      return 'https://dart.dev/diagnostics/${name.toLowerCase()}';
+      return 'https://dart.dev/diagnostics/${lowerCaseName}';
     }
     return null;
   }
 
   @override
-  String toString() => uniqueName;
+  String toString() => lowerCaseUniqueName;
 }
 
-/**
- * The severity of an [DiagnosticCode].
- */
+abstract class DiagnosticCodeImpl extends DiagnosticCode {
+  @override
+  final DiagnosticType type;
+
+  const DiagnosticCodeImpl({
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.name,
+    required super.problemMessage,
+    required this.type,
+    required super.uniqueName,
+  });
+
+  @override
+  DiagnosticSeverity get severity => type.severity;
+}
+
+/// Private subtype of [DiagnosticCode] that supports runtime checking of
+/// parameter types.
+class DiagnosticCodeWithExpectedTypes extends DiagnosticCodeImpl {
+  final List<ExpectedType>? expectedTypes;
+
+  const DiagnosticCodeWithExpectedTypes({
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.name,
+    required super.problemMessage,
+    required super.type,
+    required super.uniqueName,
+    this.expectedTypes,
+  });
+}
+
+/// The severity of an [DiagnosticCode].
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
-  /**
-   * The severity representing a non-error. This is never used for any error
-   * code, but is useful for clients.
-   */
+  /// The severity representing a non-error. This is never used for any error
+  /// code, but is useful for clients.
   static const DiagnosticSeverity NONE = const DiagnosticSeverity(
     'NONE',
     0,
@@ -393,9 +366,7 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
     "none",
   );
 
-  /**
-   * The severity representing an informational level analysis issue.
-   */
+  /// The severity representing an informational level analysis issue.
   static const DiagnosticSeverity INFO = const DiagnosticSeverity(
     'INFO',
     1,
@@ -403,10 +374,8 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
     "info",
   );
 
-  /**
-   * The severity representing a warning. Warnings can become errors if the
-   * `-Werror` command line flag is specified.
-   */
+  /// The severity representing a warning. Warnings can become errors if the
+  /// `-Werror` command line flag is specified.
   static const DiagnosticSeverity WARNING = const DiagnosticSeverity(
     'WARNING',
     2,
@@ -414,9 +383,7 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
     "warning",
   );
 
-  /**
-   * The severity representing an error.
-   */
+  /// The severity representing an error.
   static const DiagnosticSeverity ERROR = const DiagnosticSeverity(
     'ERROR',
     3,
@@ -435,14 +402,10 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
 
   final int ordinal;
 
-  /**
-   * The name of the severity used when producing machine output.
-   */
+  /// The name of the severity used when producing machine output.
   final String machineCode;
 
-  /**
-   * The name of the severity used when producing readable output.
-   */
+  /// The name of the severity used when producing readable output.
   final String displayName;
 
   const DiagnosticSeverity(
@@ -458,9 +421,7 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
   @override
   int compareTo(DiagnosticSeverity other) => ordinal - other.ordinal;
 
-  /**
-   * Return the severity constant that represents the greatest severity.
-   */
+  /// Return the severity constant that represents the greatest severity.
   DiagnosticSeverity max(DiagnosticSeverity severity) =>
       this.ordinal >= severity.ordinal ? this : severity;
 
@@ -468,45 +429,37 @@ class DiagnosticSeverity implements Comparable<DiagnosticSeverity> {
   String toString() => name;
 }
 
-/**
- * The type of a [DiagnosticCode].
- */
+///
+/// The type of a [DiagnosticCode].
+///
 @AnalyzerPublicApi(message: 'exported by package:analyzer/error/error.dart')
 class DiagnosticType implements Comparable<DiagnosticType> {
-  /**
-   * Task (todo) comments in user code.
-   */
+  /// Task (todo) comments in user code.
   static const DiagnosticType TODO = const DiagnosticType(
     'TODO',
     0,
     DiagnosticSeverity.INFO,
   );
 
-  /**
-   * Extra analysis run over the code to follow best practices, which are not in
-   * the Dart Language Specification.
-   */
+  /// Extra analysis run over the code to follow best practices, which are not
+  /// in the Dart Language Specification.
   static const DiagnosticType HINT = const DiagnosticType(
     'HINT',
     1,
     DiagnosticSeverity.INFO,
   );
 
-  /**
-   * Compile-time errors are errors that preclude execution. A compile time
-   * error must be reported by a Dart compiler before the erroneous code is
-   * executed.
-   */
+  /// Compile-time errors are errors that preclude execution. A compile time
+  /// error must be reported by a Dart compiler before the erroneous code is
+  /// executed.
   static const DiagnosticType COMPILE_TIME_ERROR = const DiagnosticType(
     'COMPILE_TIME_ERROR',
     2,
     DiagnosticSeverity.ERROR,
   );
 
-  /**
-   * Checked mode compile-time errors are errors that preclude execution in
-   * checked mode.
-   */
+  /// Checked mode compile-time errors are errors that preclude execution in
+  /// checked mode.
   static const DiagnosticType CHECKED_MODE_COMPILE_TIME_ERROR =
       const DiagnosticType(
         'CHECKED_MODE_COMPILE_TIME_ERROR',
@@ -514,31 +467,25 @@ class DiagnosticType implements Comparable<DiagnosticType> {
         DiagnosticSeverity.ERROR,
       );
 
-  /**
-   * Static warnings are those warnings reported by the static checker. They
-   * have no effect on execution. Static warnings must be provided by Dart
-   * compilers used during development.
-   */
+  /// Static warnings are those warnings reported by the static checker. They
+  /// have no effect on execution. Static warnings must be provided by Dart
+  /// compilers used during development.
   static const DiagnosticType STATIC_WARNING = const DiagnosticType(
     'STATIC_WARNING',
     4,
     DiagnosticSeverity.WARNING,
   );
 
-  /**
-   * Syntactic errors are errors produced as a result of input that does not
-   * conform to the grammar.
-   */
+  /// Syntactic errors are errors produced as a result of input that does not
+  /// conform to the grammar.
   static const DiagnosticType SYNTACTIC_ERROR = const DiagnosticType(
     'SYNTACTIC_ERROR',
     6,
     DiagnosticSeverity.ERROR,
   );
 
-  /**
-   * Lint warnings describe style and best practice recommendations that can be
-   * used to formalize a project's style guidelines.
-   */
+  /// Lint warnings describe style and best practice recommendations that can be
+  /// used to formalize a project's style guidelines.
   static const DiagnosticType LINT = const DiagnosticType(
     'LINT',
     7,
@@ -555,25 +502,17 @@ class DiagnosticType implements Comparable<DiagnosticType> {
     LINT,
   ];
 
-  /**
-   * The name of this error type.
-   */
+  /// The name of this error type.
   final String name;
 
-  /**
-   * The ordinal value of the error type.
-   */
+  /// The ordinal value of the error type.
   final int ordinal;
 
-  /**
-   * The severity of this type of error.
-   */
+  /// The severity of this type of error.
   final DiagnosticSeverity severity;
 
-  /**
-   * Initialize a newly created error type to have the given [name] and
-   * [severity].
-   */
+  /// Initialize a newly created error type to have the given [name] and
+  /// [severity].
   const DiagnosticType(this.name, this.ordinal, this.severity);
 
   String get displayName => name.toLowerCase().replaceAll('_', ' ');
@@ -589,12 +528,40 @@ class DiagnosticType implements Comparable<DiagnosticType> {
 }
 
 /// Common functionality for [DiagnosticCode]-derived classes that represent
+/// errors that take arguments.
+///
+/// This class provides a [withArguments] getter, which can be used to supply
+/// arguments and produce a [LocatableDiagnostic].
+class DiagnosticWithArguments<T extends Function>
+    extends DiagnosticCodeWithExpectedTypes {
+  /// Function accepting named arguments and returning [LocatableDiagnostic].
+  ///
+  /// The value returned by this function can
+  /// be associated with a location in the source code using the
+  /// [LocatableDiagnostic.at] method, and then the result can be passed to
+  /// [DiagnosticReporter.reportError].
+  final T withArguments;
+
+  const DiagnosticWithArguments({
+    required super.name,
+    required super.problemMessage,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.type,
+    required super.uniqueName,
+    required super.expectedTypes,
+    required this.withArguments,
+  });
+}
+
+/// Common functionality for [DiagnosticCode]-derived classes that represent
 /// errors that do not take arguments.
 ///
 /// This class implements [LocatableDiagnostic], which means that instances can
 /// be associated with a location in the source code using the [at] method, and
 /// then the result can be passed to [DiagnosticReporter.reportError].
-base mixin DiagnosticWithoutArguments on DiagnosticCode
+base mixin DiagnosticWithoutArguments on DiagnosticCodeImpl
     implements LocatableDiagnostic {
   @override
   List<Object> get arguments => const [];
@@ -614,8 +581,41 @@ base mixin DiagnosticWithoutArguments on DiagnosticCode
       new LocatedDiagnostic(this, offset, length);
 
   @override
-  LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
-      new LocatableDiagnosticImpl(code, arguments, contextMessages: messages);
+  LocatedDiagnostic atSourceRange(SourceRange sourceRange) =>
+      atOffset(offset: sourceRange.offset, length: sourceRange.length);
+
+  @override
+  LocatedDiagnostic atSourceSpan(SourceSpan span) =>
+      atOffset(offset: span.start.offset, length: span.length);
+
+  @override
+  LocatableDiagnostic withContextMessages(
+    Iterable<DiagnosticMessage> messages,
+  ) => new LocatableDiagnosticImpl(
+    code,
+    arguments,
+    contextMessages: [...messages],
+  );
+}
+
+/// Concrete implementation of [DiagnosticWithoutArguments], used for diagnostic
+/// messages that don't take any arguments.
+///
+/// This needs to be a separate class from [DiagnosticWithoutArguments] because
+/// [DiagnosticWithoutArguments] is a mixin.
+final class DiagnosticWithoutArgumentsImpl
+    extends DiagnosticCodeWithExpectedTypes
+    with DiagnosticWithoutArguments {
+  const DiagnosticWithoutArgumentsImpl({
+    required super.name,
+    required super.problemMessage,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.type,
+    required super.uniqueName,
+    super.expectedTypes,
+  });
 }
 
 /// Expected type of a diagnostic code's parameter.
@@ -651,6 +651,18 @@ abstract final class LocatableDiagnostic {
   /// The result may be passed to [DiagnosticReporter.reportError].
   LocatedDiagnostic atOffset({required int offset, required int length});
 
+  /// Converts this diagnostic to a [LocatedDiagnostic] by applying it to a
+  /// location in the source code.
+  ///
+  /// The result may be passed to [DiagnosticReporter.reportError].
+  LocatedDiagnostic atSourceRange(SourceRange sourceRange);
+
+  /// Converts this diagnostic to a [LocatedDiagnostic] by applying it to a
+  /// location in the source code.
+  ///
+  /// The result may be passed to [DiagnosticReporter.reportError].
+  LocatedDiagnostic atSourceSpan(SourceSpan span);
+
   /// Attaches context messages to this diagnostic.
   ///
   /// The return value is a fresh instance of [LocatableDiagnostic]. This allows
@@ -667,7 +679,7 @@ abstract final class LocatableDiagnostic {
   ///     .withContextMessages(messages)
   ///     .at(astNode));
   /// ```
-  LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages);
+  LocatableDiagnostic withContextMessages(Iterable<DiagnosticMessage> messages);
 }
 
 /// Concrete implementation of [LocatableDiagnostic].
@@ -696,12 +708,21 @@ final class LocatableDiagnosticImpl implements LocatableDiagnostic {
       new LocatedDiagnostic(this, offset, length);
 
   @override
-  LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
-      new LocatableDiagnosticImpl(
-        code,
-        arguments,
-        contextMessages: [...contextMessages, ...messages],
-      );
+  LocatedDiagnostic atSourceRange(SourceRange sourceRange) =>
+      atOffset(offset: sourceRange.offset, length: sourceRange.length);
+
+  @override
+  LocatedDiagnostic atSourceSpan(SourceSpan span) =>
+      atOffset(offset: span.start.offset, length: span.length);
+
+  @override
+  LocatableDiagnostic withContextMessages(
+    Iterable<DiagnosticMessage> messages,
+  ) => new LocatableDiagnosticImpl(
+    code,
+    arguments,
+    contextMessages: [...contextMessages, ...messages],
+  );
 }
 
 /// A diagnostic that does not have any unfilled template parameters, and has

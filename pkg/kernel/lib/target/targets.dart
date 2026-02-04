@@ -27,11 +27,16 @@ class TargetFlags {
   /// Targets can overwrite based on other things.
   final bool? constKeepLocalsIndicator;
 
+  /// Whether the backends should include stubs for core libraries not supported
+  /// by their target platform.
+  final bool includeUnsupportedPlatformLibraryStubs;
+
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.supportMirrors = true,
       this.isClosureContextLoweringEnabled = false,
-      this.constKeepLocalsIndicator});
+      this.constKeepLocalsIndicator,
+      this.includeUnsupportedPlatformLibraryStubs = false});
 
   @override
   bool operator ==(other) {
@@ -39,6 +44,8 @@ class TargetFlags {
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
         supportMirrors == other.supportMirrors &&
+        includeUnsupportedPlatformLibraryStubs ==
+            other.includeUnsupportedPlatformLibraryStubs &&
         constKeepLocalsIndicator == other.constKeepLocalsIndicator;
   }
 
@@ -47,6 +54,8 @@ class TargetFlags {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
+    hash = 0x3fffffff &
+        (hash * 31 + (hash ^ includeUnsupportedPlatformLibraryStubs.hashCode));
     hash =
         0x3fffffff & (hash * 31 + (hash ^ constKeepLocalsIndicator.hashCode));
     return hash;
@@ -203,7 +212,7 @@ abstract class DartLibrarySupport {
   static bool isDartLibrarySupported(String libraryName,
       {required bool libraryExists,
       required bool isSynthetic,
-      required bool isUnsupported,
+      required bool conditionalImportSupported,
       required DartLibrarySupport dartLibrarySupport}) {
     // A `dart:` library can be unsupported for several reasons:
     // * If the library doesn't exist from source or from dill, it is not
@@ -219,7 +228,8 @@ abstract class DartLibrarySupport {
     //   `dart:mirrors` as unsupported in AOT. The platform dill is shared with
     //   JIT, so the library exists and is marked as supported, but for AOT
     //   compilation it is still unsupported.
-    bool isSupported = libraryExists && !isSynthetic && !isUnsupported;
+    bool isSupported =
+        libraryExists && !isSynthetic && conditionalImportSupported;
     isSupported = dartLibrarySupport.computeDartLibrarySupport(libraryName,
         isSupportedBySpec: isSupported);
     return isSupported;
@@ -383,6 +393,16 @@ abstract class Target {
   /// literals (for const set literals).
   bool get supportsSetLiterals => true;
 
+  /// Whether [FileUriExpression] nodes are supported by this target after
+  /// constant evaluation.
+  ///
+  /// [FileUriExpression] are used internally in the CFE to handle annotations
+  /// on patches, and are replaced with [FileUriConstantExpression] nodes during
+  /// constant evaluation.
+  ///
+  /// Targets can opt in to using this node for general inlining.
+  bool get supportsFileUriExpression => false;
+
   /// Bit mask of [LateLowering] values for the late lowerings that should
   /// be performed by the CFE.
   ///
@@ -463,7 +483,9 @@ abstract class Target {
   /// for uninitialized late fields and variables through the `createSentinel`
   /// and `isSentinel` methods in `dart:_internal`.
   ///
-  /// If `true` this is used when [supportsLateFields] is `false`.
+  /// If `true` this is used when late fields and locals are lowered,
+  /// as determined by [isLateLocalLoweringEnabled] and
+  /// [isLateFieldLoweringEnabled].
   bool get supportsLateLoweringSentinel;
 
   /// Whether static fields with initializers in nnbd libraries should be
@@ -481,19 +503,6 @@ abstract class Target {
   /// to [noSuchMethod].
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper);
-
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false});
 
   /// Configure the given [Component] in a target specific way.
   /// Returns the configured component.
@@ -545,6 +554,14 @@ abstract class Target {
 
   /// Should this target-specific pragma be recognized by annotation parsers?
   bool isSupportedPragma(String pragmaName) => false;
+
+  /// When `true` the incremental compiler will always include libraries that
+  /// apply invalidated mixins in the output of a recompile.
+  ///
+  /// They will be included even when only the mixin was edited, and even if the
+  /// invalidation was only within the body of the mixin member.
+  bool get incrementalCompilerIncludeMixinApplicationInvalidatedLibraries =>
+      false;
 }
 
 class NoneConstantsBackend extends ConstantsBackend {
@@ -597,23 +614,8 @@ class NoneTarget extends Target {
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
-    return new InvalidExpression(null);
-  }
-
-  @override
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
-    return new InvalidExpression(null);
+    return new InvalidExpression(
+        'Unsupported: NoneTarget.instantiateInvocation');
   }
 
   @override
@@ -749,8 +751,11 @@ class TestTargetFlags extends TargetFlags {
       this.forceNoExplicitGetterCallsForTesting,
       this.forceConstructorTearOffLoweringForTesting,
       this.supportedDartLibraries = const {},
-      this.unsupportedDartLibraries = const {}})
-      : super(trackWidgetCreation: trackWidgetCreation);
+      this.unsupportedDartLibraries = const {},
+      bool isClosureContextLoweringEnabled = false})
+      : super(
+            trackWidgetCreation: trackWidgetCreation,
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled);
 }
 
 mixin TestTargetMixin on Target {
@@ -903,33 +908,6 @@ class TargetWrapper extends Target {
       String name, Arguments arguments, int offset, bool isSuper) {
     return _target.instantiateInvocation(
         coreTypes, receiver, name, arguments, offset, isSuper);
-  }
-
-  @override
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
-    return _target.instantiateNoSuchMethodError(
-        coreTypes, receiver, name, arguments, offset,
-        isMethod: isMethod,
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isField: isField,
-        isLocalVariable: isLocalVariable,
-        isDynamic: isDynamic,
-        isSuper: isSuper,
-        isStatic: isStatic,
-        isConstructor: isConstructor,
-        isTopLevel: isTopLevel);
   }
 
   @override

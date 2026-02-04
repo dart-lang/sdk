@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,16 +11,16 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid setters without getters.';
 
-class AvoidSettersWithoutGetters extends LintRule {
+class AvoidSettersWithoutGetters extends AnalysisRule {
   AvoidSettersWithoutGetters()
     : super(name: LintNames.avoid_setters_without_getters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidSettersWithoutGetters;
+  DiagnosticCode get diagnosticCode => diag.avoidSettersWithoutGetters;
 
   @override
   void registerNodeProcessors(
@@ -35,23 +36,27 @@ class AvoidSettersWithoutGetters extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    visitMembers(node.members);
+    if (node.body case BlockClassBody body) {
+      visitMembers(body.members);
+    }
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    visitMembers(node.members);
+    visitMembers(node.body.members);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    visitMembers(node.members);
+    if (node.body case BlockClassBody body) {
+      visitMembers(body.members);
+    }
   }
 
   void visitMembers(NodeList<ClassMember> members) {

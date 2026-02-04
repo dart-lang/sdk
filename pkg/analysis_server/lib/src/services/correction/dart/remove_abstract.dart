@@ -12,6 +12,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+import '../../../utilities/extensions/ast.dart';
+
 class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   @override
   final CorrectionApplicability applicability;
@@ -26,10 +28,10 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
     : applicability = CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_ABSTRACT;
+  FixKind get fixKind => DartFixKind.removeAbstract;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_ABSTRACT_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeAbstractMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -44,6 +46,8 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
       await _compute(classDeclaration, node.element, builder);
     } else if (node is CompilationUnitMember) {
       await _computeAbstractClassMember(builder);
+    } else if (node is BlockClassBody) {
+      await _computeAbstractClassMember(builder);
     }
   }
 
@@ -54,7 +58,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
   ) async {
     if (classDeclaration == null) return;
 
-    for (var member in classDeclaration.members) {
+    for (var member in classDeclaration.members2) {
       if (member is FieldDeclaration) {
         var fields = member.fields;
         var variables = fields.variables;

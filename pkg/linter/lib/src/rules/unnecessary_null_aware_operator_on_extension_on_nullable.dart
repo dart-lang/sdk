@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,11 +11,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Unnecessary null aware operator on extension on a nullable type.';
 
-class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
+class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends AnalysisRule {
   UnnecessaryNullAwareOperatorOnExtensionOnNullable()
     : super(
         name:
@@ -24,7 +26,7 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessaryNullAwareOperatorOnExtensionOnNullable;
+      diag.unnecessaryNullAwareOperatorOnExtensionOnNullable;
 
   @override
   void registerNodeProcessors(
@@ -39,7 +41,7 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   final RuleContext context;
   _Visitor(this.rule, this.context);

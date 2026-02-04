@@ -38,6 +38,7 @@ import 'package:analysis_server/src/status/pages/message_scheduler_page.dart';
 import 'package:analysis_server/src/status/pages/not_found_page.dart';
 import 'package:analysis_server/src/status/pages/plugins_page.dart';
 import 'package:analysis_server/src/status/pages/refactorings_page.dart';
+import 'package:analysis_server/src/status/pages/session_log_page.dart';
 import 'package:analysis_server/src/status/pages/status_page.dart';
 import 'package:analysis_server/src/status/pages/subscriptions_page.dart';
 import 'package:analysis_server/src/status/pages/timing_page.dart';
@@ -177,13 +178,13 @@ abstract class DiagnosticPage extends Page {
     <div class="container">
       <span class="masthead-logo">
       <span class="mega-octicon octicon-dashboard"></span>
-        ${site.title} Diagnostics
+        ${site.title} Insights
       </span>
 
       <nav class="masthead-nav">
-        <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
-        <a href="/collect-report" ${isCurrentPage('/collect-report') ? ' class="active"' : ''}>Collect Report</a>
-        <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
+        <a href="status" ${isNavPage ? ' class="active"' : ''}>Insights</a>
+        <a href="collect-report" ${isCurrentPage('collect-report') ? ' class="active"' : ''}>Collect Report</a>
+        <a href="feedback" ${isCurrentPage('feedback') ? ' class="active"' : ''}>Feedback</a>
         <a href="https://dart.dev/tools/dart-analyze" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
       </nav>
@@ -474,6 +475,9 @@ td.pre {
     pages.add(ElementModelPage(this));
     pages.add(ContentsPage(this));
 
+    // Add logging pages
+    pages.add(SessionLogPage(this));
+
     // Add timing pages
     pages.add(TimingPage(this));
     // (Nested)
@@ -505,9 +509,9 @@ abstract class WebSocketLoggingPage extends DiagnosticPageWithNav
   void button(String text, {String? id, String classes = '', String? onClick}) {
     var attributes = {
       'type': 'button',
-      if (id != null) 'id': id,
+      'id': ?id,
       'class': 'btn $classes'.trim(),
-      if (onClick != null) 'onclick': onClick,
+      'onclick': ?onClick,
       'value': text,
     };
 

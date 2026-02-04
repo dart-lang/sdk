@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,11 +12,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid `null` in `null`-aware assignment.';
 
-class UnnecessaryNullAwareAssignments extends LintRule {
+class UnnecessaryNullAwareAssignments extends AnalysisRule {
   UnnecessaryNullAwareAssignments()
     : super(
         name: LintNames.unnecessary_null_aware_assignments,
@@ -23,8 +25,7 @@ class UnnecessaryNullAwareAssignments extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessaryNullAwareAssignments;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryNullAwareAssignments;
 
   @override
   void registerNodeProcessors(
@@ -37,7 +38,7 @@ class UnnecessaryNullAwareAssignments extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

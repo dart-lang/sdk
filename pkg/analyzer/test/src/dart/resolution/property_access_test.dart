@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -201,7 +201,7 @@ int Function() foo() {
   return B().a; // ref
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 85, 5)],
+      [error(diag.returnOfInvalidTypeFromFunction, 85, 5)],
     );
 
     var identifier = findNode.simple('a; // ref');
@@ -335,7 +335,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperGetter, 54, 3)],
+      [error(diag.undefinedSuperGetter, 54, 3)],
     );
 
     var node = findNode.propertyAccess('foo;');
@@ -428,7 +428,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperGetter, 97, 3)],
+      [error(diag.undefinedSuperGetter, 97, 3)],
     );
 
     var node = findNode.propertyAccess('foo;');
@@ -732,7 +732,7 @@ void f({a = b?..foo}) {}
 DefaultFormalParameter
   parameter: SimpleFormalParameter
     name: a
-    declaredElement: <testLibraryFragment> a@8
+    declaredFragment: <testLibraryFragment> a@8
       element: hasImplicitType isPublic
         type: dynamic
   separator: =
@@ -750,7 +750,7 @@ DefaultFormalParameter
           staticType: InvalidType
         staticType: InvalidType
     staticType: InvalidType
-  declaredElement: <testLibraryFragment> a@8
+  declaredFragment: <testLibraryFragment> a@8
     element: hasImplicitType isPublic
       type: dynamic
 ''');
@@ -1749,7 +1749,7 @@ void f(A a) {
   (a).foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 49, 3)],
+      [error(diag.undefinedGetter, 49, 3)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -2154,7 +2154,7 @@ void f((int, String) r) {
   r.$3;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 30, 2)],
+      [error(diag.undefinedGetter, 30, 2)],
     );
 
     var node = findNode.propertyAccess(r'$3;');
@@ -2180,7 +2180,7 @@ void f((int, String) r) {
   r.$0a;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 30, 3)],
+      [error(diag.undefinedGetter, 30, 3)],
     );
 
     var node = findNode.propertyAccess(r'$0a;');
@@ -2206,7 +2206,7 @@ void f((int, String) r) {
   r.$zero;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 30, 5)],
+      [error(diag.undefinedGetter, 30, 5)],
     );
 
     var node = findNode.propertyAccess(r'$zero;');
@@ -2261,7 +2261,7 @@ void f((int, String) r) {
   r.a$0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 30, 3)],
+      [error(diag.undefinedGetter, 30, 3)],
     );
 
     var node = findNode.propertyAccess(r'a$0;');
@@ -2310,7 +2310,7 @@ void f(({int foo}) r) {
   r.bar;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 28, 3)],
+      [error(diag.undefinedGetter, 28, 3)],
     );
 
     var node = findNode.propertyAccess('bar;');
@@ -2338,7 +2338,7 @@ void f((int foo, String) r) {
   r.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 34, 3)],
+      [error(diag.undefinedGetter, 34, 3)],
     );
 
     var node = findNode.propertyAccess('foo;');
@@ -2582,13 +2582,7 @@ class C<T> {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          37,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 37, 3)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -2638,7 +2632,7 @@ void f() {
   (a).foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 14, 1)],
+      [error(diag.undefinedIdentifier, 14, 1)],
     );
 
     var node = findNode.singlePropertyAccess;

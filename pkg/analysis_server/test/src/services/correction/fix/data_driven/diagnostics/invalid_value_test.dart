@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../transform_set_parser_test_support.dart';
@@ -28,7 +28,7 @@ transforms:
   changes:
     - 'rename'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 129, 8)],
+      [error(diag.invalidValue, 129, 8)],
     );
   }
 
@@ -44,7 +44,7 @@ transforms:
     - kind: 'rename'
       newName: 'B'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 73, 1)],
+      [error(diag.invalidValue, 73, 1)],
     );
   }
 
@@ -61,7 +61,7 @@ transforms:
     - kind: 'rename'
       newName: 'B'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 9, 2)],
+      [error(diag.invalidValue, 9, 2)],
     );
   }
 
@@ -78,7 +78,7 @@ transforms:
     - kind: 'rename'
       newName: 'B'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 9, 7)],
+      [error(diag.invalidValue, 9, 7)],
     );
   }
 
@@ -88,7 +88,7 @@ transforms:
 version: 1
 transforms: 3
 ''',
-      [error(TransformSetErrorCode.invalidValue, 23, 1)],
+      [error(diag.invalidValue, 23, 1)],
     );
   }
 
@@ -106,7 +106,7 @@ transforms:
     - kind: 'rename'
       newName: 'B'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 32, 1)],
+      [error(diag.invalidValue, 32, 1)],
     );
   }
 
@@ -124,7 +124,7 @@ transforms:
     - kind: 'rename'
       newName: 'B'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 32, 2)],
+      [error(diag.invalidValue, 32, 2)],
     );
   }
 
@@ -135,7 +135,7 @@ version: 1
 transforms:
 - 'rename'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 25, 8)],
+      [error(diag.invalidValue, 25, 8)],
     );
   }
 
@@ -144,7 +144,7 @@ transforms:
       '''
 - 'rename'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 0, 11)],
+      [error(diag.invalidValue, 0, 11)],
     );
   }
 
@@ -164,7 +164,7 @@ transforms:
       name: 'T'
       argumentValue: 'int'
 ''',
-      [error(TransformSetErrorCode.invalidValue, 206, 5)],
+      [error(diag.invalidValue, 206, 5)],
     );
   }
 }

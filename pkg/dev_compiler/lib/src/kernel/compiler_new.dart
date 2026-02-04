@@ -196,6 +196,9 @@ class LibraryBundleCompiler implements old.Compiler {
           statements,
           name: _extensionSymbolHolderName,
           librarySelfVar: id,
+          // This construct is synthetic and has no Dart sources to attribute
+          // the size to.
+          dartSize: 0,
         ),
       );
     }
@@ -272,7 +275,12 @@ enum HotReloadBranchState {
 }
 
 class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
-    with OnceConstantVisitorDefaultMixin<js_ast.Expression>
+    with
+        OnceConstantVisitorDefaultMixin<js_ast.Expression>,
+        StatementVisitorInternalNodeMixin<js_ast.Statement>,
+        StatementVisitorExperimentExclusionMixin<js_ast.Statement>,
+        ExpressionVisitorInternalNodeMixin<js_ast.Expression>,
+        ExpressionVisitorExperimentExclusionMixin<js_ast.Expression>
     implements
         StatementVisitor<js_ast.Statement>,
         ExpressionVisitor<js_ast.Expression> {
@@ -1845,13 +1853,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             _usesMixinNew(mixin.classNode)
                 ? _runtimeCall('mixinNew')
                 : _constructorName(''),
-            [if (mixinRti != null) mixinRti],
+            [?mixinRti],
           ]);
         }
 
         var name = ctor.name.text;
         var ctorBody = [
-          if (mixinCtor != null) mixinCtor,
+          ?mixinCtor,
           if (name != '' || hasUnnamedSuper)
             _emitSuperConstructorCall(
               ctor,
@@ -2575,10 +2583,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var initializer = js.statement('#.#.call(this, #);', [
           className,
           _constructorName(init.target.name.text),
-          [
-            if (rtiParam != null) rtiParam,
-            ..._emitArgumentList(init.arguments, types: false),
-          ],
+          [?rtiParam, ..._emitArgumentList(init.arguments, types: false)],
         ]);
         jsInitializers.add(initializer);
       }
@@ -2607,10 +2612,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var rti = _requiresRtiForInstantiation(ctor.enclosingClass)
           ? js_ast.LiteralNull()
           : null;
-      args = [
-        if (rti != null) rti,
-        ..._emitArgumentList(superInit.arguments, types: true),
-      ];
+      args = [?rti, ..._emitArgumentList(superInit.arguments, types: true)];
 
       _currentTypeEnvironment = savedTypeEnvironment;
     }
@@ -2663,16 +2665,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return access;
   }
 
-  js_ast.Expression _emitFieldInit(
+  js_ast.Statement _emitFieldInit(
     Field f,
     Expression? initializer,
     TreeNode hoverInfo,
   ) {
     var access = _emitFieldValueAccessor(f);
     var jsInit = _visitInitializer(initializer, f.annotations);
-    return jsInit.toAssignExpression(
-      js.call('this.#', [access])..sourceInformation = _nodeStart(hoverInfo),
-    );
+    return jsInit.toAssignExpression(js.call('this.#', [access])).toStatement()
+      ..sourceInformation = _nodeStart(hoverInfo);
   }
 
   /// Initialize fields. They follow the sequence:
@@ -2698,7 +2699,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         continue;
       }
       _staticTypeContext.enterMember(f);
-      body.add(_emitFieldInit(f, init, f).toStatement());
+      body.add(_emitFieldInit(f, init, f));
       _staticTypeContext.leaveMember(f);
     }
 
@@ -2706,7 +2707,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (ctor != null) {
       for (var init in ctor.initializers) {
         if (init is FieldInitializer) {
-          body.add(_emitFieldInit(init.field, init.value, init).toStatement());
+          body.add(_emitFieldInit(init.field, init.value, init));
         } else if (init is LocalInitializer) {
           body.add(visitVariableDeclaration(init.variable));
         } else if (init is AssertInitializer) {
@@ -8304,7 +8305,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           )
         : null;
     var result = js_ast.New(_emitConstructorName(node.constructedType, ctor), [
-      if (rti != null) rti,
+      ?rti,
       ..._emitArgumentList(args, types: false, target: ctor),
     ]);
     return node.isConst ? _canonicalizeConstObject(result) : result;
@@ -8373,7 +8374,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ? _emitType(type, emitJSInteropGenericClassTypeParametersAsAny: false)
         : null;
     var result = js_ast.Call(_emitConstructorName(type, ctor), [
-      if (rti != null) rti,
+      ?rti,
       ..._emitArgumentList(args, types: false),
     ]);
     return node.isConst ? _canonicalizeConstObject(result) : result;
@@ -8545,36 +8546,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     if (parts.isEmpty) return js.string('');
     return js_ast.Expression.binary(parts, '+');
-  }
-
-  @override
-  js_ast.Expression visitListConcatenation(ListConcatenation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('List concatenation');
-  }
-
-  @override
-  js_ast.Expression visitSetConcatenation(SetConcatenation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('Set concatenation');
-  }
-
-  @override
-  js_ast.Expression visitMapConcatenation(MapConcatenation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('Map concatenation');
-  }
-
-  @override
-  js_ast.Expression visitInstanceCreation(InstanceCreation node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('Instance creation');
-  }
-
-  @override
-  js_ast.Expression visitFileUriExpression(FileUriExpression node) {
-    // Only occurs inside unevaluated constants.
-    throw UnsupportedError('File URI expression');
   }
 
   @override
@@ -9470,43 +9441,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Statement visitIfCaseStatement(IfCaseStatement node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitIfCaseStatement');
-  }
-
-  @override
-  js_ast.Expression visitPatternAssignment(PatternAssignment node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitPatternAssignment');
-  }
-
-  @override
-  js_ast.Statement visitPatternSwitchStatement(PatternSwitchStatement node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitPatternSwitchStatement');
-  }
-
-  @override
-  js_ast.Statement visitPatternVariableDeclaration(
-    PatternVariableDeclaration node,
-  ) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitPatternVariableDeclaration');
-  }
-
-  @override
-  js_ast.Expression visitSwitchExpression(SwitchExpression node) {
-    // This node is internal to the front end and removed by the constant
-    // evaluator.
-    throw UnsupportedError('ProgramCompiler.visitSwitchExpression');
-  }
-
-  @override
   js_ast.Expression visitAuxiliaryExpression(AuxiliaryExpression node) {
     throw UnsupportedError(
       'Unsupported auxiliary expression $node (${node.runtimeType}).',
@@ -10055,7 +9989,12 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _moduleItems.clear();
 
     // Build the library.
-    return js_ast.Program(items, name: libraryName, librarySelfVar: libraryId);
+    return js_ast.Program(
+      items,
+      name: libraryName,
+      librarySelfVar: libraryId,
+      dartSize: _currentLibrary!.dartSize,
+    );
   }
 
   /// Flattens blocks in [items] to a single list.

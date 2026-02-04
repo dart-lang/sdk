@@ -173,31 +173,48 @@ bool StackFrame::IsStubFrame() const {
 const char* StackFrame::ToCString() const {
   ASSERT(thread_ == Thread::Current());
   Zone* zone = Thread::Current()->zone();
-#if defined(DART_DYNAMIC_MODULES)
+  const char* name = nullptr;
+  uword start = 0;
   if (is_interpreted()) {
-    const char* name;
+#if defined(DART_DYNAMIC_MODULES)
     if (IsEntryFrame()) {
       name = "[Interpreter] Entry frame";
     } else if (IsExitFrame()) {
       name = "[Interpreter] Exit frame";
     } else {
       const Bytecode& bytecode = Bytecode::Handle(zone, LookupDartBytecode());
-      name = bytecode.IsNull() ? "Cannot find bytecode object"
-                               : bytecode.FullyQualifiedName();
+      if (bytecode.IsNull()) {
+        name = "Cannot find bytecode object";
+      } else {
+        name = bytecode.FullyQualifiedName();
+        start = bytecode.PayloadStart();
+      }
     }
+#else
+    UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+  } else if (IsEntryFrame()) {
+    name = "[Stub] Entry frame";
+  } else if (IsExitFrame()) {
+    name = "[Stub] Exit frame";
+  } else {
+    const Code& code = Code::Handle(zone, GetCodeObject());
+    if (code.IsNull()) {
+      name = "Cannot find code object";
+    } else {
+      name = code.QualifiedName(NameFormattingParams(Object::kInternalName));
+      start = code.PayloadStart();
+    }
+  }
+  const uword offset = start == 0 ? 0 : pc() - start;
+  if (offset == 0) {
     return zone->PrintToString("  pc 0x%" Pp " fp 0x%" Pp " sp 0x%" Pp " %s",
                                pc(), fp(), sp(), name);
+  } else {
+    return zone->PrintToString("  pc 0x%" Pp " fp 0x%" Pp " sp 0x%" Pp
+                               " %s+0x%" Px,
+                               pc(), fp(), sp(), name, offset);
   }
-#endif  // defined(DART_DYNAMIC_MODULES)
-  const Code& code = Code::Handle(zone, GetCodeObject());
-  const char* name =
-      code.IsNull()
-          ? "Cannot find code object"
-          : code.QualifiedName(NameFormattingParams(Object::kInternalName));
-  uword offset = code.IsNull() ? 0 : pc() - code.PayloadStart();
-  return zone->PrintToString("  pc 0x%" Pp " fp 0x%" Pp " sp 0x%" Pp
-                             " %s+0x%" Px,
-                             pc(), fp(), sp(), name, offset);
 }
 
 void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {

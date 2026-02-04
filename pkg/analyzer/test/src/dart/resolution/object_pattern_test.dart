@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -155,7 +155,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 90, 4)],
+      [error(diag.unusedLocalVariable, 90, 4)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -283,7 +283,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 83, 1)],
+      [error(diag.unusedLocalVariable, 83, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -327,7 +327,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 97, 1)],
+      [error(diag.unusedLocalVariable, 97, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -369,7 +369,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 84, 4)],
+      [error(diag.unusedLocalVariable, 84, 4)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -411,7 +411,7 @@ void f(x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.missingNamedPatternFieldName, 75, 3)],
+      [error(diag.missingNamedPatternFieldName, 75, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -450,7 +450,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 81, 3)],
+      [error(diag.unusedLocalVariable, 81, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -491,7 +491,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 82, 3)],
+      [error(diag.unusedLocalVariable, 82, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -539,7 +539,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 82, 3)],
+      [error(diag.unusedLocalVariable, 82, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -583,7 +583,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 82, 3)],
+      [error(diag.unusedLocalVariable, 82, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -627,7 +627,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 82, 3)],
+      [error(diag.unusedLocalVariable, 82, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -665,7 +665,7 @@ void f(Object? x) {
   if (x case Object(0)) {}
 }
 ''',
-      [error(CompileTimeErrorCode.positionalFieldInObjectPattern, 40, 1)],
+      [error(diag.positionalFieldInObjectPattern, 40, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -700,7 +700,7 @@ void f(x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 59, 3)],
+      [error(diag.undefinedGetter, 59, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -739,8 +739,8 @@ void f(x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedGetter, 65, 3),
-        error(WarningCode.unusedLocalVariable, 65, 3),
+        error(diag.undefinedGetter, 65, 3),
+        error(diag.unusedLocalVariable, 65, 3),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -819,7 +819,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 96, 3)],
+      [error(diag.unusedLocalVariable, 96, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -858,7 +858,7 @@ void f(x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 67, 3)],
+      [error(diag.undefinedGetter, 67, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -896,13 +896,7 @@ void f(x) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          55,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 55, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -941,7 +935,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 77, 1)],
+      [error(diag.unusedLocalVariable, 77, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -985,7 +979,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 145, 1)],
+      [error(diag.unusedLocalVariable, 145, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -1040,7 +1034,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 141, 1)],
+      [error(diag.unusedLocalVariable, 141, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -1081,7 +1075,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 90, 1)],
+      [error(diag.unusedLocalVariable, 90, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -1123,8 +1117,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedGetter, 76, 3),
-        error(WarningCode.unusedLocalVariable, 85, 1),
+        error(diag.undefinedGetter, 76, 3),
+        error(diag.unusedLocalVariable, 85, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -1166,7 +1160,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 73, 1)],
+      [error(diag.unusedLocalVariable, 73, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -1207,7 +1201,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 71, 1)],
+      [error(diag.unusedLocalVariable, 71, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -1247,7 +1241,7 @@ class A<T> {
   T get foo => throw 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 32, 1)],
+      [error(diag.unusedLocalVariable, 32, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -1296,7 +1290,7 @@ class A<T> {
   T get foo => throw 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 29, 1)],
+      [error(diag.unusedLocalVariable, 29, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -1363,7 +1357,7 @@ class A<T> {
   T get foo => throw 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 28, 1)],
+      [error(diag.unusedLocalVariable, 28, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''

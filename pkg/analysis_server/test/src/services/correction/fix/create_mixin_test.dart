@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,6 +24,18 @@ void main() {
 class CreateMixinLowercaseTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createMixinLowercase;
+
+  Future<void> test_ifNull_notType() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertNoFix();
+  }
 
   Future<void> test_lowercaseAssignment() async {
     await resolveTestCode('''
@@ -161,7 +173,7 @@ class A {}
 A? a;
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.IMPORT_LIBRARY_PROJECT1,
+      DartFixKind.importLibraryProject1,
       DartFixKind.createMixinUppercase,
     ]);
   }
@@ -297,8 +309,8 @@ void f() {}
 mixin Test {
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
+      filter: (error) {
+        return error.diagnosticCode == diag.undefinedIdentifier;
       },
     );
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);

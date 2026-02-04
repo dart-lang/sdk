@@ -15,11 +15,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final Scope _containerScope;
   final LibraryBuilder _libraryBuilder;
-  final LibraryFragmentImpl _unitElement;
+  final LibraryFragmentImpl _libraryFragment;
   late Scope _scope;
 
-  MetadataResolver(this._linker, this._unitElement, this._libraryBuilder)
-    : _containerScope = _unitElement.scope {
+  MetadataResolver(this._linker, this._libraryFragment, this._libraryBuilder)
+    : _containerScope = _libraryFragment.scope {
     _scope = _containerScope;
   }
 
@@ -30,7 +30,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
       var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
       var astResolver = AstResolver(
         _linker,
-        _unitElement,
+        _libraryFragment,
         _scope,
         analysisOptions,
       );
@@ -39,13 +39,18 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitBlockClassBody(BlockClassBody node) {
+    node.members.accept(this);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
-    node.typeParameters?.accept(this);
+    node.namePart.accept(this);
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      node.members.accept(this);
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -75,6 +80,9 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEmptyClassBody(EmptyClassBody node) {}
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     node.metadata.accept(this);
   }
@@ -82,12 +90,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     node.metadata.accept(this);
-    node.typeParameters?.accept(this);
+    node.namePart.typeParameters?.accept(this);
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      node.constants.accept(this);
-      node.members.accept(this);
+      node.body.constants.accept(this);
+      node.body.members.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -110,7 +118,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      node.members.accept(this);
+      node.body.members.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -119,12 +127,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     node.metadata.accept(this);
-    node.typeParameters?.accept(this);
-    node.representation.accept(this);
+    node.primaryConstructor.accept(this);
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      node.members.accept(this);
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -212,10 +219,15 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      node.members.accept(this);
+      node.body.members.accept(this);
     } finally {
       _scope = _containerScope;
     }
+  }
+
+  @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    node.typeParameters?.accept(this);
   }
 
   @override
@@ -229,8 +241,14 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    node.fieldMetadata.accept(this);
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    node.typeParameters?.accept(this);
+    node.formalParameters.accept(this);
   }
 
   @override

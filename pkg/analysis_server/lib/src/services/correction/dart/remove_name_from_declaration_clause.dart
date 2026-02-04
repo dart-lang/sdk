@@ -23,7 +23,7 @@ class RemoveNameFromDeclarationClause extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_fixMessage];
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
+  FixKind get fixKind => DartFixKind.removeNameFromDeclarationClause;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

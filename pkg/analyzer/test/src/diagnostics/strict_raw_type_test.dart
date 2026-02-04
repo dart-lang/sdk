@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -92,7 +92,7 @@ void f() {
   <List<E>>[];
 }
 ''',
-      [error(WarningCode.strictRawType, 50, 1)],
+      [error(diag.strictRawType, 50, 1)],
     );
   }
 
@@ -111,7 +111,7 @@ void f() {
       r'''
 extension type E(List<int> i) implements Iterable {}
 ''',
-      [error(WarningCode.strictRawType, 41, 8)],
+      [error(diag.strictRawType, 41, 8)],
     );
   }
 
@@ -123,7 +123,7 @@ extension type E<T>(Iterable<T> i) {}
 
 extension type F(List<int> j) implements E {}
 ''',
-      [error(WarningCode.strictRawType, 81, 1)],
+      [error(diag.strictRawType, 81, 1)],
     );
   }
 
@@ -132,7 +132,7 @@ extension type F(List<int> j) implements E {}
       r'''
 extension type E(List i) {}
 ''',
-      [error(WarningCode.strictRawType, 17, 4)],
+      [error(diag.strictRawType, 17, 4)],
     );
   }
 
@@ -144,8 +144,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 17, 1),
-        error(WarningCode.strictRawType, 22, 4),
+        error(diag.unusedLocalVariable, 17, 1),
+        error(diag.strictRawType, 22, 4),
       ],
     );
   }
@@ -157,7 +157,7 @@ void f() {
   var a = <List<int>>[];
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
   }
 
@@ -189,8 +189,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.strictRawType, 48, 1),
-        error(WarningCode.unusedLocalVariable, 50, 1),
+        error(diag.strictRawType, 48, 1),
+        error(diag.unusedLocalVariable, 50, 1),
       ],
     );
   }
@@ -204,7 +204,7 @@ void f() {
   E<int> e = E<int>(1);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 55, 1)],
+      [error(diag.unusedLocalVariable, 55, 1)],
     );
   }
 
@@ -216,8 +216,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.strictRawType, 13, 4),
-        error(WarningCode.unusedLocalVariable, 18, 1),
+        error(diag.strictRawType, 13, 4),
+        error(diag.unusedLocalVariable, 18, 1),
       ],
     );
   }
@@ -237,7 +237,7 @@ void f() {
 mixin class C<T> {}
 class D = Object with C;
 ''',
-      [error(WarningCode.strictRawType, 42, 1)],
+      [error(diag.strictRawType, 42, 1)],
     );
   }
 
@@ -263,7 +263,7 @@ void f(List2<int> a) {}
 typedef List2<T> = List<T>;
 void f(List2 a) {}
 ''',
-      [error(WarningCode.strictRawType, 35, 5)],
+      [error(diag.strictRawType, 35, 5)],
     );
   }
 
@@ -289,12 +289,75 @@ void f(Object o) {
 ''');
   }
 
-  test_parameter_missingTypeArg() async {
+  test_parameter_default_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+void f({List a = const []}) {}
+''',
+      [error(diag.strictRawType, 8, 4)],
+    );
+  }
+
+  test_parameter_fieldFormal_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  Object a;
+  C(List this.a);
+}
+''',
+      [error(diag.strictRawType, 26, 4)],
+    );
+  }
+
+  test_parameter_functionTyped_parameter_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+void f(void a(List p)) {}
+''',
+      [error(diag.strictRawType, 14, 4)],
+    );
+  }
+
+  test_parameter_functionTyped_returnType_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+void f(List a()) {}
+''',
+      [error(diag.strictRawType, 7, 4)],
+    );
+  }
+
+  test_parameter_primaryDeclaring_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+class C(final List a);
+''',
+      [error(diag.strictRawType, 14, 4)],
+    );
+  }
+
+  test_parameter_simple_missingTypeArg() async {
     await assertErrorsInCode(
       r'''
 void f(List a) {}
 ''',
-      [error(WarningCode.strictRawType, 7, 4)],
+      [error(diag.strictRawType, 7, 4)],
+    );
+  }
+
+  test_parameter_super_missingTypeArg() async {
+    await assertErrorsInCode(
+      r'''
+abstract class C {
+  Object a;
+  C(this.a);
+}
+class D extends C {
+  D(List super.a);
+}
+''',
+      [error(diag.strictRawType, 70, 4)],
     );
   }
 
@@ -303,7 +366,7 @@ void f(List a) {}
       r'''
 List f(int a) => [1, 2, 3];
 ''',
-      [error(WarningCode.strictRawType, 0, 4)],
+      [error(diag.strictRawType, 0, 4)],
     );
   }
 
@@ -313,7 +376,7 @@ List f(int a) => [1, 2, 3];
 mixin class C<T> {}
 class D extends Object with C {}
 ''',
-      [error(WarningCode.strictRawType, 48, 1)],
+      [error(diag.strictRawType, 48, 1)],
     );
   }
 
@@ -329,7 +392,7 @@ class D extends Object with C<int> {}
       r'''
 List a = [];
 ''',
-      [error(WarningCode.strictRawType, 0, 4)],
+      [error(diag.strictRawType, 0, 4)],
     );
   }
 
@@ -358,7 +421,7 @@ void set s(List<double> a) {}
       r'''
 List get g => [];
 ''',
-      [error(WarningCode.strictRawType, 0, 4)],
+      [error(diag.strictRawType, 0, 4)],
     );
   }
 
@@ -367,7 +430,7 @@ List get g => [];
       r'''
 void set s(List a) {}
 ''',
-      [error(WarningCode.strictRawType, 11, 4)],
+      [error(diag.strictRawType, 11, 4)],
     );
   }
 
@@ -377,7 +440,7 @@ void set s(List a) {}
 typedef T F1<T>(T _);
 F1 func = (a) => a;
 ''',
-      [error(WarningCode.strictRawType, 22, 2)],
+      [error(diag.strictRawType, 22, 2)],
     );
   }
 
@@ -387,7 +450,7 @@ F1 func = (a) => a;
 typedef F1<T> = T Function(T);
 F1 func = (a) => a;
 ''',
-      [error(WarningCode.strictRawType, 31, 2)],
+      [error(diag.strictRawType, 31, 2)],
     );
   }
 
@@ -445,7 +508,7 @@ var d = C.named();
       r'''
 extension on List {}
 ''',
-      [error(WarningCode.strictRawType, 13, 4)],
+      [error(diag.strictRawType, 13, 4)],
     );
   }
 
@@ -454,7 +517,7 @@ extension on List {}
       r'''
 extension E on List {}
 ''',
-      [error(WarningCode.strictRawType, 15, 4)],
+      [error(diag.strictRawType, 15, 4)],
     );
   }
 
@@ -482,7 +545,7 @@ extension F on List<int> {}
 class C<T> {}
 class D implements C {}
 ''',
-      [error(WarningCode.strictRawType, 33, 1)],
+      [error(diag.strictRawType, 33, 1)],
     );
   }
 
@@ -499,7 +562,7 @@ class D implements C<int> {}
 class C<T> {}
 class D extends C {}
 ''',
-      [error(WarningCode.strictRawType, 30, 1)],
+      [error(diag.strictRawType, 30, 1)],
     );
   }
 
@@ -516,7 +579,7 @@ class D extends C<int> {}
 class C<T> {}
 class D<T extends C> {}
 ''',
-      [error(WarningCode.strictRawType, 32, 1)],
+      [error(diag.strictRawType, 32, 1)],
     );
   }
 

@@ -32,7 +32,8 @@ class FormatTest extends LspOverLegacyTest {
     newFile(testFilePath, content);
     await waitForTasksFinished();
 
-    var edits = await formatOnType(testFileUri, startOfDocPos, '}');
+    var position = positionFromOffset(content.indexOf('}'), content);
+    var edits = await formatOnType(testFileUri, position, '}');
     var formattedContents = applyTextEdits(content, edits!);
     expect(formattedContents.trimRight(), equals(expectedContent));
   }

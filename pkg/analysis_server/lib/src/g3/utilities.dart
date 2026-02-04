@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -37,11 +38,7 @@ String format(String content, {Version? languageVersion}) {
 ParseStringResult sortDirectives(String contents, {String? fileName}) {
   var (unit, diagnostics) = _parse(contents, fullName: fileName);
   var parseErrors = diagnostics
-      .where(
-        (d) =>
-            d.diagnosticCode is ScannerErrorCode ||
-            d.diagnosticCode is ParserErrorCode,
-      )
+      .where((d) => d.diagnosticCode.type == DiagnosticType.SYNTACTIC_ERROR)
       .toList();
   if (parseErrors.isNotEmpty) {
     return ParseStringResultImpl(contents, unit, parseErrors);

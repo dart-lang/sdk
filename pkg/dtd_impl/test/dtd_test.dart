@@ -578,6 +578,23 @@ void main() {
       uri = dtd!.uri!.toString();
       expect(Uri.parse(uri).port, testPort);
     });
+
+    group('ping-interval', () {
+      test('0s by default', () async {
+        // Default is now 0 (disabled), not 15s, due to IntelliJ issue.
+        // https://github.com/flutter/dart-intellij-third-party/issues/205
+        dtd = await DartToolingDaemon.startService([]);
+        expect(dtd!.pingInterval, isNull);
+      });
+      test('explicitly enabled', () async {
+        dtd = await DartToolingDaemon.startService(['--ping-interval=1']);
+        expect(dtd!.pingInterval, Duration(seconds: 1));
+      });
+      test('explicitly disabled', () async {
+        dtd = await DartToolingDaemon.startService(['--ping-interval=0']);
+        expect(dtd!.pingInterval, isNull);
+      });
+    });
   });
 }
 

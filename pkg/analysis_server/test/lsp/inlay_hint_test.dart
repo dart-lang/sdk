@@ -385,6 +385,44 @@ final a = 1;
     expect(hintsAfterChange, isNotEmpty);
   }
 
+  Future<void> test_dotShorthand_constructorInvocation() async {
+    var content = '''
+class A {
+  const A.named();
+}
+
+A newA() => .named();
+''';
+    var expected = '''
+class A {
+  const A.named();
+}
+
+A newA() => (Type:A).named();
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_dotShorthand_invocation() async {
+    var content = '''
+int a = .parse('1');
+''';
+    var expected = '''
+int a = (Type:int).parse((Parameter:source:) '1');
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_dotShorthand_propertyAccess() async {
+    var content = '''
+Duration zero() => .zero;
+''';
+    var expected = '''
+Duration zero() => (Type:Duration).zero;
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_forElement() async {
     var content = '''
 void f() {

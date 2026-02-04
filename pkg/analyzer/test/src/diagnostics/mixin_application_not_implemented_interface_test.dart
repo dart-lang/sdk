@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,6 +16,23 @@ main() {
 @reflectiveTest
 class MixinApplicationNotImplementedInterfaceTest
     extends PubPackageResolutionTest {
+  test_class_hasRecursion() async {
+    // https://github.com/dart-lang/sdk/issues/61829
+    await assertErrorsInCode(
+      '''
+class A {}
+abstract class X with Unresolved, M, CycleWithX {}
+mixin M on A {}
+mixin CycleWithX on X {}
+''',
+      [
+        error(diag.recursiveInterfaceInheritance, 26, 1),
+        error(diag.mixinOfNonClass, 33, 10),
+        error(diag.recursiveInterfaceInheritance, 84, 10),
+      ],
+    );
+  }
+
   test_class_matchingInterface() async {
     await assertNoErrorsInCode('''
 abstract class A<T> {}
@@ -43,13 +60,7 @@ class B {}
 mixin M<T> on A<T> {}
 class C extends Object with M {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-          84,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNotImplementedInterface, 84, 1)],
     );
   }
 
@@ -62,13 +73,7 @@ mixin M {}
 class A {}
 augment mixin M on A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-          13,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNotImplementedInterface, 13, 1)],
     );
   }
 
@@ -80,13 +85,7 @@ class B {}
 mixin M<T> on A<T> {}
 class C extends Object with M<int> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-          84,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNotImplementedInterface, 84, 1)],
     );
   }
 
@@ -109,13 +108,7 @@ class C {
 
 class X = C with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-          134,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNotImplementedInterface, 134, 1)],
     );
   }
 
@@ -158,8 +151,8 @@ abstract class Directory implements FileSystemEntity, ioDirectory {}
 mixin DirectoryAddOnsMixin implements Directory {}
 ''',
       [
-        error(CompileTimeErrorCode.conflictingGenericInterfaces, 96, 15),
-        error(WarningCode.unusedElement, 96, 15),
+        error(diag.conflictingGenericInterfaces, 96, 15),
+        error(diag.unusedElement, 96, 15),
       ],
     );
 
@@ -176,13 +169,7 @@ mixin M on A<int> {}
 
 class X = A<double> with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-          62,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNotImplementedInterface, 62, 1)],
     );
   }
 
@@ -194,13 +181,7 @@ class B {}
 mixin M<T> on A<T> {}
 class C = Object with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-          78,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNotImplementedInterface, 78, 1)],
     );
   }
 
@@ -213,13 +194,7 @@ mixin M on A {}
 
 class X = Object with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-          51,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNotImplementedInterface, 51, 1)],
     );
   }
 
@@ -276,13 +251,7 @@ mixin M on A, B {}
 
 class X = C with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-          71,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNotImplementedInterface, 71, 1)],
     );
   }
 
@@ -311,13 +280,7 @@ enum E with M {
   v
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-          50,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNotImplementedInterface, 50, 1)],
     );
   }
 

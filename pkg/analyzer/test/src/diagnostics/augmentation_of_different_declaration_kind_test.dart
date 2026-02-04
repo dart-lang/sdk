@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -30,13 +30,7 @@ part of 'a.dart';
 
 augment enum A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -53,13 +47,7 @@ part of 'a.dart';
 
 augment extension A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -76,13 +64,7 @@ part of 'a.dart';
 
 augment extension type A(int it) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -99,13 +81,7 @@ part of 'a.dart';
 
 augment void A() {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -122,13 +98,7 @@ part of 'a.dart';
 
 augment mixin A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -145,13 +115,7 @@ part of 'a.dart';
 
 augment typedef A = int;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -168,13 +132,7 @@ part of 'a.dart';
 
 augment int A = 0;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -213,13 +171,7 @@ augment class A {
   augment int foo = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -240,13 +192,7 @@ augment class A {
   augment int get foo => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -267,13 +213,7 @@ augment class A {
   augment void foo() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -294,13 +234,7 @@ augment class A {
   augment set foo(int _) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -321,13 +255,7 @@ augment class A {
   augment A.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -384,13 +312,7 @@ augment class A {
   augment void foo() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -429,13 +351,7 @@ augment class A {
   augment void foo() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -456,13 +372,7 @@ augment class A {
   augment A.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -483,13 +393,7 @@ augment class A {
   augment int foo = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -510,13 +414,7 @@ augment class A {
   augment int get foo => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -555,13 +453,7 @@ augment class A {
   augment set foo(int _) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -582,13 +474,7 @@ augment class A {
   augment void foo() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -605,13 +491,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -650,13 +530,7 @@ augment enum A {;
   augment static void foo() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          39,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
     );
   }
 
@@ -678,13 +552,7 @@ augment enum A {
   augment foo(),
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          38,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 38, 7)],
     );
   }
 
@@ -701,13 +569,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -724,13 +586,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -747,13 +603,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -770,13 +620,7 @@ part of 'a.dart';
 
 augment class foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -793,13 +637,7 @@ part of 'a.dart';
 
 augment class foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-          19,
-          7,
-        ),
-      ],
+      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
     );
   }
 
@@ -816,7 +654,7 @@ part of 'a.dart';
 
 augment class foo {}
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,15 +13,16 @@ import 'package:analyzer/utilities/extensions/uri.dart';
 import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
-class PreferRelativeImports extends LintRule {
+class PreferRelativeImports extends AnalysisRule {
   PreferRelativeImports()
     : super(name: LintNames.prefer_relative_imports, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferRelativeImports;
+  DiagnosticCode get diagnosticCode => diag.preferRelativeImports;
 
   @override
   List<String> get incompatibleRules => const [

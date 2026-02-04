@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
@@ -17,12 +19,12 @@ const _desc =
     r"Don't override a method to do a super method invocation with the same"
     r' parameters.';
 
-class UnnecessaryOverrides extends LintRule {
+class UnnecessaryOverrides extends AnalysisRule {
   UnnecessaryOverrides()
     : super(name: LintNames.unnecessary_overrides, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryOverrides;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryOverrides;
 
   @override
   void registerNodeProcessors(
@@ -36,7 +38,7 @@ class UnnecessaryOverrides extends LintRule {
 
 abstract class _AbstractUnnecessaryOverrideVisitor
     extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   /// If [declaration] is an inherited member of interest, then this is set in
   /// [visitMethodDeclaration].
@@ -326,7 +328,7 @@ class _UnnecessarySetterOverrideVisitor
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

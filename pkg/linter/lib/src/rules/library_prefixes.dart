@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -10,17 +11,18 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../utils.dart';
 
 const _desc =
     r'Use `lowercase_with_underscores` when specifying a library prefix.';
 
-class LibraryPrefixes extends LintRule {
+class LibraryPrefixes extends AnalysisRule {
   LibraryPrefixes()
     : super(name: LintNames.library_prefixes, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.libraryPrefixes;
+  DiagnosticCode get diagnosticCode => diag.libraryPrefixes;
 
   @override
   void registerNodeProcessors(
@@ -36,7 +38,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(

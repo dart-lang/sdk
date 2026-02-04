@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -44,7 +44,7 @@ class A {
   const A(int _);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 87, 1)],
+      [error(diag.invalidConstant, 87, 1)],
     );
   }
 
@@ -55,7 +55,7 @@ class A {
   const A(int i) : assert(i.isNegative);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 36, 12)],
+      [error(diag.invalidConstant, 36, 12)],
     );
   }
 
@@ -66,7 +66,7 @@ class A {
   const A(int i) : assert(i < 0, 'isNegative = ${i.isNegative}');
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 59, 12)],
+      [error(diag.invalidConstant, 59, 12)],
     );
   }
 
@@ -79,7 +79,7 @@ class A {
   const A() : a = C;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 63, 1)],
+      [error(diag.invalidConstant, 63, 1)],
     );
   }
 
@@ -105,7 +105,7 @@ class A {
   const A() : x = a.c;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 91, 3)],
+      [error(diag.invalidConstant, 91, 3)],
     );
   }
 
@@ -123,7 +123,7 @@ class A {
   const A() : x = a.c + 1;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 91, 3)],
+      [error(diag.invalidConstant, 91, 3)],
     );
   }
 
@@ -141,7 +141,7 @@ class A {
   const A() : this.named(a.c);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 103, 3)],
+      [error(diag.invalidConstant, 103, 3)],
     );
   }
 
@@ -161,7 +161,7 @@ class B extends A {
   const B() : super(a.c);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 114, 3)],
+      [error(diag.invalidConstant, 114, 3)],
     );
   }
 
@@ -178,18 +178,19 @@ class B {
 var b = const B();
 ''',
       [
-        error(CompileTimeErrorCode.invalidConstant, 47, 7),
+        error(diag.invalidConstant, 47, 7),
         error(
-          CompileTimeErrorCode.invalidConstant,
+          diag.invalidConstant,
           77,
           9,
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               47,
               7,
-              text:
-                  "The error is in the field initializer of 'B', and occurs here.",
+              textContains: [
+                "The error is in the field initializer of 'B', and occurs here.",
+              ],
             ),
           ],
         ),
@@ -206,7 +207,7 @@ class A {
   const A() : this.named(C);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 71, 1)],
+      [error(diag.invalidConstant, 71, 1)],
     );
   }
 
@@ -221,7 +222,7 @@ class B extends A {
   const B() : super(C);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 82, 1)],
+      [error(diag.invalidConstant, 82, 1)],
     );
   }
 
@@ -238,7 +239,7 @@ void main() {
   const Foo(bar: data);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidConstant, 148, 4)],
+      [error(diag.invalidConstant, 148, 4)],
     );
   }
 }

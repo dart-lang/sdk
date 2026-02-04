@@ -76,27 +76,6 @@ class YamlFileEditBuilderImpl extends FileEditBuilderImpl
     (builder) => buildEdit(builder as YamlEditBuilder),
   );
 
-  @Deprecated(
-    'Copying change builders is expensive. Internal users of this '
-    'method now use `commit` and `revert` instead.',
-  )
-  @override
-  YamlFileEditBuilderImpl copyWith(
-    ChangeBuilderImpl changeBuilder, {
-    Map<YamlFileEditBuilderImpl, YamlFileEditBuilderImpl> editBuilderMap =
-        const {},
-  }) {
-    var copy = YamlFileEditBuilderImpl(
-      changeBuilder,
-      fileEdit.file,
-      document,
-      fileEdit.fileStamp,
-      eol: eol,
-    );
-    copy.fileEdit.edits.addAll(fileEdit.edits);
-    return copy;
-  }
-
   @override
   EditBuilderImpl createEditBuilder(int offset, int length) {
     return YamlEditBuilderImpl(

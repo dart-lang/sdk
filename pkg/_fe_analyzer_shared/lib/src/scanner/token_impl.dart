@@ -6,14 +6,18 @@ library _fe_analyzer_shared.scanner.token;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'characters.dart';
+
 import 'token.dart'
     show
-        DocumentationCommentToken,
-        SimpleToken,
-        TokenType,
         CommentToken,
+        DocumentationCommentToken,
+        Keyword,
+        KeywordStyle,
+        LanguageVersionToken,
+        SimpleToken,
         StringToken,
-        LanguageVersionToken;
+        TokenType;
 
 import 'token_constants.dart' show IDENTIFIER_TOKEN;
 
@@ -354,3 +358,31 @@ bool isBinaryOperator(String value) {
 bool isTernaryOperator(String value) => identical(value, "[]=");
 
 bool isMinusOperator(String value) => identical(value, "-");
+
+/// The corresponding public name for [identifier] or `null` if the identifier
+/// is not a private name with a valid corresponding public name.
+String? correspondingPublicName(String identifier) {
+  // Only private names have corresponding public names.
+  if (identifier.codeUnitAt(0) != $_) return null;
+
+  // A wildcard has no remaining name at all.
+  if (identifier.length == 1) return null;
+
+  // The resulting name must be public.
+  int firstCharacter = identifier.codeUnitAt(1);
+  if (firstCharacter == $_) return null;
+
+  // The resulting name must be a valid identifier that doesn't start with a
+  // digit.
+  if (isDigit(firstCharacter)) return null;
+
+  // The resulting name must not be a reserved word (but other kinds of special
+  // identifiers are allowed).
+  String publicName = identifier.substring(1);
+  if (Keyword.keywords[publicName] case var keyword?
+      when keyword.keywordStyle == KeywordStyle.reserved) {
+    return null;
+  }
+
+  return publicName;
+}

@@ -2511,17 +2511,20 @@ void KernelReaderHelper::SkipTypeParametersList() {
 
 void KernelReaderHelper::SkipInitializer() {
   Tag tag = ReadTag();
-  ReadByte();  // read isSynthetic flag.
   switch (tag) {
     case kInvalidInitializer:
+      ReadPosition();         // read position.
+      ReadStringReference();  // read message
       return;
     case kFieldInitializer:
       ReadPosition();                // read position.
+      ReadByte();                    // read isSynthetic flag.
       SkipCanonicalNameReference();  // read field_reference.
       SkipExpression();              // read value.
       return;
     case kSuperInitializer:
       ReadPosition();                // read position.
+      ReadByte();                    // read isSynthetic flag.
       SkipCanonicalNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
       return;
@@ -2531,9 +2534,11 @@ void KernelReaderHelper::SkipInitializer() {
       SkipArguments();               // read arguments.
       return;
     case kLocalInitializer:
+      ReadPosition();             // read position.
       SkipVariableDeclaration();  // read variable.
       return;
     case kAssertInitializer:
+      ReadPosition();  // read position.
       SkipStatement();
       return;
     default:
@@ -2891,6 +2896,7 @@ void KernelReaderHelper::SkipExpression() {
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:
+    case kRedirectingFactoryInvocation:
     // These nodes are internal to the front end and
     // removed by the constant evaluator.
     default:

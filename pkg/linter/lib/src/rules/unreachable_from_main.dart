@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
@@ -16,11 +17,12 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
-class UnreachableFromMain extends LintRule {
+class UnreachableFromMain extends AnalysisRule {
   UnreachableFromMain()
     : super(
         name: LintNames.unreachable_from_main,
@@ -29,7 +31,7 @@ class UnreachableFromMain extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unreachableFromMain;
+  DiagnosticCode get diagnosticCode => diag.unreachableFromMain;
 
   @override
   void registerNodeProcessors(
@@ -61,23 +63,30 @@ class _DeclarationGatherer {
           continue;
         }
         if (declaration is ClassDeclaration) {
-          _addMembers(
-            containerElement: declaration.declaredFragment?.element,
-            members: declaration.members,
-          );
+          if (declaration.body case BlockClassBody body) {
+            _addMembers(
+              containerElement: declaration.declaredFragment?.element,
+              members: body.members,
+            );
+          }
         } else if (declaration is EnumDeclaration) {
           _addMembers(
             containerElement: declaration.declaredFragment?.element,
-            members: declaration.members,
+            members: declaration.body.members,
           );
         } else if (declaration is ExtensionDeclaration) {
-          _addMembers(containerElement: null, members: declaration.members);
+          _addMembers(
+            containerElement: null,
+            members: declaration.body.members,
+          );
         } else if (declaration is ExtensionTypeDeclaration) {
-          _addMembers(containerElement: null, members: declaration.members);
+          if (declaration.body case BlockClassBody body) {
+            _addMembers(containerElement: null, members: body.members);
+          }
         } else if (declaration is MixinDeclaration) {
           _addMembers(
             containerElement: declaration.declaredFragment?.element,
-            members: declaration.members,
+            members: declaration.body.members,
           );
         }
       }
@@ -109,7 +118,9 @@ class _DeclarationGatherer {
       switch (member) {
         case ConstructorDeclaration():
           var e = member.declaredFragment?.element;
-          if (e != null && e.isPublic && member.parent is! EnumDeclaration) {
+          if (e != null &&
+              e.isPublic &&
+              member.parent?.parent is! EnumDeclaration) {
             declarations.add(member);
           }
         case FieldDeclaration():
@@ -136,6 +147,9 @@ class _DeclarationGatherer {
               declarations.add(member);
             }
           }
+        case PrimaryConstructorBody():
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError();
       }
     }
   }
@@ -179,9 +193,10 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var element = node.declaredFragment?.element;
 
     if (element != null) {
-      var hasConstructors = node.members.any(
-        (e) => e is ConstructorDeclaration,
-      );
+      var body = node.body;
+      var hasConstructors =
+          body is BlockClassBody &&
+          body.members.any((e) => e is ConstructorDeclaration);
       if (!hasConstructors) {
         // The default constructor will have an implicit super-initializer to
         // the super-type's unnamed constructor.
@@ -226,7 +241,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
       (e) => e is SuperConstructorInvocation,
     );
     if (!hasSuperInitializer) {
-      var enclosingClass = node.parent;
+      var enclosingClass = node.parent?.parent;
       if (enclosingClass is ClassDeclaration) {
         _addDefaultSuperConstructorDeclaration(enclosingClass);
       }
@@ -454,7 +469,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
 
   _Visitor(this.rule, this.context);
@@ -530,30 +545,51 @@ class _Visitor extends SimpleAstVisitor<void> {
     }).toList();
 
     for (var member in unusedMembers) {
-      if (member is ConstructorDeclaration) {
-        var name = member.name;
-        if (name == null) {
-          rule.reportAtNode(
-            member.returnType,
+      switch (member) {
+        case ClassDeclaration():
+          rule.reportAtToken(
+            member.namePart.typeName,
             arguments: [member.nameForError],
           );
-        } else {
-          rule.reportAtToken(name, arguments: [member.nameForError]);
-        }
-      } else if (member is NamedCompilationUnitMember) {
-        rule.reportAtToken(member.name, arguments: [member.nameForError]);
-      } else if (member is MethodDeclaration) {
-        rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
-      } else if (member is VariableDeclaration) {
-        rule.reportAtToken(member.name, arguments: [member.nameForError]);
-      } else if (member is ExtensionDeclaration) {
-        var name = member.name;
-        rule.reportAtToken(
-          name ?? member.extensionKeyword,
-          arguments: [name?.lexeme ?? '<unnamed>'],
-        );
-      } else {
-        throw UnimplementedError('(${member.runtimeType}) $member');
+        case ConstructorDeclaration():
+          var name = member.name;
+          if (name == null) {
+            rule.reportAtNode(
+              // TODO(scheglov): support primary constructors
+              member.typeName,
+              arguments: [member.nameForError],
+            );
+          } else {
+            rule.reportAtToken(name, arguments: [member.nameForError]);
+          }
+        case EnumDeclaration():
+          rule.reportAtToken(
+            member.namePart.typeName,
+            arguments: [member.nameForError],
+          );
+        case ExtensionDeclaration():
+          var name = member.name;
+          rule.reportAtToken(
+            name ?? member.extensionKeyword,
+            arguments: [name?.lexeme ?? '<unnamed>'],
+          );
+        case ExtensionTypeDeclaration():
+          rule.reportAtToken(
+            member.primaryConstructor.typeName,
+            arguments: [member.nameForError],
+          );
+        case FunctionDeclaration():
+          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
+        case MethodDeclaration():
+          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
+        case MixinDeclaration():
+          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
+        case TypeAlias():
+          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
+        case VariableDeclaration():
+          rule.reportAtToken(member.name, arguments: [member.nameForError]);
+        default:
+          throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
   }
@@ -668,24 +704,36 @@ extension on Declaration {
   String get nameForError {
     // TODO(srawlins): Move this to analyzer when other uses are found.
     var self = this;
-    if (self is ConstructorDeclaration) {
-      var name = self.name?.lexeme ?? 'new';
-      return '${self.returnType.name}.$name';
-    } else if (self is EnumConstantDeclaration) {
-      return self.name.lexeme;
-    } else if (self is ExtensionDeclaration) {
-      var name = self.name;
-      return name?.lexeme ?? 'the unnamed extension';
-    } else if (self is MethodDeclaration) {
-      return self.name.lexeme;
-    } else if (self is NamedCompilationUnitMember) {
-      return self.name.lexeme;
-    } else if (self is VariableDeclaration) {
-      return self.name.lexeme;
+    switch (self) {
+      case ClassDeclaration():
+        return self.namePart.typeName.lexeme;
+      case ConstructorDeclaration():
+        var name = self.name?.lexeme ?? 'new';
+        // TODO(scheglov): support primary constructors
+        return '${self.typeName!.name}.$name';
+      case EnumConstantDeclaration():
+        return self.name.lexeme;
+      case EnumDeclaration():
+        return self.namePart.typeName.lexeme;
+      case ExtensionDeclaration():
+        var name = self.name;
+        return name?.lexeme ?? 'the unnamed extension';
+      case ExtensionTypeDeclaration():
+        return self.primaryConstructor.typeName.lexeme;
+      case FunctionDeclaration():
+        return self.name.lexeme;
+      case MethodDeclaration():
+        return self.name.lexeme;
+      case MixinDeclaration():
+        return self.name.lexeme;
+      case TypeAlias():
+        return self.name.lexeme;
+      case VariableDeclaration():
+        return self.name.lexeme;
+      default:
+        assert(false, 'Uncovered Declaration subtype: ${self.runtimeType}');
+        return '';
     }
-
-    assert(false, 'Uncovered Declaration subtype: ${self.runtimeType}');
-    return '';
   }
 }
 

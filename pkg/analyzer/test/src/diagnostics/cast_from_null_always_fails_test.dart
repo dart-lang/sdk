@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ void f(Null n, num m) {
   (m as int) = n;
 }
 ''',
-      [error(WarningCode.castFromNullAlwaysFails, 27, 8)],
+      [error(diag.castFromNullAlwaysFails, 27, 8)],
     );
   }
 
@@ -33,7 +33,7 @@ void f(Null n, num? m) {
   (m as int?) = n;
 }
 ''',
-      [error(WarningCode.unnecessaryCastPattern, 30, 2)],
+      [error(diag.unnecessaryCastPattern, 30, 2)],
     );
   }
 
@@ -60,7 +60,7 @@ void f(Null n) {
   n as Never;
 }
 ''',
-      [error(WarningCode.castFromNullAlwaysFails, 19, 10)],
+      [error(diag.castFromNullAlwaysFails, 19, 10)],
     );
   }
 
@@ -71,7 +71,7 @@ void f(Null n) {
   n as int;
 }
 ''',
-      [error(WarningCode.castFromNullAlwaysFails, 19, 8)],
+      [error(diag.castFromNullAlwaysFails, 19, 8)],
     );
   }
 
@@ -82,7 +82,7 @@ void f<T extends Object>(Null n) {
   n as T;
 }
 ''',
-      [error(WarningCode.castFromNullAlwaysFails, 37, 6)],
+      [error(diag.castFromNullAlwaysFails, 37, 6)],
     );
   }
 

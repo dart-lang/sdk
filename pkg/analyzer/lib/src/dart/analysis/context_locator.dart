@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
@@ -49,7 +48,7 @@ class ContextLocatorImpl {
   /// If a [packagesFile] is specified, then it is assumed to be the path to the
   /// `.packages` file that should be used in place of the one that would be
   /// found by looking in the directories containing the context roots.
-  List<ContextRoot> locateRoots({
+  List<ContextRootImpl> locateRoots({
     required List<String> includedPaths,
     List<String>? excludedPaths,
     String? optionsFile,
@@ -364,14 +363,18 @@ class ContextLocatorImpl {
   }) {
     optionsFile ??= _findDefaultOptionsFile(workspace);
 
-    var root = ContextRootImpl(resourceProvider, rootFolder, workspace);
-    root.packagesFile = packagesFile;
-    root.optionsFile = optionsFile;
+    var root = ContextRootImpl(
+      resourceProvider,
+      rootFolder,
+      workspace,
+      optionsFile: optionsFile,
+      packagesFile: packagesFile,
+    );
     if (optionsFile != null) {
-      root.optionsFileMap[rootFolder] = optionsFile;
+      root.optionsFileMap.putIfAbsent(optionsFile, () => {}).add(rootFolder);
     }
 
-    root.excludedGlobs = _getExcludedGlobs(optionsFile, workspace);
+    root.excludedGlobs.addAll(_getExcludedGlobs(optionsFile, workspace));
     roots.add(root);
     return root;
   }
@@ -392,38 +395,47 @@ class ContextLocatorImpl {
   /// Returns true if the folder was contained in the root and did not create a
   /// new root, false if it did create a new root.
   bool _createContextRoots(
-    List<ContextRoot> roots,
+    List<ContextRootImpl> roots,
     Set<String> visited,
     Folder folder,
     List<Folder> excludedFolders,
-    ContextRoot containingRoot,
+    ContextRootImpl containingRoot,
     Set<String> containingRootEnabledLegacyPlugins,
     List<LocatedGlob> excludedGlobs,
     File? optionsFile,
-    File? packagesFile,
-  ) {
-    //
-    // If the options and packages files are allowed to be locally specified,
-    // then look to see whether they are.
-    //
-    File? localOptionsFile;
-    if (optionsFile == null) {
-      localOptionsFile = folder.existingAnalysisOptionsYamlFile;
-    }
-    File? localPackagesFile;
-    if (packagesFile == null) {
-      localPackagesFile = _getPackagesFile(folder);
-    }
+    File? packagesFile, {
+    File? optionsFileFromParentInSameRoot,
+  }) {
+    var packagesFileToUse =
+        packagesFile ?? _getPackagesFile(folder) ?? containingRoot.packagesFile;
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
+
+    var optionsFileToUse = optionsFile;
+    if (optionsFileToUse == null) {
+      optionsFileToUse = folder.existingAnalysisOptionsYamlFile;
+      // If this folder doesn't have one use the one from a parent folder if any,
+      // that will be the one we find anyway.
+      optionsFileToUse ??= optionsFileFromParentInSameRoot;
+      if (optionsFileToUse == null) {
+        var parentFolder = folder.parent;
+        while (parentFolder != containingRoot.root) {
+          optionsFileToUse = parentFolder.existingAnalysisOptionsYamlFile;
+          if (optionsFileToUse != null) {
+            break;
+          }
+          parentFolder = parentFolder.parent;
+        }
+      }
+    }
 
     var localEnabledPlugins = _getEnabledLegacyPlugins(
       containingRoot.workspace,
-      localOptionsFile,
+      optionsFileToUse,
     );
     // Legacy plugins differ only if there is an analysis_options and it
     // contains a different set of plugins from the containing context.
     var pluginsDiffer =
-        localOptionsFile != null &&
+        optionsFileToUse != null &&
         !const SetEquality<String>().equals(
           containingRootEnabledLegacyPlugins,
           localEnabledPlugins,
@@ -433,54 +445,43 @@ class ContextLocatorImpl {
 
     // Create a context root for the given [folder] if a packages or build file
     // is locally specified, or the set of enabled legacy plugins changed.
-    if (pluginsDiffer || localPackagesFile != null || buildGnFile != null) {
-      if (optionsFile != null) {
-        localOptionsFile = optionsFile;
-      }
-      if (packagesFile != null) {
-        localPackagesFile = packagesFile;
-      }
-      var rootPackagesFile = localPackagesFile ?? containingRoot.packagesFile;
+    if (pluginsDiffer ||
+        packagesFileToUse != containingRoot.packagesFile ||
+        buildGnFile != null) {
       var workspace = _createWorkspace(
         folder: folder,
-        packagesFile: rootPackagesFile,
+        packagesFile: packagesFileToUse,
         buildGnFile: buildGnFile,
       );
-      var root = ContextRootImpl(resourceProvider, folder, workspace);
-      root.packagesFile = rootPackagesFile;
-      // Check for analysis options file in the parent directories, from
-      // root folder to the containing root folder. Pick the one closest
-      // to the root.
-      if (localOptionsFile == null) {
-        var parentFolder = root.root.parent;
-        while (parentFolder != containingRoot.root) {
-          localOptionsFile = parentFolder.existingAnalysisOptionsYamlFile;
-          if (localOptionsFile != null) {
-            break;
-          }
-          parentFolder = parentFolder.parent;
-        }
-      }
-      root.optionsFile = localOptionsFile ?? containingRoot.optionsFile;
+      var root = ContextRootImpl(
+        resourceProvider,
+        folder,
+        workspace,
+        optionsFile: optionsFileToUse ?? containingRoot.optionsFile,
+        packagesFile: packagesFileToUse,
+      );
       root.included.add(folder);
       containingRoot.excluded.add(folder);
       roots.add(root);
       containingRoot = root;
       containingRootEnabledLegacyPlugins = localEnabledPlugins;
       excludedGlobs = _getExcludedGlobs(root.optionsFile, workspace);
-      root.excludedGlobs = excludedGlobs;
+      root.excludedGlobs.addAll(excludedGlobs);
       usedThisRoot = false;
     }
 
-    if (localOptionsFile != null) {
-      (containingRoot as ContextRootImpl).optionsFileMap[folder] =
-          localOptionsFile;
-      // Add excluded globs.
-      var excludes = _getExcludedGlobs(
-        localOptionsFile,
-        containingRoot.workspace,
-      );
-      containingRoot.excludedGlobs.addAll(excludes);
+    if (optionsFileToUse != null) {
+      containingRoot.optionsFileMap
+          .putIfAbsent(optionsFileToUse, () => {})
+          .add(folder);
+      if (optionsFileToUse != optionsFileFromParentInSameRoot) {
+        // Add excluded globs only if we found a new options file.
+        var excludes = _getExcludedGlobs(
+          optionsFileToUse,
+          containingRoot.workspace,
+        );
+        containingRoot.excludedGlobs.addAll(excludes);
+      }
     }
     _createContextRootsIn(
       roots,
@@ -492,6 +493,7 @@ class ContextLocatorImpl {
       excludedGlobs,
       optionsFile,
       packagesFile,
+      optionsFileToUseForFolder: usedThisRoot ? optionsFileToUse : null,
     );
 
     return usedThisRoot;
@@ -504,16 +506,17 @@ class ContextLocatorImpl {
   /// If either the [optionsFile] or [packagesFile] is non-`null` then the given
   /// file will be used even if there is a local version of the file.
   void _createContextRootsIn(
-    List<ContextRoot> roots,
+    List<ContextRootImpl> roots,
     Set<String> visited,
     Folder folder,
     List<Folder> excludedFolders,
-    ContextRoot containingRoot,
+    ContextRootImpl containingRoot,
     Set<String> containingRootEnabledLegacyPlugins,
     List<LocatedGlob> excludedGlobs,
     File? optionsFile,
-    File? packagesFile,
-  ) {
+    File? packagesFile, {
+    File? optionsFileToUseForFolder,
+  }) {
     bool isExcluded(Folder folder) {
       if (excludedFolders.contains(folder) ||
           folder.shortName.startsWith('.')) {
@@ -558,6 +561,7 @@ class ContextLocatorImpl {
               excludedGlobs,
               optionsFile,
               packagesFile,
+              optionsFileFromParentInSameRoot: optionsFileToUseForFolder,
             );
           }
         }

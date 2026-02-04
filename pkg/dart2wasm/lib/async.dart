@@ -218,7 +218,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.local_set(targetIndexLocal);
 
     // The outer `try` block calls `completeOnError` on exceptions.
-    b.try_();
+    b.try_legacy();
 
     // Switch on the target index.
     masterLoop = b.loop(const [], const []);
@@ -238,15 +238,13 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     final StateTarget initialTarget = targets.first;
     emitTargetLabel(initialTarget);
 
-    // Clone context on first execution.
     b.restoreSuspendStateContext(
         _suspendStateLocal,
         asyncSuspendStateInfo.struct,
         FieldIndex.asyncSuspendStateContext,
         closures,
         context,
-        thisLocal,
-        cloneContextFor: functionNode);
+        thisLocal);
 
     translateStatement(functionBody);
 
@@ -271,29 +269,22 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
       b.return_();
     }
 
-    void callCompleteErrorWithCurrentStack() {
-      b.local_get(_suspendStateLocal);
-      b.local_get(exceptionLocal);
-      call(translator.asyncSuspendStateCompleteErrorWithCurrentStack.reference);
-      b.return_();
-    }
-
     // Handle Dart exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
+    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
     b.local_set(stackTraceLocal);
     b.local_set(exceptionLocal);
     callCompleteError();
 
     // Handle JS exceptions.
-    b.catch_all_legacy();
+    b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
 
-    // Create a generic JavaScript error.
     call(translator.javaScriptErrorFactory.reference);
-    b.local_set(exceptionLocal);
+    b.local_tee(exceptionLocal); // ref null #Top
 
-    // JS exceptions won't have a Dart stack trace, so we attach the current
-    // Dart stack trace.
-    callCompleteErrorWithCurrentStack();
+    b.getJavaScriptErrorStackTrace(translator);
+    b.local_set(stackTraceLocal);
+
+    callCompleteError();
 
     b.end(); // try
 
@@ -395,7 +386,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.local_get(_pendingStackTraceLocal);
     b.ref_as_non_null();
 
-    b.throw_(translator.getExceptionTag(b.moduleBuilder));
+    b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
     b.end(); // exceptionBlock
 
     setVariable(awaitValueVar, () {

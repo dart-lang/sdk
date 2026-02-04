@@ -30,7 +30,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_variableName];
 
   @override
-  FixKind get fixKind => DartFixKind.MAKE_VARIABLE_NULLABLE;
+  FixKind get fixKind => DartFixKind.makeVariableNullable;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

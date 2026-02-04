@@ -164,6 +164,34 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token? newToken,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    super.beginConstructor(
+      declarationKind,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      varFinalOrConst,
+      getOrSet,
+      newToken,
+      name,
+      enclosingDeclarationName,
+    );
+    begin('Method');
+  }
+
+  @override
   void beginConstructorReference(Token start) {
     super.beginConstructorReference(start);
     begin('ConstructorReference');
@@ -188,8 +216,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginEnum(Token enumKeyword) {
-    super.beginEnum(enumKeyword);
+  void beginEnumDeclarationPrelude(Token enumKeyword) {
+    super.beginEnumDeclarationPrelude(enumKeyword);
     begin('Enum');
   }
 
@@ -216,19 +244,19 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginFactoryMethod(
+  void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
     Token? externalToken,
     Token? constToken,
   ) {
-    super.beginFactoryMethod(
+    super.beginFactory(
       declarationKind,
       lastConsumed,
       externalToken,
       constToken,
     );
-    begin('FactoryMethod');
+    begin('Factory');
   }
 
   @override
@@ -708,85 +736,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endClassConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    end('Method');
-    super.endClassConstructor(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
-  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     end('ClassDeclaration');
     end('ClassOrNamedMixinApplication');
     super.endClassDeclaration(beginToken, endToken);
-  }
-
-  @override
-  void endClassFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    end('FactoryMethod');
-    super.endClassFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endClassFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    // beginMember --> endClassFields, endMember
-    expectIn('Member');
-    super.endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endClassMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    end('Method');
-    super.endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
   }
 
   @override
@@ -843,6 +796,26 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endConstructor(
+    DeclarationKind kind,
+    Token beginToken,
+    Token? newToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    end('Method');
+    super.endConstructor(
+      kind,
+      beginToken,
+      newToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+    );
+  }
+
+  @override
   void endConstructorReference(
     Token start,
     Token? periodBeforeName,
@@ -881,7 +854,7 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -889,79 +862,11 @@ class ForwardingTestListener extends ForwardingListener {
     Token endToken,
   ) {
     end('Enum');
-    super.endEnum(beginToken, enumKeyword, leftBrace, memberCount, endToken);
-  }
-
-  @override
-  void endEnumConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    end('Method');
-    super.endEnumConstructor(
-      getOrSet,
+    super.endEnumDeclaration(
       beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
-  @override
-  void endEnumFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    end('FactoryMethod');
-    super.endEnumFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endEnumFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    expectIn('Member');
-    super.endEnumFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endEnumMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    end('Method');
-    super.endEnumMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
+      enumKeyword,
+      leftBrace,
+      memberCount,
       endToken,
     );
   }
@@ -970,24 +875,6 @@ class ForwardingTestListener extends ForwardingListener {
   void endExport(Token exportKeyword, Token semicolon) {
     end('Export');
     super.endExport(exportKeyword, semicolon);
-  }
-
-  @override
-  void endExtensionConstructor(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    end('Method');
-    super.endExtensionConstructor(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
   }
 
   @override
@@ -1007,17 +894,25 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endExtensionFactoryMethod(
+  void endFactory(
+    DeclarationKind kind,
     Token beginToken,
     Token factoryKeyword,
     Token endToken,
   ) {
-    end('FactoryMethod');
-    super.endExtensionFactoryMethod(beginToken, factoryKeyword, endToken);
+    end('Factory');
+    super.endFactory(kind, beginToken, factoryKeyword, endToken);
   }
 
   @override
-  void endExtensionFields(
+  void endFieldInitializer(Token assignment, Token endToken) {
+    end('FieldInitializer');
+    super.endFieldInitializer(assignment, endToken);
+  }
+
+  @override
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,
@@ -1029,9 +924,10 @@ class ForwardingTestListener extends ForwardingListener {
     Token beginToken,
     Token endToken,
   ) {
-    // beginMember --> endExtensionFields, endMember
+    // beginMember --> endFields, endMember
     expectIn('Member');
-    super.endExtensionFields(
+    super.endFields(
+      kind,
       abstractToken,
       augmentToken,
       externalToken,
@@ -1043,30 +939,6 @@ class ForwardingTestListener extends ForwardingListener {
       beginToken,
       endToken,
     );
-  }
-
-  @override
-  void endExtensionMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    end('Method');
-    super.endExtensionMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
-  @override
-  void endFieldInitializer(Token assignment, Token endToken) {
-    end('FieldInitializer');
-    super.endFieldInitializer(assignment, endToken);
   }
 
   @override
@@ -1101,6 +973,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -1112,6 +985,7 @@ class ForwardingTestListener extends ForwardingListener {
   ) {
     end('FormalParameter');
     super.endFormalParameter(
+      varOrFinal,
       thisKeyword,
       superKeyword,
       periodAfterThisOrSuper,
@@ -1293,7 +1167,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endMixinConstructor(
+  void endMethod(
+    DeclarationKind kind,
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
@@ -1301,7 +1176,8 @@ class ForwardingTestListener extends ForwardingListener {
     Token endToken,
   ) {
     end('Method');
-    super.endMixinConstructor(
+    super.endMethod(
+      kind,
       getOrSet,
       beginToken,
       beginParam,
@@ -1315,63 +1191,6 @@ class ForwardingTestListener extends ForwardingListener {
     end('MixinDeclaration');
     end('ClassOrNamedMixinApplication');
     super.endMixinDeclaration(beginToken, endToken);
-  }
-
-  @override
-  void endMixinFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    end('FactoryMethod');
-    super.endMixinFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endMixinFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    // beginMember --> endMixinFields, endMember
-    expectIn('Member');
-    super.endMixinFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endMixinMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    end('Method');
-    super.endMixinMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
   }
 
   @override

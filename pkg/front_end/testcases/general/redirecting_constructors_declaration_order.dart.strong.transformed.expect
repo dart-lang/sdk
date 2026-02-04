@@ -9,7 +9,7 @@ class C extends core::Object {
     ;
 }
 abstract class A extends core::Object {
-  static factory redir() → self::A /* redirection-target: self::B::•<dynamic>*/
+  static const factory redir() → self::A /* redirection-target: self::B::•<dynamic>*/
     return new self::B::•<dynamic>();
 }
 class B<X extends core::Object? = dynamic> extends core::Object implements self::A /*hasConstConstructor*/  {

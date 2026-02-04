@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +20,7 @@ class DefaultValueInFunctionTypeTest extends PubPackageResolutionTest {
       '''
 typedef F = int Function({Map<String, String> m = const {}});
 ''',
-      [error(ParserErrorCode.defaultValueInFunctionType, 48, 1)],
+      [error(diag.defaultValueInFunctionType, 48, 1)],
     );
   }
 
@@ -33,8 +32,8 @@ typedef F = int Function({Map<String, String> m = const {}});
 typedef F = int Function({Object m = const {1, 2: 3}});
 ''',
       [
-        error(ParserErrorCode.defaultValueInFunctionType, 35, 1),
-        error(CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth, 37, 15),
+        error(diag.defaultValueInFunctionType, 35, 1),
+        error(diag.ambiguousSetOrMapLiteralBoth, 37, 15),
       ],
     );
   }
@@ -44,7 +43,7 @@ typedef F = int Function({Object m = const {1, 2: 3}});
       '''
 typedef F = int Function([Map<String, String> m = const {}]);
 ''',
-      [error(ParserErrorCode.defaultValueInFunctionType, 48, 1)],
+      [error(diag.defaultValueInFunctionType, 48, 1)],
     );
   }
 
@@ -53,7 +52,7 @@ typedef F = int Function([Map<String, String> m = const {}]);
       '''
 typedef F([x = 0]);
 ''',
-      [error(ParserErrorCode.defaultValueInFunctionType, 13, 1)],
+      [error(diag.defaultValueInFunctionType, 13, 1)],
     );
   }
 
@@ -62,7 +61,7 @@ typedef F([x = 0]);
       '''
 typedef F([x = 0]);
 ''',
-      [error(ParserErrorCode.defaultValueInFunctionType, 13, 1)],
+      [error(diag.defaultValueInFunctionType, 13, 1)],
     );
   }
 
@@ -75,7 +74,7 @@ void f() {
   A<void Function([int x = 42])>();
 }
 ''',
-      [error(ParserErrorCode.defaultValueInFunctionType, 51, 1)],
+      [error(diag.defaultValueInFunctionType, 51, 1)],
     );
     // The expression is resolved, even if it is invalid.
     assertType(findNode.integerLiteral('42'), 'int');

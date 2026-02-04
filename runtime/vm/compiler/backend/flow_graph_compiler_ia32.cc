@@ -699,56 +699,12 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   locs->CheckWritableInputs();
   ClobberDeadTempRegisters(locs);
 #endif
-
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t xmm_regs_count = locs->live_registers()->FpuRegisterCount();
-  if (xmm_regs_count > 0) {
-    __ subl(ESP, compiler::Immediate(xmm_regs_count * kFpuRegisterSize));
-    // Store XMM registers with the lowest register number at the lowest
-    // address.
-    intptr_t offset = 0;
-    for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(i);
-      if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movups(compiler::Address(ESP, offset), xmm_reg);
-        offset += kFpuRegisterSize;
-      }
-    }
-    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
-  }
-
-  // The order in which the registers are pushed must match the order
-  // in which the registers are encoded in the safe point's stack map.
-  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
-    Register reg = static_cast<Register>(i);
-    if (locs->live_registers()->ContainsRegister(reg)) {
-      __ pushl(reg);
-    }
-  }
+  __ PushRegisters(*locs->live_registers());
 }
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
-    Register reg = static_cast<Register>(i);
-    if (locs->live_registers()->ContainsRegister(reg)) {
-      __ popl(reg);
-    }
-  }
-
-  const intptr_t xmm_regs_count = locs->live_registers()->FpuRegisterCount();
-  if (xmm_regs_count > 0) {
-    // XMM registers have the lowest register number at the lowest address.
-    intptr_t offset = 0;
-    for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(i);
-      if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movups(xmm_reg, compiler::Address(ESP, offset));
-        offset += kFpuRegisterSize;
-      }
-    }
-    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
-    __ addl(ESP, compiler::Immediate(offset));
-  }
+  __ PopRegisters(*locs->live_registers());
 }
 
 #if defined(DEBUG)

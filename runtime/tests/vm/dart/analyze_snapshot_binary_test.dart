@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:expect/expect.dart';
 import 'package:native_stack_traces/elf.dart';
+import 'package:native_stack_traces/src/macho.dart' as macho;
 import 'package:path/path.dart' as path;
 
 import 'use_flag_test_helper.dart';
@@ -22,27 +23,81 @@ const int wordSize = 8; // analyze_snapshot is not supported on arm32
 // Used to ensure we don't have multiple equivalent calls to test.
 final _seenDescriptions = <String>{};
 
+enum Format {
+  assembly('assembly'),
+  elf('ELF'),
+  machO('Mach-O');
+
+  final String description;
+  const Format(this.description);
+}
+
+void verifyFileFormatBasics(Format format, String snapshotPath) {
+  Elf? elf;
+  if (format == Format.elf || format == Format.assembly) {
+    elf = Elf.fromFile(snapshotPath);
+    if (format == Format.elf) {
+      Expect.isNotNull(elf);
+    }
+  }
+  macho.MachO? m;
+  if (format == Format.machO || (elf == null && format == Format.assembly)) {
+    m = macho.MachO.fromFile(snapshotPath);
+    if (format == Format.machO) {
+      Expect.isNotNull(m);
+    }
+  }
+
+  if (elf != null) {
+    // Verify some ELF file format parameters.
+    final textSections = elf.namedSections(".text");
+    Expect.isNotEmpty(textSections);
+    Expect.isTrue(textSections.length <= 2, "More text sections than expected");
+    final dataSections = elf.namedSections(".rodata");
+    Expect.isNotEmpty(dataSections);
+    Expect.isTrue(dataSections.length <= 2, "More data sections than expected");
+  }
+
+  if (m != null) {
+    // Verify some Mach-O file format parameters.
+    final textSegment = m
+        .commandsWhereType<macho.SegmentCommand>()
+        .where((s) => s.segname == '__TEXT')
+        .firstOrNull;
+    Expect.isNotNull(textSegment);
+    if (textSegment != null) {
+      final textSection = textSegment.sections['__text'];
+      Expect.isNotNull(textSection);
+      final constSection = textSegment.sections['__const'];
+      Expect.isNotNull(constSection);
+    }
+  }
+}
+
 Future<void> testAOT(
-  String dillPath, {
-  bool useAsm = false,
+  String dillPath,
+  Format format, {
   bool forceDrops = false,
   bool stripUtil = false, // Note: forced true if useAsm.
   bool stripFlag = false,
 }) async {
   const isProduct = const bool.fromEnvironment('dart.vm.product');
 
-  final analyzeSnapshot = path.join(buildDir, 'analyze_snapshot');
+  final analyzeSnapshot = path.join(
+    buildDir,
+    'analyze_snapshot' + (Platform.isWindows ? '.exe' : ''),
+  );
 
   // For assembly, we can't test the sizes of the snapshot sections, since we
   // don't have a Mach-O reader for Mac snapshots and for ELF, the assembler
   // merges the text/data sections and the VM/isolate section symbols may not
   // have length information. Thus, we force external stripping so we can test
   // the approximate size of the stripped snapshot.
-  if (useAsm) {
+  if (format == Format.assembly) {
     stripUtil = true;
   }
 
-  final descriptionBuilder = StringBuffer()..write(useAsm ? 'assembly' : 'elf');
+  final descriptionBuilder = StringBuffer()..write(format.description);
   if (forceDrops) {
     descriptionBuilder.write('-dropped');
   }
@@ -75,53 +130,45 @@ Future<void> testAOT(
     ];
 
     final int textSectionSize;
-    if (useAsm) {
-      final assemblyPath = path.join(tempDir, 'test.S');
+    switch (format) {
+      case Format.assembly:
+        final assemblyPath = path.join(tempDir, 'test.S');
 
-      textSectionSize = _findTextSectionSize(
-        await runOutput(genSnapshot, <String>[
-          '--snapshot-kind=app-aot-assembly',
-          '--assembly=$assemblyPath',
-          '--print-snapshot-sizes',
-          ...commonSnapshotArgs,
-        ], ignoreStdErr: true),
-      );
-
-      await assembleSnapshot(assemblyPath, snapshotPath);
-    } else {
-      textSectionSize = _findTextSectionSize(
-        await runOutput(genSnapshot, <String>[
-          '--snapshot-kind=app-aot-elf',
-          '--elf=$snapshotPath',
-          '--print-snapshot-sizes',
-          ...commonSnapshotArgs,
-        ], ignoreStdErr: true),
-      );
+        textSectionSize = _findTextSectionSize(
+          await runOutput(genSnapshot, <String>[
+            '--snapshot-kind=app-aot-assembly',
+            '--assembly=$assemblyPath',
+            '--print-snapshot-sizes',
+            ...commonSnapshotArgs,
+          ], ignoreStdErr: true),
+        );
+        await assembleSnapshot(assemblyPath, snapshotPath);
+        break;
+      case Format.elf:
+        textSectionSize = _findTextSectionSize(
+          await runOutput(genSnapshot, <String>[
+            '--snapshot-kind=app-aot-elf',
+            '--elf=$snapshotPath',
+            '--print-snapshot-sizes',
+            ...commonSnapshotArgs,
+          ], ignoreStdErr: true),
+        );
+        break;
+      case Format.machO:
+        textSectionSize = _findTextSectionSize(
+          await runOutput(genSnapshot, <String>[
+            '--snapshot-kind=app-aot-macho-dylib',
+            '--macho=$snapshotPath',
+            '--print-snapshot-sizes',
+            ...commonSnapshotArgs,
+          ], ignoreStdErr: true),
+        );
+        break;
     }
 
     print("Snapshot generated at $snapshotPath.");
 
-    // May not be ELF, but another format.
-    final elf = Elf.fromFile(snapshotPath);
-    if (!useAsm) {
-      Expect.isNotNull(elf);
-    }
-
-    if (elf != null) {
-      // Verify some ELF file format parameters.
-      final textSections = elf.namedSections(".text");
-      Expect.isNotEmpty(textSections);
-      Expect.isTrue(
-        textSections.length <= 2,
-        "More text sections than expected",
-      );
-      final dataSections = elf.namedSections(".rodata");
-      Expect.isNotEmpty(dataSections);
-      Expect.isTrue(
-        dataSections.length <= 2,
-        "More data sections than expected",
-      );
-    }
+    verifyFileFormatBasics(format, snapshotPath);
 
     final analyzerOutputPath = path.join(tempDir, 'analyze_test.json');
 
@@ -624,31 +671,33 @@ main() async {
     ]);
 
     // Just as a reminder for AOT tests:
-    // * If useAsm is true, then stripUtil is forced (as the assembler may add
-    //   extra information that needs stripping), so no need to specify
-    //   stripUtil for useAsm tests.
+    // * If format == Format.assembly, then stripUtil is forced (as
+    //   the assembler may add extra information that needs stripping),
+    //   so no need to specify stripUtil for useAsm tests.
 
-    await Future.wait([
-      // Test unstripped ELF generation directly.
-      testAOT(aotDillPath),
-      testAOT(aotDillPath, forceDrops: true),
+    for (final format in Format.values) {
+      // Assembly is handled separately after the for loop.
+      if (format == Format.assembly) continue;
+      await Future.wait([
+        // Test unstripped generation directly.
+        testAOT(aotDillPath, format),
+        testAOT(aotDillPath, format, forceDrops: true),
 
-      // Test flag-stripped ELF generation.
-      testAOT(aotDillPath, stripFlag: true),
-    ]);
+        // Test flag-stripped generation.
+        testAOT(aotDillPath, format, stripFlag: true),
 
-    // Test unstripped ELF generation that is then externally stripped.
-    await Future.wait([testAOT(aotDillPath, stripUtil: true)]);
+        // Test unstripped generation that is then externally stripped.
+        testAOT(aotDillPath, format, stripUtil: true),
+      ]);
+    }
 
-    // Dont test assembled snapshot for simulated platforms or macos
-    if (!buildDir.endsWith("SIMARM64") &&
-        !buildDir.endsWith("SIMARM64C") &&
-        !Platform.isMacOS) {
+    // Dont test assembled snapshot for simulated platforms.
+    if (!isSimulator) {
       await Future.wait([
         // Test unstripped assembly generation that is then externally stripped.
-        testAOT(aotDillPath, useAsm: true),
+        testAOT(aotDillPath, Format.assembly),
         // Test stripped assembly generation that is then externally stripped.
-        testAOT(aotDillPath, useAsm: true, stripFlag: true),
+        testAOT(aotDillPath, Format.assembly, stripFlag: true),
       ]);
     }
   });

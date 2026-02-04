@@ -76,8 +76,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
     expect(
       response.toJson(),
       equals({
-        Response.ID: '0',
-        Response.RESULT: {VERSION: PROTOCOL_VERSION},
+        Response.idAttributeName: '0',
+        Response.resultAttributeName: {versionKey: PROTOCOL_VERSION},
       }),
     );
   }
@@ -352,8 +352,8 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_setSubscriptions_invalidServiceName() async {
-    var request = Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
-      SUBSCRIPTIONS: ['noSuchService'],
+    var request = Request('0', serverRequestSetSubscriptions, {
+      subscriptionsKey: ['noSuchService'],
     });
     var response = await handleRequest(request);
     expect(response, isResponseFailure('0'));

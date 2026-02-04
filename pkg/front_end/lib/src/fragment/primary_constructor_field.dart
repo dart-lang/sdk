@@ -51,7 +51,6 @@ class PrimaryConstructorFieldDeclaration
   bool get hasInitializer => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasSetter => false;
 
   @override
@@ -59,7 +58,6 @@ class PrimaryConstructorFieldDeclaration
   shared.Expression? get initializerExpression => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isConst => false;
 
   @override
@@ -70,13 +68,12 @@ class PrimaryConstructorFieldDeclaration
   bool get isExtensionTypeDeclaredInstanceField => false;
 
   @override
-  bool get isFinal => true;
+  bool get isFinal => _fragment.modifiers.isFinal;
 
   @override
   bool get isLate => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isStatic => false;
 
   @override
@@ -105,19 +102,6 @@ class PrimaryConstructorFieldDeclaration
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
     _encoding.createBodies(coreTypes, initializer);
-  }
-
-  @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    return _encoding.buildErroneousInitializer(
-      effect,
-      value,
-      fileOffset: fileOffset,
-    );
   }
 
   @override
@@ -197,7 +181,6 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {}
 
   @override
@@ -254,7 +237,6 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void checkFieldVariance(
     SourceClassBuilder sourceClassBuilder,
     TypeEnvironment typeEnvironment,
@@ -279,7 +261,6 @@ class PrimaryConstructorFieldDeclaration
   ) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
   void checkGetterVariance(
     SourceClassBuilder sourceClassBuilder,
     TypeEnvironment typeEnvironment,
@@ -319,13 +300,13 @@ class PrimaryConstructorFieldDeclaration
 
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
 
-    bool isInstanceMember = builder.isDeclarationInstanceMember;
     bool isExtensionTypeMember = builder.isExtensionTypeMember;
 
-    // TODO(johnniwinther): Add support for regular fields for the primary
-    //  constructors feature.
-    assert(isExtensionTypeMember && isInstanceMember);
-    _encoding = new RepresentationFieldEncoding(_fragment);
+    if (isExtensionTypeMember) {
+      _encoding = new RepresentationFieldEncoding(_fragment);
+    } else {
+      _encoding = new PrimaryConstructorFieldEncoding(_fragment);
+    }
 
     type.registerInferredTypeListener(this);
     if (type is InferableTypeBuilder) {
@@ -453,6 +434,8 @@ class PrimaryConstructorFieldFragment implements Fragment {
 
   final List<MetadataBuilder>? metadata;
 
+  final Modifiers modifiers;
+
   final TypeBuilder type;
 
   final LookupScope enclosingScope;
@@ -475,6 +458,7 @@ class PrimaryConstructorFieldFragment implements Fragment {
     required this.fileUri,
     required this.nameOffset,
     required this.metadata,
+    required this.modifiers,
     required this.type,
     required this.enclosingScope,
     required this.enclosingDeclaration,
@@ -508,4 +492,6 @@ class PrimaryConstructorFieldFragment implements Fragment {
     );
     _declaration = value;
   }
+
+  bool get hasSetter => !modifiers.isFinal;
 }

@@ -88,6 +88,7 @@ class TypeSection extends Section {
     final List<List<ir.DefType>> recursionGroups = [];
 
     final count = d.readUnsigned();
+    int typeIndex = 0;
     for (int i = 0; i < count; i++) {
       late int recursionGroupMemberCount;
       if (d.peekByte() == 0x4E) {
@@ -111,6 +112,7 @@ class TypeSection extends Section {
       final startOffset = d.offset;
       for (int j = 0; j < recursionGroupMemberCount; j++) {
         final type = ir.DefType.deserializeAllocate(d, definedTypes);
+        type.index = typeIndex++;
         typesInGroup.add(type);
         definedTypes.add(type);
       }
@@ -200,8 +202,12 @@ class ImportSection extends Section {
           case 0x04: // Tag
             final exceptionByte = d.readByte();
             if (exceptionByte != 0x00) throw 'unexpected';
-            d.readUnsigned(); // typeIndex
-            throw 'runtimeType';
+            final type = types[d.readUnsigned()] as ir.FunctionType;
+            final tag = ir.ImportedTag(
+                module, moduleName, name, ir.FinalizableIndex(), type);
+            tag.finalizableIndex.value = importedTags.length;
+            importedTags.add(tag);
+            imports.add(tag);
           default:
             throw "Invalid import kind: $kind";
         }
@@ -235,7 +241,7 @@ class FunctionSection extends Section {
   static ir.Functions deserialize(Deserializer? d, ir.Module module,
       ir.Types types, List<ir.ImportedFunction> imported) {
     if (d == null) {
-      return ir.Functions.withoutDeclared(imported, []);
+      return ir.Functions(imported, []);
     }
 
     final List<ir.DefinedFunction> defined = [];
@@ -247,7 +253,7 @@ class FunctionSection extends Section {
           module, ir.FinalizableIndex()..value = imported.length + i, type);
       defined.add(function);
     }
-    return ir.Functions.withoutDeclared(imported, defined);
+    return ir.Functions(imported, defined);
   }
 }
 
@@ -281,7 +287,6 @@ class TableSection extends Section {
       final maxSize = limits == 0x01 ? d.readUnsigned() : null;
       final table = ir.DefinedTable(
           module,
-          [],
           ir.FinalizableIndex()..value = imported.length + i,
           type,
           minSize,
@@ -352,7 +357,7 @@ class TagSection extends Section {
 
   static ir.Tags deserialize(Deserializer? d, ir.Module module, ir.Types types,
       List<ir.ImportedTag> imported) {
-    if (d == null) return ir.Tags([], imported);
+    if (d == null) return ir.Tags(imported, []);
 
     final defined = <ir.DefinedTag>[];
     final count = d.readUnsigned();
@@ -366,7 +371,7 @@ class TagSection extends Section {
           module, ir.FinalizableIndex()..value = imported.length + i, type);
       defined.add(tag);
     }
-    return ir.Tags(defined, []);
+    return ir.Tags(imported, defined);
   }
 }
 
@@ -495,119 +500,24 @@ class StartSection extends Section {
   }
 }
 
-sealed class _Element implements Serializable {}
-
-class _TableElement implements _Element {
-  final ir.Table table;
-  final int startIndex;
-  final List<ir.BaseFunction> entries = [];
-
-  _TableElement(this.table, this.startIndex);
-
-  @override
-  void serialize(Serializer s) {
-    if (table.index != 0) {
-      s.writeByte(0x06);
-      s.writeUnsigned(table.index);
-    } else {
-      s.writeByte(0x00);
-    }
-    s.writeByte(0x41); // i32.const
-    s.writeSigned(startIndex);
-    s.writeByte(0x0B); // end
-    if (table.index != 0) {
-      s.write(table.type);
-    }
-    s.writeUnsigned(entries.length);
-    for (var entry in entries) {
-      if (table.index == 0) {
-        s.writeUnsigned(entry.index);
-      } else {
-        s.writeByte(0xD2); // ref.func
-        s.writeSigned(entry.index);
-        s.writeByte(0x0B); // end
-      }
-    }
-  }
-}
-
-class _DeclaredElement implements _Element {
-  final List<ir.BaseFunction> entries;
-
-  _DeclaredElement(this.entries);
-
-  @override
-  void serialize(Serializer s) {
-    if (entries.isEmpty) return;
-    s.writeByte(0x03);
-    s.writeByte(0x00);
-
-    s.writeUnsigned(entries.length);
-    for (final entry in entries) {
-      s.writeUnsigned(entry.index);
-    }
-  }
-}
-
 class ElementSection extends Section {
   static const int sectionId = 9;
 
-  final List<ir.DefinedTable> definedTables;
-  final List<ir.ImportedTable> importedTables;
-  final List<ir.BaseFunction> declaredFunctions;
+  final ir.Elements elementSegments;
 
-  ElementSection(this.definedTables, this.importedTables,
-      this.declaredFunctions, super.watchPoints);
+  ElementSection(this.elementSegments, super.watchPoints);
 
   @override
   int get id => sectionId;
 
   @override
   void serializeContents(Serializer s) {
-    // Group nonempty element entries into contiguous stretches and serialize
-    // each stretch as an element.
-    List<_Element> elements = [];
-    for (final table in definedTables) {
-      _TableElement? current;
-      for (int i = 0; i < table.elements.length; i++) {
-        ir.BaseFunction? function = table.elements[i];
-        if (function != null) {
-          if (current == null) {
-            current = _TableElement(table, i);
-            elements.add(current);
-          }
-          current.entries.add(function);
-        } else {
-          current = null;
-        }
-      }
-    }
-    for (final table in importedTables) {
-      final entries = [...table.setElements.entries]
-        ..sort((a, b) => a.key.compareTo(b.key));
-
-      _TableElement? current;
-      int lastIndex = -2;
-      for (final entry in entries) {
-        final index = entry.key;
-        final function = entry.value;
-        if (index != lastIndex + 1) {
-          current = _TableElement(table, index);
-          elements.add(current);
-        }
-        current!.entries.add(function);
-        lastIndex = index;
-      }
-    }
-    if (declaredFunctions.isNotEmpty) {
-      elements.add(_DeclaredElement(declaredFunctions));
-    }
-    if (elements.isNotEmpty) {
-      s.writeList(elements);
+    if (elementSegments.segments.isNotEmpty) {
+      s.writeList(elementSegments.segments);
     }
   }
 
-  static void deserialize(
+  static ir.Elements deserialize(
     Deserializer? d,
     ir.Module module,
     ir.Types types,
@@ -616,68 +526,36 @@ class ElementSection extends Section {
     ir.Globals globals,
   ) {
     if (d == null) {
-      functions.declared = [];
-      return;
+      return ir.Elements([]);
     }
-    final declaredFunctions = <ir.BaseFunction>[];
+
+    final segments = <ir.ElementSegment>[];
     final count = d.readUnsigned();
     for (int i = 0; i < count; i++) {
-      final kind = d.readByte();
-      int tableIndex;
-      switch (kind) {
-        case 0x00:
-          tableIndex = 0;
-          break;
-        case 0x06:
-          tableIndex = d.readUnsigned();
-          break;
-        case 0x03:
-          final elemkind = d.readByte();
-          if (elemkind != 0x00) throw "unsupported elemkind";
-          final funcs = d.readList((d) => functions[d.readUnsigned()]);
-          declaredFunctions.addAll(funcs);
-          continue;
-        default:
-          throw "unsupported element segment kind $kind";
+      final byte = d.peekByte();
+      if (byte == 0x03) {
+        // Declarative segment, only to forward-declare functions.
+        final es = ir.DeclarativeElementSegment.deserialize(d, functions);
+        segments.add(es);
+        continue;
       }
-
-      final offsetInitializer =
-          ir.Instructions.deserializeConst(d, types, functions, globals);
-      final instructions = offsetInitializer.instructions;
-      assert(instructions.length == 2 &&
-          instructions[0] is ir.I32Const &&
-          instructions[1] is ir.End);
-      final offset = (instructions[0] as ir.I32Const).value;
-
-      if (kind == 0x06) {
-        ir.RefType.deserialize(d, types.defined);
+      if (byte == 0x00 || byte == 0x02) {
+        // Active element, table values are function indices.
+        final es = ir.ActiveFunctionElementSegment.deserialize(
+            d, module, types, functions, tables, globals);
+        segments.add(es);
+        continue;
       }
-
-      final table = tables[tableIndex];
-      if (table is ir.DefinedTable) {
-        final count = d.readUnsigned();
-        for (int j = 0; j < count; j++) {
-          late ir.BaseFunction func;
-          if (tableIndex == 0) {
-            final funcIndex = d.readUnsigned();
-            func = functions[funcIndex];
-          } else {
-            final funcInitializer =
-                ir.Instructions.deserializeConst(d, types, functions, globals);
-            final refFunc = funcInitializer.instructions.single as ir.RefFunc;
-            func = refFunc.function;
-          }
-          if (table.elements.length <= offset + j) {
-            table.elements.length = offset + j + 1;
-          }
-          table.elements[offset + j] = func;
-        }
-      } else {
-        throw "unsupported table type";
+      if (byte == 0x04 || byte == 0x06) {
+        // Active element, table values are expressions.
+        final es = ir.ActiveExpressionElementSegment.deserialize(
+            d, module, types, functions, tables, globals);
+        segments.add(es);
+        continue;
       }
     }
 
-    functions.declared = declaredFunctions;
+    return ir.Elements(segments);
   }
 }
 

@@ -4900,7 +4900,7 @@ Fragment FlowGraphBuilder::LoadTail(LocalVariable* variable,
                                     intptr_t offset_in_bytes,
                                     Representation representation) {
   Fragment body;
-  if (size == 8 || size == 4) {
+  if (representation == kUnboxedFloat || representation == kUnboxedDouble) {
     body += LoadLocal(variable);
     body += LoadTypedDataBaseFromCompound();
     body += LoadLocal(variable);
@@ -4911,8 +4911,6 @@ Fragment FlowGraphBuilder::LoadTail(LocalVariable* variable,
                                         /*index_unboxed=*/false);
     return body;
   }
-  ASSERT(representation != kUnboxedFloat);
-  ASSERT(representation != kUnboxedDouble);
   intptr_t shift = 0;
   intptr_t remaining = size;
   auto step = [&](intptr_t part_bytes, intptr_t part_cid) {

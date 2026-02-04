@@ -32,6 +32,7 @@ front_end/DuplicatedDeclarationUse/script2: hasOnlyUnrelatedMessages # Seemingly
 front_end/DynamicCallsAreNotAllowedInDynamicModule/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ExceptionReadingFile/example: missingExample # Requires an exception (generally not a FileSystemException) to occur when reading a file.
 front_end/ExpectedBlockToSkip/example: missingExample # Seemingly only used when skipping a block in a special parser.
+front_end/ExpectedButGot2/example: missingExample # Only used in experimental code.
 front_end/ExpectedOneExpression/example: missingExample # Used via expression compilation.
 _fe_analyzer_shared/ExpectedStatement/part_wrapped_statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
 _fe_analyzer_shared/ExpectedStatement/statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
@@ -67,7 +68,6 @@ _fe_analyzer_shared/InvalidSuperInInitializer/example: missingExample # Only iss
 _fe_analyzer_shared/InvalidThisInInitializer/example: missingExample # Only issued in Analyzer
 front_end/JsInteropDartClassExtendsJSClass/example: missingExample # Web compiler specific
 front_end/JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: missingExample # Web compiler specific
-front_end/JsInteropDisallowedInteropLibraryInDart2Wasm/example: missingExample # Web compiler specific
 front_end/JsInteropEnclosingClassJSAnnotation/example: missingExample # Web compiler specific
 front_end/JsInteropExportClassNotMarkedExportable/example: missingExample # Web compiler specific
 front_end/JsInteropExportDartInterfaceHasNonEmptyJSExportValue/example: missingExample # Web compiler specific

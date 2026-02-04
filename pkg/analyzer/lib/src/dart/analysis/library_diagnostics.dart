@@ -9,6 +9,7 @@ import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/requirements.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// The diagnostics for a library, and the requirements for using them.
@@ -20,7 +21,6 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// Otherwise, we need to re-analyze the library.
 class LibraryDiagnosticsBundle {
   final ManifestItemId id;
-  final RequirementsManifestDigest requirementsDigest;
   final Uint8List requirementsBytes;
   RequirementsManifest? _requirements;
 
@@ -34,7 +34,6 @@ class LibraryDiagnosticsBundle {
     reader.initFromTableTrailer();
     return LibraryDiagnosticsBundle._(
       id: ManifestItemId.read(reader),
-      requirementsDigest: RequirementsManifestDigest.read(reader),
       requirementsBytes: reader.readUint8List(),
       serializedFileResults: reader.readMap(
         readKey: () => reader.readUri(),
@@ -45,13 +44,27 @@ class LibraryDiagnosticsBundle {
 
   LibraryDiagnosticsBundle._({
     required this.id,
-    required this.requirementsDigest,
     required this.requirementsBytes,
     required this.serializedFileResults,
   });
 
   RequirementsManifest get requirements {
     return _requirements ??= RequirementsManifest.fromBytes(requirementsBytes);
+  }
+
+  bool isDigestSatisfied({
+    required ByteStore byteStore,
+    required LinkedElementFactory elementFactory,
+    required String bundleKey,
+  }) {
+    var digestKey = _getDigestKey(bundleKey);
+    var digestBytes = byteStore.get(digestKey);
+    if (digestBytes == null) {
+      return false;
+    }
+
+    var digest = RequirementsManifestDigest.fromBytes(digestBytes);
+    return digest.bundleId == id && digest.isSatisfied(elementFactory);
   }
 
   static void write({
@@ -64,9 +77,6 @@ class LibraryDiagnosticsBundle {
   }) {
     var writer = BinaryWriter();
     id.write(writer);
-
-    var requirementsDigest = requirements.toDigest();
-    requirementsDigest.write(writer);
 
     var requirementsBytes = requirements.toBytes();
     writer.writeUint8List(requirementsBytes);
@@ -82,5 +92,25 @@ class LibraryDiagnosticsBundle {
 
     performance.getDataInt('bytes').add(bytes.length);
     byteStore.putGet(key, bytes);
+  }
+
+  /// Writes the digest of [requirements] under a separate key.
+  static void writeDigest({
+    required ByteStore byteStore,
+    required LinkedElementFactory elementFactory,
+    required String bundleKey,
+    required ManifestItemId bundleId,
+    required RequirementsManifest requirements,
+  }) {
+    byteStore.putGet(
+      _getDigestKey(bundleKey),
+      requirements
+          .toDigest(elementFactory: elementFactory, bundleId: bundleId)
+          .toBytes(),
+    );
+  }
+
+  static String _getDigestKey(String bundleKey) {
+    return '$bundleKey.digest';
   }
 }

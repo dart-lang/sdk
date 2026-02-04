@@ -58,7 +58,47 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
     expect(actual, expected);
   }
 
-  test_class_constructorElement_unnamed_implicitInvocation() async {
+  test_class_constructorElement_methodElement_sameName() async {
+    await _indexTestUnit('''
+class A {
+  A.base() {
+    base();
+  }
+
+  A base() => A.base();
+}
+''');
+
+    var constructor = findElement2.constructor('base');
+    assertElementIndexText(constructor, r'''
+55 6:16 |.base| IS_INVOKED_BY qualified
+''');
+    var method = findElement2.method('base');
+    assertElementIndexText(method, r'''
+27 3:5 |base| IS_INVOKED_BY
+''');
+  }
+
+  test_class_constructorElement_newHead_implicitInvocation() async {
+    await _indexTestUnit('''
+class A {
+  A();
+}
+
+class B extends A {
+  new ();
+  new named();
+}
+''');
+
+    var element = findElement2.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+42 6:3 |new| IS_INVOKED_BY qualified
+52 7:3 |new named| IS_INVOKED_BY qualified
+''');
+  }
+
+  test_class_constructorElement_typeName_implicitInvocation() async {
     await _indexTestUnit('''
 class A {
   A();
@@ -803,8 +843,8 @@ class A {
 ''');
     var element = findElement2.getter('foo');
     assertElementIndexText(element, r'''
-35 2:16 |foo| IS_REFERENCED_BY qualified
-62 3:16 || IS_REFERENCED_BY qualified
+35 2:16 |foo| IS_REFERENCED_BY_PATTERN_FIELD qualified
+62 3:16 || IS_REFERENCED_BY_PATTERN_FIELD qualified
 ''');
   }
 
@@ -821,8 +861,8 @@ class A {
 ''');
     var element = findElement2.method('foo');
     assertElementIndexText(element, r'''
-35 2:16 |foo| IS_REFERENCED_BY qualified
-62 3:16 || IS_REFERENCED_BY qualified
+35 2:16 |foo| IS_REFERENCED_BY_PATTERN_FIELD qualified
+62 3:16 || IS_REFERENCED_BY_PATTERN_FIELD qualified
 ''');
   }
 

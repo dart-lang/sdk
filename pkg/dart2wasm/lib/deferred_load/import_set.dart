@@ -1,0 +1,241 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:kernel/kernel.dart';
+
+/// Indirectly represents a deferred import in an [ImportSet].
+///
+/// We could directly store the [declaration] in [ImportSet], but adding this
+/// class makes some of the import set operations more efficient.
+class _DeferredImport {
+  final LibraryDependency declaration;
+
+  /// Canonical index associated with [declaration]. This is used to efficiently
+  /// implement [ImportSetLattice.union].
+  final int index;
+
+  _DeferredImport(this.declaration, this.index);
+}
+
+/// A compact lattice representation of import sets and subsets.
+///
+/// We use a graph of nodes to represent elements of the lattice, but only
+/// create new nodes on-demand as they are needed by the deferred loading
+/// algorithm.
+///
+/// The constructions of nodes is carefully done by storing imports in a
+/// specific order. This ensures that we have a unique and canonical
+/// representation for each subset.
+class ImportSetLattice {
+  /// A map of [LibraryDependency] to its initial [ImportSet].
+  final Map<LibraryDependency, ImportSet> initialSets = {};
+
+  /// Index of deferred imports that defines the canonical order used by the
+  /// operations below.
+  final Map<LibraryDependency, _DeferredImport> _importIndex = {};
+
+  /// The canonical instance representing the empty import set.
+  final ImportSet emptySet = _EmptyImportSet();
+
+  /// The [ImportSet] representing the root output unit.
+  late ImportSet _rootSet;
+  ImportSet get rootSet {
+    assert(_rootSet.part != null);
+    return _rootSet;
+  }
+
+  /// Get the smallest [ImportSet] that contains [import]. When
+  /// unconstrained, this [ImportSet] is a singleton [ImportSet] containing
+  /// only the supplied [LibraryDependency]. However, when constrained the returned
+  /// [ImportSet] may contain multiple [LibraryDependency]s.
+  ImportSet initialSetOf(LibraryDependency import) =>
+      initialSets[import] ??= _singleton(import);
+
+  /// A private method to generate a true singleton [ImportSet] for a given
+  /// [LibraryDependency].
+  ImportSet _singleton(LibraryDependency import) {
+    // Ensure we have import in the index.
+    return emptySet._add(_wrap(import));
+  }
+
+  /// A helper method to convert a [Set<LibraryDependency>] to an [ImportSet].
+  ImportSet setOfImportsToImportSet(Set<LibraryDependency> setOfImports) {
+    List<_DeferredImport> imports = setOfImports.map(_wrap).toList();
+    imports.sort((a, b) => a.index - b.index);
+    var result = emptySet;
+    for (var import in imports) {
+      result = result._add(import);
+    }
+    return result;
+  }
+
+  /// Builds the [rootSet] which contains transitions for all other deferred
+  /// imports as well as [rootImport].
+  void buildRootSet(
+    LibraryDependency rootImport,
+    Part rootPart,
+    Iterable<LibraryDependency> allDeferredImports,
+  ) {
+    _rootSet = setOfImportsToImportSet({rootImport, ...allDeferredImports});
+    _rootSet.part = rootPart;
+    initialSets[rootImport] = _rootSet;
+  }
+
+  /// Get the import set that includes the union of [a] and [b].
+  ImportSet union(ImportSet a, ImportSet b) {
+    if (a is _EmptyImportSet) return b;
+    if (b is _EmptyImportSet) return a;
+
+    // Create the union by merging the imports in canonical order. The sets are
+    // basically lists linked by the `_previous` field in reverse order. We do a
+    // merge-like scan 'backwards' removing the biggest element until we hit an
+    // empty set or a common prefix, and the add the 'merge-sorted' elements
+    // back onto the prefix.
+    ImportSet result;
+    // 'removed' imports in decreasing canonical order.
+    List<_DeferredImport> imports = [];
+
+    while (true) {
+      if (a is! _NonEmptyImportSet) {
+        result = b;
+        break;
+      }
+      if (b is! _NonEmptyImportSet || identical(a, b)) {
+        result = a;
+        break;
+      }
+      if (a._import.index > b._import.index) {
+        imports.add(a._import);
+        a = a._previous;
+      } else if (b._import.index > a._import.index) {
+        imports.add(b._import);
+        b = b._previous;
+      } else {
+        assert(identical(a._import, b._import));
+        imports.add(a._import);
+        a = a._previous;
+        b = b._previous;
+      }
+    }
+
+    // Add merged elements back in reverse order. It is tempting to pop them off
+    // with `removeLast()` but that causes measurable shrinking reallocations.
+    for (int i = imports.length - 1; i >= 0; i--) {
+      result = result._add(imports[i]);
+    }
+    return result;
+  }
+
+  /// Get the index for an [import] according to the canonical order.
+  _DeferredImport _wrap(LibraryDependency import) {
+    return _importIndex[import] ??= _DeferredImport(
+      import,
+      _importIndex.length,
+    );
+  }
+}
+
+/// A canonical set of deferred imports.
+abstract class ImportSet {
+  /// Links to other import sets in the lattice by adding one import.
+  final Map<_DeferredImport, _NonEmptyImportSet> _transitions = {};
+
+  /// The output unit corresponding to this set of imports, if any.
+  Part? part;
+
+  int get length;
+
+  /// Returns an iterable over the imports in this set in canonical order.
+  Iterable<_DeferredImport> _collectImports() {
+    List<_DeferredImport> result = [];
+    ImportSet current = this;
+    while (current is _NonEmptyImportSet) {
+      result.add(current._import);
+      current = current._previous;
+    }
+    assert(result.length == length);
+    return result.reversed;
+  }
+
+  /// Returns true if this [ImportSet] contains all of [other].
+  bool containsAll(ImportSet other) {
+    var current = this;
+    while (true) {
+      if (other is! _NonEmptyImportSet) return true;
+      if (current is! _NonEmptyImportSet) return false;
+
+      if (current._import.index > other._import.index) {
+        current = current._previous;
+      } else if (other._import.index > current._import.index) {
+        return false;
+      } else {
+        assert(current._import.index == other._import.index);
+        current = current._previous;
+        other = other._previous;
+      }
+    }
+  }
+
+  /// Create an import set that adds [import] to all the imports on this set.
+  /// This assumes that import's canonical order comes after all imports in
+  /// this current set. This should only be called from [ImportSetLattice],
+  /// since it is where we preserve this invariant.
+  ImportSet _add(_DeferredImport import) {
+    var self = this;
+    assert(self is! _NonEmptyImportSet || import.index > self._import.index);
+    return _transitions[import] ??= _NonEmptyImportSet(
+      import,
+      this,
+      length + 1,
+    );
+  }
+
+  @override
+  String toString() {
+    StringBuffer sb = StringBuffer();
+    sb.write('ImportSet(size: $length, ');
+    for (var import in _collectImports()) {
+      sb.write('${import.declaration.name} ');
+    }
+    sb.write(')');
+    return '$sb';
+  }
+
+  /// Converts an [ImportSet] to a [Set<LibraryDependency>].
+  /// Note: Not for performance sensitive code.
+  Set<LibraryDependency> toSet() =>
+      _collectImports().map((i) => i.declaration).toSet();
+}
+
+class _NonEmptyImportSet extends ImportSet {
+  /// Last element added to set.
+  ///
+  /// This set comprises [_import] appended onto [_previous]. *Note*: [_import]
+  /// is the last element in the set in the canonical order imposed by
+  /// [ImportSetLattice].
+  final _DeferredImport _import;
+
+  /// The set containing all previous elements.
+  final ImportSet _previous;
+
+  @override
+  final int length;
+
+  _NonEmptyImportSet(this._import, this._previous, this.length);
+}
+
+class _EmptyImportSet extends ImportSet {
+  @override
+  int get length => 0;
+}
+
+class Part {
+  /// Whether this [Part] contains the roots.
+  final bool isRoot;
+
+  /// The deferred imports that use the elements in this output unit.
+  final Set<LibraryDependency> imports;
+
+  Part(this.isRoot, this.imports);
+}

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
@@ -134,7 +135,6 @@ class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
     if (_isCodeUnignorable) return;
 
     await builder.addDartFileEdit(file, (builder) {
-      var eol = builder.eol;
       var source = unitResult.content;
 
       // Look for the last blank line in any leading comments (to insert after
@@ -153,23 +153,34 @@ class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
       for (var lineNumber = 0; lineNumber < lineCount - 1; lineNumber++) {
         lineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber);
         var nextLineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber + 1);
-        var line = source.substring(lineStart, nextLineStart).trim();
+        var line = source.substring(lineStart, nextLineStart);
+        var trimmedLine = line.trim();
 
-        if (line.startsWith('// $commentPrefix:')) {
-          // Found an existing ignore; insert at the end of this line.
-          builder.addSimpleInsertion(nextLineStart - eol.length, ', $_code');
+        if (trimmedLine.startsWith(IgnoreInfo.ignoreForFileMatcher)) {
+          // Found an existing ignore; insert after `// ignore_for_file: `
+          // before any existing codes.
+          var insertOffset = lineStart + line.indexOf(':') + 1;
+          builder.addSimpleInsertion(insertOffset, ' $_code,');
           return;
         }
 
-        if (line.isEmpty) {
+        if (trimmedLine.isEmpty) {
           // Track last blank line, as we will insert there.
           lastBlankLineOffset = lineStart;
           continue;
         }
 
-        if (line.startsWith('#!') || line.startsWith('//')) {
+        if (trimmedLine.startsWith('#!') || trimmedLine.startsWith('//')) {
           // Skip comment/hash-bang.
           continue;
+        }
+
+        if (utils.findNode(lineStart) case var node?) {
+          var unitMember = node.thisOrAncestorOfType<CompilationUnitMember>();
+          var reference = unitMember?.documentationComment ?? node;
+          lineStart = reference.offset;
+          // Found code with possible doc-comment; insert before that.
+          break;
         }
 
         // We found some code.
@@ -201,7 +212,6 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
     if (_isCodeUnignorable) return;
 
     await builder.addDartFileEdit(file, (builder) {
-      var eol = builder.eol;
       var offset = diagnostic.problemMessage.offset;
       var lineNumber = unitResult.lineInfo.getLocation(offset).lineNumber - 1;
 
@@ -216,12 +226,12 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
         lineNumber - 1,
       );
       var lineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber);
-      var line = unitResult.content
-          .substring(previousLineStart, lineStart)
-          .trim();
+      var line = unitResult.content.substring(previousLineStart, lineStart);
 
-      if (line.startsWith(IgnoreInfo.ignoreMatcher)) {
-        builder.addSimpleInsertion(lineStart - eol.length, ', $_code');
+      if (line.trim().startsWith(IgnoreInfo.ignoreMatcher)) {
+        // Add after the `// ignore: ` before any existing codes.
+        var insertOffset = previousLineStart + line.indexOf(':') + 1;
+        builder.addSimpleInsertion(insertOffset, ' $_code,');
       } else {
         insertAt(builder, lineStart);
       }
@@ -243,7 +253,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   @override
   List<String> get fixArguments => [_code];
 
-  String get _code => diagnostic.diagnosticCode.name.toLowerCase();
+  String get _code => diagnostic.diagnosticCode.lowerCaseName;
 
   /// Returns `true` if any of the following is `true`:
   /// - `error.code` is present in the `cannot-ignore` list.
@@ -251,7 +261,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   bool get _isCodeUnignorable {
     var cannotIgnore = (analysisOptions as AnalysisOptionsImpl)
         .unignorableDiagnosticCodeNames
-        .contains(diagnostic.diagnosticCode.name);
+        .contains(diagnostic.diagnosticCode.lowerCaseName);
 
     if (cannotIgnore) {
       return true;
@@ -263,7 +273,9 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
     // Note: both `ignore` and `false` severity are set to `null` when parsed.
     //       See `ErrorConfig` in `pkg/analyzer/source/error_processor.dart`.
     return analysisOptions.errorProcessors.any(
-      (e) => e.severity == null && e.code == diagnostic.diagnosticCode.name,
+      (e) =>
+          e.severity == null &&
+          e.code == diagnostic.diagnosticCode.lowerCaseName,
     );
   }
 }

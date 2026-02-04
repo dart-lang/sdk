@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,7 +29,7 @@ main() {
   A._foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.privateSetter, 31, 4)],
+      [error(diag.privateSetter, 31, 4)],
     );
 
     var assignment = findNode.assignment('_foo =');
@@ -90,7 +90,7 @@ main() {
   A._foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.privateSetter, 31, 4)],
+      [error(diag.privateSetter, 31, 4)],
     );
 
     var assignment = findNode.assignment('_foo =');
@@ -136,7 +136,7 @@ main() {
   A._foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.privateSetter, 31, 4)],
+      [error(diag.privateSetter, 31, 4)],
     );
 
     var assignment = findNode.assignment('_foo =');

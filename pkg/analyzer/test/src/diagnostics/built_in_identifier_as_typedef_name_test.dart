@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +22,7 @@ class A {}
 mixin B {}
 class as = A with B;
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 28, 2)],
+      [error(diag.builtInIdentifierAsTypedefName, 28, 2)],
     );
   }
 
@@ -33,8 +32,8 @@ class as = A with B;
 typedef void as();
 ''',
       [
-        error(ParserErrorCode.expectedIdentifierButGotKeyword, 13, 2),
-        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 13, 2),
+        error(diag.expectedIdentifierButGotKeyword, 13, 2),
+        error(diag.builtInIdentifierAsTypedefName, 13, 2),
       ],
     );
   }
@@ -45,8 +44,8 @@ typedef void as();
 typedef void as();
 ''',
       [
-        error(ParserErrorCode.expectedIdentifierButGotKeyword, 13, 2),
-        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 13, 2),
+        error(diag.expectedIdentifierButGotKeyword, 13, 2),
+        error(diag.builtInIdentifierAsTypedefName, 13, 2),
       ],
     );
   }
@@ -57,8 +56,8 @@ typedef void as();
 typedef as = void Function();
 ''',
       [
-        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 8, 2),
-        error(ParserErrorCode.expectedIdentifierButGotKeyword, 8, 2),
+        error(diag.builtInIdentifierAsTypedefName, 8, 2),
+        error(diag.expectedIdentifierButGotKeyword, 8, 2),
       ],
     );
   }
@@ -69,8 +68,8 @@ typedef as = void Function();
 typedef as = List<int>;
 ''',
       [
-        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 8, 2),
-        error(ParserErrorCode.expectedIdentifierButGotKeyword, 8, 2),
+        error(diag.builtInIdentifierAsTypedefName, 8, 2),
+        error(diag.expectedIdentifierButGotKeyword, 8, 2),
       ],
     );
   }
@@ -81,8 +80,8 @@ typedef as = List<int>;
 typedef Function = List<int>;
 ''',
       [
-        error(CompileTimeErrorCode.builtInIdentifierAsTypedefName, 8, 8),
-        error(ParserErrorCode.expectedIdentifierButGotKeyword, 8, 8),
+        error(diag.builtInIdentifierAsTypedefName, 8, 8),
+        error(diag.expectedIdentifierButGotKeyword, 8, 8),
       ],
     );
   }

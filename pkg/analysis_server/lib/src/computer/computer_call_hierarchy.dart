@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
@@ -120,7 +121,7 @@ class CallHierarchyItem {
   static SourceRange _codeRangeForElement(Element element) {
     // For synthetic items (like implicit constructors), use the nonSynthetic
     // element for the location.
-    element = _nonSynthetic(element);
+    element = element.nonSynthetic;
     var fragment = element.firstFragment as FragmentImpl;
 
     // Non-synthetic elements should always have code locations.
@@ -133,7 +134,7 @@ class CallHierarchyItem {
   static SourceRange _nameRangeForElement(Element element) {
     // For synthetic items (like implicit constructors), use the nonSynthetic
     // element for the location.
-    element = _nonSynthetic(element);
+    element = element.nonSynthetic;
     var fragment = element.firstFragment as FragmentImpl;
 
     var nameOffset = fragment.nameOffset;
@@ -152,14 +153,6 @@ class CallHierarchyItem {
     }
 
     return SourceRange(0, 0);
-  }
-
-  static Element _nonSynthetic(Element element) {
-    element = element.nonSynthetic;
-    if (element.isSynthetic) {
-      element = element.enclosingElement ?? element;
-    }
-    return element;
   }
 }
 
@@ -342,32 +335,23 @@ class DartCallHierarchyComputer {
   /// Finds a target node for call hierarchy navigation at [offset].
   AstNode? _findTargetNode(int offset) {
     var node = _result.unit.nodeCovering(offset: offset);
-    if (node is SimpleIdentifier &&
-        node.parent != null &&
-        node.parent is! VariableDeclaration &&
-        node.parent is! AssignmentExpression) {
-      node = node.parent;
-    }
 
     // For consistency with other places, we only treat the type name as the
     // constructor for unnamed constructor (since we use the constructors name
-    // as the target).
-    if (node is NamedType) {
-      var parent = node.parent;
-      if (parent is ConstructorName) {
-        var name = parent.name;
-        if (name != null && offset < name.offset) {
-          return null;
-        }
-      }
-    } else if (node is ConstructorDeclaration) {
-      var name = node.name;
-      if (name != null && offset < name.offset) {
-        return null;
-      }
-    }
-
-    return node;
+    // as the target otherwise).
+    return switch (node) {
+      // Type name in a named constructor reference, not considered a call.
+      NamedType(parent: ConstructorName(:var name?))
+          when offset < name.offset =>
+        null,
+      // Type name in a named constructor declaration, not considered a call.
+      Identifier(parent: ConstructorDeclaration(:var name?))
+          when offset < name.offset =>
+        null,
+      // Type name in an unnamed constructor declaration, use the constructor.
+      Identifier(parent: ConstructorDeclaration(name: null)) => node.parent,
+      _ => node,
+    };
   }
 
   /// Return the [Element] of the given [node], or `null` if [node] is `null`,
@@ -393,7 +377,7 @@ class DartCallHierarchyComputer {
 
     // Don't consider synthetic getter/setter for a field to be executable
     // since they don't contain any executable code.
-    if (element is PropertyAccessorElement && element.isSynthetic) {
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
       return null;
     }
 

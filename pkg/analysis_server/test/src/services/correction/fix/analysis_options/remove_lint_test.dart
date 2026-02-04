@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,11 +17,12 @@ void main() {
   });
 }
 
-class DeprecatedRule extends LintRule {
+class DeprecatedRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'deprecated_rule',
     'Deprecated rule.',
     correctionMessage: 'Try deprecated rule.',
+    uniqueName: 'LintCode.deprecated_rule',
   );
 
   DeprecatedRule()
@@ -35,25 +36,11 @@ class DeprecatedRule extends LintRule {
   DiagnosticCode get diagnosticCode => code;
 }
 
-class RemovedRule extends LintRule {
-  static const LintCode code = LintCode(
-    'removed_rule',
-    'Removed rule.',
-    correctionMessage: 'Try removed rule.',
-  );
-
-  RemovedRule()
-    : super(name: 'removed_rule', description: '', state: RuleState.removed());
-
-  @override
-  DiagnosticCode get diagnosticCode => code;
-}
-
 @reflectiveTest
 class RemoveLintTest extends AnalysisOptionsFixTest with LintRegistrationMixin {
   // Keep track of these rules so they can be unregistered in `tearDown`.
   var deprecatedRule = DeprecatedRule();
-  var removedRule = RemovedRule();
+  var removedRule = RemovedAnalysisRule(name: 'removed_rule', description: '');
 
   void setUp() {
     registerLintRules();

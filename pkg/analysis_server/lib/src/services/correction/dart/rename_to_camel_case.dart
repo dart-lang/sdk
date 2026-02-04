@@ -27,10 +27,10 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_newName];
 
   @override
-  FixKind get fixKind => DartFixKind.RENAME_TO_CAMEL_CASE;
+  FixKind get fixKind => DartFixKind.renameToCamelCase;
 
   @override
-  FixKind get multiFixKind => DartFixKind.RENAME_TO_CAMEL_CASE_MULTI;
+  FixKind get multiFixKind => DartFixKind.renameToCamelCaseMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

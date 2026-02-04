@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -69,7 +68,7 @@ class ContextBuilderImpl {
   /// summary file for the SDK.
   DriverBasedAnalysisContext createContext({
     ByteStore? byteStore,
-    required ContextRoot contextRoot,
+    required ContextRootImpl contextRoot,
     bool definedOptionsFile = false,
     DeclaredVariables? declaredVariables,
     bool drainStreams = true,
@@ -187,7 +186,7 @@ class ContextBuilderImpl {
 
   /// Create an [AnalysisOptionsMap] for the given [contextRoot].
   AnalysisOptionsMap _createOptionsMap(
-    ContextRoot contextRoot,
+    ContextRootImpl contextRoot,
     SourceFactory sourceFactory,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
@@ -204,17 +203,17 @@ class ContextBuilderImpl {
       }
     }
 
-    var optionsMappings =
-        (contextRoot as ContextRootImpl).optionsFileMap.entries;
-    for (var entry in optionsMappings) {
-      var file = entry.value;
+    var optionsMappings = contextRoot.optionsFileMap.entries;
+    for (var MapEntry(key: file, value: folders) in optionsMappings) {
       var options = AnalysisOptionsImpl.fromYaml(
         optionsMap: provider.getOptionsFromFile(file),
         file: file,
         resourceProvider: resourceProvider,
       );
 
-      _optionsMap.add(entry.key, options);
+      for (var folder in folders) {
+        _optionsMap.add(folder, options);
+      }
     }
 
     _optionsMap.forEachOptionsObject(updateOptions);
@@ -224,7 +223,7 @@ class ContextBuilderImpl {
   /// Return [Packages] to analyze the [contextRoot].
   ///
   // TODO(scheglov): Get [Packages] from [Workspace]?
-  Packages _createPackageMap({required ContextRoot contextRoot}) {
+  Packages _createPackageMap({required ContextRootImpl contextRoot}) {
     var packagesFile = contextRoot.packagesFile;
     if (packagesFile != null) {
       return parsePackageConfigJsonFile(resourceProvider, packagesFile);
@@ -279,7 +278,7 @@ class ContextBuilderImpl {
   ///
   // TODO(scheglov): We have already loaded it once in [ContextLocatorImpl].
   AnalysisOptionsImpl _getAnalysisOptions(
-    ContextRoot contextRoot,
+    ContextRootImpl contextRoot,
     File? optionsFile,
     SourceFactory sourceFactory,
     DartSdk sdk,

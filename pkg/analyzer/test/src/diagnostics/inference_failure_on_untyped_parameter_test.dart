@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,7 +14,7 @@ main() {
   });
 }
 
-/// Tests of WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER with the
+/// Tests of [diag.inferenceFailureOnUntypedParameter] with the
 /// "strict-inference" static analysis option.
 @reflectiveTest
 class InferenceFailureOnUntypedParameterTest extends PubPackageResolutionTest {
@@ -26,11 +26,26 @@ class InferenceFailureOnUntypedParameterTest extends PubPackageResolutionTest {
     );
   }
 
+  test_declaringParameter() async {
+    await assertErrorsInCode(
+      r'''
+class C(final a);
+''',
+      [error(diag.inferenceFailureOnUntypedParameter, 8, 7)],
+    );
+  }
+
+  test_declaringParameter_withType() async {
+    await assertNoErrorsInCode(r'''
+class C(final int a);
+''');
+  }
+
   test_fieldParameter() async {
     await assertNoErrorsInCode(r'''
 class C {
   int a;
-  C(this.a) {}
+  C(this.a);
 }
 ''');
   }
@@ -46,7 +61,7 @@ void fn(String cb(int x)) => print(cb(7));
       r'''
 void fn(String cb(var x)) => print(cb(7));
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 18, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 18, 5)],
     );
   }
 
@@ -61,7 +76,7 @@ void fn({int a = 0}) => print(a);
       r'''
 void fn({var a}) => print(a);
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 9, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 9, 5)],
     );
   }
 
@@ -76,7 +91,7 @@ void fn({var a}) {}
       r'''
 void fn(a) => print(a);
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 8, 1)],
+      [error(diag.inferenceFailureOnUntypedParameter, 8, 1)],
     );
   }
 
@@ -89,7 +104,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 14, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 14, 5)],
     );
   }
 
@@ -122,7 +137,7 @@ class C {
   C(var a) : assert(a != null);
 }
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 14, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 14, 5)],
     );
   }
 
@@ -150,8 +165,8 @@ void fn() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 18, 1),
-        error(WarningCode.inferenceFailureOnUntypedParameter, 23, 5),
+        error(diag.unusedLocalVariable, 18, 1),
+        error(diag.inferenceFailureOnUntypedParameter, 23, 5),
       ],
     );
   }
@@ -193,7 +208,7 @@ class C {
   void fn(var a) => print(a);
 }
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 20, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 20, 5)],
     );
   }
 
@@ -204,7 +219,7 @@ abstract class C {
   void fn(var a);
 }
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 29, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 29, 5)],
     );
   }
 
@@ -286,7 +301,7 @@ class D extends C {
       r'''
 typedef void cb(a);
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 16, 1)],
+      [error(diag.inferenceFailureOnUntypedParameter, 16, 1)],
     );
   }
 
@@ -301,7 +316,7 @@ typedef cb = void Function(int a);
       r'''
 void fn(a) => print(a);
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 8, 1)],
+      [error(diag.inferenceFailureOnUntypedParameter, 8, 1)],
     );
   }
 
@@ -322,7 +337,7 @@ void fn([int a = 7]) => print(a);
       r'''
 void fn(var a) => print(a);
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 8, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 8, 5)],
     );
   }
 
@@ -331,7 +346,19 @@ void fn(var a) => print(a);
       r'''
 void fn([var a = 7]) => print(a);
 ''',
-      [error(WarningCode.inferenceFailureOnUntypedParameter, 9, 5)],
+      [error(diag.inferenceFailureOnUntypedParameter, 9, 5)],
     );
+  }
+
+  test_superParameter() async {
+    await assertNoErrorsInCode(r'''
+abstract class C {
+  int a;
+  C(this.a);
+}
+class D extends C {
+  D(super.a);
+}
+''');
   }
 }

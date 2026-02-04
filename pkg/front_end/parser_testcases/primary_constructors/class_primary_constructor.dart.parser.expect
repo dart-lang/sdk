@@ -1,0 +1,15 @@
+class C() {}
+class const C() {}
+class C<T>() {}
+class const C<T>() {}
+class C<T>.named() {}
+class const C<T>.named() {}
+
+
+class[KeywordToken] C[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] const[KeywordToken] C[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] const[KeywordToken] C[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] C[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+class[KeywordToken] const[KeywordToken] C[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

@@ -36,7 +36,7 @@ var s1 = 'b' 'c';
 @reflectiveTest
 class RemoveOperatorTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_OPERATOR;
+  FixKind get kind => DartFixKind.removeOperator;
 
   @override
   String get lintCode => LintNames.prefer_adjacent_string_concatenation;

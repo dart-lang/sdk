@@ -372,6 +372,11 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
 
     // SAFETY: if we can reference the element, it has a name.
     var topLevelName = topLevelElement.lookupName!.asLookupName;
+
+    if (manifest.declaredConflicts[topLevelName] case var id?) {
+      return id;
+    }
+
     ManifestItem? topLevelItem;
     switch (topLevelElement) {
       case ClassElement():

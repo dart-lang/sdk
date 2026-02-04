@@ -77,7 +77,7 @@ abstract class FragmentFactory {
     List<TypeParameterFragment>? typeParameters,
   );
 
-  void beginEnumDeclarationHeader(String name);
+  void beginEnumDeclarationHeader();
 
   /// Registers that this builder is preparing for an enum declaration with
   /// the given [name] and [typeParameters] located at [nameOffset].
@@ -324,15 +324,13 @@ abstract class FragmentFactory {
     required int nameOffset,
     required int formalsOffset,
     required Modifiers modifiers,
-    required bool inConstructor,
     required bool isStatic,
-    required bool isConstructor,
     required bool forAbstractClassOrMixin,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
     required AsyncMarker asyncModifier,
     required String? nativeMethodName,
-    required ProcedureKind? kind,
+    required ProcedureKind kind,
   });
 
   void addConstructor({
@@ -340,7 +338,6 @@ abstract class FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required Modifiers modifiers,
     required Identifier identifier,
-    required ConstructorName constructorName,
     required List<TypeParameterFragment>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required int startOffset,
@@ -348,6 +345,7 @@ abstract class FragmentFactory {
     required int endOffset,
     required String? nativeMethodName,
     required Token? beginInitializers,
+    required bool hasNewKeyword,
     required bool forAbstractClassOrMixin,
   });
 
@@ -364,6 +362,7 @@ abstract class FragmentFactory {
 
   void addPrimaryConstructorField({
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required TypeBuilder type,
     required String name,
     required int nameOffset,
@@ -387,7 +386,8 @@ abstract class FragmentFactory {
   ConstructorName computeAndValidateConstructorName(
     DeclarationFragmentImpl enclosingDeclaration,
     Identifier identifier, {
-    isFactory = false,
+    bool hasNewKeyword = false,
+    bool isFactory = false,
   });
 
   void addMethod({
@@ -466,6 +466,7 @@ abstract class FragmentFactory {
     Modifiers modifiers,
     TypeBuilder type,
     String name,
+    String? publicName,
     bool hasThis,
     bool hasSuper,
     int charOffset,

@@ -41,7 +41,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
   bool get isExperimental => false;
 
   @override
-  CodeActionKind get kind => DartCodeActionKind.RefactorMove;
+  CodeActionKind get kind => DartCodeActionKind.refactorMove;
 
   @override
   List<CommandParameter> get parameters => [
@@ -260,38 +260,53 @@ class MoveTopLevelToFile extends RefactoringProducer {
     }
 
     var candidateMembers = <CompilationUnitMember, String?>{};
-    var sealedDeclarations = <CompilationUnitMember>[];
     for (var node in selectedNodes) {
-      String? name;
-      if (node is ClassDeclaration && validSelection(node.name)) {
-        if (node.sealedKeyword != null) {
-          sealedDeclarations.add(node);
-        }
-        name = node.name.lexeme;
-      } else if (node is EnumDeclaration && validSelection(node.name)) {
-        name = node.name.lexeme;
-      } else if (node is ExtensionDeclaration && validSelection(node.name)) {
-        name = node.name?.lexeme;
-      } else if (node is ExtensionTypeDeclaration &&
-          validSelection(node.name)) {
-        name = node.name.lexeme;
-      } else if (node is FunctionDeclaration &&
-          node.parent is CompilationUnit &&
-          validSelection(node.name)) {
-        name = node.name.lexeme;
-      } else if (node is MixinDeclaration && validSelection(node.name)) {
-        name = node.name.lexeme;
-      } else if (node is TopLevelVariableDeclaration) {
-        var variables = node.variables.variables;
-        if (variables.length == 1) {
-          name = variables[0].name.lexeme;
-        }
-      } else if (node is TypeAlias && validSelection(node.name)) {
-        name = node.name.lexeme;
-      } else {
-        return null;
+      Token? nameToken;
+      switch (node) {
+        case ClassDeclaration():
+          nameToken = node.namePart.typeName;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case EnumDeclaration():
+          nameToken = node.namePart.typeName;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case ExtensionDeclaration():
+          nameToken = node.name;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case ExtensionTypeDeclaration():
+          nameToken = node.primaryConstructor.typeName;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case FunctionDeclaration():
+          nameToken = node.name;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case MixinDeclaration():
+          nameToken = node.name;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case TopLevelVariableDeclaration():
+          if (node.variables.variables.length == 1) {
+            nameToken = node.variables.variables.first.name;
+          }
+        // No check for selection.
+        case TypeAlias():
+          nameToken = node.name;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        default:
+          return null;
       }
-      candidateMembers[node] = name;
+      candidateMembers[node] = nameToken?.lexeme;
     }
 
     var index = _SealedSubclassIndex(
@@ -310,9 +325,12 @@ class MoveTopLevelToFile extends RefactoringProducer {
     for (var sub in index.findSubclassesOfSealedRecursively(
       candidateMembers.keys.toSet(),
     )) {
-      candidateMembers[sub] ??= sub is NamedCompilationUnitMember
-          ? sub.name.lexeme
-          : null;
+      candidateMembers[sub] ??= switch (sub) {
+        ClassDeclaration() => sub.namePart.typeName.lexeme,
+        EnumDeclaration() => sub.namePart.typeName.lexeme,
+        MixinDeclaration() => sub.name.lexeme,
+        _ => null,
+      };
     }
 
     // Ensure there aren't any subclasses of sealed items in other parts of this
@@ -375,6 +393,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
       }
     } else if (node is CompilationUnitMember) {
       return [node];
+    } else if (node is ClassNamePart) {
+      return [node.parent as CompilationUnitMember];
     }
     return null;
   }
@@ -547,7 +567,7 @@ class _SealedSubclassIndex {
   ) {
     return {
       ...members,
-      ...members.whereType<NamedCompilationUnitMember>().expand(
+      ...members.whereType<CompilationUnitMember>().expand(
         (member) => findSubclassesOfSealedRecursively(
           sealedTypeSubclasses[member.declaredFragment?.element] ?? const {},
         ),
@@ -574,11 +594,12 @@ extension on CompilationUnitMember {
       var implementsTypes = declaration.implementsClause?.interfaces;
       var mixesInTypes = declaration.withClause?.mixinTypes;
 
-      return [
-        if (extendsType != null) extendsType,
-        ...?implementsTypes,
-        ...?mixesInTypes,
-      ];
+      return [?extendsType, ...?implementsTypes, ...?mixesInTypes];
+    } else if (declaration is EnumDeclaration) {
+      var implementsTypes = declaration.implementsClause?.interfaces;
+      var mixesInTypes = declaration.withClause?.mixinTypes;
+
+      return [...?implementsTypes, ...?mixesInTypes];
     } else if (declaration is MixinDeclaration) {
       var interfaceTypes = declaration.implementsClause?.interfaces;
       var constraintTypes = declaration.onClause?.superclassConstraints;

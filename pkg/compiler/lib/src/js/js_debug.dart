@@ -12,8 +12,7 @@ import 'package:kernel/text/indentation.dart' show Indentation, Tagging;
 /// Unparse the JavaScript [node].
 String nodeToString(Node node, {bool pretty = false}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
-    shouldCompressOutput: !pretty,
-    preferSemicolonToNewlineInMinifiedOutput: !pretty,
+    minify: !pretty,
   );
   LenientPrintingContext printingContext = LenientPrintingContext();
   Printer(options, printingContext).visit(node);

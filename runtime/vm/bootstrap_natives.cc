@@ -141,6 +141,11 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_symbol_resolver(symbol_resolver);
   library.set_ffi_native_resolver(ffi_native_resolver);
 
+  library = Library::VMLibrary();
+  ASSERT(!library.IsNull());
+  library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
+
   library = Library::IsolateLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);

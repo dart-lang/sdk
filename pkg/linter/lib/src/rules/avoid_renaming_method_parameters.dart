@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -13,11 +14,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
 
-class AvoidRenamingMethodParameters extends LintRule {
+class AvoidRenamingMethodParameters extends AnalysisRule {
   AvoidRenamingMethodParameters()
     : super(
         name: LintNames.avoid_renaming_method_parameters,
@@ -25,8 +27,7 @@ class AvoidRenamingMethodParameters extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidRenamingMethodParameters;
+  DiagnosticCode get diagnosticCode => diag.avoidRenamingMethodParameters;
 
   @override
   void registerNodeProcessors(
@@ -44,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule, RuleContext context)
     : _wildCardVariablesEnabled = context.isFeatureEnabled(
@@ -67,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var previousFragment = node.declaredFragment?.previousFragment;
     if (previousFragment == null) {
       // If it's the first fragment, check for an inherited member.
-      var parentNode = node.parent;
+      var parentNode = node.parent?.parent;
       if (parentNode is! Declaration) return;
 
       var parentElement = parentNode.declaredFragment?.element;

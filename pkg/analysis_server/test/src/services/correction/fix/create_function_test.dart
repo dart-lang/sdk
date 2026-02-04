@@ -28,8 +28,7 @@ bool Function() f = g;
     await assertHasFix('''
 bool Function() f = g;
 
-bool g() {
-}
+bool g() {}
 ''');
   }
 
@@ -60,8 +59,7 @@ void f() {
   a..ma().useFunction(test);
 }
 
-int test(double a, String b) {
-}
+int test(double a, String b) {}
 ''');
   }
 
@@ -78,8 +76,7 @@ void f() {
 }
 useFunction({Function? g}) {}
 
-test() {
-}
+test() {}
 ''');
   }
 
@@ -96,8 +93,7 @@ void f() {
 }
 useFunction(int g(a, b)) {}
 
-int test(a, b) {
-}
+int test(a, b) {}
 ''');
   }
 
@@ -114,8 +110,7 @@ void f() {
 }
 useFunction(int g(double a, String b)) {}
 
-int test(double a, String b) {
-}
+int test(double a, String b) {}
 ''');
   }
 
@@ -132,8 +127,7 @@ void f() {
 }
 useFunction({int g(double a, String b)?}) {}
 
-int test(double a, String b) {
-}
+int test(double a, String b) {}
 ''');
   }
 
@@ -152,8 +146,7 @@ void f1(int i) {
 
 void f2(int Function() f) {}
 
-int f3() {
-}
+int f3() {}
 ''');
   }
 
@@ -181,8 +174,7 @@ void f() {
   useFunction(test);
 }
 
-int test(A a) {
-}
+int test(A a) {}
 ''');
   }
 
@@ -201,8 +193,7 @@ void f1(int i) {
 
 void f2(int Function(int) f) {}
 
-int f3(int p1) {
-}
+int f3(int p1) {}
 ''');
   }
 
@@ -221,8 +212,7 @@ void f1(int i) {
 
 void f2(int Function(int) f) {}
 
-int f3(int p1) {
-}
+int f3(int p1) {}
 ''');
   }
 
@@ -241,8 +231,7 @@ void f1(int i) {
 
 void f2((int, int Function(int)) f) {}
 
-int f3(int p1) {
-}
+int f3(int p1) {}
 ''');
   }
 
@@ -261,8 +250,24 @@ void f1(int i) {
 
 void f2(({int Function(int) f}) f) {}
 
-int f3(int p1) {
+int f3(int p1) {}
+''');
+  }
+
+  Future<void> test_ifNull() async {
+    await resolveTestCode('''
+int Function()? _f;
+int Function() get f {
+  return _f ?? _defaultF;
 }
+''');
+    await assertHasFix('''
+int Function()? _f;
+int Function() get f {
+  return _f ?? _defaultF;
+}
+
+int _defaultF() {}
 ''');
   }
 
@@ -273,8 +278,7 @@ int f3(int p1) {
     await assertHasFix('''
 (bool Function(),) f = (g,);
 
-bool g() {
-}
+bool g() {}
 ''');
   }
 
@@ -297,8 +301,7 @@ void g() {
   f(test);
 }
 
-A<int> test() {
-}
+A<int> test() {}
 ''');
   }
 }
@@ -403,7 +406,7 @@ Future<void> f() async {
   print(x);
 }
 
-Future<dynamic> myUndefinedFunction() async {
+Future<Object?> myUndefinedFunction() async {
 }
 ''');
   }
@@ -439,7 +442,7 @@ void f() {
   test(throw 42);
 }
 
-void test(param0) {
+void test(Object? object) {
 }
 ''');
   }
@@ -728,7 +731,7 @@ void f() {
   test(null);
 }
 
-void test(param0) {
+void test(Object? object) {
 }
 ''');
   }

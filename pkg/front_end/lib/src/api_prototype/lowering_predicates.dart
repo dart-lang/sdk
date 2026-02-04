@@ -699,12 +699,15 @@ String extractLocalNameFromLateLoweredSetter(String name) {
 ///     int Extension|method(int #this) => #this;
 ///
 /// where '#this' is the synthetic "extension this" parameter.
-bool isExtensionThis(VariableDeclaration node) {
+bool isExtensionThis(ExpressionVariable node) {
   assert(
-    node.isLowered || node.name == null || !isExtensionThisName(node.name),
-    "$node has name ${node.name} and node.isLowered = ${node.isLowered}",
+    node.isLowered ||
+        node.cosmeticName == null ||
+        !isExtensionThisName(node.cosmeticName),
+    "$node has name ${node.cosmeticName} and "
+    "node.isLowered = ${node.isLowered}",
   );
-  return node.isLowered && isExtensionThisName(node.name);
+  return node.isLowered && isExtensionThisName(node.cosmeticName);
 }
 
 /// Name used for synthetic 'this' variables in extension instance members and

@@ -66,7 +66,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
 
     if (fragment is InterfaceFragment) {
       if (node is ClassDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset2(node.namePart.typeName)) {
           result = node;
         }
       } else if (node is ClassTypeAlias) {
@@ -74,7 +74,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           result = node;
         }
       } else if (node is EnumDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset2(node.namePart.typeName)) {
           result = node;
         }
       } else if (node is MixinDeclaration) {
@@ -82,7 +82,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           result = node;
         }
       } else if (node is ExtensionTypeDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset2(node.primaryConstructor.typeName)) {
           result = node;
         }
       }
@@ -93,7 +93,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
             result = node;
           }
         } else {
-          if (_hasOffset(node.returnType)) {
+          if (_hasOffset(node.typeName)) {
             result = node;
           }
         }
@@ -170,11 +170,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
   }
 }
 
-class ElementDeclarationResultImpl
-    implements
-        // ignore:deprecated_member_use_from_same_package
-        ElementDeclarationResult,
-        FragmentDeclarationResult {
+class ElementDeclarationResultImpl implements FragmentDeclarationResult {
   @override
   final Fragment fragment;
 
@@ -281,10 +277,6 @@ class LibraryElementResultImpl implements LibraryElementResult {
   final LibraryElementImpl element;
 
   LibraryElementResultImpl(this.element);
-
-  @override
-  @Deprecated('Use element instead')
-  LibraryElement get element2 => element;
 }
 
 class MissingSdkLibraryResultImpl implements MissingSdkLibraryResult {
@@ -300,12 +292,6 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   final List<ParsedUnitResult> units;
 
   ParsedLibraryResultImpl({required super.session, required this.units});
-
-  @Deprecated('Use getFragmentDeclaration() instead')
-  @override
-  ElementDeclarationResultImpl? getElementDeclaration2(Fragment fragment) {
-    return getFragmentDeclaration(fragment);
-  }
 
   @override
   ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
@@ -390,7 +376,7 @@ class ResolvedForCompletionResultImpl {
   final CompilationUnit parsedUnit;
 
   /// The full element for the unit.
-  final LibraryFragment unitElement;
+  final LibraryFragment libraryFragment;
 
   /// Nodes from [parsedUnit] that were resolved to provide enough context
   /// to perform completion. How much is enough depends on the location
@@ -416,7 +402,7 @@ class ResolvedForCompletionResultImpl {
     required this.content,
     required this.lineInfo,
     required this.parsedUnit,
-    required this.unitElement,
+    required this.libraryFragment,
     required this.resolvedNodes,
   });
 }
@@ -436,17 +422,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   });
 
   @override
-  @Deprecated('Use element instead')
-  LibraryElement get element2 => element;
-
-  @override
   TypeProviderImpl get typeProvider => element.typeProvider;
-
-  @Deprecated('Use getFragmentDeclaration() instead')
-  @override
-  ElementDeclarationResultImpl? getElementDeclaration2(Fragment fragment) {
-    return getFragmentDeclaration(fragment);
-  }
 
   @override
   ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
@@ -521,10 +497,6 @@ class ResolvedUnitResultImpl extends FileResultImpl
   LibraryElementImpl get libraryElement {
     return libraryFragment.element;
   }
-
-  @override
-  @Deprecated('Use libraryElement instead')
-  LibraryElement get libraryElement2 => libraryElement;
 
   @override
   LibraryFragmentImpl get libraryFragment => unit.declaredFragment!;

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -35,9 +35,8 @@ extension E on int {
   int get a => null;
 }
 ''',
-      errorFilter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.extensionDeclaresInstanceField,
+      filter: (error) =>
+          error.diagnosticCode == diag.extensionDeclaresInstanceField,
     );
   }
 
@@ -87,10 +86,10 @@ extension E on int {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('foo'),
+      filter: (error) => error.offset == testCode.indexOf('foo'),
     );
     await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('bar'),
+      filter: (error) => error.offset == testCode.indexOf('bar'),
     );
   }
 }
@@ -110,7 +109,7 @@ extension type A(int i) {
 extension type A(int i) {
   int get a => null;
 }
-''');
+''', filter: (error) => error.offset == testCode.indexOf('a;'));
   }
 
   Future<void> test_late() async {
@@ -159,10 +158,10 @@ extension type A(int i) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('foo'),
+      filter: (error) => error.offset == testCode.indexOf('foo'),
     );
     await assertNoFix(
-      errorFilter: (error) => error.offset == testCode.indexOf('bar'),
+      filter: (error) => error.offset == testCode.indexOf('bar'),
     );
   }
 }
@@ -239,9 +238,8 @@ class A {
   A(this.v);
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.implicitThisReferenceInInitializer;
+      filter: (error) {
+        return error.diagnosticCode == diag.implicitThisReferenceInInitializer;
       },
     );
   }
@@ -263,9 +261,8 @@ class A {
   A(this.v);
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.implicitThisReferenceInInitializer;
+      filter: (error) {
+        return error.diagnosticCode == diag.implicitThisReferenceInInitializer;
       },
     );
   }
@@ -287,9 +284,8 @@ class A {
   A(this.v);
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.implicitThisReferenceInInitializer;
+      filter: (error) {
+        return error.diagnosticCode == diag.implicitThisReferenceInInitializer;
       },
     );
   }

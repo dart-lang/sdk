@@ -7,11 +7,11 @@ class A extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory redir() → self::A /* redirection-target: self::A::• */
+  static const factory redir() → self::A /* redirection-target: self::A::• */
     return new self::A::•();
 }
-static const field core::List<self::A> test1 = const <self::A>[const self::A::•()];
-static const field core::List<self::A> test2 = const <self::A>[const self::A::•()];
+static const field core::List<self::A> test1 = const <self::A>[/*original=self::A::redir*/ const self::A::•()];
+static const field core::List<self::A> test2 = const <self::A>[/*original=self::A::redir*/ const self::A::•()];
 static const field core::List<self::A> test3 = const <self::A>[const self::A::•()];
 
 

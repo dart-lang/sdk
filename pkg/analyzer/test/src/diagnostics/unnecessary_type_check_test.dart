@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest {
       r'''
 var b = null is! Null;
 ''',
-      [error(WarningCode.unnecessaryTypeCheckFalse, 8, 13)],
+      [error(diag.unnecessaryTypeCheckFalse, 8, 13)],
     );
   }
 
@@ -32,7 +32,7 @@ void f(int a) {
   a is! int;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckFalse, 18, 9)],
+      [error(diag.unnecessaryTypeCheckFalse, 18, 9)],
     );
   }
 
@@ -51,7 +51,7 @@ void f(int a) {
   a is! num;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckFalse, 18, 9)],
+      [error(diag.unnecessaryTypeCheckFalse, 18, 9)],
     );
   }
 
@@ -62,7 +62,7 @@ void f(int? a) {
   a is! int?;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckFalse, 19, 10)],
+      [error(diag.unnecessaryTypeCheckFalse, 19, 10)],
     );
   }
 
@@ -97,7 +97,7 @@ void f(int? a) {
   a is! num?;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckFalse, 19, 10)],
+      [error(diag.unnecessaryTypeCheckFalse, 19, 10)],
     );
   }
 
@@ -116,7 +116,7 @@ void f<T>(T a) {
   a is! dynamic;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckFalse, 19, 13)],
+      [error(diag.unnecessaryTypeCheckFalse, 19, 13)],
     );
   }
 
@@ -135,7 +135,7 @@ void f<T>(T a) {
   a is! Object?;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckFalse, 19, 13)],
+      [error(diag.unnecessaryTypeCheckFalse, 19, 13)],
     );
   }
 }
@@ -149,7 +149,7 @@ void f(A a) {
   a is num;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 7, 1)],
+      [error(diag.undefinedClass, 7, 1)],
     );
   }
 
@@ -158,7 +158,7 @@ void f(A a) {
       r'''
 var b = null is Null;
 ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 8, 12)],
+      [error(diag.unnecessaryTypeCheckTrue, 8, 12)],
     );
   }
 
@@ -169,7 +169,7 @@ void f(int a) {
   a is dynamic;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 18, 12)],
+      [error(diag.unnecessaryTypeCheckTrue, 18, 12)],
     );
   }
 
@@ -180,7 +180,7 @@ void f(int a) {
   a is Unresolved;
 }
 ''',
-      [error(CompileTimeErrorCode.typeTestWithUndefinedName, 23, 10)],
+      [error(diag.typeTestWithUndefinedName, 23, 10)],
     );
   }
 
@@ -191,7 +191,7 @@ void f(int a) {
   a is int;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 18, 8)],
+      [error(diag.unnecessaryTypeCheckTrue, 18, 8)],
     );
   }
 
@@ -210,7 +210,7 @@ void f(int a) {
   a is num;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 18, 8)],
+      [error(diag.unnecessaryTypeCheckTrue, 18, 8)],
     );
   }
 
@@ -221,7 +221,7 @@ void f(int? a) {
   a is int?;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 19, 9)],
+      [error(diag.unnecessaryTypeCheckTrue, 19, 9)],
     );
   }
 
@@ -256,7 +256,7 @@ void f(int? a) {
   a is num?;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 19, 9)],
+      [error(diag.unnecessaryTypeCheckTrue, 19, 9)],
     );
   }
 
@@ -275,7 +275,7 @@ void f<T>(T a) {
   a is dynamic;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 19, 12)],
+      [error(diag.unnecessaryTypeCheckTrue, 19, 12)],
     );
   }
 
@@ -294,7 +294,7 @@ void f<T>(T a) {
   a is Object?;
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 19, 12)],
+      [error(diag.unnecessaryTypeCheckTrue, 19, 12)],
     );
   }
 }

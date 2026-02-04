@@ -17,10 +17,10 @@ class ReplaceColonWithEquals extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_COLON_WITH_EQUALS;
+  FixKind get fixKind => DartFixKind.replaceColonWithEquals;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_COLON_WITH_EQUALS_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceColonWithEqualsMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

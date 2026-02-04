@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class BuiltInIdentifierAsExtensionTypeNameTest
       r'''
 extension type as(int it) {}
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsExtensionTypeName, 15, 2)],
+      [error(diag.builtInIdentifierAsExtensionTypeName, 15, 2)],
     );
   }
 
@@ -30,7 +30,7 @@ extension type as(int it) {}
       r'''
 extension type Function(int it) {}
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsExtensionTypeName, 15, 8)],
+      [error(diag.builtInIdentifierAsExtensionTypeName, 15, 8)],
     );
   }
 }

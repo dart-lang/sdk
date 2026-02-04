@@ -22,10 +22,10 @@ class RemoveInvocation extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_methodName];
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_INVOCATION;
+  FixKind get fixKind => DartFixKind.removeInvocation;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_INVOCATION_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeInvocationMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

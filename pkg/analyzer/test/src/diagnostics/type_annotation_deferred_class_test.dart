@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ class C<T> { const C(); }
 ''',
       [
         error(
-          CompileTimeErrorCode.typeAnnotationDeferredClass,
+          diag.typeAnnotationDeferredClass,
           77,
           3,
           messageContains: ["'a.D'"],
@@ -48,7 +48,7 @@ import 'lib1.dart' deferred as a;
 f(var v) {
   v as a.A;
 }''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 66, 3)],
+      [error(diag.typeAnnotationDeferredClass, 66, 3)],
     );
   }
 
@@ -65,7 +65,7 @@ f(var v) {
   } on a.A {
   }
 }''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 74, 3)],
+      [error(diag.typeAnnotationDeferredClass, 74, 3)],
     );
   }
 
@@ -81,7 +81,7 @@ class C {
   var v;
   C(a.A this.v);
 }''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 71, 3)],
+      [error(diag.typeAnnotationDeferredClass, 71, 3)],
     );
   }
 
@@ -95,7 +95,7 @@ library root;
 import 'lib1.dart' deferred as a;
 a.A? f() { return null; }
 ''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 48, 4)],
+      [error(diag.typeAnnotationDeferredClass, 48, 4)],
     );
   }
 
@@ -108,7 +108,7 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 f(a.A g()) {}''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 50, 3)],
+      [error(diag.typeAnnotationDeferredClass, 50, 3)],
     );
   }
 
@@ -124,8 +124,8 @@ f(var v) {
   bool b = v is a.A;
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 66, 1),
-        error(CompileTimeErrorCode.typeAnnotationDeferredClass, 75, 3),
+        error(diag.unusedLocalVariable, 66, 1),
+        error(diag.typeAnnotationDeferredClass, 75, 3),
       ],
     );
   }
@@ -141,7 +141,7 @@ import 'lib1.dart' deferred as a;
 class C {
   a.A? m() { return null; }
 }''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 60, 4)],
+      [error(diag.typeAnnotationDeferredClass, 60, 4)],
     );
   }
 
@@ -154,7 +154,7 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 f(a.A v) {}''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 50, 3)],
+      [error(diag.typeAnnotationDeferredClass, 50, 3)],
     );
   }
 
@@ -169,7 +169,7 @@ import 'lib1.dart' deferred as a;
 class C<E> {}
 C<a.A> c = C();
 ''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 64, 3)],
+      [error(diag.typeAnnotationDeferredClass, 64, 3)],
     );
   }
 
@@ -185,8 +185,8 @@ class C<E, F> {}
 C<a.A, a.A> c = C();
 ''',
       [
-        error(CompileTimeErrorCode.typeAnnotationDeferredClass, 67, 3),
-        error(CompileTimeErrorCode.typeAnnotationDeferredClass, 72, 3),
+        error(diag.typeAnnotationDeferredClass, 67, 3),
+        error(diag.typeAnnotationDeferredClass, 72, 3),
       ],
     );
   }
@@ -200,7 +200,7 @@ class A {}''');
 library root;
 import 'lib1.dart' deferred as a;
 class C<E extends a.A> {}''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 66, 3)],
+      [error(diag.typeAnnotationDeferredClass, 66, 3)],
     );
   }
 
@@ -214,7 +214,7 @@ library root;
 import 'lib1.dart' deferred as a;
 a.A v = a.A();
 ''',
-      [error(CompileTimeErrorCode.typeAnnotationDeferredClass, 48, 3)],
+      [error(diag.typeAnnotationDeferredClass, 48, 3)],
     );
   }
 }

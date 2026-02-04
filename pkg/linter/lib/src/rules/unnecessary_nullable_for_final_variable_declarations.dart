@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,12 +12,13 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Use a non-nullable type for a final variable initialized '
     'with a non-nullable value.';
 
-class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
+class UnnecessaryNullableForFinalVariableDeclarations extends AnalysisRule {
   UnnecessaryNullableForFinalVariableDeclarations()
     : super(
         name: LintNames.unnecessary_nullable_for_final_variable_declarations,
@@ -25,7 +27,7 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessaryNullableForFinalVariableDeclarations;
+      diag.unnecessaryNullableForFinalVariableDeclarations;
 
   @override
   void registerNodeProcessors(
@@ -41,7 +43,7 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   final RuleContext context;
   _Visitor(this.rule, this.context);

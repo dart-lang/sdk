@@ -16,11 +16,22 @@ html/*: SkipByDesign # dart:html not supported on dart2wasm
 isolate/*: SkipByDesign
 js/(?!export|static_interop_test)*: SkipByDesign
 js/export/create_dart_export_test: SkipByDesign # dart:js_util not supported on dart2wasm
+js/export/inheritance_collision_create_dart_export_test: SkipByDesign # package:js not supported on dart2wasm
 js/export/static_interop_mock/*: SkipByDesign # dart:js_util not supported on dart2wasm
+js/export/validation_create_dart_export_test: SkipByDesign # package:js not supported on dart2wasm
 js/static_interop_test/allowed_external_member_native_type_test: SkipByDesign # dart:html and dart:svg not supported on dart2wasm.
+js/static_interop_test/allowed_external_member_package_js_type_test: SkipByDesign # package:js not supported on dart2wasm.
+js/static_interop_test/extension_type/incorrect_js_annotation_static_test: SkipByDesign # package:js not supported on dart2wasm.
 js/static_interop_test/extension_type/non_interop_extension_type_static_test: SkipByDesign # Some external checks are not run on dart2wasm.
+js/static_interop_test/external_extension_members_test: SkipByDesign # package:js not supported on dart2wasm.
+js/static_interop_test/external_member_type_parameters_package_js_static_test: SkipByDesign # package:js not supported on dart2wasm.
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Tests @trustTypes, which is unsupported on dart2wasm.
+js/static_interop_test/generic_factory_test: SkipByDesign # package:js not supported on dart2wasm.
+js/static_interop_test/member_test: SkipByDesign # package:js not supported on dart2wasm.
+js/static_interop_test/object_apis_static_interop_values_test: SkipByDesign # package:js not supported on dart2wasm.
+js/static_interop_test/regress_51307_test: SkipByDesign # package:js not supported on dart2wasm.
 js/static_interop_test/static_external_extension_members_static_test: SkipByDesign # dart:html not supported on dart2wasm.
+js/static_interop_test/supertype_test: SkipByDesign # dart:html not supported on dart2wasm.
 js/static_interop_test/top_level_member_annotation_static_test: SkipByDesign # Some external checks are not run on dart2wasm.
 mirrors/*: SkipByDesign
 web/*: SkipByDesign

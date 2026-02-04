@@ -22,7 +22,7 @@
 namespace dart {
 namespace bin {
 
-int SocketAddress::GetType() {
+int SocketAddress::GetType() const {
   switch (addr_.ss.ss_family) {
     case AF_INET6:
       return TYPE_IPV6;
@@ -33,41 +33,6 @@ int SocketAddress::GetType() {
     default:
       UNREACHABLE();
       return TYPE_ANY;
-  }
-}
-
-intptr_t SocketAddress::GetAddrLength(const RawAddr& addr,
-                                      bool unnamed_unix_socket) {
-  ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6) ||
-         (addr.ss.ss_family == AF_UNIX));
-  switch (addr.ss.ss_family) {
-    case AF_INET6:
-      return sizeof(struct sockaddr_in6);
-    case AF_INET:
-      return sizeof(struct sockaddr_in);
-    case AF_UNIX: {
-      // For an abstract UNIX socket, trailing null bytes in the name are
-      // meaningful. That is, the bytes '\0/tmp/dbus-xxxx' are a different name
-      // than '\0/tmp/dbus-xxxx\0\0\0...'. The length of the address structure
-      // passed to connect() etc. tells those calls how many bytes of the name
-      // to look at. Therefore, when computing the length of the address in
-      // this case, any trailing null bytes are trimmed.
-      // TODO(dart:io): Support abstract UNIX socket addresses that have
-      // trailing null bytes on purpose.
-      // https://github.com/dart-lang/sdk/issues/46158
-      intptr_t nulls = 0;
-      if (!unnamed_unix_socket && addr.un.sun_path[0] == '\0') {
-        intptr_t i = sizeof(addr.un.sun_path) - 1;
-        while (addr.un.sun_path[i] == '\0') {
-          nulls++;
-          i--;
-        }
-      }
-      return sizeof(struct sockaddr_un) - nulls;
-    }
-    default:
-      UNREACHABLE();
-      return 0;
   }
 }
 
@@ -88,14 +53,15 @@ bool SocketAddress::AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
                   sizeof(a.in6.sin6_addr)) == 0 &&
            a.in6.sin6_scope_id == b.in6.sin6_scope_id;
   } else if (a.ss.ss_family == AF_UNIX) {
-    // This is not used anywhere. The comparison of file path is done via
-    // File::AreIdentical().
-    int len = sizeof(a.un.sun_path);
-    for (int i = 0; i < len; i++) {
-      if (a.un.sun_path[i] != b.un.sun_path[i]) return false;
-      if (a.un.sun_path[i] == '\0') return true;
+    if (a.size != b.size) {
+      return false;
     }
-    return true;
+
+    // Cast below is avoid signed vs unsigned comparison warning on some OSes.
+    return (a.size <=
+            static_cast<socklen_t>(offsetof(decltype(a.un), sun_path))) ||
+           (memcmp(a.un.sun_path, b.un.sun_path,
+                   a.size - offsetof(decltype(a.un), sun_path)) == 0);
   } else {
     UNREACHABLE();
     return false;
@@ -119,10 +85,12 @@ void SocketAddress::GetSockAddr(Dart_Handle obj, RawAddr* addr) {
   memset(reinterpret_cast<void*>(addr), 0, sizeof(RawAddr));
   if (len == sizeof(in_addr)) {
     addr->in.sin_family = AF_INET;
+    addr->size = sizeof(sockaddr_in);
     memmove(reinterpret_cast<void*>(&addr->in.sin_addr), data, len);
   } else {
     ASSERT(len == sizeof(in6_addr));
     addr->in6.sin6_family = AF_INET6;
+    addr->size = sizeof(sockaddr_in6);
     memmove(reinterpret_cast<void*>(&addr->in6.sin6_addr), data, len);
   }
   Dart_TypedDataReleaseData(obj);
@@ -134,7 +102,7 @@ Dart_Handle SocketAddress::GetUnixDomainSockAddr(const char* path,
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   NamespaceScope ns(namespc, path);
   path = ns.path();
-  bool is_abstract = (path[0] == '@');
+  const bool is_abstract = (path[0] == '@');
   if (is_abstract) {
     // The following 107 bytes after the leading null byte represents the name
     // of unix domain socket. Without reseting, even users provide the same path
@@ -142,8 +110,11 @@ Dart_Handle SocketAddress::GetUnixDomainSockAddr(const char* path,
     // connection will be rejected.
     bzero(addr->un.sun_path, sizeof(addr->un.sun_path));
   }
+#else
+  const bool is_abstract = false;
 #endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-  if (sizeof(path) > sizeof(addr->un.sun_path)) {
+  const auto path_len = strlen(path);
+  if (path_len >= sizeof(addr->un.sun_path)) {
     OSError os_error(-1,
                      "The length of path exceeds the limit. "
                      "Check out man 7 unix page",
@@ -151,7 +122,10 @@ Dart_Handle SocketAddress::GetUnixDomainSockAddr(const char* path,
     return DartUtils::NewDartOSError(&os_error);
   }
   addr->un.sun_family = AF_UNIX;
-  Utils::SNPrint(addr->un.sun_path, sizeof(addr->un.sun_path), "%s", path);
+  // Trailing '\0' is not meaningful for abstract namespace sockets.
+  const auto path_total_bytes = path_len + (is_abstract ? 0 : 1);
+  memmove(addr->un.sun_path, path, path_total_bytes);
+  addr->size = offsetof(decltype(addr->un), sun_path) + path_total_bytes;
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   // In case of abstract namespace, transfer the leading '@' into a null byte.
   if (is_abstract) {
@@ -248,13 +222,15 @@ void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   ASSERT(address != nullptr);
   RawAddr raw;
-  memset(&raw, 0, sizeof(raw));
+  memset(&raw.addr, 0, sizeof(raw.addr));
   int type = strchr(address, ':') == nullptr ? SocketAddress::TYPE_IPV4
                                              : SocketAddress::TYPE_IPV6;
   if (type == SocketAddress::TYPE_IPV4) {
     raw.addr.sa_family = AF_INET;
+    raw.size = sizeof(sockaddr_in);
   } else {
     raw.addr.sa_family = AF_INET6;
+    raw.size = sizeof(sockaddr_in6);
   }
   bool ok = SocketBase::ParseAddress(type, address, &raw);
   if (!ok) {
@@ -288,8 +264,7 @@ void FUNCTION_NAME(InternetAddress_ParseScopedLinkLocalAddress)(
 void FUNCTION_NAME(InternetAddress_RawAddrToString)(Dart_NativeArguments args) {
   RawAddr addr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 0), &addr);
-  // INET6_ADDRSTRLEN is larger than INET_ADDRSTRLEN
-  char str[INET6_ADDRSTRLEN];
+  char str[SocketAddress::kMaxAddressStringLength];
   bool ok = SocketBase::RawAddrToString(&addr, str);
   if (!ok) {
     str[0] = '\0';
@@ -307,13 +282,15 @@ void FUNCTION_NAME(SocketBase_IsBindError)(Dart_NativeArguments args) {
 bool SocketBase::IsValidAddress(const char* address) {
   ASSERT(address != nullptr);
   RawAddr raw;
-  memset(&raw, 0, sizeof(raw));
+  memset(&raw.addr, 0, sizeof(raw.addr));
   int type = strchr(address, ':') == nullptr ? SocketAddress::TYPE_IPV4
                                              : SocketAddress::TYPE_IPV6;
   if (type == SocketAddress::TYPE_IPV4) {
     raw.addr.sa_family = AF_INET;
+    raw.size = sizeof(sockaddr_in);
   } else {
     raw.addr.sa_family = AF_INET6;
+    raw.size = sizeof(sockaddr_in6);
   }
   return SocketBase::ParseAddress(type, address, &raw);
 }

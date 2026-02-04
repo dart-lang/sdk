@@ -34,6 +34,10 @@ final class CorrectionUtils {
     : _unit = result.unit,
       _buffer = result.content;
 
+  CorrectionUtils.fromUnitAndContent(CompilationUnit unit, String content)
+    : _unit = unit,
+      _buffer = content;
+
   /// The EOL sequence to use for this [CompilationUnit].
   String get endOfLine {
     return _endOfLine ??= _buffer.endOfLine ?? Platform.lineTerminator;

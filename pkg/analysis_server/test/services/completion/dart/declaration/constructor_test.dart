@@ -20,6 +20,8 @@ class ConstructorTest extends AbstractCompletionDriverTest
 mixin ConstructorTestCases on AbstractCompletionDriverTest {
   Future<void> test_constContext_constructorTearOff() async {
     allowedIdentifiers = const {'NotAConst'};
+    // This should not suggest `null` because the constructor parameter is
+    // non-nullable.
     newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A(List<Object> any);
@@ -30,17 +32,15 @@ class NotAConst {}
     await computeSuggestions('''
 import 'a.dart';
 
- @A([
-   N^
- ])
- class E {}
+@A([
+  N^
+])
+class E {}
 ''');
     assertResponse(r'''
 replacement
   left: 1
 suggestions
-  NotAConst.new
-    kind: constructor
   null
     kind: keyword
 ''');
@@ -140,6 +140,118 @@ suggestions
     kind: constructorInvocation
   A0.f0
     kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_const() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class const A0.b0(final int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+A Function(int) v = A^;
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0.b0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_const_inConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class const A0.b0(final int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+const A Function(int) v = A^;
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0.b0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_nonConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0.b0(int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+A Function(int) v = A^;
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0.b0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_nonConst_inConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0.b0(int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+const A Function(int) v = A^;
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0.b0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_nonConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A0(int i) {}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+
+void f() {
+  A Function(int) v = A^;
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  A0
+    kind: constructorInvocation
+  A0
+    kind: class
+  false
+    kind: keyword
 ''');
   }
 

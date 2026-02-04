@@ -299,10 +299,12 @@ void main() {
 struct ChildThreadData {
   Dart_Isolate isolate;
   ThreadBarrier* barrier;
+  ThreadJoinId join_id;
 };
 
 static void SplayChild(uword parameter) {
   ChildThreadData* data = reinterpret_cast<ChildThreadData*>(parameter);
+  data->join_id = OSThread::GetCurrentThreadJoinId(OSThread::Current());
   ThreadBarrier* barrier = data->barrier;
 
   Dart_EnterIsolate(data->isolate);
@@ -354,6 +356,10 @@ static void SplayTest(Dart_NativeEntryResolver resolver) {
 
   barrier->Sync();
   barrier->Release();
+
+  for (intptr_t i = 0; i < 2; i++) {
+    OSThread::Join(child_data[i].join_id);
+  }
 }
 
 struct Node {

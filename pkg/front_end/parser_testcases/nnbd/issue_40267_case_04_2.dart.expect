@@ -1,0 +1,89 @@
+Problems reported:
+
+parser/nnbd/issue_40267_case_04_2:4:12: Expected ':' before this.
+    case x?[4]:{{{2}}}; // as case (x?[4]:{{{2}}}) [missing :]
+           ^
+
+parser/nnbd/issue_40267_case_04_2:4:14: Expected ';' after this.
+    case x?[4]:{{{2}}}; // as case (x?[4]:{{{2}}}) [missing :]
+             ^
+
+parser/nnbd/issue_40267_case_04_2:4:15: Expected an identifier, but got ':'.
+    case x?[4]:{{{2}}}; // as case (x?[4]:{{{2}}}) [missing :]
+              ^
+
+parser/nnbd/issue_40267_case_04_2:4:14: Expected ';' after this.
+    case x?[4]:{{{2}}}; // as case (x?[4]:{{{2}}}) [missing :]
+             ^
+
+parser/nnbd/issue_40267_case_04_2:4:15: Unexpected token ':'.
+    case x?[4]:{{{2}}}; // as case (x?[4]:{{{2}}}) [missing :]
+              ^
+
+parser/nnbd/issue_40267_case_04_2:4:19: Expected ';' after this.
+    case x?[4]:{{{2}}}; // as case (x?[4]:{{{2}}}) [missing :]
+                  ^
+
+beginCompilationUnit(main)
+  beginMetadataStar(main)
+  endMetadataStar(0)
+  beginTopLevelMember(main)
+    beginTopLevelMethod(, null, null)
+      handleNoType()
+      handleIdentifier(main, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginSwitchStatement(switch)
+          handleIdentifier(a, expression)
+          handleNoTypeArguments())
+          handleNoArguments())
+          handleSend(a, a)
+          handleParenthesizedCondition((, null, null)
+          beginSwitchBlock({)
+            beginCaseExpression(case)
+              beginPattern(case)
+                beginConstantPattern(null)
+                  handleIdentifier(x, expression)
+                  handleNoTypeArguments(?)
+                  handleNoArguments(?)
+                  handleSend(x, x)
+                endConstantPattern(null)
+                handleNullCheckPattern(?)
+              endPattern(?)
+              handleSwitchCaseNoWhenClause(?)
+              handleRecoverableError(Message[Template(ExpectedButGot), Expected ':' before this., null, {string: :}], [, [)
+            endCaseExpression(case, null, :)
+            beginSwitchCase(0, 1, case)
+              handleNoTypeArguments([)
+              handleLiteralInt(4)
+              handleLiteralList(1, [, null, ])
+              handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], ], ])
+              handleExpressionStatement([, ;)
+              handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ':'., Try inserting an identifier before ':'., {lexeme: :}], :, :)
+              handleIdentifier(, expression)
+              handleNoTypeArguments(:)
+              handleNoArguments(:)
+              handleSend(, )
+              handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], ], ])
+              handleExpressionStatement(:, ;)
+              handleRecoverableError(Message[Template(UnexpectedToken), Unexpected token ':'., null, {lexeme: :}], :, :)
+              beginBlock({, BlockKind(statement))
+                beginBlock({, BlockKind(statement))
+                  beginBlock({, BlockKind(statement))
+                    handleLiteralInt(2)
+                    handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], 2, 2)
+                    handleExpressionStatement(2, ;)
+                  endBlock(1, {, }, BlockKind(statement))
+                endBlock(1, {, }, BlockKind(statement))
+              endBlock(1, {, }, BlockKind(statement))
+              handleEmptyStatement(;)
+            endSwitchCase(0, 1, null, null, 4, case, ;)
+          endSwitchBlock(1, {, })
+        endSwitchStatement(switch, })
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(main, null, })
+  endTopLevelDeclaration(})
+endCompilationUnit(1, )

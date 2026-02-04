@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class UseEqEqNullMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.USE_EQ_EQ_NULL_MULTI;
+  FixKind get kind => DartFixKind.useEqEqNullMulti;
 
   Future<void> test_isNull_all() async {
     await resolveTestCode('''
@@ -28,7 +28,7 @@ void f(p, q) {
   q is Null;
 }
 ''');
-    await assertHasFixAllFix(WarningCode.typeCheckIsNull, '''
+    await assertHasFixAllFix(diag.typeCheckIsNull, '''
 void f(p, q) {
   p == null;
   q == null;
@@ -40,7 +40,7 @@ void f(p, q) {
 @reflectiveTest
 class UseEqEqNullTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.USE_EQ_EQ_NULL;
+  FixKind get kind => DartFixKind.useEqEqNull;
 
   Future<void> test_isNull() async {
     await resolveTestCode('''

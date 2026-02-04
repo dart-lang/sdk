@@ -9,6 +9,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/file_system/file_system.dart';
@@ -175,6 +176,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
       dartFixPromptManager: dartFixPromptManager,
       providedByteStore: _byteStore,
       pluginManager: pluginManager,
@@ -218,9 +220,6 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   late TestCode parsedTestCode;
 
   final String testPackageName = 'test';
-
-  /// Whether to automatically normalize line endings for the current platform.
-  bool useLineEndingsForPlatform = true;
 
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
@@ -275,9 +274,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   // TODO(scheglov): rename
   void addTestFile(String content) {
-    parsedTestCode = useLineEndingsForPlatform
-        ? TestCode.parseNormalized(content)
-        : TestCode.parse(content);
+    parsedTestCode = TestCode.parseNormalized(content);
     newFile(testFilePath, parsedTestCode.code);
   }
 
@@ -320,9 +317,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   @override
   File newFile(String path, String content) {
-    if (useLineEndingsForPlatform) {
-      content = normalizeNewlinesForPlatform(content);
-    }
+    content = normalizeNewlinesForPlatform(content);
     return super.newFile(path, content);
   }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,15 +11,16 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use `ColoredBox`.';
 
-class UseColoredBox extends LintRule {
+class UseColoredBox extends AnalysisRule {
   UseColoredBox() : super(name: LintNames.use_colored_box, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useColoredBox;
+  DiagnosticCode get diagnosticCode => diag.useColoredBox;
 
   @override
   void registerNodeProcessors(
@@ -32,7 +34,7 @@ class UseColoredBox extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

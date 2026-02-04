@@ -59,6 +59,11 @@ class BundleRequirementsPrinter extends ManifestPrinter {
           if (libraryRequirements.name case var name?) {
             sink.writelnWithIndent('name: $name');
           }
+          if (libraryRequirements.isOriginNotExistingFile case var value?) {
+            if (value) {
+              sink.writelnWithIndent('isOriginNotExistingFile: $value');
+            }
+          }
           if (libraryRequirements.isSynthetic case var value?) {
             if (value) {
               sink.writelnWithIndent('isSynthetic: $value');
@@ -102,7 +107,10 @@ class BundleRequirementsPrinter extends ManifestPrinter {
   }
 
   void _writeExportedExtensions(LibraryRequirements requirements) {
-    _writelnIdList('exportedExtensions', requirements.exportedExtensions);
+    _writelnIdListIfNotNull(
+      'exportedExtensions',
+      requirements.exportedExtensions,
+    );
   }
 
   void _writeExportedLibraryUris(LibraryRequirements requirements) {
@@ -204,19 +212,19 @@ class BundleRequirementsPrinter extends ManifestPrinter {
       });
 
       sink.withIndent(() {
-        _writelnIdList(
+        _writelnIdListIfNotNull(
           'allDeclaredFields',
           instanceRequirements.allDeclaredFields,
         );
-        _writelnIdList(
+        _writelnIdListIfNotNull(
           'allDeclaredGetters',
           instanceRequirements.allDeclaredGetters,
         );
-        _writelnIdList(
+        _writelnIdListIfNotNull(
           'allDeclaredSetters',
           instanceRequirements.allDeclaredSetters,
         );
-        _writelnIdList(
+        _writelnIdListIfNotNull(
           'allDeclaredMethods',
           instanceRequirements.allDeclaredMethods,
         );
@@ -237,8 +245,21 @@ class BundleRequirementsPrinter extends ManifestPrinter {
         if (requirements.hasNonFinalField case var value?) {
           sink.writelnWithIndent('hasNonFinalField: $value');
         }
-        _writelnIdList('allConstructors', requirements.allConstructors);
-        _writelnIdList('allSubtypes', requirements.allSubtypes);
+        _writelnIdListIfNotNull(
+          'allDeclaredConstructors',
+          requirements.allDeclaredConstructors,
+        );
+        _writelnIdListIfNotNull(
+          'allInheritedConstructors',
+          requirements.allInheritedConstructors,
+        );
+        if (requirements.allSubtypesRequested) {
+          _writelnIdListOrNull('allSubtypes', requirements.allSubtypes);
+        }
+        _writelnIdListIfNotNull(
+          'directSubtypesOfSealed',
+          requirements.directSubtypesOfSealed,
+        );
         sink.writeElements(
           'requestedConstructors',
           requirements.requestedConstructors.sorted,
@@ -301,15 +322,8 @@ class BundleRequirementsPrinter extends ManifestPrinter {
       'allDeclaredGetters': requirements.allDeclaredGetters,
       'allDeclaredSetters': requirements.allDeclaredSetters,
     }).forEach((name, value) {
-      _writelnIdList(name, value);
+      _writelnIdListIfNotNull(name, value);
     });
-  }
-
-  void _writelnIdList(String name, ManifestItemIdList? idList) {
-    if (idList != null) {
-      var idListStr = idList.asString(idProvider);
-      sink.writelnWithIndent('$name: $idListStr');
-    }
   }
 
   void _writeOpaqueApiUses(RequirementsManifest requirements) {
@@ -400,7 +414,9 @@ class DriverEventsPrinter {
   }
 
   void _writeDiagnostic(Diagnostic d) {
-    sink.writelnWithIndent('${d.offset} +${d.length} ${d.diagnosticCode.name}');
+    sink.writelnWithIndent(
+      '${d.offset} +${d.length} ${d.diagnosticCode.lowerCaseName.toUpperCase()}',
+    );
   }
 
   void _writeErrorsEvent(GetErrorsEvent event) {
@@ -631,6 +647,13 @@ class DriverEventsPrinter {
           'libraryUri': failure.libraryUri,
           'expected': failure.expected ?? '<null>',
           'actual': failure.actual ?? '<null>',
+        });
+      case LibraryIsOriginNotExistingFileMismatch():
+        sink.writelnWithIndent('libraryIsOriginNotExistingFileMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'expected': failure.expected,
+          'actual': failure.actual,
         });
       case LibraryFeatureSetMismatch():
         sink.writelnWithIndent('libraryFeatureSetMismatch');
@@ -1126,13 +1149,21 @@ class LibraryManifestPrinter extends ManifestPrinter {
     if (manifest.name case var name?) {
       sink.writelnWithIndent('name: $name');
     }
-    sink.writeFlags({'isSynthetic': manifest.isSynthetic});
+    sink.writeFlags({
+      'isOriginNotExistingFile': manifest.isOriginNotExistingFile,
+      'isSynthetic': manifest.isSynthetic,
+    });
 
     var libraryMetadata = manifest.libraryMetadata;
     if (!libraryMetadata.isEmpty) {
       var idStr = idProvider.manifestId(libraryMetadata.id);
       sink.writelnWithIndent('libraryMetadata: $idStr');
     }
+
+    var declaredConflicts = manifest.declaredConflicts.sorted;
+    sink.writeElements('declaredConflicts', declaredConflicts, (entry) {
+      _writelnIdLookupName(entry.key, entry.value);
+    });
 
     var classEntries = manifest.declaredClasses.sorted;
     sink.writeElements('declaredClasses', classEntries, (entry) {
@@ -1282,13 +1313,18 @@ class LibraryManifestPrinter extends ManifestPrinter {
           'isMixinApplication': item.flags.isMixinApplication,
           'isMixinClass': item.flags.isMixinClass,
           'isSealed': item.flags.isSealed,
+          'isSimplyBounded': item.flags.isSimplyBounded,
         });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('supertype', item.supertype);
         _writeTypeList('mixins', item.mixins);
         _writeTypeList('interfaces', item.interfaces);
-        _writelnIdListIfNotEmpty('allSubtypes', item.allSubtypes);
+        _writelnIdListIfNotNull('allSubtypes', item.allSubtypes);
+        _writelnIdListIfNotNull(
+          'directSubtypesOfSealed',
+          item.directSubtypesOfSealed,
+        );
       });
     }
 
@@ -1301,7 +1337,10 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeEnumItem(EnumItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
-        sink.writeFlags({'hasNonFinalField': item.hasNonFinalField});
+        sink.writeFlags({
+          'hasNonFinalField': item.hasNonFinalField,
+          'isSimplyBounded': item.flags.isSimplyBounded,
+        });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeTypeList('mixins', item.mixins);
@@ -1318,6 +1357,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeExtensionItem(ExtensionItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({'isSimplyBounded': item.flags.isSimplyBounded});
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('extendedType', item.extendedType);
@@ -1337,6 +1377,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
           'hasNonFinalField': item.hasNonFinalField,
           'hasRepresentationSelfReference':
               item.flags.hasRepresentationSelfReference,
+          'isSimplyBounded': item.flags.isSimplyBounded,
         });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
@@ -1355,7 +1396,12 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeGetterItem(GetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
-        sink.writeFlags({..._executableItemFlags(item)});
+        sink.writeFlags({
+          ..._executableItemFlags(item),
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginInterface': item.flags.isOriginInterface,
+          'isOriginVariable': item.flags.isOriginVariable,
+        });
         _writeMetadata(item);
         _writeNamedType('returnType', item.functionType.returnType);
       });
@@ -1397,21 +1443,39 @@ class LibraryManifestPrinter extends ManifestPrinter {
         'isCovariant': item.flags.isCovariant,
         'isEnumConstant': item.flags.isEnumConstant,
         'isExternal': item.flags.isExternal,
+        'isOriginDeclaration': item.flags.isOriginDeclaration,
+        'isOriginDeclaringFormalParameter':
+            item.flags.isOriginDeclaringFormalParameter,
+        'isOriginEnumValues': item.flags.isOriginEnumValues,
+        'isOriginExtensionTypeRecoveryRepresentation':
+            item.flags.isOriginExtensionTypeRecoveryRepresentation,
+        'isOriginGetterSetter': item.flags.isOriginGetterSetter,
         'isPromotable': item.flags.isPromotable,
       });
       _writeMetadata(item);
       _writeNamedType('type', item.type);
       _writeNode('constInitializer', item.constInitializer);
+      _writeTopLevelInferenceError('inferenceError', item.typeInferenceError);
     });
 
     writeDeclaredItems('declaredGetters', item.declaredGetters, (item) {
-      sink.writeFlags({..._executableItemFlags(item)});
+      sink.writeFlags({
+        ..._executableItemFlags(item),
+        'isOriginDeclaration': item.flags.isOriginDeclaration,
+        'isOriginInterface': item.flags.isOriginInterface,
+        'isOriginVariable': item.flags.isOriginVariable,
+      });
       _writeMetadata(item);
       _writeNamedType('returnType', item.functionType.returnType);
     });
 
     writeDeclaredItems('declaredSetters', item.declaredSetters, (item) {
-      sink.writeFlags({..._executableItemFlags(item)});
+      sink.writeFlags({
+        ..._executableItemFlags(item),
+        'isOriginDeclaration': item.flags.isOriginDeclaration,
+        'isOriginInterface': item.flags.isOriginInterface,
+        'isOriginVariable': item.flags.isOriginVariable,
+      });
       _writeMetadata(item);
       _writeNamedType('functionType', item.functionType);
     });
@@ -1421,6 +1485,8 @@ class LibraryManifestPrinter extends ManifestPrinter {
         ..._executableItemFlags(item),
         'isOperatorEqualWithParameterTypeFromObject':
             item.flags.isOperatorEqualWithParameterTypeFromObject,
+        'isOriginDeclaration': item.flags.isOriginDeclaration,
+        'isOriginInterface': item.flags.isOriginInterface,
       });
       _writeMetadata(item);
       _writeNamedType('functionType', item.functionType);
@@ -1434,7 +1500,12 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeFlags({
           ..._executableItemFlags(item),
           'isConst': item.flags.isConst,
+          'isDeclaring': item.flags.isDeclaring,
           'isFactory': item.flags.isFactory,
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginImplicitDefault': item.flags.isOriginImplicitDefault,
+          'isOriginMixinApplication': item.flags.isOriginMixinApplication,
+          'isPrimary': item.flags.isPrimary,
         });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
@@ -1549,7 +1620,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
       element.libraryUri,
       element.kind.name,
       element.topLevelName,
-      if (element.memberName case var memberName?) memberName,
+      ?element.memberName,
     ];
     var idStr = idProvider.manifestId(element.id);
     sink.writeln('(${parts.join(', ')}) $idStr');
@@ -1580,6 +1651,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeFlags({
           'hasNonFinalField': item.hasNonFinalField,
           'isBase': item.flags.isBase,
+          'isSimplyBounded': item.flags.isSimplyBounded,
         });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
@@ -1639,6 +1711,8 @@ class LibraryManifestPrinter extends ManifestPrinter {
                   sink.writelnWithIndent('$index = formalParameter $rawIndex');
                 case ManifestAstElementKind.importPrefix:
                   sink.writelnWithIndent('$index = importPrefix');
+                case ManifestAstElementKind.methodOfUnnamedExtension:
+                  sink.writelnWithIndent('$index = methodOfUnnamedExtension');
                 case ManifestAstElementKind.typeParameter:
                   sink.writelnWithIndent('$index = typeParameter $rawIndex');
                 case ManifestAstElementKind.regular:
@@ -1656,7 +1730,12 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeSetterItem(SetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
-        sink.writeFlags({..._executableItemFlags(item)});
+        sink.writeFlags({
+          ..._executableItemFlags(item),
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginInterface': item.flags.isOriginInterface,
+          'isOriginVariable': item.flags.isOriginVariable,
+        });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
       });
@@ -1666,7 +1745,11 @@ class LibraryManifestPrinter extends ManifestPrinter {
   void _writeTopLevelFunctionItem(TopLevelFunctionItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
-        sink.writeFlags({..._executableItemFlags(item)});
+        sink.writeFlags({
+          ..._executableItemFlags(item),
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginLoadLibrary': item.flags.isOriginLoadLibrary,
+        });
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
       });
@@ -1689,10 +1772,13 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeFlags({
           ..._variableItemFlags(item),
           'isExternal': item.flags.isExternal,
+          'isOriginDeclaration': item.flags.isOriginDeclaration,
+          'isOriginGetterSetter': item.flags.isOriginGetterSetter,
         });
         _writeMetadata(item);
         _writeNamedType('type', item.type);
         _writeNode('constInitializer', item.constInitializer);
+        _writeTopLevelInferenceError('inferenceError', item.typeInferenceError);
       });
     }
   }
@@ -1832,10 +1918,19 @@ class ManifestPrinter {
     sink.writelnWithIndent('$name: $idStr');
   }
 
-  void _writelnIdListIfNotEmpty(String name, ManifestItemIdList idList) {
-    if (idList.ids.isNotEmpty) {
+  void _writelnIdListIfNotNull(String name, ManifestItemIdList? idList) {
+    if (idList != null) {
       var idListStr = idList.asString(idProvider);
       sink.writelnWithIndent('$name: $idListStr');
+    }
+  }
+
+  void _writelnIdListOrNull(String name, ManifestItemIdList? idList) {
+    if (idList != null) {
+      var idListStr = idList.asString(idProvider);
+      sink.writelnWithIndent('$name: $idListStr');
+    } else {
+      sink.writelnWithIndent('$name: <null>');
     }
   }
 
@@ -1934,7 +2029,9 @@ class ResolvedUnitResultPrinter {
   }
 
   void _writeDiagnostic(Diagnostic d) {
-    sink.writelnWithIndent('${d.offset} +${d.length} ${d.diagnosticCode.name}');
+    sink.writelnWithIndent(
+      '${d.offset} +${d.length} ${d.diagnosticCode.lowerCaseName.toUpperCase()}',
+    );
   }
 
   void _writeResolvedUnitResult(ResolvedUnitResultImpl result) {
@@ -2041,6 +2138,12 @@ extension on ManifestItemIdList {
     } else {
       return '[]';
     }
+  }
+}
+
+extension on ManifestItemIdList? {
+  String asString(IdProvider idProvider) {
+    return this?.asString(idProvider) ?? '<null>';
   }
 }
 

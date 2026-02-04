@@ -3,19 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Instances of the class `ImportsVerifier` visit all of the referenced
 /// libraries in the source code verifying that all of the imports are used,
-/// otherwise a [WarningCode.unusedImport] hint is generated with
+/// otherwise a [diag.unusedImport] hint is generated with
 /// [generateUnusedImportWarnings].
 ///
 /// Additionally, [generateDuplicateImportWarnings] generates
-/// [WarningCode.duplicateImport] hints and [WarningCode.unusedShownName]
+/// [diag.duplicateImport] hints and [diag.unusedShownName]
 /// warnings.
 ///
 /// While this class does not yet have support for an "Organize Imports" action,
@@ -65,7 +65,7 @@ class ImportsVerifier {
         if (libraryElement == null) {
           continue;
         }
-        if (libraryElement.isSynthetic) {
+        if (libraryElement.isOriginNotExistingFile) {
           continue;
         }
         _allImports.add(directive);
@@ -98,34 +98,32 @@ class ImportsVerifier {
 
   /// Any time after the defining compilation unit has been visited by this
   /// visitor, this method can be called to report an
-  /// [WarningCode.duplicateExport] hint for each of the export
+  /// [diag.duplicateExport] hint for each of the export
   /// directives in the [_duplicateExports] list.
   void generateDuplicateExportWarnings(DiagnosticReporter diagnosticReporter) {
     var length = _duplicateExports.length;
     for (var i = 0; i < length; i++) {
-      diagnosticReporter.atNode(
-        _duplicateExports[i].uri,
-        WarningCode.duplicateExport,
+      diagnosticReporter.report(
+        diag.duplicateExport.at(_duplicateExports[i].uri),
       );
     }
   }
 
   /// Any time after the defining compilation unit has been visited by this
   /// visitor, this method can be called to report an
-  /// [WarningCode.duplicateImport] hint for each of the import
+  /// [diag.duplicateImport] hint for each of the import
   /// directives in the [_duplicateImports] list.
   void generateDuplicateImportWarnings(DiagnosticReporter diagnosticReporter) {
     var length = _duplicateImports.length;
     for (var i = 0; i < length; i++) {
-      diagnosticReporter.atNode(
-        _duplicateImports[i].uri,
-        WarningCode.duplicateImport,
+      diagnosticReporter.report(
+        diag.duplicateImport.at(_duplicateImports[i].uri),
       );
     }
   }
 
-  /// Report a [WarningCode.duplicateShownName] and
-  /// [WarningCode.duplicateHiddenName] hints for each duplicate shown or
+  /// Report a [diag.duplicateShownName] and
+  /// [diag.duplicateHiddenName] hints for each duplicate shown or
   /// hidden name.
   ///
   /// Only call this method after all of the compilation units have been visited
@@ -138,7 +136,7 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.atNode(identifier, WarningCode.duplicateHiddenName);
+        reporter.report(diag.duplicateHiddenName.at(identifier));
       }
     });
     _duplicateShownNamesMap.forEach((
@@ -148,7 +146,7 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.atNode(identifier, WarningCode.duplicateShownName);
+        reporter.report(diag.duplicateShownName.at(identifier));
       }
     });
   }
@@ -215,7 +213,7 @@ class ImportsVerifier {
             secondElementUri is DirectiveUriWithLibraryImpl) {
           diagnosticReporter.atNode(
             firstDirective.uri,
-            HintCode.unnecessaryImport,
+            diag.unnecessaryImport,
             arguments: [
               firstElementUri.relativeUriString,
               secondElementUri.relativeUriString,
@@ -228,7 +226,7 @@ class ImportsVerifier {
     }
   }
 
-  /// Reports [WarningCode.unusedImport] for each unused import.
+  /// Reports [diag.unusedImport] for each unused import.
   void generateUnusedImportWarnings(DiagnosticReporter diagnosticReporter) {
     var importsTracking = fileAnalysis.importsTracking;
     for (var importDirective in fileAnalysis.unit.directives) {
@@ -253,7 +251,7 @@ class ImportsVerifier {
           }
 
           // The URI target does not exist, reported this elsewhere.
-          if (uri.library.isSynthetic) {
+          if (uri.library.isOriginNotExistingFile) {
             continue;
           }
 
@@ -262,7 +260,7 @@ class ImportsVerifier {
             _unusedImports.add(importDirective);
             diagnosticReporter.atNode(
               importDirective.uri,
-              WarningCode.unusedImport,
+              diag.unusedImport,
               arguments: [uri.relativeUriString],
             );
           }
@@ -271,7 +269,7 @@ class ImportsVerifier {
     }
   }
 
-  /// Use the error [reporter] to report an [WarningCode.unusedShownName]
+  /// Use the error [reporter] to report an [diag.unusedShownName]
   /// for each unused shown name.
   ///
   /// This method should be invoked after [generateUnusedImportWarnings].
@@ -318,7 +316,7 @@ class ImportsVerifier {
               if (!isUsed) {
                 reporter.atNode(
                   identifier,
-                  WarningCode.unusedShownName,
+                  diag.unusedShownName,
                   arguments: [identifier.name],
                 );
               }

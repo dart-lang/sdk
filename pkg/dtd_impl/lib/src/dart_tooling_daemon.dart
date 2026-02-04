@@ -25,6 +25,24 @@ import 'service/file_system_service.dart';
 import 'service/internal_service.dart';
 import 'service/unified_analytics_service.dart';
 
+/// The default value for the --ping-interval option.
+///
+/// This value was initially 15 seconds so that all DTD clients had the ping
+/// enabled to avoid issues like Norton Antivirus dropping proxied connections
+/// if there was no traffic for 30s (see
+/// https://github.com/Dart-Code/Dart-Code/issues/5794).
+///
+/// However, IntelliJ's WebSocket client turns out to not handle pings (see
+/// https://github.com/flutter/dart-intellij-third-party/issues/205) and this
+/// resulted in dropped connections. Since we can't change already-shipped IJ
+/// plugins we now default to no pings (because breaking IJ for all users is
+/// worse than breaking users on non-VSCode/IJ clients that happen to have
+/// something like Norton).
+///
+/// We should consider changing this back to 15s once IJ has been fixed and that
+/// fix is in all versions of the IJ plugins we support/care about.
+const _pingIntervalSecondsDefault = 0;
+
 /// Contains all the flags and options used by the DTD argument parser.
 enum DartToolingDaemonOptions {
   // Used when executing a training run while generating an AppJIT snapshot as
@@ -60,6 +78,13 @@ enum DartToolingDaemonOptions {
     negatable: false,
     help: 'Uses fake analytics instances for the UnifiedAnalytics service.',
     hide: true,
+  ),
+  pingInterval.option(
+    'ping-interval',
+    defaultsTo: '$_pingIntervalSecondsDefault',
+    help: 'Sets the WebSocket ping interval in seconds (0 to disable). '
+        'Enabling ping helps avoid connections being dropped by some proxies/'
+        'antivirus products if a connection has no traffic for some period.',
   );
 
   const DartToolingDaemonOptions.flag(
@@ -134,6 +159,7 @@ class DartToolingDaemon {
     bool ipv6 = false,
     bool shouldLogRequests = false,
     bool useFakeAnalytics = false,
+    this.pingInterval,
   })  : _ipv6 = ipv6,
         _uriAuthCode = disableServiceAuthCodes ? null : _generateSecret(),
         _shouldLogRequests = shouldLogRequests {
@@ -152,6 +178,12 @@ class DartToolingDaemon {
     );
   }
   static const _kSseHandlerPath = '\$debugHandler';
+
+  /// The ping interval to be set on any WebSocket connections.
+  ///
+  /// Having ping enabled can prevent proxies (including antivirus) from
+  /// dropping connections to DTD because they appear idle.
+  final Duration? pingInterval;
 
   /// Manages the streams for the current [DartToolingDaemon] service.
   late final DTDStreamManager streamManager;
@@ -252,6 +284,12 @@ class DartToolingDaemon {
         parsedArgs[DartToolingDaemonOptions.fakeAnalytics.name];
     final port =
         int.tryParse(parsedArgs[DartToolingDaemonOptions.port.name]) ?? 0;
+    final pingIntervalSeconds =
+        int.tryParse(parsedArgs[DartToolingDaemonOptions.pingInterval.name]) ??
+            _pingIntervalSecondsDefault;
+    final pingInterval = pingIntervalSeconds == 0
+        ? null
+        : Duration(seconds: pingIntervalSeconds);
 
     final secret = _generateSecret();
     final dtd = DartToolingDaemon._(
@@ -261,6 +299,7 @@ class DartToolingDaemon {
       ipv6: ipv6,
       shouldLogRequests: shouldLogRequests,
       useFakeAnalytics: useFakeAnalytics,
+      pingInterval: pingInterval,
     );
     await dtd._startService(port: port);
     if (machineMode) {
@@ -317,14 +356,17 @@ class DartToolingDaemon {
 
   // Note: the WebSocketChannel type below is needed for compatibility with
   // package:shelf_web_socket v2.
-  Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws, _) {
-        final client = DTDClient.fromWebSocket(
-          this,
-          ws,
-        );
-        _registerInternalServiceMethods(client);
-        clientManager.addClient(client);
-      });
+  Handler _webSocketHandler() => webSocketHandler(
+        (WebSocketChannel ws, _) {
+          final client = DTDClient.fromWebSocket(
+            this,
+            ws,
+          );
+          _registerInternalServiceMethods(client);
+          clientManager.addClient(client);
+        },
+        pingInterval: pingInterval,
+      );
 
   Handler _sseHandler() {
     final handler = SseHandler(

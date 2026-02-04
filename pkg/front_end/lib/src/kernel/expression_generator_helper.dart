@@ -85,7 +85,7 @@ abstract class ExpressionGeneratorHelper {
 
   LibraryFeatures get libraryFeatures;
 
-  bool isDeclaredInEnclosingCase(VariableDeclaration variable);
+  bool isDeclaredInEnclosingCase(ExpressionVariable variable);
 
   Generator processLookupResult({
     required LookupResult? lookupResult,
@@ -99,16 +99,14 @@ abstract class ExpressionGeneratorHelper {
 
   Expression_Generator_Initializer finishSend(
     Object receiver,
-    List<TypeBuilder>? typeArguments,
-    ArgumentsImpl arguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
     int offset, {
     bool isTypeArgumentsInForest = false,
   });
 
-  Initializer buildInvalidInitializer(
-    Expression expression, [
-    int offset = TreeNode.noOffset,
-  ]);
+  Initializer buildInvalidInitializer(InvalidExpression expression);
 
   List<Initializer> createFieldInitializer(
     String name,
@@ -121,23 +119,24 @@ abstract class ExpressionGeneratorHelper {
   Initializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
-    ArgumentsImpl arguments, [
+    ActualArguments arguments, [
     int offset = TreeNode.noOffset,
   ]);
 
   Initializer buildRedirectingInitializer(
     Name name,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int fileOffset,
   });
 
   Expression buildStaticInvocation({
     required Procedure target,
-    required ArgumentsImpl arguments,
+    required TypeArguments? typeArguments,
+    required ActualArguments arguments,
     required int fileOffset,
   });
 
-  Expression buildUnresolvedError(
+  InvalidExpression buildUnresolvedError(
     String name,
     int fileOffset, {
     bool isSuper,
@@ -145,8 +144,6 @@ abstract class ExpressionGeneratorHelper {
     int? length,
     bool errorHasBeenReported,
   });
-
-  Expression buildProblemFromLocatedMessage(LocatedMessage message);
 
   Expression wrapInDeferredCheck(
     Expression expression,
@@ -159,7 +156,8 @@ abstract class ExpressionGeneratorHelper {
   Expression buildMethodInvocation(
     Expression receiver,
     Name name,
-    ArgumentsImpl arguments,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
@@ -167,24 +165,26 @@ abstract class ExpressionGeneratorHelper {
 
   Expression buildSuperInvocation(
     Name name,
-    ArgumentsImpl arguments,
+    TypeArguments? typeArguments,
+    ActualArguments arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
     bool isImplicitCall = false,
   });
 
-  Expression resolveAndBuildConstructorInvocation(
+  ConstructorResolutionResult resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder type,
     Token nameToken,
     Token nameLastToken,
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     String name,
-    List<TypeBuilder>? typeArguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+    TypeArguments? typeArguments,
     int charOffset,
     Constness constness, {
-    bool isTypeArgumentsInForest = false,
-    TypeDeclarationBuilder? typeAliasBuilder,
+    required bool isTypeArgumentsInForest,
+    TypeAliasBuilder? typeAliasBuilder,
     required UnresolvedKind unresolvedKind,
   });
 
@@ -202,7 +202,7 @@ abstract class ExpressionGeneratorHelper {
   );
 
   Expression evaluateArgumentsBefore(
-    ArgumentsImpl arguments,
+    ActualArguments arguments,
     Expression expression,
   );
 
@@ -231,17 +231,17 @@ abstract class ExpressionGeneratorHelper {
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
-  Expression createVariableGet(VariableDeclaration variable, int charOffset);
+  Expression createVariableGet(ExpressionVariable variable, int charOffset);
 
   /// Registers that [variable] is read from.
   ///
   /// This is needed for type promotion.
-  void registerVariableRead(VariableDeclaration variable);
+  void registerVariableRead(ExpressionVariable variable);
 
   /// Registers that [variable] is assigned to.
   ///
   /// This is needed for type promotion.
-  void registerVariableAssignment(VariableDeclaration variable);
+  void registerVariableAssignment(ExpressionVariable variable);
 
   TypeEnvironment get typeEnvironment;
 
@@ -269,7 +269,7 @@ abstract class ExpressionGeneratorHelper {
     List<TypeBuilder>? typeArguments,
     String className,
     String constructorName,
-    ArgumentsImpl arguments, {
+    ActualArguments arguments, {
     required int instantiationOffset,
     required int invocationOffset,
     required bool inImplicitCreationContext,
@@ -319,3 +319,56 @@ bool isProperRenameForTypeDeclaration(
 }
 
 enum UnresolvedKind { Unknown, Member, Method, Getter, Setter, Constructor }
+
+/// Result of [ExpressionGeneratorHelper.resolveAndBuildConstructorInvocation].
+///
+/// [ConstructorResolutionResult] is the root of the sealed hierarchy of
+/// results, which then branches into the successful, the unresolved, and the
+/// erroneous cases.
+sealed class ConstructorResolutionResult {}
+
+class SuccessfulConstructorResolutionResult
+    extends ConstructorResolutionResult {
+  final Expression constructorInvocation;
+
+  SuccessfulConstructorResolutionResult(this.constructorInvocation);
+}
+
+/// Erroneous case of [ConstructorResolutionResult].
+class ErroneousConstructorResolutionResult extends ConstructorResolutionResult {
+  /// The expression signaling the error, typically an [InvalidExpression].
+  final Expression errorExpression;
+
+  ErroneousConstructorResolutionResult({required this.errorExpression});
+}
+
+/// Unresolved case of [UnresolvedConstructorResolutionResult].
+class UnresolvedConstructorResolutionResult
+    extends ConstructorResolutionResult {
+  final ExpressionGeneratorHelper _helper;
+  final String errorName;
+  final int charOffset;
+  final UnresolvedKind unresolvedKind;
+
+  UnresolvedConstructorResolutionResult({
+    required this.errorName,
+    required this.charOffset,
+    required ExpressionGeneratorHelper helper,
+    this.unresolvedKind = UnresolvedKind.Constructor,
+  }) : _helper = helper;
+
+  /// Constructs the expression signaling the unresolved error.
+  ///
+  /// The construction of the expression signaling the error is delayed from
+  /// the moment of invoking the constructor of
+  /// [UnresolvedConstructorResolutionResult], to allow for other resolution
+  /// mechanisms to make their attempts, and only if they are also unsuccessful,
+  /// build and signal the unresolved error.
+  Expression buildErrorExpression() {
+    return _helper.buildUnresolvedError(
+      errorName,
+      charOffset,
+      kind: unresolvedKind,
+    );
+  }
+}

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -529,8 +529,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 40, 1),
-        error(WarningCode.unusedLocalVariable, 65, 1),
+        error(diag.unusedLocalVariable, 40, 1),
+        error(diag.unusedLocalVariable, 65, 1),
       ],
     );
   }
@@ -597,7 +597,7 @@ void main() {
   var y = new C().x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 124, 1)],
+      [error(diag.unusedLocalVariable, 124, 1)],
     );
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
@@ -665,7 +665,7 @@ class H extends D<p.W> {
   H(int i) : super(i);
 }
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
+      [error(diag.uriDoesNotExist, 7, 14)],
     );
   }
 
@@ -693,7 +693,7 @@ class H extends D<W> {
   H(int i) : super(i);
 }
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
+      [error(diag.uriDoesNotExist, 7, 14)],
     );
   }
 
@@ -728,7 +728,7 @@ f() {
   List<List<int>> b = [];
   b[0][0] = 'hi';
 }''',
-      [error(CompileTimeErrorCode.invalidAssignment, 44, 4)],
+      [error(diag.invalidAssignment, 44, 4)],
     );
   }
 
@@ -767,7 +767,7 @@ class A {
 class A extends B {}
 class B {}
 class C = Object with A;''',
-      [error(CompileTimeErrorCode.mixinInheritsFromNotObject, 54, 1)],
+      [error(diag.mixinInheritsFromNotObject, 54, 1)],
     );
 
     var a = findElement2.class_('A');
@@ -781,7 +781,7 @@ class A {
   A() {}
 }
 class C = Object with A;''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 43, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 43, 1)],
     );
 
     var a = findElement2.class_('A');

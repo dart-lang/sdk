@@ -57,6 +57,7 @@ Component transformComponent(
   bool treeShakeSignatures = true,
   bool treeShakeWriteOnlyFields = true,
   bool treeShakeProtobufs = false,
+  bool treeShakeProtobufMixins = false,
   bool useRapidTypeAnalysis = true,
 }) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
@@ -75,7 +76,11 @@ Component transformComponent(
   );
   final protobufHandler =
       treeShakeProtobufs
-          ? ProtobufHandler.forComponent(component, coreTypes)
+          ? ProtobufHandler.forComponent(
+            component,
+            coreTypes,
+            handleMixins: treeShakeProtobufMixins,
+          )
           : null;
 
   Statistics.reset();
@@ -731,23 +736,21 @@ class AnnotateKernel extends RecursiveVisitor {
         _setUnreachable(member);
       }
 
-      if (member is! Field) {
-        final unboxingInfoMetadata = _unboxingInfo.getUnboxingInfoOfMember(
-          member,
-        );
-        if (unboxingInfoMetadata != null) {
-          // Check for partitions that only have abstract methods should be marked as boxed.
-          if (unboxingInfoMetadata.returnInfo == UnboxingType.kUnknown) {
-            unboxingInfoMetadata.returnInfo = UnboxingType.kBoxed;
+      final unboxingInfoMetadata = _unboxingInfo.getUnboxingInfoOfMember(
+        member,
+      );
+      if (unboxingInfoMetadata != null) {
+        // Check for partitions that only have abstract methods should be marked as boxed.
+        if (unboxingInfoMetadata.returnInfo == UnboxingType.kUnknown) {
+          unboxingInfoMetadata.returnInfo = UnboxingType.kBoxed;
+        }
+        for (int i = 0; i < unboxingInfoMetadata.argsInfo.length; i++) {
+          if (unboxingInfoMetadata.argsInfo[i] == UnboxingType.kUnknown) {
+            unboxingInfoMetadata.argsInfo[i] = UnboxingType.kBoxed;
           }
-          for (int i = 0; i < unboxingInfoMetadata.argsInfo.length; i++) {
-            if (unboxingInfoMetadata.argsInfo[i] == UnboxingType.kUnknown) {
-              unboxingInfoMetadata.argsInfo[i] = UnboxingType.kBoxed;
-            }
-          }
-          if (!unboxingInfoMetadata.isTrivial) {
-            _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
-          }
+        }
+        if (!unboxingInfoMetadata.isTrivial) {
+          _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
         }
       }
     }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -17,9 +17,9 @@ class TypedefTest extends PartialCodeTest {
         'keyword',
         'typedef',
         [
-          ParserErrorCode.missingIdentifier,
-          ParserErrorCode.missingTypedefParameters,
-          ParserErrorCode.expectedToken,
+          diag.missingIdentifier,
+          diag.missingTypedefParameters,
+          diag.expectedToken,
         ],
         "typedef _s_();",
         failing: ['functionVoid', 'functionNonVoid', 'getter'],
@@ -27,28 +27,21 @@ class TypedefTest extends PartialCodeTest {
       TestDescriptor(
         'name',
         'typedef T',
-        [
-          ParserErrorCode.missingTypedefParameters,
-          ParserErrorCode.expectedToken,
-        ],
+        [diag.missingTypedefParameters, diag.expectedToken],
         "typedef T();",
         failing: ['functionNonVoid', 'getter', 'mixin', 'setter'],
       ),
       TestDescriptor(
         'keywordEquals',
         'typedef =',
-        [
-          ParserErrorCode.missingIdentifier,
-          ParserErrorCode.expectedTypeName,
-          ParserErrorCode.expectedToken,
-        ],
+        [diag.missingIdentifier, diag.expectedTypeName, diag.expectedToken],
         "typedef _s_ = _s_;",
         failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin'],
       ),
       TestDescriptor(
         'equals',
         'typedef T =',
-        [ParserErrorCode.expectedTypeName, ParserErrorCode.expectedToken],
+        [diag.expectedTypeName, diag.expectedToken],
         "typedef T = _s_;",
         failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin'],
       ),

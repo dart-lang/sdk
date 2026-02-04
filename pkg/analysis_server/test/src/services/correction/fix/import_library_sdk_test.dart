@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,7 +22,7 @@ void main() {
 @reflectiveTest
 class ImportLibrarySdkPrefixedTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED;
+  FixKind get kind => DartFixKind.importLibrarySdkPrefixed;
 
   Future<void> test_prefixed_class_async() async {
     await resolveTestCode('''
@@ -45,7 +45,7 @@ void f() {
 @reflectiveTest
 class ImportLibrarySdkPrefixedWithShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED_SHOW;
+  FixKind get kind => DartFixKind.importLibrarySdkPrefixedShow;
 
   Future<void> test_prefixed_class_async() async {
     await resolveTestCode('''
@@ -79,9 +79,9 @@ void f() {
 }
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED,
-      DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED_SHOW,
-      DartFixKind.IMPORT_LIBRARY_PREFIX,
+      DartFixKind.importLibrarySdkPrefixed,
+      DartFixKind.importLibrarySdkPrefixedShow,
+      DartFixKind.importLibraryPrefix,
     ]);
   }
 
@@ -95,9 +95,9 @@ void f() {
 }
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.IMPORT_LIBRARY_SDK,
-      DartFixKind.IMPORT_LIBRARY_SDK_SHOW,
-      DartFixKind.IMPORT_LIBRARY_PROJECT1,
+      DartFixKind.importLibrarySdk,
+      DartFixKind.importLibrarySdkShow,
+      DartFixKind.importLibraryProject1,
     ]);
   }
 }
@@ -105,7 +105,7 @@ void f() {
 @reflectiveTest
 class ImportLibrarySdkTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK;
+  FixKind get kind => DartFixKind.importLibrarySdk;
 
   Future<void> test_alreadyImported_sdk() async {
     await resolveTestCode('''
@@ -306,8 +306,8 @@ class MyAnnotation {
 @MyAnnotation(int, const [Completer])
 void f() {}
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
+      filter: (error) {
+        return error.diagnosticCode == diag.undefinedIdentifier;
       },
     );
   }
@@ -406,7 +406,7 @@ void f() {
 @reflectiveTest
 class ImportLibrarySdkWithShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK_SHOW;
+  FixKind get kind => DartFixKind.importLibrarySdkShow;
 
   Future<void> test_prefixed_class_async() async {
     await resolveTestCode('''

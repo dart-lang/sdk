@@ -1,21 +1,22 @@
-// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // IMPORTANT: This file should only ever be modified by modifying the
 // corresponding .proto file and then running
-// `dart runtime/vm/protos/tools/compile_perfetto_protos.dart` from the SDK root
-// directory.
+// `dart third_party/perfetto/tools/compile_perfetto_protos.dart` from the
+// SDK root directory.
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: protos/perfetto/trace/trace_packet.proto
-//
+// Generated from protos/perfetto/trace/trace_packet.proto.
+
 // @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names
 
 import 'dart:core' as $core;
 
@@ -25,20 +26,20 @@ class TracePacket_SequenceFlags extends $pb.ProtobufEnum {
   static const TracePacket_SequenceFlags SEQ_UNSPECIFIED =
       TracePacket_SequenceFlags._(0, _omitEnumNames ? '' : 'SEQ_UNSPECIFIED');
 
-  ///  Set by the writer to indicate that it will re-emit any incremental data
-  ///  for the packet's sequence before referring to it again. This includes
-  ///  interned data as well as periodically emitted data like
-  ///  Process/ThreadDescriptors. This flag only affects the current packet
-  ///  sequence (see |trusted_packet_sequence_id|).
+  /// Set by the writer to indicate that it will re-emit any incremental data
+  /// for the packet's sequence before referring to it again. This includes
+  /// interned data as well as periodically emitted data like
+  /// Process/ThreadDescriptors. This flag only affects the current packet
+  /// sequence (see |trusted_packet_sequence_id|).
   ///
-  ///  When set, this TracePacket and subsequent TracePackets on the same
-  ///  sequence will not refer to any incremental data emitted before this
-  ///  TracePacket. For example, previously emitted interned data will be
-  ///  re-emitted if it is referred to again.
+  /// When set, this TracePacket and subsequent TracePackets on the same
+  /// sequence will not refer to any incremental data emitted before this
+  /// TracePacket. For example, previously emitted interned data will be
+  /// re-emitted if it is referred to again.
   ///
-  ///  When the reader detects packet loss (|previous_packet_dropped|), it needs
-  ///  to skip packets in the sequence until the next one with this flag set, to
-  ///  ensure intact incremental data.
+  /// When the reader detects packet loss (|previous_packet_dropped|), it needs
+  /// to skip packets in the sequence until the next one with this flag set, to
+  /// ensure intact incremental data.
   static const TracePacket_SequenceFlags SEQ_INCREMENTAL_STATE_CLEARED =
       TracePacket_SequenceFlags._(
           1, _omitEnumNames ? '' : 'SEQ_INCREMENTAL_STATE_CLEARED');
@@ -59,11 +60,13 @@ class TracePacket_SequenceFlags extends $pb.ProtobufEnum {
     SEQ_NEEDS_INCREMENTAL_STATE,
   ];
 
-  static final $core.Map<$core.int, TracePacket_SequenceFlags> _byValue =
-      $pb.ProtobufEnum.initByValue(values);
-  static TracePacket_SequenceFlags? valueOf($core.int value) => _byValue[value];
+  static final $core.List<TracePacket_SequenceFlags?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static TracePacket_SequenceFlags? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
 
-  const TracePacket_SequenceFlags._(super.v, super.n);
+  const TracePacket_SequenceFlags._(super.value, super.name);
 }
 
-const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');
+const $core.bool _omitEnumNames =
+    $core.bool.fromEnvironment('protobuf.omit_enum_names');

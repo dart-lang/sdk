@@ -362,4 +362,20 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, Variance> {
     // [AuxiliaryType]s.
     return null;
   }
+
+  @override
+  DartType? visitFunctionTypeParameterType(
+      FunctionTypeParameterType node, Variance arg) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
+
+  @override
+  DartType? visitClassTypeParameterType(
+      ClassTypeParameterType node, Variance arg) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw UnimplementedError(
+        "Unimplemented support for $node (${node.runtimeType}).");
+  }
 }

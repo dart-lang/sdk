@@ -1,0 +1,261 @@
+Problems reported:
+
+parser/primary_constructors/enum_primary_constructor_body_error:2:3: 'this' can't be used as an identifier because it's a keyword.
+  this() {}
+  ^^^^
+
+parser/primary_constructors/enum_primary_constructor_body_error:2:10: Expected '}' before this.
+  this() {}
+         ^
+
+parser/primary_constructors/enum_primary_constructor_body_error:6:3: 'this' can't be used as an identifier because it's a keyword.
+  this(int x) : assert(1 > 2) {}
+  ^^^^
+
+parser/primary_constructors/enum_primary_constructor_body_error:6:12: Expected ',' before this.
+  this(int x) : assert(1 > 2) {}
+           ^
+
+parser/primary_constructors/enum_primary_constructor_body_error:6:15: Expected '}' before this.
+  this(int x) : assert(1 > 2) {}
+              ^
+
+parser/primary_constructors/enum_primary_constructor_body_error:10:3: 'this' can't be used as an identifier because it's a keyword.
+  this();
+  ^^^^
+
+parser/primary_constructors/enum_primary_constructor_body_error:14:3: 'this' can't be used as an identifier because it's a keyword.
+  this(int x) : assert(1 > 2);
+  ^^^^
+
+parser/primary_constructors/enum_primary_constructor_body_error:14:12: Expected ',' before this.
+  this(int x) : assert(1 > 2);
+           ^
+
+parser/primary_constructors/enum_primary_constructor_body_error:14:15: Expected '}' before this.
+  this(int x) : assert(1 > 2);
+              ^
+
+parser/primary_constructors/enum_primary_constructor_body_error:18:3: 'this' can't be used as an identifier because it's a keyword.
+  this : assert(1 > 2);
+  ^^^^
+
+parser/primary_constructors/enum_primary_constructor_body_error:18:8: Expected '}' before this.
+  this : assert(1 > 2);
+       ^
+
+parser/primary_constructors/enum_primary_constructor_body_error:22:3: 'this' can't be used as an identifier because it's a keyword.
+  this {}
+  ^^^^
+
+parser/primary_constructors/enum_primary_constructor_body_error:22:8: Expected '}' before this.
+  this {}
+       ^
+
+beginCompilationUnit(enum)
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginEnumDeclarationPrelude(enum)
+    handleIdentifier(E1, enumDeclaration)
+    handleNoTypeVariables(()
+    beginEnumDeclaration(enum, null, enum, E1)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+        endFormalParameters(0, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, const, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        beginMetadataStar(this)
+        endMetadataStar(0)
+        handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
+        handleIdentifier(this, enumValueDeclaration)
+        handleNoTypeNameInConstructorReference(()
+        beginConstructorReference(this)
+          handleNoTypeArguments(()
+          handleNoConstructorReferenceContinuationAfterTypeArguments(this)
+        endConstructorReference(this, null, this, ConstructorReferenceContext.Const)
+        beginArguments(()
+        endArguments(0, (, ))
+        handleEnumElement({, null)
+        handleRecoverableError(Message[Template(ExpectedButGot), Expected '}' before this., null, {string: }}], {, {)
+        handleEnumElements(}, 1)
+      endEnumBody({, })
+    endEnumDeclaration(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginEnumDeclarationPrelude(enum)
+    handleIdentifier(E2, enumDeclaration)
+    handleNoTypeVariables(()
+    beginEnumDeclaration(enum, null, enum, E2)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+        endFormalParameters(0, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, const, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        beginMetadataStar(this)
+        endMetadataStar(0)
+        handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
+        handleIdentifier(this, enumValueDeclaration)
+        handleNoTypeNameInConstructorReference(()
+        beginConstructorReference(this)
+          handleNoTypeArguments(()
+          handleNoConstructorReferenceContinuationAfterTypeArguments(this)
+        endConstructorReference(this, null, this, ConstructorReferenceContext.Const)
+        beginArguments(()
+          handleIdentifier(int, expression)
+          handleNoTypeArguments(x)
+          handleNoArguments(x)
+          handleSend(int, int)
+          handlePositionalArgument(int)
+          handleRecoverableError(Message[Template(ExpectedButGot), Expected ',' before this., null, {string: ,}], x, x)
+          handleIdentifier(x, expression)
+          handleNoTypeArguments())
+          handleNoArguments())
+          handleSend(x, x)
+          handlePositionalArgument(x)
+        endArguments(2, (, ))
+        handleEnumElement({, null)
+        handleRecoverableError(Message[Template(ExpectedButGot), Expected '}' before this., null, {string: }}], :, :)
+        handleEnumElements(}, 1)
+      endEnumBody({, })
+    endEnumDeclaration(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginEnumDeclarationPrelude(enum)
+    handleIdentifier(E3, enumDeclaration)
+    handleNoTypeVariables(()
+    beginEnumDeclaration(enum, null, enum, E3)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+        endFormalParameters(0, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, const, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        beginMetadataStar(this)
+        endMetadataStar(0)
+        handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
+        handleIdentifier(this, enumValueDeclaration)
+        handleNoTypeNameInConstructorReference(()
+        beginConstructorReference(this)
+          handleNoTypeArguments(()
+          handleNoConstructorReferenceContinuationAfterTypeArguments(this)
+        endConstructorReference(this, null, this, ConstructorReferenceContext.Const)
+        beginArguments(()
+        endArguments(0, (, ))
+        handleEnumElement({, null)
+        handleEnumElements(;, 1)
+      endEnumBody({, })
+    endEnumDeclaration(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginEnumDeclarationPrelude(enum)
+    handleIdentifier(E4, enumDeclaration)
+    handleNoTypeVariables(()
+    beginEnumDeclaration(enum, null, enum, E4)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+        endFormalParameters(0, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, const, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        beginMetadataStar(this)
+        endMetadataStar(0)
+        handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
+        handleIdentifier(this, enumValueDeclaration)
+        handleNoTypeNameInConstructorReference(()
+        beginConstructorReference(this)
+          handleNoTypeArguments(()
+          handleNoConstructorReferenceContinuationAfterTypeArguments(this)
+        endConstructorReference(this, null, this, ConstructorReferenceContext.Const)
+        beginArguments(()
+          handleIdentifier(int, expression)
+          handleNoTypeArguments(x)
+          handleNoArguments(x)
+          handleSend(int, int)
+          handlePositionalArgument(int)
+          handleRecoverableError(Message[Template(ExpectedButGot), Expected ',' before this., null, {string: ,}], x, x)
+          handleIdentifier(x, expression)
+          handleNoTypeArguments())
+          handleNoArguments())
+          handleSend(x, x)
+          handlePositionalArgument(x)
+        endArguments(2, (, ))
+        handleEnumElement({, null)
+        handleRecoverableError(Message[Template(ExpectedButGot), Expected '}' before this., null, {string: }}], :, :)
+        handleEnumElements(}, 1)
+      endEnumBody({, })
+    endEnumDeclaration(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginEnumDeclarationPrelude(enum)
+    handleIdentifier(E5, enumDeclaration)
+    handleNoTypeVariables(()
+    beginEnumDeclaration(enum, null, enum, E5)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+        endFormalParameters(0, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, const, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        beginMetadataStar(this)
+        endMetadataStar(0)
+        handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
+        handleIdentifier(this, enumValueDeclaration)
+        handleNoTypeNameInConstructorReference(:)
+        beginConstructorReference(this)
+          handleNoTypeArguments(:)
+          handleNoConstructorReferenceContinuationAfterTypeArguments(this)
+        endConstructorReference(this, null, this, ConstructorReferenceContext.Const)
+        handleNoArguments(this)
+        handleEnumElement({, null)
+        handleRecoverableError(Message[Template(ExpectedButGot), Expected '}' before this., null, {string: }}], :, :)
+        handleEnumElements(}, 1)
+      endEnumBody({, })
+    endEnumDeclaration(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(enum)
+  endMetadataStar(0)
+  beginEnumDeclarationPrelude(enum)
+    handleIdentifier(E6, enumDeclaration)
+    handleNoTypeVariables(()
+    beginEnumDeclaration(enum, null, enum, E6)
+      beginPrimaryConstructor(()
+        beginFormalParameters((, MemberKind.PrimaryConstructor)
+        endFormalParameters(0, (, ), MemberKind.PrimaryConstructor)
+      endPrimaryConstructor((, const, false, false)
+      handleEnumNoWithClause()
+      handleImplements(null, 0)
+      handleEnumHeader(null, enum, {)
+      beginEnumBody({)
+        beginMetadataStar(this)
+        endMetadataStar(0)
+        handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
+        handleIdentifier(this, enumValueDeclaration)
+        handleNoTypeNameInConstructorReference({)
+        beginConstructorReference(this)
+          handleNoTypeArguments({)
+          handleNoConstructorReferenceContinuationAfterTypeArguments(this)
+        endConstructorReference(this, null, this, ConstructorReferenceContext.Const)
+        handleNoArguments(this)
+        handleEnumElement({, null)
+        handleRecoverableError(Message[Template(ExpectedButGot), Expected '}' before this., null, {string: }}], {, {)
+        handleEnumElements(}, 1)
+      endEnumBody({, })
+    endEnumDeclaration(enum, enum, {, 0, })
+  endTopLevelDeclaration(})
+endCompilationUnit(6, )

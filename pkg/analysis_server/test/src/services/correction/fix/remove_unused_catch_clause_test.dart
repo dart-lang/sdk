@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveUnusedCatchClauseMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE_MULTI;
+  FixKind get kind => DartFixKind.removeUnusedCatchClauseMulti;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -31,7 +31,7 @@ void f() {
   }
 }
 ''');
-    await assertHasFixAllFix(WarningCode.unusedCatchClause, '''
+    await assertHasFixAllFix(diag.unusedCatchClause, '''
 void f() {
   try {
     throw 42;
@@ -46,7 +46,7 @@ void f() {
 @reflectiveTest
 class RemoveUnusedCatchClauseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE;
+  FixKind get kind => DartFixKind.removeUnusedCatchClause;
 
   Future<void> test_removeUnusedCatchClause() async {
     await resolveTestCode('''

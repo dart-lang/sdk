@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 
@@ -40,7 +39,7 @@ bool test_simulateRefactoringReset_afterInitialConditions = false;
 /// Once new set of parameters is received, the previous [Refactoring] instance
 /// is invalidated and a new one is created and initialized.
 class RefactoringManager {
-  static const List<RefactoringProblem> EMPTY_PROBLEM_LIST =
+  static const List<RefactoringProblem> _emptyProblemList =
       <RefactoringProblem>[];
 
   final LegacyAnalysisServer server;
@@ -104,14 +103,15 @@ class RefactoringManager {
     // prepare for processing the request
     this.request = request;
     var result = this.result = EditGetRefactoringResult(
-      EMPTY_PROBLEM_LIST,
-      EMPTY_PROBLEM_LIST,
-      EMPTY_PROBLEM_LIST,
+      _emptyProblemList,
+      _emptyProblemList,
+      _emptyProblemList,
     );
 
     // process the request
     var file = params.file;
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      this.request = null;
       return;
     }
 
@@ -179,6 +179,7 @@ class RefactoringManager {
           server.sendResponse(
             Response.serverError(request, exception, stackTrace),
           );
+          this.request = null;
         }
         _reset();
       },
@@ -316,13 +317,6 @@ class RefactoringManager {
       if (resolvedUnit != null) {
         var node = resolvedUnit.unit.nodeCovering(offset: offset);
         var element = node?.getElement(useMockForImport: true);
-        if (node is RepresentationDeclaration) {
-          var extensionType = node.parent;
-          if (extensionType is ExtensionTypeDeclaration &&
-              extensionType.name.end == offset) {
-            element = extensionType.declaredFragment?.element;
-          }
-        }
         if (node != null && element != null) {
           var renameElement = RenameRefactoring.getElementToRename(
             node,

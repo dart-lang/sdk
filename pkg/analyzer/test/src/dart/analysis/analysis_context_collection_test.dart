@@ -124,7 +124,10 @@ linter:
 
   test_new_includedPaths_notAbsolute() {
     expect(
-      () => AnalysisContextCollectionImpl(includedPaths: ['root']),
+      () => AnalysisContextCollectionImpl(
+        includedPaths: ['root'],
+        withFineDependencies: true,
+      ),
       throwsArgumentError,
     );
   }
@@ -133,6 +136,7 @@ linter:
     expect(
       () => AnalysisContextCollectionImpl(
         includedPaths: [convertPath('/root/lib/../lib')],
+        withFineDependencies: true,
       ),
       throwsArgumentError,
     );
@@ -155,6 +159,7 @@ linter:
       () => AnalysisContextCollectionImpl(
         includedPaths: ['/root'],
         sdkPath: 'sdk',
+        withFineDependencies: true,
       ),
       throwsArgumentError,
     );
@@ -165,6 +170,7 @@ linter:
       () => AnalysisContextCollectionImpl(
         includedPaths: [convertPath('/root')],
         sdkPath: '/home/sdk/../sdk',
+        withFineDependencies: true,
       ),
       throwsArgumentError,
     );
@@ -177,6 +183,7 @@ linter:
       resourceProvider: resourceProvider,
       includedPaths: includedPaths,
       sdkPath: sdkRoot.path,
+      withFineDependencies: true,
     );
   }
 }
@@ -633,7 +640,11 @@ name: test
       name: 'test',
     );
 
-    newAnalysisOptionsYamlFile(testPackageRootPath, '');
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+analyzer:
+  exclude:
+    - foo/**
+''');
     newFile('$testPackageLibPath/a.dart', '');
 
     var nestedPath = '$testPackageLibPath/nested';
@@ -654,6 +665,11 @@ analyzer:
     newFile('$nestedNestedPath/c.dart', '');
     newFile('$nestedNestedPath/excluded2/d.dart', '');
 
+    // There's still an issue here with these exclude globs being there twice:
+    // - foo/** in /home/test
+    // - foo in /home/test
+    // But at least that's it.
+    configuration.withExcludedGlobs = true;
     _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
   /home/test
@@ -672,6 +688,15 @@ contexts
         uri: package:test/nested/nested/c.dart
         analysisOptions_2
         workspacePackage_0_0
+    excludedGlobs
+      foo/** in /home/test
+      foo in /home/test
+      foo/** in /home/test
+      foo in /home/test
+      excluded/** in /home/test/lib/nested
+      excluded in /home/test/lib/nested
+      excluded2/** in /home/test/lib/nested/nested
+      excluded2 in /home/test/lib/nested/nested
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
   analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
@@ -1126,6 +1151,7 @@ resolution: workspace
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(package1RootPath).path],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1194,6 +1220,7 @@ resolution: workspace
         getFolder(package1RootPath).path,
         getFolder(package2RootPath).path,
       ],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1279,6 +1306,7 @@ resolution: workspace
         getFolder(package1RootPath).path,
         getFolder(package2RootPath).path,
       ],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1353,6 +1381,7 @@ resolution: workspace
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(workspaceRootPath).path],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1432,6 +1461,7 @@ resolution: workspace
         getFolder(workspaceRootPath).path,
         getFolder(package1RootPath).path,
       ],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1507,6 +1537,7 @@ resolution: workspace
         getFolder(package1RootPath).path,
         getFolder(package2RootPath).path,
       ],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1530,6 +1561,126 @@ workspaces
         sdkVersionConstraint: ^3.6.0
       workspacePackage_0_1: PubPackage
         root: /home/package2
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
+  test_resolutionWorkspace_singlePackage_analysisOptions_intermediate() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/packages/package1';
+
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: root_package
+environment:
+  sdk: ^3.6.0
+workspace:
+  - packages/package1
+''');
+    newAnalysisOptionsYamlFile('$workspaceRootPath/packages', r'''
+linter:
+  rules:
+    - prefer_final_locals
+''');
+    newFile('$workspaceRootPath/lib/main.dart', '');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+    newFile('$package1RootPath/lib/package1.dart', '');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'root_package', rootPath: workspaceRootPath)
+        ..add(name: 'package1', rootPath: package1RootPath),
+    );
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(package1RootPath).path],
+      withFineDependencies: true,
+    );
+
+    configuration.withLintRules = true;
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/packages/package1/lib/package1.dart
+        uri: package:package1/package1.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/packages/analysis_options.yaml
+    lintRules
+      prefer_final_locals
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/packages/package1
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
+  test_resolutionWorkspace_singlePackage_nestedInLib() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/lib/package1';
+
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: root_package
+environment:
+  sdk: ^3.6.0
+workspace:
+  - lib/package1
+''');
+    newFile('$workspaceRootPath/lib/main.dart', '');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+    newFile('$package1RootPath/lib/package1.dart', '');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'root_package', rootPath: workspaceRootPath)
+        ..add(name: 'package1', rootPath: package1RootPath),
+    );
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(package1RootPath).path],
+      withFineDependencies: true,
+    );
+
+    // Note: `package:package1/package1.dart` URI.
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/lib/package1/lib/package1.dart
+        uri: package:package1/package1.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/lib/package1
         sdkVersionConstraint: ^3.6.0
 ''');
   }
@@ -1565,6 +1716,7 @@ workspaces
       includedPaths: [getFolder(workspaceRootPath).path],
       optionsFile: optionsFile?.path,
       updateAnalysisOptions4: updateAnalysisOptions,
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, expected);
@@ -1674,6 +1826,13 @@ class _AnalysisContextCollectionPrinter {
           _writeDartFile(fsState, file);
         }
       });
+      if (configuration.withExcludedGlobs) {
+        sink.writeElements('excludedGlobs', contextRoot.excludedGlobs, (glob) {
+          sink.writelnWithIndent(
+            '${glob.glob.pattern} in ${glob.parent.posixPath}',
+          );
+        });
+      }
     });
   }
 
@@ -1809,4 +1968,5 @@ class _AnalysisContextCollectionPrinterConfiguration {
   bool withEnabledFeatures = false;
   bool withLintRules = false;
   bool withOptionFilesForContext = false;
+  bool withExcludedGlobs = false;
 }

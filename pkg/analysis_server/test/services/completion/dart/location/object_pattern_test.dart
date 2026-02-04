@@ -373,6 +373,24 @@ suggestions
 ''');
   }
 
+  Future<void> test_ifCase_objectPattern_functionType_callMethod() async {
+    allowedIdentifiers = {'call'};
+    await computeSuggestions('''
+void f(Object? x) {
+  if (x case Function(:cal^)) {}
+}
+''');
+    assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
+replacement
+  left: 3
+suggestions
+  call
+    kind: method
+''');
+  }
+
   Future<void> test_ifCase_objectPattern_type_partial() async {
     await computeSuggestions('''
 class A01 {}
@@ -645,6 +663,33 @@ suggestions
     kind: keyword
   x0
     kind: parameter
+''');
+  }
+
+  Future<void> test_patternFieldName_afterColon() async {
+    await computeSuggestions('''
+void f(MyClassWithReallyBigName parameter) {
+  if (parameter case MyClassWithReallyBigName(
+    fieldWithBigName: var fieldWithReallyVeryBigName,
+    :^
+  )) {}
+}
+
+abstract class MyClassWithReallyBigName {
+  int get fieldWithBigName;
+  int get g01;
+}
+''');
+    assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
+suggestions
+  final
+    kind: keyword
+  var
+    kind: keyword
+  var g01
+    kind: getter
 ''');
   }
 

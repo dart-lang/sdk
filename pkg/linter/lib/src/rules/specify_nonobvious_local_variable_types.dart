@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
@@ -11,11 +12,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/obvious_types.dart';
 
 const _desc = r'Specify non-obvious type annotations for local variables.';
 
-class SpecifyNonObviousLocalVariableTypes extends LintRule {
+class SpecifyNonObviousLocalVariableTypes extends AnalysisRule {
   SpecifyNonObviousLocalVariableTypes()
     : super(
         name: LintNames.specify_nonobvious_local_variable_types,
@@ -24,8 +26,7 @@ class SpecifyNonObviousLocalVariableTypes extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.specifyNonobviousLocalVariableTypes;
+  DiagnosticCode get diagnosticCode => diag.specifyNonobviousLocalVariableTypes;
 
   @override
   List<String> get incompatibleRules => const [
@@ -47,7 +48,7 @@ class SpecifyNonObviousLocalVariableTypes extends LintRule {
 }
 
 class _PatternVisitor extends GeneralizingAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _PatternVisitor(this.rule);
 
@@ -64,7 +65,7 @@ class _PatternVisitor extends GeneralizingAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

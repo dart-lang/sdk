@@ -771,7 +771,7 @@ Widget buildRow() {
 @reflectiveTest
 class RemoveContainerTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CONTAINER;
+  FixKind get kind => DartFixKind.removeUnnecessaryContainer;
 
   @override
   String get lintCode => LintNames.avoid_unnecessary_containers;

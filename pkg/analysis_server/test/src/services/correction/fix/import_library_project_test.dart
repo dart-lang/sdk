@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -31,7 +31,41 @@ void main() {
 @reflectiveTest
 class ImportLibraryProject1PrefixedTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED;
+  FixKind get kind => DartFixKind.importLibraryProject1Prefixed;
+
+  Future<void> test_annotation_constructor() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class MyAnnotation {
+  const MyAnnotation();
+}
+''');
+    await resolveTestCode('''
+@a.MyAnnotation()
+void f() {}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart' as a;
+
+@a.MyAnnotation()
+void f() {}
+''');
+  }
+
+  Future<void> test_annotation_variable() async {
+    newFile('$testPackageLibPath/a.dart', '''
+const myAnnotation = 42;
+''');
+    await resolveTestCode('''
+@a.myAnnotation
+void f() {}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart' as a;
+
+@a.myAnnotation
+void f() {}
+''');
+  }
 
   Future<void> test_prefixed_class() async {
     newFile('$testPackageLibPath/lib.dart', '''
@@ -163,7 +197,7 @@ void f() {
 @reflectiveTest
 class ImportLibraryProject1PrefixedWithShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED_SHOW;
+  FixKind get kind => DartFixKind.importLibraryProject1PrefixedShow;
 
   Future<void> test_prefixed_class() async {
     newFile('$testPackageLibPath/lib.dart', '''
@@ -295,7 +329,7 @@ void f() {
 @reflectiveTest
 class ImportLibraryProject1Test extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1;
+  FixKind get kind => DartFixKind.importLibraryProject1;
 
   Future<void> test_alreadyImported_package() async {
     newFile('$testPackageLibPath/lib.dart', '''
@@ -703,8 +737,7 @@ void f() {
   Test();
 }
 ''');
-    await assertHasFix(
-      r'''
+    await assertHasFix(r'''
 import 'package:test/lib.dart';
 
 import 'package:$foo/foo.dart';
@@ -712,10 +745,7 @@ import 'package:$foo/foo.dart';
 void f() {
   Test();
 }
-''',
-      errorFilter: (e) =>
-          e.diagnosticCode == CompileTimeErrorCode.undefinedFunction,
-    );
+''', filter: (e) => e.diagnosticCode == diag.undefinedFunction);
   }
 
   Future<void> test_lib() async {
@@ -1810,7 +1840,7 @@ dependencies:
 @reflectiveTest
 class ImportLibraryProject1WithShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1_SHOW;
+  FixKind get kind => DartFixKind.importLibraryProject1Show;
 
   Future<void> test_prefixed_class() async {
     newFile('$testPackageLibPath/lib.dart', '''
@@ -1942,7 +1972,7 @@ void f() {
 @reflectiveTest
 class ImportLibraryProject2PrefixedTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED;
+  FixKind get kind => DartFixKind.importLibraryProject2Prefixed;
 
   Future<void> test_prefixed_class() async {
     newFile('$testPackageLibPath/lib1.dart', '''
@@ -2074,7 +2104,7 @@ void f() {
 @reflectiveTest
 class ImportLibraryProject2PrefixedWithShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED_SHOW;
+  FixKind get kind => DartFixKind.importLibraryProject2PrefixedShow;
 
   Future<void> test_prefixed_class() async {
     newFile('$testPackageLibPath/lib1.dart', '''
@@ -2206,7 +2236,7 @@ void f() {
 @reflectiveTest
 class ImportLibraryProject2Test extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2;
+  FixKind get kind => DartFixKind.importLibraryProject2;
 
   Future<void> test_extension_name() async {
     createAnalysisOptionsFile(lints: [LintNames.comment_references]);
@@ -2368,7 +2398,7 @@ f() {
 @reflectiveTest
 class ImportLibraryProject2WithShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2_SHOW;
+  FixKind get kind => DartFixKind.importLibraryProject2Show;
 
   Future<void> test_prefixed_class() async {
     newFile('$testPackageLibPath/lib1.dart', '''
@@ -2500,7 +2530,7 @@ void f() {
 @reflectiveTest
 class ImportLibraryProject3PrefixedTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED;
+  FixKind get kind => DartFixKind.importLibraryProject3Prefixed;
 
   Future<void> test_inLibSrc_thisContextRoot_extension() async {
     newFile('$testPackageLibPath/src/lib.dart', '''
@@ -2567,7 +2597,7 @@ void f(lib.Test t) {}
 @reflectiveTest
 class ImportLibraryProject3PrefixedWithShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW;
+  FixKind get kind => DartFixKind.importLibraryProject3PrefixedShow;
 
   Future<void> test_inLibSrc_thisContextRoot_extension() async {
     newFile('$testPackageLibPath/src/lib.dart', '''
@@ -2634,7 +2664,7 @@ void f(lib.Test t) {}
 @reflectiveTest
 class ImportLibraryProject3Test extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3;
+  FixKind get kind => DartFixKind.importLibraryProject3;
 
   Future<void> test_extension_name() async {
     createAnalysisOptionsFile(lints: [LintNames.comment_references]);
@@ -2718,7 +2748,7 @@ void f(Test t) {}
 @reflectiveTest
 class ImportLibraryProject3WithShowTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3_SHOW;
+  FixKind get kind => DartFixKind.importLibraryProject3Show;
 
   Future<void> test_inLibSrc_thisContextRoot_extension() async {
     newFile('$testPackageLibPath/src/lib.dart', '''

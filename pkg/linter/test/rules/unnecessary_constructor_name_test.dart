@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -49,7 +50,7 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.duplicateConstructorDefault, 19, 5),
+        error(diag.duplicateConstructorDefault, 19, 5),
         // A lint should likely not get reported here since we're already
         // producing a compilation error.
       ],
@@ -73,7 +74,7 @@ extension type E(int i) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.duplicateConstructorDefault, 28, 5),
+        error(diag.duplicateConstructorDefault, 28, 5),
       ],
     );
   }

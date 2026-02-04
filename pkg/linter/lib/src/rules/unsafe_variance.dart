@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
@@ -14,11 +15,12 @@ import 'package:analyzer/src/dart/element/element.dart' // ignore: implementatio
     show TypeParameterElementImpl;
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/variance_checker.dart';
 
 const _desc = r'Unsafe type: Has a type variable in a non-covariant position.';
 
-class UnsafeVariance extends LintRule {
+class UnsafeVariance extends AnalysisRule {
   UnsafeVariance()
     : super(
         name: LintNames.unsafe_variance,
@@ -27,7 +29,7 @@ class UnsafeVariance extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unsafeVariance;
+  DiagnosticCode get diagnosticCode => diag.unsafeVariance;
 
   @override
   void registerNodeProcessors(
@@ -41,7 +43,7 @@ class UnsafeVariance extends LintRule {
 }
 
 class _UnsafeVarianceChecker extends VarianceChecker {
-  final LintRule rule;
+  final AnalysisRule rule;
   _UnsafeVarianceChecker(this.rule);
 
   @override
@@ -87,7 +89,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
   final VarianceChecker checker;
 

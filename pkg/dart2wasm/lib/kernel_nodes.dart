@@ -158,9 +158,6 @@ mixin KernelNodes {
       index.getProcedure("dart:async", "_AsyncSuspendState", "_complete");
   late final Procedure asyncSuspendStateCompleteError =
       index.getProcedure("dart:async", "_AsyncSuspendState", "_completeError");
-  late final Procedure asyncSuspendStateCompleteErrorWithCurrentStack =
-      index.getProcedure(
-          "dart:async", "_AsyncSuspendState", "_completeErrorWithCurrentStack");
   late final Procedure makeFuture =
       index.getTopLevelProcedure("dart:async", "_makeFuture");
 
@@ -204,14 +201,6 @@ mixin KernelNodes {
       "dart:_compact_hash", "_uninitializedHashBaseIndex");
   late final Field wasmI64ValueField =
       index.getField("dart:_wasm", "WasmI64", "_value");
-
-  // dart:_internal procedures
-  late final Procedure loadLibrary =
-      index.getTopLevelProcedure("dart:_internal", "loadLibrary");
-  late final Procedure checkLibraryIsLoaded =
-      index.getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded");
-  late final Procedure? loadLibraryImportMap = index.tryGetProcedure(
-      "dart:_internal", LibraryIndex.topLevel, "get:_importMapping");
 
   // dart:_js_helper procedures
   late final Procedure getInternalizedString =
@@ -284,6 +273,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_runtimeTypeEquals");
   late final Procedure runtimeTypeHashCode =
       index.getTopLevelProcedure("dart:core", "_runtimeTypeHashCode");
+  late final Procedure? functionApply =
+      index.tryGetProcedure('dart:core', 'Function', 'apply');
 
   // dart:core invocation/exception procedures
   late final Procedure invocationGetterFactory =
@@ -321,6 +312,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "AssertionError", "_throwWithMessage");
   late final Procedure javaScriptErrorFactory =
       index.getProcedure("dart:core", "_JavaScriptError", "_");
+  late final Procedure javaScriptErrorStackTraceGetter =
+      index.getProcedure("dart:core", "_JavaScriptError", "get:stackTrace");
   late final Procedure rangeErrorCheckValueInInterval =
       index.getProcedure("dart:core", "RangeError", "checkValueInInterval");
   late final Class errorClass = index.getClass("dart:core", "Error");
@@ -443,6 +436,17 @@ mixin KernelNodes {
       index.getTopLevelField('dart:_internal', 'i64ConstImmutableArray');
   late final Field boxedIntImmutableArrayCache =
       index.getTopLevelField('dart:_internal', 'boxedIntImmutableArray');
+
+  // Deferred loading.
+  late final Procedure? checkLibraryIsLoadedFromLoadId = index.tryGetProcedure(
+      'dart:_internal',
+      LibraryIndex.topLevel,
+      'checkLibraryIsLoadedFromLoadId');
+  late final Procedure? dartInternalLoadingMapGetter = index.tryGetProcedure(
+      'dart:_internal', LibraryIndex.topLevel, 'get:_loadingMap');
+  late final Procedure? dartInternalLoadingMapNamesGetter =
+      index.tryGetProcedure(
+          'dart:_internal', LibraryIndex.topLevel, 'get:_loadingMapNames');
 
   // Debugging
   late final Procedure printToConsole =

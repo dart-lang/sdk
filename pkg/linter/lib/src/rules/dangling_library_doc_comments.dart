@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,16 +12,16 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Attach library doc comments to library directives.';
 
-class DanglingLibraryDocComments extends LintRule {
+class DanglingLibraryDocComments extends AnalysisRule {
   DanglingLibraryDocComments()
     : super(name: LintNames.dangling_library_doc_comments, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.danglingLibraryDocComments;
+  DiagnosticCode get diagnosticCode => diag.danglingLibraryDocComments;
 
   @override
   void registerNodeProcessors(

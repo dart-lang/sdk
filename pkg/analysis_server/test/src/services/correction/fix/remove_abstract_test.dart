@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveAbstractMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ABSTRACT_MULTI;
+  FixKind get kind => DartFixKind.removeAbstractMulti;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -28,7 +28,7 @@ class MyClass {
   abstract void m2() {}
 }
 ''');
-    await assertHasFixAllFix(ParserErrorCode.abstractClassMember, '''
+    await assertHasFixAllFix(diag.abstractClassMember, '''
 class MyClass {
   void m1() {}
   void m2() {}
@@ -40,7 +40,7 @@ class MyClass {
 @reflectiveTest
 class RemoveAbstractTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_ABSTRACT;
+  FixKind get kind => DartFixKind.removeAbstract;
 
   Future<void> test_abstract_field_constructor_initializer() async {
     await resolveTestCode('''

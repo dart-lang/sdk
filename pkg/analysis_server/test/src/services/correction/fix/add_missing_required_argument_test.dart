@@ -341,7 +341,7 @@ class MyWidget extends Widget {
 build() {
   return new MyWidget(fn: () {  }, children: [],);
 }
-''', errorFilter: (diagnostic) => diagnostic.message.contains("'children'"));
+''', filter: (diagnostic) => diagnostic.message.contains("'children'"));
   }
 
   Future<void> test_functionType_noParameterName() async {
@@ -388,7 +388,7 @@ test({required int a, required int bcd}) {}
 void f() {
   test(a: null, bcd: null);
 }
-''', errorFilter: (error) => error.message.contains("'a'"));
+''', filter: (error) => error.message.contains("'a'"));
   }
 
   /// Asserts that no fix is available for other diagnostics than the first one.
@@ -402,7 +402,7 @@ void f() {
   test();
 }
 ''');
-    await assertNoFix(errorFilter: (error) => error.message.contains("'bcd'"));
+    await assertNoFix(filter: (error) => error.message.contains("'bcd'"));
   }
 
   Future<void> test_nonNullable() async {

@@ -9,6 +9,8 @@ import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:collection/collection.dart';
 
 class ConstructorInitializerResolver {
   final Linker _linker;
@@ -36,41 +38,64 @@ class ConstructorInitializerResolver {
     InterfaceElementImpl interfaceElement,
     ConstructorElementImpl element,
   ) {
-    if (element.isSynthetic) return;
+    if (!element.isOriginDeclaration) return;
 
     for (var fragment in element.fragments) {
       var node = _linker.getLinkingNode2(fragment);
-      if (node is! ConstructorDeclarationImpl) return;
+      switch (node) {
+        case ConstructorDeclarationImpl():
+          var constructorScope = LinkingNodeContext.get(node).scope;
+          var initializerScope = ConstructorInitializerScope(
+            constructorScope,
+            element,
+          );
 
-      var constructorScope = LinkingNodeContext.get(node).scope;
-      var initializerScope = ConstructorInitializerScope(
-        constructorScope,
-        element,
-      );
+          var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+          var astResolver = AstResolver(
+            _linker,
+            fragment.libraryFragment,
+            initializerScope,
+            analysisOptions,
+            enclosingClassElement: interfaceElement,
+            enclosingExecutableElement: element,
+          );
 
-      var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-      var astResolver = AstResolver(
-        _linker,
-        fragment.libraryFragment,
-        initializerScope,
-        analysisOptions,
-        enclosingClassElement: interfaceElement,
-        enclosingExecutableElement: element,
-      );
+          var body = node.body;
+          body.localVariableInfo = LocalVariableInfo();
 
-      var body = node.body;
-      body.localVariableInfo = LocalVariableInfo();
+          astResolver.resolveConstructorDeclaration(node);
 
-      astResolver.resolveConstructorNode(node);
-
-      if (node.factoryKeyword != null) {
-        element.redirectedConstructor = node.redirectedConstructor?.element;
-      } else {
-        for (var initializer in node.initializers) {
-          if (initializer is RedirectingConstructorInvocationImpl) {
-            element.redirectedConstructor = initializer.element;
+          if (node.factoryKeyword != null) {
+            element.redirectedConstructor = node.redirectedConstructor?.element;
+          } else {
+            for (var initializer in node.initializers) {
+              if (initializer is RedirectingConstructorInvocationImpl) {
+                element.redirectedConstructor = initializer.element;
+              }
+            }
           }
-        }
+        case PrimaryConstructorDeclarationImpl():
+          var constructorScope = LinkingNodeContext.get(node).scope;
+          var initializerScope = ConstructorInitializerScope(
+            constructorScope,
+            element,
+          );
+
+          var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+          var astResolver = AstResolver(
+            _linker,
+            fragment.libraryFragment,
+            initializerScope,
+            analysisOptions,
+            enclosingClassElement: interfaceElement,
+            enclosingExecutableElement: element,
+          );
+
+          var body = node.parent.classMembers
+              .whereType<PrimaryConstructorBodyImpl>()
+              .firstOrNull;
+
+          astResolver.resolvePrimaryConstructor(node, body);
       }
     }
   }

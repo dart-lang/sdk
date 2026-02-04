@@ -19,7 +19,7 @@ class MakeSuperInvocationLast extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.MAKE_SUPER_INVOCATION_LAST;
+  FixKind get fixKind => DartFixKind.makeSuperInvocationLast;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

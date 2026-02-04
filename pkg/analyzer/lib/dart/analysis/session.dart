@@ -53,11 +53,6 @@ abstract class AnalysisSession {
   /// with the given library [element].
   SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element);
 
-  /// Return information about the results of parsing units of the library file
-  /// with the given library [element].
-  @Deprecated('Use getParsedLibraryByElement instead')
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element);
-
   /// Return information about the results of parsing the file with the given
   /// absolute, normalized [path].
   SomeParsedUnitResult getParsedUnit(String path);
@@ -72,15 +67,6 @@ abstract class AnalysisSession {
   ///
   /// Throw [ArgumentError] if the [element] was not produced by this session.
   Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
-    LibraryElement element,
-  );
-
-  /// Return a future that will complete with information about the results of
-  /// resolving all of the files in the library with the library [element].
-  ///
-  /// Throw [ArgumentError] if the [element] was not produced by this session.
-  @Deprecated('Use getResolvedLibraryByElement instead')
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
     LibraryElement element,
   );
 

@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class UseDivisionTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.USE_DIVISION;
+  FixKind get kind => DartFixKind.useDivision;
 
   Future<void> test_class() async {
     await resolveTestCode('''
@@ -204,7 +204,7 @@ void f<T extends A>(T t) {
 @reflectiveTest
 class UseEffectiveIntegerDivisionTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION;
+  FixKind get kind => DartFixKind.useEffectiveIntegerDivision;
 
   Future<void> test_class() async {
     await resolveTestCode('''

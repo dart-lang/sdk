@@ -835,6 +835,14 @@ class Intrinsifier {
       }
     }
 
+    if (target.enclosingLibrary.name == 'dart._js_helper') {
+      if (target.name.text == 'thisModule') {
+        final global = translator.getThisModuleGlobal(b.moduleBuilder);
+        b.global_get(global);
+        return global.type.type;
+      }
+    }
+
     return null;
   }
 
@@ -1933,8 +1941,10 @@ class Intrinsifier {
         b.ref_cast(w.RefType.def(
             translator.closureLayouter.genericVtableBaseStruct,
             nullable: false));
-        b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
-            FieldIndex.vtableInstantiationTypeHashFunction);
+        b.struct_get(
+            translator.closureLayouter.genericVtableBaseStruct,
+            translator
+                .closureLayouter.vtableInstantiationTypeHashFunctionIndex);
         b.call_ref(translator
             .closureLayouter.instantiationClosureTypeHashFunctionType);
 
@@ -1964,9 +1974,11 @@ class Intrinsifier {
         b.ref_cast(w.RefType.def(
             translator.closureLayouter.genericVtableBaseStruct,
             nullable: false));
-        b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
-            FieldIndex.vtableInstantiationTypeComparisonFunction);
 
+        final vtableIndex = translator
+            .closureLayouter.vtableInstantiationTypeComparisonFunctionIndex;
+        b.struct_get(
+            translator.closureLayouter.genericVtableBaseStruct, vtableIndex);
         b.call_ref(translator
             .closureLayouter.instantiationClosureTypeComparisonFunctionType);
 
@@ -2021,7 +2033,7 @@ class Intrinsifier {
         b.end();
         b.local_set(posArgsLocal);
 
-        // Convert named argument map to list, to be passed to shape and type
+        // Convert named argument map to array, to be passed to shape and type
         // checkers and the dynamic call entry.
         final namedArgsListLocal =
             b.addLocal(translator.nullableObjectArrayTypeRef);
@@ -2032,8 +2044,25 @@ class Intrinsifier {
 
         final noSuchMethodBlock = b.block();
 
-        generateDynamicFunctionCall(translator, b, closureLocal, typeArgsLocal,
-            posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
+        generateDynamicClosureCallShapeAndTypeCheck(translator, b, closureLocal,
+            typeArgsLocal, posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
+        if (translator.dynamicModuleSupportEnabled ||
+            translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
+          generateDynamicClosureCallViaDynamicEntry(translator, b, closureLocal,
+              typeArgsLocal, posArgsLocal, namedArgsListLocal);
+        } else {
+          if (compilerAssertsEnabled) {
+            final good = b.block();
+            b.local_get(namedArgsListLocal);
+            b.array_len();
+            b.i32_eqz();
+            b.br_if(good);
+            b.unreachable();
+            b.end();
+          }
+          generateDynamicClosureCallViaPositionalArgs(
+              translator, b, closureLocal, typeArgsLocal, posArgsLocal);
+        }
         b.return_();
 
         b.end(); // noSuchMethodBlock
@@ -2075,7 +2104,7 @@ class Intrinsifier {
         b.end(); // notErrorBlock
 
         b.local_get(stackTraceLocal);
-        b.throw_(translator.getExceptionTag(b.moduleBuilder));
+        b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
 
       case MemberIntrinsic.nullRef:
         b.ref_null(w.HeapType.noextern);

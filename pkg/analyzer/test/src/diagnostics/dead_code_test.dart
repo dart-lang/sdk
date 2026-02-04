@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ Never doNotReturn() => throw 0;
 
 test() => doNotReturn() as int;
 ''',
-      [error(WarningCode.deadCode, 60, 4)],
+      [error(diag.deadCode, 60, 4)],
     );
   }
 
@@ -35,7 +35,7 @@ void f(({int x, int y}) p) {
   true ? p.x : p.y;
 }
 ''',
-      [error(WarningCode.deadCode, 44, 3)],
+      [error(diag.deadCode, 44, 3)],
     );
   }
 
@@ -46,7 +46,7 @@ void f(({bool b, }) r) {
   if (true || r.b) {}
 }
 ''',
-      [error(WarningCode.deadCode, 36, 6)],
+      [error(diag.deadCode, 36, 6)],
     );
   }
 
@@ -57,7 +57,7 @@ void f(int x) {
   if (x case int() || 0) {}
 }
 ''',
-      [error(WarningCode.deadCode, 35, 4)],
+      [error(diag.deadCode, 35, 4)],
     );
   }
 
@@ -68,7 +68,7 @@ void f(int x) {
   if (x case (int() || 0) && 1) {}
 }
 ''',
-      [error(WarningCode.deadCode, 36, 4)],
+      [error(diag.deadCode, 36, 4)],
     );
   }
 
@@ -79,7 +79,7 @@ void f(Object? x) {
   if (x case <int>[int() || 0, 1]) {}
 }
 ''',
-      [error(WarningCode.deadCode, 45, 4)],
+      [error(diag.deadCode, 45, 4)],
     );
   }
 
@@ -92,7 +92,7 @@ Object f(int x) {
   };
 }
 ''',
-      [error(WarningCode.deadCode, 50, 4)],
+      [error(diag.deadCode, 50, 4)],
     );
   }
 
@@ -108,11 +108,11 @@ Object f(int x) {
 }
 ''',
       [
-        error(WarningCode.deadCode, 50, 4),
-        error(WarningCode.deadCode, 65, 10),
-        error(WarningCode.unreachableSwitchCase, 71, 2),
-        error(WarningCode.deadCode, 81, 6),
-        error(WarningCode.unreachableSwitchCase, 83, 2),
+        error(diag.deadCode, 50, 4),
+        error(diag.deadCode, 65, 10),
+        error(diag.unreachableSwitchCase, 71, 2),
+        error(diag.deadCode, 81, 6),
+        error(diag.unreachableSwitchCase, 83, 2),
       ],
     );
   }
@@ -127,7 +127,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 46, 4)],
+      [error(diag.deadCode, 46, 4)],
     );
   }
 
@@ -144,10 +144,10 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.deadCode, 46, 4),
-        error(WarningCode.deadCode, 56, 4),
-        error(WarningCode.unreachableSwitchCase, 56, 4),
-        error(WarningCode.deadCode, 68, 7),
+        error(diag.deadCode, 46, 4),
+        error(diag.deadCode, 56, 4),
+        error(diag.unreachableSwitchCase, 56, 4),
+        error(diag.deadCode, 68, 7),
       ],
     );
   }
@@ -165,11 +165,11 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.deadCode, 46, 5),
-        error(WarningCode.deadCode, 57, 4),
-        error(WarningCode.unreachableSwitchCase, 57, 4),
-        error(WarningCode.deadCode, 78, 4),
-        error(WarningCode.unreachableSwitchCase, 78, 4),
+        error(diag.deadCode, 46, 5),
+        error(diag.deadCode, 57, 4),
+        error(diag.unreachableSwitchCase, 57, 4),
+        error(diag.deadCode, 78, 4),
+        error(diag.unreachableSwitchCase, 78, 4),
       ],
     );
   }
@@ -179,10 +179,7 @@ void f(int x) {
       r'''
 f() => [for (var (i) = throw 0; true; 1) 0];
 ''',
-      [
-        error(WarningCode.unusedLocalVariable, 18, 1),
-        error(WarningCode.deadCode, 32, 7),
-      ],
+      [error(diag.unusedLocalVariable, 18, 1), error(diag.deadCode, 32, 7)],
     );
   }
 
@@ -193,10 +190,7 @@ void f() {
   for (var (i) = throw 0; true; 1) {}
 }
 ''',
-      [
-        error(WarningCode.unusedLocalVariable, 23, 1),
-        error(WarningCode.deadCode, 37, 7),
-      ],
+      [error(diag.unusedLocalVariable, 23, 1), error(diag.deadCode, 37, 7)],
     );
   }
 
@@ -211,7 +205,7 @@ test() {
   return i;
 }
 ''',
-      [error(WarningCode.deadCode, 67, 29)],
+      [error(diag.deadCode, 67, 29)],
     );
   }
 
@@ -222,7 +216,7 @@ void f(int a) {
   [if (false) (a) = 0];
 }
 ''',
-      [error(WarningCode.deadCode, 30, 7)],
+      [error(diag.deadCode, 30, 7)],
     );
   }
 
@@ -234,8 +228,8 @@ Never doNotReturn() => throw 0;
 test() => doNotReturn() is int;
 ''',
       [
-        error(WarningCode.unnecessaryTypeCheckTrue, 43, 20),
-        error(WarningCode.deadCode, 60, 4),
+        error(diag.unnecessaryTypeCheckTrue, 43, 20),
+        error(diag.deadCode, 60, 4),
       ],
     );
   }
@@ -247,7 +241,7 @@ void f() {
   _(){}
 }
 ''',
-      [error(WarningCode.deadCode, 13, 5)],
+      [error(diag.deadCode, 13, 5)],
     );
   }
 
@@ -263,7 +257,7 @@ void f() {
 ''',
       [
         // No dead code.
-        error(WarningCode.unusedElement, 57, 1),
+        error(diag.unusedElement, 57, 1),
       ],
     );
   }
@@ -278,7 +272,7 @@ void f(Null n, int i) {
 ''',
       [
         // Dead range: `i]`
-        error(WarningCode.deadCode, 29, 2),
+        error(diag.deadCode, 29, 2),
       ],
     );
   }
@@ -293,7 +287,7 @@ void f(Null n, int i, int j) {
 ''',
       [
         // Dead range: `i] = j`
-        error(WarningCode.deadCode, 36, 6),
+        error(diag.deadCode, 36, 6),
       ],
     );
   }
@@ -308,7 +302,7 @@ void f(Null n, int i) {
 ''',
       [
         // Dead range: `foo(i)`
-        error(WarningCode.deadCode, 29, 6),
+        error(diag.deadCode, 29, 6),
       ],
     );
   }
@@ -323,7 +317,7 @@ void f(Null n) {
 ''',
       [
         // Dead range: `p`
-        error(WarningCode.deadCode, 22, 1),
+        error(diag.deadCode, 22, 1),
       ],
     );
   }
@@ -338,7 +332,7 @@ void f(Null n, int i) {
 ''',
       [
         // Dead range: `p = i`
-        error(WarningCode.deadCode, 29, 5),
+        error(diag.deadCode, 29, 5),
       ],
     );
   }
@@ -354,7 +348,7 @@ void f(Object x) {
   if (x case A(foo: _)) {}
 }
 ''',
-      [error(WarningCode.deadCode, 84, 2)],
+      [error(diag.deadCode, 84, 2)],
     );
   }
 
@@ -365,7 +359,7 @@ Never get doNotReturn => throw 0;
 
 test() => doNotReturn.hashCode;
 ''',
-      [error(WarningCode.deadCode, 57, 9)],
+      [error(diag.deadCode, 57, 9)],
     );
   }
 
@@ -376,7 +370,7 @@ Never doNotReturn() => throw 0;
 
 test() => doNotReturn().hashCode;
 ''',
-      [error(WarningCode.deadCode, 57, 9)],
+      [error(diag.deadCode, 57, 9)],
     );
   }
 }
@@ -457,7 +451,7 @@ void f() {
   assert (true);
 }
 ''',
-      [error(WarningCode.deadCode, 23, 14)],
+      [error(diag.deadCode, 23, 14)],
     );
   }
 
@@ -472,7 +466,7 @@ void f(Object waldo) {
   assert(waldo != null, "Where's Waldo?");
 }
 ''',
-      [error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 38, 7)],
+      [error(diag.unnecessaryNullComparisonNeverNullTrue, 38, 7)],
     );
   }
 
@@ -484,7 +478,7 @@ void f() {
   i?.truncate();
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 28, 2)],
+      [error(diag.invalidNullAwareOperator, 28, 2)],
     );
   }
 
@@ -498,7 +492,7 @@ class C {
   static final x = [1, 2, f(), 4];
 }
 ''',
-      [error(WarningCode.deadCode, 66, 2)],
+      [error(diag.deadCode, 66, 2)],
     );
   }
 
@@ -512,7 +506,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 39, 12)],
+      [error(diag.deadCode, 39, 12)],
     );
   }
 
@@ -542,7 +536,7 @@ class A {
   A() : x = [7, throw 8, 9];
 }
 ''',
-      [error(WarningCode.deadCode, 50, 3)],
+      [error(diag.deadCode, 50, 3)],
     );
   }
 
@@ -557,7 +551,7 @@ class A {
         y = 7;
 }
 ''',
-      [error(WarningCode.deadCode, 63, 5)],
+      [error(diag.deadCode, 63, 5)],
     );
   }
 
@@ -581,7 +575,7 @@ f() {
   true ? 1 : 2;
 }
 ''',
-      [error(WarningCode.deadCode, 19, 1)],
+      [error(diag.deadCode, 19, 1)],
     );
   }
 
@@ -602,7 +596,7 @@ f() {
   true ? true : false && false;
 }
 ''',
-      [error(WarningCode.deadCode, 22, 14)],
+      [error(diag.deadCode, 22, 14)],
     );
   }
 
@@ -613,7 +607,7 @@ f() {
   false ? 1 : 2;
 }
 ''',
-      [error(WarningCode.deadCode, 16, 1)],
+      [error(diag.deadCode, 16, 1)],
     );
   }
 
@@ -634,7 +628,7 @@ f() {
   false ? false && false : true;
 }
 ''',
-      [error(WarningCode.deadCode, 16, 14)],
+      [error(diag.deadCode, 16, 14)],
     );
   }
 
@@ -645,7 +639,7 @@ f() {
   if(true) {} else {}
 }
 ''',
-      [error(WarningCode.deadCode, 25, 2)],
+      [error(diag.deadCode, 25, 2)],
     );
   }
 
@@ -666,7 +660,7 @@ f() {
   if(true) {} else {if (false) {}}
 }
 ''',
-      [error(WarningCode.deadCode, 25, 15)],
+      [error(diag.deadCode, 25, 15)],
     );
   }
 
@@ -677,7 +671,7 @@ f() {
   if(false) {}
 }
 ''',
-      [error(WarningCode.deadCode, 18, 2)],
+      [error(diag.deadCode, 18, 2)],
     );
   }
 
@@ -736,7 +730,7 @@ f() {
   if(false) {if(false) {}}
 }
 ''',
-      [error(WarningCode.deadCode, 18, 14)],
+      [error(diag.deadCode, 18, 14)],
     );
   }
 
@@ -749,7 +743,7 @@ f() {
   ];
 }
 ''',
-      [error(WarningCode.deadCode, 25, 1)],
+      [error(diag.deadCode, 25, 1)],
     );
   }
 
@@ -763,7 +757,7 @@ f() {
   ];
 }
 ''',
-      [error(WarningCode.deadCode, 35, 1)],
+      [error(diag.deadCode, 35, 1)],
     );
   }
 
@@ -774,7 +768,7 @@ f() {
   while(false) {}
 }
 ''',
-      [error(WarningCode.deadCode, 21, 2)],
+      [error(diag.deadCode, 21, 2)],
     );
   }
 
@@ -795,7 +789,7 @@ f() {
   while(false) {if(false) {}}
 }
 ''',
-      [error(WarningCode.deadCode, 21, 14)],
+      [error(diag.deadCode, 21, 14)],
     );
   }
 
@@ -807,7 +801,7 @@ f() {
   try {} catch (e) {} catch (e) {}
 }
 ''',
-      [error(WarningCode.deadCodeCatchFollowingCatch, 39, 12)],
+      [error(diag.deadCodeCatchFollowingCatch, 39, 12)],
     );
   }
 
@@ -820,7 +814,7 @@ f() {
   try {} catch (e) {} catch (e) {if(false) {}}
 }
 ''',
-      [error(WarningCode.deadCodeCatchFollowingCatch, 39, 24)],
+      [error(diag.deadCodeCatchFollowingCatch, 39, 24)],
     );
   }
 
@@ -832,8 +826,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedCatchClause, 32, 1),
-        error(WarningCode.deadCodeCatchFollowingCatch, 38, 12),
+        error(diag.unusedCatchClause, 32, 1),
+        error(diag.deadCodeCatchFollowingCatch, 38, 12),
       ],
     );
   }
@@ -847,8 +841,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedCatchClause, 32, 1),
-        error(WarningCode.deadCodeCatchFollowingCatch, 38, 24),
+        error(diag.unusedCatchClause, 32, 1),
+        error(diag.deadCodeCatchFollowingCatch, 38, 24),
       ],
     );
   }
@@ -863,9 +857,9 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedCatchClause, 59, 1),
-        error(WarningCode.deadCodeOnCatchSubtype, 65, 17),
-        error(WarningCode.unusedCatchClause, 77, 1),
+        error(diag.unusedCatchClause, 59, 1),
+        error(diag.deadCodeOnCatchSubtype, 65, 17),
+        error(diag.unusedCatchClause, 77, 1),
       ],
     );
   }
@@ -881,9 +875,9 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedCatchClause, 59, 1),
-        error(WarningCode.deadCodeOnCatchSubtype, 65, 29),
-        error(WarningCode.unusedCatchClause, 77, 1),
+        error(diag.unusedCatchClause, 59, 1),
+        error(diag.deadCodeOnCatchSubtype, 65, 29),
+        error(diag.unusedCatchClause, 77, 1),
       ],
     );
   }
@@ -898,8 +892,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedCatchClause, 59, 1),
-        error(WarningCode.unusedCatchClause, 77, 1),
+        error(diag.unusedCatchClause, 59, 1),
+        error(diag.unusedCatchClause, 77, 1),
       ],
     );
   }
@@ -912,7 +906,7 @@ f() {
   print(b);
 }
 ''',
-      [error(WarningCode.deadCode, 23, 8)],
+      [error(diag.deadCode, 23, 8)],
     );
   }
 
@@ -934,7 +928,7 @@ f() {
   print(b);
 }
 ''',
-      [error(WarningCode.deadCode, 23, 19)],
+      [error(diag.deadCode, 23, 19)],
     );
   }
 
@@ -946,7 +940,7 @@ f() {
   print(b);
 }
 ''',
-      [error(WarningCode.deadCode, 22, 7)],
+      [error(diag.deadCode, 22, 7)],
     );
   }
 
@@ -958,7 +952,7 @@ f() {
   bool b = DEBUG || true;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 38, 1)],
+      [error(diag.unusedLocalVariable, 38, 1)],
     );
   }
 
@@ -970,7 +964,7 @@ f() {
   print(b);
 }
 ''',
-      [error(WarningCode.deadCode, 22, 19)],
+      [error(diag.deadCode, 22, 19)],
     );
   }
 
@@ -991,7 +985,7 @@ void f(bool c) {
   } while (c);
 }
 ''',
-      [error(WarningCode.deadCode, 52, 12)],
+      [error(diag.deadCode, 52, 12)],
     );
   }
 
@@ -1008,7 +1002,7 @@ void f(bool c) {
   print('');
 }
 ''',
-      [error(WarningCode.deadCode, 69, 12)],
+      [error(diag.deadCode, 69, 12)],
     );
   }
 
@@ -1026,7 +1020,7 @@ void f(bool c) {
   print('');
 }
 ''',
-      [error(WarningCode.deadCode, 85, 12)],
+      [error(diag.deadCode, 85, 12)],
     );
   }
 
@@ -1043,10 +1037,7 @@ void f(bool c) {
   print('');
 }
 ''',
-      [
-        error(WarningCode.deadCode, 73, 12),
-        error(WarningCode.deadCode, 88, 10),
-      ],
+      [error(diag.deadCode, 73, 12), error(diag.deadCode, 88, 10)],
     );
   }
 
@@ -1067,10 +1058,7 @@ void f(bool c) {
   print('');
 }
 ''',
-      [
-        error(WarningCode.deadCode, 104, 12),
-        error(WarningCode.deadCode, 121, 38),
-      ],
+      [error(diag.deadCode, 104, 12), error(diag.deadCode, 121, 38)],
     );
   }
 
@@ -1089,10 +1077,7 @@ void f(bool c) {
   }
 }
 ''',
-      [
-        error(WarningCode.deadCode, 98, 12),
-        error(WarningCode.deadCode, 115, 14),
-      ],
+      [error(diag.deadCode, 98, 12), error(diag.deadCode, 115, 14)],
     );
   }
 
@@ -1107,10 +1092,7 @@ void f(bool c) {
   print('2');
 }
 ''',
-      [
-        error(WarningCode.deadCode, 52, 12),
-        error(WarningCode.deadCode, 67, 11),
-      ],
+      [error(diag.deadCode, 52, 12), error(diag.deadCode, 67, 11)],
     );
   }
 
@@ -1124,7 +1106,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 21, 1), error(WarningCode.deadCode, 42, 2)],
+      [error(diag.deadCode, 21, 1), error(diag.deadCode, 42, 2)],
     );
   }
 
@@ -1137,7 +1119,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 21, 4)],
+      [error(diag.deadCode, 21, 4)],
     );
   }
 
@@ -1146,7 +1128,7 @@ void f() {
       r'''
 f() => [for (; throw 0; 1) 0];
 ''',
-      [error(WarningCode.deadCode, 24, 1), error(WarningCode.deadCode, 27, 3)],
+      [error(diag.deadCode, 24, 1), error(diag.deadCode, 27, 3)],
     );
   }
 
@@ -1155,7 +1137,7 @@ f() => [for (; throw 0; 1) 0];
       r'''
 f(bool Function(Object?, Object?) g) => [for (; g(throw 0, 1); 2) 0];
 ''',
-      [error(WarningCode.deadCode, 59, 10)],
+      [error(diag.deadCode, 59, 10)],
     );
   }
 
@@ -1164,10 +1146,7 @@ f(bool Function(Object?, Object?) g) => [for (; g(throw 0, 1); 2) 0];
       r'''
 f() => [for (var i = throw 0; true; 1) 0];
 ''',
-      [
-        error(WarningCode.unusedLocalVariable, 17, 1),
-        error(WarningCode.deadCode, 30, 7),
-      ],
+      [error(diag.unusedLocalVariable, 17, 1), error(diag.deadCode, 30, 7)],
     );
   }
 
@@ -1176,7 +1155,7 @@ f() => [for (var i = throw 0; true; 1) 0];
       r'''
 f() => [for (throw 0; true; 1) 0];
 ''',
-      [error(WarningCode.deadCode, 22, 7)],
+      [error(diag.deadCode, 22, 7)],
     );
   }
 
@@ -1185,7 +1164,7 @@ f() => [for (throw 0; true; 1) 0];
       r'''
 f() => [for (var i = 0;; i = i + 1) throw ''];
 ''',
-      [error(WarningCode.deadCode, 25, 9)],
+      [error(diag.deadCode, 25, 9)],
     );
   }
 
@@ -1194,7 +1173,7 @@ f() => [for (var i = 0;; i = i + 1) throw ''];
       r'''
 f() => [for (var i = 0;; i + 1) throw ''];
 ''',
-      [error(WarningCode.deadCode, 25, 5)],
+      [error(diag.deadCode, 25, 5)],
     );
   }
 
@@ -1203,7 +1182,7 @@ f() => [for (var i = 0;; i + 1) throw ''];
       r'''
 f() => [for (var i = 0;; i..sign) throw ''];
 ''',
-      [error(WarningCode.deadCode, 25, 7)],
+      [error(diag.deadCode, 25, 7)],
     );
   }
 
@@ -1212,7 +1191,7 @@ f() => [for (var i = 0;; i..sign) throw ''];
       r'''
 f() => [for (var i = 0;; i > 1 ? i : i) throw ''];
 ''',
-      [error(WarningCode.deadCode, 25, 13)],
+      [error(diag.deadCode, 25, 13)],
     );
   }
 
@@ -1221,7 +1200,7 @@ f() => [for (var i = 0;; i > 1 ? i : i) throw ''];
       r'''
 f(List<int> values) => [for (;; values[0]) throw ''];
 ''',
-      [error(WarningCode.deadCode, 32, 9)],
+      [error(diag.deadCode, 32, 9)],
     );
   }
 
@@ -1231,7 +1210,7 @@ f(List<int> values) => [for (;; values[0]) throw ''];
 class C {}
 f() => [for (;; C()) throw ''];
 ''',
-      [error(WarningCode.deadCode, 27, 3)],
+      [error(diag.deadCode, 27, 3)],
     );
   }
 
@@ -1240,7 +1219,7 @@ f() => [for (;; C()) throw ''];
       r'''
 f() => [for (var i = 0;; i.toString()) throw ''];
 ''',
-      [error(WarningCode.deadCode, 25, 12)],
+      [error(diag.deadCode, 25, 12)],
     );
   }
 
@@ -1249,7 +1228,7 @@ f() => [for (var i = 0;; i.toString()) throw ''];
       r'''
 f() => [for (var i = 0;; i++) throw ''];
 ''',
-      [error(WarningCode.deadCode, 25, 3)],
+      [error(diag.deadCode, 25, 3)],
     );
   }
 
@@ -1260,7 +1239,7 @@ import 'dart:math' as m;
 
 f() => [for (;; m.Point) throw ''];
 ''',
-      [error(WarningCode.deadCode, 42, 7)],
+      [error(diag.deadCode, 42, 7)],
     );
   }
 
@@ -1269,7 +1248,7 @@ f() => [for (;; m.Point) throw ''];
       r'''
 f() => [for (var i = 0;; ++i) throw ''];
 ''',
-      [error(WarningCode.deadCode, 25, 3)],
+      [error(diag.deadCode, 25, 3)],
     );
   }
 
@@ -1278,7 +1257,7 @@ f() => [for (var i = 0;; ++i) throw ''];
       r'''
 f() => [for (var i = 0;; (i).sign) throw ''];
 ''',
-      [error(WarningCode.deadCode, 25, 8)],
+      [error(diag.deadCode, 25, 8)],
     );
   }
 
@@ -1287,7 +1266,7 @@ f() => [for (var i = 0;; (i).sign) throw ''];
       r'''
 f() => [for (;; 0, throw 1, 2) 0];
 ''',
-      [error(WarningCode.deadCode, 28, 1)],
+      [error(diag.deadCode, 28, 1)],
     );
   }
 
@@ -1298,7 +1277,7 @@ void f() {
   for (; throw 0; 1) {}
 }
 ''',
-      [error(WarningCode.deadCode, 29, 1), error(WarningCode.deadCode, 32, 2)],
+      [error(diag.deadCode, 29, 1), error(diag.deadCode, 32, 2)],
     );
   }
 
@@ -1309,7 +1288,7 @@ void f(bool Function(Object?, Object?) g) {
   for (; g(throw 0, 1); 2) {}
 }
 ''',
-      [error(WarningCode.deadCode, 64, 9)],
+      [error(diag.deadCode, 64, 9)],
     );
   }
 
@@ -1320,10 +1299,7 @@ void f() {
   for (var i = throw 0; true; 1) {}
 }
 ''',
-      [
-        error(WarningCode.unusedLocalVariable, 22, 1),
-        error(WarningCode.deadCode, 35, 7),
-      ],
+      [error(diag.unusedLocalVariable, 22, 1), error(diag.deadCode, 35, 7)],
     );
   }
 
@@ -1334,7 +1310,7 @@ void f() {
   for (throw 0; true; 1) {}
 }
 ''',
-      [error(WarningCode.deadCode, 27, 7)],
+      [error(diag.deadCode, 27, 7)],
     );
   }
 
@@ -1347,7 +1323,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 30, 9)],
+      [error(diag.deadCode, 30, 9)],
     );
   }
 
@@ -1360,7 +1336,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 30, 5)],
+      [error(diag.deadCode, 30, 5)],
     );
   }
 
@@ -1373,7 +1349,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 30, 7)],
+      [error(diag.deadCode, 30, 7)],
     );
   }
 
@@ -1386,7 +1362,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 30, 13)],
+      [error(diag.deadCode, 30, 13)],
     );
   }
 
@@ -1399,7 +1375,7 @@ void f(List<int> values) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 37, 9)],
+      [error(diag.deadCode, 37, 9)],
     );
   }
 
@@ -1413,7 +1389,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 32, 3)],
+      [error(diag.deadCode, 32, 3)],
     );
   }
 
@@ -1426,7 +1402,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 30, 12)],
+      [error(diag.deadCode, 30, 12)],
     );
   }
 
@@ -1439,7 +1415,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 30, 3)],
+      [error(diag.deadCode, 30, 3)],
     );
   }
 
@@ -1454,7 +1430,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 47, 7)],
+      [error(diag.deadCode, 47, 7)],
     );
   }
 
@@ -1467,7 +1443,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 30, 3)],
+      [error(diag.deadCode, 30, 3)],
     );
   }
 
@@ -1480,7 +1456,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 30, 8)],
+      [error(diag.deadCode, 30, 8)],
     );
   }
 
@@ -1491,7 +1467,7 @@ void f() {
   for (;; 0, throw 1, 2) {}
 }
 ''',
-      [error(WarningCode.deadCode, 33, 1)],
+      [error(diag.deadCode, 33, 1)],
     );
   }
 
@@ -1507,7 +1483,7 @@ main() {
   2;
 }
 ''',
-      [error(WarningCode.deadCode, 61, 2)],
+      [error(diag.deadCode, 61, 2)],
     );
   }
 
@@ -1522,7 +1498,7 @@ void f(bool a) {
   2;
 }
 ''',
-      [error(WarningCode.deadCode, 44, 2)],
+      [error(diag.deadCode, 44, 2)],
     );
   }
 
@@ -1531,7 +1507,7 @@ void f(bool a) {
       r'''
 f() => [for (;; 1) ...[throw '', 2]];
 ''',
-      [error(WarningCode.deadCode, 16, 1), error(WarningCode.deadCode, 33, 4)],
+      [error(diag.deadCode, 16, 1), error(diag.deadCode, 33, 4)],
     );
   }
 
@@ -1540,7 +1516,7 @@ f() => [for (;; 1) ...[throw '', 2]];
       r'''
 f() => [for (;; 1, 2) ...[throw '']];
 ''',
-      [error(WarningCode.deadCode, 16, 4)],
+      [error(diag.deadCode, 16, 4)],
     );
   }
 
@@ -1556,7 +1532,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 21, 1), error(WarningCode.deadCode, 52, 8)],
+      [error(diag.deadCode, 21, 1), error(diag.deadCode, 52, 8)],
     );
   }
 
@@ -1571,7 +1547,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 21, 4)],
+      [error(diag.deadCode, 21, 4)],
     );
   }
 
@@ -1590,7 +1566,7 @@ main() {
   3;
 }
 ''',
-      [error(WarningCode.deadCode, 57, 2)],
+      [error(diag.deadCode, 57, 2)],
     );
   }
 
@@ -1607,7 +1583,7 @@ main() {
   3;
 }
 ''',
-      [error(WarningCode.deadCode, 56, 2)],
+      [error(diag.deadCode, 56, 2)],
     );
   }
 
@@ -1625,7 +1601,7 @@ main() {
   4;
 }
 ''',
-      [error(WarningCode.deadCode, 61, 11)],
+      [error(diag.deadCode, 61, 11)],
     );
   }
 
@@ -1637,7 +1613,7 @@ void f() {
   for (;;) {}
 }
 ''',
-      [error(WarningCode.deadCode, 23, 11)],
+      [error(diag.deadCode, 23, 11)],
     );
   }
 
@@ -1653,7 +1629,7 @@ void f() {
   3;
 }
 ''',
-      [error(WarningCode.deadCode, 24, 12)],
+      [error(diag.deadCode, 24, 12)],
     );
   }
 
@@ -1669,7 +1645,7 @@ void f() {
   3;
 }
 ''',
-      [error(WarningCode.deadCode, 41, 12)],
+      [error(diag.deadCode, 41, 12)],
     );
   }
 
@@ -1684,10 +1660,7 @@ void g(A a) {
   print(1);
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 54, 3),
-        error(WarningCode.deadCode, 57, 16),
-      ],
+      [error(diag.receiverOfTypeNever, 54, 3), error(diag.deadCode, 57, 16)],
     );
   }
 
@@ -1699,10 +1672,7 @@ void g(Never f) {
   print(1);
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 3),
-        error(WarningCode.deadCode, 23, 16),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 3), error(diag.deadCode, 23, 16)],
     );
   }
 
@@ -1714,10 +1684,7 @@ void g(Never f) {
   print(1);
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 21, 16),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 21, 16)],
     );
   }
 
@@ -1728,7 +1695,7 @@ f() {
   late var _ = 0;
 }
 ''',
-      [error(WarningCode.deadCodeLateWildcardVariableInitializer, 21, 1)],
+      [error(diag.deadCodeLateWildcardVariableInitializer, 21, 1)],
     );
   }
 
@@ -1770,7 +1737,7 @@ main() {
   1;
 }
 ''',
-      [error(WarningCode.deadCode, 45, 2)],
+      [error(diag.deadCode, 45, 2)],
     );
   }
 
@@ -1784,7 +1751,7 @@ main() {
   2;
 }
 ''',
-      [error(WarningCode.deadCode, 45, 2)],
+      [error(diag.deadCode, 45, 2)],
     );
   }
 
@@ -1806,7 +1773,7 @@ f() {
   print(2);
 }
 ''',
-      [error(WarningCode.deadCode, 129, 9)],
+      [error(diag.deadCode, 129, 9)],
     );
   }
 
@@ -1822,7 +1789,7 @@ f(v) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 65, 9)],
+      [error(diag.deadCode, 65, 9)],
     );
   }
 
@@ -1837,7 +1804,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 56, 9)],
+      [error(diag.deadCode, 56, 9)],
     );
   }
 
@@ -1851,7 +1818,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 33, 9)],
+      [error(diag.deadCode, 33, 9)],
     );
   }
 
@@ -1866,7 +1833,7 @@ f(v) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 52, 9)],
+      [error(diag.deadCode, 52, 9)],
     );
   }
 
@@ -1880,7 +1847,7 @@ f(v) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 35, 9)],
+      [error(diag.deadCode, 35, 9)],
     );
   }
 
@@ -1895,7 +1862,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 59, 9)],
+      [error(diag.deadCode, 59, 9)],
     );
   }
 
@@ -1909,7 +1876,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 36, 9)],
+      [error(diag.deadCode, 36, 9)],
     );
   }
 
@@ -1923,7 +1890,7 @@ f(v) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 38, 9)],
+      [error(diag.deadCode, 38, 9)],
     );
   }
 
@@ -1939,7 +1906,7 @@ f() {
   print(1);
 }
 ''',
-      [error(WarningCode.deadCode, 62, 9)],
+      [error(diag.deadCode, 62, 9)],
     );
   }
 
@@ -1966,7 +1933,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 61, 9)],
+      [error(diag.deadCode, 61, 9)],
     );
   }
 
@@ -1979,7 +1946,7 @@ f() {
   print(2);
 }
 ''',
-      [error(WarningCode.deadCode, 30, 9)],
+      [error(diag.deadCode, 30, 9)],
     );
   }
 
@@ -1995,7 +1962,7 @@ f() {
   g();
 }
 ''',
-      [error(WarningCode.deadCode, 49, 9)],
+      [error(diag.deadCode, 49, 9)],
     );
   }
 
@@ -2010,7 +1977,7 @@ f() {
   };
 }
 ''',
-      [error(WarningCode.deadCode, 43, 9)],
+      [error(diag.deadCode, 43, 9)],
     );
   }
 
@@ -2025,7 +1992,7 @@ f(bool b) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 52, 9)],
+      [error(diag.deadCode, 52, 9)],
     );
   }
 
@@ -2040,7 +2007,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 48, 9)],
+      [error(diag.deadCode, 48, 9)],
     );
   }
 
@@ -2053,7 +2020,7 @@ f() {
   if(false) {}
 }
 ''',
-      [error(WarningCode.deadCode, 30, 12)],
+      [error(diag.deadCode, 30, 12)],
     );
   }
 
@@ -2068,7 +2035,7 @@ f() {
   print(3);
 }
 ''',
-      [error(WarningCode.deadCode, 30, 31)],
+      [error(diag.deadCode, 30, 31)],
     );
   }
 
@@ -2081,7 +2048,7 @@ f() {
   print(2);
 }
 ''',
-      [error(WarningCode.deadCode, 41, 9)],
+      [error(diag.deadCode, 41, 9)],
     );
   }
 
@@ -2098,7 +2065,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 96, 6)],
+      [error(diag.deadCode, 96, 6)],
     );
   }
 
@@ -2117,7 +2084,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 140, 9)],
+      [error(diag.deadCode, 140, 9)],
     );
   }
 
@@ -2138,7 +2105,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 142, 8)],
+      [error(diag.deadCode, 142, 8)],
     );
   }
 
@@ -2155,7 +2122,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 96, 7)],
+      [error(diag.deadCode, 96, 7)],
     );
   }
 
@@ -2172,7 +2139,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(WarningCode.deadCode, 96, 8)],
+      [error(diag.deadCode, 96, 8)],
     );
   }
 
@@ -2189,7 +2156,7 @@ int f(Foo foo) {
   return -1;
 }
 ''',
-      [error(WarningCode.deadCode, 111, 10)],
+      [error(diag.deadCode, 111, 10)],
     );
   }
 
@@ -2201,7 +2168,7 @@ Never f() { throw ''; }
 
 var x = [1, 2, f(), 4];
 ''',
-      [error(WarningCode.deadCode, 45, 2)],
+      [error(diag.deadCode, 45, 2)],
     );
   }
 
@@ -2219,10 +2186,7 @@ main() {
 }
 Never foo() => throw 'exception';
 ''',
-      [
-        error(WarningCode.deadCode, 32, 14),
-        error(WarningCode.deadCode, 87, 14),
-      ],
+      [error(diag.deadCode, 32, 14), error(diag.deadCode, 87, 14)],
     );
   }
 
@@ -2234,7 +2198,7 @@ void f() {
   l?..[0]..length;
 }
 ''',
-      [error(WarningCode.deadCode, 30, 14)],
+      [error(diag.deadCode, 30, 14)],
     );
   }
 
@@ -2246,7 +2210,7 @@ void f() {
   i?..toInt()..isEven;
 }
 ''',
-      [error(WarningCode.deadCode, 24, 18)],
+      [error(diag.deadCode, 24, 18)],
     );
   }
 
@@ -2258,7 +2222,7 @@ void f() {
   i?..sign..isEven;
 }
 ''',
-      [error(WarningCode.deadCode, 24, 15)],
+      [error(diag.deadCode, 24, 15)],
     );
   }
 
@@ -2270,7 +2234,7 @@ void f() {
   l?[0];
 }
 ''',
-      [error(WarningCode.deadCode, 30, 4)],
+      [error(diag.deadCode, 30, 4)],
     );
   }
 
@@ -2282,7 +2246,7 @@ void f() {
   l?[0][0];
 }
 ''',
-      [error(WarningCode.deadCode, 36, 7)],
+      [error(diag.deadCode, 36, 7)],
     );
   }
 
@@ -2294,7 +2258,7 @@ void f() {
   i?.truncate();
 }
 ''',
-      [error(WarningCode.deadCode, 24, 12)],
+      [error(diag.deadCode, 24, 12)],
     );
   }
 
@@ -2306,7 +2270,7 @@ void f() {
   i?.truncate().truncate();
 }
 ''',
-      [error(WarningCode.deadCode, 24, 23)],
+      [error(diag.deadCode, 24, 23)],
     );
   }
 
@@ -2318,7 +2282,7 @@ void f() {
   i?.truncate().sign;
 }
 ''',
-      [error(WarningCode.deadCode, 24, 17)],
+      [error(diag.deadCode, 24, 17)],
     );
   }
 
@@ -2330,7 +2294,7 @@ void f() {
   (i)?.sign;
 }
 ''',
-      [error(WarningCode.deadCode, 26, 6)],
+      [error(diag.deadCode, 26, 6)],
     );
   }
 
@@ -2342,7 +2306,7 @@ void f() {
   (i)?.sign.sign;
 }
 ''',
-      [error(WarningCode.deadCode, 26, 11)],
+      [error(diag.deadCode, 26, 11)],
     );
   }
 
@@ -2354,7 +2318,7 @@ Iterable<int> f() sync* {
   yield 1;
 }
 ''',
-      [error(WarningCode.deadCode, 38, 8)],
+      [error(diag.deadCode, 38, 8)],
     );
   }
 }

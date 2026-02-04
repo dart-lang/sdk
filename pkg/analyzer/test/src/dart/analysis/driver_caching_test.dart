@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
@@ -62,7 +63,7 @@ int b = a;
 
     // `strict-cast: true`, so has errors.
     assertErrorsInList(await _computeTestFileDiagnostics(), [
-      error(CompileTimeErrorCode.invalidAssignment, 23, 1),
+      error(diag.invalidAssignment, 23, 1),
     ]);
   }
 
@@ -347,7 +348,7 @@ void f() {
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
     var matching = diagnostics.where((element) {
       var diagnosticCode = element.diagnosticCode;
-      return diagnosticCode is LintCode && diagnosticCode.name == name;
+      return diagnosticCode is LintCode && diagnosticCode.lowerCaseName == name;
     }).toList();
     expect(matching, hasLength(1));
   }

@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/matchers.dart';
 import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
@@ -26,6 +27,46 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   static const codeThatWrapsAt40 =
       "var a = '        10        20        30        40';";
 
+  /// Verifies the result of a format-on-type request for the character in the
+  /// marked range in [content].
+  ///
+  /// If the marked range has a position, it will be used for the request,
+  /// otherwise the end point of the range will be used.
+  Future<List<TextEdit>?> expectFormatOnTypeResult(
+    String content,
+    Matcher matcher,
+  ) async {
+    var code = TestCode.parseNormalized(content);
+
+    // We use range to make it really explicit which character is typed and not
+    // have to worry about whether it's before or after the ^.
+    expect(code.ranges, hasLength(1));
+    expect(code.positions, hasLength(anyOf(0, 1)));
+
+    var typedCharacter = code.code.substring(
+      code.range.sourceRange.offset,
+      code.range.sourceRange.end,
+    );
+    await initialize();
+    await openFile(mainFileUri, code.code);
+
+    var result = await formatOnType(
+      mainFileUri,
+      code.positions.isNotEmpty ? code.position.position : code.range.range.end,
+      typedCharacter,
+    );
+
+    expect(
+      result,
+      matcher,
+      reason:
+          'Typing the character "$typedCharacter" at the marked location '
+          'should match the supplied matcher',
+    );
+
+    return result;
+  }
+
   Future<List<TextEdit>> expectFormattedContents(
     Uri uri,
     String original,
@@ -33,7 +74,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   ) async {
     var formatEdits = (await formatDocument(uri))!;
     var formattedContents = applyTextEdits(original, formatEdits);
-    expect(formattedContents, equals(expected));
+    expect(formattedContents, equalsNormalized(expected));
     return formatEdits;
   }
 
@@ -44,7 +85,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   ) async {
     var formatEdits = (await formatRange(uri, code.range.range))!;
     var formattedContents = applyTextEdits(code.code, formatEdits);
-    expect(formattedContents, equals(expected));
+    expect(formattedContents, equalsNormalized(expected));
     return formatEdits;
   }
 
@@ -54,13 +95,13 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_alreadyFormatted() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f() {
   print('test');
 }
-''';
+''');
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
 
     var formatEdits = await formatDocument(mainFileUri);
     expect(formatEdits, isNull);
@@ -93,7 +134,7 @@ void f() {
   Future<void> test_complex() async {
     failTestOnErrorDiagnostic = false;
 
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 ErrorOr<Pair<A, List<B>>> c(
   String d,
   List<
@@ -105,13 +146,13 @@ ErrorOr<Pair<A, List<B>>> c(
 }
 
 
-    ''';
+    ''');
     var expected = '''
 ErrorOr<Pair<A, List<B>>> c(String d, List<Either2<E, F>> g, {h = false}) {}
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
-    await expectFormattedContents(mainFileUri, contents, expected);
+    await openFile(mainFileUri, code.code);
+    await expectFormattedContents(mainFileUri, code.code, expected);
   }
 
   /// Ensures we use the same registration ID when unregistering even if the
@@ -192,42 +233,132 @@ ErrorOr<Pair<A, List<B>>> c(String d, List<Either2<E, F>> g, {h = false}) {}
     expect(registration(Method.textDocument_rangeFormatting), isNotNull);
   }
 
-  Future<void> test_formatOnType_simple() async {
-    const contents = '''
+  Future<void> test_formatOnType_bad_brace_inComment() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+    // hello[!}!]
+    print('test');
+}
+    ''', isNull);
+  }
+
+  Future<void> test_formatOnType_bad_brace_inString() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+
+    print('te[!}!]st');
+}
+    ''', isNull);
+  }
+
+  /// Ensure the semicolon after enum constants does not trigger formatting
+  /// because the formatter removes it if there is nothing after it.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/61909
+  Future<void> test_formatOnType_bad_semiColon_enumBodySeparator() async {
+    await expectFormatOnTypeResult('''
+enum E { a, b[!;!] }
+    ''', isNull);
+  }
+
+  Future<void> test_formatOnType_bad_semicolon_inComment() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+    // hello[!;!]
+    print('test');
+}
+    ''', isNull);
+  }
+
+  Future<void> test_formatOnType_bad_semicolon_inString() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+
+    print('te[!;!]st');
+}
+    ''', isNull);
+  }
+
+  Future<void> test_formatOnType_good_brace_blockEnd() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+    print('test');
+[!}!]
+    ''', isNotNull);
+  }
+
+  Future<void> test_formatOnType_good_formatsCode() async {
+    var code = TestCode.parseNormalized('''
 void f  ()
 {
 
     print('test');
-^}
-    ''';
+[!}!]
+    ''');
     var expected = '''void f() {
   print('test');
 }
 ''';
-    var code = TestCode.parse(contents);
-    await initialize();
-    await openFile(mainFileUri, code.code);
-
-    var formatEdits = (await formatOnType(
-      mainFileUri,
-      code.position.position,
-      '}',
+    var formatEdits = (await expectFormatOnTypeResult(
+      code.markedCode,
+      isNotNull,
     ))!;
     var formattedContents = applyTextEdits(code.code, formatEdits);
-    expect(formattedContents, equals(expected));
+    expect(formattedContents, equalsNormalized(expected));
+  }
+
+  Future<void> test_formatOnType_good_positionAtEnd() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+[!}^!]
+    ''', isNotNull);
+  }
+
+  Future<void> test_formatOnType_good_positionAtOffset() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+[!^}!]
+    ''', isNotNull);
+  }
+
+  Future<void> test_formatOnType_good_semiColon_enumConstructor() async {
+    await expectFormatOnTypeResult('''
+enum X {
+  a,
+  b;
+
+  const X()[!;!]
+}
+    ''', isNotNull);
+  }
+
+  Future<void> test_formatOnType_good_semicolon_statementEnd() async {
+    await expectFormatOnTypeResult('''
+void f  ()
+{
+    print('test')[!;!]
+}
+    ''', isNotNull);
   }
 
   Future<void> test_formatRange_editsOverlapRange() async {
     // Only ranges that are fully contained by the range should be applied,
     // not those that intersect the start/end.
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f()
 {
     [!    print('test');
         print('test');
     !]    print('test');
 }
-''';
+''');
     var expected = '''
 void f()
 {
@@ -236,14 +367,13 @@ void f()
         print('test');
 }
 ''';
-    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
     await expectRangeFormattedContents(mainFileUri, code, expected);
   }
 
   Future<void> test_formatRange_expandsLeadingWhitespaceToNearestLine() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f()
 {
 
@@ -251,7 +381,7 @@ void f()
         print('test'); // line 3
         print('test'); // line 4!]
 }
-''';
+''');
     const expected = '''
 void f()
 {
@@ -261,20 +391,18 @@ void f()
   print('test'); // line 4
 }
 ''';
-    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
     await expectRangeFormattedContents(mainFileUri, code, expected);
   }
 
   Future<void> test_formatRange_invalidRange() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f()
 {
         print('test');
 }
-''';
-    var code = TestCode.parse(contents);
+''');
     await initialize();
     await openFile(mainFileUri, code.code);
     var formatRangeRequest = formatRange(
@@ -286,12 +414,12 @@ void f()
     );
     await expectLater(
       formatRangeRequest,
-      throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
+      throwsA(isResponseError(ServerErrorCodes.invalidFileLineCol)),
     );
   }
 
   Future<void> test_formatRange_simple() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 main  ()
 {
 
@@ -309,7 +437,7 @@ main3  ()
 
     print('test');
 }
-''';
+''');
     var expected = '''
 main  ()
 {
@@ -327,7 +455,6 @@ main3  ()
     print('test');
 }
 ''';
-    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
     await expectRangeFormattedContents(mainFileUri, code, expected);
@@ -336,19 +463,18 @@ main3  ()
   Future<void> test_formatRange_trailingNewline_47702() async {
     // Check we complete when a formatted block ends with a newline.
     // https://github.com/dart-lang/sdk/issues/47702
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 int? a;
 [!
     int? b;
 !]
-''';
+''');
     var expected = '''
 int? a;
 
 int? b;
 
 ''';
-    var code = TestCode.parse(contents);
     await initialize();
     await openFile(mainFileUri, code.code);
     await expectRangeFormattedContents(mainFileUri, code, expected);
@@ -357,25 +483,25 @@ int? b;
   Future<void> test_invalidSyntax() async {
     failTestOnErrorDiagnostic = false;
 
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f(((( {
   print('test');
 }
-''';
+''');
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
 
     var formatEdits = await formatDocument(mainFileUri);
     expect(formatEdits, isNull);
   }
 
   Future<void> test_lineLength() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f() =>
 print(
 '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789'
 );
-    ''';
+    ''');
     var expectedDefault = '''
 void f() => print(
   '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789',
@@ -390,11 +516,11 @@ void f() => print('123456789 123456789 123456789 123456789 123456789 123456789 1
       initialize,
       {}, // empty config
     );
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
 
-    await expectFormattedContents(mainFileUri, contents, expectedDefault);
+    await expectFormattedContents(mainFileUri, code.code, expectedDefault);
     await updateConfig({'lineLength': 500});
-    await expectFormattedContents(mainFileUri, contents, expectedLongLines);
+    await expectFormattedContents(mainFileUri, code.code, expectedLongLines);
   }
 
   Future<void> test_lineLength_analysisOptions() async {
@@ -480,11 +606,11 @@ formatter:
   }
 
   Future<void> test_lineLength_outsideWorkspaceFolders() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f() {
   print('123456789 ''123456789 ''123456789 ');
 }
-''';
+''');
     const expectedContents = '''
 void f() {
   print(
@@ -504,16 +630,16 @@ void f() {
       // Global config (this should be used).
       {'lineLength': 10},
     );
-    await openFile(mainFileUri, contents);
-    await expectFormattedContents(mainFileUri, contents, expectedContents);
+    await openFile(mainFileUri, code.code);
+    await expectFormattedContents(mainFileUri, code.code, expectedContents);
   }
 
   Future<void> test_lineLength_workspaceFolderSpecified() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f() {
   print('123456789 ''123456789 ''123456789 ');
 }
-''';
+''');
     const expectedContents = '''
 void f() {
   print(
@@ -533,16 +659,16 @@ void f() {
         projectFolderPath: {'lineLength': 10},
       },
     );
-    await openFile(mainFileUri, contents);
-    await expectFormattedContents(mainFileUri, contents, expectedContents);
+    await openFile(mainFileUri, code.code);
+    await expectFormattedContents(mainFileUri, code.code, expectedContents);
   }
 
   Future<void> test_lineLength_workspaceFolderUnspecified() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f() {
   print('123456789 ''123456789 ''123456789 ');
 }
-''';
+''');
     const expectedContents = '''
 void f() {
   print(
@@ -563,24 +689,24 @@ void f() {
         projectFolderPath: {'someOtherValue': 'foo'},
       },
     );
-    await openFile(mainFileUri, contents);
-    await expectFormattedContents(mainFileUri, contents, expectedContents);
+    await openFile(mainFileUri, code.code);
+    await expectFormattedContents(mainFileUri, code.code, expectedContents);
   }
 
   Future<void> test_minimalEdits_addWhitespace() async {
     // Check we only get one edit to add the required whitespace and not
     // an entire document replacement.
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f(){}
-''';
+''');
     const expected = '''
 void f() {}
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
     var formatEdits = await expectFormattedContents(
       mainFileUri,
-      contents,
+      code.code,
       expected,
     );
     expect(formatEdits, hasLength(1));
@@ -590,20 +716,20 @@ void f() {}
 
   Future<void> test_minimalEdits_removeFileLeadingWhitespace() async {
     // Check whitespace before the first token is handled.
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 
 
 
 void f() {}
-''';
+''');
     const expected = '''
 void f() {}
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
     var formatEdits = await expectFormattedContents(
       mainFileUri,
-      contents,
+      code.code,
       expected,
     );
     expect(formatEdits, hasLength(1));
@@ -614,21 +740,21 @@ void f() {}
 
   Future<void> test_minimalEdits_removeFileTrailingWhitespace() async {
     // Check whitespace after the last token is handled.
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f() {}
 
 
 
 
-''';
+''');
     const expected = '''
 void f() {}
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
     var formatEdits = await expectFormattedContents(
       mainFileUri,
-      contents,
+      code.code,
       expected,
     );
     expect(formatEdits, hasLength(1));
@@ -640,17 +766,17 @@ void f() {}
   Future<void> test_minimalEdits_removePartialWhitespaceAfter() async {
     // Check we get an edit only to remove the unnecessary trailing whitespace
     // and not to replace the whole whitespace with a single space.
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f()       {}
-''';
+''');
     const expected = '''
 void f() {}
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
     var formatEdits = await expectFormattedContents(
       mainFileUri,
-      contents,
+      code.code,
       expected,
     );
     expect(formatEdits, hasLength(1));
@@ -671,20 +797,20 @@ void f() {}
   Future<void> test_minimalEdits_removePartialWhitespaceBefore() async {
     // Check we get an edit only to remove the unnecessary leading whitespace
     // and not to replace the whole whitespace with a single space.
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f()
 
 
  {}
-''';
+''');
     const expected = '''
 void f() {}
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
     var formatEdits = await expectFormattedContents(
       mainFileUri,
-      contents,
+      code.code,
       expected,
     );
     expect(formatEdits, hasLength(1));
@@ -705,17 +831,17 @@ void f() {}
   Future<void> test_minimalEdits_removeWhitespace() async {
     // Check we only get two edits to remove the unwanted whitespace and not
     // an entire document replacement.
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f( ) { }
-''';
+''');
     const expected = '''
 void f() {}
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
     var formatEdits = await expectFormattedContents(
       mainFileUri,
-      contents,
+      code.code,
       expected,
     );
     expect(formatEdits, hasLength(2));
@@ -731,13 +857,13 @@ void f() {}
   Future<void> test_minimalEdits_withComments() async {
     // Check we can get edits that span a comment (which does not appear in the
     // main token list).
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f() {
         var a = 1;
         // Comment
         print(a);
 }
-''';
+''');
     const expected = '''
 void f() {
   var a = 1;
@@ -746,10 +872,10 @@ void f() {
 }
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
     var formatEdits = await expectFormattedContents(
       mainFileUri,
-      contents,
+      code.code,
       expected,
     );
     expect(formatEdits, hasLength(3));
@@ -806,7 +932,7 @@ void f() {
       formatDocument(toUri(join(projectFolderPath, 'missing.dart'))),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message: 'File does not exist',
         ),
       ),
@@ -823,7 +949,7 @@ void f() {
       ),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message: 'URI does not contain a valid file path',
         ),
       ),
@@ -837,7 +963,7 @@ void f() {
       formatDocument(Uri.parse('a:/a.dart')),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message:
               "URI scheme 'a' is not supported. Allowed schemes are 'file'.",
         ),
@@ -846,21 +972,21 @@ void f() {
   }
 
   Future<void> test_simple() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
     void f  ()
     {
 
         print('test');
     }
-    ''';
+    ''');
     var expected = '''
 void f() {
   print('test');
 }
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
-    await expectFormattedContents(mainFileUri, contents, expected);
+    await openFile(mainFileUri, code.code);
+    await expectFormattedContents(mainFileUri, code.code, expected);
   }
 
   Future<void> test_trailingCommas_automate() async {
@@ -931,21 +1057,21 @@ enum A { a, b }
   }
 
   Future<void> test_unopenFile() async {
-    const contents = '''
+    var code = TestCode.parseNormalized('''
     void f  ()
     {
 
         print('test');
     }
-    ''';
+    ''');
     var expected = '''
 void f() {
   print('test');
 }
 ''';
-    newFile(mainFilePath, contents);
+    newFile(mainFilePath, code.code);
     await initialize();
-    await expectFormattedContents(mainFileUri, contents, expected);
+    await expectFormattedContents(mainFileUri, code.code, expected);
   }
 
   Future<void> test_validSyntax_withErrors() async {
@@ -953,19 +1079,19 @@ void f() {
 
     // We should still be able to format syntactically valid code even if it has
     // analysis errors.
-    const contents = '''
+    var code = TestCode.parseNormalized('''
 void f() {
        print(unresolved);
 }
-''';
+''');
     const expected = '''
 void f() {
   print(unresolved);
 }
 ''';
     await initialize();
-    await openFile(mainFileUri, contents);
+    await openFile(mainFileUri, code.code);
 
-    await expectFormattedContents(mainFileUri, contents, expected);
+    await expectFormattedContents(mainFileUri, code.code, expected);
   }
 }

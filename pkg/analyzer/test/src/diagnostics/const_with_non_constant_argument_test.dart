@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ var v = 42;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.constWithNonConstantArgument, 45, 1)],
+      [error(diag.constWithNonConstantArgument, 45, 1)],
     );
   }
 
@@ -45,8 +45,8 @@ class Foo {
 }
 ''',
       [
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 94, 3),
-        error(CompileTimeErrorCode.undefinedIdentifier, 94, 3),
+        error(diag.constWithNonConstantArgument, 94, 3),
+        error(diag.undefinedIdentifier, 94, 3),
       ],
     );
   }
@@ -61,7 +61,7 @@ enum E {
   const E(_);
 }
 ''',
-      [error(CompileTimeErrorCode.constWithNonConstantArgument, 26, 1)],
+      [error(diag.constWithNonConstantArgument, 26, 1)],
     );
   }
 
@@ -82,7 +82,7 @@ class A {
 }
 f(p) { return const A(p); }
 ''',
-      [error(CompileTimeErrorCode.constWithNonConstantArgument, 48, 1)],
+      [error(diag.constWithNonConstantArgument, 48, 1)],
     );
   }
 
@@ -98,7 +98,7 @@ void main() {
   const C(() {});
 }
 ''',
-      [error(CompileTimeErrorCode.constWithNonConstantArgument, 83, 5)],
+      [error(diag.constWithNonConstantArgument, 83, 5)],
     );
   }
 }

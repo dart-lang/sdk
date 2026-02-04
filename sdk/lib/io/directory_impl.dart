@@ -8,14 +8,10 @@ class _Directory extends FileSystemEntity implements Directory {
   final String _path;
   final Uint8List _rawPath;
 
-  _Directory(String path)
-    : _path = _checkNotNull(path, "path"),
-      _rawPath = FileSystemEntity._toUtf8Array(path);
+  _Directory(this._path) : _rawPath = FileSystemEntity._toUtf8Array(_path);
 
   _Directory.fromRawPath(Uint8List rawPath)
-    : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(
-        _checkNotNull(rawPath, "rawPath"),
-      ),
+    : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath),
       _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
 
   String get path => _path;
@@ -70,11 +66,6 @@ class _Directory extends FileSystemEntity implements Directory {
       ),
     };
 
-    if (!_EmbedderConfig._mayChdir) {
-      throw UnsupportedError(
-        "This embedder disallows setting Directory.current",
-      );
-    }
     var result = _setCurrent(_Namespace._namespace, _rawPath);
     if (result is ArgumentError) throw result;
     if (result is OSError) {
@@ -238,8 +229,6 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   Directory renameSync(String newPath) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(newPath, "newPath");
     var result = _rename(_Namespace._namespace, _rawPath, newPath);
     if (result is OSError) {
       throw FileSystemException._fromOSError(result, "Rename failed", path);
@@ -266,9 +255,6 @@ class _Directory extends FileSystemEntity implements Directory {
     bool recursive = false,
     bool followLinks = true,
   }) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(recursive, "recursive");
-    ArgumentError.checkNotNull(followLinks, "followLinks");
     var result = <FileSystemEntity>[];
     _fillWithDirectoryListing(
       _Namespace._namespace,
@@ -285,12 +271,6 @@ class _Directory extends FileSystemEntity implements Directory {
   }
 
   String toString() => "Directory: '$path'";
-
-  // TODO(40614): Remove once non-nullability is sound.
-  static T _checkNotNull<T>(T t, String name) {
-    ArgumentError.checkNotNull(t, name);
-    return t;
-  }
 }
 
 abstract class _AsyncDirectoryListerOps {

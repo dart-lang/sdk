@@ -196,10 +196,12 @@ lsp.CompletionItem? toLspCompletionItem(
       : null;
   var isCallable =
       element != null &&
-      (element is ConstructorElement ||
-          element is LocalFunctionElement ||
-          element is TopLevelFunctionElement ||
-          element is MethodElement);
+          (element is ConstructorElement ||
+              element is LocalFunctionElement ||
+              element is TopLevelFunctionElement ||
+              element is MethodElement) ||
+      suggestion is FunctionCall &&
+          suggestion.kind == server.CompletionSuggestionKind.INVOCATION;
   var isInvocation =
       (suggestion is ExecutableSuggestion &&
           suggestion.kind == server.CompletionSuggestionKind.INVOCATION) ||
@@ -315,7 +317,6 @@ lsp.CompletionItem? toLspCompletionItem(
       );
 
       defaultArgumentList = computeCompletionDefaultArgumentList(
-        element,
         requiredParameters,
         namedParameters,
       );
@@ -589,9 +590,7 @@ CompletionDetail _getCompletionDetail(
   required bool isInvocation,
 }) {
   String? returnType;
-  if (suggestion is FunctionCall) {
-    returnType = 'void';
-  } else if (suggestion is RecordFieldSuggestion) {
+  if (suggestion is RecordFieldSuggestion) {
     returnType = suggestion.field.type.getDisplayString();
   }
   var element = suggestion is ElementBasedSuggestion
@@ -632,6 +631,11 @@ CompletionDetail _getCompletionDetail(
       returnType = completionSetterTypePattern.firstMatch(parameters)?.group(1);
       parameters = null;
     }
+  } else if (suggestion is FunctionCall) {
+    // Function calls may not have an element (for example the call method on
+    // Function), so use the function type to get parameters if available.
+    parameters = getParametersListString(suggestion.type.formalParameters);
+    returnType = suggestion.type.returnType.getDisplayString();
   }
 
   var truncatedParameters = switch (parameters) {
@@ -711,7 +715,6 @@ String _getDisplayText(
 ) {
   return switch (suggestion) {
     SuggestionData(:var displayText) => displayText,
-    FunctionCall() => 'call()',
     OverrideSuggestion(:var data, :var completion) =>
       data?.displayText ?? completion,
     TypedSuggestion(:var data, :var completion) =>

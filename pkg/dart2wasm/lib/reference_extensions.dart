@@ -24,6 +24,14 @@ extension GetterSetterReference on Reference {
     return false;
   }
 
+  bool get isFieldInitializer {
+    Member member = asMember;
+    if (member is Field) {
+      if (member.fieldReference == this) return true;
+    }
+    return false;
+  }
+
   bool get isGetter {
     Member member = asMember;
     return (member is Procedure && member.isGetter) || isImplicitGetter;

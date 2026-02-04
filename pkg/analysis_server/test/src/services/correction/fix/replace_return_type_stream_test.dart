@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceReturnTypeStreamTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_STREAM;
+  FixKind get kind => DartFixKind.replaceReturnTypeStream;
 
   Future<void> test_complexTypeName_withImport() async {
     await resolveTestCode('''
@@ -30,9 +30,8 @@ List<int> f() async* {}
 import 'dart:async';
 Stream<List<int>> f() async* {}
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.illegalAsyncGeneratorReturnType;
+      filter: (error) {
+        return error.diagnosticCode == diag.illegalAsyncGeneratorReturnType;
       },
     );
   }
@@ -56,9 +55,8 @@ int f() async* {}
 import 'dart:async' as al;
 al.Stream<int> f() async* {}
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.illegalAsyncGeneratorReturnType;
+      filter: (error) {
+        return error.diagnosticCode == diag.illegalAsyncGeneratorReturnType;
       },
     );
   }
@@ -73,9 +71,8 @@ int f() async* {}
 import 'dart:async';
 Stream<int> f() async* {}
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.illegalAsyncGeneratorReturnType;
+      filter: (error) {
+        return error.diagnosticCode == diag.illegalAsyncGeneratorReturnType;
       },
     );
   }

@@ -20,8 +20,7 @@ main() {
   tearDown(() => dap.tearDown());
 
   group('debug mode breakpoints', () {
-    testWithUriConfigurations(() => dap, 'stops at a line breakpoint',
-        () async {
+    test('stops at a line breakpoint', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -29,8 +28,7 @@ main() {
       await client.hitBreakpoint(testFile, breakpointLine);
     });
 
-    testWithUriConfigurations(() => dap, 'resolves modified breakpoints',
-        () async {
+    test('resolves modified breakpoints', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleMultiBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -75,8 +73,7 @@ main() {
       expect(resolvedBreakpoints, addedBreakpoints);
     });
 
-    testWithUriConfigurations(
-        () => dap, 'provides reason for failed breakpoints', () async {
+    test('provides reason for failed breakpoints', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(debuggerPauseProgram);
       final invalidBreakpointLine = 9999;
@@ -96,8 +93,8 @@ main() {
       });
 
       // Set the breakpoint and also collect the original reason.
-      var bps = await client.setBreakpoint(testFile, invalidBreakpointLine);
-      var bp = bps.breakpoints.single;
+      final bps = await client.setBreakpoint(testFile, invalidBreakpointLine);
+      final bp = bps.breakpoints.single;
       breakpointReasons.add('${bp.reason}: ${bp.message}');
 
       // Wait up to a few seconds for the change events to come through to
@@ -118,9 +115,7 @@ main() {
       await breakpointChangedSubscription.cancel();
     });
 
-    testWithUriConfigurations(
-        () => dap, 'provides reason for not-yet-resolved breakpoints',
-        () async {
+    test('provides reason for not-yet-resolved breakpoints', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(debuggerPauseProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -132,7 +127,7 @@ main() {
       ], eagerError: true);
 
       // Set a breakpoint and verify the result.
-      var bps = await client.setBreakpoint(testFile, breakpointLine);
+      final bps = await client.setBreakpoint(testFile, breakpointLine);
       expect(bps.breakpoints.single.reason, 'pending');
       expect(bps.breakpoints.single.message,
           'Breakpoint has not yet been resolved');

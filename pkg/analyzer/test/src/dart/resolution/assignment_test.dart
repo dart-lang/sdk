@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -701,7 +700,7 @@ test(A? a, String s) {
   a?.b[s] = null;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 121, 4)],
+      [error(diag.invalidAssignment, 121, 4)],
     );
 
     var node = findNode.assignment('= null');
@@ -836,8 +835,8 @@ void f(int c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 18, 1),
-        error(CompileTimeErrorCode.undefinedIdentifier, 20, 1),
+        error(diag.undefinedIdentifier, 18, 1),
+        error(diag.undefinedIdentifier, 20, 1),
       ],
     );
 
@@ -882,8 +881,8 @@ void f(int a, int c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedOperator, 26, 3),
-        error(CompileTimeErrorCode.undefinedIdentifier, 27, 1),
+        error(diag.undefinedOperator, 26, 3),
+        error(diag.undefinedIdentifier, 27, 1),
       ],
     );
 
@@ -931,7 +930,7 @@ void f(A a, int c) {
   a[b] = c;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 73, 1)],
+      [error(diag.undefinedIdentifier, 73, 1)],
     );
 
     var assignment = findNode.assignment('a[b] = c');
@@ -978,8 +977,8 @@ void f(A a) {
 }
 ''',
       [
-        error(ParserErrorCode.missingIdentifier, 30, 7),
-        error(CompileTimeErrorCode.undefinedOperator, 67, 3),
+        error(diag.missingIdentifier, 30, 7),
+        error(diag.undefinedOperator, 67, 3),
       ],
     );
   }
@@ -991,7 +990,7 @@ void f() {
   a[0] += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
+      [error(diag.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -1034,8 +1033,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.missingAssignableSelector, 27, 5),
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 27, 5),
+        error(diag.missingAssignableSelector, 27, 5),
+        error(diag.illegalAssignmentToNonAssignable, 27, 5),
       ],
     );
 
@@ -1067,8 +1066,8 @@ void f(int a, int b, double c) {
 }
 ''',
       [
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 35, 5),
-        error(ParserErrorCode.missingAssignableSelector, 35, 5),
+        error(diag.illegalAssignmentToNonAssignable, 35, 5),
+        error(diag.missingAssignableSelector, 35, 5),
       ],
     );
 
@@ -1113,8 +1112,8 @@ void f(int a, int b, double c) {
 }
 ''',
       [
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 35, 7),
-        error(ParserErrorCode.missingAssignableSelector, 35, 7),
+        error(diag.illegalAssignmentToNonAssignable, 35, 7),
+        error(diag.missingAssignableSelector, 35, 7),
       ],
     );
 
@@ -1163,12 +1162,8 @@ void f(int a, double b) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-          29,
-          1,
-        ),
-        error(ParserErrorCode.expectedToken, 31, 1),
+        error(diag.patternTypeMismatchInIrrefutableContext, 29, 1),
+        error(diag.expectedToken, 31, 1),
       ],
     );
 
@@ -1202,8 +1197,8 @@ void f(int a, double b) {
 }
 ''',
       [
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 44, 7),
-        error(ParserErrorCode.missingAssignableSelector, 44, 7),
+        error(diag.illegalAssignmentToNonAssignable, 44, 7),
+        error(diag.missingAssignableSelector, 44, 7),
       ],
     );
 
@@ -1250,8 +1245,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
-        error(ParserErrorCode.missingAssignableSelector, 25, 3),
+        error(diag.illegalAssignmentToNonAssignable, 25, 3),
+        error(diag.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1294,8 +1289,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
-        error(ParserErrorCode.missingAssignableSelector, 25, 3),
+        error(diag.illegalAssignmentToNonAssignable, 25, 3),
+        error(diag.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1338,8 +1333,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
-        error(ParserErrorCode.missingAssignableSelector, 25, 3),
+        error(diag.illegalAssignmentToNonAssignable, 25, 3),
+        error(diag.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1382,8 +1377,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
-        error(ParserErrorCode.missingAssignableSelector, 25, 3),
+        error(diag.illegalAssignmentToNonAssignable, 25, 3),
+        error(diag.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1426,8 +1421,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
-        error(ParserErrorCode.missingAssignableSelector, 25, 3),
+        error(diag.illegalAssignmentToNonAssignable, 25, 3),
+        error(diag.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1470,8 +1465,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
-        error(ParserErrorCode.missingAssignableSelector, 25, 3),
+        error(diag.illegalAssignmentToNonAssignable, 25, 3),
+        error(diag.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1517,7 +1512,7 @@ void f() {
   C = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousImport, 47, 1)],
+      [error(diag.ambiguousImport, 47, 1)],
     );
 
     var assignment = findNode.assignment('C = 0');
@@ -1553,7 +1548,7 @@ void f() {
   C = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 25, 1)],
+      [error(diag.assignmentToType, 25, 1)],
     );
 
     var assignment = findNode.assignment('C = 0');
@@ -1752,7 +1747,7 @@ void f(A a) {
   a.x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 49, 1)],
+      [error(diag.assignmentToFinalNoSetter, 49, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -1805,7 +1800,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 46, 3)],
+      [error(diag.assignmentToFinalNoSetter, 46, 3)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -1974,7 +1969,7 @@ void f() {
   A.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 43, 3)],
+      [error(diag.assignmentToFinalNoSetter, 43, 3)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -2276,7 +2271,7 @@ void f() {
   A.x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 53, 1)],
+      [error(diag.assignmentToFinalNoSetter, 53, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -2403,7 +2398,7 @@ void f(int c) {
   a.b = c;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 18, 1)],
+      [error(diag.undefinedIdentifier, 18, 1)],
     );
 
     var assignment = findNode.assignment('a.b = c');
@@ -2444,10 +2439,7 @@ void f(int a, int c) {
   a.b += c;
 }
 ''',
-      [
-        error(CompileTimeErrorCode.undefinedGetter, 27, 1),
-        error(CompileTimeErrorCode.undefinedSetter, 27, 1),
-      ],
+      [error(diag.undefinedGetter, 27, 1), error(diag.undefinedSetter, 27, 1)],
     );
 
     var assignment = findNode.assignment('a.b += c');
@@ -2817,7 +2809,7 @@ test(A? a) {
   a?.b.setter = null;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 103, 4)],
+      [error(diag.invalidAssignment, 103, 4)],
     );
 
     var node = findNode.assignment('= null');
@@ -2981,10 +2973,7 @@ void f(({int bar}) r) {
   r.foo += 0;
 }
 ''',
-      [
-        error(CompileTimeErrorCode.undefinedGetter, 28, 3),
-        error(CompileTimeErrorCode.undefinedSetter, 28, 3),
-      ],
+      [error(diag.undefinedGetter, 28, 3), error(diag.undefinedSetter, 28, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3026,7 +3015,7 @@ void f(({int bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 28, 3)],
+      [error(diag.undefinedSetter, 28, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3072,7 +3061,7 @@ void f(({int bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 80, 3)],
+      [error(diag.undefinedGetter, 80, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3161,7 +3150,7 @@ void f(({int bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 80, 3)],
+      [error(diag.assignmentToFinalNoSetter, 80, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3207,7 +3196,7 @@ void f(({int bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 80, 3)],
+      [error(diag.assignmentToFinalNoSetter, 80, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3337,7 +3326,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 40, 3)],
+      [error(diag.undefinedSetter, 40, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3379,7 +3368,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 40, 3)],
+      [error(diag.undefinedSetter, 40, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3425,7 +3414,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
+      [error(diag.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3471,7 +3460,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
+      [error(diag.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3517,7 +3506,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
+      [error(diag.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3563,7 +3552,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
+      [error(diag.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3610,7 +3599,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 124, 3)],
+      [error(diag.undefinedSetter, 124, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3657,7 +3646,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 124, 3)],
+      [error(diag.undefinedSetter, 124, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3699,10 +3688,7 @@ void f((int, String) r) {
   r.$4 += 0;
 }
 ''',
-      [
-        error(CompileTimeErrorCode.undefinedGetter, 30, 2),
-        error(CompileTimeErrorCode.undefinedSetter, 30, 2),
-      ],
+      [error(diag.undefinedGetter, 30, 2), error(diag.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3744,7 +3730,7 @@ void f((int, String) r) {
   r.$4 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 30, 2)],
+      [error(diag.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3790,7 +3776,7 @@ void f((int, String) r) {
   r.$3 += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 83, 2)],
+      [error(diag.assignmentToFinalNoSetter, 83, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3836,7 +3822,7 @@ void f((int, String) r) {
   r.$3 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 83, 2)],
+      [error(diag.assignmentToFinalNoSetter, 83, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3878,7 +3864,7 @@ void f((int, String) r) {
   r.$1 += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 30, 2)],
+      [error(diag.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3920,7 +3906,7 @@ void f((int, String) r) {
   r.$1 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 30, 2)],
+      [error(diag.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3966,7 +3952,7 @@ void f((int, String) r) {
   r.$1 += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 83, 2)],
+      [error(diag.undefinedSetter, 83, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -4012,7 +3998,7 @@ void f((int, String) r) {
   r.$1 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 83, 2)],
+      [error(diag.undefinedSetter, 83, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -4135,7 +4121,7 @@ void f(int c) {
   (a).b = c;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 19, 1)],
+      [error(diag.undefinedIdentifier, 19, 1)],
     );
 
     var assignment = findNode.assignment('(a).b = c');
@@ -4179,7 +4165,7 @@ void f(int a, int c) {
   (a).b = c;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 29, 1)],
+      [error(diag.undefinedSetter, 29, 1)],
     );
 
     var assignment = findNode.assignment('(a).b = c');
@@ -4225,7 +4211,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 39, 5)],
+      [error(diag.missingAssignableSelector, 39, 5)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -4325,7 +4311,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 46, 1)],
+      [error(diag.assignmentToFinalNoSetter, 46, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4361,7 +4347,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 53, 1)],
+      [error(diag.assignmentToFinalNoSetter, 53, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4395,7 +4381,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinal, 30, 1)],
+      [error(diag.assignmentToFinal, 30, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4435,7 +4421,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 85, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 85, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4469,7 +4455,7 @@ main() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 37, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 37, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4565,7 +4551,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToConst, 66, 1)],
+      [error(diag.assignmentToConst, 66, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4599,7 +4585,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 66, 1)],
+      [error(diag.assignmentToFinalLocal, 66, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4664,7 +4650,7 @@ void f(B? x) {
   x ??= C();
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 77, 3)],
+      [error(diag.invalidAssignment, 77, 3)],
     );
 
     var assignment = findNode.assignment('x ??=');
@@ -4704,7 +4690,7 @@ void f(double? a, int b) {
   a ??= b;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 35, 1)],
+      [error(diag.invalidAssignment, 35, 1)],
     );
 
     var assignment = findNode.assignment('a ??=');
@@ -4741,10 +4727,10 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.invalidAssignment, 23, 3),
-        error(CompileTimeErrorCode.invalidAssignment, 35, 3),
-        error(CompileTimeErrorCode.invalidAssignment, 47, 3),
-        error(CompileTimeErrorCode.invalidAssignment, 59, 3),
+        error(diag.invalidAssignment, 23, 3),
+        error(diag.invalidAssignment, 35, 3),
+        error(diag.invalidAssignment, 47, 3),
+        error(diag.invalidAssignment, 59, 3),
       ],
     );
     assertType(findNode.assignment('+='), 'double');
@@ -4837,7 +4823,7 @@ void f(int x) {
   x = true;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 22, 4)],
+      [error(diag.invalidAssignment, 22, 4)],
     );
 
     var assignment = findNode.assignment('x = true');
@@ -4869,7 +4855,7 @@ void f(final int x) {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 24, 1)],
+      [error(diag.assignmentToFinalLocal, 24, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4910,8 +4896,8 @@ class B extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.conflictingStaticAndInstance, 68, 1),
-        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 94, 1),
+        error(diag.conflictingStaticAndInstance, 68, 1),
+        error(diag.assignmentToFinalNoSetter, 94, 1),
       ],
     );
 
@@ -4953,8 +4939,8 @@ class B extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.conflictingStaticAndInstance, 65, 1),
-        error(CompileTimeErrorCode.assignmentToMethod, 90, 1),
+        error(diag.conflictingStaticAndInstance, 65, 1),
+        error(diag.assignmentToMethod, 90, 1),
       ],
     );
 
@@ -5022,7 +5008,7 @@ void f(int y) {
   = y;
 }
 ''',
-      [error(ParserErrorCode.missingIdentifier, 18, 1)],
+      [error(diag.missingIdentifier, 18, 1)],
     );
 
     var assignment = findNode.assignment('= y');
@@ -5210,7 +5196,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinal, 86, 1)],
+      [error(diag.assignmentToFinal, 86, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -5281,7 +5267,7 @@ class C extends A {}
 B? get x => B();
 set x(B? _) {}
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 3)],
+      [error(diag.invalidAssignment, 19, 3)],
     );
 
     var assignment = findNode.assignment('x ??=');
@@ -5388,7 +5374,7 @@ void f() {
   x = true;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 29, 4)],
+      [error(diag.invalidAssignment, 29, 4)],
     );
 
     var assignment = findNode.assignment('x = true');
@@ -5422,7 +5408,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinal, 31, 1)],
+      [error(diag.assignmentToFinal, 31, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -5454,7 +5440,7 @@ void f() {
   int += 3;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 13, 3)],
+      [error(diag.assignmentToType, 13, 3)],
     );
 
     var assignment = findNode.assignment('int += 3');
@@ -5486,7 +5472,7 @@ void f() {
   int = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 13, 3)],
+      [error(diag.assignmentToType, 13, 3)],
     );
 
     var assignment = findNode.assignment('int = 0');
@@ -5518,7 +5504,7 @@ void f() {
   x += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
+      [error(diag.undefinedIdentifier, 13, 1)],
     );
 
     var assignment = findNode.assignment('x += 1');
@@ -5550,7 +5536,7 @@ void f(int a) {
   x = a;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 18, 1)],
+      [error(diag.undefinedIdentifier, 18, 1)],
     );
 
     var assignment = findNode.assignment('x = a');

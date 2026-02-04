@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -153,8 +154,7 @@ class _InitializerInference {
   }
 
   void _addVariableNode(PropertyInducingElementImpl element) {
-    if (element.isSynthetic &&
-        !(element is FieldElementImpl && element.isSyntheticEnumField)) {
+    if (element.isOriginGetterSetter) {
       return;
     }
 
@@ -162,7 +162,7 @@ class _InitializerInference {
 
     _toInfer.add(element);
 
-    element.firstFragment.typeInference = _PropertyInducingElementTypeInference(
+    element.typeInference = _PropertyInducingElementTypeInference(
       _linker,
       _inferring,
       element,
@@ -195,17 +195,38 @@ class _PropertyInducingElementTypeInference
 
   @override
   TypeImpl perform() {
-    PropertyInducingFragmentImpl? initializerFragment;
-    VariableDeclarationImpl? variableDeclaration;
+    LibraryFragmentImpl? initializerLibraryFragment;
+    Scope? scope;
+    ExpressionImpl Function()? getInitializer;
     for (var fragment in _element.fragments) {
-      var node = _linker.elementNodes[fragment] as VariableDeclarationImpl;
-      if (node.initializer != null) {
-        initializerFragment = fragment;
-        variableDeclaration = node;
+      var node = _linker.elementNodes[fragment];
+      switch (node) {
+        case VariableDeclarationImpl():
+          if (node.initializer != null) {
+            initializerLibraryFragment = fragment.libraryFragment;
+            scope = LinkingNodeContext.get(node).scope;
+            getInitializer = () => node.initializer!;
+          }
+        case DefaultFormalParameterImpl():
+          _assertElementFieldOriginDeclaringFormalParameter();
+          if (node.defaultValue != null) {
+            initializerLibraryFragment = fragment.libraryFragment;
+            scope = LinkingNodeContext.get(node).scope;
+            getInitializer = () => node.defaultValue!;
+          } else {
+            _status = _InferenceStatus.inferred;
+            return _element.library.typeSystem.objectQuestion;
+          }
+        case SimpleFormalParameterImpl():
+          _assertElementFieldOriginDeclaringFormalParameter();
+          _status = _InferenceStatus.inferred;
+          return _element.library.typeSystem.objectQuestion;
       }
     }
 
-    if (initializerFragment == null || variableDeclaration == null) {
+    if (initializerLibraryFragment == null ||
+        scope == null ||
+        getInitializer == null) {
       _status = _InferenceStatus.inferred;
       return DynamicTypeImpl.instance;
     }
@@ -228,7 +249,7 @@ class _PropertyInducingElementTypeInference
       for (var inference in cycle) {
         if (inference._status == _InferenceStatus.beingInferred) {
           var element = inference._element;
-          element.firstFragment.typeInferenceError = inferenceError;
+          element.typeInferenceError = inferenceError;
           element.type = DynamicTypeImpl.instance;
           inference._status = _InferenceStatus.inferred;
         }
@@ -246,17 +267,15 @@ class _PropertyInducingElementTypeInference
     var enclosingInterfaceElement = enclosingElement
         .ifTypeOrNull<InterfaceElementImpl>();
 
-    var scope = LinkingNodeContext.get(variableDeclaration).scope;
-
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
       _linker,
-      initializerFragment.libraryFragment,
+      initializerLibraryFragment,
       scope,
       analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,
     );
-    astResolver.resolveExpression(() => variableDeclaration!.initializer!);
+    astResolver.resolveExpression(getInitializer);
 
     // Pop self from the stack.
     var self = _inferring.removeLast();
@@ -270,12 +289,28 @@ class _PropertyInducingElementTypeInference
       _status = _InferenceStatus.inferred;
     }
 
-    var initializerType = variableDeclaration.initializer!.typeOrThrow;
+    var initializerType = getInitializer().typeOrThrow;
     return _refineType(initializerType);
+  }
+
+  void _assertElementFieldOriginDeclaringFormalParameter() {
+    assert(() {
+      if (_element case FieldElementImpl element) {
+        return element.isOriginDeclaringFormalParameter;
+      }
+      return false;
+    }());
   }
 
   TypeImpl _refineType(TypeImpl type) {
     if (type.isDartCoreNull) {
+      // When `T` is `Null`, `p` has declared type `Object?`.
+      if (_element case FieldElementImpl field) {
+        if (field.declaringFormalParameter != null) {
+          return _element.library.typeSystem.objectQuestion;
+        }
+      }
+      // Logic for older language versions.
       return DynamicTypeImpl.instance;
     }
 

@@ -71,6 +71,26 @@ void f() {
     expect(loc.uri, equals(referencedFileUri));
   }
 
+  Future<void> test_atDeclaration_catchClauseParameter_error() async {
+    var contents = '''
+void foo() {
+  try {} catch ([!^e!], s) {}
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_catchClauseParameter_stack() async {
+    var contents = '''
+void foo() {
+  try {} catch (e, [!^s!]) {}
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_atDeclaration_class() async {
     var contents = '''
 class [!^A!] {}
@@ -109,6 +129,30 @@ class A {
     await testContents(contents);
   }
 
+  Future<void> test_atDeclaration_enum() async {
+    var contents = '''
+enum [!^E!] { one }
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_extension() async {
+    var contents = '''
+extension [!^E!] on String {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_extensionType() async {
+    var contents = '''
+extension type [!^E!](int it) {}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_atDeclaration_function() async {
     var contents = '''
 void [!^f!]() {}
@@ -129,6 +173,54 @@ import 'dart:math' as [!^math!];
     var contents = '''
 class A {
   void [!^f!]() {}
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_mixin() async {
+    var contents = '''
+mixin [!^M!] {}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_typeAlias_functionType() async {
+    var contents = '''
+typedef void [!^F!]();
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_typeAlias_generic() async {
+    var contents = '''
+typedef [!^F!] = void Function();
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_catchClauseParameter_error() async {
+    var contents = '''
+void foo() {
+  try {} catch ([!e!], s) {
+    print(e^);
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_catchClauseParameter_stack() async {
+    var contents = '''
+void foo() {
+  try {} catch (e, [!s!]) {
+    print(s^);
+  }
 }
 ''';
 
@@ -571,6 +663,16 @@ foo(Object pair) {
 ''';
 
     await testContents(contents);
+  }
+
+  Future<void> test_functionTypeCall_nothing() async {
+    // https://github.com/dart-lang/sdk/issues/61319
+    var contents = '''
+void f() {
+  f.cal^l();
+}
+''';
+    await testContents(contents, expectNoResults: true);
   }
 
   Future<void> test_importPrefix() async {

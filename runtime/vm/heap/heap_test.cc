@@ -1555,7 +1555,7 @@ VM_UNIT_TEST_CASE(MutatorMarkerRace_Fence) {
         for (size_t i = 0; i < kExistingObjectSlotCount; i++) {
           NewObject* new_object = &new_page->objects[i];
           new_object->header.store(2u, std::memory_order_relaxed);
-          std::atomic_thread_fence(std::memory_order_release);
+          StoreStoreFence();
           for (size_t j = 0; j < kNewObjectSlotCount; j++) {
             new_object->slots[j].store(existing_object,
                                        std::memory_order_relaxed);

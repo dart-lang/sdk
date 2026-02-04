@@ -87,7 +87,7 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
     if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
-      addresses->SetAt(i, new SocketAddress(c->ai_addr));
+      addresses->SetAt(i, new SocketAddress(RawAddr::FromInet4or6(c->ai_addr)));
       i++;
     }
   }
@@ -125,7 +125,7 @@ bool SocketBase::JoinMulticast(intptr_t fd,
   int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
-  memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
+  memmove(&mreq.gr_group, &addr.ss, addr.size);
   return NO_RETRY_EXPECTED(
              setsockopt(fd, proto, MCAST_JOIN_GROUP, &mreq, sizeof(mreq))) == 0;
 }
@@ -137,7 +137,7 @@ bool SocketBase::LeaveMulticast(intptr_t fd,
   int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
-  memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
+  memmove(&mreq.gr_group, &addr.ss, addr.size);
   return NO_RETRY_EXPECTED(setsockopt(fd, proto, MCAST_LEAVE_GROUP, &mreq,
                                       sizeof(mreq))) == 0;
 }

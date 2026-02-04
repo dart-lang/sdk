@@ -36,7 +36,7 @@ f() {
 @reflectiveTest
 class RemoveCommaTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_COMMA;
+  FixKind get kind => DartFixKind.removeComma;
 
   Future<void> test_emptyRecordLiteral() async {
     await resolveTestCode('''
@@ -62,9 +62,11 @@ f() {
 
   Future<void> test_representationFieldTrailingComma() async {
     await resolveTestCode('''
+// @dart = 3.10
 extension type A(int i,) {}
 ''');
     await assertHasFix('''
+// @dart = 3.10
 extension type A(int i) {}
 ''');
   }

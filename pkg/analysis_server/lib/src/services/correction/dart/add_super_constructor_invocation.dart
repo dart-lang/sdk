@@ -20,7 +20,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       return const [];
     }
 
-    var targetClassNode = targetConstructor.parent;
+    var targetClassNode = targetConstructor.parent?.parent;
     if (targetClassNode is! ClassDeclaration) {
       return const [];
     }

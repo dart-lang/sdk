@@ -2,22 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/leak_detector_visitor.dart';
 
 const _desc = r'Close instances of `dart:core` `Sink`.';
 
-class CloseSinks extends LintRule {
+class CloseSinks extends AnalysisRule {
   CloseSinks() : super(name: LintNames.close_sinks, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.closeSinks;
+  DiagnosticCode get diagnosticCode => diag.closeSinks;
 
   @override
   void registerNodeProcessors(

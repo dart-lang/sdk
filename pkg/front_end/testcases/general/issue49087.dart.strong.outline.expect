@@ -6,7 +6,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::int x, {core::String? y = null}) → self::A
     : super core::Object::•()
     ;
-  static factory redir(core::int x, {core::String? y = null}) → self::A /* redirection-target: self::A::• */
+  static const factory redir(core::int x, {core::String? y = null}) → self::A /* redirection-target: self::A::• */
     return new self::A::•(x, y: y);
 }
 static method test1() → dynamic

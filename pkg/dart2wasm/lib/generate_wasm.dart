@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart' show printDiagnosticMessage;
-import 'package:path/path.dart' as path;
 
 import 'compile.dart';
 import 'compiler_options.dart';
+import 'io_util.dart';
 
 export 'package:dart2wasm/compiler_options.dart';
 
@@ -18,6 +16,7 @@ typedef PrintError = void Function(String error);
 
 Future<int> generateWasm(WasmCompilerOptions options,
     {PrintError errorPrinter = print}) async {
+  options.validate();
   final translatorOptions = options.translatorOptions;
   if (translatorOptions.verbose) {
     print('Running dart compile wasm...');
@@ -26,6 +25,7 @@ Future<int> generateWasm(WasmCompilerOptions options,
     print('  - librariesSpecPath = ${options.librariesSpecPath}');
     print('  - packagesPath file = ${options.packagesPath}');
     print('  - platformPath file = ${options.platformPath}');
+    print('  - strip wasm = ${options.stripWasm}');
     print('');
     print('Translator options:');
     print('  - enable asserts = ${translatorOptions.enableAsserts}');
@@ -59,31 +59,10 @@ Future<int> generateWasm(WasmCompilerOptions options,
         '  - watch points = [${translatorOptions.watchPoints.map((p) => p.toString()).join(',')}]');
   }
 
-  String moduleNameToWasmOutputFile(String moduleName) {
-    final outputFile = options.outputFile;
-    if (moduleName.isEmpty) return outputFile;
-    final extension = path.extension(outputFile);
-    return path.setExtension(outputFile, '_$moduleName$extension');
-  }
-
-  String moduleNameToSourceMapFile(String moduleName) {
-    return '${moduleNameToWasmOutputFile(moduleName)}.map';
-  }
-
-  Uri moduleNameToRelativeSourceMapUri(String moduleName) {
-    return Uri.file(path.basename(moduleNameToSourceMapFile(moduleName)));
-  }
-
-  final relativeSourceMapUrlMapper = translatorOptions.generateSourceMaps
-      ? moduleNameToRelativeSourceMapUri
-      : null;
-
-  CompilationResult result = await compileToModule(
-      options, StandardFileSystem.instance, relativeSourceMapUrlMapper,
-      (message) {
+  final fileSystem = StandardFileSystem.instance;
+  CompilationResult result = await compile(
+      options, CompilerPhaseInputOutputManager(fileSystem, options), (message) {
     if (!options.dryRun) printDiagnosticMessage(message, errorPrinter);
-  }, writeFile: (String filename, String content) {
-    File(filename).writeAsStringSync(content);
   });
 
   if (result is CompilationDryRunResult) {
@@ -111,27 +90,6 @@ Future<int> generateWasm(WasmCompilerOptions options,
 
     return 255;
   }
-
-  final writeFutures = <Future>[];
-  result.wasmModules.forEach((moduleName, moduleInfo) {
-    final (:moduleBytes, :sourceMap) = moduleInfo;
-    final File outFile = File(moduleNameToWasmOutputFile(moduleName));
-    outFile.parent.createSync(recursive: true);
-    writeFutures.add(outFile.writeAsBytes(moduleBytes));
-
-    if (sourceMap != null) {
-      writeFutures.add(
-          File(moduleNameToSourceMapFile(moduleName)).writeAsString(sourceMap));
-    }
-  });
-  await Future.wait(writeFutures);
-
-  final jsFile = path.setExtension(options.outputFile, '.mjs');
-  final jsRuntime = result.jsRuntime;
-  await File(jsFile).writeAsString(jsRuntime);
-
-  final supportJsFile = path.setExtension(options.outputFile, '.support.js');
-  await File(supportJsFile).writeAsString(result.supportJs);
 
   return 0;
 }

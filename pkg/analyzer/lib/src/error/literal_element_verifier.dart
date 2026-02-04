@@ -5,12 +5,12 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 
 /// Verifier for [CollectionElement]s in list, set, or map literals.
@@ -69,13 +69,13 @@ class LiteralElementVerifier {
         assignableWhenNullable: assignableWhenNullable,
       )) {
         (forList: false, assignableWhenNullable: false) =>
-          CompileTimeErrorCode.setElementTypeNotAssignable,
+          diag.setElementTypeNotAssignable,
         (forList: false, assignableWhenNullable: true) =>
-          CompileTimeErrorCode.setElementTypeNotAssignableNullability,
+          diag.setElementTypeNotAssignableNullability,
         (forList: true, assignableWhenNullable: false) =>
-          CompileTimeErrorCode.listElementTypeNotAssignable,
+          diag.listElementTypeNotAssignable,
         (forList: true, assignableWhenNullable: true) =>
-          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
+          diag.listElementTypeNotAssignableNullability,
       };
       _diagnosticReporter.atNode(
         errorNode,
@@ -97,10 +97,7 @@ class LiteralElementVerifier {
           }
           _checkAssignableToElementType(element.typeOrThrow, element);
         } else {
-          _diagnosticReporter.atNode(
-            element,
-            CompileTimeErrorCode.expressionInMap,
-          );
+          _diagnosticReporter.report(diag.expressionInMap.at(element));
         }
       case ForElementImpl():
         _verifyElement(element.body);
@@ -111,10 +108,7 @@ class LiteralElementVerifier {
         if (forMap) {
           _verifyMapLiteralEntry(element);
         } else {
-          _diagnosticReporter.atNode(
-            element,
-            CompileTimeErrorCode.mapEntryNotInMap,
-          );
+          _diagnosticReporter.report(diag.mapEntryNotInMap.at(element));
         }
       case SpreadElementImpl():
         var isNullAware = element.isNullAware;
@@ -135,10 +129,7 @@ class LiteralElementVerifier {
             element,
           );
         } else {
-          _diagnosticReporter.atNode(
-            element,
-            CompileTimeErrorCode.expressionInMap,
-          );
+          _diagnosticReporter.report(diag.expressionInMap.at(element));
         }
       case null:
         break;
@@ -179,13 +170,13 @@ class LiteralElementVerifier {
           )) {
         _diagnosticReporter.atNode(
           entry.key,
-          CompileTimeErrorCode.mapKeyTypeNotAssignableNullability,
+          diag.mapKeyTypeNotAssignableNullability,
           arguments: [keyType, mapKeyType],
         );
       } else {
         _diagnosticReporter.atNode(
           entry.key,
-          CompileTimeErrorCode.mapKeyTypeNotAssignable,
+          diag.mapKeyTypeNotAssignable,
           arguments: [keyType, mapKeyType],
         );
       }
@@ -210,13 +201,13 @@ class LiteralElementVerifier {
           )) {
         _diagnosticReporter.atNode(
           entry.value,
-          CompileTimeErrorCode.mapValueTypeNotAssignableNullability,
+          diag.mapValueTypeNotAssignableNullability,
           arguments: [valueType, mapValueType],
         );
       } else {
         _diagnosticReporter.atNode(
           entry.value,
-          CompileTimeErrorCode.mapValueTypeNotAssignable,
+          diag.mapValueTypeNotAssignable,
           arguments: [valueType, mapValueType],
         );
       }
@@ -229,10 +220,7 @@ class LiteralElementVerifier {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
-        _diagnosticReporter.atNode(
-          expression,
-          CompileTimeErrorCode.notIterableSpread,
-        );
+        _diagnosticReporter.report(diag.notIterableSpread.at(expression));
       }
       return;
     }
@@ -245,10 +233,7 @@ class LiteralElementVerifier {
       if (isNullAware) {
         return;
       }
-      _diagnosticReporter.atNode(
-        expression,
-        CompileTimeErrorCode.notNullAwareNullSpread,
-      );
+      _diagnosticReporter.report(diag.notNullAwareNullSpread.at(expression));
       return;
     }
 
@@ -257,10 +242,7 @@ class LiteralElementVerifier {
     );
 
     if (iterableType == null) {
-      _diagnosticReporter.atNode(
-        expression,
-        CompileTimeErrorCode.notIterableSpread,
-      );
+      _diagnosticReporter.report(diag.notIterableSpread.at(expression));
       return;
     }
 
@@ -272,8 +254,8 @@ class LiteralElementVerifier {
       strictCasts: _strictCasts,
     )) {
       var errorCode = forList
-          ? CompileTimeErrorCode.listElementTypeNotAssignable
-          : CompileTimeErrorCode.setElementTypeNotAssignable;
+          ? diag.listElementTypeNotAssignable
+          : diag.setElementTypeNotAssignable;
       // Also check for an "implicit tear-off conversion" which would be applied
       // after desugaring a spread element.
       var implicitCallMethod = _errorVerifier.getImplicitCallMethod(
@@ -331,10 +313,7 @@ class LiteralElementVerifier {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
-        _diagnosticReporter.atNode(
-          expression,
-          CompileTimeErrorCode.notMapSpread,
-        );
+        _diagnosticReporter.report(diag.notMapSpread.at(expression));
       }
       return;
     }
@@ -347,17 +326,14 @@ class LiteralElementVerifier {
       if (isNullAware) {
         return;
       }
-      _diagnosticReporter.atNode(
-        expression,
-        CompileTimeErrorCode.notNullAwareNullSpread,
-      );
+      _diagnosticReporter.report(diag.notNullAwareNullSpread.at(expression));
       return;
     }
 
     var mapType = expressionType.asInstanceOf(typeProvider.mapElement);
 
     if (mapType == null) {
-      _diagnosticReporter.atNode(expression, CompileTimeErrorCode.notMapSpread);
+      _diagnosticReporter.report(diag.notMapSpread.at(expression));
       return;
     }
 
@@ -370,7 +346,7 @@ class LiteralElementVerifier {
     )) {
       _diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.mapKeyTypeNotAssignable,
+        diag.mapKeyTypeNotAssignable,
         arguments: [keyType, mapKeyType],
       );
     }
@@ -384,7 +360,7 @@ class LiteralElementVerifier {
     )) {
       _diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.mapValueTypeNotAssignable,
+        diag.mapValueTypeNotAssignable,
         arguments: [valueType, mapValueType],
       );
     }

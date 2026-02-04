@@ -23,8 +23,8 @@ part of "dart:core";
 ///
 /// **See also:**
 /// * [num] the super class for [int].
-/// * [Numbers](https://dart.dev/guides/language/numbers) in
-/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
+/// * [Built-in number types](https://dart.dev/language/built-in-types#numbers)
+/// * [Number representation](https://dart.dev/resources/language/number-representation)
 abstract final class int extends num {
   /// Integer value for [name] in the compilation configuration environment.
   ///

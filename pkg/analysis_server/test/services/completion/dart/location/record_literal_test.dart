@@ -271,9 +271,8 @@ final bar01 = 0;
 replacement
   left: 3
 suggestions
-  foo01: ,
+  foo01: ^,
     kind: namedArgument
-    selection: 7
 ''');
   }
 

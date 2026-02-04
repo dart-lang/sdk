@@ -63,25 +63,26 @@ class DartLazyTypeHierarchyComputer {
   /// Finds a target for starting type hierarchy navigation at [offset].
   TypeHierarchyItem? findTarget(int offset) {
     var node = _result.unit.nodeCovering(offset: offset);
+    if (node == null) return null;
 
-    DartType? type;
+    var targetNode = node.thisOrAncestorMatching(
+      (node) =>
+          node is NamedType ||
+          node is CommentReference ||
+          _isValidTargetDeclaration(node),
+    );
 
-    // Try named types.
-    type = node?.thisOrAncestorOfType<NamedType>()?.type;
+    var targetElement = switch (targetNode) {
+      NamedType(:InterfaceType type) => type.element,
+      CommentReference(expression: Identifier(:InterfaceElement element)) =>
+        element,
+      Declaration(declaredFragment: Fragment(:InterfaceElement element)) =>
+        element,
+      _ => null,
+    };
 
-    if (type == null) {
-      // Try enclosing class/mixins.
-      Declaration? declaration = node?.thisOrAncestorMatching(
-        (node) => _isValidTargetDeclaration(node),
-      );
-      var element = declaration?.declaredFragment?.element;
-      if (element is InterfaceElement) {
-        type = element.thisType;
-      }
-    }
-
-    return type is InterfaceType
-        ? TypeHierarchyItem.forElement(type.element)
+    return targetElement != null
+        ? TypeHierarchyItem.forElement(targetElement)
         : null;
   }
 

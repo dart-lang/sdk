@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Document all public members.';
@@ -19,12 +21,12 @@ const _desc = r'Document all public members.';
 // of the actual API surface area of a package - including that defined by
 // exports - and linting against that.
 
-class PublicMemberApiDocs extends LintRule {
+class PublicMemberApiDocs extends AnalysisRule {
   PublicMemberApiDocs()
     : super(name: LintNames.public_member_api_docs, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.publicMemberApiDocs;
+  DiagnosticCode get diagnosticCode => diag.publicMemberApiDocs;
 
   @override
   void registerNodeProcessors(
@@ -55,7 +57,7 @@ class PublicMemberApiDocs extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
 
   _Visitor(this.rule, this.context);
@@ -118,7 +120,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     if (node.declaredFragment?.element == null) return;
-    _visitMembers(node, node.name, node.members);
+    if (node.body case BlockClassBody body) {
+      _visitMembers(node, node.namePart.typeName, body.members);
+    }
   }
 
   @override
@@ -177,7 +181,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.inPrivateMember || node.name.isPrivate) return;
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     if (parent is EnumDeclaration) return;
     if (parent != null && parent.isEffectivelyPrivate) return;
 
@@ -193,10 +197,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (node.name.isPrivate) return;
+    if (node.namePart.typeName.isPrivate) return;
 
     check(node);
-    checkMethods(node.members);
+    checkMethods(node.body.members);
   }
 
   @override
@@ -205,13 +209,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isInternal) return;
 
     check(node);
-    checkMethods(node.members);
+    checkMethods(node.body.members);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (node.declaredFragment?.element == null) return;
-    _visitMembers(node, node.name, node.members);
+    if (node.body case BlockClassBody body) {
+      _visitMembers(node, node.primaryConstructor.typeName, body.members);
+    }
   }
 
   @override
@@ -244,7 +250,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _visitMembers(node, node.name, node.members);
+    _visitMembers(node, node.name, node.body.members);
   }
 
   @override

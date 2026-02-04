@@ -1,3 +1,4 @@
+// @dart=2.12
 // From https://github.com/dart-lang/sdk/issues/46886
 
 void main(List<String> arguments) {

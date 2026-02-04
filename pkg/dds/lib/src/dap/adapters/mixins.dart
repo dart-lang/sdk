@@ -173,17 +173,16 @@ mixin VmServiceInfoFileUtils on FileUtils {
     File vmServiceInfoFile,
   ) async {
     final completer = Completer<Uri>();
-    late final StreamSubscription<FileSystemEvent> vmServiceInfoFileWatcher;
 
     void tryParseServiceInfoFile(FileSystemEvent event) {
       final uri = _readVmServiceInfoFile(logger, vmServiceInfoFile);
       if (uri != null && !completer.isCompleted) {
-        vmServiceInfoFileWatcher.cancel();
+        _vmServiceInfoFileWatcher?.cancel();
         completer.complete(uri);
       }
     }
 
-    vmServiceInfoFileWatcher = vmServiceInfoFile.parent
+    _vmServiceInfoFileWatcher = vmServiceInfoFile.parent
         .watch(events: FileSystemEvent.all)
         .where((event) => event.path == vmServiceInfoFile.path)
         .listen(
@@ -196,11 +195,26 @@ mixin VmServiceInfoFileUtils on FileUtils {
     // watched up.
     final uri = _readVmServiceInfoFile(logger, vmServiceInfoFile);
     if (uri != null && !completer.isCompleted) {
-      unawaited(vmServiceInfoFileWatcher.cancel());
+      unawaited(_vmServiceInfoFileWatcher?.cancel());
       completer.complete(uri);
     }
 
     return completer.future;
+  }
+
+  /// The watcher subscription that is monitoring for a VM Service file.
+  ///
+  /// Created in [waitForVmServiceInfoFile] and cancelled in
+  /// [stopWaitingForVmServiceInfoFile].
+  StreamSubscription<FileSystemEvent>? _vmServiceInfoFileWatcher;
+
+  /// Stops watching for VM Service Info files that may have been started by
+  /// [waitForVmServiceInfoFile].
+  ///
+  /// This should be called during shutdown in case the VM Service info file
+  /// was never created.
+  void stopWaitingForVmServiceInfoFile() {
+    _vmServiceInfoFileWatcher?.cancel();
   }
 
   /// Attempts to read VM Service info from a watcher event.
@@ -246,13 +260,6 @@ mixin FileUtils {
       final filePath = uri.toFilePath();
       final normalizedPath = normalizePath(filePath);
       return Uri.file(normalizedPath);
-    } else if (uri.scheme.endsWith('+file')) {
-      // For virtual file schemes, we need to replace the scheme to use
-      // toFilePath() so we can normalise the path, then convert back.
-      final originalScheme = uri.scheme;
-      final filePath = uri.replace(scheme: 'file').toFilePath();
-      final normalizedPath = normalizePath(filePath);
-      return Uri.file(normalizedPath).replace(scheme: originalScheme);
     } else {
       return uri;
     }

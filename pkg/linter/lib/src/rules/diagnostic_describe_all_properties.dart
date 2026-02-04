@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,12 +14,13 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'DO reference all public properties in debug methods.';
 
-class DiagnosticDescribeAllProperties extends LintRule {
+class DiagnosticDescribeAllProperties extends AnalysisRule {
   DiagnosticDescribeAllProperties()
     : super(
         name: LintNames.diagnostic_describe_all_properties,
@@ -26,8 +28,7 @@ class DiagnosticDescribeAllProperties extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.diagnosticDescribeAllProperties;
+  DiagnosticCode get diagnosticCode => diag.diagnosticDescribeAllProperties;
 
   @override
   void registerNodeProcessors(
@@ -68,7 +69,7 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -85,8 +86,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     var type = node.declaredFragment?.element.thisType;
     if (!type.implementsInterface('Diagnosticable', '')) return;
 
+    var body = node.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
     var properties = <Token>[];
-    for (var member in node.members) {
+    for (var member in body.members) {
       if (member is MethodDeclaration && member.isGetter) {
         if (!member.isStatic &&
             !skipForDiagnostic(
@@ -114,8 +120,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (properties.isEmpty) return;
 
-    var debugFillProperties = node.members.getMethod('debugFillProperties');
-    var debugDescribeChildren = node.members.getMethod('debugDescribeChildren');
+    var debugFillProperties = body.members.getMethod('debugFillProperties');
+    var debugDescribeChildren = body.members.getMethod('debugDescribeChildren');
 
     // Remove any defined in debugFillProperties.
     removeReferences(debugFillProperties, properties);

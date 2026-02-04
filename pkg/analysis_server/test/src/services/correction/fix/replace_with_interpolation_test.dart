@@ -42,7 +42,7 @@ String f() {
 @reflectiveTest
 class ReplaceWithInterpolationTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_INTERPOLATION;
+  FixKind get kind => DartFixKind.replaceWithInterpolation;
 
   @override
   String get lintCode => LintNames.prefer_interpolation_to_compose_strings;

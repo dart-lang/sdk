@@ -94,6 +94,9 @@ class NullValues {
   static const NullValue Pattern = const NullValue("Pattern");
   static const NullValue PatternList = const NullValue("PatternList");
   static const NullValue Prefix = const NullValue("Prefix");
+  static const NullValue PrimaryConstructor = const NullValue(
+    "PrimaryConstructor",
+  );
   static const NullValue RecordTypeFieldList = const NullValue(
     "RecordTypeFieldList",
   );
@@ -152,7 +155,6 @@ abstract class StackListener extends Listener with StackChecker {
   @override
   Object? lookupStack(int index) => stack[index];
 
-  @override
   Uri get uri;
 
   /// Returns `true` if the current file is part of a `dart:` library.
@@ -179,7 +181,7 @@ abstract class StackListener extends Listener with StackChecker {
     if (tokenOrNull == null) stack.push(nullValue);
   }
 
-  Object? peek() => stack.isNotEmpty ? stack.last : null;
+  Object? peek([NullValue? nullValue]) => stack.peek(nullValue);
 
   Object? pop([NullValue? nullValue]) {
     return stack.pop(nullValue);
@@ -250,6 +252,27 @@ abstract class StackListener extends Listener with StackChecker {
   void endCompilationUnit(int count, Token token) {
     debugEvent("CompilationUnit");
     checkEmpty(token.charOffset);
+  }
+
+  @override
+  void handleImplicitFormalParameters(Token token) {
+    debugEvent("ImplicitFormalParameters");
+    push(NullValues.FormalParameters);
+  }
+
+  @override
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    debugEvent("AnonymousMethodInvocation");
+    // Pop the nodes. A concrete listener should transform
+    // the block and push a representation of the anonymous
+    // method.
+    pop(); // Function body.
+    pop(); // Formal parameter list.
   }
 
   @override
@@ -486,6 +509,8 @@ abstract class Stack {
 
   List<Object?> get values;
 
+  Object? peek(NullValue? nullValue);
+
   Object? pop(NullValue? nullValue);
 
   int get length;
@@ -523,6 +548,22 @@ class StackImpl implements Stack {
     array[arrayLength++] = value;
     if (array.length == arrayLength) {
       _grow();
+    }
+  }
+
+  @override
+  Object? peek(NullValue? nullValue) {
+    if (isNotEmpty) {
+      Object? value = last;
+      if (value is! NullValue) {
+        return value;
+      } else if (nullValue == null || value == nullValue) {
+        return null;
+      } else {
+        return value;
+      }
+    } else {
+      return null;
     }
   }
 
@@ -635,6 +676,11 @@ class DebugStack implements Stack {
 
   @override
   int get length => realStack.length;
+
+  @override
+  Object? peek(NullValue? nullValue) {
+    return realStack.peek(nullValue);
+  }
 
   @override
   Object? pop(NullValue? nullValue) {

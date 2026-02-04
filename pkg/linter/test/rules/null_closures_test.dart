@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -122,9 +123,9 @@ void test_cycle() {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 41, 1),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 81, 4),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 41, 1),
+        error(diag.argumentTypeNotAssignable, 81, 4),
       ],
     );
   }

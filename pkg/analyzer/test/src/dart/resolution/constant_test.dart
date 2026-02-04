@@ -4,7 +4,7 @@
 
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +29,7 @@ class A {
 import 'a.dart';
 const a = const A();
 ''',
-      [error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 27, 9)],
+      [error(diag.constConstructorParamTypeMismatch, 27, 9)],
     );
 
     var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
@@ -77,7 +77,7 @@ class A {
   }
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareElement, 51, 1)],
+      [error(diag.invalidNullAwareElement, 51, 1)],
     );
     assertType(findNode.listLiteral('const ['), 'List<A>');
   }
@@ -92,7 +92,7 @@ class A {
   }
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareMapEntryKey, 51, 1)],
+      [error(diag.invalidNullAwareMapEntryKey, 51, 1)],
     );
     assertType(findNode.setOrMapLiteral('const {'), 'Map<A, int>');
   }
@@ -107,7 +107,7 @@ class A {
   }
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareMapEntryValue, 54, 1)],
+      [error(diag.invalidNullAwareMapEntryValue, 54, 1)],
     );
     assertType(findNode.setOrMapLiteral('const {'), 'Map<int, A>');
   }
@@ -124,7 +124,7 @@ class C extends B {
   const C() : super(a);
 }
 ''',
-      [error(CompileTimeErrorCode.constNotInitialized, 62, 1)],
+      [error(diag.constNotInitialized, 62, 1)],
     );
   }
 
@@ -138,7 +138,7 @@ class A {
   }
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareElement, 51, 1)],
+      [error(diag.invalidNullAwareElement, 51, 1)],
     );
     assertType(findNode.setOrMapLiteral('const {'), 'Set<A>');
   }

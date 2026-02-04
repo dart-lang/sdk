@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicatePatternField,
+          diag.duplicatePatternField,
           57,
           4,
           contextMessages: [message(testFile, 48, 4)],
@@ -48,7 +48,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicatePatternField,
+          diag.duplicatePatternField,
           45,
           3,
           contextMessages: [message(testFile, 37, 3)],
@@ -69,12 +69,12 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicatePatternField,
+          diag.duplicatePatternField,
           45,
           1,
           contextMessages: [message(testFile, 37, 3)],
         ),
-        error(WarningCode.unusedLocalVariable, 50, 3),
+        error(diag.unusedLocalVariable, 50, 3),
       ],
     );
   }
@@ -90,9 +90,9 @@ void f(x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 42, 3),
+        error(diag.unusedLocalVariable, 42, 3),
         error(
-          CompileTimeErrorCode.duplicatePatternField,
+          diag.duplicatePatternField,
           47,
           3,
           contextMessages: [message(testFile, 37, 1)],
@@ -113,7 +113,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicatePatternField,
+          diag.duplicatePatternField,
           53,
           3,
           contextMessages: [message(testFile, 45, 3)],
@@ -134,7 +134,7 @@ void f(({int foo}) x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.duplicatePatternField,
+          diag.duplicatePatternField,
           57,
           3,
           contextMessages: [message(testFile, 49, 3)],

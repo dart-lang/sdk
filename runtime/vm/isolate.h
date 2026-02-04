@@ -461,8 +461,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
-  Random* random() { return &random_; }
-
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
 
   // IsolateGroup-specific flag handling.
@@ -855,6 +853,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   GrowableObjectArrayPtr tag_table() const { return tag_table_; }
   void set_tag_table(const GrowableObjectArray& value);
 
+  intptr_t thread_locals_count() { return thread_locals_count_; }
+  intptr_t increment_thread_locals_count() {
+    return thread_locals_count_.fetch_add(1u, std::memory_order_relaxed);
+  }
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -918,7 +921,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
   int64_t start_time_micros_;
   bool is_system_isolate_group_;
-  Random random_;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
@@ -1016,6 +1018,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   SafepointRwLock tag_table_lock_;
   GrowableObjectArrayPtr tag_table_;
+
+  std::atomic<intptr_t> thread_locals_count_ = 0;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1191,35 +1195,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 #if !defined(PRODUCT)
   Debugger* debugger() const { return debugger_; }
 
-  // Returns the current SampleBlock used to track CPU profiling samples.
-  SampleBlock* current_sample_block() const { return current_sample_block_; }
-  void set_current_sample_block(SampleBlock* block) {
-    current_sample_block_ = block;
-  }
-  SampleBlock* exchange_current_sample_block(SampleBlock* block) {
-    return current_sample_block_.exchange(block, std::memory_order_acq_rel);
-  }
-  void ProcessFreeSampleBlocks(Thread* thread);
-
-  // Returns the current SampleBlock used to track Dart allocation samples.
-  SampleBlock* current_allocation_sample_block() const {
-    return current_allocation_sample_block_;
-  }
-  void set_current_allocation_sample_block(SampleBlock* block) {
-    current_allocation_sample_block_ = block;
-  }
-  SampleBlock* exchange_current_allocation_sample_block(SampleBlock* block) {
-    return current_allocation_sample_block_.exchange(block,
-                                                     std::memory_order_acq_rel);
-  }
-
-  bool TakeHasCompletedBlocks() {
-    return has_completed_blocks_.exchange(0) != 0;
-  }
-  bool TrySetHasCompletedBlocks() {
-    return has_completed_blocks_.exchange(1) == 0;
-  }
-
   void set_has_resumption_breakpoints(bool value) {
     has_resumption_breakpoints_ = value;
   }
@@ -1250,6 +1225,37 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   }
 #endif
 
+#if defined(DART_INCLUDE_PROFILER)
+  // Returns the current SampleBlock used to track CPU profiling samples.
+  SampleBlock* current_sample_block() const { return current_sample_block_; }
+  void set_current_sample_block(SampleBlock* block) {
+    current_sample_block_ = block;
+  }
+  SampleBlock* exchange_current_sample_block(SampleBlock* block) {
+    return current_sample_block_.exchange(block, std::memory_order_acq_rel);
+  }
+  void ProcessFreeSampleBlocks(Thread* thread);
+
+  // Returns the current SampleBlock used to track Dart allocation samples.
+  SampleBlock* current_allocation_sample_block() const {
+    return current_allocation_sample_block_;
+  }
+  void set_current_allocation_sample_block(SampleBlock* block) {
+    current_allocation_sample_block_ = block;
+  }
+  SampleBlock* exchange_current_allocation_sample_block(SampleBlock* block) {
+    return current_allocation_sample_block_.exchange(block,
+                                                     std::memory_order_acq_rel);
+  }
+
+  bool TakeHasCompletedBlocks() {
+    return has_completed_blocks_.exchange(0) != 0;
+  }
+  bool TrySetHasCompletedBlocks() {
+    return has_completed_blocks_.exchange(1) == 0;
+  }
+#endif
+
   // Verify that the sender has the capability to pause or terminate the
   // isolate.
   bool VerifyPauseCapability(const Object& capability) const;
@@ -1272,8 +1278,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void SetErrorsFatal(bool value) {
     isolate_flags_.UpdateBool<ErrorsFatalBit>(value);
   }
-
-  Random* random() { return &random_; }
 
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
@@ -1581,13 +1585,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const GrowableObjectArray& value);
 #endif  // !defined(PRODUCT)
 
-  // DEPRECATED: Use Thread's methods instead. During migration, these default
-  // to using the mutator thread (which must also be the current thread).
-  Zone* current_zone() const {
-    ASSERT(Thread::Current() == mutator_thread());
-    return mutator_thread()->zone();
-  }
-
   // Accessed from generated code.
   // ** This block of fields must come first! **
   // For AOT cross-compilation, we rely on these members having the same offsets
@@ -1640,14 +1637,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 #if !defined(PRODUCT)
   Debugger* debugger_ = nullptr;
 
-  // SampleBlock containing CPU profiling samples.
-  RelaxedAtomic<SampleBlock*> current_sample_block_ = nullptr;
-
-  // SampleBlock containing Dart allocation profiling samples.
-  RelaxedAtomic<SampleBlock*> current_allocation_sample_block_ = nullptr;
-
-  RelaxedAtomic<uword> has_completed_blocks_ = {0};
-
   int64_t last_resume_timestamp_;
 
   VMTagCounters vm_tag_counters_;
@@ -1684,6 +1673,16 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 #undef ISOLATE_METRIC_VARIABLE
 #endif  // !defined(PRODUCT)
 
+#if defined(DART_INCLUDE_PROFILER)
+  // SampleBlock containing CPU profiling samples.
+  RelaxedAtomic<SampleBlock*> current_sample_block_ = nullptr;
+
+  // SampleBlock containing Dart allocation profiling samples.
+  RelaxedAtomic<SampleBlock*> current_allocation_sample_block_ = nullptr;
+
+  RelaxedAtomic<uword> has_completed_blocks_ = {0};
+#endif
+
   // All other fields go here.
   int64_t start_time_micros_;
   std::atomic<Dart_MessageNotifyCallback> message_notify_callback_;
@@ -1695,7 +1694,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   uint64_t terminate_capability_ = 0;
   void* init_callback_data_ = nullptr;
   Dart_EnvironmentCallback environment_callback_ = nullptr;
-  Random random_;
   Simulator* simulator_ = nullptr;
   Mutex mutex_;  // Protects compiler stats.
   IsolateMessageHandler* message_handler_ = nullptr;

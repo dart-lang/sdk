@@ -14,8 +14,8 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/codes.dart';
 
 class CorrectOverrideHelper {
   final TypeSystemImpl _typeSystem;
@@ -106,7 +106,7 @@ class CovariantParametersVerifier {
       _thisMember = thisMember;
 
   void verify({
-    required DiagnosticReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required SyntacticEntity errorEntity,
   }) {
     var superParameters = _superParameters();
@@ -122,9 +122,9 @@ class CovariantParametersVerifier {
           // always named, so we can safely assume
           // `_thisMember.enclosingElement3.name` and
           // `superMember.enclosingElement3.name` are non-`null`.
-          errorReporter.atEntity(
+          diagnosticReporter.atEntity(
             errorEntity,
-            CompileTimeErrorCode.invalidOverride,
+            diag.invalidOverride,
             arguments: [
               _thisMember.name!,
               _thisMember.enclosingElement!.name!,

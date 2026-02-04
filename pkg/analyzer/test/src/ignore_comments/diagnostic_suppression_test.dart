@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
-import 'package:linter/src/lint_codes.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../src/dart/resolution/context_collection_resolution.dart';
@@ -37,10 +37,7 @@ class ErrorSuppressionTest extends PubPackageResolutionTest {
 int x = '';
 int _y = 0; //INVALID_ASSIGNMENT
 ''',
-      [
-        error(CompileTimeErrorCode.invalidAssignment, 34, 2),
-        error(WarningCode.unusedElement, 42, 2),
-      ],
+      [error(diag.invalidAssignment, 34, 2), error(diag.unusedElement, 42, 2)],
     );
   }
 
@@ -52,7 +49,7 @@ int x = (0 as int);
 // ... but no ignore here ...
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 90, 2)],
+      [error(diag.argumentTypeNotAssignable, 90, 2)],
     );
   }
 
@@ -63,7 +60,7 @@ int x = (0 as int); // ignore: unnecessary_cast
 // ... but no ignore here ...
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 90, 2)],
+      [error(diag.argumentTypeNotAssignable, 90, 2)],
     );
   }
 
@@ -74,7 +71,7 @@ int x = (0 as int); //UNNECESSARY_CAST
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 // ignore_for_file: unnecessary_cast
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 51, 2)],
+      [error(diag.argumentTypeNotAssignable, 51, 2)],
     );
   }
 
@@ -116,7 +113,7 @@ void f() {
 int a = 0;
 int _x = 1;
 ''',
-      [error(WarningCode.unusedElement, 45, 2)],
+      [error(diag.unusedElement, 45, 2)],
     );
   }
 
@@ -134,7 +131,7 @@ int x = (0 as int);
 // ignore: unused_element
 String _foo = ''; //UNUSED_ELEMENT
 ''',
-      [error(WarningCode.unnecessaryCast, 28, 8)],
+      [error(diag.unnecessaryCast, 28, 8)],
     );
   }
 
@@ -145,7 +142,7 @@ String _foo = ''; //UNUSED_ELEMENT
 int x = (0 as int);
 String _foo = ''; // ignore: $ignoredCode
 ''',
-      [error(WarningCode.unnecessaryCast, 28, 8)],
+      [error(diag.unnecessaryCast, 28, 8)],
     );
   }
 
@@ -162,7 +159,7 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 // ignore: type=lint
 int _x = 1;
 ''',
-      [error(WarningCode.unusedElement, 25, 2)],
+      [error(diag.unusedElement, 25, 2)],
     );
   }
 
@@ -172,7 +169,7 @@ int _x = 1;
 // ignore: type=wrong
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''',
-      [error(LinterLintCode.avoidTypesAsParameterNamesFormalParameter, 34, 3)],
+      [error(diag.avoidTypesAsParameterNamesFormalParameter, 34, 3)],
     );
   }
 
@@ -181,6 +178,7 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
 
+// ignore: deprecated_member_use
 int f({@Required('x') int? a}) => 0;
 
 // ignore: missing_required_param_with_details
@@ -202,8 +200,8 @@ int x = '';
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
       [
-        error(CompileTimeErrorCode.invalidAssignment, 43, 2),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 59, 2),
+        error(diag.invalidAssignment, 43, 2),
+        error(diag.argumentTypeNotAssignable, 59, 2),
       ],
     );
   }
@@ -216,8 +214,8 @@ int x = 3;
 String y = x + ''; //INVALID_ASSIGNMENT, ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
       [
-        error(CompileTimeErrorCode.invalidAssignment, 33, 6),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 37, 2),
+        error(diag.invalidAssignment, 33, 6),
+        error(diag.argumentTypeNotAssignable, 37, 2),
       ],
     );
   }
@@ -228,7 +226,7 @@ String y = x + ''; //INVALID_ASSIGNMENT, ARGUMENT_TYPE_NOT_ASSIGNABLE
 // ignore invalid_assignment
 String y = 3; //INVALID_ASSIGNMENT
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 40, 1)],
+      [error(diag.invalidAssignment, 40, 1)],
     );
   }
 
@@ -262,7 +260,7 @@ int x = (0 as int); //This is the first comment...
 // ignore: $ignoredCode
 String _foo = ''; //UNUSED_ELEMENT
 ''',
-      [error(WarningCode.unnecessaryCast, 9, 8)],
+      [error(diag.unnecessaryCast, 9, 8)],
     );
   }
 
@@ -273,8 +271,8 @@ int x = ''; //INVALID_ASSIGNMENT
 var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 ''',
       [
-        error(CompileTimeErrorCode.invalidAssignment, 8, 2),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 45, 2),
+        error(diag.invalidAssignment, 8, 2),
+        error(diag.argumentTypeNotAssignable, 45, 2),
       ],
     );
   }
@@ -285,7 +283,7 @@ var y = x + ''; //ARGUMENT_TYPE_NOT_ASSIGNABLE
 int x = (0 as int); // ignore: unnecessary_cast
 int y = (0 as int);
 ''',
-      [error(WarningCode.unnecessaryCast, 57, 8)],
+      [error(diag.unnecessaryCast, 57, 8)],
     );
   }
 
@@ -302,7 +300,7 @@ f() => g();
       '''
 f() => g();
 ''',
-      [error(CompileTimeErrorCode.undefinedFunction, 7, 1)],
+      [error(diag.undefinedFunction, 7, 1)],
     );
   }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -16,6 +17,26 @@ void main() {
 class LiteralOnlyBooleanExpressionsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.literal_only_boolean_expressions;
+
+  test_adjacent_string_interpolation_constant() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  const a = 20;
+  if ('$a' '0' == 20) {}
+}
+''',
+      [lint(29, 22)],
+    );
+  }
+
+  test_adjacent_string_interpolation_nonconstant() async {
+    await assertNoDiagnostics(r'''
+void f(int a) {
+  if ('$a' '0' == 20) {}
+}
+''');
+  }
 
   test_doWhile_false() async {
     await assertDiagnostics(
@@ -57,7 +78,7 @@ void f() {
   if (!true) {}
 }
 ''',
-      [lint(13, 13), error(WarningCode.deadCode, 24, 2)],
+      [lint(13, 13), error(diag.deadCode, 24, 2)],
     );
   }
 
@@ -120,7 +141,7 @@ void bad() {
   if (true && false) {}
 }
 ''',
-      [lint(15, 21), error(WarningCode.deadCode, 34, 2)],
+      [lint(15, 21), error(diag.deadCode, 34, 2)],
     );
   }
 
@@ -146,7 +167,7 @@ void f() {
 ''',
       [
         // No lint
-        error(WarningCode.patternNeverMatchesValueType, 24, 5),
+        error(diag.patternNeverMatchesValueType, 24, 5),
       ],
     );
   }
@@ -197,6 +218,33 @@ void f() {
 ''');
   }
 
+  test_is_expression_both_operands_known() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  if (20 is int) {}
+}
+''',
+      [lint(13, 17), error(diag.unnecessaryTypeCheckTrue, 17, 9)],
+    );
+  }
+
+  test_is_expression_only_left_operand_unknown() async {
+    await assertNoDiagnostics(r'''
+void f(a) {
+  if (a is int) {}
+}
+''');
+  }
+
+  test_is_expression_only_right_operand_unknown() async {
+    await assertNoDiagnostics(r'''
+void f<T>(a) {
+  if (20 is T) {}
+}
+''');
+  }
+
   test_nullAware() async {
     await assertDiagnostics(
       r'''
@@ -206,6 +254,26 @@ void f(bool p) {
 ''',
       [lint(19, 17)],
     );
+  }
+
+  test_string_interpolation_constant() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  const a = 15;
+  if ('$a'=='20') {}
+}
+''',
+      [lint(29, 18)],
+    );
+  }
+
+  test_string_interpolation_nonconstant() async {
+    await assertNoDiagnostics(r'''
+void f(int a) {
+  if ('$a'=='20') {}
+}
+''');
   }
 
   test_switchExpression() async {
@@ -229,7 +297,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.patternNeverMatchesValueType, 35, 7), lint(43, 9)],
+      [error(diag.patternNeverMatchesValueType, 35, 7), lint(43, 9)],
     );
   }
 
@@ -240,7 +308,7 @@ void f() {
   while (!true) {}
 }
 ''',
-      [lint(13, 16), error(WarningCode.deadCode, 27, 2)],
+      [lint(13, 16), error(diag.deadCode, 27, 2)],
     );
   }
 

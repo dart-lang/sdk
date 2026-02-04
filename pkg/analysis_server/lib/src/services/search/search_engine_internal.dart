@@ -381,6 +381,9 @@ class SearchMatchImpl implements SearchMatch {
     if (kind == SearchResultKind.REFERENCE_IN_WITH_CLAUSE) {
       return MatchKind.REFERENCE_IN_WITH_CLAUSE;
     }
+    if (kind == SearchResultKind.REFERENCE_IN_PATTERN_FIELD) {
+      return MatchKind.REFERENCE_IN_PATTERN_FIELD;
+    }
     return MatchKind.REFERENCE;
   }
 }

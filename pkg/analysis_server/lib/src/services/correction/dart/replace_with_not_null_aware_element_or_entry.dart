@@ -26,12 +26,11 @@ class ReplaceWithNotNullAwareElementOrEntry extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind =>
-      DartFixKind.REPLACE_WITH_NOT_NULL_AWARE_ELEMENT_OR_ENTRY;
+  FixKind get fixKind => DartFixKind.replaceWithNotNullAwareElementOrEntry;
 
   @override
   FixKind get multiFixKind =>
-      DartFixKind.REPLACE_WITH_NOT_NULL_AWARE_ELEMENT_OR_ENTRY_MULTI;
+      DartFixKind.replaceWithNotNullAwareElementOrEntryMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

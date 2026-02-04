@@ -230,12 +230,12 @@ class FindElement2 extends _FindElementBase {
     for (var partElement in libraryFragment.partIncludes) {
       var uri = partElement.uri;
       if (uri is DirectiveUriWithUnit) {
-        var unitElement = uri.libraryFragment;
-        if ('${unitElement.source.uri}' == targetUri) {
+        var libraryFragment = uri.libraryFragment;
+        if ('${libraryFragment.source.uri}' == targetUri) {
           if (result != null) {
             throw StateError('Not unique: $targetUri');
           }
-          result = unitElement;
+          result = libraryFragment;
         }
       }
     }

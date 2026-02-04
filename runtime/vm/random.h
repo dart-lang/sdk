@@ -5,8 +5,6 @@
 #ifndef RUNTIME_VM_RANDOM_H_
 #define RUNTIME_VM_RANDOM_H_
 
-#include <atomic>
-
 #include "vm/allocation.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
@@ -20,7 +18,7 @@ class Random {
   Random();
   // Seed must be non-zero.
   explicit Random(uint64_t seed);
-  ~Random();
+  ~Random() {}
 
   uint32_t NextUInt32();
   uint64_t NextUInt64() {
@@ -40,10 +38,6 @@ class Random {
     return NextUInt64() & kMaxJsInt;
   }
 
-  static uint64_t GlobalNextUInt64();
-  static void Init();
-  static void Cleanup();
-
   // Generates a uniform random variable in the range [0,1].
   double NextDouble();
 
@@ -51,7 +45,7 @@ class Random {
   uint64_t NextState();
   void Initialize(uint64_t seed);
 
-  std::atomic<uint64_t> _state;
+  uint64_t state_;
 
   DISALLOW_COPY_AND_ASSIGN(Random);
 };

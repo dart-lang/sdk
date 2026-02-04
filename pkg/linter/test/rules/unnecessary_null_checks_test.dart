@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -24,10 +25,7 @@ Future<void> f(int? p, int? i, Future<int?> future) async {
   i = await future!;
 }
 ''',
-      [
-        error(StaticWarningCode.unnecessaryNonNullAssertion, 78, 1),
-        lint(78, 1),
-      ],
+      [error(diag.unnecessaryNonNullAssertion, 78, 1), lint(78, 1)],
     );
   }
 
@@ -377,7 +375,7 @@ f6(int? p) {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.undefinedFunction, 22, 1),
+        error(diag.undefinedFunction, 22, 1),
       ],
     );
   }

@@ -1,0 +1,37 @@
+class C {
+new ();
+new () : x = 0;
+new () {}
+new () : x = 0 {}
+const new ();
+const new () : x = 0;
+const new () {}
+const new () : x = 0 {}
+new named();
+new named() : x = 0;
+new named() {}
+new named() : x = 0 {}
+const new named();
+const new named() : x = 0;
+const new named() {}
+const new named() : x = 0 {}
+}
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+new[KeywordToken] ([BeginToken])[SimpleToken];[SimpleToken]
+new[KeywordToken] ([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+new[KeywordToken] ([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+new[KeywordToken] ([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] 0[StringToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken] ([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken] ([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken] ([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken] ([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] 0[StringToken] {[BeginToken]}[SimpleToken]
+new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] 0[StringToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken] named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] 0[StringToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken][SimpleToken]

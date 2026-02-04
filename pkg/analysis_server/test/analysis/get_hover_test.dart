@@ -1254,7 +1254,7 @@ void f(A<int> a) {
     expect(hover.elementDescription, 'int foo<U>(int t, U u)');
     expect(hover.elementKind, 'method');
     // types
-    expect(hover.staticType, isNull);
+    expect(hover.staticType, 'int Function<U>(int, U)');
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
@@ -1281,7 +1281,7 @@ void f() {
     expect(hover.elementDescription, 'int foo<U>(U u)');
     expect(hover.elementKind, 'method');
     // types
-    expect(hover.staticType, isNull);
+    expect(hover.staticType, 'int Function<U>(U)');
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);

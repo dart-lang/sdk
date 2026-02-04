@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -89,8 +89,141 @@ abstract class A {
   final int x;
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitialized, 31, 1)],
+      [error(diag.finalNotInitialized, 31, 1)],
     );
+  }
+
+  test_class_field_primaryConstructor_hasBody_fieldsOne_declarationOne_bodyZero() async {
+    await assertNoErrorsInCode('''
+class C(this.f) {
+  final int f;
+  this;
+}
+''');
+  }
+
+  test_class_field_primaryConstructor_hasBody_fieldsOne_declarationZero_bodyOne() async {
+    await assertNoErrorsInCode('''
+class C() {
+  final int f;
+  this : f = 2;
+}
+''');
+  }
+
+  test_class_field_primaryConstructor_hasBody_fieldsOne_declarationZero_bodyZero() async {
+    await assertErrorsInCode(
+      '''
+class C() {
+  final int f;
+  this;
+}
+''',
+      [error(diag.finalNotInitializedConstructor1, 6, 1)],
+    );
+  }
+
+  test_class_field_primaryConstructor_hasBody_fieldsTwo_declarationOne_bodyOne() async {
+    await assertNoErrorsInCode('''
+class C(this.f1) {
+  final int f1;
+  final int f2;
+  this : f2 = 0;
+}
+''');
+  }
+
+  test_class_field_primaryConstructor_hasBody_fieldsTwo_declarationOne_bodyZero() async {
+    await assertErrorsInCode(
+      '''
+class C(this.f1) {
+  final int f1;
+  final int f2;
+  this;
+}
+''',
+      [error(diag.finalNotInitializedConstructor1, 6, 1)],
+    );
+  }
+
+  test_class_field_primaryConstructor_hasBody_fieldsTwo_declarationTwo_bodyZero() async {
+    await assertNoErrorsInCode('''
+class C(this.f1, this.f2) {
+  final int f1;
+  final int f2;
+  this;
+}
+''');
+  }
+
+  test_class_field_primaryConstructor_hasBody_fieldsTwo_declarationZero_bodyOne() async {
+    await assertErrorsInCode(
+      '''
+class C() {
+  final int f1;
+  final int f2;
+  this: f1 = 0;
+}
+''',
+      [error(diag.finalNotInitializedConstructor1, 6, 1)],
+    );
+  }
+
+  test_class_field_primaryConstructor_hasBody_fieldsTwo_declarationZero_bodyTwo() async {
+    await assertNoErrorsInCode('''
+class C() {
+  final int f1;
+  final int f2;
+  this: f1 = 0, f2 = 0;
+}
+''');
+  }
+
+  test_class_field_primaryConstructor_hasBody_noDeclaration_fieldsOne_bodyOne() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  final int f;
+  this : f = 0;
+}
+''',
+      [
+        error(diag.finalNotInitialized, 22, 1),
+        error(diag.primaryConstructorBodyWithoutDeclaration, 27, 13),
+      ],
+    );
+  }
+
+  test_class_field_primaryConstructor_noBody_fieldsOne_declarationZero() async {
+    await assertErrorsInCode(
+      '''
+class C() {
+  final int f;
+}
+''',
+      [error(diag.finalNotInitializedConstructor1, 6, 1)],
+    );
+  }
+
+  test_class_field_primaryConstructor_noBody_fieldsTwo_declarationOne() async {
+    await assertErrorsInCode(
+      '''
+class C(this.f1) {
+  final int f1;
+  final int f2;
+}
+''',
+      [error(diag.finalNotInitializedConstructor1, 6, 1)],
+    );
+  }
+
+  test_class_field_primaryConstructor_noBody_fieldsTwo_declarationTwo() async {
+    await assertNoErrorsInCode('''
+class C(this.f1, this.f2) {
+  final int f1;
+  final int f2;
+}
+''');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -147,7 +280,7 @@ class A {
 
   factory A() => throw 0;
 }''',
-      [error(CompileTimeErrorCode.finalNotInitialized, 22, 1)],
+      [error(diag.finalNotInitialized, 22, 1)],
     );
   }
 
@@ -188,7 +321,7 @@ enum E {
   final int x;
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitialized, 26, 1)],
+      [error(diag.finalNotInitialized, 26, 1)],
     );
   }
 
@@ -198,7 +331,7 @@ enum E {
 extension E on String {
   static final F;
 }''',
-      [error(CompileTimeErrorCode.finalNotInitialized, 39, 1)],
+      [error(diag.finalNotInitialized, 39, 1)],
     );
   }
 
@@ -208,7 +341,7 @@ extension E on String {
 class A {
   final F;
 }''',
-      [error(CompileTimeErrorCode.finalNotInitialized, 18, 1)],
+      [error(diag.finalNotInitialized, 18, 1)],
     );
   }
 
@@ -218,7 +351,7 @@ class A {
 class A {
   static final F;
 }''',
-      [error(CompileTimeErrorCode.finalNotInitialized, 25, 1)],
+      [error(diag.finalNotInitialized, 25, 1)],
     );
   }
 
@@ -227,7 +360,7 @@ class A {
       '''
 final F;
 ''',
-      [error(CompileTimeErrorCode.finalNotInitialized, 6, 1)],
+      [error(diag.finalNotInitialized, 6, 1)],
     );
   }
 
@@ -237,7 +370,7 @@ final F;
 f() {
   final int x;
 }''',
-      [error(WarningCode.unusedLocalVariable, 18, 1)],
+      [error(diag.unusedLocalVariable, 18, 1)],
     );
   }
 
@@ -248,7 +381,7 @@ f() {
   late final x = 1;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 19, 1)],
+      [error(diag.unusedLocalVariable, 19, 1)],
     );
   }
 
@@ -259,7 +392,7 @@ f() {
   late final x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 19, 1)],
+      [error(diag.unusedLocalVariable, 19, 1)],
     );
   }
 
@@ -270,7 +403,7 @@ mixin M {
   final int x;
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitialized, 22, 1)],
+      [error(diag.finalNotInitialized, 22, 1)],
     );
   }
 
@@ -293,7 +426,7 @@ external final int x;
       '''
 final int x;
 ''',
-      [error(CompileTimeErrorCode.finalNotInitialized, 10, 1)],
+      [error(diag.finalNotInitialized, 10, 1)],
     );
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/analysis_options/error/option_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_options_test_support.dart';
@@ -20,7 +20,7 @@ class IncludeFileNotFoundTest extends AbstractAnalysisOptionsTest {
       '''
 include: "./analysis_options.yaml"
 ''',
-      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 9, 25)],
+      [error(diag.recursiveIncludeFile, 9, 25)],
     );
   }
 
@@ -32,7 +32,7 @@ include:
   - ./analysis_options.yaml
   - included1.yaml
 ''',
-      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 13, 23)],
+      [error(diag.recursiveIncludeFile, 13, 23)],
     );
   }
 
@@ -44,7 +44,7 @@ include:
   - included1.yaml
   - ./analysis_options.yaml
 ''',
-      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 32, 23)],
+      [error(diag.recursiveIncludeFile, 32, 23)],
     );
   }
 
@@ -53,7 +53,7 @@ include:
       '''
 include: ./analysis_options.yaml
 ''',
-      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 9, 23)],
+      [error(diag.recursiveIncludeFile, 9, 23)],
     );
   }
 
@@ -62,7 +62,7 @@ include: ./analysis_options.yaml
       '''
 include: './analysis_options.yaml'
 ''',
-      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 9, 25)],
+      [error(diag.recursiveIncludeFile, 9, 25)],
     );
   }
 
@@ -74,12 +74,12 @@ include: "package:pedantic/analysis_options.yaml"
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.includeFileNotFound,
+          diag.includeFileNotFound,
           74,
           40,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],
@@ -97,12 +97,12 @@ include:
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.includeFileNotFound,
+          diag.includeFileNotFound,
           78,
           38,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],
@@ -120,12 +120,12 @@ include:
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.includeFileNotFound,
+          diag.includeFileNotFound,
           97,
           38,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],
@@ -140,12 +140,12 @@ include: package:pedantic/analysis_options.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.includeFileNotFound,
+          diag.includeFileNotFound,
           74,
           38,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],
@@ -160,12 +160,12 @@ include: 'package:pedantic/analysis_options.yaml'
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.includeFileNotFound,
+          diag.includeFileNotFound,
           74,
           40,
           text:
-              "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "The URI 'package:pedantic/analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' can't be found "
               "when analyzing '/'.",
         ),
       ],

@@ -21,7 +21,7 @@ class WrapInText extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.WRAP_IN_TEXT;
+  FixKind get fixKind => DartFixKind.wrapInText;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

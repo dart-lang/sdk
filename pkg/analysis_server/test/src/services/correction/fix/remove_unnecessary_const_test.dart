@@ -42,7 +42,7 @@ var d = const D(C());
 @reflectiveTest
 class RemoveUnnecessaryConstTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CONST;
+  FixKind get kind => DartFixKind.removeUnnecessaryConst;
 
   @override
   String get lintCode => LintNames.unnecessary_const;

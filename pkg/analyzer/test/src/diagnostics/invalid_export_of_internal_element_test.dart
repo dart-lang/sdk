@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -51,9 +51,7 @@ import 'package:meta/meta.dart';
 export 'src/foo.dart';
 ''');
 
-    assertErrorsInResult([
-      error(WarningCode.invalidExportOfInternalElement, 0, 22),
-    ]);
+    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 22)]);
   }
 
   void test_exporterIsInBlazeBinLibSrc() async {
@@ -79,9 +77,7 @@ import 'package:meta/meta.dart';
 export 'src/foo.dart';
 ''');
 
-    assertErrorsInResult([
-      error(WarningCode.invalidExportOfInternalElement, 0, 22),
-    ]);
+    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 22)]);
   }
 
   void test_exporterIsInGenfilesLibSrc() async {
@@ -107,9 +103,7 @@ import 'package:meta/meta.dart';
 export 'src/foo.dart';
 ''');
 
-    assertErrorsInResult([
-      error(WarningCode.invalidExportOfInternalElement, 0, 22),
-    ]);
+    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 22)]);
   }
 
   void test_exporterIsInLibSrc() async {
@@ -148,7 +142,7 @@ import 'package:meta/meta.dart';
       r'''
 export 'package:dart.my/src/foo.dart';
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 38)],
+      [error(diag.invalidExportOfInternalElement, 0, 38)],
     );
   }
 
@@ -162,7 +156,7 @@ import 'package:meta/meta.dart';
       r'''
 export 'package:dart.my/src/foo.dart';
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 38)],
+      [error(diag.invalidExportOfInternalElement, 0, 38)],
     );
   }
 
@@ -176,7 +170,7 @@ import 'package:meta/meta.dart';
       r'''
 export 'package:dart.my/src/foo.dart';
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 38)],
+      [error(diag.invalidExportOfInternalElement, 0, 38)],
     );
   }
 }
@@ -203,9 +197,7 @@ import 'package:meta/meta.dart';
 export 'package:test/src/foo.dart';
 ''');
 
-    assertErrorsInResult([
-      error(WarningCode.invalidExportOfInternalElement, 0, 35),
-    ]);
+    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 35)]);
   }
 
   @FailingTest(
@@ -237,9 +229,7 @@ import 'package:meta/meta.dart';
 export 'package:test/src/foo.dart';
 ''');
 
-    assertErrorsInResult([
-      error(WarningCode.invalidExportOfInternalElement, 0, 35),
-    ]);
+    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 35)]);
   }
 
   void test_exporterInLibSrc() async {
@@ -265,7 +255,7 @@ import 'package:meta/meta.dart';
       r'''
 export 'package:test/src/foo.dart';
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 35)],
+      [error(diag.invalidExportOfInternalElement, 0, 35)],
     );
   }
 
@@ -280,7 +270,7 @@ import 'package:meta/meta.dart';
       r'''
 export 'package:test/src/foo.dart';
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 35)],
+      [error(diag.invalidExportOfInternalElement, 0, 35)],
     );
   }
 }
@@ -309,9 +299,7 @@ import 'package:meta/meta.dart';
 export 'src/foo.dart';
 ''');
 
-    assertErrorsInResult([
-      error(WarningCode.invalidExportOfInternalElement, 0, 22),
-    ]);
+    assertErrorsInResult([error(diag.invalidExportOfInternalElement, 0, 22)]);
   }
 
   void test_exporterIsInLibSrc() async {
@@ -350,7 +338,7 @@ import 'package:meta/meta.dart';
       r'''
 export 'package:test/src/foo.dart';
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 35)],
+      [error(diag.invalidExportOfInternalElement, 0, 35)],
     );
   }
 }
@@ -384,7 +372,7 @@ class Two {}
       r'''
 export 'src/foo.dart' hide Two;
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 31)],
+      [error(diag.invalidExportOfInternalElement, 0, 31)],
     );
   }
 
@@ -399,7 +387,7 @@ int func(IntFunc f, int x) => f(x);
       r'''
 export 'src/foo.dart' show func;
 ''',
-      [error(WarningCode.invalidExportOfInternalElementIndirectly, 0, 32)],
+      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
     );
   }
 
@@ -414,7 +402,7 @@ int func(IntFunc f, int x) => f(x);
       r'''
 export 'src/foo.dart' show func;
 ''',
-      [error(WarningCode.invalidExportOfInternalElementIndirectly, 0, 32)],
+      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
     );
   }
 
@@ -429,7 +417,7 @@ int func(IntFunc<num> f, int x) => f(x);
       r'''
 export 'src/foo.dart' show func;
 ''',
-      [error(WarningCode.invalidExportOfInternalElementIndirectly, 0, 32)],
+      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
     );
   }
 
@@ -444,7 +432,7 @@ IntFunc func() => (int x) => x;
       r'''
 export 'src/foo.dart' show func;
 ''',
-      [error(WarningCode.invalidExportOfInternalElementIndirectly, 0, 32)],
+      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
     );
   }
 
@@ -459,7 +447,7 @@ void func<T extends IntFunc>() {}
       r'''
 export 'src/foo.dart' show func;
 ''',
-      [error(WarningCode.invalidExportOfInternalElementIndirectly, 0, 32)],
+      [error(diag.invalidExportOfInternalElementIndirectly, 0, 32)],
     );
   }
 
@@ -485,7 +473,7 @@ import 'package:meta/meta.dart';
       r'''
 export 'src/foo.dart';
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 22)],
+      [error(diag.invalidExportOfInternalElement, 0, 22)],
     );
   }
 
@@ -503,7 +491,7 @@ import 'package:meta/meta.dart';
       r'''
 export 'src/foo.dart';
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 22)],
+      [error(diag.invalidExportOfInternalElement, 0, 22)],
     );
   }
 
@@ -519,7 +507,7 @@ import 'package:meta/meta.dart';
       r'''
 export 'src/foo.dart';
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 22)],
+      [error(diag.invalidExportOfInternalElement, 0, 22)],
     );
   }
 
@@ -566,7 +554,7 @@ class Two {}
       r'''
 export 'src/foo.dart' show One;
 ''',
-      [error(WarningCode.invalidExportOfInternalElement, 0, 31)],
+      [error(diag.invalidExportOfInternalElement, 0, 31)],
     );
   }
 }

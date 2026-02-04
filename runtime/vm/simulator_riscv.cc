@@ -5,6 +5,9 @@
 #include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
+#include <bit>
+#include <cmath>
+
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 
@@ -192,6 +195,7 @@ Simulator::Simulator() : random_(), memory_(FLAG_sim_buffer_memory) {
   stack_ =
       new char[(OSThread::GetSpecifiedStackSize() +
                 OSThread::kStackSizeBufferMax + kSimulatorStackUnderflowSize)];
+  shadow_stack_ = new char[64 * KB];
   // Low address.
   stack_limit_ = reinterpret_cast<uword>(stack_);
   // Limit for StackOverflowError.
@@ -211,10 +215,17 @@ Simulator::Simulator() : random_(), memory_(FLAG_sim_buffer_memory) {
     // fregs_[i] = bit_cast<double>(random_.NextUInt64());
     fregs_[i] = bit_cast<double>(kNaNBox);
   }
+  for (intptr_t i = 0; i < kNumberOfVectorRegisters; i++) {
+    for (intptr_t j = 0; j < VLEN / 8; j++) {
+      vregs_[i][j] = random_.NextUInt64();
+    }
+  }
 
   // The sp is initialized to point to the bottom (high address) of the
   // allocated stack area.
   set_xreg(SP, stack_base());
+  ssp_ = reinterpret_cast<uintx_t>(shadow_stack_) + 64 * KB;
+  ss_enabled_ = true;
   // The lr and pc are initialized to a known bad value that will cause an
   // access violation if the simulator ever tries to execute it.
   set_xreg(RA, kBadLR);
@@ -223,6 +234,7 @@ Simulator::Simulator() : random_(), memory_(FLAG_sim_buffer_memory) {
 
 Simulator::~Simulator() {
   delete[] stack_;
+  delete[] shadow_stack_;
   Isolate* isolate = Isolate::Current();
   if (isolate != nullptr) {
     isolate->set_simulator(nullptr);
@@ -247,6 +259,12 @@ void Simulator::PrepareCall(PreservedRegisters* preserved) {
       fregs_[i] = bit_cast<double>(kNaNBox);
     }
   }
+  for (intptr_t i = 0; i < kNumberOfVectorRegisters; i++) {
+    for (intptr_t j = 0; j < VLEN / 8; j++) {
+      vregs_[i][j] = random_.NextUInt64();
+    }
+  }
+  preserved->ssp = ssp_;
 #endif
 }
 
@@ -267,6 +285,11 @@ void Simulator::ClobberVolatileRegisters() {
       fregs_[i] = bit_cast<double>(kNaNBox);
     }
   }
+  for (intptr_t i = 0; i < kNumberOfVectorRegisters; i++) {
+    for (intptr_t j = 0; j < VLEN / 8; j++) {
+      vregs_[i][j] = random_.NextUInt64();
+    }
+  }
 #endif
 }
 
@@ -278,6 +301,7 @@ void Simulator::SavePreservedRegisters(PreservedRegisters* preserved) {
   for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
     preserved->fregs[i] = fregs_[i];
   }
+  preserved->ssp = ssp_;
 #endif
 }
 
@@ -304,6 +328,9 @@ void Simulator::CheckPreservedRegisters(PreservedRegisters* preserved) {
         FATAL("%s was not preserved\n", fpu_reg_names[i]);
       }
     }
+  }
+  if (ssp_ != preserved->ssp) {
+    FATAL("ssp was not preserved\n");
   }
 #endif
 }
@@ -480,18 +507,90 @@ void Simulator::PrintRegisters() {
          static_cast<intptr_t>(kNumberOfFpuRegisters));
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
 #if XLEN == 32
-    OS::Print("%4s: %8x %11d", cpu_reg_names[i], xregs_[i], xregs_[i]);
+    OS::Print("%5s: %8x %11d", cpu_reg_names[i], xregs_[i], xregs_[i]);
 #elif XLEN == 64
-    OS::Print("%4s: %16" Px64 " %20" Pd64, cpu_reg_names[i], xregs_[i],
+    OS::Print("%5s: %16" Px64 " %20" Pd64, cpu_reg_names[i], xregs_[i],
               xregs_[i]);
 #endif
-    OS::Print("  %4s: %lf\n", fpu_reg_names[i], fregs_[i]);
+    OS::Print("  %5s: %lf\n", fpu_reg_names[i], fregs_[i]);
   }
 #if XLEN == 32
-  OS::Print("  pc: %8x\n", pc_);
+  OS::Print("   pc: %8x\n", pc_);
 #elif XLEN == 64
-  OS::Print("  pc: %16" Px64 "\n", pc_);
+  OS::Print("   pc: %16" Px64 "\n", pc_);
 #endif
+
+  for (intptr_t i = 0; i < kNumberOfVectorRegisters; i++) {
+    OS::Print("%5s: ", vector_reg_names[i]);
+    for (intptr_t j = VLEN / 8 - 1; j >= 0; j--) {
+      OS::Print("%02x", (unsigned)vregs_[i][j]);
+    }
+    OS::Print("\n");
+  }
+#if XLEN == 32
+  OS::Print("   vl: %8x %11d\n", vl_, vl_);
+#elif XLEN == 64
+  OS::Print("   vl: %16" Px64 " %20" Pd64 "\n", vl_, vl_);
+#endif
+
+#if XLEN == 32
+  OS::Print("vtype: %8x ", vtype_);
+#elif XLEN == 64
+  OS::Print("vtype: %16" Px64 "       ", vtype_);
+#endif
+  switch (vsew()) {
+    case e8:
+      OS::Print("e8");
+      break;
+    case e16:
+      OS::Print("e16");
+      break;
+    case e32:
+      OS::Print("e32");
+      break;
+    case e64:
+      OS::Print("e64");
+      break;
+    default:
+      OS::Print("invalid sew");
+      break;
+  }
+  switch (vlmul()) {
+    case mf8:
+      OS::Print(", mf8");
+      break;
+    case mf4:
+      OS::Print(", mf4");
+      break;
+    case mf2:
+      OS::Print(", mf2");
+      break;
+    case m1:
+      OS::Print(", m1");
+      break;
+    case m2:
+      OS::Print(", m2");
+      break;
+    case m4:
+      OS::Print(", m4");
+      break;
+    case m8:
+      OS::Print(", m8");
+      break;
+    default:
+      OS::Print(", invalid lmul");
+      break;
+  }
+  if ((vtype_ & (1 << 6)) == 0) {
+    OS::Print(", tu");
+  } else {
+    OS::Print(", ta");
+  }
+  if ((vtype_ & (1 << 7)) == 0) {
+    OS::Print(", mu\n");
+  } else {
+    OS::Print(", ma\n");
+  }
 }
 
 void Simulator::PrintStack() {
@@ -571,6 +670,9 @@ void Simulator::Interpret(Instr instr) {
       break;
     case OPFP:
       InterpretOPFP(instr);
+      break;
+    case OPV:
+      InterpretOPV(instr);
       break;
     default:
       IllegalInstruction(instr);
@@ -717,61 +819,23 @@ static uint32_t remuw(uint32_t a, uint32_t b) {
 #endif  // XLEN >= 64
 
 static uintx_t clz(uintx_t a) {
-  for (int bit = XLEN - 1; bit >= 0; bit--) {
-    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
-      return XLEN - bit - 1;
-    }
-  }
-  return XLEN;
+  return std::countl_zero(a);
 }
-
 static uintx_t ctz(uintx_t a) {
-  for (int bit = 0; bit < XLEN; bit++) {
-    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
-      return bit;
-    }
-  }
-  return XLEN;
+  return std::countr_zero(a);
 }
-
 static uintx_t cpop(uintx_t a) {
-  uintx_t count = 0;
-  for (int bit = 0; bit < XLEN; bit++) {
-    if ((a & (static_cast<uintx_t>(1) << bit)) != 0) {
-      count++;
-    }
-  }
-  return count;
+  return std::popcount(a);
 }
-
 static uintx_t clzw(uint32_t a) {
-  for (int bit = 32 - 1; bit >= 0; bit--) {
-    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
-      return 32 - bit - 1;
-    }
-  }
-  return 32;
+  return std::countl_zero(a);
 }
-
 static uintx_t ctzw(uint32_t a) {
-  for (int bit = 0; bit < 32; bit++) {
-    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
-      return bit;
-    }
-  }
-  return 32;
+  return std::countr_zero(a);
 }
-
 static uintx_t cpopw(uint32_t a) {
-  uintx_t count = 0;
-  for (int bit = 0; bit < 32; bit++) {
-    if ((a & (static_cast<uint32_t>(1) << bit)) != 0) {
-      count++;
-    }
-  }
-  return count;
+  return std::popcount(a);
 }
-
 static intx_t max(intx_t a, intx_t b) {
   return a > b ? a : b;
 }
@@ -829,26 +893,16 @@ static uintx_t zextw(uintx_t a) {
 }
 #endif
 static uintx_t ror(uintx_t a, uintx_t b) {
-  uintx_t r = b & (XLEN - 1);
-  uintx_t l = (XLEN - r) & (XLEN - 1);
-  return (a << l) | (a >> r);
+  return std::rotr(a, b & (XLEN - 1));
 }
 static uintx_t rol(uintx_t a, uintx_t b) {
-  uintx_t l = b & (XLEN - 1);
-  uintx_t r = (XLEN - l) & (XLEN - 1);
-  return (a << l) | (a >> r);
+  return std::rotl(a, b & (XLEN - 1));
 }
 static uintx_t rorw(uintx_t a, uintx_t b) {
-  uint32_t r = b & (XLEN - 1);
-  uint32_t l = (XLEN - r) & (XLEN - 1);
-  uint32_t x = a;
-  return sign_extend((x << l) | (x >> r));
+  return sign_extend(std::rotr(static_cast<uint32_t>(a), b & (XLEN - 1)));
 }
 static uintx_t rolw(uintx_t a, uintx_t b) {
-  uint32_t l = b & (XLEN - 1);
-  uint32_t r = (XLEN - l) & (XLEN - 1);
-  uint32_t x = a;
-  return sign_extend((x << l) | (x >> r));
+  return sign_extend(std::rotl(static_cast<uint32_t>(a), b & (XLEN - 1)));
 }
 static uintx_t orcb(uintx_t a) {
   uintx_t result = 0;
@@ -989,7 +1043,7 @@ void Simulator::Interpret(CInstr instr) {
     case C_JR: {
       if ((instr.encoding() & (C_JALR ^ C_JR)) != 0) {
         if ((instr.rs1() == ZR) && (instr.rs2() == ZR)) {
-          InterpretEBREAK(instr);
+          Fault("EBREAK");
         } else if (instr.rs2() == ZR) {
           // JALR
           uintx_t target = get_xreg(instr.rs1());
@@ -1041,10 +1095,28 @@ void Simulator::Interpret(CInstr instr) {
           set_xreg(instr.rd(),
                    get_xreg(instr.rs1()) + sign_extend(instr.i16_imm()));
         }
-      } else if ((instr.rd() == ZR) || (instr.u_imm() == 0)) {
-        IllegalInstruction(instr);
-      } else {
+      } else if ((instr.rd() != ZR) && (instr.u_imm() != 0)) {
         set_xreg(instr.rd(), sign_extend(instr.u_imm()));
+      } else if (instr.encoding() == C_SSPUSH) {
+        if (ss_enabled_) {
+          uintx_t ra = get_xreg(Register(1));
+          ssp_ -= sizeof(uintx_t);
+          // The shadow stack has special memory protections that only this
+          // write can access.
+          MemoryWrite<uintx_t>(ssp_, ra, ZR);
+        }
+      } else if (instr.encoding() == C_SSPOPCHK) {
+        if (ss_enabled_) {
+          uintx_t ra = MemoryRead<uintx_t>(ssp_, ZR);
+          ssp_ += sizeof(uintx_t);
+          if (ra != get_xreg(Register(5))) {
+            Fault("Corrupt control flow");
+          }
+        }
+      } else if ((instr.encoding() & C_MOP_MASK) == C_MOP) {
+        // May-be-op
+      } else {
+        IllegalInstruction(instr);
       }
       break;
     case C_ADDI:
@@ -1322,10 +1394,34 @@ void Simulator::InterpretLOADFP(Instr instr) {
     case D:
       set_fregd(instr.frd(), MemoryRead<double>(addr, instr.rs1()));
       break;
+    case E8:
+      InterpretLOADV<uint8_t>(instr);
+      break;
+    case E16:
+      InterpretLOADV<uint16_t>(instr);
+      break;
+    case E32:
+      InterpretLOADV<uint32_t>(instr);
+      break;
+    case E64:
+      InterpretLOADV<uint64_t>(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
   pc_ += instr.length();
+}
+
+template <typename T>
+void Simulator::InterpretLOADV(Instr instr) {
+  if ((instr.encoding() & 0xFFF00000) != 0x02000000) {
+    UNIMPLEMENTED();  // Only unmasked unit-stride implemented.
+  }
+  uintx_t base = get_xreg(instr.rs1());
+  T* vd = ref_vreg<T>(instr.vd());
+  for (uintx_t i = 0; i < vl_; i++) {
+    vd[i] = MemoryRead<T>(base + i * sizeof(T), instr.rs1());
+  }
 }
 
 DART_FORCE_INLINE
@@ -1362,10 +1458,34 @@ void Simulator::InterpretSTOREFP(Instr instr) {
     case D:
       MemoryWrite<double>(addr, get_fregd(instr.frs2()), instr.rs1());
       break;
+    case E8:
+      InterpretSTOREV<uint8_t>(instr);
+      break;
+    case E16:
+      InterpretSTOREV<uint16_t>(instr);
+      break;
+    case E32:
+      InterpretSTOREV<uint32_t>(instr);
+      break;
+    case E64:
+      InterpretSTOREV<uint64_t>(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
   pc_ += instr.length();
+}
+
+template <typename T>
+void Simulator::InterpretSTOREV(Instr instr) {
+  if ((instr.encoding() & 0xFFF00000) != 0x02000000) {
+    UNIMPLEMENTED();  // Only unmasked unit-stride implemented.
+  }
+  uintx_t base = get_xreg(instr.rs1());
+  T* vs3 = ref_vreg<T>(instr.vs3());
+  for (uintx_t i = 0; i < vl_; i++) {
+    MemoryWrite<T>(base + i * sizeof(T), vs3[i], instr.rs1());
+  }
 }
 
 DART_FORCE_INLINE
@@ -1925,6 +2045,9 @@ void Simulator::InterpretMISCMEM(Instr instr) {
   switch (instr.funct3()) {
     case FENCE:
       memory_.FlushAll();
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
       std::atomic_thread_fence(std::memory_order_acq_rel);
       break;
     case FENCEI:
@@ -1938,18 +2061,54 @@ void Simulator::InterpretMISCMEM(Instr instr) {
 
 void Simulator::InterpretSYSTEM(Instr instr) {
   switch (instr.funct3()) {
-    case 0:
+    case PRIV:
       switch (instr.funct12()) {
         case ECALL:
           InterpretECALL(instr);
           return;
         case EBREAK:
-          InterpretEBREAK(instr);
-          return;
+          Fault("EBREAK");
+          break;
+        case WRS_NTO:
+        case WRS_STO:
+          // Could issue mwait on host?
+          break;
         default:
           IllegalInstruction(instr);
       }
       break;
+    case MOP: {
+      if ((instr.funct7() == SSPUSH) && (instr.rd() == ZR) &&
+          (instr.rs1() == ZR) &&
+          ((instr.rs2() == Register(1)) || (instr.rs2() == Register(5)))) {
+        if (ss_enabled_) {
+          uintx_t ra = get_xreg(instr.rs2());
+          ssp_ -= sizeof(uintx_t);
+          // The shadow stack has special memory protections that only this
+          // write can access.
+          MemoryWrite<uintx_t>(ssp_, ra, ZR);
+        }
+      } else if ((instr.funct12() == SSPOPCHK) && (instr.rd() == ZR) &&
+                 ((instr.rs1() == Register(1)) ||
+                  (instr.rs1() == Register(5)))) {
+        if (ss_enabled_) {
+          uintx_t ra = MemoryRead<uintx_t>(ssp_, ZR);
+          ssp_ += sizeof(uintx_t);
+          if (ra != get_xreg(instr.rs1())) {
+            Fault("Corrupt control flow");
+          }
+        }
+      } else if ((instr.funct12() == SSRDP) && (instr.rs1() == ZR)) {
+        set_xreg(instr.rd(), ss_enabled_ ? ssp_ : 0);
+      } else if ((instr.funct12() & MOP_R_MASK) == MOP_R) {
+        set_xreg(instr.rd(), 0);
+      } else if ((instr.funct7() & MOP_RR_MASK) == MOP_RR) {
+        set_xreg(instr.rd(), 0);
+      } else {
+        IllegalInstruction(instr);
+      }
+      break;
+    }
     case CSRRW: {
       if (instr.rd() == ZR) {
         // No read effect.
@@ -2095,9 +2254,7 @@ void Simulator::InterpretECALL(Instr instr) {
 
   // The C ABI stack alignment is 16 for both 32 and 64 bit.
   if (!Utils::IsAligned(get_xreg(SP), 16)) {
-    PrintRegisters();
-    PrintStack();
-    FATAL("Stack misaligned at call to C function");
+    Fault("Stack misaligned at call to C function");
   }
 
   // We can't instrument the runtime.
@@ -2187,9 +2344,13 @@ void Simulator::InterpretAMO(Instr instr) {
     case WIDTH64:
       InterpretAMO64(instr);
       break;
+    case WIDTH128:
+      InterpretAMO128(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
+  pc_ += instr.length();
 }
 
 // Note: This implementation does not give full LR/SC semantics because it
@@ -2199,7 +2360,7 @@ template <typename type>
 void Simulator::InterpretLR(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   reserved_address_ = addr;
   reserved_value_ = memory_.Load<type>(addr, instr.memory_order());
@@ -2210,13 +2371,15 @@ template <typename type>
 void Simulator::InterpretSC(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   if (addr != reserved_address_) {
+    reserved_address_ = 0;
     set_xreg(instr.rd(), 1);
     return;
   }
   if ((random_.NextUInt32() % 16) == 0) {  // Spurious failure.
+    reserved_address_ = 0;
     set_xreg(instr.rd(), 1);
     return;
   }
@@ -2225,13 +2388,14 @@ void Simulator::InterpretSC(Instr instr) {
   bool success =
       memory_.CompareExchange(addr, expected, desired, instr.memory_order());
   set_xreg(instr.rd(), success ? 0 : 1);
+  reserved_address_ = 0;
 }
 
 template <typename type>
 void Simulator::InterpretAMOSWAP(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2244,7 +2408,7 @@ template <typename type>
 void Simulator::InterpretAMOADD(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2257,7 +2421,7 @@ template <typename type>
 void Simulator::InterpretAMOXOR(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2270,7 +2434,7 @@ template <typename type>
 void Simulator::InterpretAMOAND(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2283,7 +2447,7 @@ template <typename type>
 void Simulator::InterpretAMOOR(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2296,7 +2460,7 @@ template <typename type>
 void Simulator::InterpretAMOMIN(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2314,7 +2478,7 @@ template <typename type>
 void Simulator::InterpretAMOMAX(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2332,7 +2496,7 @@ template <typename type>
 void Simulator::InterpretLOADORDERED(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
@@ -2344,12 +2508,25 @@ template <typename type>
 void Simulator::InterpretSTOREORDERED(Instr instr) {
   uintx_t addr = get_xreg(instr.rs1());
   if ((addr & (sizeof(type) - 1)) != 0) {
-    FATAL("Misaligned atomic memory operation");
+    Fault("Misaligned atomic memory operation");
   }
   memory_.FlushAddress(addr);
   type value = get_xreg(instr.rs2());
   std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
   atomic->store(value, instr.memory_order());
+}
+
+template <typename type>
+void Simulator::InterpretAMOCAS(Instr instr) {
+  uintx_t addr = get_xreg(instr.rs1());
+  if ((addr & (sizeof(type) - 1)) != 0) {
+    Fault("Misaligned atomic memory operation");
+  }
+  type expected = get_xreg(instr.rd());
+  type desired = get_xreg(instr.rs2());
+  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
+  atomic->compare_exchange_weak(expected, desired, instr.memory_order());
+  set_xreg(instr.rd(), expected);
 }
 
 void Simulator::InterpretAMO8(Instr instr) {
@@ -2387,10 +2564,12 @@ void Simulator::InterpretAMO8(Instr instr) {
     case STOREORDERED:
       InterpretSTOREORDERED<int8_t>(instr);
       break;
+    case AMOCAS:
+      InterpretAMOCAS<int8_t>(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
-  pc_ += instr.length();
 }
 
 void Simulator::InterpretAMO16(Instr instr) {
@@ -2428,10 +2607,12 @@ void Simulator::InterpretAMO16(Instr instr) {
     case STOREORDERED:
       InterpretSTOREORDERED<int16_t>(instr);
       break;
+    case AMOCAS:
+      InterpretAMOCAS<int16_t>(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
-  pc_ += instr.length();
 }
 
 void Simulator::InterpretAMO32(Instr instr) {
@@ -2475,10 +2656,12 @@ void Simulator::InterpretAMO32(Instr instr) {
     case STOREORDERED:
       InterpretSTOREORDERED<int32_t>(instr);
       break;
+    case AMOCAS:
+      InterpretAMOCAS<int32_t>(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
-  pc_ += instr.length();
 }
 
 void Simulator::InterpretAMO64(Instr instr) {
@@ -2523,11 +2706,30 @@ void Simulator::InterpretAMO64(Instr instr) {
     case STOREORDERED:
       InterpretSTOREORDERED<int64_t>(instr);
       break;
+    case AMOCAS:
+      InterpretAMOCAS<int64_t>(instr);
+      break;
+#endif  // XLEN >= 64
+#if XLEN == 32
+    case AMOCAS:
+      UNIMPLEMENTED();  // Need double-wide CAS from host.
+      break;
+#endif
+    default:
+      IllegalInstruction(instr);
+  }
+}
+
+void Simulator::InterpretAMO128(Instr instr) {
+  switch (instr.funct5()) {
+#if XLEN >= 64
+    case AMOCAS:
+      UNIMPLEMENTED();  // Need double-wide CAS from host.
+      break;
 #endif  // XLEN >= 64
     default:
       IllegalInstruction(instr);
   }
-  pc_ += instr.length();
 }
 
 void Simulator::InterpretFMADD(Instr instr) {
@@ -2536,14 +2738,14 @@ void Simulator::InterpretFMADD(Instr instr) {
       float rs1 = get_fregs(instr.frs1());
       float rs2 = get_fregs(instr.frs2());
       float rs3 = get_fregs(instr.frs3());
-      set_fregs(instr.frd(), (rs1 * rs2) + rs3);
+      set_fregs(instr.frd(), std::fma(rs1, rs2, rs3));
       break;
     }
     case F2_D: {
       double rs1 = get_fregd(instr.frs1());
       double rs2 = get_fregd(instr.frs2());
       double rs3 = get_fregd(instr.frs3());
-      set_fregd(instr.frd(), (rs1 * rs2) + rs3);
+      set_fregd(instr.frd(), std::fma(rs1, rs2, rs3));
       break;
     }
     default:
@@ -2558,14 +2760,14 @@ void Simulator::InterpretFMSUB(Instr instr) {
       float rs1 = get_fregs(instr.frs1());
       float rs2 = get_fregs(instr.frs2());
       float rs3 = get_fregs(instr.frs3());
-      set_fregs(instr.frd(), (rs1 * rs2) - rs3);
+      set_fregs(instr.frd(), std::fma(rs1, rs2, -rs3));
       break;
     }
     case F2_D: {
       double rs1 = get_fregd(instr.frs1());
       double rs2 = get_fregd(instr.frs2());
       double rs3 = get_fregd(instr.frs3());
-      set_fregd(instr.frd(), (rs1 * rs2) - rs3);
+      set_fregd(instr.frd(), std::fma(rs1, rs2, -rs3));
       break;
     }
     default:
@@ -2580,14 +2782,14 @@ void Simulator::InterpretFNMSUB(Instr instr) {
       float rs1 = get_fregs(instr.frs1());
       float rs2 = get_fregs(instr.frs2());
       float rs3 = get_fregs(instr.frs3());
-      set_fregs(instr.frd(), -(rs1 * rs2) + rs3);
+      set_fregs(instr.frd(), -std::fma(rs1, rs2, -rs3));
       break;
     }
     case F2_D: {
       double rs1 = get_fregd(instr.frs1());
       double rs2 = get_fregd(instr.frs2());
       double rs3 = get_fregd(instr.frs3());
-      set_fregd(instr.frd(), -(rs1 * rs2) + rs3);
+      set_fregd(instr.frd(), -std::fma(rs1, rs2, -rs3));
       break;
     }
     default:
@@ -2602,14 +2804,14 @@ void Simulator::InterpretFNMADD(Instr instr) {
       float rs1 = get_fregs(instr.frs1());
       float rs2 = get_fregs(instr.frs2());
       float rs3 = get_fregs(instr.frs3());
-      set_fregs(instr.frd(), -(rs1 * rs2) - rs3);
+      set_fregs(instr.frd(), -std::fma(rs1, rs2, rs3));
       break;
     }
     case F2_D: {
       double rs1 = get_fregd(instr.frs1());
       double rs2 = get_fregd(instr.frs2());
       double rs3 = get_fregd(instr.frs3());
-      set_fregd(instr.frd(), -(rs1 * rs2) - rs3);
+      set_fregd(instr.frd(), -std::fma(rs1, rs2, rs3));
       break;
     }
     default:
@@ -3334,16 +3536,170 @@ void Simulator::InterpretOPFP(Instr instr) {
   pc_ += instr.length();
 }
 
-void Simulator::InterpretEBREAK(Instr instr) {
-  PrintRegisters();
-  PrintStack();
-  FATAL("Encountered EBREAK");
+void Simulator::InterpretOPV(Instr instr) {
+  switch (instr.funct3()) {
+    case OPIVV:
+      InterpretOPV_IVV(instr);
+      break;
+    case OPFVV:
+      InterpretOPV_FVV(instr);
+      break;
+    case OPMVV:
+      InterpretOPV_MVV(instr);
+      break;
+    case OPIVI:
+      InterpretOPV_IVI(instr);
+      break;
+    case OPIVX:
+      InterpretOPV_IVX(instr);
+      break;
+    case OPFVF:
+      InterpretOPV_FVF(instr);
+      break;
+    case OPMVX:
+      InterpretOPV_MVX(instr);
+      break;
+    case OPCFG:
+      InterpretOPV_CFG(instr);
+      break;
+    default:
+      IllegalInstruction(instr);
+  }
+  pc_ += instr.length();
 }
 
-void Simulator::InterpretEBREAK(CInstr instr) {
-  PrintRegisters();
-  PrintStack();
-  FATAL("Encountered EBREAK");
+void Simulator::InterpretOPV_IVV(Instr instr) {
+  IllegalInstruction(instr);
+}
+
+void Simulator::InterpretOPV_FVV(Instr instr) {
+  IllegalInstruction(instr);
+}
+
+void Simulator::InterpretOPV_MVV(Instr instr) {
+  IllegalInstruction(instr);
+}
+
+void Simulator::InterpretOPV_IVI(Instr instr) {
+  IllegalInstruction(instr);
+}
+
+void Simulator::InterpretOPV_IVX(Instr instr) {
+  switch (vsew()) {
+    case e8:
+      InterpretOPV_IVX<uint8_t>(instr);
+      break;
+    case e16:
+      InterpretOPV_IVX<uint16_t>(instr);
+      break;
+    case e32:
+      InterpretOPV_IVX<uint32_t>(instr);
+      break;
+    case e64:
+      InterpretOPV_IVX<uint64_t>(instr);
+      break;
+    default:
+      Fault("Invalid SEW");
+  }
+}
+
+template <typename sew_t>
+void Simulator::InterpretOPV_IVX(Instr instr) {
+  if (instr.vm()) UNIMPLEMENTED();
+  sew_t rs1 = get_xreg(instr.rs1());
+  sew_t* vs2 = ref_vreg<sew_t>(instr.vs2());
+  sew_t* vd = ref_vreg<sew_t>(instr.vd());
+  switch (instr.funct6()) {
+    case VADD:
+      for (uintx_t i = 0, n = vl_; i < n; i++) {
+        vd[i] = rs1 + vs2[i];
+      }
+      break;
+    case VMV:
+      for (uintx_t i = 0, n = vl_; i < n; i++) {
+        vd[i] = rs1;
+      }
+      break;
+    default:
+      IllegalInstruction(instr);
+  }
+}
+
+void Simulator::InterpretOPV_FVF(Instr instr) {
+  IllegalInstruction(instr);
+}
+
+void Simulator::InterpretOPV_MVX(Instr instr) {
+  IllegalInstruction(instr);
+}
+
+void Simulator::InterpretOPV_CFG(Instr instr) {
+  if ((instr.encoding() & 0x80000000) == 0) {
+    uintx_t avl = get_xreg(instr.rs1());  // In elements.
+    intx_t vtype = instr.itype_imm();
+    uintx_t sew;
+    switch ((vtype >> 3) & 0b111) {
+      case e8:
+        sew = 8;
+        break;
+      case e16:
+        sew = 16;
+        break;
+      case e32:
+        sew = 32;
+        break;
+      case e64:
+        sew = 64;
+        break;
+      default:
+        Fault("Invalid SEW");
+    }
+    intx_t lmul;
+    switch ((vtype >> 0) & 0b111) {
+      case mf8:
+        lmul = -8;
+        break;
+      case mf4:
+        lmul = -4;
+        break;
+      case mf2:
+        lmul = -2;
+        break;
+      case m1:
+        lmul = 1;
+        break;
+      case m2:
+        lmul = 2;
+        break;
+      case m4:
+        lmul = 4;
+        break;
+      case m8:
+        lmul = 8;
+        break;
+      default:
+        Fault("Invalid LMUL");
+    }
+    uintx_t vlmax;
+    if (lmul < 0) {
+      vlmax = VLEN / sew / -lmul;
+    } else {
+      vlmax = VLEN / sew * lmul;
+    }
+    if (instr.rs1() == ZR && instr.rd() != ZR) {
+      vl_ = vlmax;
+    } else if (instr.rs1() == ZR) {
+      // Keep existing vl.
+    } else if (avl < vlmax) {
+      vl_ = avl;
+    } else {
+      vl_ = vlmax;
+    }
+    vtype_ = vtype;
+    set_xreg(instr.rd(), vl_);
+  } else {
+    IllegalInstruction(instr);
+  }
 }
 
 void Simulator::IllegalInstruction(Instr instr) {
@@ -3358,21 +3714,23 @@ void Simulator::IllegalInstruction(CInstr instr) {
   FATAL("Illegal instruction: 0x%04x", instr.encoding());
 }
 
+void Simulator::Fault(const char* message) {
+  PrintRegisters();
+  PrintStack();
+  FATAL("%s", message);
+}
+
 template <typename type>
 type Simulator::MemoryRead(uintx_t addr, Register base) {
 #if defined(DEBUG)
   if ((base == SP) || (base == FP)) {
     if ((addr + sizeof(type) > stack_base()) || (addr < get_xreg(SP))) {
-      PrintRegisters();
-      PrintStack();
-      FATAL("Out-of-bounds stack access");
+      Fault("Out-of-bounds stack access");
     }
   } else {
     const uintx_t kPageSize = 16 * KB;
     if ((addr < kPageSize) || (addr + sizeof(type) >= ~kPageSize)) {
-      PrintRegisters();
-      PrintStack();
-      FATAL("Bad memory access");
+      Fault("Bad memory access");
     }
   }
 #endif
@@ -3384,16 +3742,14 @@ void Simulator::MemoryWrite(uintx_t addr, type value, Register base) {
 #if defined(DEBUG)
   if ((base == SP) || (base == FP)) {
     if ((addr + sizeof(type) > stack_base()) || (addr < get_xreg(SP))) {
-      PrintRegisters();
-      PrintStack();
-      FATAL("Out-of-bounds stack access");
+      Fault("Out-of-bounds stack access");
     }
   } else {
     const uintx_t kPageSize = 16 * KB;
     if ((addr < kPageSize) || (addr + sizeof(type) >= ~kPageSize)) {
       PrintRegisters();
       PrintStack();
-      FATAL("Bad memory access");
+      Fault("Bad memory access");
     }
   }
 #endif
@@ -3401,12 +3757,22 @@ void Simulator::MemoryWrite(uintx_t addr, type value, Register base) {
 }
 
 enum ControlStatusRegister {
+  // URW
   fflags = 0x001,
   frm = 0x002,
   fcsr = 0x003,
+  vstart = 0x008,
+  vxsat = 0x009,
+  vxrm = 0x00A,
+  vcsr = 0x00F,
+  ssp = 0x011,
+  // URO
   cycle = 0xC00,
   time = 0xC01,
   instret = 0xC02,
+  vl = 0xC20,
+  vtype = 0xC21,
+  vlenb = 0xC22,
 #if XLEN == 32
   cycleh = 0xC80,
   timeh = 0xC81,
@@ -3418,12 +3784,20 @@ intx_t Simulator::CSRRead(uint16_t csr) {
   switch (csr) {
     case fcsr:
       return fcsr_;
+    case ssp:
+      return ssp_;
     case cycle:
       return instret_ / 2;
     case time:
       return 0;
     case instret:
       return instret_;
+    case vl:
+      return vl_;
+    case vtype:
+      return vtype_;
+    case vlenb:
+      return VLEN / 8;
 #if XLEN == 32
     case cycleh:
       return (instret_ / 2) >> 32;
@@ -3433,12 +3807,18 @@ intx_t Simulator::CSRRead(uint16_t csr) {
       return instret_ >> 32;
 #endif
     default:
-      FATAL("Unknown CSR: %d", csr);
+      Fault("Unknown CSR");
   }
 }
 
 void Simulator::CSRWrite(uint16_t csr, intx_t value) {
-  UNIMPLEMENTED();
+  switch (csr) {
+    case ssp:
+      ssp_ = value;
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
 }
 
 void Simulator::CSRSet(uint16_t csr, intx_t mask) {

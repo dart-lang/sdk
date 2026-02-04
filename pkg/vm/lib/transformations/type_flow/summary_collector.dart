@@ -1419,6 +1419,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         arg.isInstanceCreation &&
         type is AnyInstanceType) {
       return arg;
+    } else if (arg is TypeCheck && arg.staticType == type) {
+      return arg;
     }
     if (type is NullableType && type.baseType == anyInstanceType) {
       return arg;
@@ -2462,7 +2464,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitVariableGet(VariableGet node) {
-    return _readVariable(node.variable, node);
+    final readType = _readVariable(node.variable, node);
+    if (node.promotedType != null) {
+      return _makeNarrow(
+        readType,
+        _typesBuilder.fromStaticType(node.promotedType!, true),
+      );
+    }
+    return readType;
   }
 
   @override
@@ -2896,6 +2905,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 }
 
 class RuntimeTypeTranslatorImpl
+    with DartTypeVisitorExperimentExclusionMixin<TypeExpr>
     implements RuntimeTypeTranslator, DartTypeVisitor<TypeExpr> {
   final CoreTypes coreTypes;
   final Summary? summary;

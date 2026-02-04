@@ -1,6 +1,9 @@
 library #lib;
 import self as self;
 import "dart:core" as core;
+import "dart:mixin_deduplication" as mix;
+
+import "dart:mixin_deduplication";
 
 class B1 extends core::Object {
   synthetic constructor •() → self::B1
@@ -9,19 +12,19 @@ class B1 extends core::Object {
 }
 abstract class M1<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
-class SA1<T extends core::Object? = dynamic> extends self::_SA1&B1&M1<self::SA1::T%> {
+class SA1<T extends core::Object? = dynamic> extends mix::_MixinApplication0&B1&M1<self::SA1::T%> {
   synthetic constructor •() → self::SA1<self::SA1::T%>
-    : super self::_SA1&B1&M1::•()
+    : super mix::_MixinApplication0&B1&M1::•()
     ;
 }
-class SA2<T extends core::Object? = dynamic> extends self::_SA1&B1&M1<self::SA2::T%> {
+class SA2<T extends core::Object? = dynamic> extends mix::_MixinApplication0&B1&M1<self::SA2::T%> {
   synthetic constructor •() → self::SA2<self::SA2::T%>
-    : super self::_SA1&B1&M1::•()
+    : super mix::_MixinApplication0&B1&M1::•()
     ;
 }
-class SA3<T extends core::Object? = dynamic> extends self::_SA3&B1&M1<self::SA3::T%> {
+class SA3<T extends core::Object? = dynamic> extends mix::_MixinApplication1&B1&M1<self::SA3::T%> {
   synthetic constructor •() → self::SA3<self::SA3::T%>
-    : super self::_SA3&B1&M1::•()
+    : super mix::_MixinApplication1&B1&M1::•()
     ;
 }
 class B2<T extends core::Object? = dynamic> extends core::Object {
@@ -31,19 +34,19 @@ class B2<T extends core::Object? = dynamic> extends core::Object {
 }
 abstract class M2 extends core::Object /*isMixinDeclaration*/  {
 }
-class SB1<T extends core::Object? = dynamic> extends self::_SB1&B2&M2<self::SB1::T%> {
+class SB1<T extends core::Object? = dynamic> extends mix::_MixinApplication2&B2&M2<self::SB1::T%> {
   synthetic constructor •() → self::SB1<self::SB1::T%>
-    : super self::_SB1&B2&M2::•()
+    : super mix::_MixinApplication2&B2&M2::•()
     ;
 }
-class SB2<T extends core::Object? = dynamic> extends self::_SB1&B2&M2<self::SB2::T%> {
+class SB2<T extends core::Object? = dynamic> extends mix::_MixinApplication2&B2&M2<self::SB2::T%> {
   synthetic constructor •() → self::SB2<self::SB2::T%>
-    : super self::_SB1&B2&M2::•()
+    : super mix::_MixinApplication2&B2&M2::•()
     ;
 }
-class SB3<T extends core::Object? = dynamic> extends self::_SB3&B2&M2<self::SB3::T%> {
+class SB3<T extends core::Object? = dynamic> extends mix::_MixinApplication3&B2&M2<self::SB3::T%> {
   synthetic constructor •() → self::SB3<self::SB3::T%>
-    : super self::_SB3&B2&M2::•()
+    : super mix::_MixinApplication3&B2&M2::•()
     ;
 }
 class B3<T extends core::Object? = dynamic> extends core::Object {
@@ -53,49 +56,59 @@ class B3<T extends core::Object? = dynamic> extends core::Object {
 }
 abstract class M3 extends core::Object /*isMixinDeclaration*/  {
 }
-class SC1<T extends core::Object> extends self::_SC1&B3&M2<self::SC1::T> {
+class SC1<T extends core::Object> extends mix::_MixinApplication4&B3&M2<self::SC1::T> {
   synthetic constructor •() → self::SC1<self::SC1::T>
-    : super self::_SC1&B3&M2::•()
+    : super mix::_MixinApplication4&B3&M2::•()
     ;
 }
-class SC2<T extends core::Object> extends self::_SC1&B3&M2<self::SC2::T> {
+class SC2<T extends core::Object> extends mix::_MixinApplication4&B3&M2<self::SC2::T> {
   synthetic constructor •() → self::SC2<self::SC2::T>
-    : super self::_SC1&B3&M2::•()
+    : super mix::_MixinApplication4&B3&M2::•()
     ;
 }
-class SC3<T extends core::Object?> extends self::_SC3&B3&M2<self::SC3::T%> {
+class SC3<T extends core::Object?> extends mix::_MixinApplication5&B3&M2<self::SC3::T%> {
   synthetic constructor •() → self::SC3<self::SC3::T%>
-    : super self::_SC3&B3&M2::•()
-    ;
-}
-abstract class _SA1&B1&M1<T extends core::Object? = dynamic> extends self::B1 implements self::M1<self::_SA1&B1&M1::T%> /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_SA1&B1&M1<self::_SA1&B1&M1::T%>
-    : super self::B1::•()
-    ;
-}
-abstract class _SA3&B1&M1<T extends core::Object? = dynamic> extends self::B1 implements self::M1<self::_SA3&B1&M1::T?> /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_SA3&B1&M1<self::_SA3&B1&M1::T%>
-    : super self::B1::•()
-    ;
-}
-abstract class _SB1&B2&M2<T extends core::Object? = dynamic> extends self::B2<self::_SB1&B2&M2::T%> implements self::M2 /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_SB1&B2&M2<self::_SB1&B2&M2::T%>
-    : super self::B2::•()
-    ;
-}
-abstract class _SB3&B2&M2<T extends core::Object? = dynamic> extends self::B2<self::_SB3&B2&M2::T?> implements self::M2 /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_SB3&B2&M2<self::_SB3&B2&M2::T%>
-    : super self::B2::•()
-    ;
-}
-abstract class _SC1&B3&M2<T extends core::Object> extends self::B3<self::_SC1&B3&M2::T> implements self::M2 /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_SC1&B3&M2<self::_SC1&B3&M2::T>
-    : super self::B3::•()
-    ;
-}
-abstract class _SC3&B3&M2<T extends core::Object?> extends self::B3<self::_SC3&B3&M2::T%> implements self::M2 /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_SC3&B3&M2<self::_SC3&B3&M2::T%>
-    : super self::B3::•()
+    : super mix::_MixinApplication5&B3&M2::•()
     ;
 }
 static method main() → dynamic {}
+
+
+library /*!conditionalImportSupported*/;
+import self as self;
+import "dart:core" as core;
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart" as #lib;
+
+import "dart:core";
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart";
+
+abstract class _MixinApplication0&B1&M1<T extends core::Object? = dynamic> extends #lib::B1 implements #lib::M1<self::_MixinApplication0&B1&M1::T%> /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
+  synthetic constructor •() → self::_MixinApplication0&B1&M1<self::_MixinApplication0&B1&M1::T%>
+    : super #lib::B1::•()
+    ;
+}
+abstract class _MixinApplication1&B1&M1<T extends core::Object? = dynamic> extends #lib::B1 implements #lib::M1<self::_MixinApplication1&B1&M1::T?> /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
+  synthetic constructor •() → self::_MixinApplication1&B1&M1<self::_MixinApplication1&B1&M1::T%>
+    : super #lib::B1::•()
+    ;
+}
+abstract class _MixinApplication2&B2&M2<T extends core::Object? = dynamic> extends #lib::B2<self::_MixinApplication2&B2&M2::T%> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
+  synthetic constructor •() → self::_MixinApplication2&B2&M2<self::_MixinApplication2&B2&M2::T%>
+    : super #lib::B2::•()
+    ;
+}
+abstract class _MixinApplication3&B2&M2<T extends core::Object? = dynamic> extends #lib::B2<self::_MixinApplication3&B2&M2::T?> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
+  synthetic constructor •() → self::_MixinApplication3&B2&M2<self::_MixinApplication3&B2&M2::T%>
+    : super #lib::B2::•()
+    ;
+}
+abstract class _MixinApplication4&B3&M2<T extends core::Object> extends #lib::B3<self::_MixinApplication4&B3&M2::T> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
+  synthetic constructor •() → self::_MixinApplication4&B3&M2<self::_MixinApplication4&B3&M2::T>
+    : super #lib::B3::•()
+    ;
+}
+abstract class _MixinApplication5&B3&M2<T extends core::Object?> extends #lib::B3<self::_MixinApplication5&B3&M2::T%> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
+  synthetic constructor •() → self::_MixinApplication5&B3&M2<self::_MixinApplication5&B3&M2::T%>
+    : super #lib::B3::•()
+    ;
+}

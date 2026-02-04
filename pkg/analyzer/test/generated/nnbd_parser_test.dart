@@ -6,14 +6,14 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../util/ast_type_matchers.dart';
 import '../util/feature_sets.dart';
 import 'parser_test_base.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -27,12 +27,12 @@ class NNBDParserTest extends FastaParserTestCase {
   CompilationUnitImpl parseCompilationUnit(
     String content, {
     List<DiagnosticCode>? codes,
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
     FeatureSet? featureSet,
   }) => super.parseCompilationUnit(
     content,
     codes: codes,
-    errors: errors,
+    diagnostics: diagnostics,
     featureSet: featureSet ?? FeatureSet.latestLanguageVersion(),
   );
 
@@ -155,9 +155,7 @@ main() {
   void test_cascade_withNullCheck_invalid() {
     parseCompilationUnit(
       'main() { a..[27]?..x; }',
-      errors: [
-        expectedError(ParserErrorCode.nullAwareCascadeOutOfOrder, 16, 3),
-      ],
+      diagnostics: [expectedError(diag.nullAwareCascadeOutOfOrder, 16, 3)],
     );
   }
 
@@ -194,10 +192,10 @@ main() {
   void test_conditional_error() {
     parseCompilationUnit(
       'D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
-      errors: [
-        expectedError(ParserErrorCode.missingIdentifier, 19, 1),
-        expectedError(ParserErrorCode.expectedToken, 40, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 40, 1),
+      diagnostics: [
+        expectedError(diag.missingIdentifier, 19, 1),
+        expectedError(diag.expectedToken, 40, 1),
+        expectedError(diag.missingIdentifier, 40, 1),
       ],
     );
   }
@@ -230,12 +228,12 @@ main() {
     // https://github.com/dart-lang/sdk/issues/38113
     parseCompilationUnit(
       r'+t{{r?this}}',
-      errors: [
-        expectedError(ParserErrorCode.expectedExecutable, 0, 1),
-        expectedError(ParserErrorCode.missingFunctionParameters, 1, 1),
-        expectedError(ParserErrorCode.expectedToken, 6, 4),
-        expectedError(ParserErrorCode.expectedToken, 10, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 10, 1),
+      diagnostics: [
+        expectedError(diag.expectedExecutable, 0, 1),
+        expectedError(diag.missingFunctionParameters, 1, 1),
+        expectedError(diag.expectedToken, 6, 4),
+        expectedError(diag.expectedToken, 10, 1),
+        expectedError(diag.missingIdentifier, 10, 1),
       ],
     );
   }
@@ -360,7 +358,8 @@ class Foo {
 }
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
-    var constructor = classDeclaration.members
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructor = classBody.members
         .whereType<ConstructorDeclaration>()
         .single;
 
@@ -407,7 +406,8 @@ class Foo {
 }
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
-    var constructor = classDeclaration.members
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructor = classBody.members
         .whereType<ConstructorDeclaration>()
         .single;
 
@@ -461,7 +461,8 @@ class Foo {
 }
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
-    var constructor = classDeclaration.members
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructor = classBody.members
         .whereType<ConstructorDeclaration>()
         .single;
 

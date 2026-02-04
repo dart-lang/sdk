@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,16 +13,17 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Avoid <Type>.toString() in production code since results may be minified.';
 
-class AvoidTypeToString extends LintRule {
+class AvoidTypeToString extends AnalysisRule {
   AvoidTypeToString()
     : super(name: LintNames.avoid_type_to_string, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidTypeToString;
+  DiagnosticCode get diagnosticCode => diag.avoidTypeToString;
 
   @override
   void registerNodeProcessors(
@@ -49,7 +51,7 @@ class AvoidTypeToString extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final TypeSystem typeSystem;
   final InterfaceType typeType;
 

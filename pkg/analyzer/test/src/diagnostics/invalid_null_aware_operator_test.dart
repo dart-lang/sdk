@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +26,7 @@ void f(String? s) {
 ''',
       [
         error(
-          StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
+          diag.invalidNullAwareOperatorAfterShortCircuit,
           31,
           2,
           contextMessages: [message(testFile, 23, 2)],
@@ -45,7 +44,7 @@ void f(String? s) {
 ''',
       [
         error(
-          StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
+          diag.invalidNullAwareOperatorAfterShortCircuit,
           27,
           2,
           contextMessages: [message(testFile, 23, 1)],
@@ -67,7 +66,7 @@ class C {
 ''',
       [
         error(
-          StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
+          diag.invalidNullAwareOperatorAfterShortCircuit,
           75,
           2,
           contextMessages: [message(testFile, 69, 2)],
@@ -85,7 +84,7 @@ void f(String? s) {
 ''',
       [
         error(
-          StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
+          diag.invalidNullAwareOperatorAfterShortCircuit,
           40,
           2,
           contextMessages: [message(testFile, 23, 2)],
@@ -103,13 +102,13 @@ void f(String? s) {
 ''',
       [
         error(
-          StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
+          diag.invalidNullAwareOperatorAfterShortCircuit,
           40,
           2,
           contextMessages: [message(testFile, 23, 2)],
         ),
         error(
-          StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
+          diag.invalidNullAwareOperatorAfterShortCircuit,
           55,
           2,
           contextMessages: [message(testFile, 23, 2)],
@@ -133,7 +132,7 @@ void f(int? a, int b) {
   E(b)?[0] = true;
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 109, 2)],
+      [error(diag.invalidNullAwareOperator, 109, 2)],
     );
   }
 
@@ -149,7 +148,7 @@ void f(int? a, int b) {
   E(b)?.foo = true;
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 95, 2)],
+      [error(diag.invalidNullAwareOperator, 95, 2)],
     );
   }
 
@@ -165,7 +164,7 @@ void f(int? a, int b) {
   E(b)?[0];
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 104, 2)],
+      [error(diag.invalidNullAwareOperator, 104, 2)],
     );
     assertType(findNode.index('E(a)'), 'bool?');
     assertType(findNode.index('E(b)'), 'bool?');
@@ -183,7 +182,7 @@ void f(int? a, int b) {
   E(b)?.foo();
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 91, 2)],
+      [error(diag.invalidNullAwareOperator, 91, 2)],
     );
 
     assertType(findNode.methodInvocation('E(a)'), 'bool?');
@@ -202,7 +201,7 @@ void f(int? a, int b) {
   E(b)?.foo;
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 91, 2)],
+      [error(diag.invalidNullAwareOperator, 91, 2)],
     );
     assertType(findNode.propertyAccess('E(a)'), 'bool?');
     assertType(findNode.propertyAccess('E(b)'), 'bool?');
@@ -219,7 +218,7 @@ f() {
   C?.x;
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 42, 2)],
+      [error(diag.invalidNullAwareOperator, 42, 2)],
     );
   }
 
@@ -234,7 +233,7 @@ f() {
   E?.x;
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 53, 2)],
+      [error(diag.invalidNullAwareOperator, 53, 2)],
     );
   }
 
@@ -249,7 +248,7 @@ f() {
   M?.x;
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 42, 2)],
+      [error(diag.invalidNullAwareOperator, 42, 2)],
     );
   }
 
@@ -262,8 +261,8 @@ f(int x) {
 }
 ''',
       [
-        error(StaticWarningCode.invalidNullAwareOperator, 14, 2),
-        error(StaticWarningCode.invalidNullAwareOperator, 27, 3),
+        error(diag.invalidNullAwareOperator, 14, 2),
+        error(diag.invalidNullAwareOperator, 27, 3),
       ],
     );
   }
@@ -278,7 +277,7 @@ f(int? x) {
   }
 
   /// Here we test that analysis does not crash while checking whether to
-  /// report [StaticWarningCode.invalidNullAwareOperator]. But we also
+  /// report [diag.invalidNullAwareOperator]. But we also
   /// report another error.
   test_getter_prefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -292,7 +291,7 @@ f() {
   p?.x;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 31, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 31, 1)],
     );
   }
 
@@ -305,8 +304,8 @@ f(List<int> x) {
 }
 ''',
       [
-        error(StaticWarningCode.invalidNullAwareOperator, 20, 2),
-        error(StaticWarningCode.invalidNullAwareOperator, 29, 3),
+        error(diag.invalidNullAwareOperator, 20, 2),
+        error(diag.invalidNullAwareOperator, 29, 3),
       ],
     );
   }
@@ -329,12 +328,8 @@ f(Unresolved o) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedClass, 2, 10),
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          44,
-          6,
-        ),
+        error(diag.undefinedClass, 2, 10),
+        error(diag.uncheckedPropertyAccessOfNullableValue, 44, 6),
       ],
     );
   }
@@ -347,7 +342,7 @@ f(Unresolved o) {
   i?.isEven;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
+      [error(diag.undefinedClass, 2, 10)],
     );
   }
 
@@ -362,7 +357,7 @@ f() {
   C?.foo();
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 45, 2)],
+      [error(diag.invalidNullAwareOperator, 45, 2)],
     );
   }
 
@@ -381,7 +376,7 @@ void f() {
   prefix.C?.foo();
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 49, 2)],
+      [error(diag.invalidNullAwareOperator, 49, 2)],
     );
   }
 
@@ -396,7 +391,7 @@ f() {
   E?.foo();
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 56, 2)],
+      [error(diag.invalidNullAwareOperator, 56, 2)],
     );
   }
 
@@ -415,7 +410,7 @@ f() {
   prefix.E?.foo();
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 44, 2)],
+      [error(diag.invalidNullAwareOperator, 44, 2)],
     );
   }
 
@@ -430,7 +425,7 @@ f() {
   M?.foo();
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 45, 2)],
+      [error(diag.invalidNullAwareOperator, 45, 2)],
     );
   }
 
@@ -449,7 +444,7 @@ f() {
   prefix.M?.foo();
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 44, 2)],
+      [error(diag.invalidNullAwareOperator, 44, 2)],
     );
   }
 
@@ -462,8 +457,8 @@ f(int x) {
 }
 ''',
       [
-        error(StaticWarningCode.invalidNullAwareOperator, 14, 2),
-        error(StaticWarningCode.invalidNullAwareOperator, 28, 3),
+        error(diag.invalidNullAwareOperator, 14, 2),
+        error(diag.invalidNullAwareOperator, 28, 3),
       ],
     );
   }
@@ -490,7 +485,7 @@ f() {
   B?.foo();
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 62, 2)],
+      [error(diag.invalidNullAwareOperator, 62, 2)],
     );
   }
 
@@ -509,7 +504,7 @@ f(List<int> x) {
   [...?x];
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 20, 4)],
+      [error(diag.invalidNullAwareOperator, 20, 4)],
     );
   }
 
@@ -532,7 +527,7 @@ f() {
   C?.x = 0;
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 42, 2)],
+      [error(diag.invalidNullAwareOperator, 42, 2)],
     );
   }
 
@@ -547,7 +542,7 @@ f() {
   E?.x = 0;
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 53, 2)],
+      [error(diag.invalidNullAwareOperator, 53, 2)],
     );
   }
 
@@ -562,12 +557,12 @@ f() {
   M?.x = 0;
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 42, 2)],
+      [error(diag.invalidNullAwareOperator, 42, 2)],
     );
   }
 
   /// Here we test that analysis does not crash while checking whether to
-  /// report [StaticWarningCode.invalidNullAwareOperator]. But we also
+  /// report [diag.invalidNullAwareOperator]. But we also
   /// report another error.
   test_setter_prefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -581,7 +576,7 @@ f() {
   p?.x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 31, 1)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 31, 1)],
     );
   }
 
@@ -598,7 +593,7 @@ class B extends A {
   }
 }
 ''',
-      [error(ParserErrorCode.invalidOperatorQuestionmarkPeriodForSuper, 73, 2)],
+      [error(diag.invalidOperatorQuestionmarkPeriodForSuper, 73, 2)],
     );
   }
 }

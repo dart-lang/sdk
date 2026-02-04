@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class WrapInTextTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.WRAP_IN_TEXT;
+  FixKind get kind => DartFixKind.wrapInText;
 
   @override
   void setUp() {

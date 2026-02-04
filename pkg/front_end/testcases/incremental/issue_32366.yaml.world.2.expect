@@ -39,7 +39,7 @@ library from "org-dartlang-test:///main.dart" as main {
     final field invalid-type kjsdf = null;
     field dynamic ksjdf = null;
     constructor •(dynamic a) → main::Foo
-      : final dynamic #t1 = invalid-expression "org-dartlang-test:///main.dart:5:12: Error: 'a' isn't an instance field of this class.\n  Foo(this.a);\n           ^"
+      : invalid-initializer "org-dartlang-test:///main.dart:5:12: Error: 'a' isn't an instance field of this class.\n  Foo(this.a);\n           ^"
       ;
   }
   static method main() → dynamic {

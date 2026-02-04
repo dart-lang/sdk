@@ -13,7 +13,8 @@ mkdir $DIR/lib/generated
 # Directory of the script
 GENERATED_DIR=$DIR/lib/generated
 
-protoc --dart_out=$GENERATED_DIR -I$DIR/protos $DIR/protos/*.proto
-rm $GENERATED_DIR/*.pbenum.dart $GENERATED_DIR/*.pbjson.dart $GENERATED_DIR/*.pbserver.dart
+protoc --dart_out=disable_constructor_args:$GENERATED_DIR -I$DIR/protos $DIR/protos/*.proto
+
+rm $GENERATED_DIR/*.pbenum.dart $GENERATED_DIR/*.pbjson.dart
 
 dart format $DIR/lib/generated

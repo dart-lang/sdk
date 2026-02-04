@@ -35,6 +35,8 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalFlags,
         printDiagnosticMessage,
         resolveInputUri;
+import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
+    show DynamicInterfaceYamlFile;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -186,6 +188,11 @@ void declareCompilerOptions(ArgParser args) {
     help: 'Enable protobuf tree shaker v2 in AOT mode.',
     defaultsTo: false,
   );
+  args.addFlag(
+    'protobuf-tree-shaker-mixins',
+    help: 'Include protobuf messages with mixins in the tree shaker pass.',
+    defaultsTo: false,
+  );
   args.addMultiOption(
     'define',
     abbr: 'D',
@@ -316,6 +323,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
+  final bool protobufTreeShakerMixins = options['protobuf-tree-shaker-mixins'];
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
   final bool? supportMirrors = options['support-mirrors'];
@@ -454,6 +462,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       enableAsserts: enableAsserts,
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
+      protobufTreeShakerMixins: protobufTreeShakerMixins,
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
       targetOS: targetOS,
@@ -578,6 +587,7 @@ class KernelCompilationArguments {
   final bool useRapidTypeAnalysis;
   final bool treeShakeWriteOnlyFields;
   final bool useProtobufTreeShakerV2;
+  final bool protobufTreeShakerMixins;
   final bool minimalKernel;
   final String? targetOS;
   final String? fromDillFile;
@@ -601,6 +611,7 @@ class KernelCompilationArguments {
     this.useRapidTypeAnalysis = true,
     this.treeShakeWriteOnlyFields = false,
     this.useProtobufTreeShakerV2 = false,
+    this.protobufTreeShakerMixins = false,
     this.minimalKernel = false,
     this.targetOS,
     this.fromDillFile,
@@ -640,6 +651,18 @@ Future<KernelCompilationResults> compileToKernel(
     args.environmentDefines,
   );
 
+  List<Uri> additionalSources = args.additionalSources;
+  final dynamicInterface = args.dynamicInterface;
+  if (dynamicInterface != null) {
+    final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
+    final contents = File(fileUri.toFilePath()).readAsStringSync();
+    final dynamicInterfaceYamlFile = DynamicInterfaceYamlFile(contents);
+    additionalSources = [
+      ...additionalSources,
+      ...dynamicInterfaceYamlFile.getUserLibraryUris(dynamicInterface),
+    ];
+  }
+
   CompilerResult? compilerResult;
   final fromDillFile = args.fromDillFile;
   Uri? usedPackageConfig;
@@ -651,7 +674,7 @@ Future<KernelCompilationResults> compileToKernel(
   } else {
     final processedOptions = new ProcessedOptions(
       options: options,
-      inputs: [args.source!, ...args.additionalSources],
+      inputs: [args.source!, ...additionalSources],
     );
     compilerResult = await CompilerContext.runWithOptions(processedOptions, (
       CompilerContext context,
@@ -660,11 +683,11 @@ Future<KernelCompilationResults> compileToKernel(
           ? await kernelForProgram(
             args.source!,
             options,
-            additionalSources: args.additionalSources,
+            additionalSources: additionalSources,
           )
           : await kernelForModule([
             args.source!,
-            ...args.additionalSources,
+            ...additionalSources,
           ], options);
     });
     usedPackageConfig = await processedOptions.resolvePackagesFileUri();
@@ -753,6 +776,9 @@ Future runGlobalTransformations(
 
   final coreTypes = new CoreTypes(component);
 
+  // dynamic_interface_annotator transformation annotates AST nodes with
+  // pragmas and should precede other transformations looking at pragmas
+  // (such as mixin_deduplication and TFA).
   final dynamicInterface = args.dynamicInterface;
   if (dynamicInterface != null) {
     final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
@@ -779,7 +805,7 @@ Future runGlobalTransformations(
   // can benefit from mixin de-duplication.
   // At least, in addition to VM/AOT case we should run this transformation
   // when building a platform dill file for VM/JIT case.
-  mixin_deduplication.transformComponent(component);
+  mixin_deduplication.transformComponent(component, coreTypes, target);
 
   // Perform unreachable code elimination, which should be performed before
   // type flow analysis so TFA won't take unreachable code into account.
@@ -808,6 +834,7 @@ Future runGlobalTransformations(
       treeShakeSignatures: !args.minimalKernel,
       treeShakeWriteOnlyFields: args.treeShakeWriteOnlyFields,
       treeShakeProtobufs: args.useProtobufTreeShakerV2,
+      treeShakeProtobufMixins: args.protobufTreeShakerMixins,
       useRapidTypeAnalysis: args.useRapidTypeAnalysis,
     );
   } else {
@@ -959,6 +986,7 @@ Target? createFrontEndTarget(
   String targetName, {
   bool trackWidgetCreation = false,
   bool supportMirrors = true,
+  bool includeUnsupportedPlatformLibraryStubs = false,
   bool? constKeepLocalsIndicator,
   bool isClosureContextLoweringEnabled = false,
 }) {
@@ -968,6 +996,8 @@ Target? createFrontEndTarget(
   final TargetFlags targetFlags = new TargetFlags(
     trackWidgetCreation: trackWidgetCreation,
     supportMirrors: supportMirrors,
+    includeUnsupportedPlatformLibraryStubs:
+        includeUnsupportedPlatformLibraryStubs,
     constKeepLocalsIndicator: constKeepLocalsIndicator,
     isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
   );

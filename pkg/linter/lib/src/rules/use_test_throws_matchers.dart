@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,15 +11,16 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use throwsA matcher instead of fail().';
 
-class UseTestThrowsMatchers extends LintRule {
+class UseTestThrowsMatchers extends AnalysisRule {
   UseTestThrowsMatchers()
     : super(name: LintNames.use_test_throws_matchers, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useTestThrowsMatchers;
+  DiagnosticCode get diagnosticCode => diag.useTestThrowsMatchers;
 
   @override
   void registerNodeProcessors(
@@ -31,7 +33,7 @@ class UseTestThrowsMatchers extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

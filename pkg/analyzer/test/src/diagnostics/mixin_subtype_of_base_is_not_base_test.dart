@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -23,8 +23,8 @@ base class A {}
 mixin B implements A {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
+        this.error(
+          diag.mixinSubtypeOfBaseIsNotBase,
           22,
           1,
           text:
@@ -42,19 +42,20 @@ sealed class B implements A {}
 mixin C implements B {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
+        this.error(
+          diag.mixinSubtypeOfBaseIsNotBase,
           53,
           1,
           text:
               "The mixin 'C' must be 'base' because the supertype 'A' is 'base'.",
           contextMessages: [
-            ExpectedContextMessage(
+            contextMessage(
               testFile,
               11,
               1,
-              text:
-                  "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              textContains: [
+                "The type 'B' is a subtype of 'A', and 'A' is defined here.",
+              ],
             ),
           ],
         ),
@@ -69,8 +70,8 @@ base class A {}
 mixin B on A {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
+        this.error(
+          diag.mixinSubtypeOfBaseIsNotBase,
           22,
           1,
           text:
@@ -87,8 +88,8 @@ base mixin A {}
 mixin B implements A {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
+        this.error(
+          diag.mixinSubtypeOfBaseIsNotBase,
           22,
           1,
           text:

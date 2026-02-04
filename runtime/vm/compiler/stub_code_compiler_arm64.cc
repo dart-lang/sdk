@@ -1194,6 +1194,16 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                         /*preserve_registers=*/false);
     rt.Call(kDeoptimizeFillFrameRuntimeEntry, 1);
   }
+  if (FLAG_target_thread_sanitizer) {
+    __ mov(CALLEE_SAVED_TEMP, R0);                  // Frames created
+    __ TsanFuncExit(/*preserve_registers=*/false);  // Optimized frame.
+    Label loop;
+    __ Bind(&loop);
+    __ LoadImmediate(R0, 42);
+    __ TsanFuncEntry(/*preserve_registers=*/false);  // Unoptimized frames.
+    __ sub(CALLEE_SAVED_TEMP, CALLEE_SAVED_TEMP, Operand(1));
+    __ cbnz(&loop, CALLEE_SAVED_TEMP);
+  }
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into R1.
     __ LoadFromOffset(
@@ -3464,7 +3474,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   ASSERT(kStackTraceObjectReg == R1);
   __ set_lr_state(compiler::LRState::Clobbered());
   __ mov(THR, R3);
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     Label again, done;
     __ mov(SP, CSP);
     __ ldr(CALLEE_SAVED_TEMP,

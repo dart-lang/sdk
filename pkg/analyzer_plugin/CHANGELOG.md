@@ -1,3 +1,25 @@
+## 0.14.0-dev
+
+- Require version `10.0.0` of the `analyzer` package.
+- `AssistContributorMixin` is now a mixin.
+- Remove deprecated `methodBeingCopied` parameters on various methods.
+- Remove `ChangeBuilder.new`'s deprecated `eol` parameter.
+- Remove `ChangeBuilder.addDartFileEdit`'s deprecated `importPrefixGenerator` parameter.
+- Remove the deprecated `ChangeBuilder.copy` method.
+- Remove the deprecated `RangeFactory.error` method.
+
+## 0.13.11
+
+- Require version `9.0.0` of the `analyzer` package.
+
+## 0.13.10
+
+- Require version `8.4.0` of the `analyzer` package.
+
+## 0.13.9
+
+- Require version `8.3.0` of the `analyzer` package.
+
 ## 0.13.8
 
 - Require version `8.2.0` of the `analyzer` package.

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/src/workspace/pub.dart'; // ignore: implementation_impo
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Deprecation in major version.';
 
@@ -30,12 +32,12 @@ class RemoveDeprecationsInBreakingVersion extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.removeDeprecationsInBreakingVersions;
+      diag.removeDeprecationsInBreakingVersions;
 
   @override
   void registerNodeProcessors(
     RuleVisitorRegistry registry,
-    LinterContext context,
+    RuleContext context,
   ) {
     // Only lint if we have a pubspec, and the version is of the form x.0.0 or
     // 0.x.0.

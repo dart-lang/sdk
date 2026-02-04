@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// Compute the set of external names referenced in the [unit].
 Set<String> computeReferencedNames(CompilationUnit unit) {
@@ -72,11 +72,11 @@ class _LocalNameScope {
 
   factory _LocalNameScope.forClass(
     _LocalNameScope enclosing,
-    ClassDeclaration node,
+    ClassDeclarationImpl node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.typeParameters);
-    for (ClassMember member in node.members) {
+    scope.addTypeParameters(node.namePart.typeParameters);
+    for (ClassMember member in node.body.members) {
       if (member is FieldDeclaration) {
         scope.addVariableNames(member.fields);
       } else if (member is MethodDeclaration) {
@@ -106,11 +106,11 @@ class _LocalNameScope {
 
   factory _LocalNameScope.forExtensionType(
     _LocalNameScope enclosing,
-    ExtensionTypeDeclaration node,
+    ExtensionTypeDeclarationImpl node,
   ) {
     var scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.typeParameters);
-    for (var member in node.members) {
+    scope.addTypeParameters(node.primaryConstructor.typeParameters);
+    for (ClassMember member in node.body.members) {
       if (member is FieldDeclaration) {
         scope.addVariableNames(member.fields);
       } else if (member is MethodDeclaration) {
@@ -152,10 +152,23 @@ class _LocalNameScope {
   factory _LocalNameScope.forUnit(CompilationUnit node) {
     _LocalNameScope scope = _LocalNameScope(null);
     for (CompilationUnitMember declaration in node.declarations) {
-      if (declaration is NamedCompilationUnitMember) {
-        scope.add(declaration.name);
-      } else if (declaration is TopLevelVariableDeclaration) {
-        scope.addVariableNames(declaration.variables);
+      switch (declaration) {
+        case ClassDeclaration():
+          scope.add(declaration.namePart.typeName);
+        case EnumDeclaration():
+          scope.add(declaration.namePart.typeName);
+        case ExtensionDeclaration():
+          scope.add(declaration.name);
+        case ExtensionTypeDeclaration():
+          scope.add(declaration.primaryConstructor.typeName);
+        case FunctionDeclaration():
+          scope.add(declaration.name);
+        case MixinDeclaration():
+          scope.add(declaration.name);
+        case TopLevelVariableDeclaration():
+          scope.addVariableNames(declaration.variables);
+        case TypeAlias():
+          scope.add(declaration.name);
       }
     }
     return scope;
@@ -216,7 +229,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClass(localScope, node);
@@ -262,7 +275,9 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     var outerScope = localScope;
     try {
       localScope = _LocalNameScope.forExtensionType(localScope, node);
@@ -328,7 +343,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     }
     // Ignore class names references from constructors.
     var parent = node.parent!;
-    if (parent is ConstructorDeclaration && parent.returnType == node) {
+    if (parent is ConstructorDeclaration && parent.typeName == node) {
       return;
     }
     // Prepare name.

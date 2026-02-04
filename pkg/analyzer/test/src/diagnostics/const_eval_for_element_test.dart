@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,12 +21,8 @@ class ConstEvalForElementTest extends PubPackageResolutionTest {
 const x = [for (int i = 0; i < 3; i++) i];
 ''',
       [
-        error(
-          CompileTimeErrorCode.constInitializedWithNonConstantValue,
-          10,
-          31,
-        ),
-        error(CompileTimeErrorCode.constEvalForElement, 11, 29),
+        error(diag.constInitializedWithNonConstantValue, 10, 31),
+        error(diag.constEvalForElement, 11, 29),
       ],
     );
   }
@@ -38,12 +34,8 @@ const Set set = {};
 const x = [for(final i in set) i];
 ''',
       [
-        error(
-          CompileTimeErrorCode.constInitializedWithNonConstantValue,
-          30,
-          23,
-        ),
-        error(CompileTimeErrorCode.constEvalForElement, 31, 21),
+        error(diag.constInitializedWithNonConstantValue, 30, 23),
+        error(diag.constEvalForElement, 31, 21),
       ],
     );
   }
@@ -54,12 +46,8 @@ const x = [for(final i in set) i];
 const x = {for (final i in const []) i: null};
 ''',
       [
-        error(
-          CompileTimeErrorCode.constInitializedWithNonConstantValue,
-          10,
-          35,
-        ),
-        error(CompileTimeErrorCode.constEvalForElement, 11, 33),
+        error(diag.constInitializedWithNonConstantValue, 10, 35),
+        error(diag.constEvalForElement, 11, 33),
       ],
     );
   }
@@ -70,12 +58,8 @@ const x = {for (final i in const []) i: null};
 const x = {if (true) for (final i in const []) i: null};
 ''',
       [
-        error(
-          CompileTimeErrorCode.constInitializedWithNonConstantValue,
-          10,
-          45,
-        ),
-        error(CompileTimeErrorCode.constEvalForElement, 21, 33),
+        error(diag.constInitializedWithNonConstantValue, 10, 45),
+        error(diag.constEvalForElement, 21, 33),
       ],
     );
   }
@@ -87,12 +71,8 @@ const Set set = {};
 const x = {for (final i in set) i};
 ''',
       [
-        error(
-          CompileTimeErrorCode.constInitializedWithNonConstantValue,
-          30,
-          24,
-        ),
-        error(CompileTimeErrorCode.constEvalForElement, 31, 22),
+        error(diag.constInitializedWithNonConstantValue, 30, 24),
+        error(diag.constEvalForElement, 31, 22),
       ],
     );
   }

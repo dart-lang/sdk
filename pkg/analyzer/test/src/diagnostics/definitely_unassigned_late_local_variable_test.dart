@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,8 +17,8 @@ main() {
 @reflectiveTest
 class DefinitelyUnassignedLateLocalVariableTest
     extends PubPackageResolutionTest {
-  CompileTimeErrorCode get _errorCode {
-    return CompileTimeErrorCode.definitelyUnassignedLateLocalVariable;
+  DiagnosticCode get _errorCode {
+    return diag.definitelyUnassignedLateLocalVariable;
   }
 
   test_definitelyAssigned_after_compoundAssignment() async {
@@ -104,7 +105,7 @@ void f() {
   v += 1;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 22, 1), error(_errorCode, 27, 1)],
+      [error(diag.unusedLocalVariable, 22, 1), error(_errorCode, 27, 1)],
     );
   }
 
@@ -116,7 +117,7 @@ void f() {
   v = 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 22, 1)],
+      [error(diag.unusedLocalVariable, 22, 1)],
     );
   }
 
@@ -140,7 +141,7 @@ void f() {
   ++v;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 22, 1), error(_errorCode, 29, 1)],
+      [error(diag.unusedLocalVariable, 22, 1), error(_errorCode, 29, 1)],
     );
   }
 
@@ -164,7 +165,7 @@ void f() {
   v++;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 22, 1), error(_errorCode, 27, 1)],
+      [error(diag.unusedLocalVariable, 22, 1), error(_errorCode, 27, 1)],
     );
   }
 }

@@ -5,8 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Instances of the class `OverrideVerifier` visit all of the declarations in a
 /// compilation unit to verify that if they have an override annotation it is
@@ -45,10 +45,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
         var setter = fieldElement.setter;
         if (setter != null && _isOverride(setter)) continue;
 
-        _errorReporter.atToken(
-          field.name,
-          WarningCode.overrideOnNonOverridingField,
-        );
+        _errorReporter.report(diag.overrideOnNonOverridingField.at(field.name));
       }
     }
   }
@@ -59,19 +56,16 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
     if (element.metadata.hasOverride && !_isOverride(element)) {
       switch (element) {
         case MethodElement():
-          _errorReporter.atToken(
-            node.name,
-            WarningCode.overrideOnNonOverridingMethod,
+          _errorReporter.report(
+            diag.overrideOnNonOverridingMethod.at(node.name),
           );
         case GetterElement():
-          _errorReporter.atToken(
-            node.name,
-            WarningCode.overrideOnNonOverridingGetter,
+          _errorReporter.report(
+            diag.overrideOnNonOverridingGetter.at(node.name),
           );
         case SetterElement():
-          _errorReporter.atToken(
-            node.name,
-            WarningCode.overrideOnNonOverridingSetter,
+          _errorReporter.report(
+            diag.overrideOnNonOverridingSetter.at(node.name),
           );
       }
     }
@@ -87,11 +81,18 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   /// Return `true` if the [member] overrides a member from a superinterface.
   bool _isOverride(ExecutableElement member) {
     var currentClass = _currentClass?.firstFragment;
-    if (currentClass != null) {
-      var name = Name.forElement(member)!;
-      return currentClass.element.getOverridden(name) != null;
-    } else {
+    if (currentClass == null) {
       return false;
     }
+
+    var name = Name.forElement(member);
+
+    // We get `null` if the element does not have name.
+    // This was already a parse error, avoid the warning.
+    if (name == null) {
+      return true;
+    }
+
+    return currentClass.element.getOverridden(name) != null;
   }
 }

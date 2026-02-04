@@ -47,21 +47,7 @@ abstract class TypeSystem {
   });
 
   /// Instantiate the given [element] with default type arguments.
-  @Deprecated('Use instantiateInterfaceToBounds instead')
-  InterfaceType instantiateInterfaceToBounds2({
-    required InterfaceElement element,
-    required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Instantiate the given [element] with default type arguments.
   DartType instantiateTypeAliasToBounds({
-    required TypeAliasElement element,
-    required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Instantiate the given [element] with default type arguments.
-  @Deprecated('Use instantiateTypeAliasToBounds instead')
-  DartType instantiateTypeAliasToBounds2({
     required TypeAliasElement element,
     required NullabilitySuffix nullabilitySuffix,
   });

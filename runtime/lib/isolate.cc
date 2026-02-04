@@ -38,7 +38,7 @@ DEFINE_NATIVE_ENTRY(Capability_factory, 0, 1) {
   // protocol can process it properly.
   //
   // See https://github.com/dart-lang/sdk/issues/53081.
-  uint64_t id = isolate->random()->NextJSInt();
+  uint64_t id = thread->random()->NextJSInt();
   return Capability::New(id);
 }
 
@@ -1275,6 +1275,75 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
     UNREACHABLE();
   }
 
+  return Object::null();
+}
+
+static void EnsureThreadLocalsTableExistsAndBigEnough(Thread* thread,
+                                                      intptr_t id) {
+  Array& locals = Array::Handle(thread->thread_locals());
+  if (id >= locals.Length()) {
+    intptr_t new_length = id + 1;
+    const Array& new_array =
+        Array::Handle(Array::Grow(locals, new_length, Heap::kOld));
+    for (intptr_t i = locals.Length(); i < new_length; i++) {
+      new_array.SetAt(i, Object::sentinel());
+    }
+    thread->set_thread_locals(new_array);
+  }
+}
+
+DEFINE_NATIVE_ENTRY(ThreadLocal_allocateId, 0, 0) {
+  auto isolate_group = thread->isolate_group();
+  isolate_group->increment_thread_locals_count();
+  intptr_t new_index = isolate_group->thread_locals_count() - 1;
+  EnsureThreadLocalsTableExistsAndBigEnough(thread, new_index);
+  Array& locals = Array::Handle(thread->thread_locals());
+  locals.SetAt(new_index, Object::sentinel());
+  return Integer::New(new_index);
+}
+
+static void ValidateScopedThreadLocalId(Thread* thread, intptr_t id) {
+  if (id < 0 || id >= thread->isolate_group()->thread_locals_count()) {
+    const String& msg = String::Handle(String::New("Invalid local id."));
+    Exceptions::ThrowStateError(msg);
+    UNREACHABLE();
+  }
+  EnsureThreadLocalsTableExistsAndBigEnough(thread, id);
+}
+
+DEFINE_NATIVE_ENTRY(ThreadLocal_hasValue, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, id_obj, arguments->NativeArgAt(0));
+  intptr_t id = id_obj.Value();
+  ValidateScopedThreadLocalId(thread, id);
+  Array& locals = Array::Handle(thread->thread_locals());
+  return locals.At(id) == Object::sentinel().ptr() ? Bool::False().ptr()
+                                                   : Bool::True().ptr();
+}
+
+DEFINE_NATIVE_ENTRY(ThreadLocal_getValue, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, id_obj, arguments->NativeArgAt(0));
+  intptr_t id = id_obj.Value();
+  ValidateScopedThreadLocalId(thread, id);
+  Array& locals = Array::Handle(thread->thread_locals());
+  return locals.At(id);
+}
+
+DEFINE_NATIVE_ENTRY(ThreadLocal_setValue, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, id_obj, arguments->NativeArgAt(0));
+  intptr_t id = id_obj.Value();
+  ValidateScopedThreadLocalId(thread, id);
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(1));
+  Array& locals = Array::Handle(thread->thread_locals());
+  locals.SetAt(id, value);
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(ThreadLocal_clearValue, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, id_obj, arguments->NativeArgAt(0));
+  intptr_t id = id_obj.Value();
+  ValidateScopedThreadLocalId(thread, id);
+  Array& locals = Array::Handle(thread->thread_locals());
+  locals.SetAt(id, Object::sentinel());
   return Object::null();
 }
 

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveNameFromCombinatorTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_NAME_FROM_COMBINATOR;
+  FixKind get kind => DartFixKind.removeNameFromCombinator;
 
   Future<void> test_duplicateHiddenName_last() async {
     await resolveTestCode('''

@@ -221,7 +221,9 @@ class InstanceCall : public UnoptimizedCall {
 #endif  // DEBUG
   }
 
-  ObjectPtr data() const { return object_pool_.ObjectAt(argument_index()); }
+  ObjectPtr data() const {
+    return object_pool_.ObjectAt<std::memory_order_acquire>(argument_index());
+  }
   void set_data(const Object& data) const {
     ASSERT(data.IsArray() || data.IsICData() || data.IsMegamorphicCache());
     object_pool_.SetObjectAt<std::memory_order_release>(argument_index(), data);
@@ -294,7 +296,9 @@ class SwitchableCallBase : public ValueObject {
   intptr_t data_index() const { return data_index_; }
   intptr_t target_index() const { return target_index_; }
 
-  ObjectPtr data() const { return object_pool_.ObjectAt(data_index()); }
+  ObjectPtr data() const {
+    return object_pool_.ObjectAt<std::memory_order_acquire>(data_index());
+  }
 
   void SetDataRelease(const Object& data) const {
     ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index())).IsCode());
@@ -442,7 +446,9 @@ class BareSwitchableCall : public SwitchableCallBase {
         target_index(), target.MonomorphicEntryPoint());
   }
 
-  uword target_entry() const { return object_pool_.RawValueAt(target_index()); }
+  uword target_entry() const {
+    return object_pool_.RawValueAt<std::memory_order_relaxed>(target_index());
+  }
 };
 
 CodePtr CodePatcher::GetStaticCallTargetAt(uword return_address,
@@ -518,9 +524,12 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
+  // We lock to block other writers but don't start a safepoint to block readers
+  // (i.e., Dart execution).
   // First update target to a stub that does not read 'data' so that concurrent
   // Dart execution cannot observe the new stub with the old data or the old
   // stub with the new data.
+  SafepointMutexLocker ml(IsolateGroup::Current()->type_feedback_mutex());
   if (FLAG_precompiled_mode) {
     BareSwitchableCall call(return_address);
     call.SetTargetRelease(StubCode::SwitchableCallMiss());
@@ -531,16 +540,6 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
     call.SetTargetRelease(StubCode::SwitchableCallMiss());
     call.SetDataRelease(data);
     call.SetTargetRelease(target);
-  }
-}
-
-ObjectPtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                                 const Code& caller_code) {
-  if (FLAG_precompiled_mode) {
-    UNREACHABLE();
-  } else {
-    SwitchableCall call(return_address, caller_code);
-    return call.target();
   }
 }
 

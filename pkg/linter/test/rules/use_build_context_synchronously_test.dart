@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:linter/src/rules/use_build_context_synchronously.dart';
@@ -2275,7 +2276,9 @@ abstract class C extends State<StatefulWidget> {
 
 Future<void> f() async {}
 ''',
-      [lint(195, 12, messageContains: "an unrelated 'mounted' check")],
+      [
+        lint(195, 12, messageContainsAll: ["an unrelated 'mounted' check"]),
+      ],
     );
   }
 
@@ -2351,7 +2354,9 @@ abstract class C extends State<StatefulWidget> {
 
 Future<void> f() async {}
 ''',
-      [lint(188, 7, messageContains: "an unrelated 'mounted' check")],
+      [
+        lint(188, 7, messageContainsAll: ["an unrelated 'mounted' check"]),
+      ],
     );
   }
 
@@ -2390,7 +2395,9 @@ abstract class C extends State<StatefulWidget> {
 
 Future<void> f() async {}
 ''',
-      [lint(192, 7, messageContains: "an unrelated 'mounted' check")],
+      [
+        lint(192, 7, messageContainsAll: ["an unrelated 'mounted' check"]),
+      ],
     );
   }
 
@@ -2607,7 +2614,7 @@ void foo(BuildContext context) async {
       [
         // Just don't crash when one argument references BuildContext, and not all
         // positional arguments are given.
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 95, 36),
+        error(diag.argumentTypeNotAssignable, 95, 36),
       ],
     );
   }

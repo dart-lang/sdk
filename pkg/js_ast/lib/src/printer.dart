@@ -11,14 +11,16 @@ class JavaScriptPrintingOptions {
   final bool utf8;
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
+  final bool minifyStatementLabels;
   final bool preferSemicolonToNewlineInMinifiedOutput;
 
   const JavaScriptPrintingOptions({
     this.utf8 = false,
-    this.shouldCompressOutput = false,
-    this.minifyLocalVariables = false,
+    bool minify = false,
     this.preferSemicolonToNewlineInMinifiedOutput = false,
-  });
+  }) : shouldCompressOutput = minify,
+       minifyLocalVariables = minify,
+       minifyStatementLabels = minify;
 }
 
 /// An environment in which JavaScript printing is done.  Provides emitting of
@@ -89,6 +91,7 @@ class Printer implements NodeVisitor<void> {
   final bool shouldCompressOutput;
   final DanglingElseVisitor danglingElseVisitor;
   final LocalNamer localNamer;
+  final _LabelNamer _labelNamer;
   final bool isDebugContext;
 
   int _charCount = 0;
@@ -140,10 +143,10 @@ class Printer implements NodeVisitor<void> {
     : isDebugContext = context.isDebugContext,
       shouldCompressOutput = options.shouldCompressOutput,
       danglingElseVisitor = DanglingElseVisitor(context),
-      localNamer = determineRenamer(
-        options.shouldCompressOutput,
-        options.minifyLocalVariables,
-      );
+      localNamer = options.minifyLocalVariables
+          ? MinifyRenamer()
+          : IdentityNamer(),
+      _labelNamer = _LabelNamer(options.minifyStatementLabels);
 
   static LocalNamer determineRenamer(
     bool shouldCompressOutput,
@@ -577,7 +580,7 @@ class Printer implements NodeVisitor<void> {
     if (node.targetLabel == null) {
       outIndent('continue');
     } else {
-      outIndent('continue ${node.targetLabel}');
+      outIndent('continue ${_labelNamer.mapLabelName(node.targetLabel!)}');
     }
     outSemicolonLn();
   }
@@ -587,7 +590,7 @@ class Printer implements NodeVisitor<void> {
     if (node.targetLabel == null) {
       outIndent('break');
     } else {
-      outIndent('break ${node.targetLabel}');
+      outIndent('break ${_labelNamer.mapLabelName(node.targetLabel!)}');
     }
     outSemicolonLn();
   }
@@ -724,7 +727,7 @@ class Printer implements NodeVisitor<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    outIndent('${node.label}:');
+    outIndent('${_labelNamer.mapLabelName(node.label)}:');
     blockBody(node.body, needsSeparation: false, needsNewline: true);
   }
 
@@ -740,7 +743,7 @@ class Printer implements NodeVisitor<void> {
         newAtStatementBegin: false,
       );
     }
-    localNamer.enterScope(vars);
+    _enterFunctionScope(vars);
     out('(');
     visitCommaSeparated(
       fun.params,
@@ -771,8 +774,18 @@ class Printer implements NodeVisitor<void> {
       shouldIndent: false,
       needsNewline: false,
     );
-    localNamer.leaveScope();
+    _exitFunctionScope();
     return closingPosition;
+  }
+
+  void _enterFunctionScope(VarCollector vars) {
+    localNamer.enterScope(vars);
+    _labelNamer.enterFunction();
+  }
+
+  void _exitFunctionScope() {
+    _labelNamer.exitFunction();
+    localNamer.leaveScope();
   }
 
   @override
@@ -1393,7 +1406,7 @@ class Printer implements NodeVisitor<void> {
 
   int arrowFunctionOut(ArrowFunction fun, VarCollector vars) {
     // TODO: support static, get/set, async, and generators.
-    localNamer.enterScope(vars);
+    _enterFunctionScope(vars);
     final List<Parameter> params = fun.params;
     if (params.length == 1 && _isIdentifierParameter(params.first)) {
       visitNestedExpression(
@@ -1438,7 +1451,7 @@ class Printer implements NodeVisitor<void> {
       if (needsParens) out(')');
       closingPosition = _charCount;
     }
-    localNamer.leaveScope();
+    _exitFunctionScope();
     return closingPosition;
   }
 
@@ -1637,7 +1650,7 @@ class Printer implements NodeVisitor<void> {
   int methodOut(MethodDefinition node, VarCollector vars) {
     // TODO: support static, get/set, async, and generators.
     Fun fun = node.function;
-    localNamer.enterScope(vars);
+    _enterFunctionScope(vars);
     out('(');
     visitCommaSeparated(
       fun.params,
@@ -1652,7 +1665,7 @@ class Printer implements NodeVisitor<void> {
       shouldIndent: false,
       needsNewline: false,
     );
-    localNamer.leaveScope();
+    _exitFunctionScope();
     return closingPosition;
   }
 
@@ -2136,6 +2149,42 @@ class MinifyRenamer implements LocalNamer {
     assert(RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
     maps.last[oldName] = newName;
     return newName;
+  }
+}
+
+class _LabelNamer {
+  final bool renameLabels;
+
+  Map<String, String> _renamings = {};
+
+  final List<Map<String, String>> _outerScopes = [];
+
+  _LabelNamer(this.renameLabels);
+
+  String mapLabelName(String name) {
+    if (!renameLabels) return name;
+    return _renamings[name] ??= _newLabelName(_renamings, name);
+  }
+
+  static String _newLabelName(Map<String, String> renamings, String name) {
+    assert(!renamings.containsKey(name));
+    int index = renamings.length;
+    if (index < 26) return String.fromCharCode(index + 'A'.codeUnitAt(0));
+    index -= 26;
+    if (index < 26) return String.fromCharCode(index + 'a'.codeUnitAt(0));
+    index -= 26;
+    return 'L$index';
+  }
+
+  void enterFunction() {
+    if (!renameLabels) return;
+    _outerScopes.add(_renamings);
+    _renamings = {};
+  }
+
+  void exitFunction() {
+    if (!renameLabels) return;
+    _renamings = _outerScopes.removeLast();
   }
 }
 

@@ -33,9 +33,10 @@ class DefaultTypesBuilder {
     for (var node in nodes) {
       if (node is ClassDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
+        var typeParameters = node.namePart.typeParameters;
+        _breakSelfCycles(typeParameters);
+        _breakRawTypeCycles(element, typeParameters);
+        _computeBounds(element, typeParameters);
       } else if (node is ClassTypeAliasImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
@@ -43,9 +44,10 @@ class DefaultTypesBuilder {
         _computeBounds(element, node.typeParameters);
       } else if (node is EnumDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
+        var typeParameters = node.namePart.typeParameters;
+        _breakSelfCycles(typeParameters);
+        _breakRawTypeCycles(element, typeParameters);
+        _computeBounds(element, typeParameters);
       } else if (node is ExtensionDeclarationImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
@@ -53,9 +55,10 @@ class DefaultTypesBuilder {
         _computeBounds(element, node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
+        var typeParameters = node.primaryConstructor.typeParameters;
+        _breakSelfCycles(typeParameters);
+        _breakRawTypeCycles(element, typeParameters);
+        _computeBounds(element, typeParameters);
       } else if (node is FunctionTypeAliasImpl) {
         var element = node.declaredFragment!.element;
         _breakSelfCycles(node.typeParameters);
@@ -90,15 +93,15 @@ class DefaultTypesBuilder {
     }
     for (var node in nodes) {
       if (node is ClassDeclarationImpl) {
-        _build(node.typeParameters);
+        _build(node.namePart.typeParameters);
       } else if (node is ClassTypeAliasImpl) {
         _build(node.typeParameters);
       } else if (node is EnumDeclarationImpl) {
-        _build(node.typeParameters);
+        _build(node.namePart.typeParameters);
       } else if (node is ExtensionDeclarationImpl) {
         _build(node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
-        _build(node.typeParameters);
+        _build(node.primaryConstructor.typeParameters);
       } else if (node is FunctionTypeAliasImpl) {
         _build(node.typeParameters);
       } else if (node is GenericTypeAliasImpl) {

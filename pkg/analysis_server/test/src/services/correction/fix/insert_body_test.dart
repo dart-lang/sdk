@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class InsertBodyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.INSERT_BODY;
+  FixKind get kind => DartFixKind.insertBody;
 
   Future<void> test_expectedCatchClauseBody() async {
     await resolveTestCode('''
@@ -122,12 +122,8 @@ f() {
 enum E
 ''');
     // TODO(pq): consider special casing enums to improve the insertion offset
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 enum E
- {}''',
-      errorFilter: (error) =>
-          error.diagnosticCode != CompileTimeErrorCode.enumWithoutConstants,
-    );
+ {}''', filter: (error) => error.diagnosticCode != diag.enumWithoutConstants);
   }
 }

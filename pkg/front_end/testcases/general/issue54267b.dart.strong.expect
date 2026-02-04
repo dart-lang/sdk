@@ -26,7 +26,7 @@ class A extends core::_Enum /*isEnum*/  {
   const A(this.value);
                ^^^^^";
   const constructor •(core::int #index, core::String #name, dynamic value) → self::A
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
+    : invalid-initializer "pkg/front_end/testcases/general/issue54267b.dart:10:16: Error: 'value' isn't an instance field of this class.
   const A(this.value);
                ^^^^^"
     ;
@@ -35,7 +35,7 @@ class A extends core::_Enum /*isEnum*/  {
 }
 static method fn(self::A a) → core::int
   return block {
-    core::int #t2;
+    core::int #t1;
     #L1:
     switch(a) /* isExplicitlyExhaustive, self::A */ {
       #L2:
@@ -43,7 +43,7 @@ static method fn(self::A a) → core::int
   const A(this.value);
                ^^^^^":
         {
-          #t2 = 0;
+          #t1 = 0;
           break #L1;
         }
       #L3:
@@ -51,11 +51,11 @@ static method fn(self::A a) → core::int
   const A(this.value);
                ^^^^^":
         {
-          #t2 = 1;
+          #t1 = 1;
           break #L1;
         }
     }
-  } =>#t2;
+  } =>#t1;
 
 
 

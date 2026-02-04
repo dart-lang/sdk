@@ -1,0 +1,96 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 42
+    },
+    {
+      "type": "String",
+      "value": "helper"
+    },
+    {
+      "type": "String",
+      "value": ""
+    }
+  ],
+  "locations": [
+    {
+      "uri": "memory:sdk/tests/web/native/loading_units_simple_helper.dart"
+    },
+    {
+      "uri": "memory:sdk/tests/web/native/loading_units_simple.dart"
+    }
+  ],
+  "metadata": {
+    "comment": "Resources referenced by annotated resource identifiers",
+    "AppTag": "TBD",
+    "environment": {
+      "dart.web.assertions_enabled": "false",
+      "dart.tool.dart2js": "true",
+      "dart.tool.dart2js.minify": "false",
+      "dart.tool.dart2js.disable_rti_optimization": "false",
+      "dart.tool.dart2js.primitives:trust": "false",
+      "dart.tool.dart2js.types:trust": "false"
+    },
+    "version": "0.4.0"
+  },
+  "recordings": [
+    {
+      "calls": [
+        {
+          "@": 0,
+          "loading_unit": "out_1",
+          "positional": [
+            0
+          ],
+          "type": "with_arguments"
+        }
+      ],
+      "definition": {
+        "identifier": {
+          "name": "someStaticMethod",
+          "scope": "SomeClass",
+          "uri": "memory:sdk/tests/web/native/loading_units_simple_helper.dart"
+        }
+      }
+    },
+    {
+      "calls": [
+        {
+          "@": 1,
+          "loading_unit": "out",
+          "positional": [
+            0
+          ],
+          "type": "with_arguments"
+        }
+      ],
+      "definition": {
+        "identifier": {
+          "name": "someStaticMethod",
+          "scope": "SomeClass",
+          "uri": "memory:sdk/tests/web/native/loading_units_simple.dart"
+        }
+      }
+    },
+    {
+      "calls": [
+        {
+          "@": 1,
+          "loading_unit": "out",
+          "positional": [
+            1,
+            2
+          ],
+          "type": "with_arguments"
+        }
+      ],
+      "definition": {
+        "identifier": {
+          "name": "loadDeferredLibrary",
+          "uri": "dart:_js_helper"
+        }
+      }
+    }
+  ]
+}

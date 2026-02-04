@@ -1,15 +1,18 @@
 package:analyzer_testing/analysis_rule/analysis_rule.dart:
-  contextMessage (function: ExpectedContextMessage Function(File, int, int, {String? text, List<Pattern> textContains}))
-  error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, Pattern? messageContains}))
+  contextMessage (function: ExpectedContextMessage Function(File, int, int, {deprecated String? text, List<Pattern> textContains}))
+  error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll}))
   AnalysisRuleTest (class extends PubPackageResolutionTest):
     new (constructor: AnalysisRuleTest Function())
-    analysisRule (getter: String)
+    analysisRule (getter: String, deprecated)
+    rule (getter: AbstractAnalysisRule)
+    rule= (setter: AbstractAnalysisRule)
     assertNoPubspecDiagnostics (method: Future<void> Function(String))
     assertPubspecDiagnostics (method: Future<void> Function(String, List<ExpectedDiagnostic>))
     correctionMessage (method: String Function(List<Diagnostic>))
-    lint (method: ExpectedDiagnostic Function(int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, Pattern? messageContains, String? name}))
+    lint (method: ExpectedDiagnostic Function(int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll, String? name}))
     setUp (method: void Function())
     unexpectedMessage (method: String Function(List<Diagnostic>))
+  PackageBuilder (non-public)
 package:analyzer_testing/experiments/experiments.dart:
   experimentsForTests (static getter: List<String>)
   experimentsForTests= (static setter: List<String>)
@@ -22,15 +25,15 @@ package:analyzer_testing/mock_packages/mock_packages.dart:
     packagesRootPath (getter: String)
     pathContext (getter: Context)
     resourceProvider (getter: ResourceProvider)
-    addAngularMeta (method: Folder Function())
+    addAngularMeta (method: Folder Function(), deprecated)
     addFfi (method: Folder Function())
     addFixnum (method: Folder Function())
     addFlutter (method: Folder Function())
     addFlutterTest (method: Folder Function())
-    addJs (method: Folder Function())
-    addKernel (method: Folder Function())
+    addJs (method: Folder Function(), deprecated)
+    addKernel (method: Folder Function(), deprecated)
     addMeta (method: Folder Function())
-    addPedantic (method: Folder Function())
+    addPedantic (method: Folder Function(), deprecated)
     addTestReflectiveLoader (method: Folder Function())
     addUI (method: Folder Function())
     addVectorMath (method: Folder Function())
@@ -68,7 +71,7 @@ package:analyzer_testing/utilities/extensions/resource_provider.dart:
   ResourceProviderExtension (extension on ResourceProvider):
     convertPath (method: String Function(String))
 package:analyzer_testing/utilities/utilities.dart:
-  analysisOptionsContent (function: String Function({Map<String, Object?> errors, List<String> experiments, List<String> includes, List<String> legacyPlugins, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
+  analysisOptionsContent (function: String Function({Map<String, Object?> errors, List<String> experiments, List<String> includes, List<String> legacyPlugins, bool propagateLinterExceptions, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
   pubspecYamlContent (function: String Function({List<String> dependencies, String? name, String? sdkVersion}))
 dart:async:
   Future (referenced)
@@ -84,6 +87,8 @@ dart:core:
 package:_fe_analyzer_shared/src/base/errors.dart:
   Diagnostic (referenced)
   DiagnosticCode (referenced)
+package:analyzer/analysis_rule/analysis_rule.dart:
+  AbstractAnalysisRule (referenced)
 package:analyzer/file_system/file_system.dart:
   File (referenced)
   Folder (referenced)

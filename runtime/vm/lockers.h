@@ -282,6 +282,7 @@ class SafepointLocker : public ValueObject {
   typename M::WaitResult Wait(int64_t millis = Monitor::kNoTimeout);
 
   void NotifyAll() { monitor_->NotifyAll(); }
+  void Notify() { monitor_->Notify(); }
 
  private:
   friend class SafepointMonitorUnlockScope;

@@ -16,18 +16,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-@Deprecated('Use SubstitutedExecutableElementImpl instead')
-typedef ExecutableMember = SubstitutedExecutableElementImpl;
-
-@Deprecated('Use SubstitutedFieldElementImpl instead')
-typedef FieldMember = SubstitutedFieldElementImpl;
-
-@Deprecated('Use SubstitutedElementImpl instead')
-typedef Member = SubstitutedElementImpl;
-
-@Deprecated('Use SubstitutedFormalParameterElementImpl instead')
-typedef ParameterMember = SubstitutedFormalParameterElementImpl;
-
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
 class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
@@ -44,10 +32,6 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
 
   @override
   InterfaceElementImpl get enclosingElement => baseElement.enclosingElement;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  InterfaceElementImpl get enclosingElement2 => enclosingElement;
 
   @override
   ConstructorFragmentImpl get firstFragment => baseElement.firstFragment;
@@ -66,6 +50,9 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   bool get isConst => baseElement.isConst;
 
   @override
+  bool get isDeclaring => baseElement.isDeclaring;
+
+  @override
   bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
   @override
@@ -75,22 +62,24 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   bool get isGenerative => baseElement.isGenerative;
 
   @override
-  LibraryElementImpl get library => baseElement.library;
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
 
-  @Deprecated('Use library instead')
   @override
-  LibraryElementImpl get library2 => library;
+  bool get isOriginImplicitDefault => baseElement.isOriginImplicitDefault;
+
+  @override
+  bool get isOriginMixinApplication => baseElement.isOriginMixinApplication;
+
+  @override
+  bool get isPrimary => baseElement.isPrimary;
+
+  @override
+  LibraryElementImpl get library => baseElement.library;
 
   @override
   InternalConstructorElement? get redirectedConstructor {
     var element = baseElement.redirectedConstructor;
     return _redirect(element);
-  }
-
-  @Deprecated('Use redirectedConstructor instead')
-  @override
-  InternalConstructorElement? get redirectedConstructor2 {
-    return redirectedConstructor;
   }
 
   @override
@@ -107,20 +96,10 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
     return _redirect(baseElement.superConstructor);
   }
 
-  @Deprecated('Use superConstructor instead')
-  @override
-  InternalConstructorElement? get superConstructor2 {
-    return superConstructor;
-  }
-
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitConstructorElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -200,6 +179,7 @@ abstract class SubstitutedElementImpl implements Element {
   @override
   bool get isPublic => baseElement.isPublic;
 
+  @Deprecated('Use isOriginX instead')
   @override
   bool get isSynthetic => baseElement.isSynthetic;
 
@@ -212,16 +192,8 @@ abstract class SubstitutedElementImpl implements Element {
   @override
   String? get name => baseElement.name;
 
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 => name;
-
   @override
   Element get nonSynthetic => baseElement;
-
-  @Deprecated('Use nonSynthetic instead')
-  @override
-  Element get nonSynthetic2 => nonSynthetic;
 
   @override
   AnalysisSession? get session => baseElement.session;
@@ -234,21 +206,9 @@ abstract class SubstitutedElementImpl implements Element {
     return baseElement.getExtendedDisplayName(shortName: shortName);
   }
 
-  @Deprecated('Use getExtendedDisplayName instead')
-  @override
-  String getExtendedDisplayName2({String? shortName}) {
-    return getExtendedDisplayName(shortName: shortName);
-  }
-
   @override
   bool isAccessibleIn(LibraryElement library) {
     return baseElement.isAccessibleIn(library);
-  }
-
-  @Deprecated('Use isAccessibleIn instead')
-  @override
-  bool isAccessibleIn2(LibraryElement library) {
-    return isAccessibleIn(library);
   }
 
   @override
@@ -260,21 +220,9 @@ abstract class SubstitutedElementImpl implements Element {
     return baseElement.thisOrAncestorMatching(predicate);
   }
 
-  @Deprecated('Use thisOrAncestorMatching instead')
-  @override
-  Element? thisOrAncestorMatching2(bool Function(Element e) predicate) {
-    return thisOrAncestorMatching(predicate);
-  }
-
   @override
   E? thisOrAncestorOfType<E extends Element>() {
     return baseElement.thisOrAncestorOfType<E>();
-  }
-
-  @Deprecated('Use thisOrAncestorOfType instead')
-  @override
-  E? thisOrAncestorOfType2<E extends Element>() {
-    return thisOrAncestorOfType();
   }
 
   @override
@@ -308,30 +256,20 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
     return [...typeParameters, ...formalParameters];
   }
 
-  @Deprecated('Use children instead')
-  @override
-  List<Element> get children2 {
-    return children;
-  }
-
   @override
   String? get documentationComment => baseElement.documentationComment;
 
   @override
   Element? get enclosingElement => baseElement.enclosingElement;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
-
   @override
   ExecutableFragmentImpl get firstFragment;
 
   @override
   List<InternalFormalParameterElement> get formalParameters {
-    return baseElement.formalParameters.map<InternalFormalParameterElement>((
-      element,
-    ) {
+    var formalParameters = baseElement.formalParameters;
+    return List.generate(formalParameters.length, (index) {
+      var element = formalParameters[index];
       switch (element) {
         case FieldFormalParameterElementImpl():
           return SubstitutedFieldFormalParameterElementImpl(
@@ -349,7 +287,7 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
             substitution: substitution,
           );
       }
-    }).toList();
+    });
   }
 
   @override
@@ -378,16 +316,8 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
   @override
   LibraryElement get library => baseElement.library;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElement get library2 => library;
-
   @override
   MetadataImpl get metadata => baseElement.metadata;
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
 
   @override
   TypeImpl get returnType {
@@ -400,10 +330,6 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
   FunctionTypeImpl get type {
     return _type ??= substitution.mapFunctionType(baseElement.type);
   }
-
-  @Deprecated('Use typeParameters instead')
-  @override
-  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -420,29 +346,11 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
     return builder.toString();
   }
 
-  @Deprecated('Use displayString instead')
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    return displayString(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-  }
-
   @override
   void visitChildren<T>(ElementVisitor2<T> visitor) {
     for (var child in children) {
       child.accept(visitor);
     }
-  }
-
-  @Deprecated('Use visitChildren instead')
-  @override
-  void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    return visitChildren(visitor);
   }
 
   static InternalExecutableElement from(
@@ -507,19 +415,16 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   @override
   List<Element> get children => const [];
 
-  @Deprecated('Use children instead')
   @override
-  List<Element> get children2 => children;
+  FieldFormalParameterElementImpl? get declaringFormalParameter {
+    return baseElement.declaringFormalParameter;
+  }
 
   @override
   String? get documentationComment => baseElement.documentationComment;
 
   @override
   InstanceElement get enclosingElement => baseElement.enclosingElement;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  InstanceElement get enclosingElement2 => enclosingElement;
 
   @override
   FieldFragmentImpl get firstFragment => baseElement.firstFragment;
@@ -541,12 +446,6 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
     );
   }
 
-  @Deprecated('Use getter instead')
-  @override
-  InternalGetterElement? get getter2 {
-    return getter;
-  }
-
   @override
   bool get hasInitializer => baseElement.hasInitializer;
 
@@ -563,21 +462,30 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   bool get isExternal => baseElement.isExternal;
 
   @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginDeclaringFormalParameter =>
+      baseElement.isOriginDeclaringFormalParameter;
+
+  @override
+  bool get isOriginEnumValues => baseElement.isOriginEnumValues;
+
+  @override
+  bool get isOriginExtensionTypeRecoveryRepresentation =>
+      baseElement.isOriginExtensionTypeRecoveryRepresentation;
+
+  @override
+  bool get isOriginGetterSetter => baseElement.isOriginGetterSetter;
+
+  @override
   bool get isPromotable => baseElement.isPromotable;
 
   @override
   LibraryElementImpl get library => baseElement.library;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElement get library2 => library;
-
   @override
   MetadataImpl get metadata => baseElement.metadata;
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
 
   @override
   InternalSetterElement? get setter {
@@ -591,12 +499,6 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
     );
   }
 
-  @Deprecated('Use setter instead')
-  @override
-  InternalSetterElement? get setter2 {
-    return setter;
-  }
-
   @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
@@ -605,18 +507,8 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
     return visitor.visitFieldElement(this);
   }
 
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
-
   @override
   void visitChildren<T>(ElementVisitor2<T> visitor) {}
-
-  @Deprecated('Use visitChildren instead')
-  @override
-  void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    visitChildren(visitor);
-  }
 
   static InternalFieldElement from(
     FieldElementImpl element,
@@ -672,12 +564,6 @@ class SubstitutedFieldFormalParameterElementImpl
     return SubstitutedFieldElementImpl.from(field, substitution);
   }
 
-  @Deprecated('Use field instead')
-  @override
-  FieldElement? get field2 {
-    return field;
-  }
-
   @override
   FieldFormalParameterFragmentImpl get firstFragment {
     return baseElement.firstFragment;
@@ -693,6 +579,12 @@ class SubstitutedFieldFormalParameterElementImpl
 
   @override
   bool get isCovariant => baseElement.isCovariant;
+
+  @override
+  bool get isDeclaring => baseElement.isDeclaring;
+
+  @override
+  String? get privateName => baseElement.privateName;
 }
 
 /// A parameter element defined in a parameterized type where the values of the
@@ -707,8 +599,17 @@ class SubstitutedFormalParameterElementImpl
     required FormalParameterElementImpl baseElement,
     required MapSubstitution substitution,
   }) {
+    var typeParameters = baseElement.typeParameters;
+    if (typeParameters.isEmpty) {
+      // Happens often. Avoid doing unneeded allocation.
+      return SubstitutedFormalParameterElementImpl._(
+        baseElement: baseElement,
+        substitution: substitution,
+        typeParameters: const [],
+      );
+    }
     var freshTypeParameters = _SubstitutedTypeParameters(
-      baseElement.typeParameters,
+      typeParameters,
       substitution,
     );
     return SubstitutedFormalParameterElementImpl._(
@@ -733,12 +634,6 @@ class SubstitutedFormalParameterElementImpl
     return [...typeParameters, ...formalParameters];
   }
 
-  @Deprecated('Use children instead')
-  @override
-  List<Element> get children2 {
-    return children;
-  }
-
   @override
   String? get defaultValueCode => baseElement.defaultValueCode;
 
@@ -747,10 +642,6 @@ class SubstitutedFormalParameterElementImpl
 
   @override
   Element? get enclosingElement => baseElement.enclosingElement;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
 
   @override
   FormalParameterFragmentImpl get firstFragment => baseElement.firstFragment;
@@ -803,16 +694,8 @@ class SubstitutedFormalParameterElementImpl
   @override
   LibraryElement? get library => baseElement.library;
 
-  @Deprecated('Use library instead')
-  @override
-  LibraryElement? get library2 => library;
-
   @override
   MetadataImpl get metadata => baseElement.metadata;
-
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
 
   @override
   String get nameShared => name!;
@@ -826,10 +709,6 @@ class SubstitutedFormalParameterElementImpl
   @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
-  @Deprecated('Use typeParameters instead')
-  @override
-  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
-
   @override
   TypeImpl get typeShared => type;
 
@@ -837,10 +716,6 @@ class SubstitutedFormalParameterElementImpl
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitFormalParameterElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
@@ -850,12 +725,6 @@ class SubstitutedFormalParameterElementImpl
   @override
   void visitChildren<T>(ElementVisitor2<T> visitor) {
     baseElement.visitChildren(visitor);
-  }
-
-  @Deprecated('Use visitChildren instead')
-  @override
-  void visitChildren2<T>(ElementVisitor2<T> visitor) {
-    visitChildren(visitor);
   }
 
   static InternalFormalParameterElement from(
@@ -914,12 +783,6 @@ class SubstitutedGetterElementImpl
     );
   }
 
-  @Deprecated('Use correspondingSetter instead')
-  @override
-  InternalSetterElement? get correspondingSetter2 {
-    return correspondingSetter;
-  }
-
   @override
   GetterFragmentImpl get firstFragment => baseElement.firstFragment;
 
@@ -930,7 +793,7 @@ class SubstitutedGetterElementImpl
 
   @override
   Element get nonSynthetic {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.nonSynthetic;
     } else {
       return this;
@@ -941,10 +804,6 @@ class SubstitutedGetterElementImpl
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitGetterElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   static InternalGetterElement forSubstitution(
     InternalGetterElement element,
@@ -1004,11 +863,13 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
   bool get isOperator => baseElement.isOperator;
 
   @override
-  LibraryElement get library => baseElement.library;
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
 
-  @Deprecated('Use library instead')
   @override
-  LibraryElement get library2 => library;
+  bool get isOriginInterface => baseElement.isOriginInterface;
+
+  @override
+  LibraryElement get library => baseElement.library;
 
   @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
@@ -1017,10 +878,6 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitMethodElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   static InternalMethodElement forTargetType(
     InternalMethodElement element,
@@ -1072,12 +929,17 @@ abstract class SubstitutedPropertyAccessorElementImpl
     return super.enclosingElement!;
   }
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element get enclosingElement2 => enclosingElement;
-
   @override
   PropertyAccessorFragmentImpl get firstFragment;
+
+  @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginInterface => baseElement.isOriginInterface;
+
+  @override
+  bool get isOriginVariable => baseElement.isOriginVariable;
 
   @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
@@ -1094,12 +956,6 @@ abstract class SubstitutedPropertyAccessorElementImpl
       default:
         return variable;
     }
-  }
-
-  @Deprecated('Use variable instead')
-  @override
-  InternalPropertyInducingElement? get variable3 {
-    return variable;
   }
 
   @override
@@ -1137,12 +993,6 @@ class SubstitutedSetterElementImpl
     );
   }
 
-  @Deprecated('Use correspondingGetter instead')
-  @override
-  InternalGetterElement? get correspondingGetter2 {
-    return correspondingGetter;
-  }
-
   @override
   SetterFragmentImpl get firstFragment => baseElement.firstFragment;
 
@@ -1153,7 +1003,7 @@ class SubstitutedSetterElementImpl
 
   @override
   Element get nonSynthetic {
-    if (isSynthetic) {
+    if (isOriginVariable) {
       return variable.nonSynthetic;
     } else {
       return this;
@@ -1164,10 +1014,6 @@ class SubstitutedSetterElementImpl
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitSetterElement(this);
   }
-
-  @Deprecated('Use accept instead')
-  @override
-  T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   static InternalSetterElement forSubstitution(
     InternalSetterElement element,
@@ -1240,12 +1086,6 @@ class SubstitutedSuperFormalParameterElementImpl
       substitution,
     );
   }
-
-  @Deprecated('Use superConstructorParameter instead')
-  @override
-  InternalFormalParameterElement? get superConstructorParameter2 {
-    return superConstructorParameter;
-  }
 }
 
 /// A variable element defined in a parameterized type where the values of the
@@ -1305,18 +1145,6 @@ abstract class SubstitutedVariableElementImpl extends SubstitutedElementImpl
   @override
   String displayString({bool multiline = false, bool preferTypeAlias = false}) {
     return baseElement.displayString(
-      multiline: multiline,
-      preferTypeAlias: preferTypeAlias,
-    );
-  }
-
-  @Deprecated('Use displayString instead')
-  @override
-  String displayString2({
-    bool multiline = false,
-    bool preferTypeAlias = false,
-  }) {
-    return displayString(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
     );

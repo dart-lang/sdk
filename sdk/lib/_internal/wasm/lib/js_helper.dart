@@ -7,12 +7,12 @@ library dart._js_helper;
 
 import 'dart:_error_utils';
 import 'dart:_internal';
-import 'dart:_js_annotations' as js;
 import 'dart:_js_types' as js_types;
 import 'dart:_string';
 import 'dart:_wasm';
 import 'dart:async';
 import 'dart:js_interop';
+import 'dart:js_interop' as interop;
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
@@ -716,3 +716,6 @@ external T JS<T>(
   arg18,
   arg19,
 ]);
+
+@pragma("wasm:intrinsic")
+external WasmExternRef get thisModule;

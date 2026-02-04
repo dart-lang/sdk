@@ -347,13 +347,17 @@ abstract final class NativeFinalizer {
   /// Creates a finalizer with the given finalization callback.
   ///
   /// The [callback] must be a native function which can be executed outside of
-  /// a Dart isolate. This means that passing an FFI trampoline (a function
-  /// pointer obtained via [Pointer.fromFunction]) is not supported.
+  /// a Dart isolate. This also means that passing an FFI trampoline (a function
+  /// a function pointer obtained via [Pointer.fromFunction]) is not supported.
   ///
-  /// The [callback] might be invoked on an arbitrary thread and not necessary
-  /// on the same thread that created [NativeFinalizer].
-  // TODO(https://dartbug.com/47778): Implement isolate independent code and
-  // update the above comment.
+  /// The callback is not allowed to re-enter the Dart VM via Dart C APIs, with
+  /// two exceptions: it is allowed to call `Dart_DeletePersistentHandle` and
+  /// `Dart_DeleteWeakPersistentHandle`. Calling any other Dart C API function
+  /// results in undefined behavior, which means it can cause anything from
+  /// crashes and deadlocks to silent memory corruptions.
+  ///
+  /// The [callback] might be invoked on an arbitrary thread. It will have a
+  /// current isolate group but will not have a current isolate.
   external factory NativeFinalizer(Pointer<NativeFinalizerFunction> callback);
 
   /// Attaches this finalizer to [value].

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -49,9 +49,8 @@ void f(String str) {
 }
 ''',
       matchFixMessage: "Add an extension override for 'StringExt1'",
-      errorFilter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      filter: (error) =>
+          error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
 
     await assertHasFixesWithoutApplying(
@@ -60,9 +59,8 @@ void f(String str) {
         "Add an extension override for 'StringExt1'",
         "Add an extension override for 'StringExt2'",
       ],
-      errorFilter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      filter: (error) =>
+          error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -124,9 +122,8 @@ f() {
 }
 ''',
       expectedNumberOfFixesForKind: 1,
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo;
+      filter: (error) {
+        return error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo;
       },
     );
   }
@@ -201,9 +198,8 @@ extension E2 on A {
 }
 ''',
       matchFixMessage: "Add an extension override for 'E2'",
-      errorFilter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      filter: (error) =>
+          error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -236,9 +232,8 @@ extension E2 on A {
 }
 ''',
       matchFixMessage: "Add an extension override for 'E2'",
-      errorFilter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      filter: (error) =>
+          error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -275,9 +270,8 @@ extension E2 on A {
 }
 ''',
       matchFixMessage: "Add an extension override for 'E2'",
-      errorFilter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      filter: (error) =>
+          error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -383,9 +377,8 @@ void f(String str) {
 }
 ''',
       matchFixMessage: "Add an extension override for 'StringExt1'",
-      errorFilter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      filter: (error) =>
+          error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
 
     await assertHasFixesWithoutApplying(
@@ -394,9 +387,8 @@ void f(String str) {
         "Add an extension override for 'StringExt1'",
         "Add an extension override for 'StringExt2'",
       ],
-      errorFilter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      filter: (error) =>
+          error.diagnosticCode == diag.ambiguousExtensionMemberAccessTwo,
     );
   }
 }

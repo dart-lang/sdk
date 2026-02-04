@@ -55,7 +55,7 @@ var a = [!!]1;
       executeCommand(command),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidCommandArguments,
+          ServerErrorCodes.invalidCommandArguments,
           message:
               'The code action refactor.convert.toDoubleQuotedString '
               'is not valid at this location',
@@ -80,7 +80,7 @@ var a = [!!]1;
       executeCommand(command),
       throwsA(
         isResponseError(
-          ServerErrorCodes.StateError,
+          ServerErrorCodes.stateError,
           message: 'The editor does not support workspace/applyEdit',
         ),
       ),
@@ -102,7 +102,7 @@ var a = [!!]1;
       executeCommand(command),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidCommandArguments,
+          ServerErrorCodes.invalidCommandArguments,
           message:
               'dart.edit.codeAction.apply requires 3 parameters: '
               'textDocument: Map<String, Object?> (OptionalVersionedTextDocumentIdentifier), '

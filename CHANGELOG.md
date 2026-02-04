@@ -1,13 +1,107 @@
-## 3.10.9
+## 3.11.0
 
-**Released on:** 2026-02-03
+**Released on:** Unreleased
 
-This is a patch release that:
+### Language
 
-- Fixes a bug that allowed users to access private declarations in other
-  libraries with dot shorthands. (issue [dart-lang/sdk#62504])
+There are no language changes in this release.
 
-[dart-lang/sdk#62504]: https://github.com/dart-lang/sdk/issues/62504
+### Libraries
+
+#### `dart:io`
+
+- Added support for Unix domain sockets (`AF_UNIX`) on Windows. Support is
+  restricted to the subset of features supported by the OS. Windows currently
+  does not support the following features for `AF_UNIX` sockets: datagram
+  sockets, ancillary data or abstract socket addresses. Unix domain sockets are
+  represented in the file-system using _reparse points_ which leads to some
+  discrepancies in the behavior of `dart:io` APIs: for example
+  `File(socketPath).existsSync()` will return `true` on POSIX operating systems,
+  but `false` on Windows. Use `FileSystemEntity.typeSync()` instead to get
+  portable behavior.
+
+#### `dart:js_interop`
+
+- Added a constructor to `JSSymbol`, as well as `JSSymbol.key`,
+  `JSSymbol.description`, and static methods for all well-known ECMAScript
+  symbols.
+
+#### `dart:js_util`
+
+- dart2wasm no longer supports `dart:js_util`. Any code that imports
+  `dart:js_util` will no longer compile with dart2wasm. Consequently, code that
+  depends on `package:js` will no longer compile with dart2wasm either. The name
+  `dart.library.js_util` is no longer a key in dart2wasm compilation
+  environments, including in conditional imports and exports.
+  See [#61550][] for more details.
+
+[#61550]: https://github.com/dart-lang/sdk/issues/61550
+
+### Tools
+
+#### Analyzer
+
+- The Insights pages (aka the "Analysis Server Diagnostics" pages) now show
+  data regarding the "Message Scheduler."
+- The "Fix all in workspace" command now supports a progress indicator.
+- Analysis via analyzer plugins is now faster on subsequent runs, as the
+  analysis server will now re-use an existing AOT snapshot of the plugins
+  entrypoint. This saves a constant amount of time at the start of each IDE
+  session and `dart analyze` run, on the order of 10 seconds.
+- Various fixes are made for the `call` method on a Function object, like "go
+  to definition," and completion.
+- Various fixes are made for the `error` and `stackTrace` parameters of
+  try/catch statements.
+- Various fixes are made for syntax highlighting, navigation, code completion,
+  hovers, quick fixes, assists, "rename" refactoring, and "go to imports."
+- Various fixes for IDE features with regards to "Dot Shorthand" syntax.
+- Improvements to LSP format-on-type, to not format in undesirable cases.
+- Various performance improvements.
+- Fixes to the 'Extract Widget' refactoring.
+- (Thanks [@FMorschel](https://github.com/FMorschel) and
+  [@DanTup](https://github.com/DanTup) for many of the above enhancements!)
+- A new lint rule is offered: `simplify_variable_pattern`, which encourages
+  using the pattern shorthand for variables and property names of the same
+  name.
+- The `avoid_null_checks_in_equality_operators` lint rule is now deprecated.
+- The `prefer_final_parameters` lint rule is now deprecated.
+- The `use_if_null_to_convert_nulls_to_bools` lint rule is now deprecated.
+
+#### Dart Development Compiler (dartdevc)
+
+- The async timing of the `Future` returned by `deferred_prefix.loadLibrary()`
+  is now consistent regardless if proper deferred imports are supported in the
+  runtime environment or not. This makes the timing more consistent with dart2js
+  where the loads are always an async operation.
+
+#### Pub
+
+- "Glob" support for pub workspaces.
+
+  Now to include all packages inside `pkgs/` in the workspace, simply write:
+
+  ```yaml
+  workspace:
+    - pkgs/*
+  ```
+
+  Supported if the Dart SDK constraint of the containing package is 3.11.0 or
+  higher.
+
+- New commmand `dart pub cache gc` for reclaiming disk space from your pub
+  cache.
+
+  It works by removing packages from your pub cache that are not referenced by
+  any of your current projects.
+
+- New flag `dart pub publish --dry-run --ignore-warnings`
+
+  Given this flag, `dart pub publish --dry-run` will only exit non-zero if your
+  project validation has errors.
+
+- `dart pub cache repair` now by default only repairs the packages referenced
+  by the current projects pubspec.lock. For the old behavior of repairing all
+  packages use the `--all` flag.
 
 ## 3.10.8
 
@@ -248,6 +342,16 @@ instead.
 
 [writing an analyzer plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_a_plugin.md
 [using analyzer plugins]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/using_plugins.md
+
+#### Hooks
+
+Support for **hooks** -- formerly know as _native assets_ -- are now stable.
+
+You can currently use hooks to do things such as compile or download native assets
+(code written in other languages that are compiled into machine code),
+and then call these assets from the Dart code of a package.
+
+For more details see the [hooks documentation](https://dart.dev/tools/hooks).
 
 #### Dart CLI and Dart VM
 

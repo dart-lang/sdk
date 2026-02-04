@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -76,7 +76,7 @@ void f() {
   var v = {0};
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
 
     var node = findNode.singleSetOrMapLiteral;
@@ -100,7 +100,7 @@ void f() {
   var v = {0: ''};
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
 
     var node = findNode.singleSetOrMapLiteral;
@@ -128,7 +128,7 @@ void f() {
   var v = {};
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 17, 1)],
+      [error(diag.unusedLocalVariable, 17, 1)],
     );
 
     var node = findNode.singleSetOrMapLiteral;

@@ -13,76 +13,65 @@
 // VMOptions=--experimental-shared-data --profiler --profile_vm=false
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:isolate';
+import 'dart:math';
 
 import "package:expect/expect.dart";
 
 import "run_isolate_group_run_test.dart" deferred as lib1;
 
-var foo = 42;
-var foo_no_initializer;
+main(List<String> args) {
+  testUpdateSharedVar();
+  testReturnsConstant();
+  testReturnsList();
+  testReturnsNotSharedFinal();
+  testUpdateSharedVarWithNoInitializer();
 
-@pragma('vm:shared')
-var shared_foo_no_initializer;
+  testFailToAccessNotSharedVarWithInitializer();
+  testFailToAccessNotSharedVarWithoutInitializer();
 
-final foo_final = 1234;
+  testFailToCaptureLateFinalVar();
+  testCapturesFinalNotSharedVar();
 
-@pragma('vm:never-inline')
-updateFoo() {
-  foo = 56;
+  testCyclesBetweenClosures();
+
+  testUpdateNotSharedStaticField();
+  testUpdateSharedStringStaticVar();
+
+  testClosure();
+
+  testFailToAssignClosureWithListToSharedVar();
+
+  testFailToPrint();
+
+  testFailToIsolateGroupRunSyncThrows();
+  testIsolateCurrent();
+  testFailToIsolateExit();
+  testFailToIsolateSpawn();
+  testStringMethodTearoff();
+  testListMethodTearoff(args);
+
+  testFailToReceivePort();
+  testFailToDeferredLibrary();
+  testFailToEnvironment();
+
+  testUserTag();
+  testDoubleToString();
+  testBase64Decoder();
+  testRandom();
+  testEncoding();
+  testRecursiveToString();
+
+  print("All tests completed :)");
 }
 
-@pragma('vm:never-inline')
-updateFooNoInitializer() {
-  foo_no_initializer = 78;
-}
-
-class Baz {
-  static late final foo;
-}
-
-@pragma('vm:never-inline')
-bar() {
-  Baz.foo = 42;
-}
-
+///
 @pragma('vm:shared')
 var list_length = 0;
 
-@pragma('vm:shared')
-String string_foo = "";
-
-@pragma('vm:shared')
-SendPort? sp;
-
-StringMethodTearoffTest() {
-  @pragma('vm:shared')
-  final stringTearoff = "abc".toString;
-  IsolateGroup.runSync(() {
-    stringTearoff;
-  });
-}
-
-ListMethodTearoffTest(List<String> args) {
-  final listTearoff = args.insert;
-  Expect.throws(
-    () {
-      IsolateGroup.runSync(() {
-        listTearoff;
-      });
-    },
-    (e) =>
-        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
-  );
-}
-
-thefun() {}
-
-@pragma('vm:shared')
-String default_tag = "";
-
-main(List<String> args) {
+void testUpdateSharedVar() {
   IsolateGroup.runSync(() {
     final l = <int>[];
     for (int i = 0; i < 100; i++) {
@@ -91,67 +80,35 @@ main(List<String> args) {
     list_length = l.length;
   });
   Expect.equals(100, list_length);
+}
 
-  Expect.equals(42, IsolateGroup.runSync(() => 42));
+///
+@pragma('vm:shared')
+final foo_final = 1234;
 
-  Expect.listEquals([1, 2, 3], IsolateGroup.runSync(() => [1, 2, 3]));
-
+void testReturnsNotSharedFinal() {
   Expect.equals(1234, IsolateGroup.runSync(() => foo_final));
+}
 
-  IsolateGroup.runSync(() {
-    shared_foo_no_initializer = 2345;
-  });
-  Expect.equals(2345, IsolateGroup.runSync(() => shared_foo_no_initializer));
+///
+void testReturnsConstant() {
+  Expect.equals(42, IsolateGroup.runSync(() => 42));
+}
 
-  Expect.throws(
-    () {
-      IsolateGroup.runSync(() {
-        throw "error";
-      });
-    },
-    (e) => e == "error",
-    'Expect thrown error',
-  );
+///
+void testReturnsList() {
+  Expect.listEquals([1, 2, 3], IsolateGroup.runSync(() => [1, 2, 3]));
+}
 
-  // Documenting current limitations.
-  Expect.notEquals(() {
-    IsolateGroup.runSync(() {
-      return Isolate.current;
-    });
-  }, Isolate.current);
+///
+var foo_no_initializer;
 
-  Expect.throws(
-    () {
-      IsolateGroup.runSync(() {
-        print('42');
-      });
-    },
-    (e) => e is Error && e.toString().contains("AccessError"),
-    'Expect error printing',
-  );
+@pragma('vm:never-inline')
+updateFooNoInitializer() {
+  foo_no_initializer = 78;
+}
 
-  updateFoo();
-  Expect.throws(
-    () {
-      IsolateGroup.runSync(() {
-        return foo;
-      });
-    },
-    (e) => e is Error && e.toString().contains("AccessError"),
-    'Expect error accessing',
-  );
-
-  Expect.throws(
-    () {
-      IsolateGroup.runSync(() {
-        foo = 123;
-      });
-    },
-    (e) => e is Error && e.toString().contains("AccessError"),
-    'Expect error accessing',
-  );
-  Expect.equals(56, foo);
-
+void testFailToAccessNotSharedVarWithoutInitializer() {
   updateFooNoInitializer();
   Expect.throws(
     () {
@@ -173,34 +130,188 @@ main(List<String> args) {
     'Expect error accessing',
   );
   Expect.equals(78, foo_no_initializer);
+}
 
-  {
-    bar();
-    Expect.equals(42, Baz.foo);
+///
+void testFailToCaptureLateFinalVar() {
+  late final int late_final_var;
+  late_final_var = 12;
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      return late_final_var;
+    });
+  }, (e) => e is Error && e.toString().contains("Only final"));
+}
+
+///
+@pragma('vm:never-inline')
+calculateTwelve() => 12;
+
+void testCapturesFinalNotSharedVar() {
+  final int late_final_var = calculateTwelve();
+  Expect.equals(late_final_var, IsolateGroup.runSync(() => late_final_var));
+}
+
+///
+void testCyclesBetweenClosures() {
+  final int i = 0;
+  final void Function() func1 = () {
+    if (i > 0) {
+      throw i;
+    }
+  };
+  void func2() {
+    func1();
   }
 
-  IsolateGroup.runSync(() {
-    string_foo = "foo bar";
-  });
-  Expect.equals("foo bar", string_foo);
+  ;
+  IsolateGroup.runSync(func2);
+}
+
+///
+var foo = 42;
+
+@pragma('vm:never-inline')
+updateFoo() {
+  foo = 56;
+}
+
+void testFailToAccessNotSharedVarWithInitializer() {
+  updateFoo();
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        return foo;
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
+  );
 
   Expect.throws(
     () {
       IsolateGroup.runSync(() {
-        ReceivePort();
+        foo = 123;
       });
     },
-    (e) =>
-        e is ArgumentError &&
-        e.toString().contains("Only available when running in context"),
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
   );
+  Expect.equals(56, foo);
+}
 
+///
+@pragma('vm:shared')
+var shared_foo_no_initializer;
+
+void testUpdateSharedVarWithNoInitializer() {
+  IsolateGroup.runSync(() {
+    shared_foo_no_initializer = 2345;
+  });
+  Expect.equals(2345, IsolateGroup.runSync(() => shared_foo_no_initializer));
+}
+
+///
+class Baz {
+  static late final foo;
+}
+
+@pragma('vm:never-inline')
+updateBazFoo() {
+  Baz.foo = 42;
+}
+
+void testUpdateNotSharedStaticField() {
+  updateBazFoo();
+  Expect.equals(42, Baz.foo);
+}
+
+///
+@pragma('vm:shared')
+String string_foo = "";
+
+void testUpdateSharedStringStaticVar() {
+  IsolateGroup.runSync(() {
+    string_foo = "foo bar";
+  });
+  Expect.equals("foo bar", string_foo);
+}
+
+///
+@pragma('vm:never-inline')
+@pragma('vm:shared')
+var closure = () {
+  return 42;
+};
+void testClosure() {
+  final result = IsolateGroup.runSync(() {
+    return closure();
+  });
+  Expect.equals(42, result);
+}
+
+///
+@pragma('vm:shared')
+dynamic getList;
+
+void testFailToAssignClosureWithListToSharedVar() {
+  final list = <String>[];
+  Expect.throws(
+    () {
+      getList = () => list;
+    },
+    (e) => e is Error && e.toString().contains("Only trivially-immutable"),
+    "Expect error assigning list to shared variable",
+  );
+  print(getList);
+}
+
+///
+void testFailToPrint() {
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        print('42');
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error printing',
+  );
+}
+
+///
+void testFailToIsolateGroupRunSyncThrows() {
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        throw "error";
+      });
+    },
+    (e) => e == "error",
+    'Expect thrown error',
+  );
+}
+
+///
+void testIsolateCurrent() {
+  Expect.notEquals(() {
+    IsolateGroup.runSync(() {
+      return Isolate.current;
+    });
+  }, Isolate.current);
+}
+
+///
+void testFailToIsolateExit() {
   Expect.throws(() {
     IsolateGroup.runSync(() {
       Isolate.exit();
     });
   }, (e) => e.toString().contains("Attempt to access isolate static field"));
+}
 
+///
+void testFailToIsolateSpawn() {
   Expect.throws(() {
     IsolateGroup.runSync(() {
       Isolate.spawn((_) {}, null);
@@ -212,9 +323,46 @@ main(List<String> args) {
       Isolate.spawnUri(Uri.parse("http://127.0.0.1"), [], (_) {});
     });
   }, (e) => e.toString().contains("Attempt to access isolate static field"));
+}
 
-  StringMethodTearoffTest();
-  ListMethodTearoffTest(args);
+///
+testStringMethodTearoff() {
+  @pragma('vm:shared')
+  final stringTearoff = "abc".toString;
+  IsolateGroup.runSync(() {
+    stringTearoff;
+  });
+}
+
+///
+testListMethodTearoff(List<String> args) {
+  final listTearoff = args.insert;
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        listTearoff;
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
+  );
+}
+
+///
+@pragma('vm:shared')
+SendPort? sp;
+
+void testFailToReceivePort() {
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        ReceivePort();
+      });
+    },
+    (e) =>
+        e is ArgumentError &&
+        e.toString().contains("Only available when running in context"),
+  );
 
   final rp = ReceivePort();
   Expect.throws(
@@ -227,25 +375,98 @@ main(List<String> args) {
         e is ArgumentError && e.toString().contains("Only trivially-immutable"),
   );
   rp.close();
+}
 
-  // deferred libraries can't be used from isolate group callbacks.
+///
+thefun() {}
+
+void testFailToDeferredLibrary() {
   Expect.throws(() {
     IsolateGroup.runSync(() {
       lib1.thefun();
     });
   }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+}
 
-  // environment can't be accessed from isolate group callbacks.
+///
+void testFailToEnvironment() {
   Expect.throws(() {
     IsolateGroup.runSync(() {
       new bool.hasEnvironment("Anything");
     });
   }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+}
 
+///
+@pragma('vm:shared')
+String default_tag = "";
+
+void testUserTag() {
   IsolateGroup.runSync(() {
     default_tag = UserTag.defaultTag.toString();
   });
   Expect.notEquals("", default_tag);
+}
 
-  print("All tests completed :)");
+///
+@pragma('vm:shared')
+double pi = 3.14159;
+
+void testDoubleToString() {
+  final result = IsolateGroup.runSync(() {
+    return pi.toString();
+  });
+  Expect.equals("3.14159", result);
+  final resultIdentical = IsolateGroup.runSync(() {
+    return identical(pi.toString(), pi.toString());
+  });
+  Expect.isTrue(resultIdentical);
+}
+
+///
+void testBase64Decoder() {
+  Expect.listEquals(
+    "abcdefghijklmnopqrstuvwxyz".codeUnits,
+    IsolateGroup.runSync(() {
+      return Base64Decoder().convert("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=");
+    }),
+  );
+}
+
+///
+void testRandom() {
+  IsolateGroup.runSync(() {
+    Random().nextInt(10);
+  });
+}
+
+///
+void testEncoding() {
+  Expect.listEquals(
+    [0x31, 0x32, 0x33, 0x61, 0x62, 0x63],
+    IsolateGroup.runSync(
+      () => Encoding.getByName("us-ascii")!.encode("123abc"),
+    ),
+  );
+  Expect.identical(
+    ascii,
+    IsolateGroup.runSync(() => Encoding.getByName("us-ascii")),
+  );
+  Expect.identical(
+    utf8,
+    IsolateGroup.runSync(() => Encoding.getByName("utf-8")),
+  );
+}
+
+///
+void testRecursiveToString() {
+  Expect.equals(
+    "[foo, bar, [...], baz]",
+    IsolateGroup.runSync(() {
+      var l = <Object>["foo", "bar"];
+      l.add(l);
+      l.add("baz");
+      return l.toString();
+    }),
+  );
 }

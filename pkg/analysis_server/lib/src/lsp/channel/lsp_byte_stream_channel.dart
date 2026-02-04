@@ -9,6 +9,8 @@ import 'dart:io';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
+import 'package:analysis_server/src/session_logger/process_id.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 
@@ -22,6 +24,9 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
 
   final InstrumentationService _instrumentationService;
 
+  /// The session logger.
+  final SessionLogger _sessionLogger;
+
   /// Completer that will be signalled when the input stream is closed.
   final Completer<void> _closed = Completer();
 
@@ -31,8 +36,9 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   LspByteStreamServerChannel(
     this._input,
     this._output,
-    this._instrumentationService,
-  );
+    this._instrumentationService, {
+    SessionLogger? sessionLogger,
+  }) : _sessionLogger = sessionLogger ?? SessionLogger();
 
   /// Future that will be completed when the input stream is closed.
   @override
@@ -88,6 +94,11 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     }
     _instrumentationService.logRequest(data);
     var json = jsonDecode(data) as Map<String, Object?>;
+    _sessionLogger.logMessage(
+      from: ProcessId.ide,
+      to: ProcessId.server,
+      message: json,
+    );
     if (RequestMessage.canParse(json, nullLspJsonReporter)) {
       onMessage(RequestMessage.fromJson(json));
     } else if (NotificationMessage.canParse(json, nullLspJsonReporter)) {
@@ -118,6 +129,11 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     _write(utf8EncodedBody);
 
     _instrumentationService.logResponse(jsonEncodedBody);
+    _sessionLogger.logMessage(
+      from: ProcessId.server,
+      to: ProcessId.ide,
+      message: json,
+    );
   }
 
   void _sendParseError() {

@@ -26,21 +26,28 @@ const int Builtin::num_libs_ =
     sizeof(Builtin::builtin_libraries_) / sizeof(Builtin::builtin_lib_props);
 
 void Builtin::SetNativeResolver(BuiltinLibraryId id) {
+  Dart_Handle result = TrySetNativeResolver(id);
+  RELEASE_ASSERT(!Dart_IsError(result));
+}
+
+Dart_Handle Builtin::TrySetNativeResolver(BuiltinLibraryId id) {
   ASSERT(static_cast<int>(id) >= 0);
   ASSERT(static_cast<int>(id) < num_libs_);
 
   if (builtin_libraries_[id].has_natives_) {
     Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
     Dart_Handle library = Dart_LookupLibrary(url);
-    ASSERT(!Dart_IsError(library));
+    RETURN_IF_ERROR(library);
     // Setup the native resolver for built in library functions.
     Dart_Handle result =
         Dart_SetNativeResolver(library, NativeLookup, NativeSymbol);
-    ASSERT(!Dart_IsError(result));
+    RETURN_IF_ERROR(result);
     // Setup the ffi native resolver for built in library functions.
     result = Dart_SetFfiNativeResolver(library, FfiNativeLookup);
-    ASSERT(!Dart_IsError(result));
+    RETURN_IF_ERROR(result);
   }
+
+  return Dart_Null();
 }
 
 Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {

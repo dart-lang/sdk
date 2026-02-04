@@ -7,7 +7,7 @@ library from "org-dartlang-test:///main.dart" as main {
     constructor _ = main::_Foo|constructor#_;
     constructor tearoff _ = main::_Foo|constructor#_#_#tearOff;
   }
-  static extension-type-member method _Foo|constructor#_(dart.core::int _foo) → main::_Foo% /* erasure=dart.core::int, declared=! */ {
+  static extension-type-member const method _Foo|constructor#_(dart.core::int _foo) → main::_Foo% /* erasure=dart.core::int, declared=! */ {
     lowered final main::_Foo% /* erasure=dart.core::int, declared=! */ #this = _foo;
     return #this;
   }

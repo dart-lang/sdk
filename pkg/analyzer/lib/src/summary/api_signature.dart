@@ -220,6 +220,11 @@ class Hash {
         const ListEquality<int>().equals(_bytes, other._bytes);
   }
 
+  @override
+  String toString() {
+    return hex.encode(_bytes);
+  }
+
   void write(BinaryWriter writer) {
     writer.writeUint8List(_bytes);
   }

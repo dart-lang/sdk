@@ -18,10 +18,10 @@ class ReplaceFinalWithConst extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_FINAL_WITH_CONST;
+  FixKind get fixKind => DartFixKind.replaceFinalWithConst;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_FINAL_WITH_CONST_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceFinalWithConstMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

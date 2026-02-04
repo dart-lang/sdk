@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class BuiltInIdentifierAsTypeNameTest extends PubPackageResolutionTest {
       '''
 class as {}
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 2)],
+      [error(diag.builtInIdentifierAsTypeName, 6, 2)],
     );
   }
 
@@ -29,7 +29,7 @@ class as {}
       '''
 class Function {}
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 8)],
+      [error(diag.builtInIdentifierAsTypeName, 6, 8)],
     );
   }
 
@@ -40,7 +40,7 @@ enum as {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 5, 2)],
+      [error(diag.builtInIdentifierAsTypeName, 5, 2)],
     );
   }
 
@@ -49,7 +49,7 @@ enum as {
       '''
 mixin as {}
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 2)],
+      [error(diag.builtInIdentifierAsTypeName, 6, 2)],
     );
   }
 
@@ -58,7 +58,7 @@ mixin as {}
       '''
 mixin Function {}
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 8)],
+      [error(diag.builtInIdentifierAsTypeName, 6, 8)],
     );
   }
 

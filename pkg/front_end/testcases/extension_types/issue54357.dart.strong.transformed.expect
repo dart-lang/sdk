@@ -30,7 +30,7 @@ static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /*
 static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> m3s4 = #C13;
 static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> ms43 = #C14;
 static const field core::Map<self::ExInt /* erasure=core::int */, self::ExInt /* erasure=core::int */> ms3s4 = #C13;
-static extension-type-member method ExInt|constructor#(core::int _) → self::ExInt /* erasure=core::int */ {
+static extension-type-member const method ExInt|constructor#(core::int _) → self::ExInt /* erasure=core::int */ {
   lowered final self::ExInt /* erasure=core::int */ #this = _;
   return #this;
 }

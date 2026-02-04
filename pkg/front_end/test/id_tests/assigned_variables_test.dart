@@ -53,7 +53,7 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
-    AssignedVariablesForTesting<TreeNode, VariableDeclaration>?
+    AssignedVariablesForTesting<TreeNode, ExpressionVariable>?
     assignedVariables = memberBuilder
         .dataForTesting!
         .inferenceData
@@ -72,7 +72,7 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
 
 class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
-  final AssignedVariablesForTesting<TreeNode, VariableDeclaration>
+  final AssignedVariablesForTesting<TreeNode, ExpressionVariable>
   _assignedVariables;
 
   AssignedVariablesDataExtractor(
@@ -95,7 +95,7 @@ class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
   }
 
   Set<String> _convertVars(Iterable<int> x) =>
-      x.map((e) => _assignedVariables.variableForKey(e).name!).toSet();
+      x.map((e) => _assignedVariables.variableForKey(e).cosmeticName!).toSet();
 
   @override
   _Data? computeNodeValue(Id id, TreeNode node) {

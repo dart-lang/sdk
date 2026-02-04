@@ -20,19 +20,30 @@ import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 
+export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
+    show PackageBuilder;
+
 ExpectedContextMessage contextMessage(
   File file,
   int offset,
   int length, {
-  String? text,
+  @Deprecated('Use textContains instead') String? text,
   List<Pattern> textContains = const [],
-}) => ExpectedContextMessage(
-  file,
-  offset,
-  length,
-  text: text,
-  textContains: textContains,
-);
+}) {
+  assert(
+    text == null || textContains.isEmpty,
+    'Use only one of text or textContains',
+  );
+  if (text != null) {
+    textContains = [text];
+  }
+  return ExpectedContextMessage(
+    file,
+    offset,
+    length,
+    textContains: textContains,
+  );
+}
 
 /// Returns an [ExpectedDiagnostic] with the given arguments.
 ///
@@ -41,22 +52,44 @@ ExpectedDiagnostic error(
   DiagnosticCode code,
   int offset,
   int length, {
-  Pattern? messageContains,
+  @Deprecated('Use messageContainsAll instead') Pattern? messageContains,
+  List<Pattern> messageContainsAll = const [],
   Pattern? correctionContains,
   List<ExpectedContextMessage>? contextMessages,
-}) => ExpectedError(
-  code,
-  offset,
-  length,
-  messageContains: messageContains,
-  correctionContains: correctionContains,
-  contextMessages: contextMessages,
-);
+}) {
+  assert(
+    messageContains == null || messageContainsAll.isEmpty,
+    'Use only one of messageContains or messageContainsAll',
+  );
+  if (messageContains != null) {
+    messageContainsAll = [messageContains];
+  }
+  return ExpectedError(
+    code,
+    offset,
+    length,
+    messageContainsAll: messageContainsAll,
+    correctionContains: correctionContains,
+    contextMessages: contextMessages,
+  );
+}
 
 /// A base class for analysis rule tests that use test_reflective_loader.
 abstract class AnalysisRuleTest extends PubPackageResolutionTest {
+  /// The [AbstractAnalysisRule] under test.
+  ///
+  /// In a test class that extends [AnalysisRuleTest], this field must be set
+  /// from within [setUp], before calling `super.setUp`.
+  AbstractAnalysisRule rule = _SentinelRule();
+
   /// The name of the analysis rule which this test is concerned with.
-  String get analysisRule;
+  late String _analysisRule;
+
+  /// The name of the analysis rule which this test is concerned with.
+  // TODO(srawlins): In a major release, remove this getter, and implement
+  // `_analysisRule` as `=> rule.name;`.
+  @Deprecated("Set 'rule' in 'setUp' instead")
+  String get analysisRule => 'sentinel';
 
   /// Asserts that no diagnostics are reported when resolving [content].
   ///
@@ -94,8 +127,8 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
         buffer.write('  error(${actual.diagnosticCode}, ');
       }
       buffer.write('${actual.offset}, ${actual.length}');
-      if (actual.diagnosticCode.name != analysisRule) {
-        buffer.write(", name: '${actual.diagnosticCode.name}'");
+      if (actual.diagnosticCode.lowerCaseName != _analysisRule) {
+        buffer.write(", name: '${actual.diagnosticCode.lowerCaseName}'");
       }
       buffer.writeln('),');
     }
@@ -103,7 +136,7 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
     return buffer.toString();
   }
 
-  /// Returns an "expected diagnostic" for [analysisRule] (or [name], if given)
+  /// Returns an "expected diagnostic" for [rule] (or [name], if given)
   /// at [offset] and [length].
   ///
   /// If given, [messageContains] is used to match against a diagnostic's
@@ -112,29 +145,50 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
   ExpectedDiagnostic lint(
     int offset,
     int length, {
-    Pattern? messageContains,
     Pattern? correctionContains,
+    @Deprecated('Use messageContainsAll instead') Pattern? messageContains,
+    List<Pattern> messageContainsAll = const [],
     String? name,
     List<ExpectedContextMessage>? contextMessages,
-  }) => ExpectedLint(
-    name ?? analysisRule,
-    offset,
-    length,
-    messageContains: messageContains,
-    correctionContains: correctionContains,
-    contextMessages: contextMessages,
-  );
+  }) {
+    assert(
+      messageContains == null || messageContainsAll.isEmpty,
+      'Use only one of messageContains or messageContainsAll',
+    );
+    if (messageContains != null) {
+      messageContainsAll = [messageContains];
+    }
+    return ExpectedLint(
+      name ?? _analysisRule,
+      offset,
+      length,
+      messageContainsAll: messageContainsAll,
+      correctionContains: correctionContains,
+      contextMessages: contextMessages,
+    );
+  }
 
   @mustCallSuper
   @override
   void setUp() {
-    if (!Registry.ruleRegistry.any((r) => r.name == analysisRule)) {
-      throw Exception("Unrecognized rule: '$analysisRule'");
+    // TODO(srawlins): In a major release, change this logic to just ensure that
+    // `rule` has been set to an analysis rule instance other than
+    // `_SentinelRule`.
+    if (rule is _SentinelRule) {
+      if (analysisRule == 'sentinel') {
+        throw StateError('The `rule` field must be set in the `setUp` method.');
+      }
+      // The developer is using the deprecated `analysisRule` to set the
+      // rule-under-test.
+      _analysisRule = analysisRule;
+    } else {
+      _analysisRule = rule.name;
+      Registry.ruleRegistry.registerLintRule(rule);
     }
     super.setUp();
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
-      analysisOptionsContent(experiments: experiments, rules: [analysisRule]),
+      analysisOptionsContent(experiments: experiments, rules: [_analysisRule]),
     );
   }
 
@@ -146,7 +200,7 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
     }
     buffer.writeln('Found but did not expect:');
     for (var actual in unmatchedActual) {
-      buffer.write('  $analysisRule.${actual.diagnosticCode.name} [');
+      buffer.write('  $_analysisRule.${actual.diagnosticCode.lowerCaseName} [');
       buffer.write('${actual.offset}, ${actual.length}, ${actual.message}');
       if (actual.correctionMessage case Pattern correctionMessage) {
         buffer.write(', ');
@@ -160,7 +214,7 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
   Future<List<Diagnostic>> _analyzePubspecFile(String content) async {
     var path = convertPath(testPackagePubspecPath);
     var pubspecRules = <AbstractAnalysisRule, PubspecVisitor<Object?>>{};
-    var rules = Registry.ruleRegistry.where((r) => analysisRule == r.name);
+    var rules = Registry.ruleRegistry.where((r) => _analysisRule == r.name);
     for (var rule in rules) {
       var visitor = rule.pubspecVisitor;
       if (visitor != null) {
@@ -190,4 +244,14 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
     }
     return [...listener.diagnostics];
   }
+}
+
+/// A sentinel [AnalysisRule] for use while [AnalysisRuleTest.analysisRule] is
+/// still available but deprecated, and using it's replacement,
+/// [AnalysisRuleTest.rule], is not yet mandatory.
+final class _SentinelRule extends AnalysisRule {
+  _SentinelRule() : super(name: 'sentinel', description: 'sentinel');
+
+  @override
+  dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
 }

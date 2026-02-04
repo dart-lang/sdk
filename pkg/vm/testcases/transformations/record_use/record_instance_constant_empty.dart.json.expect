@@ -1,8 +1,4 @@
 {
-  "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
-    "version": "0.2.0"
-  },
   "constants": [
     {
       "type": "Instance"
@@ -19,20 +15,24 @@
       "uri": "record_instance_constant_empty.dart"
     }
   ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
   "recordings": [
     {
       "definition": {
         "identifier": {
-          "uri": "record_instance_constant_empty.dart",
-          "name": "MyClass"
+          "name": "MyClass",
+          "uri": "record_instance_constant_empty.dart"
         },
         "loading_unit": "1"
       },
       "instances": [
         {
+          "@": 0,
           "constant_index": 1,
-          "loading_unit": "1",
-          "@": 0
+          "loading_unit": "1"
         }
       ]
     }

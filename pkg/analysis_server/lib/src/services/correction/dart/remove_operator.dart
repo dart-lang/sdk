@@ -17,10 +17,10 @@ class RemoveOperator extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_OPERATOR;
+  FixKind get fixKind => DartFixKind.removeOperator;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_OPERATOR_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeOperatorMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

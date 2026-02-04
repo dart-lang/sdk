@@ -184,6 +184,7 @@ class Thread;
 
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(ObjectPtr, object_null_, Object::null(), nullptr)                          \
+  V(SentinelPtr, object_sentinel_, Object::sentinel().ptr(), nullptr)          \
   V(BoolPtr, bool_true_, Object::bool_true().ptr(), nullptr)                   \
   V(BoolPtr, bool_false_, Object::bool_false().ptr(), nullptr)                 \
   V(ArrayPtr, empty_array_, Object::empty_array().ptr(), nullptr)              \
@@ -425,9 +426,9 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   void SetStackLimit(uword value);
   void ClearStackLimit();
 
-  // Access to the current stack limit for generated code. Either the true OS
-  // thread's stack limit minus some headroom, or a special value to trigger
-  // interrupts.
+  // The stack limit used by stack overflow checks in generated code. Either the
+  // true OS thread's stack limit minus some headroom, or a special value to
+  // trigger interrupts.
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
   }
@@ -435,19 +436,27 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     return OFFSET_OF(Thread, stack_limit_);
   }
 
-  // The true stack limit for this OS thread.
+  // The true stack limit for this OS thread minus some headroom. Used on ARM64
+  // to keep CSP/R31 signal-handler safe while Dart uses R15 as its stack
+  // pointer.
   static intptr_t saved_stack_limit_offset() {
     return OFFSET_OF(Thread, saved_stack_limit_);
   }
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
 #if defined(USING_SAFE_STACK)
-  uword saved_safestack_limit() const { return saved_safestack_limit_; }
-  void set_saved_safestack_limit(uword limit) {
-    saved_safestack_limit_ = limit;
-  }
+  // The SafeStack pointer during the top-most DartEntry. Needs to be restored
+  // on Dart throw like longjmp would.
+  uword saved_safestack() const { return saved_safestack_; }
+  void set_saved_safestack(uword ssp) { saved_safestack_ = ssp; }
 #endif
+
+  // The ShadowCallStack pointer during the top-most entry frame. Needs to be
+  // restored on Dart throw like longjmp would.
   uword saved_shadow_call_stack() const { return saved_shadow_call_stack_; }
+  void set_saved_shadow_call_stack(uword ssp) {
+    saved_shadow_call_stack_ = ssp;
+  }
   static uword saved_shadow_call_stack_offset() {
     return OFFSET_OF(Thread, saved_shadow_call_stack_);
   }
@@ -476,7 +485,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     return OFFSET_OF(Thread, stack_overflow_flags_);
   }
 
-  int32_t IncrementAndGetStackOverflowCount() {
+  uint32_t IncrementAndGetStackOverflowCount() {
     return ++stack_overflow_count_;
   }
 
@@ -1292,8 +1301,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   static intptr_t next_task_id_offset() {
     return OFFSET_OF(Thread, next_task_id_);
   }
-  Random* random() { return &thread_random_; }
-  static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
+  Random* random() { return &random_; }
+  static intptr_t random_offset() { return OFFSET_OF(Thread, random_); }
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
@@ -1383,6 +1392,13 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   static void VisitMutators(MutatorThreadVisitor* visitor);
 
+  ArrayPtr thread_locals() const { return thread_locals_; }
+  void set_thread_locals(const Array& thread_locals);
+
+  static intptr_t thread_locals_offset() {
+    return OFFSET_OF(Thread, thread_locals_);
+  }
+
  private:
   template <class T>
   T* AllocateReusableHandle();
@@ -1458,7 +1474,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   ObjectPtr active_stacktrace_;
 
   ObjectPoolPtr global_object_pool_;
-  uword resume_pc_;
+  uword resume_pc_ = 0;
   uword saved_shadow_call_stack_ = 0;
 
   /*
@@ -1474,7 +1490,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
    * to be in [kThreadInNative] and still not be at-safepoint (e.g. due to a
    * pending Dart_TypedDataAcquire() that increases no-callback-scope)
    */
-  uword execution_state_;
+  uword execution_state_ = kThreadInNative;
 
   /*
    * Stores
@@ -1506,14 +1522,14 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
    *     entering a reload safepoint
    *     [NoReloadScopeField]
    */
-  std::atomic<uword> safepoint_state_;
+  std::atomic<uword> safepoint_state_ = 0;
   uword exit_through_ffi_ = 0;
 
 #define DECLARE_MEMBERS(returntype, name, ...) uword name##_entry_point_;
   LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
-  ApiLocalScope* api_top_scope_;
+  ApiLocalScope* api_top_scope_ = nullptr;
   uint8_t double_truncate_round_supported_;
   // Memory locations dedicated for passing unboxed int64 and double
   // values from generated code to runtime.
@@ -1521,7 +1537,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   // could be passed as arguments.
   ALIGN8 simd128_value_t unboxed_runtime_arg_;
   ALIGN8 int64_t next_task_id_;
-  ALIGN8 Random thread_random_;
+  ALIGN8 Random random_;
 
   TsanUtils* tsan_utils_ = nullptr;
 
@@ -1530,6 +1546,9 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   uword user_tag_ = 0;
   UserTagPtr current_tag_;
   UserTagPtr default_tag_;
+  TimelineStream* const dart_stream_;
+  StreamInfo* const service_extension_stream_;
+  ArrayPtr thread_locals_ = nullptr;
 
   // ---- End accessed from generated code. ----
 
@@ -1539,22 +1558,20 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   // DART_PRECOMPILED_RUNTIME.
 
   uword true_end_ = 0;
-  std::atomic<TaskKind> task_kind_;
-  TimelineStream* const dart_stream_;
-  StreamInfo* const service_extension_stream_;
   mutable Monitor thread_lock_;
-  ApiLocalScope* api_reusable_scope_;
-  int32_t no_callback_scope_depth_;
+  ApiLocalScope* api_reusable_scope_ = nullptr;
+  std::atomic<TaskKind> task_kind_ = kUnknownTask;
+  int32_t no_callback_scope_depth_ = 0;
   int32_t force_growth_scope_depth_ = 0;
-  intptr_t no_reload_scope_depth_ = 0;
-  intptr_t allow_reload_scope_depth_ = 0;
-  intptr_t stopped_mutators_scope_depth_ = 0;
+  int32_t no_reload_scope_depth_ = 0;
+  int32_t allow_reload_scope_depth_ = 0;
+  int32_t stopped_mutators_scope_depth_ = 0;
 #if defined(DEBUG)
-  int32_t no_safepoint_scope_depth_;
+  int32_t no_safepoint_scope_depth_ = 0;
 #endif
-  VMHandles reusable_handles_;
-  int32_t stack_overflow_count_;
+  uint32_t stack_overflow_count_ = 0;
   uint32_t runtime_call_count_ = 0;
+  VMHandles reusable_handles_;
 
   // Deoptimization of stack frames.
   RuntimeCallDeoptAbility runtime_call_deopt_ability_ =
@@ -1563,8 +1580,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;
-  HierarchyInfo* hierarchy_info_;
-  TypeUsageInfo* type_usage_info_;
+  HierarchyInfo* hierarchy_info_ = nullptr;
+  TypeUsageInfo* type_usage_info_ = nullptr;
   NoActiveIsolateScope* no_active_isolate_scope_ = nullptr;
 
   CompilerTimings* compiler_timings_ = nullptr;
@@ -1629,7 +1646,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   }
 
 #if defined(USING_SAFE_STACK)
-  uword saved_safestack_limit_;
+  uword saved_safestack_ = 0;
 #endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
@@ -1777,7 +1794,7 @@ class RuntimeCallDeoptScope : public StackResource {
 void WindowsThreadCleanUp();
 #endif
 
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
 // Disable thread interrupts.
 class DisableThreadInterruptsScope : public StackResource {
  public:
@@ -1791,7 +1808,7 @@ class DisableThreadInterruptsScope : public StackResource {
       : StackResource(thread) {}
   ~DisableThreadInterruptsScope() {}
 };
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_INCLUDE_PROFILER)
 
 // Within a NoSafepointScope, the thread must not reach any safepoint. Used
 // around code that manipulates raw object pointers directly without handles.

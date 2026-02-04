@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ dynamic a;
       '''
 dynamic? a;
 ''',
-      [error(WarningCode.unnecessaryQuestionMark, 7, 1)],
+      [error(diag.unnecessaryQuestionMark, 7, 1)],
     );
   }
 
@@ -37,7 +37,7 @@ void f(List<Object> a) {
   var [dynamic? _] = a;
 }
 ''',
-      [error(WarningCode.unnecessaryQuestionMark, 39, 1)],
+      [error(diag.unnecessaryQuestionMark, 39, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ Null a;
       '''
 Null? a;
 ''',
-      [error(WarningCode.unnecessaryQuestionMark, 4, 1)],
+      [error(diag.unnecessaryQuestionMark, 4, 1)],
     );
   }
 
@@ -66,8 +66,8 @@ void f(Object a) {
 }
 ''',
       [
-        error(WarningCode.patternNeverMatchesValueType, 52, 5),
-        error(WarningCode.unnecessaryQuestionMark, 56, 1),
+        error(diag.patternNeverMatchesValueType, 52, 5),
+        error(diag.unnecessaryQuestionMark, 56, 1),
       ],
     );
   }

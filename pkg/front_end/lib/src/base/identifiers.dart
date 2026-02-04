@@ -34,6 +34,45 @@ abstract class Identifier {
   TypeName get typeName;
 }
 
+class OmittedIdentifier implements Identifier {
+  @override
+  final Token token;
+
+  OmittedIdentifier(this.token);
+
+  int get charOffset => token.charOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get firstOffset => charOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression? get initializer => null;
+
+  @override
+  String get name => '';
+
+  @override
+  int get nameOffset => charOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Operator? get operator => null;
+
+  @override
+  int get qualifierOffset => charOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  TypeName get typeName {
+    return unsupported("typeName", charOffset, null);
+  }
+
+  @override
+  String toString() => "OmittedIdentifier()";
+}
+
 abstract class IdentifierImpl implements Identifier {
   @override
   final Token token;
@@ -100,7 +139,6 @@ class OperatorIdentifier implements Identifier {
   @override
   String get name => operator.text;
 
-  // Coverage-ignore(suite): Not run.
   int get charOffset => token.charOffset;
 
   @override

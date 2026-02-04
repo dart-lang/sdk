@@ -17,6 +17,7 @@ const kVmKeepNamePragmaName = "vm:keep-name";
 const kVmPlatformConstPragmaName = "vm:platform-const";
 const kVmPlatformConstIfPragmaName = "vm:platform-const-if";
 const kVmFfiNative = "vm:ffi:native";
+const kVmSharedPragmaName = "vm:shared";
 
 // Pragmas recognized by dart2wasm
 const kWasmEntryPointPragmaName = "wasm:entry-point";
@@ -38,6 +39,7 @@ abstract class ParsedPragma {}
 enum PragmaEntryPointType {
   Default,
   Extendable,
+  ImplicitlyExtendable,
   CanBeOverridden,
   GetterOnly,
   SetterOnly,
@@ -88,6 +90,10 @@ class ParsedFfiNativePragma implements ParsedPragma {
 
 class ParsedDynModuleEntryPointPragma implements ParsedPragma {
   const ParsedDynModuleEntryPointPragma();
+}
+
+class ParsedVmSharedPragma implements ParsedPragma {
+  const ParsedVmSharedPragma();
 }
 
 abstract class PragmaAnnotationParser {
@@ -220,6 +226,10 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case kDynModuleExtendablePragmaName:
         return const ParsedEntryPointPragma(PragmaEntryPointType.Extendable);
+      case kDynModuleImplicitlyExtendablePragmaName:
+        return const ParsedEntryPointPragma(
+          PragmaEntryPointType.ImplicitlyExtendable,
+        );
       case kDynModuleCanBeOverriddenPragmaName:
         return const ParsedEntryPointPragma(
           PragmaEntryPointType.CanBeOverridden,
@@ -229,6 +239,8 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return getEntryPointTypeFromOptions(options, pragmaName);
       case kDynModuleEntryPointPragmaName:
         return const ParsedDynModuleEntryPointPragma();
+      case kVmSharedPragmaName:
+        return const ParsedVmSharedPragma();
       default:
         return null;
     }

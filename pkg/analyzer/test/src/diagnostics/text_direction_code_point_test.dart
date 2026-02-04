@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,10 +25,10 @@ void f() { // \u2066
 }
 ''',
       [
-        error(WarningCode.textDirectionCodePointInComment, 3, 1),
-        error(WarningCode.textDirectionCodePointInComment, 9, 1),
-        error(WarningCode.textDirectionCodePointInComment, 25, 1),
-        error(WarningCode.textDirectionCodePointInComment, 32, 1),
+        error(diag.textDirectionCodePointInComment, 3, 1),
+        error(diag.textDirectionCodePointInComment, 9, 1),
+        error(diag.textDirectionCodePointInComment, 25, 1),
+        error(diag.textDirectionCodePointInComment, 32, 1),
       ],
     );
   }
@@ -48,7 +48,7 @@ var u202a = '\u202A';
 ''',
       [
         error(
-          WarningCode.textDirectionCodePointInLiteral,
+          diag.textDirectionCodePointInLiteral,
           13,
           1,
           messageContains: ['U+202A'],
@@ -64,7 +64,7 @@ var s = """ \u202a
         Multiline!
 """;
 ''',
-      [error(WarningCode.textDirectionCodePointInLiteral, 12, 1)],
+      [error(diag.textDirectionCodePointInLiteral, 12, 1)],
     );
   }
 
@@ -82,15 +82,15 @@ var u2068 = '\u2068';
 var u2069 = '\u2069';
 ''',
       [
-        error(WarningCode.textDirectionCodePointInLiteral, 13, 1),
-        error(WarningCode.textDirectionCodePointInLiteral, 30, 1),
-        error(WarningCode.textDirectionCodePointInLiteral, 47, 1),
-        error(WarningCode.textDirectionCodePointInLiteral, 64, 1),
-        error(WarningCode.textDirectionCodePointInLiteral, 81, 1),
-        error(WarningCode.textDirectionCodePointInLiteral, 98, 1),
-        error(WarningCode.textDirectionCodePointInLiteral, 115, 1),
-        error(WarningCode.textDirectionCodePointInLiteral, 132, 1),
-        error(WarningCode.textDirectionCodePointInLiteral, 149, 1),
+        error(diag.textDirectionCodePointInLiteral, 13, 1),
+        error(diag.textDirectionCodePointInLiteral, 30, 1),
+        error(diag.textDirectionCodePointInLiteral, 47, 1),
+        error(diag.textDirectionCodePointInLiteral, 64, 1),
+        error(diag.textDirectionCodePointInLiteral, 81, 1),
+        error(diag.textDirectionCodePointInLiteral, 98, 1),
+        error(diag.textDirectionCodePointInLiteral, 115, 1),
+        error(diag.textDirectionCodePointInLiteral, 132, 1),
+        error(diag.textDirectionCodePointInLiteral, 149, 1),
       ],
     );
   }
@@ -101,7 +101,7 @@ var u2069 = '\u2069';
 var x = 'x';
 var u202a = '\u202A\$x';
 ''',
-      [error(WarningCode.textDirectionCodePointInLiteral, 26, 1)],
+      [error(diag.textDirectionCodePointInLiteral, 26, 1)],
     );
   }
 }

@@ -22,7 +22,6 @@ class SharedTypeAnalyzerErrors
           Statement,
           Expression,
           VariableDeclaration,
-          SharedTypeView,
           Pattern,
           InvalidExpression
         > {

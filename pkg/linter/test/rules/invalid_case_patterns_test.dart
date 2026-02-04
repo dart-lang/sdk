@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -53,7 +54,7 @@ void f(Object o) {
   }
 }
 ''',
-      [lint(43, 12), error(WarningCode.deadCode, 54, 1)],
+      [lint(43, 12), error(diag.deadCode, 54, 1)],
     );
   }
 
@@ -109,7 +110,7 @@ void f(Object o) {
   }
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckTrue, 43, 8), lint(43, 8)],
+      [error(diag.unnecessaryTypeCheckTrue, 43, 8), lint(43, 8)],
     );
   }
 
@@ -122,7 +123,7 @@ void f(Object o) {
   }
 }
 ''',
-      [error(WarningCode.unnecessaryTypeCheckFalse, 43, 9), lint(43, 9)],
+      [error(diag.unnecessaryTypeCheckFalse, 43, 9), lint(43, 9)],
     );
   }
 

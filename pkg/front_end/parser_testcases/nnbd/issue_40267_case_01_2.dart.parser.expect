@@ -1,0 +1,17 @@
+NOTICE: Stream was rewritten by parser!
+
+main() {
+switch(a) {
+
+case b ? :[c] ;*synthetic*;: d: e;
+}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken]([BeginToken]a[StringToken])[SimpleToken] {[BeginToken]
+
+case[KeywordToken] b[StringToken] ?[SimpleToken] :[SyntheticToken][[BeginToken]c[StringToken]][SimpleToken] ;[SyntheticToken][SyntheticStringToken];[SyntheticToken]:[SimpleToken] d[StringToken]:[SimpleToken] e[StringToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -15,9 +15,5 @@ class Foo extends core::Object {
   constructor •() → self::Foo
     : self::Foo::x = 0, super core::Object::•()
     ;
-  external constructor n24(core::int x) → self::Foo
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/coverage/external_test.dart:10:25: Error: An external constructor can't initialize fields.
-Try removing the field initializers, or removing the keyword 'external'.
-  external Foo.n24(this.x); // Error
-                        ^";
+  external constructor n24(core::int x) → self::Foo;
 }

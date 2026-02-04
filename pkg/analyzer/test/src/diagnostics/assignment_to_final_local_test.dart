@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,8 +23,8 @@ f() {
   x = 1;
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 14, 1),
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 23, 1),
+        error(diag.unusedLocalVariable, 14, 1),
+        error(diag.assignmentToFinalLocal, 23, 1),
       ],
     );
   }
@@ -39,7 +39,7 @@ f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 24, 1)],
+      [error(diag.assignmentToFinalLocal, 24, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ f() {
     print(x);
   }
 }''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 28, 1)],
+      [error(diag.assignmentToFinalLocal, 28, 1)],
     );
   }
 
@@ -64,8 +64,8 @@ f() {
   x += 1;
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 14, 1),
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 23, 1),
+        error(diag.unusedLocalVariable, 14, 1),
+        error(diag.assignmentToFinalLocal, 23, 1),
       ],
     );
   }
@@ -76,7 +76,7 @@ f() {
 f(final x) {
   x = 1;
 }''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 15, 1)],
+      [error(diag.assignmentToFinalLocal, 15, 1)],
     );
   }
 
@@ -101,7 +101,7 @@ class A {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 65, 1)],
+      [error(diag.assignmentToFinalLocal, 65, 1)],
     );
   }
 
@@ -116,7 +116,7 @@ class B extends A {
   B(super.a) : x = (() { a = 0; });
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 78, 1)],
+      [error(diag.assignmentToFinalLocal, 78, 1)],
     );
   }
 
@@ -129,7 +129,7 @@ void f() {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 30, 1)],
+      [error(diag.assignmentToFinalLocal, 30, 1)],
     );
   }
 
@@ -141,8 +141,8 @@ f() {
   x--;
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 14, 1),
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 23, 1),
+        error(diag.unusedLocalVariable, 14, 1),
+        error(diag.assignmentToFinalLocal, 23, 1),
       ],
     );
   }
@@ -155,8 +155,8 @@ f() {
   x++;
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 14, 1),
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 23, 1),
+        error(diag.unusedLocalVariable, 14, 1),
+        error(diag.assignmentToFinalLocal, 23, 1),
       ],
     );
   }
@@ -169,8 +169,8 @@ f() {
   --x;
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 14, 1),
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 25, 1),
+        error(diag.unusedLocalVariable, 14, 1),
+        error(diag.assignmentToFinalLocal, 25, 1),
       ],
     );
   }
@@ -183,8 +183,8 @@ f() {
   ++x;
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 14, 1),
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 25, 1),
+        error(diag.unusedLocalVariable, 14, 1),
+        error(diag.assignmentToFinalLocal, 25, 1),
       ],
     );
   }
@@ -197,8 +197,8 @@ f() {
   x--;
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 14, 1),
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 23, 1),
+        error(diag.unusedLocalVariable, 14, 1),
+        error(diag.assignmentToFinalLocal, 23, 1),
       ],
     );
   }
@@ -211,8 +211,8 @@ f() {
   x++;
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 14, 1),
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 23, 1),
+        error(diag.unusedLocalVariable, 14, 1),
+        error(diag.assignmentToFinalLocal, 23, 1),
       ],
     );
   }

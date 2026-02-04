@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -23,8 +23,8 @@ void f() async {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.asyncKeywordUsedAsIdentifier, 27, 5),
-      error(ParserErrorCode.expectedToken, 27, 5),
+      error(diag.asyncKeywordUsedAsIdentifier, 27, 5),
+      error(diag.expectedToken, 27, 5),
     ]);
 
     var node = parseResult.findNode.singleBlock;
@@ -62,7 +62,7 @@ void f() async {
   await y.foo();
 }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 30, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 30, 1)]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
@@ -101,7 +101,7 @@ void f() {
   bar();
 }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 21, 3)]);
+    parseResult.assertErrors([error(diag.expectedToken, 21, 3)]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''

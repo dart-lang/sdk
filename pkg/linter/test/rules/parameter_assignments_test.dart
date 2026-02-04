@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -16,6 +17,58 @@ void main() {
 class ParameterAssignmentsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.parameter_assignments;
+
+  test_anonymousFunction_assignment() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  (int i) {
+    i = 42;
+  }(0);
+}
+''',
+      [lint(30, 6)],
+    );
+  }
+
+  test_anonymousFunction_assignment_arrowBody() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  (int i) => i = 42;
+}
+''',
+      [lint(27, 6)],
+    );
+  }
+
+  test_anonymousFunction_assignment_notInvoked() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  (int i) {
+    i = 42;
+  };
+}
+''',
+      [lint(30, 6)],
+    );
+  }
+
+  test_assignment_inIfElseBranches() async {
+    await assertDiagnostics(
+      r'''
+void foo({String? value}) {
+  if (1 == 1) {
+    value = ' $value';
+  } else {
+    value = ' $value';
+  }
+}
+''',
+      [lint(48, 17), lint(82, 17)],
+    );
+  }
 
   test_assignment_nullableParameter() async {
     await assertDiagnostics(
@@ -50,12 +103,11 @@ void f([int? _]) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.undefinedIdentifier, 21, 1),
+        error(diag.undefinedIdentifier, 21, 1),
       ],
     );
   }
 
-  @FailingTest(reason: 'Closures not implemented')
   test_closure_assignment() async {
     await assertDiagnostics(
       r'''
@@ -77,6 +129,19 @@ void f(int p) {
 }
 ''',
       [lint(18, 6)],
+    );
+  }
+
+  test_constructor_assignment() async {
+    await assertDiagnostics(
+      r'''
+class Foo {
+  Foo(int x) {
+    x = 4;
+  }
+}
+''',
+      [lint(31, 5)],
     );
   }
 
@@ -149,9 +214,9 @@ void f([int? optional]) {
 }
 ''',
       [
-        error(StaticWarningCode.deadNullAwareExpression, 59, 2),
+        error(diag.deadNullAwareExpression, 59, 2),
         lint(46, 15),
-        error(WarningCode.deadCode, 59, 3),
+        error(diag.deadCode, 59, 3),
       ],
     );
   }
@@ -306,7 +371,7 @@ void f([int p = 42]) {
   p ??= 8;
 }
 ''',
-      [lint(65, 7), error(WarningCode.deadCode, 71, 2)],
+      [lint(65, 7), error(diag.deadCode, 71, 2)],
     );
   }
 
@@ -318,7 +383,7 @@ void f({int p = 42}) {
   p ??= 8;
 }
 ''',
-      [lint(65, 7), error(WarningCode.deadCode, 71, 2)],
+      [lint(65, 7), error(diag.deadCode, 71, 2)],
     );
   }
 
@@ -347,7 +412,7 @@ void f([int? p]) {
   p ??= 16;
 }
 ''',
-      [lint(72, 8), error(WarningCode.deadCode, 78, 3)],
+      [lint(72, 8), error(diag.deadCode, 78, 3)],
     );
   }
 

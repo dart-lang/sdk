@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveCharacterTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CHARACTER;
+  FixKind get kind => DartFixKind.removeCharacter;
 
   Future<void> test_comment() async {
     await resolveTestCode('''

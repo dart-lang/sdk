@@ -28,7 +28,7 @@ namespace dart {
     SuspendState_setErrorCallback, 0xd5e77404)                                 \
   V(AsyncLibrary, _SuspendState, _clone, SuspendState_clone, 0x751294d7)       \
   V(AsyncLibrary, _SuspendState, _resume, SuspendState_resume, 0x48d39768)     \
-  V(ConvertLibrary, _Utf8Decoder, _scan, Utf8DecoderScan, 0x903cbc3e)          \
+  V(ConvertLibrary, _Utf8Decoder, _scan, Utf8DecoderScan, 0x3948ffb0)          \
   V(CoreLibrary, ::, identical, ObjectIdentical, 0x03f96b55)                   \
   V(CoreLibrary, Object, Object., ObjectConstructor, 0xab6d6cf2)               \
   V(CoreLibrary, _Array, [], ObjectArrayGetIndexed, 0x78d7e092)                \
@@ -44,7 +44,7 @@ namespace dart {
   V(CoreLibrary, _Record, get:_numFields, Record_numFields, 0x7ba4f393)        \
   V(CoreLibrary, _Record, get:_shape, Record_shape, 0x70c40933)                \
   V(CoreLibrary, _Record, _fieldAt, Record_fieldAt, 0xb47fa0b3)                \
-  V(CoreLibrary, _StringBase, _interpolate, StringBaseInterpolate, 0xa2c902d2) \
+  V(CoreLibrary, _StringBase, _interpolate, StringBaseInterpolate, 0xc2be3a8b) \
   V(CoreLibrary, _StringBase, codeUnitAt, StringBaseCodeUnitAt, 0x17dbf511)    \
   V(CoreLibrary, _IntegerImplementation, toDouble, IntegerToDouble,            \
     0x97557386)                                                                \
@@ -233,18 +233,18 @@ namespace dart {
     0x56ff3b70)                                                                \
   V(MathLibrary, ::, min, MathMin, 0x63eb7469)                                 \
   V(MathLibrary, ::, max, MathMax, 0xf9320c82)                                 \
-  V(MathLibrary, ::, _doublePow, MathDoublePow, 0x424e2227)                    \
-  V(MathLibrary, ::, _intPow, MathIntPow, 0x9a0d648c)                          \
-  V(MathLibrary, ::, _sin, MathSin, 0x101882d8)                                \
-  V(MathLibrary, ::, _cos, MathCos, 0xf91585da)                                \
-  V(MathLibrary, ::, _tan, MathTan, 0xf720c4ea)                                \
-  V(MathLibrary, ::, _asin, MathAsin, 0xfe7986cb)                              \
-  V(MathLibrary, ::, _acos, MathAcos, 0x174c6974)                              \
-  V(MathLibrary, ::, _atan, MathAtan, 0x1ae3f717)                              \
-  V(MathLibrary, ::, _atan2, MathAtan2, 0x531004a9)                            \
-  V(MathLibrary, ::, _sqrt, MathSqrt, 0x1f167f7a)                              \
-  V(MathLibrary, ::, _exp, MathExp, 0x02565a46)                                \
-  V(MathLibrary, ::, _log, MathLog, 0x106c0978)                                \
+  V(MathLibrary, ::, _doublePow, MathDoublePow, 0x41e7435b)                    \
+  V(MathLibrary, ::, _intPow, MathIntPow, 0x831c7f0a)                          \
+  V(MathLibrary, ::, _sin, MathSin, 0x1e9ad4ea)                                \
+  V(MathLibrary, ::, _cos, MathCos, 0xf75f2165)                                \
+  V(MathLibrary, ::, _tan, MathTan, 0xfb847fa8)                                \
+  V(MathLibrary, ::, _asin, MathAsin, 0xf02d1b9e)                              \
+  V(MathLibrary, ::, _acos, MathAcos, 0xeda3de2d)                              \
+  V(MathLibrary, ::, _atan, MathAtan, 0xfc58e253)                              \
+  V(MathLibrary, ::, _atan2, MathAtan2, 0x751307ef)                            \
+  V(MathLibrary, ::, _sqrt, MathSqrt, 0x1cadc5cf)                              \
+  V(MathLibrary, ::, _exp, MathExp, 0x0c99a26a)                                \
+  V(MathLibrary, ::, _log, MathLog, 0xef163aae)                                \
   V(NativeWrappersLibrary, ::, _getNativeField, GetNativeField, 0x8a67a22d)    \
   V(TypedDataLibrary, _Int8List, [], Int8ArrayGetIndexed, 0x23133682)          \
   V(TypedDataLibrary, _ExternalInt8Array, [], ExternalInt8ArrayGetIndexed,     \
@@ -670,6 +670,8 @@ namespace dart {
   V(TypedDataLibrary, _Float64x2, /, Float64x2Div, 0x12925562)                 \
   V(TypedDataLibrary, _Float64x2, -, Float64x2Sub, 0x2f258e89)                 \
   V(TypedDataLibrary, _Float64x2, +, Float64x2Add, 0x09ecc418)                 \
+  V(VMLibrary, ThreadLocal, _getValue, ThreadLocalGetValue, 0xad8f22db)        \
+  V(VMLibrary, ThreadLocal, _hasValue, ThreadLocalHasValue, 0xa6d3b876)        \
 
 #define RECOGNIZED_LIST(V)                                                     \
   OTHER_RECOGNIZED_LIST(V)                                                     \

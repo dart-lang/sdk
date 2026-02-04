@@ -1,8 +1,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -16,7 +15,7 @@ class TopLevelVariableTest extends PartialCodeTest {
       TestDescriptor(
         'const',
         'const',
-        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+        [diag.missingIdentifier, diag.expectedToken],
         "const _s_;",
         failing: [
           'class',
@@ -25,97 +24,77 @@ class TopLevelVariableTest extends PartialCodeTest {
           'getter',
           'setter',
         ],
-        expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.constNotInitialized,
-        ],
+        expectedDiagnosticsInValidCode: [diag.constNotInitialized],
       ),
       TestDescriptor(
         'constName',
         'const a',
-        [
-          ParserErrorCode.expectedToken,
-          CompileTimeErrorCode.constNotInitialized,
-        ],
+        [diag.expectedToken, diag.constNotInitialized],
         "const a;",
         failing: ['functionNonVoid', 'getter', 'setter', 'mixin'],
-        expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.constNotInitialized,
-        ],
+        expectedDiagnosticsInValidCode: [diag.constNotInitialized],
       ),
       TestDescriptor(
         'constTypeName',
         'const int a',
-        [
-          ParserErrorCode.expectedToken,
-          CompileTimeErrorCode.constNotInitialized,
-        ],
+        [diag.expectedToken, diag.constNotInitialized],
         "const int a;",
-        expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.constNotInitialized,
-        ],
+        expectedDiagnosticsInValidCode: [diag.constNotInitialized],
       ),
       TestDescriptor(
         'constNameComma',
         'const a,',
-        [
-          ParserErrorCode.missingIdentifier,
-          ParserErrorCode.expectedToken,
-          CompileTimeErrorCode.constNotInitialized,
-        ],
+        [diag.missingIdentifier, diag.expectedToken, diag.constNotInitialized],
         "const a, _s_;",
         failing: ['functionNonVoid', 'getter'],
         expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.constNotInitialized,
-          CompileTimeErrorCode.constNotInitialized,
+          diag.constNotInitialized,
+          diag.constNotInitialized,
         ],
       ),
       TestDescriptor(
         'constTypeNameComma',
         'const int a,',
-        [
-          ParserErrorCode.missingIdentifier,
-          ParserErrorCode.expectedToken,
-          CompileTimeErrorCode.constNotInitialized,
-        ],
+        [diag.missingIdentifier, diag.expectedToken, diag.constNotInitialized],
         "const int a, _s_;",
         failing: ['functionNonVoid', 'getter'],
         expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.constNotInitialized,
-          CompileTimeErrorCode.constNotInitialized,
+          diag.constNotInitialized,
+          diag.constNotInitialized,
         ],
       ),
       TestDescriptor(
         'constNameCommaName',
         'const a, b',
         [
-          ParserErrorCode.expectedToken,
-          CompileTimeErrorCode.constNotInitialized,
-          CompileTimeErrorCode.constNotInitialized,
+          diag.expectedToken,
+          diag.constNotInitialized,
+          diag.constNotInitialized,
         ],
         "const a, b;",
         expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.constNotInitialized,
-          CompileTimeErrorCode.constNotInitialized,
+          diag.constNotInitialized,
+          diag.constNotInitialized,
         ],
       ),
       TestDescriptor(
         'constTypeNameCommaName',
         'const int a, b',
         [
-          ParserErrorCode.expectedToken,
-          CompileTimeErrorCode.constNotInitialized,
-          CompileTimeErrorCode.constNotInitialized,
+          diag.expectedToken,
+          diag.constNotInitialized,
+          diag.constNotInitialized,
         ],
         "const int a, b;",
         expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.constNotInitialized,
-          CompileTimeErrorCode.constNotInitialized,
+          diag.constNotInitialized,
+          diag.constNotInitialized,
         ],
       ),
       TestDescriptor(
         'final',
         'final',
-        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+        [diag.missingIdentifier, diag.expectedToken],
         "final _s_;",
         failing: [
           'class',
@@ -126,66 +105,49 @@ class TopLevelVariableTest extends PartialCodeTest {
           'mixin',
           'setter',
         ],
-        expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.finalNotInitialized,
-        ],
+        expectedDiagnosticsInValidCode: [diag.finalNotInitialized],
       ),
       TestDescriptor(
         'finalName',
         'final a',
-        [
-          ParserErrorCode.expectedToken,
-          CompileTimeErrorCode.finalNotInitialized,
-        ],
+        [diag.expectedToken, diag.finalNotInitialized],
         "final a;",
         failing: ['functionNonVoid', 'getter', 'setter', 'mixin'],
-        expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.finalNotInitialized,
-        ],
+        expectedDiagnosticsInValidCode: [diag.finalNotInitialized],
       ),
       TestDescriptor(
         'finalTypeName',
         'final int a',
-        [
-          ParserErrorCode.expectedToken,
-          CompileTimeErrorCode.finalNotInitialized,
-        ],
+        [diag.expectedToken, diag.finalNotInitialized],
         "final int a;",
-        expectedDiagnosticsInValidCode: [
-          CompileTimeErrorCode.finalNotInitialized,
-        ],
+        expectedDiagnosticsInValidCode: [diag.finalNotInitialized],
       ),
       TestDescriptor(
         'type',
         'int',
-        [
-          ParserErrorCode.missingConstFinalVarOrType,
-          ParserErrorCode.expectedToken,
-        ],
+        [diag.missingConstFinalVarOrType, diag.expectedToken],
         "int _s_;",
         allFailing: true,
       ),
-      TestDescriptor('typeName', 'int a', [
-        ParserErrorCode.expectedToken,
-      ], "int a;"),
+      TestDescriptor('typeName', 'int a', [diag.expectedToken], "int a;"),
       TestDescriptor(
         'var',
         'var',
-        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+        [diag.missingIdentifier, diag.expectedToken],
         "var _s_;",
         failing: ['functionVoid', 'functionNonVoid', 'getter', 'setter'],
       ),
       TestDescriptor(
         'varName',
         'var a',
-        [ParserErrorCode.expectedToken],
+        [diag.expectedToken],
         "var a;",
         failing: ['functionNonVoid', 'getter', 'mixin', 'setter'],
       ),
       TestDescriptor(
         'varNameEquals',
         'var a =',
-        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+        [diag.missingIdentifier, diag.expectedToken],
         "var a = _s_;",
         failing: [
           'class',
@@ -200,7 +162,7 @@ class TopLevelVariableTest extends PartialCodeTest {
         ],
       ),
       TestDescriptor('varNameEqualsExpression', 'var a = b', [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], "var a = b;"),
     ], PartialCodeTest.declarationSuffixes);
   }

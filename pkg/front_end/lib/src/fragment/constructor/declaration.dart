@@ -24,6 +24,7 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/resolver.dart';
 import '../../kernel/type_algorithms.dart';
@@ -31,7 +32,6 @@ import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
-import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
@@ -56,6 +56,8 @@ abstract class ConstructorDeclaration {
   bool get hasParameters;
 
   List<Initializer> get initializers;
+
+  void registerInitializers(List<Initializer> initializers);
 
   void createEncoding({
     required ProblemReporting problemReporting,
@@ -462,10 +464,18 @@ mixin _ConstructorDeclarationMixin
       return null;
     }
 
-    if (initializers != null &&
-        initializers.isNotEmpty &&
-        initializers.last is SuperInitializer) {
-      superTarget = (initializers.last as SuperInitializer).target;
+    Initializer? lastInitializer =
+        initializers != null && initializers.isNotEmpty
+        ? initializers.last
+        : null;
+    // TODO(johnniwinther): This method is currently called with initializers
+    // in an uninferred state for non-const constructors with super parameters
+    // and in an inferred state for const constructors with super parameters.
+    // Avoid this inconsistency by calling this before inference.
+    if (lastInitializer is SuperInitializer) {
+      superTarget = lastInitializer.target;
+    } else if (lastInitializer is InternalSuperInitializer) {
+      superTarget = lastInitializer.target;
     } else {
       MemberLookupResult? result = superclassBuilder.findConstructorOrFactory(
         "",
@@ -615,6 +625,7 @@ mixin _ConstructorDeclarationMixin
   void _buildTypeParametersAndFormalsForOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   });
@@ -645,6 +656,7 @@ mixin _ConstructorDeclarationMixin
     _buildTypeParametersAndFormalsForOutlineExpressions(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      constructorBuilder: constructorBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
     );
@@ -693,6 +705,11 @@ mixin _ConstructorEncodingMixin
         _ConstructorDeclarationMixin,
         ConstructorFragmentDeclaration {
   ConstructorEncoding get _encoding;
+
+  @override
+  void registerInitializers(List<Initializer> initializers) {
+    _encoding.registerInitializers(initializers);
+  }
 
   String? get _nativeMethodName;
 
@@ -796,6 +813,7 @@ mixin _RegularConstructorDeclarationMixin
   void _buildTypeParametersAndFormals({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
     required ExtensionScope extensionScope,
@@ -812,17 +830,13 @@ mixin _RegularConstructorDeclarationMixin
     }
 
     if (formals != null) {
-      // For const constructors we need to include default parameter values
-      // into the outline. For all other formals we need to call
-      // buildOutlineExpressions to clear initializerToken to prevent
-      // consuming too much memory.
       for (FormalParameterBuilder formal in formals!) {
         formal.buildOutlineExpressions(
-          libraryBuilder,
-          declarationBuilder,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          memberBuilder: constructorBuilder,
           extensionScope: extensionScope,
           scope: typeParameterScope,
-          buildDefaultValue: true,
         );
       }
     }
@@ -1009,12 +1023,14 @@ class RegularConstructorDeclaration
   void _buildTypeParametersAndFormalsForOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   }) {
     _buildTypeParametersAndFormals(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      constructorBuilder: constructorBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
@@ -1156,12 +1172,14 @@ class DefaultEnumConstructorDeclaration
   void _buildTypeParametersAndFormalsForOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   }) {
     _buildTypeParametersAndFormals(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      constructorBuilder: constructorBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
       extensionScope: _extensionScope,
@@ -1244,6 +1262,7 @@ class PrimaryConstructorDeclaration
   void _buildTypeParametersAndFormals({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
     required ExtensionScope extensionScope,
@@ -1266,11 +1285,11 @@ class PrimaryConstructorDeclaration
       // consuming too much memory.
       for (FormalParameterBuilder formal in formals!) {
         formal.buildOutlineExpressions(
-          libraryBuilder,
-          declarationBuilder,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          memberBuilder: constructorBuilder,
           extensionScope: extensionScope,
           scope: typeParameterScope,
-          buildDefaultValue: true,
         );
       }
     }
@@ -1292,9 +1311,7 @@ class PrimaryConstructorDeclaration
     returnType.registerInferredTypeListener(this);
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.isInitializingFormal ||
-            // Coverage-ignore(suite): Not run.
-            formal.isSuperInitializingFormal) {
+        if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
           formal.type.registerInferable(inferable);
         }
       }
@@ -1337,9 +1354,7 @@ class PrimaryConstructorDeclaration
       f,
       constructorBuilder: constructorBuilder,
       libraryBuilder: libraryBuilder,
-      declarationBuilder:
-          constructorBuilder.declarationBuilder
-              as SourceExtensionTypeDeclarationBuilder,
+      declarationBuilder: constructorBuilder.declarationBuilder,
       name: _fragment.name,
       nameScheme: nameScheme,
       constructorReferences: constructorReferences,
@@ -1376,12 +1391,14 @@ class PrimaryConstructorDeclaration
   void _buildTypeParametersAndFormalsForOutlineExpressions({
     required SourceLibraryBuilder libraryBuilder,
     required DeclarationBuilder declarationBuilder,
+    required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required ClassHierarchy classHierarchy,
   }) {
     _buildTypeParametersAndFormals(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
+      constructorBuilder: constructorBuilder,
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
@@ -1452,6 +1469,13 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
 
   @override
   // Coverage-ignore(suite): Not run.
+  void registerInitializers(List<Initializer> initializers) {
+    _constructor.initializers.addAll(initializers);
+    setParents(initializers, _constructor);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Uri get fileUri => _constructor.fileUri;
 
   @override
@@ -1469,6 +1493,10 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   @override
   bool get isRedirecting {
     for (Initializer initializer in _constructor.initializers) {
+      assert(
+        initializer is! AuxiliaryInitializer,
+        "Unexpected auxiliary initializer $initializer.",
+      );
       if (initializer is RedirectingInitializer) {
         return true;
       }

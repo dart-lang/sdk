@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,10 +11,11 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Start multiline strings with a newline.';
 
-class LeadingNewlinesInMultilineStrings extends LintRule {
+class LeadingNewlinesInMultilineStrings extends AnalysisRule {
   LeadingNewlinesInMultilineStrings()
     : super(
         name: LintNames.leading_newlines_in_multiline_strings,
@@ -21,8 +23,7 @@ class LeadingNewlinesInMultilineStrings extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.leadingNewlinesInMultilineStrings;
+  DiagnosticCode get diagnosticCode => diag.leadingNewlinesInMultilineStrings;
 
   @override
   void registerNodeProcessors(
@@ -37,7 +38,7 @@ class LeadingNewlinesInMultilineStrings extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   late LineInfo lineInfo;
 

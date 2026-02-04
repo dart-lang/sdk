@@ -2181,7 +2181,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
   @override
   TreeNode visitVariableGet(VariableGet node, TreeNode? removalSentinel) {
-    final VariableDeclaration variable = node.variable;
+    final ExpressionVariable variable = node.expressionVariable;
     if (variable.isConst) {
       variable.initializer = evaluateAndTransformWithContext(
         variable,
@@ -2361,6 +2361,16 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitRedirectingFactoryInvocation(
+    RedirectingFactoryInvocation node,
+    TreeNode? removalSentinel,
+  ) {
+    return transformOrRemove(node.expression, removalSentinel) ??
+        // Coverage-ignore(suite): Not run.
+        node.expression;
+  }
+
+  @override
   TreeNode visitStaticInvocation(
     StaticInvocation node,
     TreeNode? removalSentinel,
@@ -2454,7 +2464,9 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 }
 
-class ConstantEvaluator implements ExpressionVisitor<Constant> {
+class ConstantEvaluator
+    with ExpressionVisitorExperimentExclusionMixin<Constant>
+    implements ExpressionVisitor<Constant> {
   final DartLibrarySupport dartLibrarySupport;
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
@@ -2559,7 +2571,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             library.importUri.path,
             libraryExists: true,
             isSynthetic: library.isSynthetic,
-            isUnsupported: library.isUnsupported,
+            conditionalImportSupported: library.conditionalImportSupported,
             dartLibrarySupport: dartLibrarySupport,
           ))
         (DartLibrarySupport.dartLibraryPrefix + library.importUri.path): "true",
@@ -2667,25 +2679,58 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     lazyDepth = 0;
     Constant result = _evaluateSubexpression(node);
     if (result is AbortConstant) {
-      if (result is _AbortDueToErrorConstant) {
-        final LocatedMessage locatedMessageActualError = createLocatedMessage(
-          result.node,
-          result.message,
-        );
-        if (result.isEvaluationError) {
+      switch (result) {
+        case _AbortDueToErrorConstant():
+          final LocatedMessage locatedMessageActualError = createLocatedMessage(
+            result.node,
+            result.message,
+          );
+          if (result.isEvaluationError) {
+            final List<LocatedMessage> contextMessages = <LocatedMessage>[
+              locatedMessageActualError,
+            ];
+            if (result.context != null) {
+              // Coverage-ignore-block(suite): Not run.
+              contextMessages.addAll(result.context!);
+            }
+            if (contextNode != null && contextNode != result.node) {
+              contextMessages.add(
+                createLocatedMessage(contextNode, codeConstEvalContext),
+              );
+            }
+
+            {
+              final LocatedMessage locatedMessage = createLocatedMessage(
+                node,
+                codeConstEvalStartingPoint,
+              );
+              errorReporter.report(locatedMessage, contextMessages);
+            }
+          } else {
+            errorReporter.report(locatedMessageActualError);
+          }
+          return new UnevaluatedConstant(
+            new InvalidExpression(result.message.problemMessage),
+          );
+        case _AbortDueToThrowConstant():
+          final Object value = result.throwValue;
+          Message? message;
+          if (value is Constant) {
+            message = codeConstEvalUnhandledException.withArgumentsOld(value);
+          } else if (value is Error) {
+            message = codeConstEvalUnhandledCoreException.withArgumentsOld(
+              value.toString(),
+            );
+          }
+          assert(message != null);
+
+          final LocatedMessage locatedMessageActualError = createLocatedMessage(
+            result.node,
+            message!,
+          );
           final List<LocatedMessage> contextMessages = <LocatedMessage>[
             locatedMessageActualError,
           ];
-          if (result.context != null) {
-            // Coverage-ignore-block(suite): Not run.
-            contextMessages.addAll(result.context!);
-          }
-          if (contextNode != null && contextNode != result.node) {
-            contextMessages.add(
-              createLocatedMessage(contextNode, codeConstEvalContext),
-            );
-          }
-
           {
             final LocatedMessage locatedMessage = createLocatedMessage(
               node,
@@ -2693,52 +2738,24 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             );
             errorReporter.report(locatedMessage, contextMessages);
           }
-        } else {
-          errorReporter.report(locatedMessageActualError);
-        }
-        return new UnevaluatedConstant(
-          new InvalidExpression(result.message.problemMessage),
-        );
-      }
-      if (result is _AbortDueToThrowConstant) {
-        final Object value = result.throwValue;
-        Message? message;
-        if (value is Constant) {
-          message = codeConstEvalUnhandledException.withArgumentsOld(value);
-        } else if (value is Error) {
-          message = codeConstEvalUnhandledCoreException.withArgumentsOld(
-            value.toString(),
+          return new UnevaluatedConstant(
+            new InvalidExpression(message.problemMessage),
           );
-        }
-        assert(message != null);
-
-        final LocatedMessage locatedMessageActualError = createLocatedMessage(
-          result.node,
-          message!,
-        );
-        final List<LocatedMessage> contextMessages = <LocatedMessage>[
-          locatedMessageActualError,
-        ];
-        {
-          final LocatedMessage locatedMessage = createLocatedMessage(
-            node,
-            codeConstEvalStartingPoint,
+        case _AbortDueToInvalidExpressionConstant():
+          return new UnevaluatedConstant(
+            // Create a new [InvalidExpression] without the expression, which
+            // might now have lost the needed context. For instance references
+            // to variables no longer in scope.
+            new InvalidExpression(result.node.message),
           );
-          errorReporter.report(locatedMessage, contextMessages);
-        }
-        return new UnevaluatedConstant(
-          new InvalidExpression(message.problemMessage),
-        );
+        case _AbortDueToInvalidInitializerConstant():
+          return new UnevaluatedConstant(
+            // Create a new [InvalidExpression] without the expression, which
+            // might now have lost the needed context. For instance references
+            // to variables no longer in scope.
+            new InvalidExpression(result.node.message),
+          );
       }
-      if (result is _AbortDueToInvalidExpressionConstant) {
-        return new UnevaluatedConstant(
-          // Create a new [InvalidExpression] without the expression, which
-          // might now have lost the needed context. For instance references
-          // to variables no longer in scope.
-          new InvalidExpression(result.node.message),
-        );
-      }
-      throw "Unexpected error constant";
     }
     if (result is UnevaluatedConstant) {
       if (errorOnUnevaluatedConstant) {
@@ -3597,122 +3614,120 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         }
       }
       for (final Initializer init in constructor.initializers) {
-        if (init is FieldInitializer) {
-          Constant constant = _evaluateSubexpression(init.value);
-          if (constant is AbortConstant) return constant;
-          instanceBuilder!.setFieldValue(init.field, constant);
-        } else if (init is LocalInitializer) {
-          final VariableDeclaration variable = init.variable;
-          Constant constant = _evaluateSubexpression(variable.initializer!);
-          if (constant is AbortConstant) return constant;
-          env.addVariableValue(variable, constant);
-        } else if (init is SuperInitializer) {
-          AbortConstant? error = checkConstructorConst(
-            init,
-            init.target,
-            codeConstConstructorWithNonConstSuper,
-          );
-          if (error != null) return error;
-          List<DartType>? types = _evaluateSuperTypeArguments(
-            init,
-            constructor.enclosingClass.supertype!,
-          );
-          if (types == null) {
-            // Coverage-ignore-block(suite): Not run.
-            AbortConstant error = _gotError!;
-            _gotError = null;
-            return error;
-          }
-          assert(_gotError == null);
+        switch (init) {
+          case FieldInitializer():
+            Constant constant = _evaluateSubexpression(init.value);
+            if (constant is AbortConstant) return constant;
+            instanceBuilder!.setFieldValue(init.field, constant);
+          case LocalInitializer():
+            final VariableDeclaration variable = init.variable;
+            Constant constant = _evaluateSubexpression(variable.initializer!);
+            if (constant is AbortConstant) return constant;
+            env.addVariableValue(variable, constant);
+          case SuperInitializer():
+            AbortConstant? error = checkConstructorConst(
+              init,
+              init.target,
+              codeConstConstructorWithNonConstSuper,
+            );
+            if (error != null) return error;
+            List<DartType>? types = _evaluateSuperTypeArguments(
+              init,
+              constructor.enclosingClass.supertype!,
+            );
+            if (types == null) {
+              // Coverage-ignore-block(suite): Not run.
+              AbortConstant error = _gotError!;
+              _gotError = null;
+              return error;
+            }
+            assert(_gotError == null);
 
-          List<Constant>? positionalArguments = _evaluatePositionalArguments(
-            init.arguments.positional,
-          );
-          if (positionalArguments == null) {
-            // Coverage-ignore-block(suite): Not run.
-            AbortConstant error = _gotError!;
-            _gotError = null;
-            return error;
-          }
-          assert(_gotError == null);
-          Map<String, Constant>? namedArguments = _evaluateNamedArguments(
-            init.arguments.named,
-          );
-          if (namedArguments == null) {
-            // Coverage-ignore-block(suite): Not run.
-            AbortConstant error = _gotError!;
-            _gotError = null;
-            return error;
-          }
-          assert(_gotError == null);
-          error = handleConstructorInvocation(
-            init.target,
-            types,
-            positionalArguments,
-            namedArguments,
-            caller,
-          );
-          if (error != null) return error;
-        } else if (init is RedirectingInitializer) {
-          // Since a redirecting constructor targets a constructor of the same
-          // class, we pass the same [typeArguments].
+            List<Constant>? positionalArguments = _evaluatePositionalArguments(
+              init.arguments.positional,
+            );
+            if (positionalArguments == null) {
+              // Coverage-ignore-block(suite): Not run.
+              AbortConstant error = _gotError!;
+              _gotError = null;
+              return error;
+            }
+            assert(_gotError == null);
+            Map<String, Constant>? namedArguments = _evaluateNamedArguments(
+              init.arguments.named,
+            );
+            if (namedArguments == null) {
+              // Coverage-ignore-block(suite): Not run.
+              AbortConstant error = _gotError!;
+              _gotError = null;
+              return error;
+            }
+            assert(_gotError == null);
+            error = handleConstructorInvocation(
+              init.target,
+              types,
+              positionalArguments,
+              namedArguments,
+              caller,
+            );
+            if (error != null) return error;
+          case RedirectingInitializer():
+            // Since a redirecting constructor targets a constructor of the same
+            // class, we pass the same [typeArguments].
 
-          AbortConstant? error = checkConstructorConst(
-            init,
-            init.target,
-            codeConstConstructorRedirectionToNonConst,
-          );
-          if (error != null) return error;
-          List<Constant>? positionalArguments = _evaluatePositionalArguments(
-            init.arguments.positional,
-          );
-          if (positionalArguments == null) {
-            // Coverage-ignore-block(suite): Not run.
-            AbortConstant error = _gotError!;
-            _gotError = null;
-            return error;
-          }
-          assert(_gotError == null);
+            AbortConstant? error = checkConstructorConst(
+              init,
+              init.target,
+              codeConstConstructorRedirectionToNonConst,
+            );
+            if (error != null) return error;
+            List<Constant>? positionalArguments = _evaluatePositionalArguments(
+              init.arguments.positional,
+            );
+            if (positionalArguments == null) {
+              // Coverage-ignore-block(suite): Not run.
+              AbortConstant error = _gotError!;
+              _gotError = null;
+              return error;
+            }
+            assert(_gotError == null);
 
-          Map<String, Constant>? namedArguments = _evaluateNamedArguments(
-            init.arguments.named,
-          );
-          if (namedArguments == null) {
-            // Coverage-ignore-block(suite): Not run.
-            AbortConstant error = _gotError!;
-            _gotError = null;
-            return error;
-          }
-          assert(_gotError == null);
+            Map<String, Constant>? namedArguments = _evaluateNamedArguments(
+              init.arguments.named,
+            );
+            if (namedArguments == null) {
+              // Coverage-ignore-block(suite): Not run.
+              AbortConstant error = _gotError!;
+              _gotError = null;
+              return error;
+            }
+            assert(_gotError == null);
 
-          error = handleConstructorInvocation(
-            init.target,
-            typeArguments,
-            positionalArguments,
-            namedArguments,
-            caller,
-          );
-          if (error != null) return error;
-        } else if (init is AssertInitializer) {
-          AbortConstant? error = checkAssert(init.statement);
-          if (error != null) return error;
-        } else {
-          // Coverage-ignore-block: Probably unreachable.
-          // InvalidInitializer or new Initializers.
-          // InvalidInitializer is (currently) only
-          // created for classes with no constructors that doesn't have a
-          // super that takes no arguments. It thus cannot be const.
-          // Explicit constructors with incorrect super calls will get a
-          // ShadowInvalidInitializer which is actually a LocalInitializer.
-          assert(
-            false,
-            'No support for handling initializer of type '
-            '"${init.runtimeType}".',
-          );
-          return createEvaluationErrorConstant(
-            init,
-            codeNotAConstantExpression,
-          );
+            error = handleConstructorInvocation(
+              init.target,
+              typeArguments,
+              positionalArguments,
+              namedArguments,
+              caller,
+            );
+            if (error != null) return error;
+          case AssertInitializer():
+            AbortConstant? error = checkAssert(init.statement);
+            if (error != null) return error;
+          case InvalidInitializer():
+            return new _AbortDueToInvalidInitializerConstant(init);
+          // Coverage-ignore(suite): Not run.
+          case AuxiliaryInitializer():
+            // Coverage-ignore-block: Probably unreachable.
+            assert(
+              false,
+              'No support for handling initializer of type '
+              '"${init.runtimeType}".',
+            );
+            return createEvaluationErrorConstant(
+              init,
+              codeNotAConstantExpression,
+            );
         }
       }
 
@@ -4737,13 +4752,15 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     //
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
-    final VariableDeclaration variable = node.variable;
+    final ExpressionVariable variable = node.variable;
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
       return env.lookupVariable(variable) ??
           // Coverage-ignore(suite): Not run.
           createEvaluationErrorConstant(
             node,
-            codeConstEvalGetterNotFound.withArgumentsOld(variable.name ?? ''),
+            codeConstEvalGetterNotFound.withArgumentsOld(
+              variable.cosmeticName ?? '',
+            ),
           );
     } else {
       if (variable.parent is Let ||
@@ -4753,7 +4770,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             createEvaluationErrorConstant(
               node,
               codeConstEvalNonConstantVariableGet.withArgumentsOld(
-                variable.name ?? '',
+                variable.cosmeticName ?? '',
               ),
             );
       }
@@ -4772,7 +4789,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitVariableSet(VariableSet node) {
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
-      final VariableDeclaration variable = node.variable;
+      final ExpressionVariable variable = node.variable;
       Constant value = _evaluateSubexpression(node.value);
       if (value is AbortConstant) return value;
       Constant? result = env.updateVariableValue(variable, value);
@@ -5928,9 +5945,18 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       "Unsupported auxiliary expression ${node} (${node.runtimeType}).",
     );
   }
+
+  @override
+  Constant visitRedirectingFactoryInvocation(
+    RedirectingFactoryInvocation node,
+  ) {
+    return node.expression.accept(this);
+  }
 }
 
-class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
+class StatementConstantEvaluator
+    with StatementVisitorExperimentExclusionMixin<ExecutionStatus>
+    implements StatementVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
   StatementConstantEvaluator(this.exprEvaluator);
@@ -6026,7 +6052,7 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
 
   @override
   ExecutionStatus visitForStatement(ForStatement node) {
-    for (VariableDeclaration variable in node.variables) {
+    for (VariableInitialization variable in node.variableInitializations) {
       final ExecutionStatus status = variable.accept(this);
       if (status is! ProceedStatus) return status;
     }
@@ -6376,7 +6402,7 @@ class EvaluationEnvironment {
     }
   }
 
-  Constant? updateVariableValue(VariableDeclaration variable, Constant value) {
+  Constant? updateVariableValue(ExpressionVariable variable, Constant value) {
     EvaluationReference? reference = _variables[variable];
     if (reference != null) {
       reference.value = value;
@@ -6385,7 +6411,7 @@ class EvaluationEnvironment {
     return _parent?.updateVariableValue(variable, value);
   }
 
-  Constant? lookupVariable(VariableDeclaration variable) {
+  Constant? lookupVariable(ExpressionVariable variable) {
     Constant? value = _variables[variable]?.value;
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.remove(variable);
@@ -6545,7 +6571,62 @@ class FunctionValue implements AuxiliaryConstant {
   }
 }
 
-abstract class AbortConstant implements AuxiliaryConstant {}
+sealed class AbortConstant implements AuxiliaryConstant {
+  @override
+  R accept<R>(ConstantVisitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  DartType getType(StaticTypeContext context) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String leakingDebugToString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toString() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toStringInternal() {
+    throw new UnimplementedError();
+  }
+
+  @override
+  String toText(AstTextStrategy strategy) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    throw new UnimplementedError();
+  }
+}
 
 class _AbortDueToErrorConstant extends AbortConstant {
   final TreeNode node;
@@ -6559,122 +6640,18 @@ class _AbortDueToErrorConstant extends AbortConstant {
     this.context,
     required this.isEvaluationError,
   });
-
-  @override
-  R accept<R>(ConstantVisitor<R> v) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  DartType getType(StaticTypeContext context) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String leakingDebugToString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toStringInternal() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toText(AstTextStrategy strategy) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    throw new UnimplementedError();
-  }
 }
 
 class _AbortDueToInvalidExpressionConstant extends AbortConstant {
   final InvalidExpression node;
 
   _AbortDueToInvalidExpressionConstant(this.node);
+}
 
-  @override
-  R accept<R>(ConstantVisitor<R> v) {
-    throw new UnimplementedError();
-  }
+class _AbortDueToInvalidInitializerConstant extends AbortConstant {
+  final InvalidInitializer node;
 
-  @override
-  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  DartType getType(StaticTypeContext context) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String leakingDebugToString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toStringInternal() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toText(AstTextStrategy strategy) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    throw new UnimplementedError();
-  }
+  _AbortDueToInvalidInitializerConstant(this.node);
 }
 
 class _AbortDueToThrowConstant extends AbortConstant {
@@ -6682,61 +6659,6 @@ class _AbortDueToThrowConstant extends AbortConstant {
   final Object throwValue;
 
   _AbortDueToThrowConstant(this.node, this.throwValue);
-
-  @override
-  R accept<R>(ConstantVisitor<R> v) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  DartType getType(StaticTypeContext context) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String leakingDebugToString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toString() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toStringInternal() {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String toText(AstTextStrategy strategy) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  void visitChildren(Visitor<dynamic> v) {
-    throw new UnimplementedError();
-  }
 }
 
 abstract class ErrorReporter {
@@ -6798,7 +6720,7 @@ class HasUninstantiatedVisitor extends FindTypeVisitor {
   }
 }
 
-bool _isFormalParameter(VariableDeclaration variable) {
+bool _isFormalParameter(ExpressionVariable variable) {
   final TreeNode? parent = variable.parent;
   if (parent is FunctionNode) {
     return parent.positionalParameters.contains(variable) ||

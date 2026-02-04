@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
@@ -281,35 +282,26 @@ final class AnalysisOptionsBuilder {
     if (cannotIgnore is! YamlList) {
       return;
     }
-    var stringValues = cannotIgnore.whereType<String>().toSet();
-    for (var severity in AnalysisOptionsFile.severities) {
-      if (stringValues.contains(severity)) {
-        // [severity] is a marker denoting all diagnostic codes with severity
-        // equal to [severity].
-        stringValues.remove(severity);
-        // Replace name like 'error' with diagnostic codes with this named
-        // severity.
-        for (var d in diagnosticCodeValues) {
-          // If the severity of [error] is also changed in this options file
-          // to be [severity], we add [error] to the un-ignorable list.
+    for (var entry in cannotIgnore) {
+      if (entry is! String) continue;
+      if (severityMap[entry] case var severity?) {
+        for (var diagnostic in diagnosticCodeValues) {
+          // If the severity of [error] is also changed in this options file,
+          // use the changed severity.
           var processors = errorProcessors.where(
-            (processor) => processor.code == d.name,
+            (processor) => processor.code == diagnostic.lowerCaseName,
           );
-          if (processors.isNotEmpty &&
-              processors.first.severity?.displayName == severity) {
-            unignorableDiagnosticCodeNames.add(d.name);
-            continue;
-          }
-          // Otherwise, add [error] if its default severity is [severity].
-          if (d.severity.displayName == severity) {
-            unignorableDiagnosticCodeNames.add(d.name);
+          DiagnosticSeverity? diagnosticSeverity = processors.isNotEmpty
+              ? processors.first.severity
+              : diagnostic.severity;
+          if (diagnosticSeverity == severity) {
+            unignorableDiagnosticCodeNames.add(diagnostic.lowerCaseName);
           }
         }
+      } else {
+        unignorableDiagnosticCodeNames.add(entry.toLowerCase());
       }
     }
-    unignorableDiagnosticCodeNames.addAll(
-      stringValues.map((name) => name.toUpperCase()),
-    );
   }
 
   PluginSource? _getSource(
@@ -435,6 +427,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The set of "un-ignorable" diagnostic names, as parsed from an analysis
   /// options file.
+  ///
+  /// All entries in this set are in `lower_snake_case` form.
   final Set<String> unignorableDiagnosticCodeNames;
 
   /// Returns a newly instantiated [AnalysisOptionsImpl].
@@ -546,6 +540,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.formatterOptions,
     required this.unignorableDiagnosticCodeNames,
   }) : _contextFeatures = contextFeatures {
+    assert(unignorableDiagnosticCodeNames.every((n) => n == n.toLowerCase()));
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
   }
 
@@ -563,7 +558,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// even if the package does not specify the language version.
   Version get nonPackageLanguageVersion => ExperimentStatus.currentVersion;
 
-  @override
   List<PluginConfiguration> get pluginConfigurations =>
       pluginsOptions.configurations;
 
@@ -772,11 +766,19 @@ final class PluginConfiguration {
   PluginConfiguration({
     required this.name,
     required this.source,
-    this.diagnosticConfigs = const {},
+    Map<String, DiagnosticConfig> diagnosticConfigs = const {},
     this.isEnabled = true,
-  });
+  }) : diagnosticConfigs = LinkedHashMap(
+         equals: _caseInsensitiveEquals,
+         hashCode: _caseInsensitiveHash,
+       )..addAll(diagnosticConfigs);
 
   String sourceYaml() => source.toYaml(name: name);
+
+  static bool _caseInsensitiveEquals(String s1, String s2) =>
+      s1.toLowerCase() == s2.toLowerCase();
+
+  static int _caseInsensitiveHash(String s) => s.toLowerCase().hashCode;
 }
 
 /// The analysis options for plugins, as specified in the top-level `plugins`

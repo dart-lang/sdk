@@ -29,7 +29,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     if (parameters['path'] is! String) {
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidCommandArguments,
+          code: ServerErrorCodes.invalidCommandArguments,
           message: '$commandName requires a Map argument containing a "path"',
         ),
       );
@@ -58,7 +58,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
         }
         return ErrorOr.error(
           ResponseError(
-            code: ServerErrorCodes.FileHasErrors,
+            code: ServerErrorCodes.fileHasErrors,
             message:
                 'Unable to $commandName because the file contains parse errors',
             data: path,

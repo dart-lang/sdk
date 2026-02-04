@@ -23,7 +23,7 @@ class MakeConditionalOnDebugMode extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.MAKE_CONDITIONAL_ON_DEBUG_MODE;
+  FixKind get fixKind => DartFixKind.makeConditionalOnDebugMode;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

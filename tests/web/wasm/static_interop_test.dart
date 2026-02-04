@@ -5,9 +5,9 @@
 // TODO(srujzs): Break this test up into multiple tests, delete redundant tests,
 // and move them to a shared library.
 
-import 'dart:js_interop' show JSAny, JSAnyUtilityExtension;
+import 'dart:js_interop';
+import 'dart:js_interop' as interop;
 import 'package:expect/expect.dart';
-import 'package:js/js.dart';
 import 'static_interop_library.dart';
 
 @JS()
@@ -33,12 +33,20 @@ extension StaticJSClassMethods on StaticJSClass {
   external int? nullableIntReturnMethod(bool returnNull);
   external String doSum1Or2(String a, [String? b]);
   external String doSumUpTo2([String? a, String? b]);
-  external String doSum1Or2NonNull(String a, [String b = 'bar']);
-  external String doSumUpTo2NonNull([String a = 'foo', String b = 'bar']);
+  external String doSum1Or2NonNull(String a, [String b]);
+  String doSum1Or2NonNullForwarding(String a, [String b = 'b']) =>
+      doSum1Or2NonNull(a, b);
+  external String doSumUpTo2NonNull([String a, String b]);
+  String doSumUpTo2NonNullForwarding([String a = 'a', String b = 'b']) =>
+      doSumUpTo2NonNull(a, b);
   external int doIntSum1Or2(int a, [int? b]);
   external int doIntSumUpTo2([int? a, int? b]);
-  external int doIntSum1Or2NonNull(int a, [int b = 2]);
-  external int doIntSumUpTo2NonNull([int a = 1, int b = 2]);
+  external int doIntSum1Or2NonNull(int a, [int b]);
+  int doIntSum1Or2NonNullForwarding(int a, [int b = 200]) =>
+      doIntSum1Or2NonNull(a, b);
+  external int doIntSumUpTo2NonNull([int a, int b]);
+  int doIntSumUpTo2NonNullForwarding([int a = 100, int b = 200]) =>
+      doIntSumUpTo2NonNull(a, b);
 
   @JS('nameInJSMethod')
   external String nameInDartMethod(String a, String b);
@@ -135,10 +143,15 @@ void createClassTest() {
   Expect.equals('foobar', foo.doSumUpTo2('foo', 'bar'));
 
   Expect.equals('foobar', foo.doSum1Or2NonNull('foo'));
+  Expect.equals('foob', foo.doSum1Or2NonNullForwarding('foo'));
   Expect.equals('foobar', foo.doSum1Or2NonNull('foo', 'bar'));
+  Expect.equals('foobar', foo.doSum1Or2NonNullForwarding('foo', 'bar'));
   Expect.equals('foobar', foo.doSumUpTo2NonNull());
+  Expect.equals('ab', foo.doSumUpTo2NonNullForwarding());
   Expect.equals('foobar', foo.doSumUpTo2NonNull('foo'));
+  Expect.equals('foob', foo.doSumUpTo2NonNullForwarding('foo'));
   Expect.equals('foobar', foo.doSumUpTo2NonNull('foo', 'bar'));
+  Expect.equals('foobar', foo.doSumUpTo2NonNullForwarding('foo', 'bar'));
 
   Expect.equals(3, foo.doIntSum1Or2(1));
   Expect.equals(3, foo.doIntSum1Or2(1, 2));
@@ -147,10 +160,15 @@ void createClassTest() {
   Expect.equals(3, foo.doIntSumUpTo2(1, 2));
 
   Expect.equals(3, foo.doIntSum1Or2NonNull(1));
+  Expect.equals(201, foo.doIntSum1Or2NonNullForwarding(1));
   Expect.equals(3, foo.doIntSum1Or2NonNull(1, 2));
+  Expect.equals(3, foo.doIntSum1Or2NonNullForwarding(1, 2));
   Expect.equals(3, foo.doIntSumUpTo2NonNull());
+  Expect.equals(300, foo.doIntSumUpTo2NonNullForwarding());
   Expect.equals(3, foo.doIntSumUpTo2NonNull(1));
+  Expect.equals(201, foo.doIntSumUpTo2NonNullForwarding(1));
   Expect.equals(3, foo.doIntSumUpTo2NonNull(1, 2));
+  Expect.equals(3, foo.doIntSumUpTo2NonNullForwarding(1, 2));
 
   Expect.equals('foobar', foo.nameInDartMethod('foo', 'bar'));
   Expect.equals('foo', foo.nameInDartGetter);
@@ -225,31 +243,11 @@ void setInteropPropertyTest() {
   Expect.equals('boo', parent.childsFoo());
 }
 
+@JSExport()
 class DartObject {
   final int x;
 
   DartObject(this.x);
-}
-
-@JS('JSHolder')
-@staticInterop
-class StaticJSHolder {
-  external factory StaticJSHolder.factory(DartObject object);
-}
-
-extension StaticJSHolderMethods on StaticJSHolder {
-  external DartObject foo;
-}
-
-void setDartObjectPropertyTest() {
-  eval(r'''
-    globalThis.JSHolder = function(foo) {
-      this.foo = foo;
-    }
-  ''');
-  final traveler = DartObject(4);
-  final holder = StaticJSHolder.factory(traveler);
-  Expect.equals(traveler, holder.foo);
 }
 
 @JS()
@@ -259,13 +257,13 @@ external String get foo;
 external String? get blu;
 
 @JS('')
-external void set baz(String);
+external void set baz(String s);
 
 @JS('boo.bar')
 external String get bam;
 
 @JS('bar')
-external String fooBar(String);
+external String fooBar(String s);
 
 void topLevelMethodsTest() {
   eval(r'''
@@ -296,9 +294,31 @@ class AnonymousJSClass {
     String? bleep,
     int? goo,
     int ooo = 1,
+    interop.JSArray<JSNumber>? saz,
+    interop.JSArray<JSNumber> zoo,
+  });
+
+  factory AnonymousJSClass.forwarding({
+    String? foo,
+    String bar = 'baz',
+    String? bleep,
+    int? goo,
+    int ooo = 1,
     List<double>? saz,
     List<double> zoo = const [1.0, 2.0],
-  });
+  }) => AnonymousJSClass.factory(
+    foo: foo,
+    bar: bar,
+    bleep: bleep,
+    goo: goo,
+    ooo: ooo,
+    saz: saz?.toJSDeep(),
+    zoo: zoo.toJSDeep(),
+  );
+}
+
+extension on List<double> {
+  interop.JSArray<JSNumber> toJSDeep() => map((d) => d.toJS).toList().toJS;
 }
 
 extension AnonymousJSClassExtension on AnonymousJSClass {
@@ -307,15 +327,15 @@ extension AnonymousJSClassExtension on AnonymousJSClass {
   external String? get bleep;
   external int? get goo;
   external int? get ooo;
-  external List<Object?>? saz;
-  external List<double>? zoo;
+  external interop.JSArray<JSObject?>? saz;
+  external interop.JSArray<JSNumber>? zoo;
 }
 
 void anonymousTest() {
   final anonymousJSClass = AnonymousJSClass.factory(
     foo: 'boo',
     bleep: 'bleep',
-    saz: const [1.0, 2.0],
+    saz: const [1.0, 2.0].toJSDeep(),
     goo: 0,
   );
   Expect.equals('boo', anonymousJSClass.foo);
@@ -323,18 +343,32 @@ void anonymousTest() {
   Expect.equals('bleep', anonymousJSClass.bleep);
   Expect.equals(0, anonymousJSClass.goo);
   Expect.equals(null, anonymousJSClass.ooo);
-  Expect.listEquals(const [1.0, 2.0], anonymousJSClass.saz!);
+  Expect.listEquals([1.0.toJS, 2.0.toJS], anonymousJSClass.saz!.toDart);
   Expect.equals(null, anonymousJSClass.zoo);
+
+  final forwarded = AnonymousJSClass.forwarding(
+    foo: 'boo',
+    bleep: 'bleep',
+    saz: const [1.0, 2.0],
+    goo: 0,
+  );
+  Expect.equals('boo', forwarded.foo);
+  Expect.equals('baz', forwarded.bar);
+  Expect.equals('bleep', forwarded.bleep);
+  Expect.equals(0, forwarded.goo);
+  Expect.equals(1, forwarded.ooo);
+  Expect.listEquals([1.0.toJS, 2.0.toJS], forwarded.saz!.toDart);
+  Expect.listEquals([1.0.toJS, 2.0.toJS], forwarded.zoo!.toDart);
 }
 
 @JS()
 @anonymous
 @staticInterop
 class AnonymousRedirectJSClass {
-  external factory AnonymousRedirectJSClass._({String Function(String)? foo});
+  external factory AnonymousRedirectJSClass._({JSFunction? foo});
 
   factory AnonymousRedirectJSClass.concrete(String Function(String) foo) =>
-      AnonymousRedirectJSClass._(foo: allowInterop(foo));
+      AnonymousRedirectJSClass._(foo: foo.toJS);
 }
 
 extension AnonymousRedirectJSClassExtension on AnonymousRedirectJSClass {
@@ -353,7 +387,6 @@ void concreteFactoryConstructorTest() {
 class JSArray {}
 
 extension JSArrayExtension on JSArray {
-  external Object? operator [](int index);
   external int get length;
   external String get deoptKey;
 }
@@ -377,7 +410,6 @@ void main() {
   createClassTest();
   createClassWithNestedJSNameTest();
   setInteropPropertyTest();
-  setDartObjectPropertyTest();
   topLevelMethodsTest();
   anonymousTest();
   concreteFactoryConstructorTest();

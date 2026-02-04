@@ -4,8 +4,6 @@
 
 import '../../common/testing.dart' as helper;
 
-import 'shared/shared.dart'; // ignore: unused_import
-
 /// A dynamic module can use mixin with a field.
 void main() async {
   final func = (await helper.load('entry1.dart')) as void Function();

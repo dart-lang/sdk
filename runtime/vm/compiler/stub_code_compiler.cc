@@ -91,7 +91,7 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
 
   __ EnterStubFrame();
 
-  if (FLAG_experimental_shared_data && is_shared) {
+  if (is_shared) {
     // Since initialization of shared fields has to be guarded by
     // a mutex, do the initialization in the runtime.
     __ PushObject(NullObject());  // Make room for the result
@@ -123,11 +123,11 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
     __ LoadImmediate(ARGS_DESC_REG, 0);
   }
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     __ TsanFuncEntry();
   }
   __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     __ TsanFuncExit();
   }
   __ MoveRegister(kResultReg, CallingConventions::kReturnReg);
@@ -239,11 +239,11 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(bool is_final) {
     __ LoadImmediate(ARGS_DESC_REG, 0);
 #endif  // defined(DART_DYNAMIC_MODULES)
   }
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     __ TsanFuncEntry();
   }
   __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     __ TsanFuncExit();
   }
   __ Drop(1);  // Drop argument.
@@ -1869,6 +1869,18 @@ void StubCodeCompiler::GenerateDoubleToIntegerStub() {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateCheckedStoreIntoSharedStub() {
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Make room for result.
+  __ PushRegistersInOrder({CheckedStoreIntoSharedStubABI::kFieldReg,
+                           CheckedStoreIntoSharedStubABI::kValueReg});
+  __ CallRuntime(kCheckedStoreIntoSharedRuntimeEntry, /*argument_count=*/2);
+  __ Drop(2);
+  __ PopRegister(CheckedStoreIntoSharedStubABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 static intptr_t SuspendStateFpOffset() {
   return compiler::target::frame_layout.FrameSlotForVariableIndex(
              SuspendState::kSuspendStateVarIndex) *
@@ -1880,14 +1892,11 @@ static void CallDartCoreLibraryFunction(
     intptr_t entry_point_offset_in_thread,
     intptr_t function_offset_in_object_store,
     bool uses_args_desc = false) {
+  if (FLAG_target_thread_sanitizer) {
+    __ TsanFuncEntry();
+  }
   if (FLAG_precompiled_mode) {
-    if (FLAG_target_thread_sanitizer) {
-      __ TsanFuncEntry();
-    }
     __ Call(Address(THR, entry_point_offset_in_thread));
-    if (FLAG_target_thread_sanitizer) {
-      __ TsanFuncExit();
-    }
   } else {
     __ LoadIsolateGroup(FUNCTION_REG);
     __ LoadFromOffset(FUNCTION_REG, FUNCTION_REG,
@@ -1901,6 +1910,9 @@ static void CallDartCoreLibraryFunction(
       __ LoadImmediate(ARGS_DESC_REG, 0);
     }
     __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
+  }
+  if (FLAG_target_thread_sanitizer) {
+    __ TsanFuncExit();
   }
 }
 
@@ -2161,7 +2173,7 @@ void StubCodeCompiler::GenerateSuspendStub(
 
   __ LeaveStubFrame();
 
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     __ TsanFuncExit();
   }
 #if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32)
@@ -2339,7 +2351,7 @@ void StubCodeCompiler::GenerateResumeStub() {
   // ... [SuspendState] [value] [exception] [stackTrace] [ReturnAddress]
 
   __ EnterDartFrame(0);
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     __ TsanFuncEntry();
   }
 
@@ -2554,7 +2566,7 @@ void StubCodeCompiler::GenerateReturnStub(
     __ Bind(&okay);
   }
 #endif
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     __ TsanFuncExit();
   }
   __ LeaveDartFrame();
@@ -2609,7 +2621,7 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub() {
   __ CompareObject(kSuspendState, NullObject());
   __ BranchIf(EQUAL, &rethrow_exception);
 
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     __ TsanFuncExit();
   }
   __ LeaveDartFrame();
@@ -2633,7 +2645,7 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub() {
 #endif
   __ Comment("Rethrow exception");
   __ Bind(&rethrow_exception);
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     __ TsanFuncExit();
   }
   __ LeaveDartFrame();

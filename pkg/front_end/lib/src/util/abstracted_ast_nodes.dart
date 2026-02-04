@@ -235,21 +235,16 @@ class Extension extends Container {
   }
 }
 
-class ClassConstructor extends AstNode {
+class Constructor extends AstNode {
   @override
-  final ClassConstructorEnd node;
+  final ConstructorEnd node;
   final String name;
   @override
   final Token startInclusive;
   @override
   final Token endInclusive;
 
-  ClassConstructor(
-    this.node,
-    this.name,
-    this.startInclusive,
-    this.endInclusive,
-  );
+  Constructor(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -258,7 +253,7 @@ class ClassConstructor extends AstNode {
     if (marked != Coloring.Untouched) {
       sb.write("(marked) ");
     }
-    sb.writeln("Class constructor $name");
+    sb.writeln("Constructor $name");
     return sb;
   }
 
@@ -272,21 +267,16 @@ class ClassConstructor extends AstNode {
   }
 }
 
-class ClassFactoryMethod extends AstNode {
+class Factory extends AstNode {
   @override
-  final ClassFactoryMethodEnd node;
+  final FactoryEnd node;
   final String name;
   @override
   final Token startInclusive;
   @override
   final Token endInclusive;
 
-  ClassFactoryMethod(
-    this.node,
-    this.name,
-    this.startInclusive,
-    this.endInclusive,
-  );
+  Factory(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -295,7 +285,7 @@ class ClassFactoryMethod extends AstNode {
     if (marked != Coloring.Untouched) {
       sb.write("(marked) ");
     }
-    sb.writeln("Class factory constructor $name");
+    sb.writeln("Factory $name");
     return sb;
   }
 
@@ -309,16 +299,16 @@ class ClassFactoryMethod extends AstNode {
   }
 }
 
-class ClassMethod extends AstNode {
+class Method extends AstNode {
   @override
-  final ClassMethodEnd node;
+  final MethodEnd node;
   final String name;
   @override
   final Token startInclusive;
   @override
   final Token endInclusive;
 
-  ClassMethod(this.node, this.name, this.startInclusive, this.endInclusive);
+  Method(this.node, this.name, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -340,71 +330,9 @@ class ClassMethod extends AstNode {
   }
 }
 
-class ExtensionMethod extends AstNode {
-  @override
-  final ExtensionMethodEnd node;
-  final String name;
-  @override
-  final Token startInclusive;
-  @override
-  final Token endInclusive;
-
-  ExtensionMethod(this.node, this.name, this.startInclusive, this.endInclusive);
-
-  @override
-  StringBuffer toStringInternal(StringBuffer sb, int indent) {
-    String stringIndent = " " * (indent * 2);
-    sb.write(stringIndent);
-    if (marked != Coloring.Untouched) {
-      sb.write("(marked) ");
-    }
-    sb.writeln("Extension method $name");
-    return sb;
-  }
-
-  @override
-  void buildScope() {}
-
-  @override
-  Map<String, AstNode> selfScope() {
-    return {name: this};
-  }
-}
-
-class MixinMethod extends AstNode {
-  @override
-  final MixinMethodEnd node;
-  final String name;
-  @override
-  final Token startInclusive;
-  @override
-  final Token endInclusive;
-
-  MixinMethod(this.node, this.name, this.startInclusive, this.endInclusive);
-
-  @override
-  StringBuffer toStringInternal(StringBuffer sb, int indent) {
-    String stringIndent = " " * (indent * 2);
-    sb.write(stringIndent);
-    if (marked != Coloring.Untouched) {
-      sb.write("(marked) ");
-    }
-    sb.writeln("Mixin method $name");
-    return sb;
-  }
-
-  @override
-  void buildScope() {}
-
-  @override
-  Map<String, AstNode> selfScope() {
-    return {name: this};
-  }
-}
-
 class Enum extends AstNode {
   @override
-  final EnumEnd node;
+  final EnumDeclarationEnd node;
   final String name;
   final List<String> members;
   @override
@@ -661,16 +589,16 @@ class Typedef extends AstNode {
   }
 }
 
-class ClassFields extends AstNode {
+class Fields extends AstNode {
   @override
-  final ClassFieldsEnd node;
+  final FieldsEnd node;
   final List<String> names;
   @override
   final Token startInclusive;
   @override
   final Token endInclusive;
 
-  ClassFields(this.node, this.names, this.startInclusive, this.endInclusive);
+  Fields(this.node, this.names, this.startInclusive, this.endInclusive);
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -679,82 +607,7 @@ class ClassFields extends AstNode {
     if (marked != Coloring.Untouched) {
       sb.write("(marked) ");
     }
-    sb.writeln("Class field(s) ${names.join(", ")}");
-    return sb;
-  }
-
-  @override
-  void buildScope() {}
-
-  @override
-  Map<String, AstNode> selfScope() {
-    Map<String, AstNode> scope = {};
-    for (String name in names) {
-      scope[name] = this;
-    }
-    return scope;
-  }
-}
-
-class MixinFields extends AstNode {
-  @override
-  final MixinFieldsEnd node;
-  final List<String> names;
-  @override
-  final Token startInclusive;
-  @override
-  final Token endInclusive;
-
-  MixinFields(this.node, this.names, this.startInclusive, this.endInclusive);
-
-  @override
-  StringBuffer toStringInternal(StringBuffer sb, int indent) {
-    String stringIndent = " " * (indent * 2);
-    sb.write(stringIndent);
-    if (marked != Coloring.Untouched) {
-      sb.write("(marked) ");
-    }
-    sb.writeln("Mixin field(s) ${names.join(", ")}");
-    return sb;
-  }
-
-  @override
-  void buildScope() {}
-
-  @override
-  Map<String, AstNode> selfScope() {
-    Map<String, AstNode> scope = {};
-    for (String name in names) {
-      scope[name] = this;
-    }
-    return scope;
-  }
-}
-
-class ExtensionFields extends AstNode {
-  @override
-  final ExtensionFieldsEnd node;
-  final List<String> names;
-  @override
-  final Token startInclusive;
-  @override
-  final Token endInclusive;
-
-  ExtensionFields(
-    this.node,
-    this.names,
-    this.startInclusive,
-    this.endInclusive,
-  );
-
-  @override
-  StringBuffer toStringInternal(StringBuffer sb, int indent) {
-    String stringIndent = " " * (indent * 2);
-    sb.write(stringIndent);
-    if (marked != Coloring.Untouched) {
-      sb.write("(marked) ");
-    }
-    sb.writeln("Extension field(s) ${names.join(", ")}");
+    sb.writeln("Field(s) ${names.join(", ")}");
     return sb;
   }
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveExtendsClauseMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EXTENDS_CLAUSE_MULTI;
+  FixKind get kind => DartFixKind.removeExtendsClauseMulti;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -27,21 +27,18 @@ class A {}
 mixin class B extends A {}
 mixin class C extends A {}
 ''');
-    await assertHasFixAllFix(
-      CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
-      '''
+    await assertHasFixAllFix(diag.mixinClassDeclarationExtendsNotObject, '''
 class A {}
 mixin class B {}
 mixin class C {}
-''',
-    );
+''');
   }
 }
 
 @reflectiveTest
 class RemoveExtendsClauseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EXTENDS_CLAUSE;
+  FixKind get kind => DartFixKind.removeExtendsClause;
 
   Future<void> test_deprecatedExtends() async {
     newFile('$testPackageLibPath/a.dart', '''

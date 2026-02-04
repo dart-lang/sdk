@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -62,7 +62,7 @@ class C {
 @reflectiveTest
 class ReplaceReturnTypeFutureLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
+  FixKind get kind => DartFixKind.replaceReturnTypeFuture;
 
   @override
   String get lintCode => LintNames.avoid_void_async;
@@ -126,7 +126,7 @@ class C {
 @reflectiveTest
 class ReplaceReturnTypeFutureTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
+  FixKind get kind => DartFixKind.replaceReturnTypeFuture;
 
   Future<void> test_complexTypeName_withImport() async {
     await resolveTestCode('''
@@ -138,9 +138,8 @@ List<int> f() async {}
 import 'dart:async';
 Future<List<int>> f() async {}
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.illegalAsyncReturnType;
+      filter: (error) {
+        return error.diagnosticCode == diag.illegalAsyncReturnType;
       },
     );
   }
@@ -164,9 +163,8 @@ int f() async {}
 import 'dart:async' as al;
 al.Future<int> f() async {}
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.illegalAsyncReturnType;
+      filter: (error) {
+        return error.diagnosticCode == diag.illegalAsyncReturnType;
       },
     );
   }
@@ -194,9 +192,8 @@ int f() async {}
 import 'dart:async';
 Future<int> f() async {}
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.illegalAsyncReturnType;
+      filter: (error) {
+        return error.diagnosticCode == diag.illegalAsyncReturnType;
       },
     );
   }

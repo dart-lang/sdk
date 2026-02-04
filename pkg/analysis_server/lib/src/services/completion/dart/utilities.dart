@@ -20,7 +20,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Element, ElementKind;
 
 /// The name of the type `dynamic`;
-const DYNAMIC = 'dynamic';
+const _dynamicName = 'dynamic';
 
 /// Sort by relevance first, highest to lowest, and then by the completion
 /// alphabetically.
@@ -42,7 +42,7 @@ String buildClosureParameters(
   var hasNamed = false;
   var hasOptionalPositional = false;
   var parameters = type.formalParameters;
-  var existingNames = parameters.map((p) => p.displayName).toSet();
+  var existingNames = parameters.map((p) => p.name).nonNulls.toSet();
   for (var i = 0; i < parameters.length; ++i) {
     var parameter = parameters[i];
     if (i != 0) {
@@ -59,7 +59,7 @@ String buildClosureParameters(
       buffer.write(parameter.type);
       buffer.write(' ');
     }
-    var name = parameter.displayName;
+    var name = parameter.name ?? '';
     if (name.isEmpty) {
       name = 'p$i';
       var index = 1;
@@ -88,7 +88,6 @@ String buildClosureParameters(
 /// Compute default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].
 CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
-  Element element,
   Iterable<FormalParameterElement> requiredParams,
   Iterable<FormalParameterElement> namedParams,
 ) {
@@ -250,7 +249,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
   DartType type;
   var element = identifier.element;
   if (element == null) {
-    return DYNAMIC;
+    return _dynamicName;
   } else if (element is FunctionTypedElement) {
     if (element is PropertyAccessorElement && element is SetterElement) {
       return null;
@@ -274,7 +273,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     if (declaredType is NamedType) {
       return declaredType.qualifiedName;
     }
-    return DYNAMIC;
+    return _dynamicName;
   }
   return type.getDisplayString();
 }

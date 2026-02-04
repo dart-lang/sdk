@@ -59,7 +59,7 @@ class ApplyCodeActionCommandHandler
     if (!(server.editorClientCapabilities?.applyEdit ?? false)) {
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.StateError,
+          code: ServerErrorCodes.stateError,
           message: 'The editor does not support workspace/applyEdit',
         ),
       );
@@ -99,7 +99,7 @@ class ApplyCodeActionCommandHandler
     if (errors.isNotEmpty) {
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidCommandArguments,
+          code: ServerErrorCodes.invalidCommandArguments,
           message:
               '${Commands.applyCodeAction} requires 3 parameters: '
               'textDocument: Map<String, Object?> (OptionalVersionedTextDocumentIdentifier), '
@@ -161,12 +161,12 @@ class ApplyCodeActionCommandHandler
     return actions.mapResult((actions) async {
       return switch (actions) {
         null || [] => error(
-          ServerErrorCodes.InvalidCommandArguments,
+          ServerErrorCodes.invalidCommandArguments,
           'The code action $kind is not valid at this location',
         ),
         [var action] => await _applyAction(action),
         [...] => error(
-          ServerErrorCodes.InvalidCommandArguments,
+          ServerErrorCodes.invalidCommandArguments,
           'The code action $kind is ambigious at this location',
         ),
       };

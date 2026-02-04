@@ -7,16 +7,17 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
-/// Verifies usages of `Future.value` and `Completer.complete` when null-safety
-/// is enabled.
+/// Verifies usages of `Future.value` and `Completer.complete`.
 ///
 /// `Future.value` and `Completer.complete` both accept a `FutureOr<T>?` as an
 /// optional argument but throw an exception when `T` is non-nullable and `null`
 /// is passed as an argument.
 ///
 /// This verifier detects and reports those scenarios.
+// TODO(srawlins): See https://github.com/dart-lang/sdk/issues/53253); We should
+// strengthen this to report _nullable_ values, not just `null` values.
 class NullSafeApiVerifier {
   final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
@@ -83,7 +84,7 @@ class NullSafeApiVerifier {
     if (argumentIsNull) {
       _diagnosticReporter.atNode(
         argument ?? node,
-        WarningCode.nullArgumentToNonNullType,
+        diag.nullArgumentToNonNullType,
         arguments: [memberName, type.getDisplayString()],
       );
     }

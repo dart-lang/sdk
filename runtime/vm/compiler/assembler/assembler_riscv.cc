@@ -466,11 +466,11 @@ void MicroAssembler::srai(Register rd, Register rs1, intptr_t shamt) {
 void MicroAssembler::add(Register rd, Register rs1, Register rs2) {
   ASSERT(Supports(RV_I));
   if (Supports(RV_C)) {
-    if (rd == rs1) {
+    if ((rd == rs1) && (rs2 != ZR)) {
       c_add(rd, rs1, rs2);
       return;
     }
-    if (rd == rs2) {
+    if ((rd == rs2) && (rs1 != ZR)) {
       c_add(rd, rs2, rs1);
       return;
     }
@@ -573,7 +573,7 @@ void MicroAssembler::fencei() {
 
 void MicroAssembler::ecall() {
   ASSERT(Supports(RV_I));
-  EmitIType(ECALL, ZR, F3_0, ZR, SYSTEM);
+  EmitIType(ECALL, ZR, PRIV, ZR, SYSTEM);
 }
 void MicroAssembler::ebreak() {
   ASSERT(Supports(RV_I));
@@ -581,11 +581,11 @@ void MicroAssembler::ebreak() {
     c_ebreak();
     return;
   }
-  EmitIType(EBREAK, ZR, F3_0, ZR, SYSTEM);
+  EmitIType(EBREAK, ZR, PRIV, ZR, SYSTEM);
 }
 void MicroAssembler::SimulatorPrintObject(Register rs1) {
   ASSERT(Supports(RV_I));
-  EmitIType(ECALL, rs1, F3_0, ZR, SYSTEM);
+  EmitIType(ECALL, rs1, PRIV, ZR, SYSTEM);
 }
 
 void MicroAssembler::csrrw(Register rd, uint32_t csr, Register rs1) {
@@ -1969,6 +1969,143 @@ void MicroAssembler::fleqd(Register rd, FRegister rs1, FRegister rs2) {
   EmitRType(FCMPD, rs2, rs1, FLEQ, rd, OPFP);
 }
 
+void MicroAssembler::mopr(intptr_t n, Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zimop));
+  Emit32(EncodeMoprn(n) | EncodeFunct12(MOP_R) | EncodeRs1(rs1) |
+         EncodeFunct3(MOP) | EncodeRd(rd) | EncodeOpcode(SYSTEM));
+}
+
+void MicroAssembler::moprr(intptr_t n,
+                           Register rd,
+                           Register rs1,
+                           Register rs2) {
+  ASSERT(Supports(RV_Zimop));
+  Emit32(EncodeMoprrn(n) | EncodeFunct7(MOP_RR) | EncodeRs2(rs2) |
+         EncodeRs1(rs1) | EncodeFunct3(MOP) | EncodeRd(rd) |
+         EncodeOpcode(SYSTEM));
+}
+
+void MicroAssembler::cmop(intptr_t n) {
+  ASSERT(Supports(RV_Zcmop));
+  ASSERT(Utils::IsUint(4, n) && ((n & 1) == 1));
+  Emit16(C_LUI | EncodeCMopn(n));
+}
+
+void MicroAssembler::sspush(Register rs2) {
+  ASSERT((rs2 == Register(1)) || (rs2 == Register(5)));
+  if (Supports(RV_Zcmop) && (rs2 == Register(1))) {
+    cmop(1);
+  } else {
+    moprr(7, ZR, ZR, rs2);
+  }
+}
+
+void MicroAssembler::sspopchk(Register rs1) {
+  ASSERT((rs1 == Register(1)) || (rs1 == Register(5)));
+  if (Supports(RV_Zcmop) && (rs1 == Register(5))) {
+    cmop(5);
+  } else {
+    mopr(28, ZR, rs1);
+  }
+}
+
+void MicroAssembler::ssrdp(Register rd) {
+  mopr(28, rd, ZR);
+}
+
+void MicroAssembler::ssamoswapw(Register rd,
+                                Register rs2,
+                                Address addr,
+                                std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zicfiss));
+  EmitRType(SSAMOSWAP, order, rs2, addr.base(), WIDTH32, rd, AMO);
+}
+
+#if XLEN >= 64
+void MicroAssembler::ssamoswapd(Register rd,
+                                Register rs2,
+                                Address addr,
+                                std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zicfiss));
+  EmitRType(SSAMOSWAP, order, rs2, addr.base(), WIDTH64, rd, AMO);
+}
+#endif  // XLEN >= 64
+
+void MicroAssembler::vsetvli(Register rd,
+                             Register rs1,
+                             ElementWidth sew,
+                             LengthMultiplier lmul,
+                             TailMode vta,
+                             MaskMode vma) {
+  ASSERT(Supports(RV_V));
+  intx_t vtypei = (vma << 7) | (vta << 6) | (sew << 3) | (lmul << 0);
+  EmitIType(vtypei, rs1, OPCFG, rd, OPV);
+}
+
+void MicroAssembler::vle8v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E8) | vm);
+}
+
+void MicroAssembler::vle16v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E16) | vm);
+}
+
+void MicroAssembler::vle32v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E32) | vm);
+}
+
+void MicroAssembler::vle64v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E64) | vm);
+}
+
+void MicroAssembler::vse8v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E8) | vm);
+}
+
+void MicroAssembler::vse16v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E16) | vm);
+}
+
+void MicroAssembler::vse32v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E32) | vm);
+}
+
+void MicroAssembler::vse64v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E64) | vm);
+}
+
+void MicroAssembler::vmvvx(VRegister vd, Register rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  Emit32(EncodeOpcode(OPV) | EncodeVd(vd) | EncodeRs1(rs1) |
+         EncodeFunct3(OPIVX) | EncodeFunct6(VMV) | vm);
+}
+
 void MicroAssembler::lb(Register rd, Address addr, std::memory_order order) {
   ASSERT(addr.offset() == 0);
   ASSERT((order == std::memory_order_acquire) ||
@@ -2034,6 +2171,71 @@ void MicroAssembler::sd(Register rs2, Address addr, std::memory_order order) {
   EmitRType(STOREORDERED, order, rs2, addr.base(), WIDTH64, ZR, AMO);
 }
 #endif
+
+void MicroAssembler::amocasb(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zacas | RV_Zabha));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH8, rd, AMO);
+}
+
+void MicroAssembler::amocash(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zacas | RV_Zabha));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH16, rd, AMO);
+}
+
+void MicroAssembler::amocasw(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zacas));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH32, rd, AMO);
+}
+
+void MicroAssembler::amocasd(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+#if XLEN == 32
+  ASSERT((rd % 2) == 0);
+  ASSERT((rs2 % 2) == 0);
+#endif
+  ASSERT(Supports(RV_Zacas));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH64, rd, AMO);
+}
+
+#if XLEN >= 64
+void MicroAssembler::amocasq(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+#if XLEN == 64
+  ASSERT((rd % 2) == 0);
+  ASSERT((rs2 % 2) == 0);
+#endif
+  ASSERT(Supports(RV_Zacas));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH128, rd, AMO);
+}
+#endif
+
+void MicroAssembler::wrsnto() {
+  ASSERT(Supports(RV_Zawrs));
+  EmitIType(WRS_NTO, ZR, PRIV, ZR, SYSTEM);
+}
+
+void MicroAssembler::wrssto() {
+  ASSERT(Supports(RV_Zawrs));
+  EmitIType(WRS_STO, ZR, PRIV, ZR, SYSTEM);
+}
 
 void MicroAssembler::c_lwsp(Register rd, Address addr) {
   ASSERT(rd != ZR);
@@ -2187,6 +2389,7 @@ void MicroAssembler::c_lui(Register rd, uintptr_t imm) {
   ASSERT(Supports(RV_C));
   ASSERT(rd != ZR);
   ASSERT(rd != SP);
+  ASSERT(imm != 0);
   Emit16(C_LUI | EncodeCRd(rd) | EncodeCUImm(imm));
 }
 
@@ -2251,7 +2454,6 @@ void MicroAssembler::c_mv(Register rd, Register rs2) {
 
 void MicroAssembler::c_add(Register rd, Register rs1, Register rs2) {
   ASSERT(Supports(RV_C));
-  ASSERT(rd != ZR);
   ASSERT(rd == rs1);
   ASSERT(rs2 != ZR);
   Emit16(C_ADD | EncodeCRd(rd) | EncodeCRs2(rs2));
@@ -2747,6 +2949,20 @@ void MicroAssembler::EmitR4Type(FRegister rs3,
   Emit32(e);
 }
 
+void MicroAssembler::EmitIType(Funct12 funct12,
+                               Register rs1,
+                               Funct3 funct3,
+                               Register rd,
+                               Opcode opcode) {
+  uint32_t e = 0;
+  e |= EncodeFunct12(funct12);
+  e |= EncodeRs1(rs1);
+  e |= EncodeFunct3(funct3);
+  e |= EncodeRd(rd);
+  e |= EncodeOpcode(opcode);
+  Emit32(e);
+}
+
 void MicroAssembler::EmitIType(intptr_t imm,
                                Register rs1,
                                Funct3 funct3,
@@ -3173,7 +3389,6 @@ void Assembler::TsanStoreRelease(Register src,
 }
 
 void Assembler::TsanFuncEntry(bool preserve_registers) {
-  Comment("TsanFuncEntry");
   LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
   lx(A0, Address(FP, target::frame_layout.saved_caller_fp_from_fp *
                          target::kWordSize));
@@ -3183,7 +3398,6 @@ void Assembler::TsanFuncEntry(bool preserve_registers) {
 }
 
 void Assembler::TsanFuncExit(bool preserve_registers) {
-  Comment("TsanFuncExit");
   LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
   rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
 }
@@ -3533,26 +3747,23 @@ void Assembler::SetIf(Condition condition, Register rd) {
     }
   } else if (deferred_compare_ == kTestImm) {
     uintx_t uimm = deferred_imm_;
-    if (deferred_imm_ == 1) {
-      switch (condition) {
-        case ZERO:
-          andi(rd, deferred_left_, 1);
-          xori(rd, rd, 1);
-          break;
-        case NOT_ZERO:
-          andi(rd, deferred_left_, 1);
-          break;
-        default:
-          UNREACHABLE();
+    if (Utils::IsPowerOfTwo(uimm)) {
+      int shamt = Utils::ShiftForPowerOfTwo(uimm);
+      if (shamt == 0) {
+        andi(rd, deferred_left_, 1);
+      } else if (shamt == XLEN - 1) {
+        sltz(rd, deferred_left_);
+      } else if (Supports(RV_Zbs)) {
+        bexti(rd, deferred_left_, shamt);
+      } else {
+        srli(rd, deferred_left_, shamt);
+        andi(rd, rd, 1);
       }
-    } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(uimm)) {
       switch (condition) {
         case ZERO:
-          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
           xori(rd, rd, 1);
           break;
         case NOT_ZERO:
-          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
           break;
         default:
           UNREACHABLE();
@@ -3578,6 +3789,171 @@ void Assembler::SetIf(Condition condition, Register rd) {
         break;
       case NOT_ZERO:
         snez(rd, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    UNREACHABLE();
+  }
+
+  deferred_compare_ = kNone;  // Consumed.
+}
+
+void Assembler::ZeroIf(Condition condition, Register rd, Register otherwise) {
+  ASSERT(deferred_compare_ != kNone);
+  ASSERT(rd != otherwise);
+
+  if (deferred_compare_ == kCompareImm) {
+    if (deferred_imm_ == 0) {
+      deferred_compare_ = kCompareReg;
+      deferred_reg_ = ZR;
+      ZeroIf(condition, rd, otherwise);
+      return;
+    }
+    if (!IsITypeImm(deferred_imm_) || !IsITypeImm(deferred_imm_ + 1)) {
+      LoadImmediate(TMP2, deferred_imm_);
+      deferred_compare_ = kCompareReg;
+      deferred_reg_ = TMP2;
+      ZeroIf(condition, rd, otherwise);
+      return;
+    }
+    Register left = deferred_left_;
+    intx_t right = deferred_imm_;
+    switch (condition) {
+      case EQUAL:
+        subi(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case NOT_EQUAL:
+        subi(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case LESS:
+        slti(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case LESS_EQUAL:
+        slti(rd, left, right + 1);
+        czeronez(rd, otherwise, rd);
+        break;
+      case GREATER_EQUAL:
+        slti(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case GREATER:
+        slti(rd, left, right + 1);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS:
+        sltiu(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS_EQUAL:
+        sltiu(rd, left, right + 1);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER_EQUAL:
+        sltiu(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER:
+        sltiu(rd, left, right + 1);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else if (deferred_compare_ == kCompareReg) {
+    Register left = deferred_left_;
+    Register right = deferred_reg_;
+    switch (condition) {
+      case EQUAL:
+        if (right == ZR) {
+          czeroeqz(rd, otherwise, left);
+        } else {
+          xor_(rd, left, right);
+          czeroeqz(rd, otherwise, rd);
+        }
+        break;
+      case NOT_EQUAL:
+        if (right == ZR) {
+          czeronez(rd, otherwise, left);
+        } else {
+          xor_(rd, left, right);
+          czeronez(rd, otherwise, rd);
+        }
+        break;
+      case LESS:
+        slt(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case LESS_EQUAL:
+        slt(rd, right, left);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case GREATER_EQUAL:
+        slt(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case GREATER:
+        slt(rd, right, left);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS:
+        sltu(rd, left, right);
+        czeronez(rd, otherwise, rd);
+        break;
+      case UNSIGNED_LESS_EQUAL:
+        sltu(rd, right, left);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER_EQUAL:
+        sltu(rd, left, right);
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case UNSIGNED_GREATER:
+        sltu(rd, right, left);
+        czeronez(rd, otherwise, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else if (deferred_compare_ == kTestImm) {
+    uintx_t uimm = deferred_imm_;
+    if (IsITypeImm(deferred_imm_)) {
+      andi(rd, deferred_left_, deferred_imm_);
+    } else if (Utils::IsPowerOfTwo(uimm)) {
+      int shamt = Utils::ShiftForPowerOfTwo(uimm);
+      if (shamt == XLEN - 1) {
+        sltz(rd, deferred_left_);
+      } else if (Supports(RV_Zbs)) {
+        bexti(rd, deferred_left_, shamt);
+      } else {
+        srli(rd, deferred_left_, shamt);
+        andi(rd, rd, 1);
+      }
+    } else {
+      AndImmediate(rd, deferred_left_, deferred_imm_);
+    }
+    switch (condition) {
+      case ZERO:
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case NOT_ZERO:
+        czeronez(rd, otherwise, rd);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else if (deferred_compare_ == kTestReg) {
+    and_(rd, deferred_left_, deferred_reg_);
+    switch (condition) {
+      case ZERO:
+        czeroeqz(rd, otherwise, rd);
+        break;
+      case NOT_ZERO:
+        czeronez(rd, otherwise, rd);
         break;
       default:
         UNREACHABLE();
@@ -4216,6 +4592,11 @@ void Assembler::LoadIsolateGroup(Register dst) {
 void Assembler::LoadImmediate(Register reg, intx_t imm) {
 #if XLEN > 32
   if (!Utils::IsInt(32, imm)) {
+    if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(imm)) {
+      bseti(reg, ZR, Utils::ShiftForPowerOfTwo(imm));
+      return;
+    }
+
     int shift = Utils::CountTrailingZeros64(imm);
     if (IsITypeImm(imm >> shift)) {
       li(reg, imm >> shift);
@@ -4275,6 +4656,22 @@ void Assembler::LoadSImmediate(FRegister reg, float imms) {
           return;
         }
       }
+      uint32_t nimm = imm ^ 0x80000000;
+      for (intptr_t i = 0; i < 32; i++) {
+        if (kFlisConstants[i] == nimm) {
+          flis(reg, i);
+          fnegs(reg, reg);
+          return;
+        }
+      }
+    }
+
+    int32_t immi = imms;
+    if (IsITypeImm(immi) &&
+        imm == bit_cast<uint32_t, float>(static_cast<float>(immi))) {
+      li(TMP2, immi);
+      fcvtsw(reg, TMP2);  // static_cast int32_t -> float
+      return;
     }
 
     ASSERT(constant_pool_allowed());
@@ -4300,6 +4697,22 @@ void Assembler::LoadDImmediate(FRegister reg, double immd) {
           return;
         }
       }
+      uint64_t nimm = imm ^ 0x8000000000000000;
+      for (intptr_t i = 0; i < 32; i++) {
+        if (kFlidConstants[i] == nimm) {
+          flid(reg, i);
+          fnegd(reg, reg);
+          return;
+        }
+      }
+    }
+
+    int32_t immi = immd;
+    if (IsITypeImm(immi) &&
+        imm == bit_cast<uint64_t, double>(static_cast<double>(immi))) {
+      li(TMP2, immi);
+      fcvtdw(reg, TMP2);  // static_cast int32_t -> double
+      return;
     }
 
     ASSERT(constant_pool_allowed());
@@ -4360,8 +4773,8 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   } else if (target::IsSmi(object)) {
     CompareImmediate(reg, target::ToRawSmi(object), kObjectBytes);
   } else {
-    LoadObject(TMP, object);
-    CompareObjectRegisters(reg, TMP);
+    LoadObject(TMP2, object);
+    CompareObjectRegisters(reg, TMP2);
   }
 }
 
@@ -4566,12 +4979,12 @@ void Assembler::EnterFullSafepoint(Register state) {
 
   addi(addr, THR, target::Thread::safepoint_state_offset());
   Bind(&retry);
-  lr(state, Address(addr, 0));
+  lrx(state, Address(addr, 0));
   subi(state, state, target::Thread::native_safepoint_state_unacquired());
   bnez(state, &slow_path, Assembler::kNearJump);
 
   li(state, target::Thread::native_safepoint_state_acquired());
-  sc(state, state, Address(addr, 0));
+  scx(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
   if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
@@ -4601,12 +5014,12 @@ void Assembler::ExitFullSafepoint(Register state) {
 
   addi(addr, THR, target::Thread::safepoint_state_offset());
   Bind(&retry);
-  lr(state, Address(addr, 0));
+  lrx(state, Address(addr, 0));
   subi(state, state, target::Thread::native_safepoint_state_acquired());
   bnez(state, &slow_path, Assembler::kNearJump);
 
   li(state, target::Thread::native_safepoint_state_unacquired());
-  sc(state, state, Address(addr, 0));
+  scx(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
   if (!FLAG_use_slow_path && !FLAG_target_thread_sanitizer) {
@@ -4825,15 +5238,14 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
-      tsan_enter_exit) {
+  if (FLAG_target_thread_sanitizer && tsan_enter_exit) {
     TsanFuncEntry(/*preserve_registers=*/false);
   }
   lx(T5, compiler::Address(THR, entry.OffsetFromThread()));
   li(T4, argument_count);
+  Comment("Runtime call: %s", entry.name());
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
-      tsan_enter_exit) {
+  if (FLAG_target_thread_sanitizer && tsan_enter_exit) {
     TsanFuncExit(/*preserve_registers=*/false);
   }
 }
@@ -4877,6 +5289,7 @@ void LeafRuntimeScope::Call(const RuntimeEntry& entry,
   ASSERT(argument_count == entry.argument_count());
   __ Load(TMP2, compiler::Address(THR, entry.OffsetFromThread()));
   __ sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  __ Comment("Leaf runtime call: %s", entry.name());
   __ jalr(TMP2);
   __ LoadImmediate(TMP2, VMTag::kDartTagId);
   __ sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));

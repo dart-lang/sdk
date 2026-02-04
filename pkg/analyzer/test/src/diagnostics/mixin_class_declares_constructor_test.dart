@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class A {
 }
 class B extends Object with A {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 49, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 49, 1)],
     );
   }
 
@@ -35,7 +35,7 @@ class A {
 }
 class B = Object with A;
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 43, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 43, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ enum E with A {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 34, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 34, 1)],
     );
   }
 
@@ -82,7 +82,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 18, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 18, 1)],
     );
   }
 
@@ -94,7 +94,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 27, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 27, 1)],
     );
   }
 
@@ -107,7 +107,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 35, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 35, 1)],
     );
   }
 
@@ -119,7 +119,7 @@ mixin class A {
 }
 class B with A {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 18, 1)],
+      [error(diag.mixinClassDeclaresConstructor, 18, 1)],
     );
   }
 

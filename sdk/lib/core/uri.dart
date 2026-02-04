@@ -33,9 +33,9 @@ const String _hexDigits = "0123456789ABCDEF";
 /// var httpsUri = Uri(
 ///     scheme: 'https',
 ///     host: 'dart.dev',
-///     path: '/guides/libraries/library-tour',
+///     path: 'language/built-in-types',
 ///     fragment: 'numbers');
-/// print(httpsUri); // https://dart.dev/guides/libraries/library-tour#numbers
+/// print(httpsUri); // https://dart.dev/language/built-in-types#numbers
 ///
 /// httpsUri = Uri(
 ///     scheme: 'https',
@@ -85,28 +85,28 @@ const String _hexDigits = "0123456789ABCDEF";
 /// To create a URI from string, use [Uri.parse] or [Uri.tryParse]:
 /// ```dart
 /// final uri = Uri.parse(
-///     'https://dart.dev/guides/libraries/library-tour#utility-classes');
+///     'https://dart.dev/libraries/dart-core#utility-classes');
 /// print(uri); // https://dart.dev
 /// print(uri.isScheme('https')); // true
 /// print(uri.origin); // https://dart.dev
 /// print(uri.host); // dart.dev
 /// print(uri.authority); // dart.dev
 /// print(uri.port); // 443
-/// print(uri.path); // guides/libraries/library-tour
-/// print(uri.pathSegments); // [guides, libraries, library-tour]
+/// print(uri.path); // libraries/dart-core
+/// print(uri.pathSegments); // [libraries, dart-core]
 /// print(uri.fragment); // utility-classes
 /// print(uri.hasQuery); // false
 /// print(uri.data); // null
 /// ```
 ///
 /// **See also:**
-/// * [URIs][uris] in the [library tour][libtour]
+/// * [URIs][uris] in the [introduction to `dart:core`][libtour]
 /// * [RFC-3986](https://tools.ietf.org/html/rfc3986)
 /// * [RFC-2396](https://tools.ietf.org/html/rfc2396)
 /// * [RFC-2045](https://tools.ietf.org/html/rfc2045)
 ///
-/// [uris]: https://dart.dev/guides/libraries/library-tour#uris
-/// [libtour]: https://dart.dev/guides/libraries/library-tour
+/// [uris]: https://dart.dev/libraries/dart-core#uris
+/// [libtour]: https://dart.dev/libraries/dart-core
 abstract interface class Uri {
   /// The natural base URI for the current platform.
   ///
@@ -194,9 +194,9 @@ abstract interface class Uri {
   /// final httpsUri = Uri(
   ///     scheme: 'https',
   ///     host: 'dart.dev',
-  ///     path: 'guides/libraries/library-tour',
+  ///     path: 'language/built-in-types',
   ///     fragment: 'numbers');
-  /// print(httpsUri); // https://dart.dev/guides/libraries/library-tour#numbers
+  /// print(httpsUri); // https://dart.dev/language/built-in-types#numbers
   ///
   /// final mailtoUri = Uri(
   ///     scheme: 'mailto',
@@ -749,13 +749,13 @@ abstract interface class Uri {
   /// Example:
   /// ```dart
   /// final uri1 = Uri.parse(
-  ///     'http://dart.dev/guides/libraries/library-tour#utility-classes');
+  ///     'https://dart.dev/libraries/dart-core#utility-classes');
   ///
   /// final uri2 = uri1.replace(
   ///     scheme: 'https',
-  ///     path: 'guides/libraries/library-tour',
+  ///     path: 'libraries/dart-core',
   ///     fragment: 'uris');
-  /// print(uri2); // https://dart.dev/guides/libraries/library-tour#uris
+  /// print(uri2); // https://dart.dev/libraries/dart-core#uris
   /// ```
   /// This method acts similarly to using the `Uri` constructor with
   /// some of the arguments taken from this `Uri`. Example:
@@ -765,10 +765,10 @@ abstract interface class Uri {
   ///     userInfo: uri1.userInfo,
   ///     host: uri1.host,
   ///     port: uri2.port,
-  ///     path: '/guides/language/language-tour',
+  ///     path: 'language/built-in-types',
   ///     query: uri1.query,
   ///     fragment: null);
-  /// print(uri3); // https://dart.dev/guides/language/language-tour
+  /// print(uri3); // https://dart.dev/language/built-in-types
   /// ```
   /// Using this method can be seen as shorthand for the `Uri` constructor
   /// call above, but may also be slightly faster because the parts taken
@@ -1197,8 +1197,7 @@ abstract interface class Uri {
   /// Example:
   /// ```dart
   /// final uri = Uri.tryParse(
-  ///     'https://dart.dev/guides/libraries/library-tour#utility-classes', 0,
-  ///     16);
+  ///     'https://dart.dev/libraries/dart-core#utility-classes', 0, 16);
   /// print(uri); // https://dart.dev
   ///
   /// var notUri = Uri.tryParse('::Not valid URI::');

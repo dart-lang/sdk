@@ -26,7 +26,7 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_fieldName];
 
   @override
-  FixKind get fixKind => DartFixKind.MAKE_FIELD_NOT_FINAL;
+  FixKind get fixKind => DartFixKind.makeFieldNotFinal;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -38,13 +38,13 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
     var getter = node.writeOrReadElement;
 
     // The accessor must be a getter, and it must be synthetic.
-    if (!(getter is GetterElement && getter.isSynthetic)) {
+    if (!(getter is GetterElement && getter.isOriginVariable)) {
       return;
     }
 
     // The variable must be not synthetic, and have no setter yet.
     var variable = getter.variable;
-    if (variable.isSynthetic || variable.setter != null) {
+    if (!variable.isOriginDeclaration || variable.setter != null) {
       return;
     }
 

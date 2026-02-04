@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -23,12 +25,12 @@ bool _beginsWithAsOrTo(String name) {
 bool _isVoid(TypeAnnotation? returnType) =>
     returnType is NamedType && returnType.type is VoidType;
 
-class UseToAndAsIfApplicable extends LintRule {
+class UseToAndAsIfApplicable extends AnalysisRule {
   UseToAndAsIfApplicable()
     : super(name: LintNames.use_to_and_as_if_applicable, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useToAndAsIfApplicable;
+  DiagnosticCode get diagnosticCode => diag.useToAndAsIfApplicable;
 
   @override
   void registerNodeProcessors(
@@ -41,7 +43,7 @@ class UseToAndAsIfApplicable extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

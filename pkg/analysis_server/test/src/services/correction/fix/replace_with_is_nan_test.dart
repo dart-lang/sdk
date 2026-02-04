@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ReplaceWithIsNanTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_IS_NAN;
+  FixKind get kind => DartFixKind.replaceWithIsNaN;
 
   Future<void> test_alwaysFalse_leftSide() async {
     await resolveTestCode('''

@@ -18,6 +18,12 @@ import("../build/executable_suffix.gni")
 import("../sdk_args.gni")
 import("../utils/application_snapshot.gni")
 
+# If we're are embedded in another GN buildroot, such as Flutter, the sysroot
+# might already be imported from elsewhere.
+if (get_path_info(".", "abspath") == "//sdk/") {
+  import("../build/config/sysroot.gni")
+}
+
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
   dart_platform_sdk = true
@@ -229,6 +235,7 @@ _full_sdk_libraries = [
   "mirrors",
   "svg",
   "typed_data",
+  "_vm",
   "_wasm",
   "web_audio",
   "web_gl",
@@ -373,6 +380,47 @@ copy("copy_dart_aotruntime") {
   ]
 }
 
+copy_sanitizer_deps = []
+
+# If the default toolchain is already using a sanitizer, the sanitizer variant
+# toolchains will try to use multiple sanitizers at the same time, which
+# doesn't work. If we're not on Linux, the sanitizers are not statically linked
+# and not useable outside our tree. If we're on Linux with musl-libc, the
+# sanitizers don't work. If we're are embedded in another GN buildroot, such as
+# Flutter, the sanitizer variant toolchains might not be defined.
+if (!using_sanitizer && current_os == "linux" &&
+    !(defined(dart_sysroot) && dart_sysroot == "alpine") &&
+    get_path_info(".", "abspath") == "//sdk/") {
+  sanitizers = []
+  if (current_cpu == "x64" || current_cpu == "arm64") {
+    sanitizers += [
+      "asan",
+      "msan",
+      "tsan",
+    ]
+  } else if (current_cpu == "riscv64") {
+    # Fuchsia Clang is missing the riscv64 MSAN runtime.
+    sanitizers += [
+      "asan",
+      "tsan",
+    ]
+  }
+
+  foreach(sanitizer, sanitizers) {
+    copy("copy_dart_aotruntime_$sanitizer") {
+      visibility = [ ":group_dart2native" ]
+      deps = [ "../runtime/bin:dartaotruntime_product(${current_toolchain}_${sanitizer})" ]
+      src_dir = get_label_info(
+              "../runtime/bin:dartaotruntime_product(${current_toolchain}_${sanitizer})",
+              "root_out_dir")
+      sources =
+          [ "$src_dir/${dart_aotruntime_stripped_binary}${executable_suffix}" ]
+      outputs = [ "$root_out_dir/$dart_sdk_output/bin/dartaotruntime_${sanitizer}${executable_suffix}" ]
+    }
+    copy_sanitizer_deps += [ ":copy_dart_aotruntime_$sanitizer" ]
+  }
+}
+
 group("copy_gen_snapshot") {
   visibility = [ ":group_dart2native" ]
   public_deps = [ ":copy_gen_snapshot_exe" ]
@@ -418,11 +466,11 @@ copy("copy_gen_kernel_snapshot") {
 
 group("group_dart2native") {
   deps = [
-    ":copy_dart_aotruntime",
-    ":copy_gen_kernel_snapshot",
-    ":copy_gen_snapshot",
-    ":copy_vm_platform_product",
-  ]
+           ":copy_dart_aotruntime",
+           ":copy_gen_kernel_snapshot",
+           ":copy_gen_snapshot",
+           ":copy_vm_platform_product",
+         ] + copy_sanitizer_deps
 }
 
 # A template for copying the things in _platform_sdk_scripts and

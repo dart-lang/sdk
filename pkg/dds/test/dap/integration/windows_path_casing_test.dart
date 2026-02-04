@@ -28,6 +28,9 @@ main() {
                 'breakpoint requests: $breakpointCasing)', () async {
               // Set the correct casing of drive letters for this test.
               if (actualCwdCasing != null) {
+                // TODO(dantup): This setting of Directory.current can cause
+                //  test failures when running multiple tests with `dart test`
+                //  due to concurrency!
                 Directory.current = Directory(
                   setDriveLetterCasing(Directory.current.path, actualCwdCasing),
                 );

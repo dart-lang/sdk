@@ -47,20 +47,20 @@ static method main() → void {
       #t4.{core::List::add}{Invariant}(new self::C::v1()){(self::C) → void};
   } =>#t4;
 }
-static extension-type-member method E|constructor#_(core::int? _) → self::E% /* erasure=core::int?, declared=! */ {
+static extension-type-member const method E|constructor#_(core::int? _) → self::E% /* erasure=core::int?, declared=! */ {
   lowered final self::E% /* erasure=core::int?, declared=! */ #this = _;
   return #this;
 }
 static extension-type-member synthetic method E|constructor#_#_#tearOff(core::int? _) → self::E% /* erasure=core::int?, declared=! */
   return self::E|constructor#_(_);
-static extension-type-member method E|constructor#vn() → self::E% /* erasure=core::int?, declared=! */ {
+static extension-type-member const method E|constructor#vn() → self::E% /* erasure=core::int?, declared=! */ {
   lowered final self::E% /* erasure=core::int?, declared=! */ #this;
   #this = self::E|constructor#_(null);
   return #this;
 }
 static extension-type-member synthetic method E|constructor#_#vn#tearOff() → self::E% /* erasure=core::int?, declared=! */
   return self::E|constructor#vn();
-static extension-type-member method E|constructor#v1() → self::E% /* erasure=core::int?, declared=! */ {
+static extension-type-member const method E|constructor#v1() → self::E% /* erasure=core::int?, declared=! */ {
   lowered final self::E% /* erasure=core::int?, declared=! */ #this;
   #this = self::E|constructor#_(1);
   return #this;

@@ -90,13 +90,21 @@ class C7 {
 }
 
 class C8 {
-  factory C8() = C8._;
-  C8._() {}
+  factory C8.fact1() = C8;
+  factory C8.fact2() = C8.fact3;
+  factory C8.fact3() => C8();
+  C8() {}
+  const factory C8.fact4() = C8.constConstr;
+  const C8.constConstr();
 }
 
 class C9 {
-  factory C9() = C9._;
-  C9._() {}
+  factory C9.fact1() = C9;
+  factory C9.fact2() = C9.fact3;
+  factory C9.fact3() => C9();
+  C9() {}
+  const factory C9.fact4() = C9.constConstr;
+  const C9.constConstr();
 }
 
 extension type ExtType1(int raw) {}

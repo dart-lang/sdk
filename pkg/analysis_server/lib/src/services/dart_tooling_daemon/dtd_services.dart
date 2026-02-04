@@ -12,6 +12,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
+import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:dtd/dtd.dart';
@@ -20,16 +21,16 @@ import 'package:json_rpc_2/json_rpc_2.dart';
 /// The state of the connection to DTD.
 enum DtdConnectionState {
   /// A connection is being made or initialization is in progress.
-  Connecting,
+  connecting,
 
   /// The connection is available to use.
-  Connected,
+  connected,
 
   /// The connection is closing or closed.
-  Disconnected,
+  disconnected,
 
   /// A fatal error occurred setting up the connection to DTD.
-  Error,
+  error,
 }
 
 /// A connection to DTD that exposes some analysis services (such as a subset
@@ -48,7 +49,7 @@ class DtdServices {
   /// A raw connection to the Dart Tooling Daemon.
   DartToolingDaemon? _dtd;
 
-  DtdConnectionState _state = DtdConnectionState.Connecting;
+  DtdConnectionState _state = DtdConnectionState.connecting;
 
   /// Whether to register experimental LSP handlers over DTD.
   final bool registerExperimentalHandlers;
@@ -109,7 +110,7 @@ class DtdServices {
   }
 
   /// Closes the connection to DTD and cleans up.
-  void _close([DtdConnectionState state = DtdConnectionState.Disconnected]) {
+  void _close([DtdConnectionState state = DtdConnectionState.disconnected]) {
     _state = state;
 
     // This code may have been closed because the connection closed, or it might
@@ -190,6 +191,11 @@ class DtdServices {
         responseCompleter: completer,
       ),
     );
+    _server.sessionLogger.logMessage(
+      from: ProcessId.dtd,
+      to: ProcessId.server,
+      message: message.toJson(),
+    );
     return completer.future;
   }
 
@@ -197,14 +203,10 @@ class DtdServices {
   /// closing the connection.
   void _handleError(Object? error, Object? stack) {
     _server.instrumentationService.logError(
-      [
-        'Failed to connect to/initialize DTD:',
-        error,
-        if (stack != null) stack,
-      ].join('\n'),
+      ['Failed to connect to/initialize DTD:', error, ?stack].join('\n'),
     );
 
-    _close(DtdConnectionState.Error);
+    _close(DtdConnectionState.error);
   }
 
   /// Registers any request handlers provided by the server handler [handler]

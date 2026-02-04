@@ -11,6 +11,8 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' as codes;
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart'
     show AsyncModifier;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show NullListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
@@ -19,6 +21,8 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
@@ -742,6 +746,7 @@ List<Test> extractTestsFromComment(
     final Parser parser = new Parser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     parser.asyncState = AsyncModifier.Async;
 
@@ -1113,7 +1118,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
           ),
           loader: loader,
           resolveInLibrary: libraryBuilder,
-          isUnsupported: false,
+          conditionalImportSupported: true,
           forAugmentationLibrary: false,
           isAugmenting: false,
           forPatchLibrary: false,
@@ -1122,6 +1127,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
           indexedLibrary: null,
           augmentationRoot: null,
           mayImplementRestrictedTypes: false,
+          importability: Importability.always,
         );
 
     if (libraryBuilder is DillLibraryBuilder) {

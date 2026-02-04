@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ final class MyStruct extends Struct {
   external Array<Uint8> a0;
 }
 ''',
-      [error(FfiCode.nonPositiveArrayDimension, 74, 2)],
+      [error(diag.nonPositiveArrayDimension, 74, 2)],
     );
   }
 
@@ -39,7 +39,7 @@ final class MyStruct extends Struct {
   external Array<Array<Array<Array<Array<Array<Uint8>>>>>> a0;
 }
 ''',
-      [error(FfiCode.nonPositiveArrayDimension, 83, 2)],
+      [error(diag.nonPositiveArrayDimension, 83, 2)],
     );
   }
 
@@ -64,7 +64,7 @@ final class MyStruct extends Struct {
   external Array<Uint8> a0;
 }
 ''',
-      [error(FfiCode.nonPositiveArrayDimension, 74, 1)],
+      [error(diag.nonPositiveArrayDimension, 74, 1)],
     );
   }
 
@@ -78,7 +78,7 @@ final class MyStruct extends Struct {
   external Array<Uint8> a0;
 }
 ''',
-      [error(FfiCode.nonPositiveArrayDimension, 67, 3)],
+      [error(diag.nonPositiveArrayDimension, 67, 3)],
     );
   }
 
@@ -103,7 +103,7 @@ final class MyStruct extends Struct {
   external Array<Uint8> a0;
 }
 ''',
-      [error(FfiCode.nonPositiveArrayDimension, 67, 1)],
+      [error(diag.nonPositiveArrayDimension, 67, 1)],
     );
   }
 }

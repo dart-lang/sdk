@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class ImplementsSuperClassTest extends PubPackageResolutionTest {
 class A {}
 class B extends A implements A {}
 ''',
-      [error(CompileTimeErrorCode.implementsSuperClass, 40, 1)],
+      [error(diag.implementsSuperClass, 40, 1)],
     );
   }
 
@@ -30,7 +30,7 @@ class B extends A implements A {}
       '''
 class A implements Object {}
 ''',
-      [error(CompileTimeErrorCode.implementsSuperClass, 19, 6)],
+      [error(diag.implementsSuperClass, 19, 6)],
     );
   }
 
@@ -41,7 +41,7 @@ class A {}
 typedef B = A;
 class C extends A implements B {}
 ''',
-      [error(CompileTimeErrorCode.implementsSuperClass, 55, 1)],
+      [error(diag.implementsSuperClass, 55, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ class A {}
 mixin M {}
 class B = A with M implements A;
 ''',
-      [error(CompileTimeErrorCode.implementsSuperClass, 52, 1)],
+      [error(diag.implementsSuperClass, 52, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ class B = A with M implements A;
 mixin M {}
 class A = Object with M implements Object;
 ''',
-      [error(CompileTimeErrorCode.implementsSuperClass, 46, 6)],
+      [error(diag.implementsSuperClass, 46, 6)],
     );
   }
 
@@ -74,7 +74,7 @@ mixin M {}
 typedef B = A;
 class C = A with M implements B;
 ''',
-      [error(CompileTimeErrorCode.implementsSuperClass, 67, 1)],
+      [error(diag.implementsSuperClass, 67, 1)],
     );
   }
 }

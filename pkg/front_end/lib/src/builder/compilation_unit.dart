@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart' show Annotatable, Library, Version;
 import 'package:kernel/reference_from_index.dart';
@@ -42,9 +44,22 @@ sealed class CompilationUnit {
 
   bool get isSynthetic;
 
-  /// If true, the library is not supported through the 'dart.library.*' value
+  /// If false, the library is not supported through the 'dart.library.*' value
   /// used in conditional imports and `bool.fromEnvironment` constants.
-  bool get isUnsupported;
+  bool get conditionalImportSupported;
+
+  /// Specifies when the library is importable on the target platform.
+  ///
+  /// If [importability] is [Importability.always], or is
+  /// [Importability.withFlag] when the
+  /// `--include-unsupported-platform-library-stubs` flag is specified, the
+  /// library can be imported.
+  ///
+  /// If [importability] is [Importability.never], or is
+  /// [Importability.withFlag] when
+  /// `--include-unsupported-platform-library-stubs` is not specified, imports
+  /// of this library will result in a compilation error.
+  Importability get importability;
 
   Loader get loader;
 
@@ -64,6 +79,9 @@ sealed class CompilationUnit {
   /// through import or export.
   Iterable<Uri> get dependencies;
 
+  /// Records the location of an import or export of this library from
+  /// [accessor], but only on source libraries (saving it on dill libraries will
+  /// cause leaks).
   void recordAccess(
     CompilationUnit accessor,
     int charOffset,
@@ -197,7 +215,21 @@ abstract class SourceCompilationUnit
 
   bool get mayImplementRestrictedTypes;
 
-  void addDependencies(Library library, Set<SourceCompilationUnit> seen);
+  /// Adds [LibraryDependency] nodes for all imports and exports to [library].
+  ///
+  /// [seen] is use to track already handled compilation units in case for
+  /// erroneous cases where a compilation unit is included more than once in
+  /// the library.
+  ///
+  /// [deferredNames] maps the names of deferred imports to number of
+  /// occurrences so far. With enhanced parts, different parts can use the same
+  /// name for deferred imports. This map is used to create unique names in the
+  /// encoding.
+  void addDependencies({
+    required Library library,
+    required Set<SourceCompilationUnit> seen,
+    required Map<String, int> deferredNames,
+  });
 
   /// Runs through all part directives in this compilation unit and adds the
   /// compilation unit for the parts to the [libraryBuilder] by adding them

@@ -308,6 +308,7 @@ class BytecodeReaderHelper : public ValueObject {
     static const int kHasExceptionsTableFlag = 1 << 0;
     static const int kHasSourcePositionsFlag = 1 << 1;
     static const int kHasLocalVariablesFlag = 1 << 2;
+    static const int kCapturesOnlyFinalNotLateVarsFlag = 1 << 3;
   };
 
   // Parameter flags, must be in sync with ParameterFlags constants in
@@ -537,12 +538,15 @@ class BytecodeReader : public AllStatic {
 };
 
 class BytecodeSourcePositionsIterator : ValueObject {
- public:
   // These constants should match corresponding constants in class
   // SourcePositions (pkg/dart2bytecode/lib/source_positions.dart).
-  static const intptr_t kSyntheticCodeMarker = -1;
-  static const intptr_t kYieldPointMarker = -2;
+  static const intptr_t kNoSourcePosition = -1;
+  static const intptr_t kSyntheticFlag = 1 << 0;
+  static const intptr_t kYieldPointFlag = 1 << 1;
+  static const intptr_t kNumFlags = 2;
+  static const intptr_t kFlagMask = (1 << kNumFlags) - 1;
 
+ public:
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
       : reader_(TypedDataBase::Handle(zone, bytecode.binary())) {
     ASSERT(bytecode.HasSourcePositions());
@@ -557,12 +561,14 @@ class BytecodeSourcePositionsIterator : ValueObject {
     ASSERT(pairs_remaining_ > 0);
     --pairs_remaining_;
     cur_bci_ += reader_.ReadUInt();
-    cur_token_pos_ += reader_.ReadSLEB128();
-    is_yield_point_ = false;
-    if (cur_token_pos_ == kYieldPointMarker) {
-      const bool result = MoveNext();
-      is_yield_point_ = true;
-      return result;
+    cur_encoded_ += reader_.ReadSLEB128();
+    if (cur_encoded_ >= 0 || cur_encoded_ == kNoSourcePosition) {
+      cur_position_ = cur_encoded_;
+      flags_ = 0;
+    } else {
+      const intptr_t value = -cur_encoded_ - 1;
+      cur_position_ = value >> kNumFlags;
+      flags_ = value & kFlagMask;
     }
     return true;
   }
@@ -570,19 +576,22 @@ class BytecodeSourcePositionsIterator : ValueObject {
   uword PcOffset() const { return cur_bci_; }
 
   TokenPosition TokenPos() const {
-    return (cur_token_pos_ == kSyntheticCodeMarker)
+    return ((flags_ & kSyntheticFlag) != 0)
+               ? TokenPosition::Synthetic(cur_position_)
+           : cur_position_ == kNoSourcePosition
                ? TokenPosition::kNoSource
-               : TokenPosition::Deserialize(cur_token_pos_);
+               : TokenPosition::Deserialize(cur_position_);
   }
 
-  bool IsYieldPoint() const { return is_yield_point_; }
+  bool IsYieldPoint() const { return (flags_ & kYieldPointFlag) != 0; }
 
  private:
   Reader reader_;
   intptr_t pairs_remaining_ = 0;
   intptr_t cur_bci_ = 0;
-  intptr_t cur_token_pos_ = 0;
-  bool is_yield_point_ = false;
+  intptr_t cur_encoded_ = 0;
+  intptr_t cur_position_ = 0;
+  intptr_t flags_ = 0;
 };
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

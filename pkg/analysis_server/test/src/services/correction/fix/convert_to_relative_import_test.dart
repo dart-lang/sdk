@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -88,13 +88,9 @@ import 'package:test1/foo.dart';
 import 'package:test/foo';
 ''');
 
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'foo';
-''',
-      errorFilter: (error) =>
-          error.diagnosticCode != CompileTimeErrorCode.uriDoesNotExist,
-    );
+''', filter: (error) => error.diagnosticCode != diag.uriDoesNotExist);
   }
 
   Future<void> test_relativeImportRespectQuoteStyle() async {

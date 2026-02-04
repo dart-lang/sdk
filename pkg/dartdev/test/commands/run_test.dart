@@ -104,12 +104,13 @@ void run() {
     p = project();
     var result = await p.run(['run', '--help']);
 
-    expect(result.stdout, contains('Run a Dart program.'));
+    expect(result.stdout,
+        contains('Run a Dart program from a file or a local package.'));
     expect(result.stdout, contains('Debugging options:'));
     expect(
       result.stdout,
       contains(
-        'Usage: dart run [arguments] [<dart-file|package-target> [args]]',
+        'Usage: dart [vm-options] run [arguments] <dart-file>|<local-package> [args]',
       ),
     );
     expect(result.stderr, isEmpty);
@@ -120,12 +121,13 @@ void run() {
     p = project();
     var result = await p.run(['run', '--help', '--verbose']);
 
-    expect(result.stdout, contains('Run a Dart program.'));
+    expect(result.stdout,
+        contains('Run a Dart program from a file or a local package.'));
     expect(result.stdout, contains('Debugging options:'));
     expect(
       result.stdout,
       contains(
-        'Usage: dart [vm-options] run [arguments] [<dart-file|package-target> [args]]',
+        'Usage: dart [vm-options] run [arguments] <dart-file>|<local-package> [args]',
       ),
     );
     expect(result.stderr, isEmpty);
@@ -955,6 +957,33 @@ void residentRun() {
         '--$residentCompilerInfoFileOption=$serverInfoFile',
       ]);
     });
+  });
+
+  test('resident compiler invocation has working resolvePackageUri', () async {
+    p = project(name: 'foo');
+    p.file('pubspec.yaml', '''
+name: foo
+environment:
+  sdk: '>=2.12.0<3.0.0'
+
+dependencies:
+  path: ^1.9.0
+''');
+    p.file('bin/main.dart', r'''
+import 'dart:isolate';
+Future<void> main() async {
+  print(await Isolate.resolvePackageUri(Uri.parse('package:path/')));
+}
+''');
+
+    ProcessResult pubGetResult = await p.run(['pub', 'get']);
+    expect(pubGetResult.stderr, isEmpty);
+    expect(pubGetResult.exitCode, 0);
+
+    ProcessResult result = await p.run(['run', '--resident', 'bin/main.dart']);
+
+    expect(result.stdout, contains('file://'));
+    expect(result.exitCode, 0);
   });
 
   test(

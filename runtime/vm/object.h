@@ -527,7 +527,9 @@ class Object {
   V(Bytecode, implicit_getter_bytecode)                                        \
   V(Bytecode, implicit_setter_bytecode)                                        \
   V(Bytecode, implicit_static_getter_bytecode)                                 \
+  V(Bytecode, implicit_shared_static_getter_bytecode)                          \
   V(Bytecode, implicit_static_setter_bytecode)                                 \
+  V(Bytecode, implicit_shared_static_setter_bytecode)                          \
   V(Bytecode, method_extractor_bytecode)                                       \
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \
@@ -3287,8 +3289,11 @@ class Function : public Object {
   static inline BytecodePtr GetBytecode(FunctionPtr function);
   inline bool HasBytecode() const;
   static inline bool HasBytecode(FunctionPtr function);
+  static bool IsInterpreted(FunctionPtr function);
+  inline bool IsInterpreted() const { return IsInterpreted(ptr()); }
 #else
   inline bool HasBytecode() const { return false; }
+  inline bool IsInterpreted() const { return false; }
 #endif
 
   virtual uword Hash() const;
@@ -3316,8 +3321,8 @@ class Function : public Object {
            (awaiter_link().depth != UntaggedClosureData::kNoAwaiterLinkDepth);
   }
 
-  void set_does_close_over_only_final_and_shared_vars(bool value) const;
-  bool does_close_over_only_final_and_shared_vars() const;
+  void set_captures_only_final_not_late_vars(bool value) const;
+  bool captures_only_final_not_late_vars() const;
 
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
@@ -4412,8 +4417,8 @@ class ClosureData : public Object {
   Function::AwaiterLink awaiter_link() const;
   void set_awaiter_link(Function::AwaiterLink link) const;
 
-  bool does_close_over_only_final_and_shared_vars() const;
-  void set_does_close_over_only_final_and_shared_vars(bool value) const;
+  bool captures_only_final_not_late_vars() const;
+  void set_captures_only_final_not_late_vars(bool value) const;
 
   // Enclosing function of this local function.
   PRECOMPILER_WSR_FIELD_DECLARATION(Function, parent_function)
@@ -5439,6 +5444,7 @@ class Library : public Object {
   static LibraryPtr DeveloperLibrary();
   static LibraryPtr FfiLibrary();
   static LibraryPtr InternalLibrary();
+  static LibraryPtr VMLibrary();
   static LibraryPtr IsolateLibrary();
   static LibraryPtr MathLibrary();
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5745,7 +5751,12 @@ class ObjectPool : public Object {
 
   uword RawValueAt(intptr_t index) const {
     ASSERT(TypeAt(index) != EntryType::kTaggedObject);
-    return EntryAddr(index)->raw_value_;
+    return LoadNonPointer<uword>(&EntryAddr(index)->raw_value_);
+  }
+  template <std::memory_order order>
+  uword RawValueAt(intptr_t index) const {
+    ASSERT(TypeAt(index) != EntryType::kTaggedObject);
+    return LoadNonPointer<uword, order>(&EntryAddr(index)->raw_value_);
   }
   void SetRawValueAt(intptr_t index, uword raw_value) const {
     ASSERT(TypeAt(index) != EntryType::kTaggedObject);
@@ -6987,7 +6998,11 @@ class Code : public Object {
                                    : 0;
     return EntryPointOf(code) - entry_offset;
 #else
-    return Instructions::PayloadStart(InstructionsOf(code));
+    auto instr = InstructionsOf(code);
+    if (instr == Instructions::null()) {
+      return code->untag()->entry_point_;
+    }
+    return Instructions::PayloadStart(instr);
 #endif
   }
 
@@ -6997,7 +7012,11 @@ class Code : public Object {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return code->untag()->entry_point_;
 #else
-    return Instructions::EntryPoint(InstructionsOf(code));
+    auto instr = InstructionsOf(code);
+    if (instr == Instructions::null()) {
+      return code->untag()->entry_point_;
+    }
+    return Instructions::EntryPoint(instr);
 #endif
   }
 
@@ -7018,7 +7037,11 @@ class Code : public Object {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return untag()->monomorphic_entry_point_;
 #else
-    return Instructions::MonomorphicEntryPoint(instructions());
+    auto instr = instructions();
+    if (instr == Instructions::null()) {
+      return untag()->monomorphic_entry_point_;
+    }
+    return Instructions::MonomorphicEntryPoint(instr);
 #endif
   }
   // Returns the unchecked monomorphic entry point of [instructions()].
@@ -7037,7 +7060,12 @@ class Code : public Object {
     if (IsUnknownDartCode(code)) return kUwordMax;
     return code->untag()->instructions_length_;
 #else
-    return Instructions::Size(InstructionsOf(code));
+    auto instr = InstructionsOf(code);
+    if (instr == Instructions::null()) {
+      // TODO(alexmarkov): keep size in the Code objects.
+      return 0;
+    }
+    return Instructions::Size(instr);
 #endif
   }
 
@@ -7525,6 +7553,7 @@ class Code : public Object {
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
   friend class InstanceCall;       // for StorePointerUnaligned
   friend class StaticCall;         // for StorePointerUnaligned
+  friend class module_snapshot::CodeDeserializationCluster;
   friend void DumpStackFrame(intptr_t frame_index, uword pc, uword fp);
 };
 
@@ -7622,8 +7651,6 @@ class Bytecode : public Object {
     ASSERT(value.IsOld());
     untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
   }
-
-  void WriteLocalVariablesInfo(Zone* zone, BaseTextBuffer* buffer) const;
 
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;

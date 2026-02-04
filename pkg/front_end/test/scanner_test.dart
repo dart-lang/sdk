@@ -5,9 +5,9 @@
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show AbstractScanner, ScannerConfiguration;
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:_fe_analyzer_shared/src/scanner/reader.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -231,7 +231,7 @@ abstract class ScannerTestBase {
   }
 
   void test_comment_multi_unterminated() {
-    _assertError(ScannerErrorCode.unterminatedMultiLineComment, 3, "/* x");
+    _assertError(diag.unterminatedMultiLineComment, 3, "/* x");
   }
 
   void test_comment_nested() {
@@ -274,7 +274,7 @@ abstract class ScannerTestBase {
   }
 
   void test_double_missingDigitInExponent() {
-    _assertError(ScannerErrorCode.missingDigit, 1, "1e");
+    _assertError(diag.missingDigit, 1, "1e");
   }
 
   void test_double_whole_E() {
@@ -334,7 +334,7 @@ abstract class ScannerTestBase {
   }
 
   void test_hexadecimal_missingDigit() {
-    var token = _assertError(ScannerErrorCode.missingHexDigit, 5, "a = 0x");
+    var token = _assertError(diag.missingHexDigit, 5, "a = 0x");
     expect(token.lexeme, 'a');
     token = token.next!;
     expect(token.lexeme, '=');
@@ -344,7 +344,7 @@ abstract class ScannerTestBase {
 
   void test_hexadecimal_unexpectedSeparator() {
     var token = _assertError(
-      ScannerErrorCode.unexpectedSeparatorInNumber,
+      diag.unexpectedSeparatorInNumber,
       // TODO(srawlins): Should be 5?
       4,
       "a = 0x5_",
@@ -362,12 +362,7 @@ abstract class ScannerTestBase {
 
   void test_illegalChar_cyrillicLetter_middle() {
     final identifier = "Shche\u0433lov";
-    final token = _assertError(
-      ScannerErrorCode.illegalCharacter,
-      5,
-      identifier,
-      [0x433],
-    );
+    final token = _assertError(diag.illegalCharacter, 5, identifier, [0x433]);
     expect(token.type, TokenType.IDENTIFIER);
     expect(token.lexeme, identifier);
   }
@@ -376,8 +371,8 @@ abstract class ScannerTestBase {
     ErrorListener listener = new ErrorListener();
     var tokens = scanWithListener("a = Shche\u0433lov\u0429x;", listener);
     listener.assertErrors([
-      new TestError(9, ScannerErrorCode.illegalCharacter, [0x433]),
-      new TestError(13, ScannerErrorCode.illegalCharacter, [0x429]),
+      new TestError(9, diag.illegalCharacter, [0x433]),
+      new TestError(13, diag.illegalCharacter, [0x429]),
     ]);
     var token = tokens;
     expect(token.lexeme, 'a');
@@ -392,23 +387,13 @@ abstract class ScannerTestBase {
 
   void test_illegalChar_cyrillicLetter_start() {
     final identifier = "\u0429";
-    final token = _assertError(
-      ScannerErrorCode.illegalCharacter,
-      0,
-      identifier,
-      [0x429],
-    );
+    final token = _assertError(diag.illegalCharacter, 0, identifier, [0x429]);
     expect(token.type, TokenType.IDENTIFIER);
     expect(token.lexeme, identifier);
   }
 
   void test_illegalChar_cyrillicLetter_start_expression() {
-    var token = _assertError(
-      ScannerErrorCode.illegalCharacter,
-      4,
-      'a = \u0429;',
-      [0x429],
-    );
+    var token = _assertError(diag.illegalCharacter, 4, 'a = \u0429;', [0x429]);
     expect(token.lexeme, 'a');
     token = token.next!;
     expect(token.lexeme, '=');
@@ -420,11 +405,11 @@ abstract class ScannerTestBase {
   }
 
   void test_illegalChar_nbsp() {
-    _assertError(ScannerErrorCode.illegalCharacter, 0, "\u00A0", [0xa0]);
+    _assertError(diag.illegalCharacter, 0, "\u00A0", [0xa0]);
   }
 
   void test_illegalChar_notLetter() {
-    _assertError(ScannerErrorCode.illegalCharacter, 0, "\u0312", [0x312]);
+    _assertError(diag.illegalCharacter, 0, "\u0312", [0x312]);
   }
 
   void test_incomplete_string_interpolation() {
@@ -435,7 +420,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.IDENTIFIER, "bar", 7),
     ];
     var expectedErrors = [
-      new TestError(9, ScannerErrorCode.unterminatedStringLiteral, null),
+      new TestError(9, diag.unterminatedStringLiteral, null),
     ];
     // The scanner inserts synthetic closers
     expectedTokens.addAll([
@@ -443,7 +428,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "\"", 10, 0),
     ]);
     expectedErrors.addAll([
-      new TestError(10, ScannerErrorCode.expectedToken, ['}']),
+      new TestError(10, diag.expectedToken, ['}']),
     ]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("\"foo \${bar", listener);
@@ -849,7 +834,7 @@ abstract class ScannerTestBase {
     expect(openBracket.endToken, same(closeBracket));
     expect(openParen.endToken, same(closeParen));
     listener.assertErrors([
-      new TestError(2, ScannerErrorCode.expectedToken, [')']),
+      new TestError(2, diag.expectedToken, [')']),
     ]);
   }
 
@@ -872,7 +857,7 @@ abstract class ScannerTestBase {
     expect(openBracket.endToken, closeBracket);
     expect(openParen.endToken, closeParen);
     listener.assertErrors([
-      new TestError(2, ScannerErrorCode.expectedToken, [']']),
+      new TestError(2, diag.expectedToken, [']']),
     ]);
   }
 
@@ -1077,7 +1062,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.IDENTIFIER, "name", 5),
     ];
     var expectedErrors = [
-      new TestError(8, ScannerErrorCode.unterminatedStringLiteral, null),
+      new TestError(8, diag.unterminatedStringLiteral, null),
     ];
     // Fasta inserts synthetic closers.
     expectedTokens.addAll([
@@ -1085,7 +1070,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "'''", 9, 0),
     ]);
     expectedErrors.addAll([
-      new TestError(9, ScannerErrorCode.expectedToken, ['}']),
+      new TestError(9, diag.expectedToken, ['}']),
     ]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'''\${name", listener);
@@ -1104,7 +1089,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "'''", 8, 0),
     ]);
     _assertErrorAndTokens(
-      ScannerErrorCode.unterminatedStringLiteral,
+      diag.unterminatedStringLiteral,
       7,
       "'''\$name",
       expectedTokens,
@@ -1127,7 +1112,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "r'''string'''", 0, 10),
     ]);
     _assertErrorAndTokens(
-      ScannerErrorCode.unterminatedStringLiteral,
+      diag.unterminatedStringLiteral,
       9,
       source,
       expectedTokens,
@@ -1150,7 +1135,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
     ]);
     _assertErrorAndTokens(
-      ScannerErrorCode.unterminatedStringLiteral,
+      diag.unterminatedStringLiteral,
       7,
       source,
       expectedTokens,
@@ -1165,7 +1150,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "r'string'", 0, 8),
     ]);
     _assertErrorAndTokens(
-      ScannerErrorCode.unterminatedStringLiteral,
+      diag.unterminatedStringLiteral,
       7,
       source,
       expectedTokens,
@@ -1254,9 +1239,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.IDENTIFIER, "", 4, 0),
       new StringToken(TokenType.STRING, "'", 4),
     ]);
-    expectedErrors.addAll([
-      new TestError(4, ScannerErrorCode.missingIdentifier, null),
-    ]);
+    expectedErrors.addAll([new TestError(4, diag.missingIdentifier, null)]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'\$x\$'", listener);
     listener.assertErrors(expectedErrors);
@@ -1272,9 +1255,7 @@ abstract class ScannerTestBase {
     expectedTokens.addAll([
       new SyntheticStringToken(TokenType.IDENTIFIER, "", 2),
     ]);
-    expectedErrors.addAll([
-      new TestError(2, ScannerErrorCode.missingIdentifier, null),
-    ]);
+    expectedErrors.addAll([new TestError(2, diag.missingIdentifier, null)]);
     expectedTokens.addAll([new StringToken(TokenType.STRING, "1'", 2)]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'\$1'", listener);
@@ -1294,7 +1275,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
     ]);
     _assertErrorAndTokens(
-      ScannerErrorCode.unterminatedStringLiteral,
+      diag.unterminatedStringLiteral,
       6,
       source,
       expectedTokens,
@@ -1309,7 +1290,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "'string'", 0, 7),
     ]);
     _assertErrorAndTokens(
-      ScannerErrorCode.unterminatedStringLiteral,
+      diag.unterminatedStringLiteral,
       6,
       source,
       expectedTokens,
@@ -1323,7 +1304,7 @@ abstract class ScannerTestBase {
       new StringToken(TokenType.IDENTIFIER, "name", 3),
     ];
     List<TestError> expectedErrors = [
-      new TestError(6, ScannerErrorCode.unterminatedStringLiteral, null),
+      new TestError(6, diag.unterminatedStringLiteral, null),
     ];
     // Fasta inserts synthetic closers.
     expectedTokens.addAll([
@@ -1331,7 +1312,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "'", 7, 0),
     ]);
     expectedErrors.addAll([
-      new TestError(7, ScannerErrorCode.expectedToken, ['}']),
+      new TestError(7, diag.expectedToken, ['}']),
     ]);
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener("'\${name", listener);
@@ -1350,7 +1331,7 @@ abstract class ScannerTestBase {
       new SyntheticStringToken(TokenType.STRING, "'", 6, 0),
     ]);
     _assertErrorAndTokens(
-      ScannerErrorCode.unterminatedStringLiteral,
+      diag.unterminatedStringLiteral,
       5,
       "'\$name",
       expectedTokens,
@@ -1428,7 +1409,7 @@ abstract class ScannerTestBase {
    * [source] the source to be scanned to produce the error
    */
   Token _assertError(
-    ScannerErrorCode expectedError,
+    DiagnosticCode expectedError,
     int expectedOffset,
     String source, [
     List<Object>? arguments,
@@ -1451,7 +1432,7 @@ abstract class ScannerTestBase {
    * [expectedTokens] the tokens that are expected to be in the source
    */
   void _assertErrorAndTokens(
-    ScannerErrorCode expectedError,
+    DiagnosticCode expectedError,
     int expectedOffset,
     String source,
     List<Token> expectedTokens,

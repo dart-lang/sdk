@@ -6,11 +6,11 @@ class A extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory redir() → self::A /* redirection-target: self::A::• */
+  static const factory redir() → self::A /* redirection-target: self::A::• */
     return new self::A::•();
 }
 class E extends core::_Enum /*isEnum*/  {
-  enum-element static const field self::E element = const self::E::•(0, "element", const self::A::•());
+  enum-element static const field self::E element = const self::E::•(0, "element", /*original=self::A::redir*/ const self::A::•());
   static const field core::List<self::E> values = const <self::E>[self::E::element];
   const constructor •(core::int #index, core::String #name, self::A a) → self::E
     : super core::_Enum::•(#index, #name)

@@ -16,4 +16,3 @@ inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
 rasta/native_is_illegal: Pass # Issue 29763
-coverage/static2_test: TypeCheckError

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -9,10 +10,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Sort unnamed constructor declarations first.';
 
-class SortUnnamedConstructorsFirst extends LintRule {
+class SortUnnamedConstructorsFirst extends AnalysisRule {
   SortUnnamedConstructorsFirst()
     : super(
         name: LintNames.sort_unnamed_constructors_first,
@@ -20,8 +22,7 @@ class SortUnnamedConstructorsFirst extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.sortUnnamedConstructorsFirst;
+  DiagnosticCode get diagnosticCode => diag.sortUnnamedConstructorsFirst;
 
   @override
   void registerNodeProcessors(
@@ -36,7 +37,7 @@ class SortUnnamedConstructorsFirst extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -47,7 +48,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (member is ConstructorDeclaration) {
         if (member.name == null) {
           if (seenConstructor) {
-            rule.reportAtNode(member.returnType);
+            // TODO(scheglov): support primary constructors
+            rule.reportAtNode(member.typeName);
           }
         } else {
           seenConstructor = true;
@@ -58,17 +60,21 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    check(node.members);
+    if (node.body case BlockClassBody body) {
+      check(body.members);
+    }
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    check(node.members);
+    check(node.body.members);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (node.representation.constructorName == null) return;
-    check(node.members);
+    if (node.primaryConstructor.constructorName == null) return;
+    if (node.body case BlockClassBody body) {
+      check(body.members);
+    }
   }
 }

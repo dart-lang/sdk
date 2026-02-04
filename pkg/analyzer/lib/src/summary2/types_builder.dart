@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
-import 'package:analyzer/src/summary2/extension_type.dart';
 import 'package:analyzer/src/summary2/interface_cycles.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
@@ -93,7 +92,7 @@ class TypesBuilder {
       _declaration(declaration);
     }
 
-    buildExtensionTypes(_linker, nodes.declarations);
+    _copyDeclaringFormalParametersExplicitTypes();
     _MixinsInference(_toInferMixins).perform();
     breakInterfaceCycles(_linker, nodes.declarations);
   }
@@ -167,6 +166,15 @@ class TypesBuilder {
     );
 
     _addFragmentWithClause(fragment, node.withClause);
+  }
+
+  void _copyDeclaringFormalParametersExplicitTypes() {
+    for (var info in _linker.declaringFormalParameters.values) {
+      var formalElement = info.formalFragment.element;
+      if (!formalElement.hasImplicitType) {
+        info.fieldFragment.element.type = formalElement.type;
+      }
+    }
   }
 
   void _declaration(AstNode node) {
@@ -290,9 +298,12 @@ class TypesBuilder {
 
   void _functionTypeAlias(FunctionTypeAliasImpl node) {
     var fragment = node.declaredFragment!;
-    var function = fragment.aliasedElement as GenericFunctionTypeFragmentImpl;
-    function.returnType = node.returnType?.type ?? _dynamicType;
-    fragment.element.aliasedType = function.type;
+    fragment.element.aliasedType = _buildFunctionType(
+      null,
+      node.returnType,
+      node.parameters,
+      NullabilitySuffix.none,
+    );
   }
 
   void _functionTypedFormalParameter(FunctionTypedFormalParameterImpl node) {
@@ -373,12 +384,12 @@ class TypesBuilder {
     switch (element) {
       case GetterElementImpl():
         var variable = element.variable;
-        if (variable.isSynthetic) {
+        if (variable.isOriginGetterSetter) {
           variable.type = element.returnType;
         }
       case SetterElementImpl():
         var variable = element.variable;
-        if (variable.isSynthetic && variable.getter == null) {
+        if (variable.isOriginGetterSetter && variable.getter == null) {
           var valueType = element.valueFormalParameter.type;
           variable.type = valueType;
         }
@@ -387,8 +398,22 @@ class TypesBuilder {
 
   void _simpleFormalParameter(SimpleFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
-    if (fragment.previousFragment == null) {
-      fragment.element.type = node.type?.type ?? _dynamicType;
+    if (fragment.previousFragment != null) {
+      return;
+    }
+
+    var element = fragment.element;
+
+    var typeAnnotation = node.type;
+    if (typeAnnotation == null) {
+      // For a declaring formal parameter the type will be inferred from
+      // the field type via instance inference, or from the default value.
+      if (element is FieldFormalParameterElementImpl && element.isDeclaring) {
+        return;
+      }
+      element.type = _dynamicType;
+    } else {
+      element.type = typeAnnotation.typeOrThrow;
     }
   }
 

@@ -1,0 +1,23 @@
+class C {
+new C.named();
+new C.named() : this.i = 0;
+new C.named() : this.i = 0 {}
+new C.named() {}
+const new C.named();
+const new C.named() : this.i = 0;
+const new C.named() : this.i = 0 {}
+const new C.named() {}
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+new[KeywordToken] C[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+new[KeywordToken] C[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]i[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+new[KeywordToken] C[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]i[StringToken] =[SimpleToken] 0[StringToken] {[BeginToken]}[SimpleToken]
+new[KeywordToken] C[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken] C[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken] C[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]i[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken] C[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]i[StringToken] =[SimpleToken] 0[StringToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken] C[StringToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

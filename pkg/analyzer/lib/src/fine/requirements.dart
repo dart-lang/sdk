@@ -308,7 +308,10 @@ class InterfaceItemRequirements {
   bool? hasNonFinalField;
 
   /// Set if [InterfaceElementImpl.constructors] is invoked.
-  ManifestItemIdList? allConstructors;
+  ManifestItemIdList? allDeclaredConstructors;
+
+  /// Set if [InterfaceElementImpl.constructors] is invoked.
+  ManifestItemIdList? allInheritedConstructors;
 
   /// Requested with [InterfaceElementImpl.getNamedConstructor].
   final Map<LookupName, ManifestItemId?> requestedConstructors;
@@ -318,30 +321,47 @@ class InterfaceItemRequirements {
   final Map<LookupName, ManifestItemId?> implementedMethods;
   final Map<int, Map<LookupName, ManifestItemId?>> superMethods;
 
-  /// Set if [ClassElementImpl.allSubtypes] was invoked.
+  /// Whether [ClassElementImpl.allSubtypes] was requested.
+  bool allSubtypesRequested;
+
+  /// The recorded value of [ClassItem.allSubtypes].
   ManifestItemIdList? allSubtypes;
+
+  /// Whether [ClassElementImpl.directSubtypesOfSealed] was requested.
+  bool directSubtypesOfSealedRequested;
+
+  /// The recorded value of [ClassItem.directSubtypesOfSealed].
+  ManifestItemIdList? directSubtypesOfSealed;
 
   InterfaceItemRequirements({
     required this.interfaceId,
     required this.hasNonFinalField,
-    required this.allConstructors,
+    required this.allDeclaredConstructors,
+    required this.allInheritedConstructors,
     required this.requestedConstructors,
     required this.methods,
     required this.implementedMethods,
     required this.superMethods,
+    required this.allSubtypesRequested,
     required this.allSubtypes,
+    required this.directSubtypesOfSealedRequested,
+    required this.directSubtypesOfSealed,
   });
 
   factory InterfaceItemRequirements.empty() {
     return InterfaceItemRequirements(
       interfaceId: null,
       hasNonFinalField: null,
-      allConstructors: null,
+      allDeclaredConstructors: null,
+      allInheritedConstructors: null,
       requestedConstructors: {},
       methods: {},
       implementedMethods: {},
       superMethods: {},
+      allSubtypesRequested: false,
       allSubtypes: null,
+      directSubtypesOfSealedRequested: false,
+      directSubtypesOfSealed: null,
     );
   }
 
@@ -349,7 +369,8 @@ class InterfaceItemRequirements {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
       hasNonFinalField: reader.readOptionalBool(),
-      allConstructors: ManifestItemIdList.readOptional(reader),
+      allDeclaredConstructors: ManifestItemIdList.readOptional(reader),
+      allInheritedConstructors: ManifestItemIdList.readOptional(reader),
       requestedConstructors: reader.readNameToOptionalIdMap(),
       methods: reader.readNameToOptionalIdMap(),
       implementedMethods: reader.readNameToOptionalIdMap(),
@@ -357,14 +378,18 @@ class InterfaceItemRequirements {
         readKey: () => reader.readInt64(),
         readValue: () => reader.readNameToOptionalIdMap(),
       ),
+      allSubtypesRequested: reader.readBool(),
       allSubtypes: ManifestItemIdList.readOptional(reader),
+      directSubtypesOfSealedRequested: reader.readBool(),
+      directSubtypesOfSealed: ManifestItemIdList.readOptional(reader),
     );
   }
 
   void write(BinaryWriter writer) {
     interfaceId.writeOptional(writer);
     writer.writeOptionalBool(hasNonFinalField);
-    allConstructors.writeOptional(writer);
+    allDeclaredConstructors.writeOptional(writer);
+    allInheritedConstructors.writeOptional(writer);
     writer.writeNameToIdMap(requestedConstructors);
     writer.writeNameToIdMap(methods);
     writer.writeNameToIdMap(implementedMethods);
@@ -373,7 +398,10 @@ class InterfaceItemRequirements {
       writeKey: (index) => writer.writeInt64(index),
       writeValue: (map) => writer.writeNameToIdMap(map),
     );
+    writer.writeBool(allSubtypesRequested);
     allSubtypes.writeOptional(writer);
+    writer.writeBool(directSubtypesOfSealedRequested);
+    directSubtypesOfSealed.writeOptional(writer);
   }
 }
 
@@ -480,6 +508,14 @@ class LibraryExportRequirements {
 
         var exportedIds = <LookupName, ManifestItemId>{};
         for (var entry in exportMap.entries) {
+          var element = entry.value;
+
+          // Skip elements that exist in nowhere.
+          var elementLibrary = element.library;
+          if (elementLibrary == null) {
+            continue;
+          }
+
           var lookupName = entry.key.asLookupName;
           if (declaredTopNames.contains(lookupName)) {
             continue;
@@ -524,6 +560,7 @@ class LibraryRequirements {
   Hash hashForRequirements;
 
   String? name;
+  bool? isOriginNotExistingFile;
   bool? isSynthetic;
   Uint8List? featureSet;
   ManifestLibraryLanguageVersion? languageVersion;
@@ -582,6 +619,7 @@ class LibraryRequirements {
   LibraryRequirements({
     required this.hashForRequirements,
     required this.name,
+    required this.isOriginNotExistingFile,
     required this.isSynthetic,
     required this.featureSet,
     required this.languageVersion,
@@ -619,6 +657,7 @@ class LibraryRequirements {
     return LibraryRequirements(
       hashForRequirements: manifest.hashForRequirements,
       name: null,
+      isOriginNotExistingFile: null,
       isSynthetic: null,
       featureSet: null,
       languageVersion: null,
@@ -657,6 +696,7 @@ class LibraryRequirements {
     return LibraryRequirements(
       hashForRequirements: Hash.read(reader),
       name: reader.readOptionalStringUtf8(),
+      isOriginNotExistingFile: reader.readOptionalBool(),
       isSynthetic: reader.readOptionalBool(),
       featureSet: reader.readOptionalUint8List(),
       languageVersion: ManifestLibraryLanguageVersion.readOptional(reader),
@@ -703,6 +743,7 @@ class LibraryRequirements {
   void write(BinaryWriter writer) {
     hashForRequirements.write(writer);
     writer.writeOptionalStringUtf8(name);
+    writer.writeOptionalBool(isOriginNotExistingFile);
     writer.writeOptionalBool(isSynthetic);
     writer.writeOptionalUint8List(featureSet);
     writer.writeOptionalObject(languageVersion, (it) => it.write(writer));
@@ -759,12 +800,14 @@ class LibraryRequirements {
 /// dependencies. If such API is used, we have to decide that the requirements
 /// are not satisfied, because we don't know for sure.
 class OpaqueApiUse {
+  final RequirementFailureKindId kindId;
   final String targetRuntimeType;
   final String methodName;
   final Uri? targetElementLibraryUri;
   final String? targetElementName;
 
   OpaqueApiUse({
+    required this.kindId,
     required this.targetRuntimeType,
     required this.methodName,
     this.targetElementLibraryUri,
@@ -773,6 +816,7 @@ class OpaqueApiUse {
 
   factory OpaqueApiUse.read(BinaryReader reader) {
     return OpaqueApiUse(
+      kindId: reader.readEnum(RequirementFailureKindId.values),
       targetRuntimeType: reader.readStringUtf8(),
       methodName: reader.readStringUtf8(),
       targetElementLibraryUri: reader.readOptionalObject(
@@ -783,6 +827,7 @@ class OpaqueApiUse {
   }
 
   void write(BinaryWriter writer) {
+    writer.writeEnum(kindId);
     writer.writeStringUtf8(targetRuntimeType);
     writer.writeStringUtf8(methodName);
     writer.writeOptionalObject(
@@ -915,7 +960,10 @@ class RequirementsManifest {
     required OperationPerformanceImpl performance,
   }) {
     if (opaqueApiUses.isNotEmpty) {
-      return OpaqueApiUseFailure(uses: opaqueApiUses);
+      return OpaqueApiUseFailure(
+        kindId: opaqueApiUses.first.kindId,
+        uses: opaqueApiUses,
+      );
     }
 
     for (var libraryEntry in libraries.entries) {
@@ -943,6 +991,17 @@ class RequirementsManifest {
         var actual = libraryManifest.name;
         if (expected != actual) {
           return LibraryNameMismatch(
+            libraryUri: libraryUri,
+            expected: expected,
+            actual: actual,
+          );
+        }
+      }
+
+      if (libraryRequirements.isOriginNotExistingFile case var expected?) {
+        var actual = libraryManifest.isOriginNotExistingFile;
+        if (expected != actual) {
+          return LibraryIsOriginNotExistingFileMismatch(
             libraryUri: libraryUri,
             expected: expected,
             actual: actual,
@@ -1473,14 +1532,27 @@ class RequirementsManifest {
           }
         }
 
-        if (interfaceRequirements.allConstructors case var required?) {
+        if (interfaceRequirements.allDeclaredConstructors case var required?) {
           var actualItems = interfaceItem.declaredConstructors.values;
           var actualIds = actualItems.map((item) => item.id);
           if (!required.equalToIterable(actualIds)) {
             return InterfaceChildrenIdsMismatch(
               libraryUri: libraryUri,
               interfaceName: interfaceName,
-              childrenPropertyName: 'constructors',
+              childrenPropertyName: 'declaredConstructors',
+              expectedIds: required,
+              actualIds: ManifestItemIdList(actualIds.toList()),
+            );
+          }
+        }
+
+        if (interfaceRequirements.allInheritedConstructors case var required?) {
+          var actualIds = interfaceItem.inheritedConstructors.values;
+          if (!required.equalToIterable(actualIds)) {
+            return InterfaceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              childrenPropertyName: 'inheritedConstructors',
               expectedIds: required,
               actualIds: ManifestItemIdList(actualIds.toList()),
             );
@@ -1559,14 +1631,30 @@ class RequirementsManifest {
           }
         }
 
-        if (interfaceRequirements.allSubtypes case var required?) {
+        if (interfaceRequirements.allSubtypesRequested) {
           interfaceItem as ClassItem;
+          var required = interfaceRequirements.allSubtypes;
           var actualIds = interfaceItem.allSubtypes;
           if (required != actualIds) {
             return InterfaceChildrenIdsMismatch(
               libraryUri: libraryUri,
               interfaceName: interfaceName,
               childrenPropertyName: 'allSubtypes',
+              expectedIds: required,
+              actualIds: actualIds,
+            );
+          }
+        }
+
+        if (interfaceRequirements.directSubtypesOfSealedRequested) {
+          interfaceItem as ClassItem;
+          var required = interfaceRequirements.directSubtypesOfSealed;
+          var actualIds = interfaceItem.directSubtypesOfSealed;
+          if (required != actualIds) {
+            return InterfaceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              childrenPropertyName: 'directSubtypesOfSealed',
               expectedIds: required,
               actualIds: actualIds,
             );
@@ -1622,7 +1710,27 @@ class RequirementsManifest {
     var item = itemRequirements.item as ClassItem;
     var requirements = itemRequirements.requirements;
 
-    requirements.allSubtypes ??= item.allSubtypes;
+    requirements.allSubtypesRequested = true;
+    requirements.allSubtypes = item.allSubtypes;
+  }
+
+  void record_classElement_directSubtypesOfSealed({
+    required ClassElementImpl element,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item as ClassItem;
+    var requirements = itemRequirements.requirements;
+
+    requirements.directSubtypesOfSealedRequested = true;
+    requirements.directSubtypesOfSealed = item.directSubtypesOfSealed;
   }
 
   void record_fieldElement_getter({
@@ -1706,8 +1814,12 @@ class RequirementsManifest {
     var item = itemRequirements.item;
     var requirements = itemRequirements.requirements;
 
-    requirements.allConstructors ??= ManifestItemIdList(
+    requirements.allDeclaredConstructors ??= ManifestItemIdList(
       item.declaredConstructors.values.map((item) => item.id).toList(),
+    );
+
+    requirements.allInheritedConstructors ??= ManifestItemIdList(
+      item.inheritedConstructors.values.toList(),
     );
   }
 
@@ -2348,6 +2460,22 @@ class RequirementsManifest {
     requirements.requestedDeclaredTypeAliases[lookupName] = id;
   }
 
+  void record_library_isOriginNotExistingFile({
+    required LibraryElementImpl element,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest?.instance;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.isOriginNotExistingFile = manifest.isOriginNotExistingFile;
+  }
+
   void record_library_isSynthetic({required LibraryElementImpl element}) {
     if (_recordingLockLevel != 0) {
       return;
@@ -2424,7 +2552,11 @@ class RequirementsManifest {
     }
   }
 
-  void recordOpaqueApiUse(Object target, String method) {
+  void recordOpaqueApiUse({
+    required RequirementFailureKindId kindId,
+    required Object target,
+    required String method,
+  }) {
     if (_recordingLockLevel != 0) {
       return;
     }
@@ -2439,22 +2571,18 @@ class RequirementsManifest {
       }
     }
 
-    untracked(
-      reason: 'We are recording failure',
-      operation: () {
-        // TODO(scheglov): remove after adding all tracking
-        // print('[${target.runtimeType}.$method]');
-        // print(StackTrace.current);
+    // TODO(scheglov): remove after adding all tracking
+    // print('[${target.runtimeType}.$method]');
+    // print(StackTrace.current);
 
-        opaqueApiUses.add(
-          OpaqueApiUse(
-            targetRuntimeType: target.runtimeType.toString(),
-            methodName: method,
-            targetElementName: targetElementName,
-            targetElementLibraryUri: targetElementLibraryUri,
-          ),
-        );
-      },
+    opaqueApiUses.add(
+      OpaqueApiUse(
+        kindId: kindId,
+        targetRuntimeType: target.runtimeType.toString(),
+        methodName: method,
+        targetElementName: targetElementName,
+        targetElementLibraryUri: targetElementLibraryUri,
+      ),
     );
   }
 
@@ -2502,20 +2630,30 @@ class RequirementsManifest {
     return writer.takeBytes();
   }
 
-  RequirementsManifestDigest toDigest() {
+  RequirementsManifestDigest toDigest({
+    required LinkedElementFactory elementFactory,
+    required ManifestItemId bundleId,
+  }) {
     var libraryHashes = <Uri, Hash>{};
 
     libraries.forEach((uri, library) {
-      libraryHashes[uri] = library.hashForRequirements;
+      var manifest = elementFactory.libraryManifests[uri]!;
+      libraryHashes[uri] = manifest.hashForRequirements;
     });
 
     for (var library in exportRequirements) {
       for (var export in library.exports) {
-        libraryHashes[export.exportedUri] = export.hashForRequirements;
+        var uri = export.exportedUri;
+        var manifest = elementFactory.libraryManifests[uri]!;
+        libraryHashes[uri] = manifest.hashForRequirements;
       }
     }
 
-    return RequirementsManifestDigest(libraryHashes: libraryHashes);
+    return RequirementsManifestDigest(
+      bundleId: bundleId,
+      hasOpaqueApiUses: opaqueApiUses.isNotEmpty,
+      libraryHashes: libraryHashes,
+    );
   }
 
   void write(BinaryWriter writer) {
@@ -2526,9 +2664,12 @@ class RequirementsManifest {
       writeValue: (library) => library.write(writer),
     );
 
-    writer.writeList(exportRequirements, (export) => export.write(writer));
+    writer.writeList(
+      exportRequirements,
+      (requirements) => requirements.write(writer),
+    );
 
-    writer.writeList(opaqueApiUses, (usage) => usage.write(writer));
+    writer.writeList(opaqueApiUses, (use) => use.write(writer));
   }
 
   _InstanceItemWithRequirements? _getInstanceItem(InstanceElementImpl element) {
@@ -2548,6 +2689,11 @@ class RequirementsManifest {
 
     var instanceName = element.lookupName?.asLookupName;
     if (instanceName == null) {
+      return null;
+    }
+
+    // Skip conflicts.
+    if (manifest.declaredConflicts.containsKey(instanceName)) {
       return null;
     }
 
@@ -2591,6 +2737,11 @@ class RequirementsManifest {
 
     var interfaceName = element.lookupName?.asLookupName;
     if (interfaceName == null) {
+      return null;
+    }
+
+    // Skip conflicts.
+    if (manifest.declaredConflicts.containsKey(interfaceName)) {
       return null;
     }
 
@@ -2655,12 +2806,23 @@ class RequirementsManifest {
 /// and can be skipped. If any library is missing or any recorded hash differs,
 /// the digest is not satisfied and a detailed check must be performed.
 class RequirementsManifestDigest {
+  /// The ID of the bundle this digest validates.
+  /// Digests are stored separately from bundles.
+  final ManifestItemId bundleId;
+
+  final bool hasOpaqueApiUses;
   final Map<Uri, Hash> libraryHashes;
 
-  RequirementsManifestDigest({required this.libraryHashes});
+  RequirementsManifestDigest({
+    required this.bundleId,
+    required this.hasOpaqueApiUses,
+    required this.libraryHashes,
+  });
 
   factory RequirementsManifestDigest.read(BinaryReader reader) {
     return RequirementsManifestDigest(
+      bundleId: ManifestItemId.read(reader),
+      hasOpaqueApiUses: reader.readBool(),
       libraryHashes: reader.readMap(
         readKey: () => reader.readUri(),
         readValue: () => Hash.read(reader),
@@ -2669,6 +2831,10 @@ class RequirementsManifestDigest {
   }
 
   bool isSatisfied(LinkedElementFactory elementFactory) {
+    if (hasOpaqueApiUses) {
+      return false;
+    }
+
     for (var entry in libraryHashes.entries) {
       var manifest = elementFactory.libraryManifests[entry.key];
       if (manifest == null) {
@@ -2681,12 +2847,25 @@ class RequirementsManifestDigest {
     return true;
   }
 
-  void write(BinaryWriter writer) {
+  Uint8List toBytes() {
+    var writer = BinaryWriter();
+
+    bundleId.write(writer);
+    writer.writeBool(hasOpaqueApiUses);
     writer.writeMap(
       libraryHashes,
       writeKey: (uri) => writer.writeUri(uri),
       writeValue: (hash) => hash.write(writer),
     );
+
+    writer.writeTableTrailer();
+    return writer.takeBytes();
+  }
+
+  static RequirementsManifestDigest fromBytes(Uint8List bytes) {
+    var reader = BinaryReader(bytes);
+    reader.initFromTableTrailer();
+    return RequirementsManifestDigest.read(reader);
   }
 }
 

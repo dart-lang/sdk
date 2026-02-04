@@ -539,7 +539,7 @@ class StressTask : public StateMachineTask {
   virtual void RunInternal() {
     data_->WaitUntil(kStart);
 
-    Random random(thread_->isolate_group()->random()->NextUInt64());
+    Random random(thread_->random()->NextUInt64());
     while (!data()->IsIn(kPleaseExit)) {
       const auto us = random.NextUInt32() % 3;
       switch (random.NextUInt32() % 5) {

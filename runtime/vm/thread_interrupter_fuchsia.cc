@@ -21,7 +21,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if defined(DART_INCLUDE_PROFILER)
 
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
@@ -92,10 +92,10 @@ class ThreadInterrupterFuchsia : public AllStatic {
     state->lr = static_cast<uintptr_t>(regs.lr);
 #elif defined(TARGET_ARCH_RISCV64)
     state->pc = static_cast<uintptr_t>(regs.pc);
-    state->fp = static_cast<uintptr_t>(regs.r[FPREG]);
-    state->csp = static_cast<uintptr_t>(regs.r[SPREG]);
-    state->dsp = static_cast<uintptr_t>(regs.r[SPREG]);
-    state->lr = static_cast<uintptr_t>(regs.r[LINK_REGISTER]);
+    state->fp = static_cast<uintptr_t>(regs.s0);
+    state->csp = static_cast<uintptr_t>(regs.sp);
+    state->dsp = static_cast<uintptr_t>(regs.sp);
+    state->lr = static_cast<uintptr_t>(regs.ra);
 #else
 #error "Unsupported architecture"
 #endif
@@ -242,7 +242,7 @@ void ThreadInterrupter::RemoveSignalHandler() {
   // Nothing to do on Fuchsia.
 }
 
-#endif  // !PRODUCT
+#endif  // defined(DART_INCLUDE_PROFILER)
 
 }  // namespace dart
 

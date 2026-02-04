@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -906,13 +907,7 @@ void f() {
   (int,) r = (3);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
-          24,
-          3,
-        ),
-      ],
+      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 24, 3)],
     );
   }
 
@@ -925,13 +920,7 @@ void f() {
 
 void g({required (int,) i}) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
-          18,
-          3,
-        ),
-      ],
+      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 18, 3)],
     );
   }
 
@@ -945,13 +934,7 @@ void f() {
 
 void g((int,) i) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
-          15,
-          3,
-        ),
-      ],
+      [error(diag.recordLiteralOnePositionalNoTrailingCommaByType, 15, 3)],
     );
   }
 

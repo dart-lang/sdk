@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid using `forEach` with a function literal.';
@@ -37,7 +39,7 @@ bool _isInsideCascade(AstNode node) =>
 bool _isIterable(DartType? type) =>
     type != null && type.implementsInterface('Iterable', 'dart.core');
 
-class AvoidFunctionLiteralsInForeachCalls extends LintRule {
+class AvoidFunctionLiteralsInForeachCalls extends AnalysisRule {
   AvoidFunctionLiteralsInForeachCalls()
     : super(
         name: LintNames.avoid_function_literals_in_foreach_calls,
@@ -45,8 +47,7 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidFunctionLiteralsInForeachCalls;
+  DiagnosticCode get diagnosticCode => diag.avoidFunctionLiteralsInForeachCalls;
 
   @override
   void registerNodeProcessors(
@@ -59,7 +60,7 @@ class AvoidFunctionLiteralsInForeachCalls extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

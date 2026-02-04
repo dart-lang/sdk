@@ -5,35 +5,15 @@
 #include "platform/globals.h"
 #if defined(DART_HOST_OS_MACOS)
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
+#include <Security/Security.h>
 
 #include "bin/crypto.h"
-#include "bin/fdutils.h"
-#include "platform/signal_blocker.h"
 
 namespace dart {
 namespace bin {
 
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
-  intptr_t fd = TEMP_FAILURE_RETRY(open("/dev/urandom", O_RDONLY | O_CLOEXEC));
-  if (fd < 0) {
-    return false;
-  }
-  intptr_t bytes_read = 0;
-  do {
-    int res =
-        TEMP_FAILURE_RETRY(read(fd, buffer + bytes_read, count - bytes_read));
-    if (res < 0) {
-      int err = errno;
-      close(fd);
-      errno = err;
-      return false;
-    }
-    bytes_read += res;
-  } while (bytes_read < count);
-  close(fd);
-  return true;
+  return SecRandomCopyBytes(kSecRandomDefault, count, buffer) == errSecSuccess;
 }
 
 }  // namespace bin

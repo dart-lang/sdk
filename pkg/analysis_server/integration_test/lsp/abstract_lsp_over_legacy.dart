@@ -22,7 +22,6 @@ abstract class AbstractLspOverLegacyTest
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
         LspReverseRequestHelpersMixin,
-        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin {
   late final testFile = sourcePath('lib/main.dart');
@@ -37,7 +36,6 @@ abstract class AbstractLspOverLegacyTest
   final _overlayContent = <String, String>{};
 
   /// A stream of LSP [NotificationMessage]s from the server.
-  @override
   Stream<NotificationMessage> get notificationsFromServer =>
       onLspNotification.map(
         (params) => NotificationMessage.fromJson(
@@ -50,7 +48,7 @@ abstract class AbstractLspOverLegacyTest
 
   @override
   Stream<RequestMessage> get requestsFromServer => serverToClientRequests
-      .where((request) => request.method == LSP_REQUEST_HANDLE)
+      .where((request) => request.method == lspRequestHandle)
       .map((request) {
         var params = LspHandleParams.fromRequest(
           request,

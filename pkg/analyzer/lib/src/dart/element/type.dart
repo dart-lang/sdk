@@ -41,10 +41,6 @@ class DynamicTypeImpl extends TypeImpl
   @override
   DynamicElementImpl get element => DynamicElementImpl.instance;
 
-  @Deprecated('Use element instead')
-  @override
-  DynamicElementImpl get element3 => element;
-
   @override
   int get hashCode => 1;
 
@@ -215,10 +211,6 @@ class FunctionTypeImpl extends TypeImpl
   @override
   Null get element => null;
 
-  @Deprecated('Use element instead')
-  @override
-  Null get element3 => null;
-
   @override
   List<InternalFormalParameterElement> get formalParameters {
     return parameters;
@@ -321,15 +313,20 @@ class FunctionTypeImpl extends TypeImpl
     }
 
     var substitution = Substitution.fromPairs2(typeParameters, argumentTypes);
-
+    var length = parameters.length;
+    var newParameters = length == 0
+        ? const <InternalFormalParameterElement>[]
+        : List.generate(
+            length,
+            (index) => SubstitutedFormalParameterElementImpl.from(
+              parameters[index],
+              substitution,
+            ),
+          );
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),
       typeParameters: const [],
-      parameters: parameters
-          .map(
-            (p) => SubstitutedFormalParameterElementImpl.from(p, substitution),
-          )
-          .toFixedList(),
+      parameters: newParameters,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -543,10 +540,6 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
     required this.element,
     required this.typeArguments,
   });
-
-  @Deprecated('Use element instead.')
-  @override
-  TypeAliasElementImpl get element2 => element;
 }
 
 /// A concrete implementation of an [InterfaceType].
@@ -640,14 +633,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return SubstitutedConstructorElementImpl.from2(constructor, this);
     }).toFixedList();
   }
-
-  @Deprecated('Use constructors instead')
-  @override
-  List<InternalConstructorElement> get constructors2 => constructors;
-
-  @Deprecated('Use element instead')
-  @override
-  InterfaceElementImpl get element3 => element;
 
   @override
   List<InternalGetterElement> get getters {
@@ -761,10 +746,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }).toFixedList();
   }
 
-  @Deprecated('Use methods instead')
-  @override
-  List<InternalMethodElement> get methods2 => methods;
-
   @override
   List<InterfaceTypeImpl> get mixins {
     return _instantiateSuperTypes(element.mixins);
@@ -870,12 +851,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  @Deprecated('Use asInstanceOf instead')
-  @override
-  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) {
-    return asInstanceOf(targetElement);
-  }
-
   @override
   InternalGetterElement? getGetter(String getterName) {
     var element = this.element.getGetter(getterName);
@@ -884,24 +859,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         : null;
   }
 
-  @Deprecated('Use getGetter instead')
-  @override
-  InternalGetterElement? getGetter2(String getterName) {
-    return getGetter(getterName);
-  }
-
   @override
   InternalMethodElement? getMethod(String methodName) {
     var element = this.element.getMethod(methodName);
     return element != null
         ? SubstitutedMethodElementImpl.forTargetType(element, this)
         : null;
-  }
-
-  @Deprecated('Use getMethod instead')
-  @override
-  InternalMethodElement? getMethod2(String methodName) {
-    return getMethod(methodName);
   }
 
   InternalConstructorElement? getNamedConstructor(String name) {
@@ -917,12 +880,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element != null
         ? SubstitutedSetterElementImpl.forTargetType(element, this)
         : null;
-  }
-
-  @Deprecated('Use getSetter instead')
-  @override
-  InternalSetterElement? getSetter2(String setterName) {
-    return getSetter(setterName);
   }
 
   @override
@@ -944,15 +901,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     // return member
     return SubstitutedConstructorElementImpl.from2(constructorElement, this);
-  }
-
-  @Deprecated('Use lookUpConstructor instead')
-  @override
-  InternalConstructorElement? lookUpConstructor2(
-    String? constructorName,
-    LibraryElement library,
-  ) {
-    return lookUpConstructor(constructorName, library);
   }
 
   @override
@@ -993,24 +941,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  @Deprecated('Use lookUpGetter instead')
-  @override
-  InternalGetterElement? lookUpGetter3(
-    String name,
-    LibraryElement library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  }) {
-    return lookUpGetter(
-      name,
-      library,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    );
-  }
-
   @override
   InternalMethodElement? lookUpMethod(
     String name,
@@ -1049,24 +979,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  @Deprecated('Use lookUpMethod instead')
-  @override
-  InternalMethodElement? lookUpMethod3(
-    String name,
-    LibraryElement library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  }) {
-    return lookUpMethod(
-      name,
-      library,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    );
-  }
-
   @override
   InternalSetterElement? lookUpSetter(
     String name,
@@ -1103,24 +1015,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     return null;
-  }
-
-  @Deprecated('Use lookUpSetter instead')
-  @override
-  InternalSetterElement? lookUpSetter3(
-    String name,
-    LibraryElement library, {
-    bool concrete = false,
-    bool inherited = false,
-    bool recoveryStatic = false,
-  }) {
-    return lookUpSetter(
-      name,
-      library,
-      concrete: concrete,
-      inherited: inherited,
-      recoveryStatic: recoveryStatic,
-    );
   }
 
   @override
@@ -1174,10 +1068,6 @@ class InvalidTypeImpl extends TypeImpl
   @override
   Null get element => null;
 
-  @Deprecated('Use element instead')
-  @override
-  Null get element3 => element;
-
   @override
   int get hashCode => 1;
 
@@ -1227,10 +1117,6 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 
   @override
   final NeverElementImpl element = NeverElementImpl.instance;
-
-  @Deprecated('Use element instead')
-  @override
-  final NeverElementImpl element3 = NeverElementImpl.instance;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -1352,10 +1238,6 @@ class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
 
   @override
   Null get element => null;
-
-  @Deprecated('Use element instead')
-  @override
-  Null get element3 => element;
 
   @override
   int get hashCode {
@@ -1575,11 +1457,6 @@ abstract class TypeImpl implements DartType, SharedType {
   @override
   InterfaceTypeImpl? asInstanceOf(InterfaceElement targetElement) => null;
 
-  @Deprecated('Use asInstanceOf instead')
-  @override
-  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) =>
-      asInstanceOf(targetElement);
-
   @override
   TypeImpl asQuestionType(bool isQuestionType) => withNullability(
     isQuestionType ? NullabilitySuffix.question : NullabilitySuffix.none,
@@ -1668,10 +1545,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeImpl get bound =>
       promotedBound ?? element.bound ?? DynamicTypeImpl.instance;
 
-  @Deprecated('Use element instead')
-  @override
-  TypeParameterElementImpl get element3 => element;
-
   @override
   int get hashCode => element.hashCode;
 
@@ -1747,12 +1620,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return bound.asInstanceOf(targetElement);
   }
 
-  @Deprecated('Use asInstanceOf instead')
-  @override
-  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) {
-    return asInstanceOf(targetElement);
-  }
-
   @override
   bool referencesAny(Set<TypeParameterElementImpl> parameters) {
     return parameters.contains(element);
@@ -1779,10 +1646,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
 
   @override
   Null get element => null;
-
-  @Deprecated('Use element instead')
-  @override
-  Null get element3 => null;
 
   @override
   int get hashCode => 2;

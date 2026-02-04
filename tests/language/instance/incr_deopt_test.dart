@@ -31,11 +31,11 @@ main() {
   Expect.equals(old + 1, a.f);
 }
 
-myIncr(var a) {
+myIncr(a) {
   a.f++;
 }
 
-conditionalIncr(var f, var a) {
+conditionalIncr(f, a) {
   if (f) {
     a.f++;
   }

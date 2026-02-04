@@ -17,10 +17,10 @@ class ReplaceNewWithConst extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_NEW_WITH_CONST;
+  FixKind get fixKind => DartFixKind.replaceNewWithConst;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_NEW_WITH_CONST_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceNewWithConstMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

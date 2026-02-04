@@ -245,7 +245,7 @@ bool HasIntegerValue(const dart::Object& object, int64_t* value) {
 }
 
 int32_t CreateJitCookie() {
-  return static_cast<int32_t>(IsolateGroup::Current()->random()->NextUInt32());
+  return static_cast<int32_t>(Thread::Current()->random()->NextUInt32());
 }
 
 word TypedDataElementSizeInBytes(classid_t cid) {
@@ -331,6 +331,10 @@ void BailoutWithBranchOffsetError() {
 
 word RuntimeEntry::OffsetFromThread() const {
   return target::Thread::OffsetFromThread(runtime_entry_);
+}
+
+const char* RuntimeEntry::name() const {
+  return runtime_entry_->name();
 }
 
 bool RuntimeEntry::is_leaf() const {
@@ -660,6 +664,8 @@ const word MegamorphicCache::kSpreadFactor =
     return RoundedAllocationSize(clazz::header() + payload_size);              \
   }
 
+#define DEFINE_ENUM(Name, Elements)
+
 #if defined(TARGET_ARCH_IA32)
 
 #define DEFINE_FIELD(clazz, name)                                              \
@@ -689,7 +695,8 @@ JIT_OFFSETS_LIST(DEFINE_FIELD,
                  DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_RANGE,
-                 DEFINE_CONSTANT)
+                 DEFINE_CONSTANT,
+                 DEFINE_ENUM)
 
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
@@ -697,7 +704,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
-                    DEFINE_CONSTANT)
+                    DEFINE_CONSTANT,
+                    DEFINE_ENUM)
 
 #else
 
@@ -744,7 +752,8 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
                  DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_JIT_RANGE,
-                 DEFINE_CONSTANT)
+                 DEFINE_CONSTANT,
+                 DEFINE_ENUM)
 
 #undef DEFINE_JIT_FIELD
 #undef DEFINE_JIT_ARRAY
@@ -810,7 +819,8 @@ AOT_OFFSETS_LIST(DEFINE_AOT_FIELD,
                  DEFINE_ARRAY_SIZEOF,
                  DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_AOT_RANGE,
-                 DEFINE_CONSTANT)
+                 DEFINE_CONSTANT,
+                 DEFINE_ENUM)
 
 #undef DEFINE_AOT_FIELD
 #undef DEFINE_AOT_ARRAY
@@ -854,7 +864,8 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY_SIZEOF,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
-                    DEFINE_CONSTANT)
+                    DEFINE_CONSTANT,
+                    DEFINE_ENUM)
 
 #endif
 
@@ -864,6 +875,7 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #undef DEFINE_RANGE
 #undef DEFINE_PAYLOAD_SIZEOF
 #undef DEFINE_CONSTANT
+#undef DEFINE_ENUM
 
 const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
 
@@ -941,9 +953,16 @@ word Thread::OffsetFromThread(const dart::Object& object) {
 
 intptr_t Thread::OffsetFromThread(const dart::RuntimeEntry* runtime_entry) {
   auto host_offset = dart::Thread::OffsetFromThread(runtime_entry);
-  return AllocateArray_entry_point_offset() +
-         TranslateOffsetInWords(
-             host_offset - dart::Thread::AllocateArray_entry_point_offset());
+  if (runtime_entry->is_leaf()) {
+    return DeoptimizeCopyFrame_entry_point_offset() +
+           TranslateOffsetInWords(
+               host_offset -
+               dart::Thread::DeoptimizeCopyFrame_entry_point_offset());
+  } else {
+    return AllocateArray_entry_point_offset() +
+           TranslateOffsetInWords(
+               host_offset - dart::Thread::AllocateArray_entry_point_offset());
+  }
 }
 
 bool CanLoadFromThread(const dart::Object& object,

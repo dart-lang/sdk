@@ -1338,35 +1338,30 @@ A0 T0;
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   _B0
     kind: class
   x0.B
@@ -1877,6 +1872,10 @@ suggestions
   }
 
   Future<void> test_defaultFormalParameter_named_expression() async {
+    // TODO(FMorschel): This is invalid code and there's no clear answer as
+    //  to what ought to be suggested. Consider deleting the test, or making it
+    //  so that we don't suggest anything. We currently suggest only constant
+    //  values.
     await computeSuggestions('''
 f0() {}
 void b0() {}
@@ -1886,8 +1885,6 @@ class A0 {
 ''');
     assertResponse(r'''
 suggestions
-  A0.new
-    kind: constructor
 ''');
   }
 
@@ -2587,8 +2584,6 @@ suggestions
   dart:
     kind: import
   dart:async
-    kind: import
-  dart:async2
     kind: import
   dart:collection
     kind: import
@@ -3726,35 +3721,30 @@ class C1 {
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   C0
     kind: class
   C1
@@ -3792,35 +3782,30 @@ class C1 {
 suggestions
   @override
   // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => [!super.hashCode!];
     kind: override
-    selection: 62 14
   @override
   // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
+  Type get runtimeType => [!super.runtimeType!];
     kind: override
-    selection: 69 17
   @override
   String toString() {
     // TODO: implement toString
-    return super.toString();
+    [!return super.toString();!]
   }
     kind: override
-    selection: 68 24
   @override
   bool operator ==(Object other) {
     // TODO: implement ==
-    return super == other;
+    [!return super == other;!]
   }
     kind: override
-    selection: 75 22
   @override
   noSuchMethod(Invocation invocation) {
     // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
+    [!return super.noSuchMethod(invocation);!]
   }
     kind: override
-    selection: 90 38
   C0
     kind: class
   C1

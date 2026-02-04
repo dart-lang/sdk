@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ReplaceWithUnicodeEscapeTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_WITH_UNICODE_ESCAPE;
+  FixKind get kind => DartFixKind.replaceWithUnicodeEscape;
 
   Future<void> test_comment() async {
     await resolveTestCode('''

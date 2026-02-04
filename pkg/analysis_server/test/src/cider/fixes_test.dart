@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../utils/matchers.dart';
 import 'cider_service.dart';
 
 void main() {
@@ -35,7 +36,7 @@ class CiderFixesComputerTest extends CiderServiceTest {
       _correctionContext.content,
       fileEdits.single.edits,
     );
-    expect(resultContent, expected);
+    expect(resultContent, equalsNormalized(expected));
   }
 
   Future<void> test_cachedResolvedFiles() async {
@@ -44,7 +45,7 @@ var a = 0^ var b = 1
 ''');
 
     // Only the first fix is applied.
-    assertHasFix(DartFixKind.INSERT_SEMICOLON, r'''
+    assertHasFix(DartFixKind.insertSemicolon, r'''
 var a = 0; var b = 1
 ''');
 
@@ -83,7 +84,7 @@ class Test {}
 void f(Test a) {}^
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f(Test a) {}
@@ -100,7 +101,7 @@ enum Test {a, b, c}
 void f(Test a) {}^
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f(Test a) {}
@@ -121,7 +122,7 @@ void f() {
 }
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f() {
@@ -142,7 +143,7 @@ void f() {
 }
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f() {
@@ -161,7 +162,7 @@ mixin Test {}
 void f(Test a) {}^
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f(Test a) {}
@@ -180,7 +181,7 @@ void f() {
 }
 ''');
 
-    assertHasFix(DartFixKind.IMPORT_LIBRARY_PROJECT1, r'''
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
 import 'a.dart';
 
 void f() {
@@ -194,7 +195,7 @@ void f() {
 var v = 0^
 ''');
 
-    assertHasFix(DartFixKind.INSERT_SEMICOLON, r'''
+    assertHasFix(DartFixKind.insertSemicolon, r'''
 var v = 0;
 ''');
   }
@@ -220,7 +221,7 @@ var v = 0;
   }
 
   void _updateFile(String content) {
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     content = code.code;
 
     var offset = code.position.offset;

@@ -12,7 +12,12 @@ import 'type_algebra.dart';
 ///
 /// This class does not clone members. For that, use the
 /// [CloneVisitorWithMembers] and setup references properly.
-class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
+class CloneVisitorNotMembers
+    with
+        TreeVisitorExperimentExclusionMixin<TreeNode>,
+        ExpressionVisitorExperimentExclusionMixin<TreeNode>,
+        StatementVisitorExperimentExclusionMixin<TreeNode>
+    implements TreeVisitor<TreeNode> {
   final Map<VariableDeclaration, VariableDeclaration> _variables =
       <VariableDeclaration, VariableDeclaration>{};
   final Map<LabeledStatement, LabeledStatement> labels =
@@ -261,6 +266,13 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     return new ConstructorInvocation.byReference(
         node.targetReference, clone(node.arguments),
         isConst: node.isConst);
+  }
+
+  @override
+  TreeNode visitRedirectingFactoryInvocation(
+      RedirectingFactoryInvocation node) {
+    return new RedirectingFactoryInvocation.byReference(
+        node.redirectingFactoryTargetReference, clone(node.expression));
   }
 
   @override
@@ -522,14 +534,15 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitForStatement(ForStatement node) {
-    List<VariableDeclaration> variables = node.variables.map(clone).toList();
+    List<VariableInitialization> variables =
+        node.variableInitializations.map(clone).toList();
     return new ForStatement(variables, cloneOptional(node.condition),
         node.updates.map(clone).toList(), clone(node.body));
   }
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
-    VariableDeclaration newVariable = clone(node.variable);
+    ExpressionVariable newVariable = clone(node.expressionVariable);
     return new ForInStatement(
         newVariable, clone(node.iterable), clone(node.body),
         isAsync: node.isAsync)
@@ -728,7 +741,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitInvalidInitializer(InvalidInitializer node) {
-    return new InvalidInitializer();
+    return new InvalidInitializer(node.message);
   }
 
   @override

@@ -5,11 +5,13 @@
 import 'package:analysis_server/src/services/correction/dart/create_getter.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/dart_type.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -36,6 +38,7 @@ class CreateField extends CreateFieldOrGetter {
     required InterfaceElement? targetElement,
     required String fieldName,
     required DartType? fieldType,
+    required InterfaceType? targetType,
   }) async {
     _fieldName = fieldName;
 
@@ -44,6 +47,7 @@ class CreateField extends CreateFieldOrGetter {
       staticModifier: false,
       targetElement: targetElement,
       fieldType: fieldType,
+      target: targetType,
     );
   }
 
@@ -66,6 +70,7 @@ class CreateField extends CreateFieldOrGetter {
     required bool staticModifier,
     required InterfaceElement? targetElement,
     required DartType? fieldType,
+    required InterfaceType? target,
   }) async {
     if (targetElement == null) {
       return;
@@ -75,13 +80,9 @@ class CreateField extends CreateFieldOrGetter {
     }
     // Prepare target `ClassDeclaration`.
     var targetFragment = targetElement.firstFragment;
-    var targetDeclarationResult = await sessionHelper.getFragmentDeclaration(
-      targetFragment,
+    var targetNode = await getDeclarationNodeFromElement(
+      targetFragment.element,
     );
-    if (targetDeclarationResult == null) {
-      return;
-    }
-    var targetNode = targetDeclarationResult.node;
     if (targetNode is! CompilationUnitMember) {
       return;
     }
@@ -95,13 +96,17 @@ class CreateField extends CreateFieldOrGetter {
     var targetFile = targetSource.fullName;
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertField(targetNode, (builder) {
+        var bound = target.typeParameterCorrespondingTo(fieldType);
         builder.writeFieldDeclaration(
           _fieldName,
           isFinal: targetNode is EnumDeclaration,
           isStatic: staticModifier,
           nameGroupName: 'NAME',
-          type: fieldType,
+          type: bound ?? fieldType,
           typeGroupName: 'TYPE',
+          typeParametersInScope: [
+            ?bound.ifTypeOrNull<TypeParameterType>()?.element,
+          ],
         );
       });
     });
@@ -128,12 +133,16 @@ class CreateField extends CreateFieldOrGetter {
     // Add proposal.
     await builder.addDartFileEdit(file, (builder) {
       builder.insertField(container, (builder) {
+        var type = parameter.declaredFragment?.element.type;
         builder.writeFieldDeclaration(
           _fieldName,
           isFinal: constructor.constKeyword != null,
           nameGroupName: 'NAME',
-          type: parameter.declaredFragment?.element.type,
+          type: type,
           typeGroupName: 'TYPE',
+          typeParametersInScope: [
+            ?type.ifTypeOrNull<TypeParameterType>()?.element,
+          ],
         );
       });
     });
@@ -155,9 +164,14 @@ class CreateField extends CreateFieldOrGetter {
     // Prepare target `ClassElement`.
     var staticModifier = false;
     InterfaceElement? targetClassElement;
+    // If the target type contains type arguments
+    InterfaceType? targetType;
     if (target != null) {
       targetClassElement = getTargetInterfaceElement(target);
       // Maybe static.
+      if (target.staticType case InterfaceType type) {
+        targetType = type;
+      }
       if (target is Identifier) {
         var targetIdentifier = target;
         var targetElement = targetIdentifier.element;
@@ -175,6 +189,10 @@ class CreateField extends CreateFieldOrGetter {
     } else {
       targetClassElement = node.enclosingInterfaceElement;
       staticModifier = inStaticContext;
+      if (targetClassElement?.thisType case InterfaceType type
+          when !staticModifier) {
+        targetType = type;
+      }
     }
 
     var fieldTypeNode = climbPropertyAccess(nameNode);
@@ -196,6 +214,7 @@ class CreateField extends CreateFieldOrGetter {
       staticModifier: staticModifier,
       targetElement: targetClassElement,
       fieldType: fieldType,
+      target: targetType,
     );
   }
 }

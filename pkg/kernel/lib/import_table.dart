@@ -86,11 +86,6 @@ class _ImportTableBuilder extends RecursiveVisitor {
     if (isTargetSchemeFileOrCustom && isReferenceSchemeFileOrCustom) {
       String relativeUri = relativeUriPath(targetUri, referenceUri);
       table.addImport(target, relativeUri);
-    } else if (isTargetSchemeFileOrCustom) {
-      // Cannot import a file:URI from a dart:URI or package:URI.
-      // We may want to remove this restriction, but for now it's just a sanity
-      // check.
-      throw '$referenceUri cannot refer to application library $targetUri';
     } else {
       table.addImport(target, target.importUri.toString());
     }

@@ -46,7 +46,7 @@ void f(bool b) {
 @reflectiveTest
 class RemoveReturnedValueTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_RETURNED_VALUE;
+  FixKind get kind => DartFixKind.removeReturnedValue;
 
   @override
   String get lintCode => LintNames.avoid_returning_null_for_void;

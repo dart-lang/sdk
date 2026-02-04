@@ -69,6 +69,7 @@ import 'package:analysis_server/src/services/correction/dart/join_variable_decla
 import 'package:analysis_server/src/services/correction/dart/remove_async.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_digit_separators.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_name.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_conditional_with_if_else.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_if_else_with_conditional.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
@@ -150,6 +151,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   JoinIfWithOuter.new,
   JoinVariableDeclaration.new,
   RemoveAsync.new,
+  RemoveUnnecessaryName.new,
   RemoveDigitSeparators.new,
   RemoveTypeAnnotation.other,
   ReplaceConditionalWithIfElse.new,

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -30,7 +30,7 @@ class C {
   var x = 0;
 }
 ''',
-      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 69, 5)],
+      [error(diag.invalidAwaitNotRequiredAnnotation, 69, 5)],
     );
   }
 
@@ -43,7 +43,7 @@ class C {
   int x = 0;
 }
 ''',
-      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 69, 5)],
+      [error(diag.invalidAwaitNotRequiredAnnotation, 69, 5)],
     );
   }
 
@@ -54,7 +54,7 @@ import 'package:meta/meta.dart';
 @awaitNotRequired
 void f() {}
 ''',
-      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 34, 16)],
+      [error(diag.invalidAwaitNotRequiredAnnotation, 34, 16)],
     );
   }
 
@@ -67,7 +67,7 @@ class C {
   void f() {}
 }
 ''',
-      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 46, 16)],
+      [error(diag.invalidAwaitNotRequiredAnnotation, 46, 16)],
     );
   }
 
@@ -84,7 +84,7 @@ class D extends C {
   f() {}
 }
 ''',
-      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 82, 16)],
+      [error(diag.invalidAwaitNotRequiredAnnotation, 82, 16)],
     );
   }
 
@@ -95,7 +95,7 @@ import 'package:meta/meta.dart';
 @awaitNotRequired
 int x = 0;
 ''',
-      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 55, 5)],
+      [error(diag.invalidAwaitNotRequiredAnnotation, 55, 5)],
     );
   }
 

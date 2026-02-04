@@ -23,7 +23,7 @@ class RemoveUnusedElement extends _RemoveUnused {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_ELEMENT;
+  FixKind get fixKind => DartFixKind.removeUnusedElement;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -34,6 +34,10 @@ class RemoveUnusedElement extends _RemoveUnused {
     if (node is ConstructorDeclaration) {
       await _constructorDeclaration(builder: builder, node: node);
       return;
+    }
+
+    if (node is NameWithTypeParameters) {
+      node = node.parent!;
     }
 
     Element? element;
@@ -76,11 +80,15 @@ class RemoveUnusedElement extends _RemoveUnused {
     required ConstructorDeclaration node,
   }) async {
     NodeList<ClassMember> members;
-    switch (node.parent) {
+    switch (node.parent?.parent) {
       case ClassDeclaration classDeclaration:
-        members = classDeclaration.members;
+        if (classDeclaration.body case BlockClassBody body) {
+          members = body.members;
+        } else {
+          return;
+        }
       case EnumDeclaration enumDeclaration:
-        members = enumDeclaration.members;
+        members = enumDeclaration.body.members;
       case _:
         return;
     }
@@ -102,7 +110,7 @@ class RemoveUnusedField extends _RemoveUnused {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNUSED_FIELD;
+  FixKind get fixKind => DartFixKind.removeUnusedField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -52,7 +52,7 @@ void f(String s) {
 @reflectiveTest
 class RemoveUnnecessaryStringInterpolationTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_STRING_INTERPOLATION;
+  FixKind get kind => DartFixKind.removeUnnecessaryStringInterpolation;
 
   @override
   String get lintCode => LintNames.unnecessary_string_interpolations;

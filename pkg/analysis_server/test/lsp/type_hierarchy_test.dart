@@ -117,6 +117,25 @@ class PrepareTypeHierarchyTest extends AbstractTypeHierarchyTest {
     );
   }
 
+  Future<void> test_commentReference() async {
+    var content = '''
+/// Not a subtype of [^C]
+class A {}
+
+/*[0*/class /*[1*/C/*1]*/ {}/*0]*/
+''';
+    await _prepareTypeHierarchy(content);
+    expect(
+      prepareResult,
+      _isItem(
+        'C',
+        mainFileUri,
+        range: code.ranges[0].range,
+        selectionRange: code.ranges[1].range,
+      ),
+    );
+  }
+
   Future<void> test_extensionType() async {
     var content = '''
 /*[0*/extension type /*[1*/Int^Ext/*1]*/(int a) {}/*0]*/

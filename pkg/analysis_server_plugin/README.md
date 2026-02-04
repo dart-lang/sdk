@@ -1,6 +1,7 @@
 # analysis\_server\_plugin package
 
-This package offers support for writing Dart analysis server plugins.
+This package offers support for writing Dart analysis server plugins, for Dart
+3.10 (Flutter 3.38) and later.
 
 Analysis server plugins empower developers to contribute their own Dart static
 analysis in IDEs and at the command line via `dart analyze` and `flutter

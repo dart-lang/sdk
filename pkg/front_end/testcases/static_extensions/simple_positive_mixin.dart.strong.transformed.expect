@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object /*isMixinDeclaration*/  {
+  static get mixinGetter() → core::String
+    return "A.mixinGetter";
+  static set mixinSetter(core::num value) → void {
+    throw "A.mixinSetter=";
+  }
+  static method mixinMethod() → core::String
+    return "A.mixinMethod";
+}
+extension E on self::A {
+  static get mixinGetter = get self::E|mixinGetter;
+  static get extensionGetter = get self::E|extensionGetter;
+  static set mixinSetter = set self::E|mixinSetter;
+  static set extensionSetter = set self::E|extensionSetter;
+  static method mixinMethod = self::E|mixinMethod;
+  static method extensionMethod = self::E|extensionMethod;
+}
+static extension-member get E|mixinGetter() → core::String
+  return "E.mixinGetter";
+static extension-member get E|extensionGetter() → core::String
+  return "E.extensionGetter";
+static extension-member set E|mixinSetter(core::num value) → void {}
+static extension-member set E|extensionSetter(core::bool value) → void {}
+static extension-member method E|mixinMethod() → core::String
+  return "E.mixinMethod";
+static extension-member method E|extensionMethod() → core::String
+  return "E.extensionMethod";
+static method main() → dynamic {
+  self::expectEqual(self::A::mixinGetter, "A.mixinGetter");
+  self::expectEqual(self::E|extensionGetter, "E.extensionGetter");
+  self::expectThrows(() → Null {
+    self::A::mixinSetter = 0;
+  });
+  self::expectDoesntThrow(() → Null {
+    self::E|extensionSetter = false;
+  });
+  self::expectEqual(self::A::mixinMethod(), "A.mixinMethod");
+  self::expectEqual(self::E|extensionMethod(), "E.extensionMethod");
+}
+static method expectEqual(dynamic a, dynamic b) → dynamic {
+  if(!(a =={core::Object::==}{(core::Object) → core::bool} b)) {
+    throw "Expected the values to be equal.";
+  }
+}
+static method expectThrows(() → dynamic f) → dynamic {
+  core::bool hasThrown = false;
+  try {
+    f(){() → dynamic};
+  }
+  on dynamic catch(no-exception-var) {
+    hasThrown = true;
+  }
+  if(!hasThrown) {
+    throw "Expected the function to throw an exception.";
+  }
+}
+static method expectDoesntThrow(() → dynamic f) → dynamic {
+  core::bool hasThrown = true;
+  try {
+    f(){() → dynamic};
+    hasThrown = false;
+  }
+  on dynamic catch(no-exception-var) {
+  }
+  if(hasThrown) {
+    throw "Expected the function not to throw exceptions.";
+  }
+}

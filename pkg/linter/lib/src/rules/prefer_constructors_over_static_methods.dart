@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Prefer defining constructors instead of static methods to create '
@@ -18,7 +20,7 @@ const _desc =
 bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
     _BodyVisitor(returnType).containsInstanceCreation(body);
 
-class PreferConstructorsOverStaticMethods extends LintRule {
+class PreferConstructorsOverStaticMethods extends AnalysisRule {
   PreferConstructorsOverStaticMethods()
     : super(
         name: LintNames.prefer_constructors_over_static_methods,
@@ -26,8 +28,7 @@ class PreferConstructorsOverStaticMethods extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferConstructorsOverStaticMethods;
+  DiagnosticCode get diagnosticCode => diag.preferConstructorsOverStaticMethods;
 
   @override
   void registerNodeProcessors(
@@ -63,7 +64,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 
@@ -74,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var returnType = node.returnType?.type;
     if (returnType is! InterfaceType) return;
 
-    var interfaceType = node.parent.typeToCheckOrNull();
+    var interfaceType = node.parent?.parent.typeToCheckOrNull();
     if (interfaceType != returnType) return;
 
     if (_hasNewInvocation(returnType, node.body)) {
@@ -86,9 +87,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on AstNode? {
   InterfaceType? typeToCheckOrNull() => switch (this) {
     ExtensionTypeDeclaration e =>
-      e.typeParameters == null ? e.declaredFragment?.element.thisType : null,
+      e.primaryConstructor.typeParameters == null
+          ? e.declaredFragment?.element.thisType
+          : null,
     ClassDeclaration c =>
-      c.typeParameters == null ? c.declaredFragment?.element.thisType : null,
+      c.namePart.typeParameters == null
+          ? c.declaredFragment?.element.thisType
+          : null,
     _ => null,
   };
 }

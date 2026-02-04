@@ -284,10 +284,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   ]) {
     start ??= 0;
     end = RangeError.checkValidRange(start, end, source.length);
-    if (end == null) {
-      // TODO(dart-lang/language#440): Remove when promotion works.
-      throw "unreachable";
-    }
+
     int length = end - start;
     if (target.length < at + length) {
       throw ArgumentError.value(

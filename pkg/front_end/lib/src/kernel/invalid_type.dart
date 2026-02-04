@@ -17,7 +17,9 @@ bool containsInvalidType(DartType type) {
   return type.accept1(const _InvalidTypeFinder(), <TypedefType>{});
 }
 
-class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
+class _InvalidTypeFinder
+    with DartTypeVisitor1ExperimentExclusionMixin<bool, Set<TypedefType>>
+    implements DartTypeVisitor1<bool, Set<TypedefType>> {
   const _InvalidTypeFinder();
 
   @override

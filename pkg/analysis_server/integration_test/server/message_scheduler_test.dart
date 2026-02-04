@@ -63,8 +63,8 @@ class LegacyServerMessageSchedulerTest extends PubPackageAnalysisServerTest {
 Incoming LegacyMessage: legacy:analysis.setAnalysisRoots
 Entering process messages loop
   Start LegacyMessage: legacy:analysis.setAnalysisRoots
-  Complete LegacyMessage: legacy:analysis.setAnalysisRoots
 Exit process messages loop
+  Complete LegacyMessage: legacy:analysis.setAnalysisRoots
 ''');
   }
 
@@ -244,16 +244,16 @@ Exit process messages loop
     await initialAnalysis;
     await pumpEventQueue(times: 5000);
     _assertLogContents(testView!, r'''
-Incoming RequestMessage: lsp:initialize
+Incoming RequestMessage: initialize:0
 Entering process messages loop
-  Start LspMessage: lsp:initialize
-  Complete LspMessage: lsp:initialize
+  Start LspMessage: initialize:0
 Exit process messages loop
-Incoming NotificationMessage: lsp:initialized
+  Complete LspMessage: initialize:0
+Incoming NotificationMessage: initialized
 Entering process messages loop
-  Start LspMessage: lsp:initialized
-  Complete LspMessage: lsp:initialized
+  Start LspMessage: initialized
 Exit process messages loop
+  Complete LspMessage: initialized
 ''');
   }
 
@@ -330,54 +330,54 @@ Exit process messages loop
     await Future.wait(futures);
 
     _assertLogContents(testView!, r'''
-Incoming RequestMessage: lsp:initialize
+Incoming RequestMessage: initialize:0
 Entering process messages loop
-  Start LspMessage: lsp:initialize
-  Complete LspMessage: lsp:initialize
+  Start LspMessage: initialize:0
 Exit process messages loop
-Incoming NotificationMessage: lsp:initialized
+  Complete LspMessage: initialize:0
+Incoming NotificationMessage: initialized
 Entering process messages loop
-  Start LspMessage: lsp:initialized
-  Complete LspMessage: lsp:initialized
+  Start LspMessage: initialized
 Exit process messages loop
-Incoming RequestMessage: lsp:textDocument/hover
-Incoming RequestMessage: lsp:textDocument/hover
+  Complete LspMessage: initialized
+Incoming RequestMessage: textDocument/hover:1
+Incoming RequestMessage: textDocument/hover:2
 Entering process messages loop
-  Start LspMessage: lsp:textDocument/hover
-  Complete LspMessage: lsp:textDocument/hover
-  Start LspMessage: lsp:textDocument/hover
-  Complete LspMessage: lsp:textDocument/hover
+  Start LspMessage: textDocument/hover:1
+  Start LspMessage: textDocument/hover:2
 Exit process messages loop
+  Complete LspMessage: textDocument/hover:1
+  Complete LspMessage: textDocument/hover:2
 Pause requested - there are now 1 pauses
-Incoming RequestMessage: lsp:textDocument/hover
-Incoming RequestMessage: lsp:textDocument/hover
+Incoming RequestMessage: textDocument/hover:3
+Incoming RequestMessage: textDocument/hover:4
 Entering process messages loop
 Exit process messages loop
 Pause requested - there are now 2 pauses
-Incoming RequestMessage: lsp:textDocument/hover
-Incoming RequestMessage: lsp:textDocument/hover
+Incoming RequestMessage: textDocument/hover:5
+Incoming RequestMessage: textDocument/hover:6
 Entering process messages loop
 Exit process messages loop
 Resume requested - there are now 1 pauses
-Incoming RequestMessage: lsp:textDocument/hover
-Incoming RequestMessage: lsp:textDocument/hover
+Incoming RequestMessage: textDocument/hover:7
+Incoming RequestMessage: textDocument/hover:8
 Entering process messages loop
 Exit process messages loop
 Resume requested - there are now 0 pauses
 Entering process messages loop
-  Start LspMessage: lsp:textDocument/hover
-  Complete LspMessage: lsp:textDocument/hover
-  Start LspMessage: lsp:textDocument/hover
-  Complete LspMessage: lsp:textDocument/hover
-  Start LspMessage: lsp:textDocument/hover
-  Complete LspMessage: lsp:textDocument/hover
-  Start LspMessage: lsp:textDocument/hover
-  Complete LspMessage: lsp:textDocument/hover
-  Start LspMessage: lsp:textDocument/hover
-  Complete LspMessage: lsp:textDocument/hover
-  Start LspMessage: lsp:textDocument/hover
-  Complete LspMessage: lsp:textDocument/hover
+  Start LspMessage: textDocument/hover:3
+  Start LspMessage: textDocument/hover:4
+  Start LspMessage: textDocument/hover:5
+  Start LspMessage: textDocument/hover:6
+  Start LspMessage: textDocument/hover:7
+  Start LspMessage: textDocument/hover:8
 Exit process messages loop
+  Complete LspMessage: textDocument/hover:3
+  Complete LspMessage: textDocument/hover:4
+  Complete LspMessage: textDocument/hover:5
+  Complete LspMessage: textDocument/hover:6
+  Complete LspMessage: textDocument/hover:7
+  Complete LspMessage: textDocument/hover:8
 ''');
   }
 

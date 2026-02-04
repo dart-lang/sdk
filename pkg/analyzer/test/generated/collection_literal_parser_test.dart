@@ -4,11 +4,11 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'parser_test_base.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,14 +21,14 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   Expression parseCollectionLiteral(
     String source, {
     List<DiagnosticCode>? codes,
-    List<ExpectedError>? errors,
+    List<ExpectedDiagnostic>? diagnostics,
     int? expectedEndOffset,
     bool inAsync = false,
   }) {
     return parseExpression(
       source,
       codes: codes,
-      errors: errors,
+      diagnostics: diagnostics,
       expectedEndOffset: expectedEndOffset,
       inAsync: inAsync,
     );

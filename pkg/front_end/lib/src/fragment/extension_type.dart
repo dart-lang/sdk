@@ -14,7 +14,6 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
   late final List<MetadataBuilder>? metadata;
   late final Modifiers modifiers;
   late final List<TypeBuilder>? interfaces;
-  late final List<ConstructorReferenceBuilder> constructorReferences;
   late final int startOffset;
   late final int endOffset;
 
@@ -63,7 +62,9 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
       DeclarationFragmentKind.extensionTypeDeclaration;
 
   @override
-  void addPrimaryConstructorField(PrimaryConstructorFieldFragment fragment) {
+  void registerPrimaryConstructorField(
+    PrimaryConstructorFieldFragment fragment,
+  ) {
     primaryConstructorFields.add(fragment);
   }
 

@@ -47,7 +47,7 @@ f2() async {
 @reflectiveTest
 class RemoveAwaitTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_AWAIT;
+  FixKind get kind => DartFixKind.removeAwait;
 
   @override
   String get lintCode => LintNames.await_only_futures;
@@ -82,7 +82,7 @@ bad() async {
 @reflectiveTest
 class UnnecessaryAwaitInReturnLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_AWAIT;
+  FixKind get kind => DartFixKind.removeAwait;
 
   @override
   String get lintCode => LintNames.unnecessary_await_in_return;

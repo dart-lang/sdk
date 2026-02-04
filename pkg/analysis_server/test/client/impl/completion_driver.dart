@@ -74,23 +74,23 @@ class CompletionDriver with ExpectMixin {
 
   @mustCallSuper
   Future<void> processNotification(Notification notification) async {
-    if (notification.event == COMPLETION_NOTIFICATION_EXISTING_IMPORTS) {
+    if (notification.event == completionNotificationExistingImports) {
       var params = CompletionExistingImportsParams.fromNotification(
         notification,
         clientUriConverter: null,
       );
       fileToExistingImports[params.file] = params.imports;
-    } else if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
+    } else if (notification.event == analysisNotificationErrors) {
       var decoded = AnalysisErrorsParams.fromNotification(
         notification,
         clientUriConverter: null,
       );
       filesErrors[decoded.file] = decoded.errors;
-    } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
+    } else if (notification.event == analysisNotificationFlushResults) {
       // Ignored.
-    } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
+    } else if (notification.event == serverNotificationError) {
       throw Exception('server error: ${notification.toJson()}');
-    } else if (notification.event == SERVER_NOTIFICATION_CONNECTED) {
+    } else if (notification.event == serverNotificationConnected) {
       // Ignored.
     } else {
       print('Unhandled notification: ${notification.event}');

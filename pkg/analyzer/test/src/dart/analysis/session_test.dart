@@ -321,7 +321,7 @@ class B {}
       element.firstFragment,
     )!;
     var node = declaration.node as ClassDeclaration;
-    expect(node.name.lexeme, 'A');
+    expect(node.namePart.typeName.lexeme, 'A');
     expect(node.offset, 0);
     expect(node.length, 10);
   }
@@ -586,7 +586,7 @@ class B2 extends X {}
       aClass.firstFragment,
     )!;
     var aNode = aDeclaration.node as ClassDeclaration;
-    expect(aNode.name.lexeme, 'A');
+    expect(aNode.namePart.typeName.lexeme, 'A');
     expect(aNode.offset, 16);
     expect(aNode.length, 16);
     expect(aNode.declaredFragment!.name, 'A');
@@ -595,7 +595,7 @@ class B2 extends X {}
       bClass.firstFragment,
     )!;
     var bNode = bDeclaration.node as ClassDeclaration;
-    expect(bNode.name.lexeme, 'B');
+    expect(bNode.namePart.typeName.lexeme, 'B');
     expect(bNode.offset, 19);
     expect(bNode.length, 16);
     expect(bNode.declaredFragment!.name, 'B');

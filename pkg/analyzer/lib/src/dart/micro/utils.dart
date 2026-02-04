@@ -15,6 +15,9 @@ Element? getElementOfNode2(AstNode? node) {
   if (node == null) {
     return null;
   }
+  if (node is NameWithTypeParameters) {
+    node = node.parent;
+  }
   if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
     node = node.parent;
   }
@@ -56,7 +59,8 @@ ConstructorElement? _getActualConstructorElement(
   ConstructorElement? constructor,
 ) {
   var seenConstructors = <ConstructorElement?>{};
-  while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
+  while (constructor is ConstructorElementImpl &&
+      constructor.isOriginMixinApplication) {
     var enclosing = constructor.enclosingElement;
     if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
       var superInvocation = constructor.constantInitializers
@@ -352,9 +356,8 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         var length = nameToken.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       } else {
-        references.add(
-          MatchInfo(node.returnType.end, 0, MatchKind.DECLARATION),
-        );
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        references.add(MatchInfo(node.typeName!.end, 0, MatchKind.DECLARATION));
       }
     }
     super.visitConstructorDeclaration(node);

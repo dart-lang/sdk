@@ -15,7 +15,7 @@ class FileAnalysis {
   final RecordingDiagnosticListener diagnosticListener;
   final DiagnosticReporter diagnosticReporter;
   final CompilationUnitImpl unit;
-  final LibraryFragmentImpl element;
+  final LibraryFragmentImpl fragment;
   final IgnoreInfo ignoreInfo;
   final ImportsTracking importsTracking;
 
@@ -23,8 +23,8 @@ class FileAnalysis {
     required this.file,
     required this.diagnosticListener,
     required this.unit,
-    required this.element,
+    required this.fragment,
   }) : diagnosticReporter = DiagnosticReporter(diagnosticListener, file.source),
        ignoreInfo = IgnoreInfo.forDart(unit, file.content),
-       importsTracking = element.scope.importsTrackingInit();
+       importsTracking = fragment.scope.importsTrackingInit();
 }

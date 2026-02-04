@@ -71,7 +71,7 @@ var a = A(3);
 @reflectiveTest
 class RemoveConstructorNameTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_CONSTRUCTOR_NAME;
+  FixKind get kind => DartFixKind.removeConstructorName;
 
   @override
   String get lintCode => LintNames.unnecessary_constructor_name;

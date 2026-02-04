@@ -39,6 +39,10 @@ void main([List<String> args = const <String>[]]) {
     buildTestsForAnalyzerPlugin();
   });
 
+  group('analyzer_utilities', () {
+    buildTestsForAnalyzerPlugin();
+  });
+
   group('linter', () {
     buildTestsForLinter();
   });

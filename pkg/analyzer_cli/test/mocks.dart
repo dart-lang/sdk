@@ -6,7 +6,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:analyzer_cli/src/options.dart';
 
 class MockCommandLineOptions implements CommandLineOptions {
@@ -52,9 +52,6 @@ class MockDiagnostic implements Diagnostic {
   String? get correctionMessage => null;
 
   @override
-  Object? get data => throw UnimplementedError();
-
-  @override
   MockErrorCode get errorCode => diagnosticCode;
 
   @override
@@ -78,12 +75,12 @@ class MockErrorCode implements DiagnosticCode {
   DiagnosticSeverity severity;
 
   @override
-  String name;
+  String lowerCaseName;
 
   @override
   String? url;
 
-  MockErrorCode(this.type, this.severity, this.name);
+  MockErrorCode(this.type, this.severity, this.lowerCaseName);
 
   @override
   String get correctionMessage {
@@ -100,13 +97,13 @@ class MockErrorCode implements DiagnosticCode {
   bool get isUnresolvedIdentifier => false;
 
   @override
-  String get problemMessage {
-    throw StateError('Unexpected invocation of message');
+  String get lowerCaseUniqueName {
+    throw StateError('Unexpected invocation of lowerCaseUniqueName');
   }
 
   @override
-  String get uniqueName {
-    throw StateError('Unexpected invocation of uniqueName');
+  String get problemMessage {
+    throw StateError('Unexpected invocation of message');
   }
 
   @override

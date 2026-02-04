@@ -17,11 +17,11 @@ import 'integration_tests.dart';
 
 /// AddContentOverlay
 ///
-/// {
-///   "type": "add"
-///   "content": String
-///   "version": optional int
-/// }
+///     {
+///       "type": "add"
+///       "content": String
+///       "version": optional int
+///     }
 final Matcher isAddContentOverlay = LazyMatcher(
   () => MatchesJsonObject(
     'AddContentOverlay',
@@ -32,17 +32,17 @@ final Matcher isAddContentOverlay = LazyMatcher(
 
 /// AnalysisError
 ///
-/// {
-///   "severity": AnalysisErrorSeverity
-///   "type": AnalysisErrorType
-///   "location": Location
-///   "message": String
-///   "correction": optional String
-///   "code": String
-///   "url": optional String
-///   "contextMessages": optional List<DiagnosticMessage>
-///   "hasFix": optional bool
-/// }
+///     {
+///       "severity": AnalysisErrorSeverity
+///       "type": AnalysisErrorType
+///       "location": Location
+///       "message": String
+///       "correction": optional String
+///       "code": String
+///       "url": optional String
+///       "contextMessages": optional List<DiagnosticMessage>
+///       "hasFix": optional bool
+///     }
 final Matcher isAnalysisError = LazyMatcher(
   () => MatchesJsonObject(
     'AnalysisError',
@@ -64,10 +64,10 @@ final Matcher isAnalysisError = LazyMatcher(
 
 /// AnalysisErrorFixes
 ///
-/// {
-///   "error": AnalysisError
-///   "fixes": List<PrioritizedSourceChange>
-/// }
+///     {
+///       "error": AnalysisError
+///       "fixes": List<PrioritizedSourceChange>
+///     }
 final Matcher isAnalysisErrorFixes = LazyMatcher(
   () => MatchesJsonObject('AnalysisErrorFixes', {
     'error': isAnalysisError,
@@ -77,11 +77,11 @@ final Matcher isAnalysisErrorFixes = LazyMatcher(
 
 /// AnalysisErrorSeverity
 ///
-/// enum {
-///   INFO
-///   WARNING
-///   ERROR
-/// }
+///     enum {
+///       INFO
+///       WARNING
+///       ERROR
+///     }
 final Matcher isAnalysisErrorSeverity = MatchesEnum('AnalysisErrorSeverity', [
   'INFO',
   'WARNING',
@@ -90,16 +90,16 @@ final Matcher isAnalysisErrorSeverity = MatchesEnum('AnalysisErrorSeverity', [
 
 /// AnalysisErrorType
 ///
-/// enum {
-///   CHECKED_MODE_COMPILE_TIME_ERROR
-///   COMPILE_TIME_ERROR
-///   HINT
-///   LINT
-///   STATIC_TYPE_WARNING
-///   STATIC_WARNING
-///   SYNTACTIC_ERROR
-///   TODO
-/// }
+///     enum {
+///       CHECKED_MODE_COMPILE_TIME_ERROR
+///       COMPILE_TIME_ERROR
+///       HINT
+///       LINT
+///       STATIC_TYPE_WARNING
+///       STATIC_WARNING
+///       SYNTACTIC_ERROR
+///       TODO
+///     }
 final Matcher isAnalysisErrorType = MatchesEnum('AnalysisErrorType', [
   'CHECKED_MODE_COMPILE_TIME_ERROR',
   'COMPILE_TIME_ERROR',
@@ -113,13 +113,13 @@ final Matcher isAnalysisErrorType = MatchesEnum('AnalysisErrorType', [
 
 /// AnalysisService
 ///
-/// enum {
-///   FOLDING
-///   HIGHLIGHTS
-///   NAVIGATION
-///   OCCURRENCES
-///   OUTLINE
-/// }
+///     enum {
+///       FOLDING
+///       HIGHLIGHTS
+///       NAVIGATION
+///       OCCURRENCES
+///       OUTLINE
+///     }
 final Matcher isAnalysisService = MatchesEnum('AnalysisService', [
   'FOLDING',
   'HIGHLIGHTS',
@@ -130,19 +130,19 @@ final Matcher isAnalysisService = MatchesEnum('AnalysisService', [
 
 /// AnalysisStatus
 ///
-/// {
-///   "isAnalyzing": bool
-/// }
+///     {
+///       "isAnalyzing": bool
+///     }
 final Matcher isAnalysisStatus = LazyMatcher(
   () => MatchesJsonObject('AnalysisStatus', {'isAnalyzing': isBool}),
 );
 
 /// AssistDescription
 ///
-/// {
-///   "id": String
-///   "message": String
-/// }
+///     {
+///       "id": String
+///       "message": String
+///     }
 final Matcher isAssistDescription = LazyMatcher(
   () => MatchesJsonObject('AssistDescription', {
     'id': isString,
@@ -152,11 +152,11 @@ final Matcher isAssistDescription = LazyMatcher(
 
 /// ChangeContentOverlay
 ///
-/// {
-///   "type": "change"
-///   "edits": List<SourceEdit>
-///   "version": optional int
-/// }
+///     {
+///       "type": "change"
+///       "edits": List<SourceEdit>
+///       "version": optional int
+///     }
 final Matcher isChangeContentOverlay = LazyMatcher(
   () => MatchesJsonObject(
     'ChangeContentOverlay',
@@ -167,33 +167,33 @@ final Matcher isChangeContentOverlay = LazyMatcher(
 
 /// CompletionSuggestion
 ///
-/// {
-///   "kind": CompletionSuggestionKind
-///   "relevance": int
-///   "completion": String
-///   "displayText": optional String
-///   "replacementOffset": optional int
-///   "replacementLength": optional int
-///   "selectionOffset": int
-///   "selectionLength": int
-///   "isDeprecated": bool
-///   "isPotential": bool
-///   "docSummary": optional String
-///   "docComplete": optional String
-///   "declaringType": optional String
-///   "defaultArgumentListString": optional String
-///   "defaultArgumentListTextRanges": optional List<int>
-///   "element": optional Element
-///   "returnType": optional String
-///   "parameterNames": optional List<String>
-///   "parameterTypes": optional List<String>
-///   "requiredParameterCount": optional int
-///   "hasNamedParameters": optional bool
-///   "parameterName": optional String
-///   "parameterType": optional String
-///   "libraryUri": optional String
-///   "isNotImported": optional bool
-/// }
+///     {
+///       "kind": CompletionSuggestionKind
+///       "relevance": int
+///       "completion": String
+///       "displayText": optional String
+///       "replacementOffset": optional int
+///       "replacementLength": optional int
+///       "selectionOffset": int
+///       "selectionLength": int
+///       "isDeprecated": bool
+///       "isPotential": bool
+///       "docSummary": optional String
+///       "docComplete": optional String
+///       "declaringType": optional String
+///       "defaultArgumentListString": optional String
+///       "defaultArgumentListTextRanges": optional List<int>
+///       "element": optional Element
+///       "returnType": optional String
+///       "parameterNames": optional List<String>
+///       "parameterTypes": optional List<String>
+///       "requiredParameterCount": optional int
+///       "hasNamedParameters": optional bool
+///       "parameterName": optional String
+///       "parameterType": optional String
+///       "libraryUri": optional String
+///       "isNotImported": optional bool
+///     }
 final Matcher isCompletionSuggestion = LazyMatcher(
   () => MatchesJsonObject(
     'CompletionSuggestion',
@@ -231,18 +231,18 @@ final Matcher isCompletionSuggestion = LazyMatcher(
 
 /// CompletionSuggestionKind
 ///
-/// enum {
-///   ARGUMENT_LIST
-///   IMPORT
-///   IDENTIFIER
-///   INVOCATION
-///   KEYWORD
-///   NAMED_ARGUMENT
-///   OPTIONAL_ARGUMENT
-///   OVERRIDE
-///   PARAMETER
-///   PACKAGE_NAME
-/// }
+///     enum {
+///       ARGUMENT_LIST
+///       IMPORT
+///       IDENTIFIER
+///       INVOCATION
+///       KEYWORD
+///       NAMED_ARGUMENT
+///       OPTIONAL_ARGUMENT
+///       OVERRIDE
+///       PARAMETER
+///       PACKAGE_NAME
+///     }
 final Matcher isCompletionSuggestionKind =
     MatchesEnum('CompletionSuggestionKind', [
       'ARGUMENT_LIST',
@@ -259,11 +259,11 @@ final Matcher isCompletionSuggestionKind =
 
 /// ContextRoot
 ///
-/// {
-///   "root": FilePath
-///   "exclude": List<FilePath>
-///   "optionsFile": optional FilePath
-/// }
+///     {
+///       "root": FilePath
+///       "exclude": List<FilePath>
+///       "optionsFile": optional FilePath
+///     }
 final Matcher isContextRoot = LazyMatcher(
   () => MatchesJsonObject(
     'ContextRoot',
@@ -274,10 +274,10 @@ final Matcher isContextRoot = LazyMatcher(
 
 /// DiagnosticMessage
 ///
-/// {
-///   "message": String
-///   "location": Location
-/// }
+///     {
+///       "message": String
+///       "location": Location
+///     }
 final Matcher isDiagnosticMessage = LazyMatcher(
   () => MatchesJsonObject('DiagnosticMessage', {
     'message': isString,
@@ -287,16 +287,17 @@ final Matcher isDiagnosticMessage = LazyMatcher(
 
 /// Element
 ///
-/// {
-///   "kind": ElementKind
-///   "name": String
-///   "location": optional Location
-///   "flags": int
-///   "parameters": optional String
-///   "returnType": optional String
-///   "typeParameters": optional String
-///   "aliasedType": optional String
-/// }
+///     {
+///       "kind": ElementKind
+///       "name": String
+///       "location": optional Location
+///       "flags": int
+///       "parameters": optional String
+///       "returnType": optional String
+///       "typeParameters": optional String
+///       "aliasedType": optional String
+///       "extendedType": optional String
+///     }
 final Matcher isElement = LazyMatcher(
   () => MatchesJsonObject(
     'Element',
@@ -307,43 +308,44 @@ final Matcher isElement = LazyMatcher(
       'returnType': isString,
       'typeParameters': isString,
       'aliasedType': isString,
+      'extendedType': isString,
     },
   ),
 );
 
 /// ElementKind
 ///
-/// enum {
-///   CLASS
-///   CLASS_TYPE_ALIAS
-///   COMPILATION_UNIT
-///   CONSTRUCTOR
-///   CONSTRUCTOR_INVOCATION
-///   ENUM
-///   ENUM_CONSTANT
-///   EXTENSION
-///   EXTENSION_TYPE
-///   FIELD
-///   FILE
-///   FUNCTION
-///   FUNCTION_INVOCATION
-///   FUNCTION_TYPE_ALIAS
-///   GETTER
-///   LABEL
-///   LIBRARY
-///   LOCAL_VARIABLE
-///   METHOD
-///   MIXIN
-///   PARAMETER
-///   PREFIX
-///   SETTER
-///   TOP_LEVEL_VARIABLE
-///   TYPE_ALIAS
-///   TYPE_PARAMETER
-///   UNIT_TEST_GROUP
-///   UNIT_TEST_TEST
-///   UNKNOWN
-/// }
+///     enum {
+///       CLASS
+///       CLASS_TYPE_ALIAS
+///       COMPILATION_UNIT
+///       CONSTRUCTOR
+///       CONSTRUCTOR_INVOCATION
+///       ENUM
+///       ENUM_CONSTANT
+///       EXTENSION
+///       EXTENSION_TYPE
+///       FIELD
+///       FILE
+///       FUNCTION
+///       FUNCTION_INVOCATION
+///       FUNCTION_TYPE_ALIAS
+///       GETTER
+///       LABEL
+///       LIBRARY
+///       LOCAL_VARIABLE
+///       METHOD
+///       MIXIN
+///       PARAMETER
+///       PREFIX
+///       SETTER
+///       TOP_LEVEL_VARIABLE
+///       TYPE_ALIAS
+///       TYPE_PARAMETER
+///       UNIT_TEST_GROUP
+///       UNIT_TEST_TEST
+///       UNKNOWN
+///     }
 final Matcher isElementKind = MatchesEnum('ElementKind', [
   'CLASS',
   'CLASS_TYPE_ALIAS',
@@ -378,16 +380,16 @@ final Matcher isElementKind = MatchesEnum('ElementKind', [
 
 /// FilePath
 ///
-/// String
+///     String
 final Matcher isFilePath = isString;
 
 /// FixDescription
 ///
-/// {
-///   "id": String
-///   "message": String
-///   "codes": List<String>
-/// }
+///     {
+///       "id": String
+///       "message": String
+///       "codes": List<String>
+///     }
 final Matcher isFixDescription = LazyMatcher(
   () => MatchesJsonObject('FixDescription', {
     'id': isString,
@@ -398,19 +400,19 @@ final Matcher isFixDescription = LazyMatcher(
 
 /// FoldingKind
 ///
-/// enum {
-///   ANNOTATIONS
-///   BLOCK
-///   CLASS_BODY
-///   COMMENT
-///   DIRECTIVES
-///   DOCUMENTATION_COMMENT
-///   FILE_HEADER
-///   FUNCTION_BODY
-///   INVOCATION
-///   LITERAL
-///   PARAMETERS
-/// }
+///     enum {
+///       ANNOTATIONS
+///       BLOCK
+///       CLASS_BODY
+///       COMMENT
+///       DIRECTIVES
+///       DOCUMENTATION_COMMENT
+///       FILE_HEADER
+///       FUNCTION_BODY
+///       INVOCATION
+///       LITERAL
+///       PARAMETERS
+///     }
 final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'ANNOTATIONS',
   'BLOCK',
@@ -427,11 +429,11 @@ final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
 
 /// FoldingRegion
 ///
-/// {
-///   "kind": FoldingKind
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "kind": FoldingKind
+///       "offset": int
+///       "length": int
+///     }
 final Matcher isFoldingRegion = LazyMatcher(
   () => MatchesJsonObject('FoldingRegion', {
     'kind': isFoldingKind,
@@ -442,11 +444,11 @@ final Matcher isFoldingRegion = LazyMatcher(
 
 /// HighlightRegion
 ///
-/// {
-///   "type": HighlightRegionType
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "type": HighlightRegionType
+///       "offset": int
+///       "length": int
+///     }
 final Matcher isHighlightRegion = LazyMatcher(
   () => MatchesJsonObject('HighlightRegion', {
     'type': isHighlightRegionType,
@@ -457,91 +459,91 @@ final Matcher isHighlightRegion = LazyMatcher(
 
 /// HighlightRegionType
 ///
-/// enum {
-///   ANNOTATION
-///   BUILT_IN
-///   CLASS
-///   COMMENT_BLOCK
-///   COMMENT_DOCUMENTATION
-///   COMMENT_END_OF_LINE
-///   CONSTRUCTOR
-///   CONSTRUCTOR_TEAR_OFF
-///   DIRECTIVE
-///   DYNAMIC_TYPE
-///   DYNAMIC_LOCAL_VARIABLE_DECLARATION
-///   DYNAMIC_LOCAL_VARIABLE_REFERENCE
-///   DYNAMIC_PARAMETER_DECLARATION
-///   DYNAMIC_PARAMETER_REFERENCE
-///   ENUM
-///   ENUM_CONSTANT
-///   EXTENSION
-///   EXTENSION_TYPE
-///   FIELD
-///   FIELD_STATIC
-///   FUNCTION
-///   FUNCTION_DECLARATION
-///   FUNCTION_TYPE_ALIAS
-///   GETTER_DECLARATION
-///   IDENTIFIER_DEFAULT
-///   IMPORT_PREFIX
-///   INSTANCE_FIELD_DECLARATION
-///   INSTANCE_FIELD_REFERENCE
-///   INSTANCE_GETTER_DECLARATION
-///   INSTANCE_GETTER_REFERENCE
-///   INSTANCE_METHOD_DECLARATION
-///   INSTANCE_METHOD_REFERENCE
-///   INSTANCE_METHOD_TEAR_OFF
-///   INSTANCE_SETTER_DECLARATION
-///   INSTANCE_SETTER_REFERENCE
-///   INVALID_STRING_ESCAPE
-///   KEYWORD
-///   LABEL
-///   LIBRARY_NAME
-///   LITERAL_BOOLEAN
-///   LITERAL_DOUBLE
-///   LITERAL_INTEGER
-///   LITERAL_LIST
-///   LITERAL_MAP
-///   LITERAL_RECORD
-///   LITERAL_STRING
-///   LOCAL_FUNCTION_DECLARATION
-///   LOCAL_FUNCTION_REFERENCE
-///   LOCAL_FUNCTION_TEAR_OFF
-///   LOCAL_VARIABLE
-///   LOCAL_VARIABLE_DECLARATION
-///   LOCAL_VARIABLE_REFERENCE
-///   METHOD
-///   METHOD_DECLARATION
-///   METHOD_DECLARATION_STATIC
-///   METHOD_STATIC
-///   MIXIN
-///   PARAMETER
-///   SETTER_DECLARATION
-///   TOP_LEVEL_VARIABLE
-///   PARAMETER_DECLARATION
-///   PARAMETER_REFERENCE
-///   STATIC_FIELD_DECLARATION
-///   STATIC_GETTER_DECLARATION
-///   STATIC_GETTER_REFERENCE
-///   STATIC_METHOD_DECLARATION
-///   STATIC_METHOD_REFERENCE
-///   STATIC_METHOD_TEAR_OFF
-///   STATIC_SETTER_DECLARATION
-///   STATIC_SETTER_REFERENCE
-///   TOP_LEVEL_FUNCTION_DECLARATION
-///   TOP_LEVEL_FUNCTION_REFERENCE
-///   TOP_LEVEL_FUNCTION_TEAR_OFF
-///   TOP_LEVEL_GETTER_DECLARATION
-///   TOP_LEVEL_GETTER_REFERENCE
-///   TOP_LEVEL_SETTER_DECLARATION
-///   TOP_LEVEL_SETTER_REFERENCE
-///   TOP_LEVEL_VARIABLE_DECLARATION
-///   TYPE_ALIAS
-///   TYPE_NAME_DYNAMIC
-///   TYPE_PARAMETER
-///   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
-///   VALID_STRING_ESCAPE
-/// }
+///     enum {
+///       ANNOTATION
+///       BUILT_IN
+///       CLASS
+///       COMMENT_BLOCK
+///       COMMENT_DOCUMENTATION
+///       COMMENT_END_OF_LINE
+///       CONSTRUCTOR
+///       CONSTRUCTOR_TEAR_OFF
+///       DIRECTIVE
+///       DYNAMIC_TYPE
+///       DYNAMIC_LOCAL_VARIABLE_DECLARATION
+///       DYNAMIC_LOCAL_VARIABLE_REFERENCE
+///       DYNAMIC_PARAMETER_DECLARATION
+///       DYNAMIC_PARAMETER_REFERENCE
+///       ENUM
+///       ENUM_CONSTANT
+///       EXTENSION
+///       EXTENSION_TYPE
+///       FIELD
+///       FIELD_STATIC
+///       FUNCTION
+///       FUNCTION_DECLARATION
+///       FUNCTION_TYPE_ALIAS
+///       GETTER_DECLARATION
+///       IDENTIFIER_DEFAULT
+///       IMPORT_PREFIX
+///       INSTANCE_FIELD_DECLARATION
+///       INSTANCE_FIELD_REFERENCE
+///       INSTANCE_GETTER_DECLARATION
+///       INSTANCE_GETTER_REFERENCE
+///       INSTANCE_METHOD_DECLARATION
+///       INSTANCE_METHOD_REFERENCE
+///       INSTANCE_METHOD_TEAR_OFF
+///       INSTANCE_SETTER_DECLARATION
+///       INSTANCE_SETTER_REFERENCE
+///       INVALID_STRING_ESCAPE
+///       KEYWORD
+///       LABEL
+///       LIBRARY_NAME
+///       LITERAL_BOOLEAN
+///       LITERAL_DOUBLE
+///       LITERAL_INTEGER
+///       LITERAL_LIST
+///       LITERAL_MAP
+///       LITERAL_RECORD
+///       LITERAL_STRING
+///       LOCAL_FUNCTION_DECLARATION
+///       LOCAL_FUNCTION_REFERENCE
+///       LOCAL_FUNCTION_TEAR_OFF
+///       LOCAL_VARIABLE
+///       LOCAL_VARIABLE_DECLARATION
+///       LOCAL_VARIABLE_REFERENCE
+///       METHOD
+///       METHOD_DECLARATION
+///       METHOD_DECLARATION_STATIC
+///       METHOD_STATIC
+///       MIXIN
+///       PARAMETER
+///       SETTER_DECLARATION
+///       TOP_LEVEL_VARIABLE
+///       PARAMETER_DECLARATION
+///       PARAMETER_REFERENCE
+///       STATIC_FIELD_DECLARATION
+///       STATIC_GETTER_DECLARATION
+///       STATIC_GETTER_REFERENCE
+///       STATIC_METHOD_DECLARATION
+///       STATIC_METHOD_REFERENCE
+///       STATIC_METHOD_TEAR_OFF
+///       STATIC_SETTER_DECLARATION
+///       STATIC_SETTER_REFERENCE
+///       TOP_LEVEL_FUNCTION_DECLARATION
+///       TOP_LEVEL_FUNCTION_REFERENCE
+///       TOP_LEVEL_FUNCTION_TEAR_OFF
+///       TOP_LEVEL_GETTER_DECLARATION
+///       TOP_LEVEL_GETTER_REFERENCE
+///       TOP_LEVEL_SETTER_DECLARATION
+///       TOP_LEVEL_SETTER_REFERENCE
+///       TOP_LEVEL_VARIABLE_DECLARATION
+///       TYPE_ALIAS
+///       TYPE_NAME_DYNAMIC
+///       TYPE_PARAMETER
+///       UNRESOLVED_INSTANCE_MEMBER_REFERENCE
+///       VALID_STRING_ESCAPE
+///     }
 final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'ANNOTATION',
   'BUILT_IN',
@@ -630,11 +632,11 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
 
 /// LinkedEditGroup
 ///
-/// {
-///   "positions": List<Position>
-///   "length": int
-///   "suggestions": List<LinkedEditSuggestion>
-/// }
+///     {
+///       "positions": List<Position>
+///       "length": int
+///       "suggestions": List<LinkedEditSuggestion>
+///     }
 final Matcher isLinkedEditGroup = LazyMatcher(
   () => MatchesJsonObject('LinkedEditGroup', {
     'positions': isListOf(isPosition),
@@ -645,10 +647,10 @@ final Matcher isLinkedEditGroup = LazyMatcher(
 
 /// LinkedEditSuggestion
 ///
-/// {
-///   "value": String
-///   "kind": LinkedEditSuggestionKind
-/// }
+///     {
+///       "value": String
+///       "kind": LinkedEditSuggestionKind
+///     }
 final Matcher isLinkedEditSuggestion = LazyMatcher(
   () => MatchesJsonObject('LinkedEditSuggestion', {
     'value': isString,
@@ -658,12 +660,12 @@ final Matcher isLinkedEditSuggestion = LazyMatcher(
 
 /// LinkedEditSuggestionKind
 ///
-/// enum {
-///   METHOD
-///   PARAMETER
-///   TYPE
-///   VARIABLE
-/// }
+///     enum {
+///       METHOD
+///       PARAMETER
+///       TYPE
+///       VARIABLE
+///     }
 final Matcher isLinkedEditSuggestionKind = MatchesEnum(
   'LinkedEditSuggestionKind',
   ['METHOD', 'PARAMETER', 'TYPE', 'VARIABLE'],
@@ -671,15 +673,15 @@ final Matcher isLinkedEditSuggestionKind = MatchesEnum(
 
 /// Location
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-///   "startLine": int
-///   "startColumn": int
-///   "endLine": optional int
-///   "endColumn": optional int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///       "startLine": int
+///       "startColumn": int
+///       "endLine": optional int
+///       "endColumn": optional int
+///     }
 final Matcher isLocation = LazyMatcher(
   () => MatchesJsonObject(
     'Location',
@@ -696,11 +698,11 @@ final Matcher isLocation = LazyMatcher(
 
 /// NavigationRegion
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "targets": List<int>
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "targets": List<int>
+///     }
 final Matcher isNavigationRegion = LazyMatcher(
   () => MatchesJsonObject('NavigationRegion', {
     'offset': isInt,
@@ -711,16 +713,16 @@ final Matcher isNavigationRegion = LazyMatcher(
 
 /// NavigationTarget
 ///
-/// {
-///   "kind": ElementKind
-///   "fileIndex": int
-///   "offset": int
-///   "length": int
-///   "startLine": int
-///   "startColumn": int
-///   "codeOffset": optional int
-///   "codeLength": optional int
-/// }
+///     {
+///       "kind": ElementKind
+///       "fileIndex": int
+///       "offset": int
+///       "length": int
+///       "startLine": int
+///       "startColumn": int
+///       "codeOffset": optional int
+///       "codeLength": optional int
+///     }
 final Matcher isNavigationTarget = LazyMatcher(
   () => MatchesJsonObject(
     'NavigationTarget',
@@ -738,11 +740,11 @@ final Matcher isNavigationTarget = LazyMatcher(
 
 /// Occurrences
 ///
-/// {
-///   "element": Element
-///   "offsets": List<int>
-///   "length": int
-/// }
+///     {
+///       "element": Element
+///       "offsets": List<int>
+///       "length": int
+///     }
 final Matcher isOccurrences = LazyMatcher(
   () => MatchesJsonObject('Occurrences', {
     'element': isElement,
@@ -753,14 +755,14 @@ final Matcher isOccurrences = LazyMatcher(
 
 /// Outline
 ///
-/// {
-///   "element": Element
-///   "offset": int
-///   "length": int
-///   "codeOffset": int
-///   "codeLength": int
-///   "children": optional List<Outline>
-/// }
+///     {
+///       "element": Element
+///       "offset": int
+///       "length": int
+///       "codeOffset": int
+///       "codeLength": int
+///       "children": optional List<Outline>
+///     }
 final Matcher isOutline = LazyMatcher(
   () => MatchesJsonObject(
     'Outline',
@@ -777,12 +779,12 @@ final Matcher isOutline = LazyMatcher(
 
 /// ParameterInfo
 ///
-/// {
-///   "kind": ParameterKind
-///   "name": String
-///   "type": String
-///   "defaultValue": optional String
-/// }
+///     {
+///       "kind": ParameterKind
+///       "name": String
+///       "type": String
+///       "defaultValue": optional String
+///     }
 final Matcher isParameterInfo = LazyMatcher(
   () => MatchesJsonObject(
     'ParameterInfo',
@@ -793,12 +795,12 @@ final Matcher isParameterInfo = LazyMatcher(
 
 /// ParameterKind
 ///
-/// enum {
-///   OPTIONAL_NAMED
-///   OPTIONAL_POSITIONAL
-///   REQUIRED_NAMED
-///   REQUIRED_POSITIONAL
-/// }
+///     enum {
+///       OPTIONAL_NAMED
+///       OPTIONAL_POSITIONAL
+///       REQUIRED_NAMED
+///       REQUIRED_POSITIONAL
+///     }
 final Matcher isParameterKind = MatchesEnum('ParameterKind', [
   'OPTIONAL_NAMED',
   'OPTIONAL_POSITIONAL',
@@ -808,13 +810,13 @@ final Matcher isParameterKind = MatchesEnum('ParameterKind', [
 
 /// PluginDetails
 ///
-/// {
-///   "name": String
-///   "lintRules": List<String>
-///   "warningRules": List<String>
-///   "assists": List<AssistDescription>
-///   "fixes": List<FixDescription>
-/// }
+///     {
+///       "name": String
+///       "lintRules": List<String>
+///       "warningRules": List<String>
+///       "assists": List<AssistDescription>
+///       "fixes": List<FixDescription>
+///     }
 final Matcher isPluginDetails = LazyMatcher(
   () => MatchesJsonObject('PluginDetails', {
     'name': isString,
@@ -827,20 +829,20 @@ final Matcher isPluginDetails = LazyMatcher(
 
 /// Position
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 final Matcher isPosition = LazyMatcher(
   () => MatchesJsonObject('Position', {'file': isFilePath, 'offset': isInt}),
 );
 
 /// PrioritizedSourceChange
 ///
-/// {
-///   "priority": int
-///   "change": SourceChange
-/// }
+///     {
+///       "priority": int
+///       "change": SourceChange
+///     }
 final Matcher isPrioritizedSourceChange = LazyMatcher(
   () => MatchesJsonObject('PrioritizedSourceChange', {
     'priority': isInt,
@@ -850,25 +852,25 @@ final Matcher isPrioritizedSourceChange = LazyMatcher(
 
 /// RefactoringFeedback
 ///
-/// {
-/// }
+///     {
+///     }
 final Matcher isRefactoringFeedback = LazyMatcher(
   () => MatchesJsonObject('RefactoringFeedback', null),
 );
 
 /// RefactoringKind
 ///
-/// enum {
-///   CONVERT_GETTER_TO_METHOD
-///   CONVERT_METHOD_TO_GETTER
-///   EXTRACT_LOCAL_VARIABLE
-///   EXTRACT_METHOD
-///   EXTRACT_WIDGET
-///   INLINE_LOCAL_VARIABLE
-///   INLINE_METHOD
-///   MOVE_FILE
-///   RENAME
-/// }
+///     enum {
+///       CONVERT_GETTER_TO_METHOD
+///       CONVERT_METHOD_TO_GETTER
+///       EXTRACT_LOCAL_VARIABLE
+///       EXTRACT_METHOD
+///       EXTRACT_WIDGET
+///       INLINE_LOCAL_VARIABLE
+///       INLINE_METHOD
+///       MOVE_FILE
+///       RENAME
+///     }
 final Matcher isRefactoringKind = MatchesEnum('RefactoringKind', [
   'CONVERT_GETTER_TO_METHOD',
   'CONVERT_METHOD_TO_GETTER',
@@ -883,13 +885,13 @@ final Matcher isRefactoringKind = MatchesEnum('RefactoringKind', [
 
 /// RefactoringMethodParameter
 ///
-/// {
-///   "id": optional String
-///   "kind": RefactoringMethodParameterKind
-///   "type": String
-///   "name": String
-///   "parameters": optional String
-/// }
+///     {
+///       "id": optional String
+///       "kind": RefactoringMethodParameterKind
+///       "type": String
+///       "name": String
+///       "parameters": optional String
+///     }
 final Matcher isRefactoringMethodParameter = LazyMatcher(
   () => MatchesJsonObject(
     'RefactoringMethodParameter',
@@ -904,11 +906,11 @@ final Matcher isRefactoringMethodParameter = LazyMatcher(
 
 /// RefactoringMethodParameterKind
 ///
-/// enum {
-///   REQUIRED
-///   POSITIONAL
-///   NAMED
-/// }
+///     enum {
+///       REQUIRED
+///       POSITIONAL
+///       NAMED
+///     }
 final Matcher isRefactoringMethodParameterKind = MatchesEnum(
   'RefactoringMethodParameterKind',
   ['REQUIRED', 'POSITIONAL', 'NAMED'],
@@ -916,19 +918,19 @@ final Matcher isRefactoringMethodParameterKind = MatchesEnum(
 
 /// RefactoringOptions
 ///
-/// {
-/// }
+///     {
+///     }
 final Matcher isRefactoringOptions = LazyMatcher(
   () => MatchesJsonObject('RefactoringOptions', null),
 );
 
 /// RefactoringProblem
 ///
-/// {
-///   "severity": RefactoringProblemSeverity
-///   "message": String
-///   "location": optional Location
-/// }
+///     {
+///       "severity": RefactoringProblemSeverity
+///       "message": String
+///       "location": optional Location
+///     }
 final Matcher isRefactoringProblem = LazyMatcher(
   () => MatchesJsonObject(
     'RefactoringProblem',
@@ -939,12 +941,12 @@ final Matcher isRefactoringProblem = LazyMatcher(
 
 /// RefactoringProblemSeverity
 ///
-/// enum {
-///   INFO
-///   WARNING
-///   ERROR
-///   FATAL
-/// }
+///     enum {
+///       INFO
+///       WARNING
+///       ERROR
+///       FATAL
+///     }
 final Matcher isRefactoringProblemSeverity = MatchesEnum(
   'RefactoringProblemSeverity',
   ['INFO', 'WARNING', 'ERROR', 'FATAL'],
@@ -952,20 +954,20 @@ final Matcher isRefactoringProblemSeverity = MatchesEnum(
 
 /// RemoveContentOverlay
 ///
-/// {
-///   "type": "remove"
-/// }
+///     {
+///       "type": "remove"
+///     }
 final Matcher isRemoveContentOverlay = LazyMatcher(
   () => MatchesJsonObject('RemoveContentOverlay', {'type': equals('remove')}),
 );
 
 /// RequestError
 ///
-/// {
-///   "code": RequestErrorCode
-///   "message": String
-///   "stackTrace": optional String
-/// }
+///     {
+///       "code": RequestErrorCode
+///       "message": String
+///       "stackTrace": optional String
+///     }
 final Matcher isRequestError = LazyMatcher(
   () => MatchesJsonObject(
     'RequestError',
@@ -976,12 +978,12 @@ final Matcher isRequestError = LazyMatcher(
 
 /// RequestErrorCode
 ///
-/// enum {
-///   INVALID_OVERLAY_CHANGE
-///   INVALID_PARAMETER
-///   PLUGIN_ERROR
-///   UNKNOWN_REQUEST
-/// }
+///     enum {
+///       INVALID_OVERLAY_CHANGE
+///       INVALID_PARAMETER
+///       PLUGIN_ERROR
+///       UNKNOWN_REQUEST
+///     }
 final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
   'INVALID_OVERLAY_CHANGE',
   'INVALID_PARAMETER',
@@ -991,14 +993,14 @@ final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
 
 /// SourceChange
 ///
-/// {
-///   "message": String
-///   "edits": List<SourceFileEdit>
-///   "linkedEditGroups": List<LinkedEditGroup>
-///   "selection": optional Position
-///   "selectionLength": optional int
-///   "id": optional String
-/// }
+///     {
+///       "message": String
+///       "edits": List<SourceFileEdit>
+///       "linkedEditGroups": List<LinkedEditGroup>
+///       "selection": optional Position
+///       "selectionLength": optional int
+///       "id": optional String
+///     }
 final Matcher isSourceChange = LazyMatcher(
   () => MatchesJsonObject(
     'SourceChange',
@@ -1017,13 +1019,13 @@ final Matcher isSourceChange = LazyMatcher(
 
 /// SourceEdit
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "replacement": String
-///   "id": optional String
-///   "description": optional String
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "replacement": String
+///       "id": optional String
+///       "description": optional String
+///     }
 final Matcher isSourceEdit = LazyMatcher(
   () => MatchesJsonObject(
     'SourceEdit',
@@ -1034,11 +1036,11 @@ final Matcher isSourceEdit = LazyMatcher(
 
 /// SourceFileEdit
 ///
-/// {
-///   "file": FilePath
-///   "fileStamp": long
-///   "edits": List<SourceEdit>
-/// }
+///     {
+///       "file": FilePath
+///       "fileStamp": long
+///       "edits": List<SourceEdit>
+///     }
 final Matcher isSourceFileEdit = LazyMatcher(
   () => MatchesJsonObject('SourceFileEdit', {
     'file': isFilePath,
@@ -1049,10 +1051,10 @@ final Matcher isSourceFileEdit = LazyMatcher(
 
 /// WatchEvent
 ///
-/// {
-///   "type": WatchEventType
-///   "path": FilePath
-/// }
+///     {
+///       "type": WatchEventType
+///       "path": FilePath
+///     }
 final Matcher isWatchEvent = LazyMatcher(
   () => MatchesJsonObject('WatchEvent', {
     'type': isWatchEventType,
@@ -1062,11 +1064,11 @@ final Matcher isWatchEvent = LazyMatcher(
 
 /// WatchEventType
 ///
-/// enum {
-///   ADD
-///   MODIFY
-///   REMOVE
-/// }
+///     enum {
+///       ADD
+///       MODIFY
+///       REMOVE
+///     }
 final Matcher isWatchEventType = MatchesEnum('WatchEventType', [
   'ADD',
   'MODIFY',
@@ -1075,10 +1077,10 @@ final Matcher isWatchEventType = MatchesEnum('WatchEventType', [
 
 /// analysis.errors params
 ///
-/// {
-///   "file": FilePath
-///   "errors": List<AnalysisError>
-/// }
+///     {
+///       "file": FilePath
+///       "errors": List<AnalysisError>
+///     }
 final Matcher isAnalysisErrorsParams = LazyMatcher(
   () => MatchesJsonObject('analysis.errors params', {
     'file': isFilePath,
@@ -1088,10 +1090,10 @@ final Matcher isAnalysisErrorsParams = LazyMatcher(
 
 /// analysis.folding params
 ///
-/// {
-///   "file": FilePath
-///   "regions": List<FoldingRegion>
-/// }
+///     {
+///       "file": FilePath
+///       "regions": List<FoldingRegion>
+///     }
 final Matcher isAnalysisFoldingParams = LazyMatcher(
   () => MatchesJsonObject('analysis.folding params', {
     'file': isFilePath,
@@ -1101,11 +1103,11 @@ final Matcher isAnalysisFoldingParams = LazyMatcher(
 
 /// analysis.getNavigation params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 final Matcher isAnalysisGetNavigationParams = LazyMatcher(
   () => MatchesJsonObject('analysis.getNavigation params', {
     'file': isFilePath,
@@ -1116,11 +1118,11 @@ final Matcher isAnalysisGetNavigationParams = LazyMatcher(
 
 /// analysis.getNavigation result
 ///
-/// {
-///   "files": List<FilePath>
-///   "targets": List<NavigationTarget>
-///   "regions": List<NavigationRegion>
-/// }
+///     {
+///       "files": List<FilePath>
+///       "targets": List<NavigationTarget>
+///       "regions": List<NavigationRegion>
+///     }
 final Matcher isAnalysisGetNavigationResult = LazyMatcher(
   () => MatchesJsonObject('analysis.getNavigation result', {
     'files': isListOf(isFilePath),
@@ -1131,9 +1133,9 @@ final Matcher isAnalysisGetNavigationResult = LazyMatcher(
 
 /// analysis.handleWatchEvents params
 ///
-/// {
-///   "events": List<WatchEvent>
-/// }
+///     {
+///       "events": List<WatchEvent>
+///     }
 final Matcher isAnalysisHandleWatchEventsParams = LazyMatcher(
   () => MatchesJsonObject('analysis.handleWatchEvents params', {
     'events': isListOf(isWatchEvent),
@@ -1145,10 +1147,10 @@ final Matcher isAnalysisHandleWatchEventsResult = isNull;
 
 /// analysis.highlights params
 ///
-/// {
-///   "file": FilePath
-///   "regions": List<HighlightRegion>
-/// }
+///     {
+///       "file": FilePath
+///       "regions": List<HighlightRegion>
+///     }
 final Matcher isAnalysisHighlightsParams = LazyMatcher(
   () => MatchesJsonObject('analysis.highlights params', {
     'file': isFilePath,
@@ -1158,12 +1160,12 @@ final Matcher isAnalysisHighlightsParams = LazyMatcher(
 
 /// analysis.navigation params
 ///
-/// {
-///   "file": FilePath
-///   "regions": List<NavigationRegion>
-///   "targets": List<NavigationTarget>
-///   "files": List<FilePath>
-/// }
+///     {
+///       "file": FilePath
+///       "regions": List<NavigationRegion>
+///       "targets": List<NavigationTarget>
+///       "files": List<FilePath>
+///     }
 final Matcher isAnalysisNavigationParams = LazyMatcher(
   () => MatchesJsonObject('analysis.navigation params', {
     'file': isFilePath,
@@ -1175,10 +1177,10 @@ final Matcher isAnalysisNavigationParams = LazyMatcher(
 
 /// analysis.occurrences params
 ///
-/// {
-///   "file": FilePath
-///   "occurrences": List<Occurrences>
-/// }
+///     {
+///       "file": FilePath
+///       "occurrences": List<Occurrences>
+///     }
 final Matcher isAnalysisOccurrencesParams = LazyMatcher(
   () => MatchesJsonObject('analysis.occurrences params', {
     'file': isFilePath,
@@ -1188,10 +1190,10 @@ final Matcher isAnalysisOccurrencesParams = LazyMatcher(
 
 /// analysis.outline params
 ///
-/// {
-///   "file": FilePath
-///   "outline": List<Outline>
-/// }
+///     {
+///       "file": FilePath
+///       "outline": List<Outline>
+///     }
 final Matcher isAnalysisOutlineParams = LazyMatcher(
   () => MatchesJsonObject('analysis.outline params', {
     'file': isFilePath,
@@ -1201,9 +1203,9 @@ final Matcher isAnalysisOutlineParams = LazyMatcher(
 
 /// analysis.setContextRoots params
 ///
-/// {
-///   "roots": List<ContextRoot>
-/// }
+///     {
+///       "roots": List<ContextRoot>
+///     }
 final Matcher isAnalysisSetContextRootsParams = LazyMatcher(
   () => MatchesJsonObject('analysis.setContextRoots params', {
     'roots': isListOf(isContextRoot),
@@ -1215,9 +1217,9 @@ final Matcher isAnalysisSetContextRootsResult = isNull;
 
 /// analysis.setPriorityFiles params
 ///
-/// {
-///   "files": List<FilePath>
-/// }
+///     {
+///       "files": List<FilePath>
+///     }
 final Matcher isAnalysisSetPriorityFilesParams = LazyMatcher(
   () => MatchesJsonObject('analysis.setPriorityFiles params', {
     'files': isListOf(isFilePath),
@@ -1229,9 +1231,9 @@ final Matcher isAnalysisSetPriorityFilesResult = isNull;
 
 /// analysis.setSubscriptions params
 ///
-/// {
-///   "subscriptions": Map<AnalysisService, List<FilePath>>
-/// }
+///     {
+///       "subscriptions": Map<AnalysisService, List<FilePath>>
+///     }
 final Matcher isAnalysisSetSubscriptionsParams = LazyMatcher(
   () => MatchesJsonObject('analysis.setSubscriptions params', {
     'subscriptions': isMapOf(isAnalysisService, isListOf(isFilePath)),
@@ -1243,9 +1245,9 @@ final Matcher isAnalysisSetSubscriptionsResult = isNull;
 
 /// analysis.updateContent params
 ///
-/// {
-///   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
-/// }
+///     {
+///       "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
+///     }
 final Matcher isAnalysisUpdateContentParams = LazyMatcher(
   () => MatchesJsonObject('analysis.updateContent params', {
     'files': isMapOf(
@@ -1264,10 +1266,10 @@ final Matcher isAnalysisUpdateContentResult = isNull;
 
 /// completion.getSuggestions params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 final Matcher isCompletionGetSuggestionsParams = LazyMatcher(
   () => MatchesJsonObject('completion.getSuggestions params', {
     'file': isFilePath,
@@ -1277,11 +1279,11 @@ final Matcher isCompletionGetSuggestionsParams = LazyMatcher(
 
 /// completion.getSuggestions result
 ///
-/// {
-///   "replacementOffset": int
-///   "replacementLength": int
-///   "results": List<CompletionSuggestion>
-/// }
+///     {
+///       "replacementOffset": int
+///       "replacementLength": int
+///       "results": List<CompletionSuggestion>
+///     }
 final Matcher isCompletionGetSuggestionsResult = LazyMatcher(
   () => MatchesJsonObject('completion.getSuggestions result', {
     'replacementOffset': isInt,
@@ -1304,11 +1306,11 @@ final Matcher isConvertMethodToGetterOptions = isNull;
 
 /// edit.getAssists params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 final Matcher isEditGetAssistsParams = LazyMatcher(
   () => MatchesJsonObject('edit.getAssists params', {
     'file': isFilePath,
@@ -1319,9 +1321,9 @@ final Matcher isEditGetAssistsParams = LazyMatcher(
 
 /// edit.getAssists result
 ///
-/// {
-///   "assists": List<PrioritizedSourceChange>
-/// }
+///     {
+///       "assists": List<PrioritizedSourceChange>
+///     }
 final Matcher isEditGetAssistsResult = LazyMatcher(
   () => MatchesJsonObject('edit.getAssists result', {
     'assists': isListOf(isPrioritizedSourceChange),
@@ -1330,11 +1332,11 @@ final Matcher isEditGetAssistsResult = LazyMatcher(
 
 /// edit.getAvailableRefactorings params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 final Matcher isEditGetAvailableRefactoringsParams = LazyMatcher(
   () => MatchesJsonObject('edit.getAvailableRefactorings params', {
     'file': isFilePath,
@@ -1345,9 +1347,9 @@ final Matcher isEditGetAvailableRefactoringsParams = LazyMatcher(
 
 /// edit.getAvailableRefactorings result
 ///
-/// {
-///   "kinds": List<RefactoringKind>
-/// }
+///     {
+///       "kinds": List<RefactoringKind>
+///     }
 final Matcher isEditGetAvailableRefactoringsResult = LazyMatcher(
   () => MatchesJsonObject('edit.getAvailableRefactorings result', {
     'kinds': isListOf(isRefactoringKind),
@@ -1356,10 +1358,10 @@ final Matcher isEditGetAvailableRefactoringsResult = LazyMatcher(
 
 /// edit.getFixes params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 final Matcher isEditGetFixesParams = LazyMatcher(
   () => MatchesJsonObject('edit.getFixes params', {
     'file': isFilePath,
@@ -1369,9 +1371,9 @@ final Matcher isEditGetFixesParams = LazyMatcher(
 
 /// edit.getFixes result
 ///
-/// {
-///   "fixes": List<AnalysisErrorFixes>
-/// }
+///     {
+///       "fixes": List<AnalysisErrorFixes>
+///     }
 final Matcher isEditGetFixesResult = LazyMatcher(
   () => MatchesJsonObject('edit.getFixes result', {
     'fixes': isListOf(isAnalysisErrorFixes),
@@ -1380,14 +1382,14 @@ final Matcher isEditGetFixesResult = LazyMatcher(
 
 /// edit.getRefactoring params
 ///
-/// {
-///   "kind": RefactoringKind
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-///   "validateOnly": bool
-///   "options": optional RefactoringOptions
-/// }
+///     {
+///       "kind": RefactoringKind
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///       "validateOnly": bool
+///       "options": optional RefactoringOptions
+///     }
 final Matcher isEditGetRefactoringParams = LazyMatcher(
   () => MatchesJsonObject(
     'edit.getRefactoring params',
@@ -1404,14 +1406,14 @@ final Matcher isEditGetRefactoringParams = LazyMatcher(
 
 /// edit.getRefactoring result
 ///
-/// {
-///   "initialProblems": List<RefactoringProblem>
-///   "optionsProblems": List<RefactoringProblem>
-///   "finalProblems": List<RefactoringProblem>
-///   "feedback": optional RefactoringFeedback
-///   "change": optional SourceChange
-///   "potentialEdits": optional List<String>
-/// }
+///     {
+///       "initialProblems": List<RefactoringProblem>
+///       "optionsProblems": List<RefactoringProblem>
+///       "finalProblems": List<RefactoringProblem>
+///       "feedback": optional RefactoringFeedback
+///       "change": optional SourceChange
+///       "potentialEdits": optional List<String>
+///     }
 final Matcher isEditGetRefactoringResult = LazyMatcher(
   () => MatchesJsonObject(
     'edit.getRefactoring result',
@@ -1430,13 +1432,13 @@ final Matcher isEditGetRefactoringResult = LazyMatcher(
 
 /// extractLocalVariable feedback
 ///
-/// {
-///   "coveringExpressionOffsets": optional List<int>
-///   "coveringExpressionLengths": optional List<int>
-///   "names": List<String>
-///   "offsets": List<int>
-///   "lengths": List<int>
-/// }
+///     {
+///       "coveringExpressionOffsets": optional List<int>
+///       "coveringExpressionLengths": optional List<int>
+///       "names": List<String>
+///       "offsets": List<int>
+///       "lengths": List<int>
+///     }
 final Matcher isExtractLocalVariableFeedback = LazyMatcher(
   () => MatchesJsonObject(
     'extractLocalVariable feedback',
@@ -1454,10 +1456,10 @@ final Matcher isExtractLocalVariableFeedback = LazyMatcher(
 
 /// extractLocalVariable options
 ///
-/// {
-///   "name": String
-///   "extractAll": bool
-/// }
+///     {
+///       "name": String
+///       "extractAll": bool
+///     }
 final Matcher isExtractLocalVariableOptions = LazyMatcher(
   () => MatchesJsonObject('extractLocalVariable options', {
     'name': isString,
@@ -1467,16 +1469,16 @@ final Matcher isExtractLocalVariableOptions = LazyMatcher(
 
 /// extractMethod feedback
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "returnType": String
-///   "names": List<String>
-///   "canCreateGetter": bool
-///   "parameters": List<RefactoringMethodParameter>
-///   "offsets": List<int>
-///   "lengths": List<int>
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "returnType": String
+///       "names": List<String>
+///       "canCreateGetter": bool
+///       "parameters": List<RefactoringMethodParameter>
+///       "offsets": List<int>
+///       "lengths": List<int>
+///     }
 final Matcher isExtractMethodFeedback = LazyMatcher(
   () => MatchesJsonObject('extractMethod feedback', {
     'offset': isInt,
@@ -1492,13 +1494,13 @@ final Matcher isExtractMethodFeedback = LazyMatcher(
 
 /// extractMethod options
 ///
-/// {
-///   "returnType": String
-///   "createGetter": bool
-///   "name": String
-///   "parameters": List<RefactoringMethodParameter>
-///   "extractAll": bool
-/// }
+///     {
+///       "returnType": String
+///       "createGetter": bool
+///       "name": String
+///       "parameters": List<RefactoringMethodParameter>
+///       "extractAll": bool
+///     }
 final Matcher isExtractMethodOptions = LazyMatcher(
   () => MatchesJsonObject('extractMethod options', {
     'returnType': isString,
@@ -1511,10 +1513,10 @@ final Matcher isExtractMethodOptions = LazyMatcher(
 
 /// inlineLocalVariable feedback
 ///
-/// {
-///   "name": String
-///   "occurrences": int
-/// }
+///     {
+///       "name": String
+///       "occurrences": int
+///     }
 final Matcher isInlineLocalVariableFeedback = LazyMatcher(
   () => MatchesJsonObject('inlineLocalVariable feedback', {
     'name': isString,
@@ -1527,11 +1529,11 @@ final Matcher isInlineLocalVariableOptions = isNull;
 
 /// inlineMethod feedback
 ///
-/// {
-///   "className": optional String
-///   "methodName": String
-///   "isDeclaration": bool
-/// }
+///     {
+///       "className": optional String
+///       "methodName": String
+///       "isDeclaration": bool
+///     }
 final Matcher isInlineMethodFeedback = LazyMatcher(
   () => MatchesJsonObject(
     'inlineMethod feedback',
@@ -1542,10 +1544,10 @@ final Matcher isInlineMethodFeedback = LazyMatcher(
 
 /// inlineMethod options
 ///
-/// {
-///   "deleteSource": bool
-///   "inlineAll": bool
-/// }
+///     {
+///       "deleteSource": bool
+///       "inlineAll": bool
+///     }
 final Matcher isInlineMethodOptions = LazyMatcher(
   () => MatchesJsonObject('inlineMethod options', {
     'deleteSource': isBool,
@@ -1558,9 +1560,9 @@ final Matcher isMoveFileFeedback = isNull;
 
 /// moveFile options
 ///
-/// {
-///   "newFile": FilePath
-/// }
+///     {
+///       "newFile": FilePath
+///     }
 final Matcher isMoveFileOptions = LazyMatcher(
   () => MatchesJsonObject('moveFile options', {'newFile': isFilePath}),
 );
@@ -1570,9 +1572,9 @@ final Matcher isPluginDetailsParams = isNull;
 
 /// plugin.details result
 ///
-/// {
-///   "plugins": List<PluginDetails>
-/// }
+///     {
+///       "plugins": List<PluginDetails>
+///     }
 final Matcher isPluginDetailsResult = LazyMatcher(
   () => MatchesJsonObject('plugin.details result', {
     'plugins': isListOf(isPluginDetails),
@@ -1581,11 +1583,11 @@ final Matcher isPluginDetailsResult = LazyMatcher(
 
 /// plugin.error params
 ///
-/// {
-///   "isFatal": bool
-///   "message": String
-///   "stackTrace": String
-/// }
+///     {
+///       "isFatal": bool
+///       "message": String
+///       "stackTrace": String
+///     }
 final Matcher isPluginErrorParams = LazyMatcher(
   () => MatchesJsonObject('plugin.error params', {
     'isFatal': isBool,
@@ -1602,9 +1604,9 @@ final Matcher isPluginShutdownResult = isNull;
 
 /// plugin.status params
 ///
-/// {
-///   "analysis": optional AnalysisStatus
-/// }
+///     {
+///       "analysis": optional AnalysisStatus
+///     }
 final Matcher isPluginStatusParams = LazyMatcher(
   () => MatchesJsonObject(
     'plugin.status params',
@@ -1615,11 +1617,11 @@ final Matcher isPluginStatusParams = LazyMatcher(
 
 /// plugin.versionCheck params
 ///
-/// {
-///   "byteStorePath": FilePath
-///   "sdkPath": FilePath
-///   "version": String
-/// }
+///     {
+///       "byteStorePath": FilePath
+///       "sdkPath": FilePath
+///       "version": String
+///     }
 final Matcher isPluginVersionCheckParams = LazyMatcher(
   () => MatchesJsonObject('plugin.versionCheck params', {
     'byteStorePath': isFilePath,
@@ -1630,13 +1632,13 @@ final Matcher isPluginVersionCheckParams = LazyMatcher(
 
 /// plugin.versionCheck result
 ///
-/// {
-///   "isCompatible": bool
-///   "name": String
-///   "version": String
-///   "contactInfo": optional String
-///   "interestingFiles": List<String>
-/// }
+///     {
+///       "isCompatible": bool
+///       "name": String
+///       "version": String
+///       "contactInfo": optional String
+///       "interestingFiles": List<String>
+///     }
 final Matcher isPluginVersionCheckResult = LazyMatcher(
   () => MatchesJsonObject(
     'plugin.versionCheck result',
@@ -1652,12 +1654,12 @@ final Matcher isPluginVersionCheckResult = LazyMatcher(
 
 /// rename feedback
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "elementKindName": String
-///   "oldName": String
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "elementKindName": String
+///       "oldName": String
+///     }
 final Matcher isRenameFeedback = LazyMatcher(
   () => MatchesJsonObject('rename feedback', {
     'offset': isInt,
@@ -1669,9 +1671,9 @@ final Matcher isRenameFeedback = LazyMatcher(
 
 /// rename options
 ///
-/// {
-///   "newName": String
-/// }
+///     {
+///       "newName": String
+///     }
 final Matcher isRenameOptions = LazyMatcher(
   () => MatchesJsonObject('rename options', {'newName': isString}),
 );

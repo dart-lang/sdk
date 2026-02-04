@@ -61,7 +61,7 @@ Widget buildRow() {
 @reflectiveTest
 class ReplaceContainerWithColoredBoxTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_CONTAINER_WITH_COLORED_BOX;
+  FixKind get kind => DartFixKind.replaceContainerWithColoredBox;
 
   @override
   String get lintCode => LintNames.use_colored_box;

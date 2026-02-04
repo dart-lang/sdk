@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/code_style_options.dart'
+    show CodeStyleOptions;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -11,11 +13,8 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-const _deprecationMessageMethodBeingCopied =
-    'Use `typeParametersInScope` '
-    'instead. You can use `methodBeingCopied.typeParameters`.';
-
 /// The optional generator for prefix that should be used for new imports.
+@Deprecated('This type is no longer used or necessary')
 typedef ImportPrefixGenerator = String Function(Uri);
 
 /// An [EditBuilder] used to build edits in Dart files.
@@ -31,12 +30,6 @@ abstract class DartEditBuilder implements EditBuilder {
   /// Checks whether the code for a type annotation for the given [type] can be
   /// written.
   ///
-  /// {@template methodBeingCopied}
-  /// If a [methodBeingCopied] is provided, then type parameters defined by that
-  /// method are assumed to be part of what is being written and hence valid
-  /// types.
-  /// {@endtemplate}
-  ///
   /// {@template typeParametersInScope}
   /// If [typeParametersInScope] is provided, then it will be used to resolve
   /// what are the valid type parameters to use.
@@ -45,8 +38,6 @@ abstract class DartEditBuilder implements EditBuilder {
   /// The logic is the same as the one used in [writeType].
   bool canWriteType(
     DartType? type, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   });
 
@@ -120,6 +111,8 @@ abstract class DartEditBuilder implements EditBuilder {
   /// type of the field. (The keyword `var` will be provided automatically when
   /// required.) If a [typeGroupName] is provided, then if a type was written
   /// it will be in the linked edit group with that name.
+  ///
+  /// {@macro typeParametersInScope}
   void writeFieldDeclaration(
     String name, {
     void Function()? initializerWriter,
@@ -129,11 +122,11 @@ abstract class DartEditBuilder implements EditBuilder {
     String? nameGroupName,
     DartType? type,
     String? typeGroupName,
+    bool alwaysWriteType = false,
+    List<TypeParameterElement>? typeParametersInScope,
   });
 
   /// Writes the code for a single parameter with the given [name].
-  ///
-  /// {@macro methodBeingCopied}
   ///
   /// {@macro typeParametersInScope}
   ///
@@ -159,8 +152,6 @@ abstract class DartEditBuilder implements EditBuilder {
     String name, {
     bool isCovariant,
     bool isRequiredNamed,
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     String? nameGroupName,
     DartType? type,
@@ -171,18 +162,11 @@ abstract class DartEditBuilder implements EditBuilder {
   /// Writes the code for a list of [parameters], including the surrounding
   /// parentheses and default values (unless [includeDefaultValues] is `false`).
   ///
-  /// {@macro methodBeingCopied}
-  ///
   /// {@macro typeParametersInScope}
   ///
   /// If [requiredTypes] is `true`, then the types are always written.
   void writeFormalParameters(
     Iterable<FormalParameterElement> parameters, {
-    @Deprecated(
-      '$_deprecationMessageMethodBeingCopied And for the group prefix, '
-      'inform `groupNamePrefix`.',
-    )
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     String? groupNamePrefix,
     bool fillParameterNames = true,
@@ -223,6 +207,8 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [returnType] is provided, then it will be used as the return type of the
   /// getter. If a [returnTypeGroupName] is provided, then if a return type was
   /// written it will be in the linked edit group with that name.
+  ///
+  /// {@macro typeParametersInScope}
   void writeGetterDeclaration(
     String name, {
     void Function() bodyWriter,
@@ -230,6 +216,8 @@ abstract class DartEditBuilder implements EditBuilder {
     String nameGroupName,
     DartType returnType,
     String returnTypeGroupName,
+    bool alwaysWriteType = false,
+    List<TypeParameterElement>? typeParametersInScope,
   });
 
   /// Writes the given [name], possibly with a prefix, assuming that the name
@@ -296,8 +284,6 @@ abstract class DartEditBuilder implements EditBuilder {
 
   /// Writes the code for a single parameter with the given [name].
   ///
-  /// {@macro methodBeingCopied}
-  ///
   /// {@macro typeParametersInScope}
   ///
   /// If a [type] is provided, then it will be used as the type of the
@@ -320,8 +306,6 @@ abstract class DartEditBuilder implements EditBuilder {
     String name, {
     bool isCovariant,
     bool isRequiredNamed,
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     String? nameGroupName,
     DartType? type,
@@ -342,9 +326,8 @@ abstract class DartEditBuilder implements EditBuilder {
     Expression argument,
     int index,
     Set<String> usedNames, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
+    bool isOptional = false,
   });
 
   /// Writes the code for a list of parameters that would match the given list
@@ -355,8 +338,6 @@ abstract class DartEditBuilder implements EditBuilder {
   /// {@macro typeParametersInScope}
   void writeParametersMatchingArguments(
     ArgumentList arguments, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   });
 
@@ -385,8 +366,7 @@ abstract class DartEditBuilder implements EditBuilder {
     String? nameGroupName,
     DartType? parameterType,
     String? parameterTypeGroupName,
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
+    bool alwaysWriteType = false,
     List<TypeParameterElement>? typeParametersInScope,
   });
 
@@ -404,8 +384,6 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [addSupertypeProposals] is `true`, then all of the supertypes of the
   /// [type] will be added as suggestions for alternatives to the type name.
   ///
-  /// {@macro methodBeingCopied}
-  ///
   /// {@macro typeParametersInScope}
   ///
   /// Returns `true` if any text was written.
@@ -413,8 +391,6 @@ abstract class DartEditBuilder implements EditBuilder {
     DartType? type, {
     bool addSupertypeProposals = false,
     String? groupName,
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
     bool required = false,
     bool shouldWriteDynamic = false,
@@ -424,26 +400,18 @@ abstract class DartEditBuilder implements EditBuilder {
   ///
   /// The enclosing angle brackets are not automatically written.
   ///
-  /// {@macro methodBeingCopied}
-  ///
   /// {@macro typeParametersInScope}
   void writeTypeParameter(
     TypeParameterElement typeParameter, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   });
 
   /// Writes the code to declare the given list of [typeParameters]. The
   /// enclosing angle brackets are automatically written.
   ///
-  /// {@macro methodBeingCopied}
-  ///
   /// {@macro typeParametersInScope}
   void writeTypeParameters(
     List<TypeParameterElement> typeParameters, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
     List<TypeParameterElement>? typeParametersInScope,
   });
 
@@ -495,13 +463,15 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// Checks whether the code for a type annotation for the given [type] can be
   /// written.
   ///
-  /// {@macro methodBeingCopied}
+  /// The given [offset] is the location where the type would be written, so we
+  /// can determine what type parameters are in scope. We look for a enclosing
+  /// method, function, or class declarations to determine the type parameters
+  /// in scope.
   ///
   /// {@macro typeParametersInScope}
   bool canWriteType(
     DartType? type, {
-    @Deprecated(_deprecationMessageMethodBeingCopied)
-    ExecutableElement? methodBeingCopied,
+    required int offset,
     List<TypeParameterElement>? typeParametersInScope,
   });
 
@@ -621,7 +591,8 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// Inserts the code for a field.
   ///
   /// The field is inserted after the last existing field, or at the beginning
-  /// of [compilationUnitMember], if it has no existing fields.
+  /// of [compilationUnitMember], if it has no existing fields, if not specified
+  /// differently by the [CodeStyleOptions].
   void insertField(
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit,

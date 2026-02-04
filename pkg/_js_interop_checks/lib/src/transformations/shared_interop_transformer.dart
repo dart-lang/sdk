@@ -25,10 +25,10 @@ import 'js_util_optimizer.dart';
 import 'static_interop_mock_validator.dart';
 
 class SharedInteropTransformer extends Transformer {
+  final bool _supportsJsUtil;
+
   final Procedure _callMethodVarArgs;
-  final Procedure _createDartExport;
   final Procedure _createJSInteropWrapper;
-  final Procedure _createStaticInteropMock;
   final JsInteropDiagnosticReporter _diagnosticReporter;
   final ExportChecker _exportChecker;
   final ExtensionIndex _extensionIndex;
@@ -60,19 +60,16 @@ class SharedInteropTransformer extends Transformer {
     this._diagnosticReporter,
     this._exportChecker,
     this._extensionIndex,
-  ) : _callMethodVarArgs = _typeEnvironment.coreTypes.index
+  ) : _supportsJsUtil = _typeEnvironment.coreTypes.index.containsLibrary(
+        'dart:js_util',
+      ),
+      _callMethodVarArgs = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure(
             'dart:js_interop_unsafe',
             'JSObjectUnsafeUtilExtension|callMethodVarArgs',
           ),
-      _createDartExport = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-        'dart:js_util',
-        'createDartExport',
-      ),
       _createJSInteropWrapper = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', 'createJSInteropWrapper'),
-      _createStaticInteropMock = _typeEnvironment.coreTypes.index
-          .getTopLevelProcedure('dart:js_util', 'createStaticInteropMock'),
       _functionToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         'FunctionToJSExportedDartFunction|get#toJS',
@@ -133,12 +130,19 @@ class SharedInteropTransformer extends Transformer {
         'JSAnyUtilityExtension|typeofEquals',
       );
 
+  late final Procedure _createDartExport = _typeEnvironment.coreTypes.index
+      .getTopLevelProcedure('dart:js_util', 'createDartExport');
+  late final Procedure _createStaticInteropMock = _typeEnvironment
+      .coreTypes
+      .index
+      .getTopLevelProcedure('dart:js_util', 'createStaticInteropMock');
+
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     _invocation = node;
     TreeNode replacement = invocation;
     final target = invocation.target;
-    if (target == _createDartExport) {
+    if (_supportsJsUtil && target == _createDartExport) {
       final typeArguments = invocation.arguments.types;
       assert(typeArguments.length == 1);
       if (_verifyExportable(typeArguments[0])) {
@@ -158,7 +162,7 @@ class SharedInteropTransformer extends Transformer {
           arguments.length == 2 ? arguments[1] : null,
         );
       }
-    } else if (target == _createStaticInteropMock) {
+    } else if (_supportsJsUtil && target == _createStaticInteropMock) {
       final typeArguments = invocation.arguments.types;
       assert(typeArguments.length == 2);
       final staticInteropType = typeArguments[0];

@@ -37,7 +37,7 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
     if (parameters['edit'] is! Map<String, Object?>) {
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidCommandArguments,
+          code: ServerErrorCodes.invalidCommandArguments,
           message:
               '$commandName requires a Map argument containing "edit" (WorkspaceEdit)',
         ),

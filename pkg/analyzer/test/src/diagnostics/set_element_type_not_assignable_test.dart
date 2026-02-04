@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,7 +31,7 @@ const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>{if (1 < 0) a else b};
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 82, 1)],
+      [error(diag.setElementTypeNotAssignable, 82, 1)],
     );
   }
 
@@ -40,7 +40,7 @@ var v = const <int>{if (1 < 0) a else b};
       '''
 var v = const <int>{if (1 < 0) 'a'};
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 31, 3)],
+      [error(diag.setElementTypeNotAssignable, 31, 3)],
     );
   }
 
@@ -64,7 +64,7 @@ var v = const <int>{if (true) a};
 const dynamic a = 'a';
 var v = const <int>{if (true) a};
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 53, 1)],
+      [error(diag.setElementTypeNotAssignable, 53, 1)],
     );
   }
 
@@ -87,13 +87,7 @@ var v = const <int>{42};
 const a = null;
 var v = const <int>{a};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.setElementTypeNotAssignableNullability,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.setElementTypeNotAssignableNullability, 36, 1)],
     );
   }
 
@@ -102,13 +96,7 @@ var v = const <int>{a};
       '''
 var v = const <int>{null};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.setElementTypeNotAssignableNullability,
-          20,
-          4,
-        ),
-      ],
+      [error(diag.setElementTypeNotAssignableNullability, 20, 4)],
     );
   }
 
@@ -118,7 +106,7 @@ var v = const <int>{null};
 const dynamic x = 'abc';
 var v = const <int>{x};
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 45, 1)],
+      [error(diag.setElementTypeNotAssignable, 45, 1)],
     );
   }
 
@@ -127,7 +115,7 @@ var v = const <int>{x};
       '''
 var v = const <int>{'abc'};
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 20, 5)],
+      [error(diag.setElementTypeNotAssignable, 20, 5)],
     );
   }
 
@@ -171,7 +159,7 @@ var v = <int>{if (1 < 0) a else b};
       '''
 var v = <int>[if (1 < 0) 'a'];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 25, 3)],
+      [error(diag.listElementTypeNotAssignable, 25, 3)],
     );
   }
 
@@ -207,7 +195,7 @@ var v = <int>{x};
       '''
 var v = <int>{'abc'};
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 14, 5)],
+      [error(diag.setElementTypeNotAssignable, 14, 5)],
     );
   }
 }
@@ -223,7 +211,7 @@ void f(bool c, dynamic a) {
   <int>{if (c) 0 else a};
 }
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 50, 1)],
+      [error(diag.setElementTypeNotAssignable, 50, 1)],
     );
   }
 
@@ -234,7 +222,7 @@ void f(bool c, dynamic a) {
   <int>{if (c) a};
 }
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 43, 1)],
+      [error(diag.setElementTypeNotAssignable, 43, 1)],
     );
   }
 
@@ -245,7 +233,7 @@ void f(Iterable<dynamic> a) {
   <int>{...a};
 }
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 41, 1)],
+      [error(diag.setElementTypeNotAssignable, 41, 1)],
     );
   }
 }

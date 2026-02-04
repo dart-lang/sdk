@@ -34,7 +34,7 @@ import 'package:analyzer/src/dart/analysis/search.dart'
     as server
     show DeclarationKind;
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
@@ -52,19 +52,13 @@ final completionFilterTextSplitPattern = RegExp(r'=>|[\(]');
 final completionSetterTypePattern = RegExp(r'^\((\S+)\s+\S+\)$');
 
 final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
-  _diagnosticCode(WarningCode.deadCode): [lsp.DiagnosticTag.Unnecessary],
-  _diagnosticCode(HintCode.deprecatedMemberUseFromSamePackage): [
-    lsp.DiagnosticTag.Deprecated,
-  ],
-  _diagnosticCode(HintCode.deprecatedMemberUseFromSamePackageWithMessage): [
-    lsp.DiagnosticTag.Deprecated,
-  ],
-  _diagnosticCode(HintCode.deprecatedMemberUse): [lsp.DiagnosticTag.Deprecated],
+  _diagnosticCode(diag.deadCode): [lsp.DiagnosticTag.Unnecessary],
+  _diagnosticCode(diag.deprecatedMemberUse): [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package': [lsp.DiagnosticTag.Deprecated],
   'deprecated_member_use_from_same_package_with_message': [
     lsp.DiagnosticTag.Deprecated,
   ],
-  _diagnosticCode(HintCode.deprecatedMemberUseWithMessage): [
+  _diagnosticCode(diag.deprecatedMemberUseWithMessage): [
     lsp.DiagnosticTag.Deprecated,
   ],
 };
@@ -529,8 +523,8 @@ lsp.Location? fragmentToLocation(
   int? nameOffset;
   int? nameLength;
   if (fragment case PropertyAccessorFragmentImpl(
-    :var isSynthetic,
-  ) when isSynthetic) {
+    :var isOriginDeclaration,
+  ) when !isOriginDeclaration) {
     var element = fragment.element.nonSynthetic;
     nameOffset = element.firstFragment.nameOffset;
     nameLength = element.firstFragment.name?.length;
@@ -1388,7 +1382,9 @@ String toElementName(server.Element element) {
   return element.name.isNotEmpty
       ? element.name
       : (element.kind == server.ElementKind.EXTENSION
-            ? '<unnamed extension>'
+            ? (element.extendedType?.isNotEmpty ?? false)
+                  ? 'extension on ${element.extendedType}'
+                  : '<unnamed extension>'
             : '<unnamed>');
 }
 
@@ -1464,8 +1460,8 @@ ErrorOr<int> toOffset(
     return ErrorOr<int>.error(
       lsp.ResponseError(
         code: failureIsCritical
-            ? lsp.ServerErrorCodes.ClientServerInconsistentState
-            : lsp.ServerErrorCodes.InvalidFileLineCol,
+            ? lsp.ServerErrorCodes.clientServerInconsistentState
+            : lsp.ServerErrorCodes.invalidFileLineCol,
         message: 'Invalid line number',
         data: pos.line.toString(),
       ),
@@ -1477,6 +1473,26 @@ ErrorOr<int> toOffset(
   return ErrorOr<int>.success(
     lineInfo.getOffsetOfLine(pos.line) + pos.character,
   );
+}
+
+ErrorOr<int> toOffsetFromOffsetLineAndColumn(
+  int? offsetOfLine,
+  int column,
+  int originalLine, {
+  bool failureIsCritical = false,
+}) {
+  if (offsetOfLine == null) {
+    return ErrorOr<int>.error(
+      lsp.ResponseError(
+        code: failureIsCritical
+            ? lsp.ServerErrorCodes.clientServerInconsistentState
+            : lsp.ServerErrorCodes.invalidFileLineCol,
+        message: 'Invalid line number',
+        data: originalLine.toString(),
+      ),
+    );
+  }
+  return ErrorOr<int>.success(offsetOfLine + column);
 }
 
 lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) {
@@ -1838,7 +1854,7 @@ lsp.MarkupContent _asMarkup(
   return lsp.MarkupContent(kind: format, value: content);
 }
 
-String _diagnosticCode(server.DiagnosticCode code) => code.name.toLowerCase();
+String _diagnosticCode(server.DiagnosticCode code) => code.lowerCaseName;
 
 /// Additional details about a completion that may be formatted differently
 /// depending on the client capabilities.

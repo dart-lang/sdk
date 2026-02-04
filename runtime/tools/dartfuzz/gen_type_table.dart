@@ -19,7 +19,7 @@ import 'dart:math';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element2.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:args/args.dart';
@@ -953,8 +953,8 @@ void printTypeTable(
 // Returns true if type can be set and get via [].
 bool isIndexable(InterfaceType tp) {
   var isIndexable = false;
-  for (var method in tp.methods2) {
-    if (method.name3 == '[]') {
+  for (var method in tp.methods) {
+    if (method.name == '[]') {
       isIndexable = true;
       break;
     }
@@ -1012,11 +1012,11 @@ void filterOperators(Set<InterfaceType> allTypes) {
 //
 // Excluded methods should be associated with an issue number so they can be
 // re-enabled after the issue is resolved.
-bool isExcludedMethod(InterfaceType tp, MethodElement2 method) {
+bool isExcludedMethod(InterfaceType tp, MethodElement method) {
   // TODO(bkonyi): Enable operator / for these types after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
-  if (((tp.element3.name3 == 'Float32x4') && (method.name3 == '/')) ||
-      ((tp.element3.name3 == 'Float64x2') && (method.name3 == '/'))) {
+  if (((tp.element.name == 'Float32x4') && (method.name == '/')) ||
+      ((tp.element.name == 'Float64x2') && (method.name == '/'))) {
     return true;
   }
   return false;
@@ -1029,7 +1029,7 @@ bool isExcludedMethod(InterfaceType tp, MethodElement2 method) {
 //          int: {'~', '-'},
 // Does not recurse into interfaces and superclasses of tp.
 void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
-  for (var method in tp.methods2) {
+  for (var method in tp.methods) {
     // If the method is manually excluded, skip it.
     if (isExcludedMethod(tp, method)) continue;
 
@@ -1038,12 +1038,12 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
     // This is usually indicated by the presence of the static constructor
     // 'castFrom' or 'parse'.
     if (method.isStatic &&
-        (method.name3 == 'castFrom' || method.name3 == 'parse')) {
+        (method.name == 'castFrom' || method.name == 'parse')) {
       fromLiteral.add(typeConstName(tp));
     }
     // Hack: dartfuzz.dart already handles subscripts, therefore we exclude
     // them from the generated type table.
-    if (method.name3!.startsWith('[]')) continue;
+    if (method.name!.startsWith('[]')) continue;
     if (method.isOperator) {
       // TODO (felih): Include support for type 'dynamic'.
       var skip = false;
@@ -1062,7 +1062,7 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
           retTypName += '_NULLABLE';
         }
         binOps[retTypName] ??= <String, Set<List<String>>>{};
-        binOps[retTypName]![method.name3!] ??= <List<String>>{};
+        binOps[retTypName]![method.name!] ??= <List<String>>{};
 
         var rhsTypName = typeConstName(method.formalParameters[0].type);
         if (method.formalParameters[0].type.nullabilitySuffix !=
@@ -1073,14 +1073,14 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
         // TODO (felih): no hashing for List<String> ?
         // if i remove this test i will get duplicates even though it is a Set.
         var present = false;
-        for (var o in binOps[retTypName]![method.name3!]!) {
+        for (var o in binOps[retTypName]![method.name!]!) {
           if (o[0] == typName && o[1] == rhsTypName) {
             present = true;
             break;
           }
         }
         if (!present) {
-          binOps[retTypName]![method.name3!]!.add([typName, rhsTypName]);
+          binOps[retTypName]![method.name!]!.add([typName, rhsTypName]);
         }
 
         // Add some assignment operators corresponding to the binary operators.
@@ -1090,14 +1090,14 @@ void getOperatorsForTyp(String typName, InterfaceType tp, fromLiteral) {
         // <= is not a valid assignment operator for bool types.
         if (retTypName != 'BOOL') {
           assignOps[retTypName] ??= <String, Set<String>>{};
-          var ao = method.name3! + '=';
+          var ao = method.name! + '=';
           assignOps[retTypName]![ao] ??= <String>{};
           assignOps[retTypName]![ao]!.add(rhsTypName);
         }
       } else {
         // Get unary operators.
         uniOps[typName] ??= <String>{};
-        var uo = method.name3!;
+        var uo = method.name!;
         // Hack: remove unary from operator so that the operator name can be
         // used directly for source code generation.
         if (uo.startsWith('unary')) uo = '-';
@@ -1172,7 +1172,7 @@ void getOperators(Set<InterfaceType> allTypes) {
     if (fromLiteral.contains(typName)) {
       continue;
     }
-    for (var constructor in tp.constructors2) {
+    for (var constructor in tp.constructors) {
       if (shouldFilterConstructor(tp, constructor)) continue;
       var params = <String>[];
       var canConstruct = true;
@@ -1194,7 +1194,7 @@ void getOperators(Set<InterfaceType> allTypes) {
       if (!canConstruct) continue;
 
       constructors[typName] ??= <String, List<String>>{};
-      constructors[typName]![constructor.name3!] = params;
+      constructors[typName]![constructor.name!] = params;
     }
   }
   // Removed redundant specialized parameter types.
@@ -1202,16 +1202,15 @@ void getOperators(Set<InterfaceType> allTypes) {
   filterOperators(allTypes);
 }
 
-bool shouldFilterConstructor(InterfaceType tp, ConstructorElement2 cons) {
+bool shouldFilterConstructor(InterfaceType tp, ConstructorElement cons) {
   // Filter private constructors.
-  if (cons.name3!.startsWith('_')) {
+  if (cons.name!.startsWith('_')) {
     return true;
   }
   // Constructor exclude list
   // TODO(bkonyi): Enable Float32x4.fromInt32x4Bits after we resolve
   // https://github.com/dart-lang/sdk/issues/39890
-  if ((tp.element3.name3! == 'Float32x4') &&
-      (cons.name3 == 'fromInt32x4Bits')) {
+  if ((tp.element.name! == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {
     return true;
   }
   return false;
@@ -1241,9 +1240,9 @@ void analyzeTypes(Set<InterfaceType> allTypes) {
     }
 
     // Group current type with their respective type group.
-    if (iTyp.element3.name3 == 'Set') setTypes.add(typName);
-    if (iTyp.element3.name3 == 'List') listTypes.add(typName);
-    if (iTyp.element3.name3 == 'Map') mapTypes.add(typName);
+    if (iTyp.element.name == 'Set') setTypes.add(typName);
+    if (iTyp.element.name == 'List') listTypes.add(typName);
+    if (iTyp.element.name == 'Map') mapTypes.add(typName);
 
     if (iTyp.typeArguments.length == 1) {
       // Analyze Array, List and Set types.
@@ -1295,12 +1294,12 @@ void getParameterizedTypes(
   // Out: types with no parameters.
   for (var tp in allTypes) {
     if (tp.typeArguments.length == 1 &&
-        (tp.typeArguments[0].element3?.name3 == 'E' ||
-            tp.typeArguments[0].element3?.name3 == 'T')) {
+        (tp.typeArguments[0].element?.name == 'E' ||
+            tp.typeArguments[0].element?.name == 'T')) {
       pTypes1.add(tp);
     } else if (tp.typeArguments.length == 2 &&
-        tp.typeArguments[0].element3?.name3 == 'K' &&
-        tp.typeArguments[1].element3?.name3 == 'V') {
+        tp.typeArguments[0].element?.name == 'K' &&
+        tp.typeArguments[1].element?.name == 'V') {
       pTypes2.add(tp);
     } else {
       iTypes.add(tp);
@@ -1339,7 +1338,7 @@ Set<InterfaceType> instantiatePTypes(
       } else {
         return;
       }
-      InterfaceType ptx = pType.element3.instantiate(
+      InterfaceType ptx = pType.element.instantiate(
         typeArguments: [iType],
         nullabilitySuffix: NullabilitySuffix.star,
       );
@@ -1360,7 +1359,7 @@ Set<InterfaceType> instantiatePTypes(
         } else {
           return;
         }
-        InterfaceType ptx = pType.element3.instantiate(
+        InterfaceType ptx = pType.element.instantiate(
           typeArguments: [iType1, iType2],
           nullabilitySuffix: NullabilitySuffix.star,
         );
@@ -1397,7 +1396,7 @@ Set<InterfaceType> instantiateAllTypes(
   // complex types like Int8List.
   var filteredITypes = <InterfaceType>{};
   for (var iType in iTypes) {
-    if (iTypeFilter.contains(iType.element3.name3)) {
+    if (iTypeFilter.contains(iType.element.name)) {
       filteredITypes.add(iType);
     }
   }
@@ -1421,9 +1420,9 @@ Set<InterfaceType> instantiateAllTypes(
 // Heuristic of which types to include:
 // count the number of operators and
 // check if the type can be constructed from a literal.
-int countOperators(InterfaceElement2 ce) {
+int countOperators(InterfaceElement ce) {
   var no = 0;
-  ce.methods2.forEach((method) {
+  ce.methods.forEach((method) {
     if (method.isOperator) {
       no++;
     }
@@ -1432,11 +1431,11 @@ int countOperators(InterfaceElement2 ce) {
     // This is usually indicated by the presence of the static constructor
     // 'castFrom' or 'parse'.
     if (method.isStatic &&
-        (method.name3 == 'castFrom' || method.name3 == 'parse')) {
+        (method.name == 'castFrom' || method.name == 'parse')) {
       no += 100;
     }
     for (var ci in ce.interfaces) {
-      no += countOperators(ci.element3);
+      no += countOperators(ci.element);
     }
   });
   return no;
@@ -1459,13 +1458,13 @@ Future<void> visitLibraryAtUri(
   var libPath = session.uriConverter.uriToPath(Uri.parse(uri));
   var result = await session.getResolvedLibrary(libPath!);
   if (result is ResolvedLibraryResult) {
-    visitLibrary(result.element2, allTypes);
+    visitLibrary(result.element, allTypes);
   } else {
     throw StateError('Unable to resolve "$uri"');
   }
 }
 
-void visitLibrary(LibraryElement2 library, Set<InterfaceType> allTypes) {
+void visitLibrary(LibraryElement library, Set<InterfaceType> allTypes) {
   // This uses the element model to traverse the code. The element model
   // represents the semantic structure of the code. A library consists of
   // one or more compilation units.
@@ -1480,35 +1479,35 @@ void visitLibrary(LibraryElement2 library, Set<InterfaceType> allTypes) {
       // Hack: Filter out some difficult types, abstract types and types that
       // have methods with abstract type parameters.
       // TODO (felih): include filtered types.
-      if (classElement.name3!.startsWith('Unmodifiable') ||
-          classElement.name3!.startsWith('Iterable') ||
-          classElement.name3!.startsWith('BigInt') ||
-          classElement.name3!.startsWith('DateTime') ||
-          classElement.name3!.startsWith('Uri') ||
-          (classElement.name3 == 'Function') ||
-          (classElement.name3 == 'Object') ||
-          (classElement.name3 == 'Match') ||
-          (classElement.name3 == 'RegExpMatch') ||
-          (classElement.name3 == 'pragma') ||
-          (classElement.name3 == 'LateInitializationError') ||
-          (classElement.name3 == 'ByteBuffer') ||
-          (classElement.name3 == 'TypedData') ||
-          (classElement.name3 == 'Sink') ||
-          (classElement.name3 == 'Pattern') ||
-          (classElement.name3 == 'StackTrace') ||
-          (classElement.name3 == 'StringSink') ||
-          (classElement.name3 == 'Type') ||
-          (classElement.name3 == 'Pattern') ||
-          (classElement.name3 == 'Invocation') ||
-          (classElement.name3 == 'StackTrace') ||
-          (classElement.name3 == 'NoSuchMethodError') ||
-          (classElement.name3 == 'Comparable') ||
-          (classElement.name3 == 'Iterator') ||
-          (classElement.name3 == 'Stopwatch') ||
-          (classElement.name3 == 'Finalizer') ||
-          (classElement.name3 == 'Enum') ||
-          (classElement.name3 == 'Record') ||
-          (classElement.name3 == 'OutOfMemoryError')) {
+      if (classElement.name!.startsWith('Unmodifiable') ||
+          classElement.name!.startsWith('Iterable') ||
+          classElement.name!.startsWith('BigInt') ||
+          classElement.name!.startsWith('DateTime') ||
+          classElement.name!.startsWith('Uri') ||
+          (classElement.name == 'Function') ||
+          (classElement.name == 'Object') ||
+          (classElement.name == 'Match') ||
+          (classElement.name == 'RegExpMatch') ||
+          (classElement.name == 'pragma') ||
+          (classElement.name == 'LateInitializationError') ||
+          (classElement.name == 'ByteBuffer') ||
+          (classElement.name == 'TypedData') ||
+          (classElement.name == 'Sink') ||
+          (classElement.name == 'Pattern') ||
+          (classElement.name == 'StackTrace') ||
+          (classElement.name == 'StringSink') ||
+          (classElement.name == 'Type') ||
+          (classElement.name == 'Pattern') ||
+          (classElement.name == 'Invocation') ||
+          (classElement.name == 'StackTrace') ||
+          (classElement.name == 'NoSuchMethodError') ||
+          (classElement.name == 'Comparable') ||
+          (classElement.name == 'Iterator') ||
+          (classElement.name == 'Stopwatch') ||
+          (classElement.name == 'Finalizer') ||
+          (classElement.name == 'Enum') ||
+          (classElement.name == 'Record') ||
+          (classElement.name == 'OutOfMemoryError')) {
         continue;
       }
       allTypes.add(classElement.thisType);
@@ -1538,7 +1537,7 @@ void getInterfaceRels(Set<InterfaceType> allTypes) {
         iterableTypes1.add(typName);
       }
     }
-    for (var it in tp.element3.allSupertypes) {
+    for (var it in tp.element.allSupertypes) {
       var ifTypName = typeConstName(it);
       interfaceRels[ifTypName] ??= <String>{};
       interfaceRels[ifTypName]!.add(typName);

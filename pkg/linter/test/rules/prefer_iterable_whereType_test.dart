@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class PreferIterableWhereTypeTest extends LintRuleTest {
   @override
-  String get lintRule => LintNames.prefer_iterable_whereType;
+  String get lintRule => LintNames.prefer_iterable_wheretype;
 
   test_closureWithIs() async {
     await assertDiagnostics(

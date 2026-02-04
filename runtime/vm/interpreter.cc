@@ -261,6 +261,14 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
   ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
   ASSERT(IsAllocatableInNewSpace(instance_size));
 
+#if !defined(PRODUCT)
+  auto* const class_table = thread->isolate_group()->class_table();
+  if (UNLIKELY(class_table->ShouldTraceAllocationFor(class_id))) {
+    // Fall back to the runtime for profiled allocation of classes.
+    return false;
+  }
+#endif  // !defined(PRODUCT)
+
   const uword top = thread->top();
   const intptr_t remaining = thread->end() - top;
   if (LIKELY(remaining >= instance_size)) {
@@ -424,12 +432,15 @@ DART_FORCE_INLINE bool Interpreter::IsTracingExecution() const {
 }
 
 // Prints bytecode instruction at given pc for instruction tracing.
-DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc) const {
+DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc,
+                                                 ObjectPtr* FP) const {
   THR_Print("%" Pu64 " ", icount_);
   if (FLAG_support_disassembler) {
+    auto const bytecode = Function::GetBytecode(FrameFunction(FP));
     KernelBytecodeDisassembler::Disassemble(
         reinterpret_cast<uword>(pc),
-        reinterpret_cast<uword>(KernelBytecode::Next(pc)));
+        reinterpret_cast<uword>(KernelBytecode::Next(pc)),
+        Bytecode::PayloadStartOf(bytecode));
   } else {
     THR_Print("Disassembler not supported in this mode.\n");
   }
@@ -684,6 +695,7 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
                                                    ObjectPtr** FP,
                                                    ObjectPtr** SP) {
   ASSERT(Function::HasBytecode(function));
+  ASSERT(Function::IsInterpreted(function));
 #if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("%" Pu64 " ", icount_);
@@ -718,7 +730,7 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   FunctionPtr function = FrameFunction(callee_fp);
 
   for (;;) {
-    if (Function::HasBytecode(function)) {
+    if (Function::IsInterpreted(function)) {
       return InvokeBytecode(thread, function, call_base, call_top, pc, FP, SP);
     } else if (Function::HasCode(function)) {
       return InvokeCompiled(thread, function, call_base, call_top, pc, FP, SP);
@@ -841,7 +853,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #if defined(DEBUG)
 #define TRACE_INSTRUCTION                                                      \
   if (IsTracingExecution()) {                                                  \
-    TraceInstruction(pc);                                                      \
+    TraceInstruction(pc, FP);                                                  \
   }                                                                            \
   if (IsWritingTraceFile()) {                                                  \
     WriteInstructionToTrace(pc);                                               \
@@ -2530,6 +2542,10 @@ SwitchDispatchNoSingleStep:
     FieldPtr field = Field::RawCast(LOAD_CONSTANT(rD));
     InstancePtr value = Instance::RawCast(*SP--);
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+    if (UNLIKELY(thread->isolate() == nullptr)) {
+      SP[0] = field;
+      goto ThrowStaticFieldAccessedWithoutIsolateError;
+    }
     thread->field_table_values()[field_id] = value;
     DISPATCH();
   }
@@ -2538,6 +2554,10 @@ SwitchDispatchNoSingleStep:
     BYTECODE(LoadStatic, D);
     FieldPtr field = Field::RawCast(LOAD_CONSTANT(rD));
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+    if (UNLIKELY(thread->isolate() == nullptr)) {
+      SP[0] = field;
+      goto ThrowStaticFieldAccessedWithoutIsolateError;
+    }
     ObjectPtr value = thread->field_table_values()[field_id];
     ASSERT(value != Object::sentinel().ptr());
     *++SP = value;
@@ -3552,6 +3572,10 @@ SwitchDispatchNoSingleStep:
     // Field object is cached in function's data_.
     FieldPtr field = Field::RawCast(function->untag()->data());
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+    if (UNLIKELY(thread->isolate() == nullptr)) {
+      SP[0] = field;
+      goto ThrowStaticFieldAccessedWithoutIsolateError;
+    }
     ObjectPtr value = thread->field_table_values()[field_id];
     if (value == Object::sentinel().ptr()) {
       SP[1] = 0;  // Unused result of invoking the initializer.
@@ -3586,6 +3610,49 @@ SwitchDispatchNoSingleStep:
   }
 
   {
+    BYTECODE(VMInternal_ImplicitSharedStaticGetter, 0);
+
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::KindOf(function) ==
+           UntaggedFunction::kImplicitStaticGetter);
+
+    // Field object is cached in function's data_.
+    FieldPtr field = Field::RawCast(function->untag()->data());
+    intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+    ObjectPtr value = thread->shared_field_table_values()[field_id];
+    if (value == Object::sentinel().ptr()) {
+      SP[1] = 0;  // Unused result of invoking the initializer.
+      SP[2] = field;
+      Exit(thread, FP, SP + 3, pc);
+      INVOKE_RUNTIME(DRT_InitStaticField,
+                     NativeArguments(thread, 1, SP + 2, SP + 1));
+
+      // Reload objects after the call which may trigger GC.
+      function = FrameFunction(FP);
+      field = Field::RawCast(function->untag()->data());
+      // The field is initialized by the runtime call, but not returned.
+      intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+      value = thread->shared_field_table_values()[field_id];
+    }
+
+    // Field was initialized. Return its value.
+    *++SP = value;
+
+#if !defined(PRODUCT)
+    if (UNLIKELY(
+            Field::NeedsLoadGuardBit::decode(field->untag()->kind_bits_))) {
+      if (!AssertAssignableField<true>(thread, pc, FP, SP,
+                                       Instance::RawCast(null_value), field,
+                                       Instance::RawCast(value))) {
+        HANDLE_EXCEPTION;
+      }
+    }
+#endif
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(VMInternal_ImplicitStaticSetter, 0);
 
     FunctionPtr function = FrameFunction(FP);
@@ -3594,6 +3661,10 @@ SwitchDispatchNoSingleStep:
     // Field object is cached in function's data_.
     FieldPtr field = Field::RawCast(function->untag()->data());
     intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+    if (UNLIKELY(thread->isolate() == nullptr)) {
+      SP[0] = field;
+      goto ThrowStaticFieldAccessedWithoutIsolateError;
+    }
 
     // Static fields use setters only if they are final.
     ASSERT(Field::FinalBit::decode(field->untag()->kind_bits_));
@@ -3613,6 +3684,51 @@ SwitchDispatchNoSingleStep:
     InstancePtr value = Instance::RawCast(FrameArguments(FP, kArgc)[0]);
     thread->field_table_values()[field_id] = value;
 
+    *++SP = null_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_ImplicitSharedStaticSetter, 0);
+
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::KindOf(function) == UntaggedFunction::kImplicitSetter);
+
+    // Field object is cached in function's data_.
+    FieldPtr field = Field::RawCast(function->untag()->data());
+    intptr_t field_id = Smi::Value(field->untag()->host_offset_or_field_id());
+
+    // Static fields use setters if they are final or shared.
+    if (Field::FinalBit::decode(field->untag()->kind_bits_)) {
+      // Check that final field was not initialized already.
+      ObjectPtr old_value = thread->shared_field_table_values()[field_id];
+      if (UNLIKELY(old_value != Object::sentinel().ptr())) {
+        ++SP;
+        SP[0] = field;
+        SP[1] = 0;  // Unused space for result.
+        Exit(thread, FP, SP + 2, pc);
+        INVOKE_RUNTIME(DRT_LateFieldAlreadyInitializedError,
+                       NativeArguments(thread, 1, SP, SP + 1));
+        UNREACHABLE();
+      }
+    }
+
+    const intptr_t kArgc = 1;
+    InstancePtr value = Instance::RawCast(FrameArguments(FP, kArgc)[0]);
+    if (FLAG_experimental_shared_data &&
+        (value != Object::null() && !value->IsSmi() &&
+         !value->untag()->IsCanonical() &&
+         (!value->untag()->IsImmutable() || value->IsClosure()))) {
+      ++SP;
+      SP[0] = field;
+      SP[1] = value;
+      SP[2] = 0;  // Unused space for result.
+      Exit(thread, FP, SP + 3, pc);
+      INVOKE_RUNTIME(DRT_CheckedStoreIntoShared,
+                     NativeArguments(thread, 2, SP, SP + 2));
+    } else {
+      thread->shared_field_table_values()[field_id] = value;
+    }
     *++SP = null_value;
     DISPATCH();
   }
@@ -4153,7 +4269,7 @@ SwitchDispatchNoSingleStep:
     FunctionPtr function = Function::RawCast(SP[1]);
 
     for (;;) {
-      if (Function::HasBytecode(function)) {
+      if (Function::IsInterpreted(function)) {
         ASSERT(function->IsFunction());
         BytecodePtr bytecode = Function::GetBytecode(function);
         ASSERT(bytecode->IsBytecode());
@@ -4280,6 +4396,16 @@ SwitchDispatchNoSingleStep:
     SP[1] = 0;  // Unused space for result.
     Exit(thread, FP, SP + 2, pc);
     INVOKE_RUNTIME(DRT_ArgumentError, NativeArguments(thread, 1, SP, SP + 1));
+    UNREACHABLE();
+  }
+
+  {
+  ThrowStaticFieldAccessedWithoutIsolateError:
+    // SP[0] contains field.
+    SP[1] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 2, pc);
+    INVOKE_RUNTIME(DRT_StaticFieldAccessedWithoutIsolateError,
+                   NativeArguments(thread, 1, SP, SP + 1));
     UNREACHABLE();
   }
 

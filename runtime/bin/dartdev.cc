@@ -108,7 +108,15 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   // Prepare builtin and other core libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
   // Set up package configuration for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(false, false, false);
+  result = DartUtils::SetupCoreLibraries(
+      /*is_service_isolate=*/false, /*trace_loading=*/false,
+      /*profile_microtasks=*/false,
+      DartIoSettings{
+          .namespace_root = Options::namespc() != nullptr
+                                ? DartUtils::NewString(Options::namespc())
+                                : nullptr,
+          .script_uri = script_uri,
+          .disable_exit = Options::exit_disabled()});
   if (Dart_IsError(result)) return result;
 
   // Setup packages config if specified.
@@ -124,15 +132,7 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   if (Dart_IsError(result)) return result;
 
   // Setup the native resolver as the snapshot does not carry it.
-  Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
-  Builtin::SetNativeResolver(Builtin::kIOLibrary);
-  Builtin::SetNativeResolver(Builtin::kCLILibrary);
   VmService::SetNativeResolver();
-
-  const char* namespc = Options::namespc();
-  result =
-      DartUtils::SetupIOLibrary(namespc, script_uri, Options::exit_disabled());
-  if (Dart_IsError(result)) return result;
 
   return Dart_Null();
 }
@@ -642,6 +642,9 @@ class DartDev {
     } else {
       argc_ = argc + num_vm_options + 4;
     }
+    if (package_config_override_ != nullptr) {
+      argc_++;
+    }
 
     // Array of arguments to be passed to the script being execed.
     argv_ = std::unique_ptr<char*[], void (*)(char**)>(new char*[argc_ + 1],
@@ -686,6 +689,16 @@ class DartDev {
     }
     if (mark_main_isolate_as_system_isolate) {
       argv_[idx++] = Utils::StrDup("--mark_main_isolate_as_system_isolate");
+    }
+    if (package_config_override_ != nullptr) {
+#if defined(DART_HOST_OS_WINDOWS)
+      char* packages_arg =
+          Utils::SCreate("--packages=%s", package_config_override_);
+      argv_[idx++] = StringUtilsWin::ArgumentEscape(packages_arg);
+      free(packages_arg);
+#else
+      argv_[idx++] = Utils::SCreate("--packages=%s", package_config_override_);
+#endif
     }
     // Copy in name of the script to run.
     argv_[idx++] = Utils::StrDup(GetArrayItem(message, 1)->value.as_string);

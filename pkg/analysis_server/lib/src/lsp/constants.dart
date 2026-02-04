@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analysis_server/src/lsp/handlers/handler_format_on_type.dart';
+library;
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 
@@ -43,6 +46,9 @@ const dartSignatureHelpRetriggerCharacters = <String>[','];
 const dartSignatureHelpTriggerCharacters = <String>['('];
 
 /// Characters to trigger formatting when format-on-type is enabled.
+///
+/// [FormatOnTypeHandler._shouldTriggerFormatting] contains the logic for when
+/// each of these characters will allow formatting.
 const dartTypeFormattingCharacters = ['}', ';'];
 
 /// A [TextDocumentFilterScheme] for Analysis Options files.
@@ -152,10 +158,6 @@ abstract final class CustomMethods {
   static const summary = Method('dart/textDocument/summary');
   static const super_ = Method('dart/textDocument/super');
   static const imports = Method('dart/textDocument/imports');
-  static const dartTextDocumentContent = Method('dart/textDocumentContent');
-  static const dartTextDocumentContentDidChange = Method(
-    'dart/textDocumentContentDidChange',
-  );
 
   /// Method for requesting the set of editable arguments at a location in a
   /// document.
@@ -313,61 +315,61 @@ abstract final class DartCodeActionKind {
     CodeActionKind.Source,
     // We have to explicitly list this for the client to enable built-in command.
     CodeActionKind.SourceOrganizeImports,
-    FixAll,
-    SortMembers,
+    fixAll,
+    sortMembers,
     CodeActionKind.QuickFix,
     CodeActionKind.Refactor,
   ];
-  static const SortMembers = CodeActionKind('source.sortMembers');
+  static const sortMembers = CodeActionKind('source.sortMembers');
   // TODO(dantup): Once this PR is merged into LSP and released, regenerated the
   //   LSP protocol code and swap this code CodeActionKind.SourceFixAll
   //   https://github.com/microsoft/language-server-protocol/pull/1308
-  static const FixAll = CodeActionKind('source.fixAll');
+  static const fixAll = CodeActionKind('source.fixAll');
   // TODO(dantup): Remove this in favour of CodeActionKind.RefactorMove once it
   //   has been added to a published LSP version.
-  static const RefactorMove = CodeActionKind('refactor.move');
+  static const refactorMove = CodeActionKind('refactor.move');
 }
 
 abstract final class ServerErrorCodes {
   // JSON-RPC reserves -32000 to -32099 for implementation-defined server-errors.
-  static const ServerAlreadyStarted = ErrorCodes(-32000);
-  static const UnhandledError = ErrorCodes(-32001);
-  static const ServerAlreadyInitialized = ErrorCodes(-32002);
-  static const InvalidFilePath = ErrorCodes(-32003);
-  static const InvalidFileLineCol = ErrorCodes(-32004);
-  static const UnknownCommand = ErrorCodes(-32005);
-  static const InvalidCommandArguments = ErrorCodes(-32006);
+  static const serverAlreadyStarted = ErrorCodes(-32000);
+  static const unhandledError = ErrorCodes(-32001);
+  static const serverAlreadyInitialized = ErrorCodes(-32002);
+  static const invalidFilePath = ErrorCodes(-32003);
+  static const invalidFileLineCol = ErrorCodes(-32004);
+  static const unknownCommand = ErrorCodes(-32005);
+  static const invalidCommandArguments = ErrorCodes(-32006);
 
   /// A file that is not part of the analyzed set.
-  static const FileNotAnalyzed = ErrorCodes(-32007);
-  static const FileHasErrors = ErrorCodes(-32008);
-  static const ClientFailedToApplyEdit = ErrorCodes(-32009);
-  static const RenameNotValid = ErrorCodes(-32010);
-  static const FeatureDisabled = ErrorCodes(-32012);
+  static const fileNotAnalyzed = ErrorCodes(-32007);
+  static const fileHasErrors = ErrorCodes(-32008);
+  static const clientFailedToApplyEdit = ErrorCodes(-32009);
+  static const renameNotValid = ErrorCodes(-32010);
+  static const featureDisabled = ErrorCodes(-32012);
 
   /// A file that is expected to be analyzed, but failed.
-  static const FileAnalysisFailed = ErrorCodes(-32013);
+  static const fileAnalysisFailed = ErrorCodes(-32013);
 
   /// Computation of a refactoring change failed.
-  static const RefactoringComputeStatusFailure = ErrorCodes(-32014);
+  static const refactoringComputeStatusFailure = ErrorCodes(-32014);
 
   /// General state error.
-  static const StateError = ErrorCodes(-32015);
+  static const stateError = ErrorCodes(-32015);
 
   /// A request was made that requires use of workspace/applyEdit but the
   /// current editor does not support it.
-  static const EditsUnsupportedByEditor = ErrorCodes(-32016);
+  static const editsUnsupportedByEditor = ErrorCodes(-32016);
 
   /// An editArgument request tried to modify an invocation at a position where
   /// there was no invocation.
-  static const EditArgumentInvalidPosition = ErrorCodes(-32017);
+  static const editArgumentInvalidPosition = ErrorCodes(-32017);
 
   /// An editArgument request tried to modify a parameter that does not exist or
   /// is not editable.
-  static const EditArgumentInvalidParameter = ErrorCodes(-32018);
+  static const editArgumentInvalidParameter = ErrorCodes(-32018);
 
   /// An editArgument request tried to set an argument value that is not valid.
-  static const EditArgumentInvalidValue = ErrorCodes(-32019);
+  static const editArgumentInvalidValue = ErrorCodes(-32019);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification
@@ -381,7 +383,7 @@ abstract final class ServerErrorCodes {
   ///   restart the server. However clients should be careful to not restart a
   ///   crashing server endlessly. VS Code for example doesn't restart a server
   ///   if it crashes 5 times in the last 180 seconds."
-  static const ClientServerInconsistentState = ErrorCodes(-32099);
+  static const clientServerInconsistentState = ErrorCodes(-32099);
 }
 
 /// Strings used in user prompts (window/showMessageRequest).

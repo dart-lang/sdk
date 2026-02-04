@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -23,7 +22,7 @@ void f(void x) {
   x && true;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 19, 1)],
+      [error(diag.useOfVoidResult, 19, 1)],
     );
   }
 
@@ -34,7 +33,7 @@ void f(void x) {
   true && x;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 27, 1)],
+      [error(diag.useOfVoidResult, 27, 1)],
     );
   }
 
@@ -46,7 +45,7 @@ void f(void x) {
   dynamic v = x;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 65, 1)],
+      [error(diag.useOfVoidResult, 65, 1)],
     );
   }
 
@@ -70,8 +69,8 @@ class A {
   }
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 38, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 49, 1),
+        error(diag.unusedLocalVariable, 38, 1),
+        error(diag.useOfVoidResult, 49, 1),
       ],
     );
   }
@@ -87,8 +86,8 @@ class A {
   }
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 40, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 51, 1),
+        error(diag.unusedLocalVariable, 40, 1),
+        error(diag.useOfVoidResult, 51, 1),
       ],
     );
   }
@@ -109,7 +108,7 @@ void f(void x) async {
   await x;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 31, 1)],
+      [error(diag.useOfVoidResult, 31, 1)],
     );
   }
 
@@ -121,7 +120,7 @@ class A {
   A(void x) : f = x;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 41, 1)],
+      [error(diag.useOfVoidResult, 41, 1)],
     );
   }
 
@@ -147,7 +146,7 @@ void h() {
   E(f()).g;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 73, 3)],
+      [error(diag.useOfVoidResult, 73, 3)],
     );
   }
 
@@ -161,7 +160,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 33, 1)],
+      [error(diag.unusedLocalVariable, 33, 1)],
     );
   }
 
@@ -175,8 +174,8 @@ class A {
   }
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 47, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 51, 1),
+        error(diag.unusedLocalVariable, 47, 1),
+        error(diag.useOfVoidResult, 51, 1),
       ],
     );
   }
@@ -191,7 +190,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 45, 1)],
+      [error(diag.unusedLocalVariable, 45, 1)],
     );
   }
 
@@ -202,7 +201,7 @@ void f(void x) {
   "$x";
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 21, 1)],
+      [error(diag.useOfVoidResult, 21, 1)],
     );
   }
 
@@ -213,7 +212,7 @@ void f(void x) {
   !x;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 20, 1)],
+      [error(diag.useOfVoidResult, 20, 1)],
     );
   }
 
@@ -225,7 +224,7 @@ g() {
   var a = f();
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 26, 1)],
+      [error(diag.unusedLocalVariable, 26, 1)],
     );
   }
 
@@ -236,7 +235,7 @@ f(void x) {
   x!;
 }
 ''',
-      [ExpectedError(CompileTimeErrorCode.useOfVoidResult, 14, 2)],
+      [error(diag.useOfVoidResult, 14, 2)],
     );
 
     assertType(findNode.postfix('x!'), 'void');
@@ -249,7 +248,7 @@ void f(void x) {
   x || true;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 19, 1)],
+      [error(diag.useOfVoidResult, 19, 1)],
     );
   }
 
@@ -260,7 +259,7 @@ void f(void x) {
   false || x;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 28, 1)],
+      [error(diag.useOfVoidResult, 28, 1)],
     );
   }
 
@@ -271,7 +270,7 @@ void f(void x) {
   (one: x,);
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 20, 6)],
+      [error(diag.useOfVoidResult, 20, 6)],
     );
   }
 
@@ -282,7 +281,7 @@ void f(void x) {
   (x,);
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 20, 1)],
+      [error(diag.useOfVoidResult, 20, 1)],
     );
   }
 
@@ -293,7 +292,7 @@ void f(void x) {
   switch(x) {}
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 26, 1)],
+      [error(diag.useOfVoidResult, 26, 1)],
     );
   }
 
@@ -305,8 +304,8 @@ void f(void x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.useOfVoidResult, 25, 1),
-        error(CompileTimeErrorCode.throwOfInvalidType, 25, 1),
+        error(diag.useOfVoidResult, 25, 1),
+        error(diag.throwOfInvalidType, 25, 1),
       ],
     );
   }
@@ -319,12 +318,8 @@ void test(void f()) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          24,
-          1,
-        ),
-        error(CompileTimeErrorCode.useOfVoidResult, 25, 3),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 24, 1),
+        error(diag.useOfVoidResult, 25, 3),
       ],
     );
   }
@@ -337,12 +332,8 @@ void f(void x) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          19,
-          1,
-        ),
-        error(CompileTimeErrorCode.useOfVoidResult, 20, 1),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 19, 1),
+        error(diag.useOfVoidResult, 20, 1),
       ],
     );
   }
@@ -354,7 +345,7 @@ void f(List list, void x) {
   list[x] = null;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 35, 1)],
+      [error(diag.useOfVoidResult, 35, 1)],
     );
   }
 
@@ -365,7 +356,7 @@ void f(List list, void x) {
   list[x];
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 35, 1)],
+      [error(diag.useOfVoidResult, 35, 1)],
     );
   }
 
@@ -377,8 +368,8 @@ void f(void x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 27, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 31, 1),
+        error(diag.unusedLocalVariable, 27, 1),
+        error(diag.useOfVoidResult, 31, 1),
       ],
     );
   }
@@ -390,7 +381,7 @@ void f(void x) {
   x[0];
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 20, 3)],
+      [error(diag.useOfVoidResult, 20, 3)],
     );
   }
 
@@ -401,7 +392,7 @@ void f(void x) {
   x.foo = null;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 21, 3)],
+      [error(diag.useOfVoidResult, 21, 3)],
     );
   }
 
@@ -422,7 +413,7 @@ void f(void x) {
   x ? null : null;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 19, 1)],
+      [error(diag.useOfVoidResult, 19, 1)],
     );
   }
 
@@ -451,7 +442,7 @@ void f(void x) {
   do {} while (x);
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 32, 1)],
+      [error(diag.useOfVoidResult, 32, 1)],
     );
   }
 
@@ -471,12 +462,8 @@ void f(void x, var y) {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
-          36,
-          1,
-        ),
-        error(CompileTimeErrorCode.useOfVoidResult, 36, 1),
+        error(diag.uncheckedUseOfNullableValueAsIterator, 36, 1),
+        error(diag.useOfVoidResult, 36, 1),
       ],
     );
   }
@@ -489,13 +476,9 @@ void f(void x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 28, 1),
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
-          33,
-          1,
-        ),
-        error(CompileTimeErrorCode.useOfVoidResult, 33, 1),
+        error(diag.unusedLocalVariable, 28, 1),
+        error(diag.uncheckedUseOfNullableValueAsIterator, 33, 1),
+        error(diag.useOfVoidResult, 33, 1),
       ],
     );
   }
@@ -508,7 +491,7 @@ void f(void x) {
   for (x in [1, 2]) {}
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 24, 1)],
+      [error(diag.useOfVoidResult, 24, 1)],
     );
   }
 
@@ -527,7 +510,7 @@ void f(void x) {
   x is int;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 19, 1)],
+      [error(diag.useOfVoidResult, 19, 1)],
     );
   }
 
@@ -538,7 +521,7 @@ void f(void x) {
   <dynamic>[x];
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 29, 1)],
+      [error(diag.useOfVoidResult, 29, 1)],
     );
   }
 
@@ -557,7 +540,7 @@ void f(void x) {
   <dynamic, int>{x : 4};
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 34, 1)],
+      [error(diag.useOfVoidResult, 34, 1)],
     );
   }
 
@@ -576,7 +559,7 @@ void f(void x) {
   <int, dynamic>{4: x};
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 37, 1)],
+      [error(diag.useOfVoidResult, 37, 1)],
     );
   }
 
@@ -595,7 +578,7 @@ void f(void x) {
   x ?? 1;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 19, 1)],
+      [error(diag.useOfVoidResult, 19, 1)],
     );
   }
 
@@ -614,7 +597,7 @@ void f(void x) {
   x += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 21, 2)],
+      [error(diag.useOfVoidResult, 21, 2)],
     );
   }
 
@@ -625,7 +608,7 @@ void f(void x) {
   while (x) {};
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 26, 1)],
+      [error(diag.useOfVoidResult, 26, 1)],
     );
   }
 
@@ -636,7 +619,7 @@ void f(void x) {
   x?.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 22, 3)],
+      [error(diag.useOfVoidResult, 22, 3)],
     );
   }
 
@@ -647,7 +630,7 @@ void f(void x) {
   x.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 21, 3)],
+      [error(diag.useOfVoidResult, 21, 3)],
     );
   }
 
@@ -661,10 +644,7 @@ extension on void {
   }
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 22, 8),
-        error(CompileTimeErrorCode.useOfVoidResult, 96, 4),
-      ],
+      [error(diag.unusedElement, 22, 8), error(diag.useOfVoidResult, 96, 4)],
     );
   }
 
@@ -677,7 +657,7 @@ dynamic f(void x) {
   return x;
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 36, 1)],
+      [error(diag.returnOfInvalidTypeFromFunction, 36, 1)],
     );
   }
 
@@ -697,7 +677,7 @@ void f(void x) {
 }
 void g(dynamic x) { }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 21, 1)],
+      [error(diag.useOfVoidResult, 21, 1)],
     );
   }
 
@@ -708,7 +688,7 @@ void f(void x) {
   void y = x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 24, 1)],
+      [error(diag.unusedLocalVariable, 24, 1)],
     );
   }
 
@@ -722,8 +702,8 @@ class A {
   }
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 41, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 45, 1),
+        error(diag.unusedLocalVariable, 41, 1),
+        error(diag.useOfVoidResult, 45, 1),
       ],
     );
   }
@@ -738,7 +718,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 39, 1)],
+      [error(diag.unusedLocalVariable, 39, 1)],
     );
   }
 
@@ -752,10 +732,10 @@ class A {
   }
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 43, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 47, 1),
-        error(WarningCode.unusedLocalVariable, 52, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 56, 1),
+        error(diag.unusedLocalVariable, 43, 1),
+        error(diag.useOfVoidResult, 47, 1),
+        error(diag.unusedLocalVariable, 52, 1),
+        error(diag.useOfVoidResult, 56, 1),
       ],
     );
   }
@@ -770,8 +750,8 @@ class A {
   }
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 43, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 47, 1),
+        error(diag.unusedLocalVariable, 43, 1),
+        error(diag.useOfVoidResult, 47, 1),
       ],
     );
   }
@@ -786,7 +766,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 41, 1)],
+      [error(diag.unusedLocalVariable, 41, 1)],
     );
   }
 
@@ -798,13 +778,9 @@ Object? f(void x) async* {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
-          36,
-          1,
-        ),
-        error(CompileTimeErrorCode.yieldEachOfInvalidType, 36, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 36, 1),
+        error(diag.uncheckedUseOfNullableValueInYieldEach, 36, 1),
+        error(diag.yieldEachOfInvalidType, 36, 1),
+        error(diag.useOfVoidResult, 36, 1),
       ],
     );
   }
@@ -817,13 +793,9 @@ Object? f(void x) sync* {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
-          35,
-          1,
-        ),
-        error(CompileTimeErrorCode.yieldEachOfInvalidType, 35, 1),
-        error(CompileTimeErrorCode.useOfVoidResult, 35, 1),
+        error(diag.uncheckedUseOfNullableValueInYieldEach, 35, 1),
+        error(diag.yieldEachOfInvalidType, 35, 1),
+        error(diag.useOfVoidResult, 35, 1),
       ],
     );
   }
@@ -835,7 +807,7 @@ dynamic f(void x) async* {
   yield x;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 35, 1)],
+      [error(diag.useOfVoidResult, 35, 1)],
     );
   }
 
@@ -846,7 +818,7 @@ dynamic f(void x) sync* {
   yield x;
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 34, 1)],
+      [error(diag.useOfVoidResult, 34, 1)],
     );
   }
 }

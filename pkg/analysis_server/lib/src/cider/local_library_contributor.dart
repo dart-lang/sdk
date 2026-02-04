@@ -110,7 +110,7 @@ class LibraryElementSuggestionBuilder
         (opType.includeAnnotationSuggestions && variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
-        if (element.isSynthetic) {
+        if (element.isOriginVariable) {
           if (variable is FieldElement) {
             builder.suggestField(variable, inheritanceDistance: 0.0);
           }
@@ -148,7 +148,7 @@ class LibraryElementSuggestionBuilder
         (opType.includeAnnotationSuggestions && variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
-        if (!element.isSynthetic) {
+        if (!element.isOriginVariable) {
           builder.suggestSetter(element, inheritanceDistance: 0.0);
         }
       } else {
@@ -173,7 +173,7 @@ class LibraryElementSuggestionBuilder
 
   @override
   void visitTopLevelVariableElement(TopLevelVariableElement element) {
-    if (opType.includeReturnValueSuggestions && !element.isSynthetic) {
+    if (opType.includeReturnValueSuggestions && element.isOriginDeclaration) {
       builder.suggestTopLevelVariable(element, prefix: prefix);
     }
   }
@@ -230,7 +230,7 @@ class LibraryElementSuggestionBuilder
           if (field.isStatic &&
               field.isAccessibleIn(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
-            if (field.isSynthetic) {
+            if (field.isOriginGetterSetter) {
               var getter = field.getter;
               if (getter != null) {
                 builder.suggestGetter(

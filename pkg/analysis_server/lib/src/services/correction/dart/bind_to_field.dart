@@ -14,6 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
+import '../../../utilities/extensions/ast.dart';
 import 'create_constructor.dart';
 
 /// Binds a constructor parameter to a newly created field.
@@ -100,17 +101,18 @@ class BindToField extends ResolvedCorrectionProducer {
       return;
     }
     if (container is ClassDeclaration &&
-        container.members.any(
+        container.members2.any(
           (member) => switch (member) {
             ConstructorDeclaration() => false,
             FieldDeclaration() => false,
             MethodDeclaration() => member.name.lexeme == parameter.name?.lexeme,
+            PrimaryConstructorBody() => false,
           },
         )) {
       return;
     }
     if (container is EnumDeclaration &&
-        container.constants.any(
+        container.body.constants.any(
           (constant) => constant.name.lexeme == parameter.name?.lexeme,
         )) {
       return;
@@ -155,7 +157,7 @@ class BindToField extends ResolvedCorrectionProducer {
     LibraryElement libraryElement2,
   ) {
     if (container is ClassDeclaration) {
-      var fieldWithSameName = container.members
+      var fieldWithSameName = container.members2
           .whereType<FieldDeclaration>()
           .map(
             (member) => member.fields.variables.firstWhereOrNull(

@@ -166,7 +166,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
       }
     } else if (parent is ConstructorDeclaration) {
       // Map a constructor declarations to its associated constructor element.
-      var returnType = parent.returnType;
+      var returnType = parent.typeName;
       if (identical(returnType, node)) {
         var name = parent.name;
         if (name != null) {
@@ -201,6 +201,12 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
       if (method is Identifier && method.staticType is FunctionType) {
         return method.element;
       }
+    } else if (parent is PrefixedIdentifier &&
+        parent.identifier == node &&
+        parent.identifier.name == MethodElement.CALL_METHOD_NAME &&
+        parent.prefix.staticType is FunctionType) {
+      // Handle .call tear-offs on functions.
+      return parent.prefix.element;
     }
     return node.writeOrReadElement;
   }
@@ -237,7 +243,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitMethodInvocation(MethodInvocation node) {
-    return node.methodName.element;
+    return node.methodName.element ?? visitIdentifier(node.methodName);
   }
 
   @override
@@ -248,6 +254,11 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitNamedType(NamedType node) {
     return node.element;
+  }
+
+  @override
+  Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
+    return node.parent!.accept(this);
   }
 
   @override
@@ -277,7 +288,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    return node.element;
+    return node.element ?? visitIdentifier(node.identifier);
   }
 
   @override
@@ -286,16 +297,21 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitRepresentationConstructorName(
-    RepresentationConstructorName node,
+  Element? visitPrimaryConstructorDeclaration(
+    PrimaryConstructorDeclaration node,
   ) {
-    var representation = node.parent as RepresentationDeclaration;
-    return representation.constructorFragment?.element;
+    if (node.constructorName != null) {
+      return node.declaredFragment?.element;
+    }
+    if (node.parent case ExtensionTypeDeclaration extensionType) {
+      return extensionType.declaredFragment?.element;
+    }
+    return null;
   }
 
   @override
-  Element? visitRepresentationDeclaration(RepresentationDeclaration node) {
-    return node.fieldFragment?.element;
+  Element? visitPrimaryConstructorName(PrimaryConstructorName node) {
+    return node.parent!.accept(this);
   }
 
   @override

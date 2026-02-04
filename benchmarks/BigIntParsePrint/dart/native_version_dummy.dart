@@ -6,7 +6,7 @@ import 'native_version.dart';
 
 const NativeBigIntMethods nativeBigInt = _DummyMethods();
 
-class _DummyMethods implements NativeBigIntMethods {
+class _DummyMethods implements NativeBigIntMethods<Object> {
   const _DummyMethods();
 
   @override

@@ -15,9 +15,9 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// analysis.analyzedFiles params
 ///
-/// {
-///   "directories": List<FilePath>
-/// }
+///     {
+///       "directories": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisAnalyzedFilesParams implements HasToJson {
@@ -97,16 +97,9 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisAnalyzedFilesParams) {
-      return listEqual(
-        directories,
-        other.directories,
-        (String a, String b) => a == b,
-      );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisAnalyzedFilesParams &&
+      listEqual(directories, other.directories, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hashAll(directories);
@@ -114,10 +107,10 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
 
 /// analysis.closingLabels params
 ///
-/// {
-///   "file": FilePath
-///   "labels": List<ClosingLabel>
-/// }
+///     {
+///       "file": FilePath
+///       "labels": List<ClosingLabel>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisClosingLabelsParams implements HasToJson {
@@ -218,17 +211,14 @@ class AnalysisClosingLabelsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisClosingLabelsParams) {
-      return file == other.file &&
-          listEqual(
-            labels,
-            other.labels,
-            (ClosingLabel a, ClosingLabel b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisClosingLabelsParams &&
+      file == other.file &&
+      listEqual(
+        labels,
+        other.labels,
+        (ClosingLabel a, ClosingLabel b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(file, Object.hashAll(labels));
@@ -236,10 +226,10 @@ class AnalysisClosingLabelsParams implements HasToJson {
 
 /// AnalysisErrorFixes
 ///
-/// {
-///   "error": AnalysisError
-///   "fixes": List<SourceChange>
-/// }
+///     {
+///       "error": AnalysisError
+///       "fixes": List<SourceChange>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorFixes implements HasToJson {
@@ -311,17 +301,10 @@ class AnalysisErrorFixes implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisErrorFixes) {
-      return error == other.error &&
-          listEqual(
-            fixes,
-            other.fixes,
-            (SourceChange a, SourceChange b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisErrorFixes &&
+      error == other.error &&
+      listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
 
   @override
   int get hashCode => Object.hash(error, Object.hashAll(fixes));
@@ -329,10 +312,10 @@ class AnalysisErrorFixes implements HasToJson {
 
 /// analysis.errors params
 ///
-/// {
-///   "file": FilePath
-///   "errors": List<AnalysisError>
-/// }
+///     {
+///       "file": FilePath
+///       "errors": List<AnalysisError>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorsParams implements HasToJson {
@@ -423,17 +406,14 @@ class AnalysisErrorsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisErrorsParams) {
-      return file == other.file &&
-          listEqual(
-            errors,
-            other.errors,
-            (AnalysisError a, AnalysisError b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisErrorsParams &&
+      file == other.file &&
+      listEqual(
+        errors,
+        other.errors,
+        (AnalysisError a, AnalysisError b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(file, Object.hashAll(errors));
@@ -441,9 +421,9 @@ class AnalysisErrorsParams implements HasToJson {
 
 /// analysis.flushResults params
 ///
-/// {
-///   "files": List<FilePath>
-/// }
+///     {
+///       "files": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisFlushResultsParams implements HasToJson {
@@ -523,12 +503,9 @@ class AnalysisFlushResultsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisFlushResultsParams) {
-      return listEqual(files, other.files, (String a, String b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisFlushResultsParams &&
+      listEqual(files, other.files, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hashAll(files);
@@ -536,10 +513,10 @@ class AnalysisFlushResultsParams implements HasToJson {
 
 /// analysis.folding params
 ///
-/// {
-///   "file": FilePath
-///   "regions": List<FoldingRegion>
-/// }
+///     {
+///       "file": FilePath
+///       "regions": List<FoldingRegion>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisFoldingParams implements HasToJson {
@@ -630,17 +607,14 @@ class AnalysisFoldingParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisFoldingParams) {
-      return file == other.file &&
-          listEqual(
-            regions,
-            other.regions,
-            (FoldingRegion a, FoldingRegion b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisFoldingParams &&
+      file == other.file &&
+      listEqual(
+        regions,
+        other.regions,
+        (FoldingRegion a, FoldingRegion b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(file, Object.hashAll(regions));
@@ -648,9 +622,9 @@ class AnalysisFoldingParams implements HasToJson {
 
 /// analysis.getErrors params
 ///
-/// {
-///   "file": FilePath
-/// }
+///     {
+///       "file": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsParams implements RequestParams {
@@ -720,12 +694,8 @@ class AnalysisGetErrorsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetErrorsParams) {
-      return file == other.file;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisGetErrorsParams && file == other.file;
 
   @override
   int get hashCode => file.hashCode;
@@ -733,9 +703,9 @@ class AnalysisGetErrorsParams implements RequestParams {
 
 /// analysis.getErrors result
 ///
-/// {
-///   "errors": List<AnalysisError>
-/// }
+///     {
+///       "errors": List<AnalysisError>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsResult implements ResponseResult {
@@ -811,16 +781,13 @@ class AnalysisGetErrorsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetErrorsResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is AnalysisGetErrorsResult &&
+      listEqual(
         errors,
         other.errors,
         (AnalysisError a, AnalysisError b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(errors);
@@ -828,10 +795,10 @@ class AnalysisGetErrorsResult implements ResponseResult {
 
 /// analysis.getHover params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverParams implements RequestParams {
@@ -911,12 +878,10 @@ class AnalysisGetHoverParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetHoverParams) {
-      return file == other.file && offset == other.offset;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisGetHoverParams &&
+      file == other.file &&
+      offset == other.offset;
 
   @override
   int get hashCode => Object.hash(file, offset);
@@ -924,9 +889,9 @@ class AnalysisGetHoverParams implements RequestParams {
 
 /// analysis.getHover result
 ///
-/// {
-///   "hovers": List<HoverInformation>
-/// }
+///     {
+///       "hovers": List<HoverInformation>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverResult implements ResponseResult {
@@ -1006,16 +971,13 @@ class AnalysisGetHoverResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetHoverResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is AnalysisGetHoverResult &&
+      listEqual(
         hovers,
         other.hovers,
         (HoverInformation a, HoverInformation b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(hovers);
@@ -1023,11 +985,11 @@ class AnalysisGetHoverResult implements ResponseResult {
 
 /// analysis.getImportedElements params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsParams implements RequestParams {
@@ -1121,14 +1083,11 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetImportedElementsParams) {
-      return file == other.file &&
-          offset == other.offset &&
-          length == other.length;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisGetImportedElementsParams &&
+      file == other.file &&
+      offset == other.offset &&
+      length == other.length;
 
   @override
   int get hashCode => Object.hash(file, offset, length);
@@ -1136,9 +1095,9 @@ class AnalysisGetImportedElementsParams implements RequestParams {
 
 /// analysis.getImportedElements result
 ///
-/// {
-///   "elements": List<ImportedElements>
-/// }
+///     {
+///       "elements": List<ImportedElements>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsResult implements ResponseResult {
@@ -1219,16 +1178,13 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetImportedElementsResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is AnalysisGetImportedElementsResult &&
+      listEqual(
         elements,
         other.elements,
         (ImportedElements a, ImportedElements b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(elements);
@@ -1261,10 +1217,10 @@ class AnalysisGetLibraryDependenciesParams implements RequestParams {
 
 /// analysis.getLibraryDependencies result
 ///
-/// {
-///   "libraries": List<FilePath>
-///   "packageMap": Map<String, Map<String, List<FilePath>>>
-/// }
+///     {
+///       "libraries": List<FilePath>
+///       "packageMap": Map<String, Map<String, List<FilePath>>>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetLibraryDependenciesResult implements ResponseResult {
@@ -1385,27 +1341,19 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetLibraryDependenciesResult) {
-      return listEqual(
-            libraries,
-            other.libraries,
-            (String a, String b) => a == b,
-          ) &&
-          mapEqual(
-            packageMap,
-            other.packageMap,
-            (Map<String, List<String>> a, Map<String, List<String>> b) =>
-                mapEqual(
-                  a,
-                  b,
-                  (List<String> a, List<String> b) =>
-                      listEqual(a, b, (String a, String b) => a == b),
-                ),
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisGetLibraryDependenciesResult &&
+      listEqual(libraries, other.libraries, (String a, String b) => a == b) &&
+      mapEqual(
+        packageMap,
+        other.packageMap,
+        (Map<String, List<String>> a, Map<String, List<String>> b) => mapEqual(
+          a,
+          b,
+          (List<String> a, List<String> b) =>
+              listEqual(a, b, (String a, String b) => a == b),
+        ),
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -1416,11 +1364,11 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
 
 /// analysis.getNavigation params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationParams implements RequestParams {
@@ -1516,14 +1464,11 @@ class AnalysisGetNavigationParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetNavigationParams) {
-      return file == other.file &&
-          offset == other.offset &&
-          length == other.length;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisGetNavigationParams &&
+      file == other.file &&
+      offset == other.offset &&
+      length == other.length;
 
   @override
   int get hashCode => Object.hash(file, offset, length);
@@ -1531,11 +1476,11 @@ class AnalysisGetNavigationParams implements RequestParams {
 
 /// analysis.getNavigation result
 ///
-/// {
-///   "files": List<FilePath>
-///   "targets": List<NavigationTarget>
-///   "regions": List<NavigationRegion>
-/// }
+///     {
+///       "files": List<FilePath>
+///       "targets": List<NavigationTarget>
+///       "regions": List<NavigationRegion>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationResult implements ResponseResult {
@@ -1664,22 +1609,19 @@ class AnalysisGetNavigationResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetNavigationResult) {
-      return listEqual(files, other.files, (String a, String b) => a == b) &&
-          listEqual(
-            targets,
-            other.targets,
-            (NavigationTarget a, NavigationTarget b) => a == b,
-          ) &&
-          listEqual(
-            regions,
-            other.regions,
-            (NavigationRegion a, NavigationRegion b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisGetNavigationResult &&
+      listEqual(files, other.files, (String a, String b) => a == b) &&
+      listEqual(
+        targets,
+        other.targets,
+        (NavigationTarget a, NavigationTarget b) => a == b,
+      ) &&
+      listEqual(
+        regions,
+        other.regions,
+        (NavigationRegion a, NavigationRegion b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -1691,9 +1633,9 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
 /// analysis.getReachableSources params
 ///
-/// {
-///   "file": FilePath
-/// }
+///     {
+///       "file": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesParams implements RequestParams {
@@ -1767,12 +1709,8 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetReachableSourcesParams) {
-      return file == other.file;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisGetReachableSourcesParams && file == other.file;
 
   @override
   int get hashCode => file.hashCode;
@@ -1780,9 +1718,9 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
 
 /// analysis.getReachableSources result
 ///
-/// {
-///   "sources": Map<String, List<String>>
-/// }
+///     {
+///       "sources": Map<String, List<String>>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesResult implements ResponseResult {
@@ -1859,17 +1797,14 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetReachableSourcesResult) {
-      return mapEqual(
+  bool operator ==(Object other) =>
+      other is AnalysisGetReachableSourcesResult &&
+      mapEqual(
         sources,
         other.sources,
         (List<String> a, List<String> b) =>
             listEqual(a, b, (String a, String b) => a == b),
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll([...sources.keys, ...sources.values]);
@@ -1877,10 +1812,10 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
 
 /// analysis.getSignature params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureParams implements RequestParams {
@@ -1964,12 +1899,10 @@ class AnalysisGetSignatureParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetSignatureParams) {
-      return file == other.file && offset == other.offset;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisGetSignatureParams &&
+      file == other.file &&
+      offset == other.offset;
 
   @override
   int get hashCode => Object.hash(file, offset);
@@ -1977,11 +1910,11 @@ class AnalysisGetSignatureParams implements RequestParams {
 
 /// analysis.getSignature result
 ///
-/// {
-///   "name": String
-///   "parameters": List<ParameterInfo>
-///   "dartdoc": optional String
-/// }
+///     {
+///       "name": String
+///       "parameters": List<ParameterInfo>
+///       "dartdoc": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureResult implements ResponseResult {
@@ -2090,18 +2023,15 @@ class AnalysisGetSignatureResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisGetSignatureResult) {
-      return name == other.name &&
-          listEqual(
-            parameters,
-            other.parameters,
-            (ParameterInfo a, ParameterInfo b) => a == b,
-          ) &&
-          dartdoc == other.dartdoc;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisGetSignatureResult &&
+      name == other.name &&
+      listEqual(
+        parameters,
+        other.parameters,
+        (ParameterInfo a, ParameterInfo b) => a == b,
+      ) &&
+      dartdoc == other.dartdoc;
 
   @override
   int get hashCode => Object.hash(name, Object.hashAll(parameters), dartdoc);
@@ -2109,10 +2039,10 @@ class AnalysisGetSignatureResult implements ResponseResult {
 
 /// analysis.highlights params
 ///
-/// {
-///   "file": FilePath
-///   "regions": List<HighlightRegion>
-/// }
+///     {
+///       "file": FilePath
+///       "regions": List<HighlightRegion>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisHighlightsParams implements HasToJson {
@@ -2207,17 +2137,14 @@ class AnalysisHighlightsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisHighlightsParams) {
-      return file == other.file &&
-          listEqual(
-            regions,
-            other.regions,
-            (HighlightRegion a, HighlightRegion b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisHighlightsParams &&
+      file == other.file &&
+      listEqual(
+        regions,
+        other.regions,
+        (HighlightRegion a, HighlightRegion b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(file, Object.hashAll(regions));
@@ -2225,11 +2152,11 @@ class AnalysisHighlightsParams implements HasToJson {
 
 /// analysis.implemented params
 ///
-/// {
-///   "file": FilePath
-///   "classes": List<ImplementedClass>
-///   "members": List<ImplementedMember>
-/// }
+///     {
+///       "file": FilePath
+///       "classes": List<ImplementedClass>
+///       "members": List<ImplementedMember>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisImplementedParams implements HasToJson {
@@ -2344,22 +2271,19 @@ class AnalysisImplementedParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisImplementedParams) {
-      return file == other.file &&
-          listEqual(
-            classes,
-            other.classes,
-            (ImplementedClass a, ImplementedClass b) => a == b,
-          ) &&
-          listEqual(
-            members,
-            other.members,
-            (ImplementedMember a, ImplementedMember b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisImplementedParams &&
+      file == other.file &&
+      listEqual(
+        classes,
+        other.classes,
+        (ImplementedClass a, ImplementedClass b) => a == b,
+      ) &&
+      listEqual(
+        members,
+        other.members,
+        (ImplementedMember a, ImplementedMember b) => a == b,
+      );
 
   @override
   int get hashCode =>
@@ -2368,12 +2292,12 @@ class AnalysisImplementedParams implements HasToJson {
 
 /// analysis.invalidate params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-///   "delta": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///       "delta": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisInvalidateParams implements HasToJson {
@@ -2472,15 +2396,12 @@ class AnalysisInvalidateParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisInvalidateParams) {
-      return file == other.file &&
-          offset == other.offset &&
-          length == other.length &&
-          delta == other.delta;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisInvalidateParams &&
+      file == other.file &&
+      offset == other.offset &&
+      length == other.length &&
+      delta == other.delta;
 
   @override
   int get hashCode => Object.hash(file, offset, length, delta);
@@ -2488,12 +2409,12 @@ class AnalysisInvalidateParams implements HasToJson {
 
 /// analysis.navigation params
 ///
-/// {
-///   "file": FilePath
-///   "regions": List<NavigationRegion>
-///   "targets": List<NavigationTarget>
-///   "files": List<FilePath>
-/// }
+///     {
+///       "file": FilePath
+///       "regions": List<NavigationRegion>
+///       "targets": List<NavigationTarget>
+///       "files": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisNavigationParams implements HasToJson {
@@ -2639,23 +2560,20 @@ class AnalysisNavigationParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisNavigationParams) {
-      return file == other.file &&
-          listEqual(
-            regions,
-            other.regions,
-            (NavigationRegion a, NavigationRegion b) => a == b,
-          ) &&
-          listEqual(
-            targets,
-            other.targets,
-            (NavigationTarget a, NavigationTarget b) => a == b,
-          ) &&
-          listEqual(files, other.files, (String a, String b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisNavigationParams &&
+      file == other.file &&
+      listEqual(
+        regions,
+        other.regions,
+        (NavigationRegion a, NavigationRegion b) => a == b,
+      ) &&
+      listEqual(
+        targets,
+        other.targets,
+        (NavigationTarget a, NavigationTarget b) => a == b,
+      ) &&
+      listEqual(files, other.files, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hash(
@@ -2668,10 +2586,10 @@ class AnalysisNavigationParams implements HasToJson {
 
 /// analysis.occurrences params
 ///
-/// {
-///   "file": FilePath
-///   "occurrences": List<Occurrences>
-/// }
+///     {
+///       "file": FilePath
+///       "occurrences": List<Occurrences>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOccurrencesParams implements HasToJson {
@@ -2762,17 +2680,14 @@ class AnalysisOccurrencesParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisOccurrencesParams) {
-      return file == other.file &&
-          listEqual(
-            occurrences,
-            other.occurrences,
-            (Occurrences a, Occurrences b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisOccurrencesParams &&
+      file == other.file &&
+      listEqual(
+        occurrences,
+        other.occurrences,
+        (Occurrences a, Occurrences b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(file, Object.hashAll(occurrences));
@@ -2780,15 +2695,15 @@ class AnalysisOccurrencesParams implements HasToJson {
 
 /// AnalysisOptions
 ///
-/// {
-///   "enableAsync": optional bool
-///   "enableDeferredLoading": optional bool
-///   "enableEnums": optional bool
-///   "enableNullAwareOperators": optional bool
-///   "generateDart2jsHints": optional bool
-///   "generateHints": optional bool
-///   "generateLints": optional bool
-/// }
+///     {
+///       "enableAsync": optional bool
+///       "enableDeferredLoading": optional bool
+///       "enableEnums": optional bool
+///       "enableNullAwareOperators": optional bool
+///       "generateDart2jsHints": optional bool
+///       "generateHints": optional bool
+///       "generateLints": optional bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOptions implements HasToJson {
@@ -2948,18 +2863,15 @@ class AnalysisOptions implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisOptions) {
-      return enableAsync == other.enableAsync &&
-          enableDeferredLoading == other.enableDeferredLoading &&
-          enableEnums == other.enableEnums &&
-          enableNullAwareOperators == other.enableNullAwareOperators &&
-          generateDart2jsHints == other.generateDart2jsHints &&
-          generateHints == other.generateHints &&
-          generateLints == other.generateLints;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisOptions &&
+      enableAsync == other.enableAsync &&
+      enableDeferredLoading == other.enableDeferredLoading &&
+      enableEnums == other.enableEnums &&
+      enableNullAwareOperators == other.enableNullAwareOperators &&
+      generateDart2jsHints == other.generateDart2jsHints &&
+      generateHints == other.generateHints &&
+      generateLints == other.generateLints;
 
   @override
   int get hashCode => Object.hash(
@@ -2975,12 +2887,12 @@ class AnalysisOptions implements HasToJson {
 
 /// analysis.outline params
 ///
-/// {
-///   "file": FilePath
-///   "kind": FileKind
-///   "libraryName": optional String
-///   "outline": Outline
-/// }
+///     {
+///       "file": FilePath
+///       "kind": FileKind
+///       "libraryName": optional String
+///       "outline": Outline
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOutlineParams implements HasToJson {
@@ -3100,15 +3012,12 @@ class AnalysisOutlineParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisOutlineParams) {
-      return file == other.file &&
-          kind == other.kind &&
-          libraryName == other.libraryName &&
-          outline == other.outline;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisOutlineParams &&
+      file == other.file &&
+      kind == other.kind &&
+      libraryName == other.libraryName &&
+      outline == other.outline;
 
   @override
   int get hashCode => Object.hash(file, kind, libraryName, outline);
@@ -3116,10 +3025,10 @@ class AnalysisOutlineParams implements HasToJson {
 
 /// analysis.overrides params
 ///
-/// {
-///   "file": FilePath
-///   "overrides": List<Override>
-/// }
+///     {
+///       "file": FilePath
+///       "overrides": List<Override>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisOverridesParams implements HasToJson {
@@ -3210,17 +3119,10 @@ class AnalysisOverridesParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisOverridesParams) {
-      return file == other.file &&
-          listEqual(
-            overrides,
-            other.overrides,
-            (Override a, Override b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisOverridesParams &&
+      file == other.file &&
+      listEqual(overrides, other.overrides, (Override a, Override b) => a == b);
 
   @override
   int get hashCode => Object.hash(file, Object.hashAll(overrides));
@@ -3276,17 +3178,17 @@ class AnalysisReanalyzeResult implements ResponseResult {
 
 /// AnalysisService
 ///
-/// enum {
-///   CLOSING_LABELS
-///   FOLDING
-///   HIGHLIGHTS
-///   IMPLEMENTED
-///   INVALIDATE
-///   NAVIGATION
-///   OCCURRENCES
-///   OUTLINE
-///   OVERRIDES
-/// }
+///     enum {
+///       CLOSING_LABELS
+///       FOLDING
+///       HIGHLIGHTS
+///       IMPLEMENTED
+///       INVALIDATE
+///       NAVIGATION
+///       OCCURRENCES
+///       OUTLINE
+///       OVERRIDES
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum AnalysisService {
@@ -3334,11 +3236,11 @@ enum AnalysisService {
 
 /// analysis.setAnalysisRoots params
 ///
-/// {
-///   "included": List<FilePath>
-///   "excluded": List<FilePath>
-///   "packageRoots": optional Map<FilePath, FilePath>
-/// }
+///     {
+///       "included": List<FilePath>
+///       "excluded": List<FilePath>
+///       "packageRoots": optional Map<FilePath, FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetAnalysisRootsParams implements RequestParams {
@@ -3494,22 +3396,15 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisSetAnalysisRootsParams) {
-      return listEqual(
-            included,
-            other.included,
-            (String a, String b) => a == b,
-          ) &&
-          listEqual(excluded, other.excluded, (String a, String b) => a == b) &&
-          mapEqual(
-            packageRoots,
-            other.packageRoots,
-            (String a, String b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisSetAnalysisRootsParams &&
+      listEqual(included, other.included, (String a, String b) => a == b) &&
+      listEqual(excluded, other.excluded, (String a, String b) => a == b) &&
+      mapEqual(
+        packageRoots,
+        other.packageRoots,
+        (String a, String b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -3545,9 +3440,9 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
 
 /// analysis.setGeneralSubscriptions params
 ///
-/// {
-///   "subscriptions": List<GeneralAnalysisService>
-/// }
+///     {
+///       "subscriptions": List<GeneralAnalysisService>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
@@ -3631,16 +3526,13 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisSetGeneralSubscriptionsParams) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is AnalysisSetGeneralSubscriptionsParams &&
+      listEqual(
         subscriptions,
         other.subscriptions,
         (GeneralAnalysisService a, GeneralAnalysisService b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(subscriptions);
@@ -3673,9 +3565,9 @@ class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
 
 /// analysis.setPriorityFiles params
 ///
-/// {
-///   "files": List<FilePath>
-/// }
+///     {
+///       "files": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesParams implements RequestParams {
@@ -3758,12 +3650,9 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisSetPriorityFilesParams) {
-      return listEqual(files, other.files, (String a, String b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisSetPriorityFilesParams &&
+      listEqual(files, other.files, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hashAll(files);
@@ -3795,9 +3684,9 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
 
 /// analysis.setSubscriptions params
 ///
-/// {
-///   "subscriptions": Map<AnalysisService, List<FilePath>>
-/// }
+///     {
+///       "subscriptions": Map<AnalysisService, List<FilePath>>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsParams implements RequestParams {
@@ -3898,17 +3787,14 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisSetSubscriptionsParams) {
-      return mapEqual(
+  bool operator ==(Object other) =>
+      other is AnalysisSetSubscriptionsParams &&
+      mapEqual(
         subscriptions,
         other.subscriptions,
         (List<String> a, List<String> b) =>
             listEqual(a, b, (String a, String b) => a == b),
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode =>
@@ -3941,10 +3827,10 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
 
 /// AnalysisStatus
 ///
-/// {
-///   "isAnalyzing": bool
-///   "analysisTarget": optional String
-/// }
+///     {
+///       "isAnalyzing": bool
+///       "analysisTarget": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisStatus implements HasToJson {
@@ -4004,13 +3890,10 @@ class AnalysisStatus implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisStatus) {
-      return isAnalyzing == other.isAnalyzing &&
-          analysisTarget == other.analysisTarget;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisStatus &&
+      isAnalyzing == other.isAnalyzing &&
+      analysisTarget == other.analysisTarget;
 
   @override
   int get hashCode => Object.hash(isAnalyzing, analysisTarget);
@@ -4018,9 +3901,9 @@ class AnalysisStatus implements HasToJson {
 
 /// analysis.updateContent params
 ///
-/// {
-///   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
-/// }
+///     {
+///       "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentParams implements RequestParams {
@@ -4128,12 +4011,9 @@ class AnalysisUpdateContentParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisUpdateContentParams) {
-      return mapEqual(files, other.files, (Object a, Object b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisUpdateContentParams &&
+      mapEqual(files, other.files, (Object a, Object b) => a == b);
 
   @override
   int get hashCode => Object.hashAll([...files.keys, ...files.values]);
@@ -4141,8 +4021,8 @@ class AnalysisUpdateContentParams implements RequestParams {
 
 /// analysis.updateContent result
 ///
-/// {
-/// }
+///     {
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentResult implements ResponseResult {
@@ -4198,12 +4078,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisUpdateContentResult) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(Object other) => other is AnalysisUpdateContentResult;
 
   @override
   int get hashCode => 0;
@@ -4211,9 +4086,9 @@ class AnalysisUpdateContentResult implements ResponseResult {
 
 /// analysis.updateOptions params
 ///
-/// {
-///   "options": AnalysisOptions
-/// }
+///     {
+///       "options": AnalysisOptions
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateOptionsParams implements RequestParams {
@@ -4288,12 +4163,8 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalysisUpdateOptionsParams) {
-      return options == other.options;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalysisUpdateOptionsParams && options == other.options;
 
   @override
   int get hashCode => options.hashCode;
@@ -4325,9 +4196,9 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
 
 /// analytics.enable params
 ///
-/// {
-///   "value": bool
-/// }
+///     {
+///       "value": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsEnableParams implements RequestParams {
@@ -4393,12 +4264,8 @@ class AnalyticsEnableParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalyticsEnableParams) {
-      return value == other.value;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalyticsEnableParams && value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -4454,9 +4321,9 @@ class AnalyticsIsEnabledParams implements RequestParams {
 
 /// analytics.isEnabled result
 ///
-/// {
-///   "enabled": bool
-/// }
+///     {
+///       "enabled": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsIsEnabledResult implements ResponseResult {
@@ -4518,12 +4385,8 @@ class AnalyticsIsEnabledResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalyticsIsEnabledResult) {
-      return enabled == other.enabled;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalyticsIsEnabledResult && enabled == other.enabled;
 
   @override
   int get hashCode => enabled.hashCode;
@@ -4531,9 +4394,9 @@ class AnalyticsIsEnabledResult implements ResponseResult {
 
 /// analytics.sendEvent params
 ///
-/// {
-///   "action": String
-/// }
+///     {
+///       "action": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendEventParams implements RequestParams {
@@ -4599,12 +4462,8 @@ class AnalyticsSendEventParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalyticsSendEventParams) {
-      return action == other.action;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalyticsSendEventParams && action == other.action;
 
   @override
   int get hashCode => action.hashCode;
@@ -4636,10 +4495,10 @@ class AnalyticsSendEventResult implements ResponseResult {
 
 /// analytics.sendTiming params
 ///
-/// {
-///   "event": String
-///   "millis": int
-/// }
+///     {
+///       "event": String
+///       "millis": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendTimingParams implements RequestParams {
@@ -4715,12 +4574,10 @@ class AnalyticsSendTimingParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is AnalyticsSendTimingParams) {
-      return event == other.event && millis == other.millis;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is AnalyticsSendTimingParams &&
+      event == other.event &&
+      millis == other.millis;
 
   @override
   int get hashCode => Object.hash(event, millis);
@@ -4752,10 +4609,10 @@ class AnalyticsSendTimingResult implements ResponseResult {
 
 /// BulkFix
 ///
-/// {
-///   "path": FilePath
-///   "fixes": List<BulkFixDetail>
-/// }
+///     {
+///       "path": FilePath
+///       "fixes": List<BulkFixDetail>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class BulkFix implements HasToJson {
@@ -4825,17 +4682,14 @@ class BulkFix implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is BulkFix) {
-      return path == other.path &&
-          listEqual(
-            fixes,
-            other.fixes,
-            (BulkFixDetail a, BulkFixDetail b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is BulkFix &&
+      path == other.path &&
+      listEqual(
+        fixes,
+        other.fixes,
+        (BulkFixDetail a, BulkFixDetail b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(path, Object.hashAll(fixes));
@@ -4843,10 +4697,10 @@ class BulkFix implements HasToJson {
 
 /// BulkFixDetail
 ///
-/// {
-///   "code": String
-///   "occurrences": int
-/// }
+///     {
+///       "code": String
+///       "occurrences": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class BulkFixDetail implements HasToJson {
@@ -4902,12 +4756,10 @@ class BulkFixDetail implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is BulkFixDetail) {
-      return code == other.code && occurrences == other.occurrences;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is BulkFixDetail &&
+      code == other.code &&
+      occurrences == other.occurrences;
 
   @override
   int get hashCode => Object.hash(code, occurrences);
@@ -4915,11 +4767,11 @@ class BulkFixDetail implements HasToJson {
 
 /// ClosingLabel
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "label": String
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "label": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ClosingLabel implements HasToJson {
@@ -4982,14 +4834,11 @@ class ClosingLabel implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ClosingLabel) {
-      return offset == other.offset &&
-          length == other.length &&
-          label == other.label;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ClosingLabel &&
+      offset == other.offset &&
+      length == other.length &&
+      label == other.label;
 
   @override
   int get hashCode => Object.hash(offset, length, label);
@@ -4997,11 +4846,11 @@ class ClosingLabel implements HasToJson {
 
 /// CompletionCaseMatchingMode
 ///
-/// enum {
-///   FIRST_CHAR
-///   ALL_CHARS
-///   NONE
-/// }
+///     enum {
+///       FIRST_CHAR
+///       ALL_CHARS
+///       NONE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum CompletionCaseMatchingMode {
@@ -5039,10 +4888,10 @@ enum CompletionCaseMatchingMode {
 
 /// completion.existingImports params
 ///
-/// {
-///   "file": FilePath
-///   "imports": ExistingImports
-/// }
+///     {
+///       "file": FilePath
+///       "imports": ExistingImports
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionExistingImportsParams implements HasToJson {
@@ -5128,12 +4977,10 @@ class CompletionExistingImportsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is CompletionExistingImportsParams) {
-      return file == other.file && imports == other.imports;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is CompletionExistingImportsParams &&
+      file == other.file &&
+      imports == other.imports;
 
   @override
   int get hashCode => Object.hash(file, imports);
@@ -5141,12 +4988,12 @@ class CompletionExistingImportsParams implements HasToJson {
 
 /// completion.getSuggestionDetails2 params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "completion": String
-///   "libraryUri": String
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "completion": String
+///       "libraryUri": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetails2Params implements RequestParams {
@@ -5270,15 +5117,12 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is CompletionGetSuggestionDetails2Params) {
-      return file == other.file &&
-          offset == other.offset &&
-          completion == other.completion &&
-          libraryUri == other.libraryUri;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is CompletionGetSuggestionDetails2Params &&
+      file == other.file &&
+      offset == other.offset &&
+      completion == other.completion &&
+      libraryUri == other.libraryUri;
 
   @override
   int get hashCode => Object.hash(file, offset, completion, libraryUri);
@@ -5286,10 +5130,10 @@ class CompletionGetSuggestionDetails2Params implements RequestParams {
 
 /// completion.getSuggestionDetails2 result
 ///
-/// {
-///   "completion": String
-///   "change": SourceChange
-/// }
+///     {
+///       "completion": String
+///       "change": SourceChange
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetails2Result implements ResponseResult {
@@ -5377,12 +5221,10 @@ class CompletionGetSuggestionDetails2Result implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is CompletionGetSuggestionDetails2Result) {
-      return completion == other.completion && change == other.change;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is CompletionGetSuggestionDetails2Result &&
+      completion == other.completion &&
+      change == other.change;
 
   @override
   int get hashCode => Object.hash(completion, change);
@@ -5390,12 +5232,12 @@ class CompletionGetSuggestionDetails2Result implements ResponseResult {
 
 /// completion.getSuggestions2 params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "maxResults": int
-///   "completionCaseMatchingMode": optional CompletionCaseMatchingMode
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "maxResults": int
+///       "completionCaseMatchingMode": optional CompletionCaseMatchingMode
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestions2Params implements RequestParams {
@@ -5578,18 +5420,15 @@ class CompletionGetSuggestions2Params implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is CompletionGetSuggestions2Params) {
-      return file == other.file &&
-          offset == other.offset &&
-          maxResults == other.maxResults &&
-          completionCaseMatchingMode == other.completionCaseMatchingMode &&
-          completionMode == other.completionMode &&
-          invocationCount == other.invocationCount &&
-          timeout == other.timeout;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is CompletionGetSuggestions2Params &&
+      file == other.file &&
+      offset == other.offset &&
+      maxResults == other.maxResults &&
+      completionCaseMatchingMode == other.completionCaseMatchingMode &&
+      completionMode == other.completionMode &&
+      invocationCount == other.invocationCount &&
+      timeout == other.timeout;
 
   @override
   int get hashCode => Object.hash(
@@ -5605,12 +5444,12 @@ class CompletionGetSuggestions2Params implements RequestParams {
 
 /// completion.getSuggestions2 result
 ///
-/// {
-///   "replacementOffset": int
-///   "replacementLength": int
-///   "suggestions": List<CompletionSuggestion>
-///   "isIncomplete": bool
-/// }
+///     {
+///       "replacementOffset": int
+///       "replacementLength": int
+///       "suggestions": List<CompletionSuggestion>
+///       "isIncomplete": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestions2Result implements ResponseResult {
@@ -5755,19 +5594,16 @@ class CompletionGetSuggestions2Result implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is CompletionGetSuggestions2Result) {
-      return replacementOffset == other.replacementOffset &&
-          replacementLength == other.replacementLength &&
-          listEqual(
-            suggestions,
-            other.suggestions,
-            (CompletionSuggestion a, CompletionSuggestion b) => a == b,
-          ) &&
-          isIncomplete == other.isIncomplete;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is CompletionGetSuggestions2Result &&
+      replacementOffset == other.replacementOffset &&
+      replacementLength == other.replacementLength &&
+      listEqual(
+        suggestions,
+        other.suggestions,
+        (CompletionSuggestion a, CompletionSuggestion b) => a == b,
+      ) &&
+      isIncomplete == other.isIncomplete;
 
   @override
   int get hashCode => Object.hash(
@@ -5780,10 +5616,10 @@ class CompletionGetSuggestions2Result implements ResponseResult {
 
 /// CompletionMode
 ///
-/// enum {
-///   BASIC
-///   SMART
-/// }
+///     enum {
+///       BASIC
+///       SMART
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum CompletionMode {
@@ -5818,9 +5654,9 @@ enum CompletionMode {
 
 /// completion.registerLibraryPaths params
 ///
-/// {
-///   "paths": List<LibraryPathSet>
-/// }
+///     {
+///       "paths": List<LibraryPathSet>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionRegisterLibraryPathsParams implements RequestParams {
@@ -5907,16 +5743,13 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is CompletionRegisterLibraryPathsParams) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is CompletionRegisterLibraryPathsParams &&
+      listEqual(
         paths,
         other.paths,
         (LibraryPathSet a, LibraryPathSet b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(paths);
@@ -5949,13 +5782,13 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
 
 /// ContextData
 ///
-/// {
-///   "name": String
-///   "explicitFileCount": int
-///   "implicitFileCount": int
-///   "workItemQueueLength": int
-///   "cacheEntryExceptions": List<String>
-/// }
+///     {
+///       "name": String
+///       "explicitFileCount": int
+///       "implicitFileCount": int
+///       "workItemQueueLength": int
+///       "cacheEntryExceptions": List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ContextData implements HasToJson {
@@ -6062,20 +5895,17 @@ class ContextData implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ContextData) {
-      return name == other.name &&
-          explicitFileCount == other.explicitFileCount &&
-          implicitFileCount == other.implicitFileCount &&
-          workItemQueueLength == other.workItemQueueLength &&
-          listEqual(
-            cacheEntryExceptions,
-            other.cacheEntryExceptions,
-            (String a, String b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ContextData &&
+      name == other.name &&
+      explicitFileCount == other.explicitFileCount &&
+      implicitFileCount == other.implicitFileCount &&
+      workItemQueueLength == other.workItemQueueLength &&
+      listEqual(
+        cacheEntryExceptions,
+        other.cacheEntryExceptions,
+        (String a, String b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -6161,9 +5991,9 @@ class DiagnosticGetDiagnosticsParams implements RequestParams {
 
 /// diagnostic.getDiagnostics result
 ///
-/// {
-///   "contexts": List<ContextData>
-/// }
+///     {
+///       "contexts": List<ContextData>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetDiagnosticsResult implements ResponseResult {
@@ -6243,16 +6073,13 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is DiagnosticGetDiagnosticsResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is DiagnosticGetDiagnosticsResult &&
+      listEqual(
         contexts,
         other.contexts,
         (ContextData a, ContextData b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(contexts);
@@ -6284,9 +6111,9 @@ class DiagnosticGetServerPortParams implements RequestParams {
 
 /// diagnostic.getServerPort result
 ///
-/// {
-///   "port": int
-/// }
+///     {
+///       "port": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetServerPortResult implements ResponseResult {
@@ -6352,12 +6179,8 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is DiagnosticGetServerPortResult) {
-      return port == other.port;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is DiagnosticGetServerPortResult && port == other.port;
 
   @override
   int get hashCode => port.hashCode;
@@ -6365,12 +6188,12 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 
 /// edit.bulkFixes params
 ///
-/// {
-///   "included": List<FilePath>
-///   "inTestMode": optional bool
-///   "updatePubspec": optional bool
-///   "codes": optional List<String>
-/// }
+///     {
+///       "included": List<FilePath>
+///       "inTestMode": optional bool
+///       "updatePubspec": optional bool
+///       "codes": optional List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesParams implements RequestParams {
@@ -6520,19 +6343,12 @@ class EditBulkFixesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditBulkFixesParams) {
-      return listEqual(
-            included,
-            other.included,
-            (String a, String b) => a == b,
-          ) &&
-          inTestMode == other.inTestMode &&
-          updatePubspec == other.updatePubspec &&
-          listEqual(codes, other.codes, (String a, String b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditBulkFixesParams &&
+      listEqual(included, other.included, (String a, String b) => a == b) &&
+      inTestMode == other.inTestMode &&
+      updatePubspec == other.updatePubspec &&
+      listEqual(codes, other.codes, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hash(
@@ -6545,11 +6361,11 @@ class EditBulkFixesParams implements RequestParams {
 
 /// edit.bulkFixes result
 ///
-/// {
-///   "message": String
-///   "edits": List<SourceFileEdit>
-///   "details": List<BulkFix>
-/// }
+///     {
+///       "message": String
+///       "edits": List<SourceFileEdit>
+///       "details": List<BulkFix>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditBulkFixesResult implements ResponseResult {
@@ -6662,18 +6478,15 @@ class EditBulkFixesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditBulkFixesResult) {
-      return message == other.message &&
-          listEqual(
-            edits,
-            other.edits,
-            (SourceFileEdit a, SourceFileEdit b) => a == b,
-          ) &&
-          listEqual(details, other.details, (BulkFix a, BulkFix b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditBulkFixesResult &&
+      message == other.message &&
+      listEqual(
+        edits,
+        other.edits,
+        (SourceFileEdit a, SourceFileEdit b) => a == b,
+      ) &&
+      listEqual(details, other.details, (BulkFix a, BulkFix b) => a == b);
 
   @override
   int get hashCode =>
@@ -6682,9 +6495,9 @@ class EditBulkFixesResult implements ResponseResult {
 
 /// edit.formatIfEnabled params
 ///
-/// {
-///   "directories": List<FilePath>
-/// }
+///     {
+///       "directories": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatIfEnabledParams implements RequestParams {
@@ -6763,16 +6576,9 @@ class EditFormatIfEnabledParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditFormatIfEnabledParams) {
-      return listEqual(
-        directories,
-        other.directories,
-        (String a, String b) => a == b,
-      );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditFormatIfEnabledParams &&
+      listEqual(directories, other.directories, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hashAll(directories);
@@ -6780,9 +6586,9 @@ class EditFormatIfEnabledParams implements RequestParams {
 
 /// edit.formatIfEnabled result
 ///
-/// {
-///   "edits": List<SourceFileEdit>
-/// }
+///     {
+///       "edits": List<SourceFileEdit>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatIfEnabledResult implements ResponseResult {
@@ -6860,16 +6666,13 @@ class EditFormatIfEnabledResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditFormatIfEnabledResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is EditFormatIfEnabledResult &&
+      listEqual(
         edits,
         other.edits,
         (SourceFileEdit a, SourceFileEdit b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(edits);
@@ -6877,12 +6680,12 @@ class EditFormatIfEnabledResult implements ResponseResult {
 
 /// edit.format params
 ///
-/// {
-///   "file": FilePath
-///   "selectionOffset": int
-///   "selectionLength": int
-///   "lineLength": optional int
-/// }
+///     {
+///       "file": FilePath
+///       "selectionOffset": int
+///       "selectionLength": int
+///       "lineLength": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatParams implements RequestParams {
@@ -7004,15 +6807,12 @@ class EditFormatParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditFormatParams) {
-      return file == other.file &&
-          selectionOffset == other.selectionOffset &&
-          selectionLength == other.selectionLength &&
-          lineLength == other.lineLength;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditFormatParams &&
+      file == other.file &&
+      selectionOffset == other.selectionOffset &&
+      selectionLength == other.selectionLength &&
+      lineLength == other.lineLength;
 
   @override
   int get hashCode =>
@@ -7021,11 +6821,11 @@ class EditFormatParams implements RequestParams {
 
 /// edit.format result
 ///
-/// {
-///   "edits": List<SourceEdit>
-///   "selectionOffset": int
-///   "selectionLength": int
-/// }
+///     {
+///       "edits": List<SourceEdit>
+///       "selectionOffset": int
+///       "selectionLength": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditFormatResult implements ResponseResult {
@@ -7128,18 +6928,11 @@ class EditFormatResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditFormatResult) {
-      return listEqual(
-            edits,
-            other.edits,
-            (SourceEdit a, SourceEdit b) => a == b,
-          ) &&
-          selectionOffset == other.selectionOffset &&
-          selectionLength == other.selectionLength;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditFormatResult &&
+      listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b) &&
+      selectionOffset == other.selectionOffset &&
+      selectionLength == other.selectionLength;
 
   @override
   int get hashCode =>
@@ -7148,11 +6941,11 @@ class EditFormatResult implements ResponseResult {
 
 /// edit.getAssists params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsParams implements RequestParams {
@@ -7242,14 +7035,11 @@ class EditGetAssistsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetAssistsParams) {
-      return file == other.file &&
-          offset == other.offset &&
-          length == other.length;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditGetAssistsParams &&
+      file == other.file &&
+      offset == other.offset &&
+      length == other.length;
 
   @override
   int get hashCode => Object.hash(file, offset, length);
@@ -7257,9 +7047,9 @@ class EditGetAssistsParams implements RequestParams {
 
 /// edit.getAssists result
 ///
-/// {
-///   "assists": List<SourceChange>
-/// }
+///     {
+///       "assists": List<SourceChange>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsResult implements ResponseResult {
@@ -7335,16 +7125,13 @@ class EditGetAssistsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetAssistsResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is EditGetAssistsResult &&
+      listEqual(
         assists,
         other.assists,
         (SourceChange a, SourceChange b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(assists);
@@ -7352,11 +7139,11 @@ class EditGetAssistsResult implements ResponseResult {
 
 /// edit.getAvailableRefactorings params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsParams implements RequestParams {
@@ -7450,14 +7237,11 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetAvailableRefactoringsParams) {
-      return file == other.file &&
-          offset == other.offset &&
-          length == other.length;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditGetAvailableRefactoringsParams &&
+      file == other.file &&
+      offset == other.offset &&
+      length == other.length;
 
   @override
   int get hashCode => Object.hash(file, offset, length);
@@ -7465,9 +7249,9 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
 /// edit.getAvailableRefactorings result
 ///
-/// {
-///   "kinds": List<RefactoringKind>
-/// }
+///     {
+///       "kinds": List<RefactoringKind>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsResult implements ResponseResult {
@@ -7547,16 +7331,13 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetAvailableRefactoringsResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is EditGetAvailableRefactoringsResult &&
+      listEqual(
         kinds,
         other.kinds,
         (RefactoringKind a, RefactoringKind b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(kinds);
@@ -7564,10 +7345,10 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 
 /// edit.getFixes params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesParams implements RequestParams {
@@ -7647,12 +7428,10 @@ class EditGetFixesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetFixesParams) {
-      return file == other.file && offset == other.offset;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditGetFixesParams &&
+      file == other.file &&
+      offset == other.offset;
 
   @override
   int get hashCode => Object.hash(file, offset);
@@ -7660,9 +7439,9 @@ class EditGetFixesParams implements RequestParams {
 
 /// edit.getFixes result
 ///
-/// {
-///   "fixes": List<AnalysisErrorFixes>
-/// }
+///     {
+///       "fixes": List<AnalysisErrorFixes>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetFixesResult implements ResponseResult {
@@ -7738,16 +7517,13 @@ class EditGetFixesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetFixesResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is EditGetFixesResult &&
+      listEqual(
         fixes,
         other.fixes,
         (AnalysisErrorFixes a, AnalysisErrorFixes b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(fixes);
@@ -7755,11 +7531,11 @@ class EditGetFixesResult implements ResponseResult {
 
 /// edit.getPostfixCompletion params
 ///
-/// {
-///   "file": FilePath
-///   "key": String
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "key": String
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionParams implements RequestParams {
@@ -7854,12 +7630,11 @@ class EditGetPostfixCompletionParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetPostfixCompletionParams) {
-      return file == other.file && key == other.key && offset == other.offset;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditGetPostfixCompletionParams &&
+      file == other.file &&
+      key == other.key &&
+      offset == other.offset;
 
   @override
   int get hashCode => Object.hash(file, key, offset);
@@ -7867,9 +7642,9 @@ class EditGetPostfixCompletionParams implements RequestParams {
 
 /// edit.getPostfixCompletion result
 ///
-/// {
-///   "change": SourceChange
-/// }
+///     {
+///       "change": SourceChange
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionResult implements ResponseResult {
@@ -7940,12 +7715,8 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetPostfixCompletionResult) {
-      return change == other.change;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditGetPostfixCompletionResult && change == other.change;
 
   @override
   int get hashCode => change.hashCode;
@@ -7953,14 +7724,14 @@ class EditGetPostfixCompletionResult implements ResponseResult {
 
 /// edit.getRefactoring params
 ///
-/// {
-///   "kind": RefactoringKind
-///   "file": FilePath
-///   "offset": int
-///   "length": int
-///   "validateOnly": bool
-///   "options": optional RefactoringOptions
-/// }
+///     {
+///       "kind": RefactoringKind
+///       "file": FilePath
+///       "offset": int
+///       "length": int
+///       "validateOnly": bool
+///       "options": optional RefactoringOptions
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringParams implements RequestParams {
@@ -8118,17 +7889,14 @@ class EditGetRefactoringParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetRefactoringParams) {
-      return kind == other.kind &&
-          file == other.file &&
-          offset == other.offset &&
-          length == other.length &&
-          validateOnly == other.validateOnly &&
-          options == other.options;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditGetRefactoringParams &&
+      kind == other.kind &&
+      file == other.file &&
+      offset == other.offset &&
+      length == other.length &&
+      validateOnly == other.validateOnly &&
+      options == other.options;
 
   @override
   int get hashCode =>
@@ -8137,14 +7905,14 @@ class EditGetRefactoringParams implements RequestParams {
 
 /// edit.getRefactoring result
 ///
-/// {
-///   "initialProblems": List<RefactoringProblem>
-///   "optionsProblems": List<RefactoringProblem>
-///   "finalProblems": List<RefactoringProblem>
-///   "feedback": optional RefactoringFeedback
-///   "change": optional SourceChange
-///   "potentialEdits": optional List<String>
-/// }
+///     {
+///       "initialProblems": List<RefactoringProblem>
+///       "optionsProblems": List<RefactoringProblem>
+///       "finalProblems": List<RefactoringProblem>
+///       "feedback": optional RefactoringFeedback
+///       "change": optional SourceChange
+///       "potentialEdits": optional List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringResult implements ResponseResult {
@@ -8350,33 +8118,30 @@ class EditGetRefactoringResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetRefactoringResult) {
-      return listEqual(
-            initialProblems,
-            other.initialProblems,
-            (RefactoringProblem a, RefactoringProblem b) => a == b,
-          ) &&
-          listEqual(
-            optionsProblems,
-            other.optionsProblems,
-            (RefactoringProblem a, RefactoringProblem b) => a == b,
-          ) &&
-          listEqual(
-            finalProblems,
-            other.finalProblems,
-            (RefactoringProblem a, RefactoringProblem b) => a == b,
-          ) &&
-          feedback == other.feedback &&
-          change == other.change &&
-          listEqual(
-            potentialEdits,
-            other.potentialEdits,
-            (String a, String b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditGetRefactoringResult &&
+      listEqual(
+        initialProblems,
+        other.initialProblems,
+        (RefactoringProblem a, RefactoringProblem b) => a == b,
+      ) &&
+      listEqual(
+        optionsProblems,
+        other.optionsProblems,
+        (RefactoringProblem a, RefactoringProblem b) => a == b,
+      ) &&
+      listEqual(
+        finalProblems,
+        other.finalProblems,
+        (RefactoringProblem a, RefactoringProblem b) => a == b,
+      ) &&
+      feedback == other.feedback &&
+      change == other.change &&
+      listEqual(
+        potentialEdits,
+        other.potentialEdits,
+        (String a, String b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -8391,10 +8156,10 @@ class EditGetRefactoringResult implements ResponseResult {
 
 /// edit.getStatementCompletion params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionParams implements RequestParams {
@@ -8478,12 +8243,10 @@ class EditGetStatementCompletionParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetStatementCompletionParams) {
-      return file == other.file && offset == other.offset;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditGetStatementCompletionParams &&
+      file == other.file &&
+      offset == other.offset;
 
   @override
   int get hashCode => Object.hash(file, offset);
@@ -8491,10 +8254,10 @@ class EditGetStatementCompletionParams implements RequestParams {
 
 /// edit.getStatementCompletion result
 ///
-/// {
-///   "change": SourceChange
-///   "whitespaceOnly": bool
-/// }
+///     {
+///       "change": SourceChange
+///       "whitespaceOnly": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionResult implements ResponseResult {
@@ -8579,12 +8342,10 @@ class EditGetStatementCompletionResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditGetStatementCompletionResult) {
-      return change == other.change && whitespaceOnly == other.whitespaceOnly;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditGetStatementCompletionResult &&
+      change == other.change &&
+      whitespaceOnly == other.whitespaceOnly;
 
   @override
   int get hashCode => Object.hash(change, whitespaceOnly);
@@ -8592,11 +8353,11 @@ class EditGetStatementCompletionResult implements ResponseResult {
 
 /// edit.importElements params
 ///
-/// {
-///   "file": FilePath
-///   "elements": List<ImportedElements>
-///   "offset": optional int
-/// }
+///     {
+///       "file": FilePath
+///       "elements": List<ImportedElements>
+///       "offset": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditImportElementsParams implements RequestParams {
@@ -8704,18 +8465,15 @@ class EditImportElementsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditImportElementsParams) {
-      return file == other.file &&
-          listEqual(
-            elements,
-            other.elements,
-            (ImportedElements a, ImportedElements b) => a == b,
-          ) &&
-          offset == other.offset;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditImportElementsParams &&
+      file == other.file &&
+      listEqual(
+        elements,
+        other.elements,
+        (ImportedElements a, ImportedElements b) => a == b,
+      ) &&
+      offset == other.offset;
 
   @override
   int get hashCode => Object.hash(file, Object.hashAll(elements), offset);
@@ -8723,9 +8481,9 @@ class EditImportElementsParams implements RequestParams {
 
 /// edit.importElements result
 ///
-/// {
-///   "edit": optional SourceFileEdit
-/// }
+///     {
+///       "edit": optional SourceFileEdit
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditImportElementsResult implements ResponseResult {
@@ -8798,12 +8556,8 @@ class EditImportElementsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditImportElementsResult) {
-      return edit == other.edit;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditImportElementsResult && edit == other.edit;
 
   @override
   int get hashCode => edit.hashCode;
@@ -8811,11 +8565,11 @@ class EditImportElementsResult implements ResponseResult {
 
 /// edit.isPostfixCompletionApplicable params
 ///
-/// {
-///   "file": FilePath
-///   "key": String
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "key": String
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableParams implements RequestParams {
@@ -8910,12 +8664,11 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditIsPostfixCompletionApplicableParams) {
-      return file == other.file && key == other.key && offset == other.offset;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditIsPostfixCompletionApplicableParams &&
+      file == other.file &&
+      key == other.key &&
+      offset == other.offset;
 
   @override
   int get hashCode => Object.hash(file, key, offset);
@@ -8923,9 +8676,9 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
 
 /// edit.isPostfixCompletionApplicable result
 ///
-/// {
-///   "value": bool
-/// }
+///     {
+///       "value": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableResult implements ResponseResult {
@@ -8991,12 +8744,8 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditIsPostfixCompletionApplicableResult) {
-      return value == other.value;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditIsPostfixCompletionApplicableResult && value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -9029,9 +8778,9 @@ class EditListPostfixCompletionTemplatesParams implements RequestParams {
 
 /// edit.listPostfixCompletionTemplates result
 ///
-/// {
-///   "templates": List<PostfixTemplateDescriptor>
-/// }
+///     {
+///       "templates": List<PostfixTemplateDescriptor>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditListPostfixCompletionTemplatesResult implements ResponseResult {
@@ -9111,16 +8860,13 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditListPostfixCompletionTemplatesResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is EditListPostfixCompletionTemplatesResult &&
+      listEqual(
         templates,
         other.templates,
         (PostfixTemplateDescriptor a, PostfixTemplateDescriptor b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(templates);
@@ -9128,9 +8874,9 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
 
 /// edit.organizeDirectives params
 ///
-/// {
-///   "file": FilePath
-/// }
+///     {
+///       "file": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesParams implements RequestParams {
@@ -9204,12 +8950,8 @@ class EditOrganizeDirectivesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditOrganizeDirectivesParams) {
-      return file == other.file;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditOrganizeDirectivesParams && file == other.file;
 
   @override
   int get hashCode => file.hashCode;
@@ -9217,9 +8959,9 @@ class EditOrganizeDirectivesParams implements RequestParams {
 
 /// edit.organizeDirectives result
 ///
-/// {
-///   "edit": SourceFileEdit
-/// }
+///     {
+///       "edit": SourceFileEdit
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesResult implements ResponseResult {
@@ -9291,12 +9033,8 @@ class EditOrganizeDirectivesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditOrganizeDirectivesResult) {
-      return edit == other.edit;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditOrganizeDirectivesResult && edit == other.edit;
 
   @override
   int get hashCode => edit.hashCode;
@@ -9304,9 +9042,9 @@ class EditOrganizeDirectivesResult implements ResponseResult {
 
 /// edit.sortMembers params
 ///
-/// {
-///   "file": FilePath
-/// }
+///     {
+///       "file": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditSortMembersParams implements RequestParams {
@@ -9376,12 +9114,8 @@ class EditSortMembersParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditSortMembersParams) {
-      return file == other.file;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditSortMembersParams && file == other.file;
 
   @override
   int get hashCode => file.hashCode;
@@ -9389,9 +9123,9 @@ class EditSortMembersParams implements RequestParams {
 
 /// edit.sortMembers result
 ///
-/// {
-///   "edit": SourceFileEdit
-/// }
+///     {
+///       "edit": SourceFileEdit
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class EditSortMembersResult implements ResponseResult {
@@ -9459,12 +9193,8 @@ class EditSortMembersResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is EditSortMembersResult) {
-      return edit == other.edit;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is EditSortMembersResult && edit == other.edit;
 
   @override
   int get hashCode => edit.hashCode;
@@ -9472,19 +9202,19 @@ class EditSortMembersResult implements ResponseResult {
 
 /// ElementDeclaration
 ///
-/// {
-///   "name": String
-///   "kind": ElementKind
-///   "fileIndex": int
-///   "offset": int
-///   "line": int
-///   "column": int
-///   "codeOffset": int
-///   "codeLength": int
-///   "className": optional String
-///   "mixinName": optional String
-///   "parameters": optional String
-/// }
+///     {
+///       "name": String
+///       "kind": ElementKind
+///       "fileIndex": int
+///       "offset": int
+///       "line": int
+///       "column": int
+///       "codeOffset": int
+///       "codeLength": int
+///       "className": optional String
+///       "mixinName": optional String
+///       "parameters": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ElementDeclaration implements HasToJson {
@@ -9683,22 +9413,19 @@ class ElementDeclaration implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ElementDeclaration) {
-      return name == other.name &&
-          kind == other.kind &&
-          fileIndex == other.fileIndex &&
-          offset == other.offset &&
-          line == other.line &&
-          column == other.column &&
-          codeOffset == other.codeOffset &&
-          codeLength == other.codeLength &&
-          className == other.className &&
-          mixinName == other.mixinName &&
-          parameters == other.parameters;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ElementDeclaration &&
+      name == other.name &&
+      kind == other.kind &&
+      fileIndex == other.fileIndex &&
+      offset == other.offset &&
+      line == other.line &&
+      column == other.column &&
+      codeOffset == other.codeOffset &&
+      codeLength == other.codeLength &&
+      className == other.className &&
+      mixinName == other.mixinName &&
+      parameters == other.parameters;
 
   @override
   int get hashCode => Object.hash(
@@ -9718,10 +9445,10 @@ class ElementDeclaration implements HasToJson {
 
 /// ExecutableFile
 ///
-/// {
-///   "file": FilePath
-///   "kind": ExecutableKind
-/// }
+///     {
+///       "file": FilePath
+///       "kind": ExecutableKind
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutableFile implements HasToJson {
@@ -9782,12 +9509,8 @@ class ExecutableFile implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutableFile) {
-      return file == other.file && kind == other.kind;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExecutableFile && file == other.file && kind == other.kind;
 
   @override
   int get hashCode => Object.hash(file, kind);
@@ -9795,12 +9518,12 @@ class ExecutableFile implements HasToJson {
 
 /// ExecutableKind
 ///
-/// enum {
-///   CLIENT
-///   EITHER
-///   NOT_EXECUTABLE
-///   SERVER
-/// }
+///     enum {
+///       CLIENT
+///       EITHER
+///       NOT_EXECUTABLE
+///       SERVER
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ExecutableKind {
@@ -9836,9 +9559,9 @@ enum ExecutableKind {
 
 /// execution.createContext params
 ///
-/// {
-///   "contextRoot": FilePath
-/// }
+///     {
+///       "contextRoot": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextParams implements RequestParams {
@@ -9920,12 +9643,8 @@ class ExecutionCreateContextParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutionCreateContextParams) {
-      return contextRoot == other.contextRoot;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExecutionCreateContextParams && contextRoot == other.contextRoot;
 
   @override
   int get hashCode => contextRoot.hashCode;
@@ -9933,9 +9652,9 @@ class ExecutionCreateContextParams implements RequestParams {
 
 /// execution.createContext result
 ///
-/// {
-///   "id": ExecutionContextId
-/// }
+///     {
+///       "id": ExecutionContextId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextResult implements ResponseResult {
@@ -10001,12 +9720,8 @@ class ExecutionCreateContextResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutionCreateContextResult) {
-      return id == other.id;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExecutionCreateContextResult && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -10014,9 +9729,9 @@ class ExecutionCreateContextResult implements ResponseResult {
 
 /// execution.deleteContext params
 ///
-/// {
-///   "id": ExecutionContextId
-/// }
+///     {
+///       "id": ExecutionContextId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionDeleteContextParams implements RequestParams {
@@ -10086,12 +9801,8 @@ class ExecutionDeleteContextParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutionDeleteContextParams) {
-      return id == other.id;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExecutionDeleteContextParams && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -10123,14 +9834,14 @@ class ExecutionDeleteContextResult implements ResponseResult {
 
 /// execution.getSuggestions params
 ///
-/// {
-///   "code": String
-///   "offset": int
-///   "contextFile": FilePath
-///   "contextOffset": int
-///   "variables": List<RuntimeCompletionVariable>
-///   "expressions": optional List<RuntimeCompletionExpression>
-/// }
+///     {
+///       "code": String
+///       "offset": int
+///       "contextFile": FilePath
+///       "contextOffset": int
+///       "variables": List<RuntimeCompletionVariable>
+///       "expressions": optional List<RuntimeCompletionExpression>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsParams implements RequestParams {
@@ -10321,27 +10032,23 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutionGetSuggestionsParams) {
-      return code == other.code &&
-          offset == other.offset &&
-          contextFile == other.contextFile &&
-          contextOffset == other.contextOffset &&
-          listEqual(
-            variables,
-            other.variables,
-            (RuntimeCompletionVariable a, RuntimeCompletionVariable b) =>
-                a == b,
-          ) &&
-          listEqual(
-            expressions,
-            other.expressions,
-            (RuntimeCompletionExpression a, RuntimeCompletionExpression b) =>
-                a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExecutionGetSuggestionsParams &&
+      code == other.code &&
+      offset == other.offset &&
+      contextFile == other.contextFile &&
+      contextOffset == other.contextOffset &&
+      listEqual(
+        variables,
+        other.variables,
+        (RuntimeCompletionVariable a, RuntimeCompletionVariable b) => a == b,
+      ) &&
+      listEqual(
+        expressions,
+        other.expressions,
+        (RuntimeCompletionExpression a, RuntimeCompletionExpression b) =>
+            a == b,
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -10356,10 +10063,10 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 
 /// execution.getSuggestions result
 ///
-/// {
-///   "suggestions": optional List<CompletionSuggestion>
-///   "expressions": optional List<RuntimeCompletionExpression>
-/// }
+///     {
+///       "suggestions": optional List<CompletionSuggestion>
+///       "expressions": optional List<RuntimeCompletionExpression>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsResult implements ResponseResult {
@@ -10479,22 +10186,19 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutionGetSuggestionsResult) {
-      return listEqual(
-            suggestions,
-            other.suggestions,
-            (CompletionSuggestion a, CompletionSuggestion b) => a == b,
-          ) &&
-          listEqual(
-            expressions,
-            other.expressions,
-            (RuntimeCompletionExpression a, RuntimeCompletionExpression b) =>
-                a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExecutionGetSuggestionsResult &&
+      listEqual(
+        suggestions,
+        other.suggestions,
+        (CompletionSuggestion a, CompletionSuggestion b) => a == b,
+      ) &&
+      listEqual(
+        expressions,
+        other.expressions,
+        (RuntimeCompletionExpression a, RuntimeCompletionExpression b) =>
+            a == b,
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -10505,11 +10209,11 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
 
 /// execution.launchData params
 ///
-/// {
-///   "file": FilePath
-///   "kind": optional ExecutableKind
-///   "referencedFiles": optional List<FilePath>
-/// }
+///     {
+///       "file": FilePath
+///       "kind": optional ExecutableKind
+///       "referencedFiles": optional List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionLaunchDataParams implements HasToJson {
@@ -10623,18 +10327,15 @@ class ExecutionLaunchDataParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutionLaunchDataParams) {
-      return file == other.file &&
-          kind == other.kind &&
-          listEqual(
-            referencedFiles,
-            other.referencedFiles,
-            (String a, String b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExecutionLaunchDataParams &&
+      file == other.file &&
+      kind == other.kind &&
+      listEqual(
+        referencedFiles,
+        other.referencedFiles,
+        (String a, String b) => a == b,
+      );
 
   @override
   int get hashCode =>
@@ -10643,11 +10344,11 @@ class ExecutionLaunchDataParams implements HasToJson {
 
 /// execution.mapUri params
 ///
-/// {
-///   "id": ExecutionContextId
-///   "file": optional FilePath
-///   "uri": optional String
-/// }
+///     {
+///       "id": ExecutionContextId
+///       "file": optional FilePath
+///       "uri": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriParams implements RequestParams {
@@ -10739,12 +10440,11 @@ class ExecutionMapUriParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutionMapUriParams) {
-      return id == other.id && file == other.file && uri == other.uri;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExecutionMapUriParams &&
+      id == other.id &&
+      file == other.file &&
+      uri == other.uri;
 
   @override
   int get hashCode => Object.hash(id, file, uri);
@@ -10752,10 +10452,10 @@ class ExecutionMapUriParams implements RequestParams {
 
 /// execution.mapUri result
 ///
-/// {
-///   "file": optional FilePath
-///   "uri": optional String
-/// }
+///     {
+///       "file": optional FilePath
+///       "uri": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriResult implements ResponseResult {
@@ -10835,12 +10535,8 @@ class ExecutionMapUriResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutionMapUriResult) {
-      return file == other.file && uri == other.uri;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExecutionMapUriResult && file == other.file && uri == other.uri;
 
   @override
   int get hashCode => Object.hash(file, uri);
@@ -10848,9 +10544,9 @@ class ExecutionMapUriResult implements ResponseResult {
 
 /// ExecutionService
 ///
-/// enum {
-///   LAUNCH_DATA
-/// }
+///     enum {
+///       LAUNCH_DATA
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ExecutionService {
@@ -10880,9 +10576,9 @@ enum ExecutionService {
 
 /// execution.setSubscriptions params
 ///
-/// {
-///   "subscriptions": List<ExecutionService>
-/// }
+///     {
+///       "subscriptions": List<ExecutionService>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExecutionSetSubscriptionsParams implements RequestParams {
@@ -10966,16 +10662,13 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExecutionSetSubscriptionsParams) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is ExecutionSetSubscriptionsParams &&
+      listEqual(
         subscriptions,
         other.subscriptions,
         (ExecutionService a, ExecutionService b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(subscriptions);
@@ -11007,10 +10700,10 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
 
 /// ExistingImport
 ///
-/// {
-///   "uri": int
-///   "elements": List<int>
-/// }
+///     {
+///       "uri": int
+///       "elements": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExistingImport implements HasToJson {
@@ -11068,13 +10761,10 @@ class ExistingImport implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExistingImport) {
-      return uri == other.uri &&
-          listEqual(elements, other.elements, (int a, int b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExistingImport &&
+      uri == other.uri &&
+      listEqual(elements, other.elements, (int a, int b) => a == b);
 
   @override
   int get hashCode => Object.hash(uri, Object.hashAll(elements));
@@ -11082,10 +10772,10 @@ class ExistingImport implements HasToJson {
 
 /// ExistingImports
 ///
-/// {
-///   "elements": ImportedElementSet
-///   "imports": List<ExistingImport>
-/// }
+///     {
+///       "elements": ImportedElementSet
+///       "imports": List<ExistingImport>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExistingImports implements HasToJson {
@@ -11158,17 +10848,14 @@ class ExistingImports implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExistingImports) {
-      return elements == other.elements &&
-          listEqual(
-            imports,
-            other.imports,
-            (ExistingImport a, ExistingImport b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExistingImports &&
+      elements == other.elements &&
+      listEqual(
+        imports,
+        other.imports,
+        (ExistingImport a, ExistingImport b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(elements, Object.hashAll(imports));
@@ -11176,13 +10863,13 @@ class ExistingImports implements HasToJson {
 
 /// extractLocalVariable feedback
 ///
-/// {
-///   "coveringExpressionOffsets": optional List<int>
-///   "coveringExpressionLengths": optional List<int>
-///   "names": List<String>
-///   "offsets": List<int>
-///   "lengths": List<int>
-/// }
+///     {
+///       "coveringExpressionOffsets": optional List<int>
+///       "coveringExpressionLengths": optional List<int>
+///       "names": List<String>
+///       "offsets": List<int>
+///       "lengths": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableFeedback extends RefactoringFeedback {
@@ -11308,24 +10995,21 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExtractLocalVariableFeedback) {
-      return listEqual(
-            coveringExpressionOffsets,
-            other.coveringExpressionOffsets,
-            (int a, int b) => a == b,
-          ) &&
-          listEqual(
-            coveringExpressionLengths,
-            other.coveringExpressionLengths,
-            (int a, int b) => a == b,
-          ) &&
-          listEqual(names, other.names, (String a, String b) => a == b) &&
-          listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
-          listEqual(lengths, other.lengths, (int a, int b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExtractLocalVariableFeedback &&
+      listEqual(
+        coveringExpressionOffsets,
+        other.coveringExpressionOffsets,
+        (int a, int b) => a == b,
+      ) &&
+      listEqual(
+        coveringExpressionLengths,
+        other.coveringExpressionLengths,
+        (int a, int b) => a == b,
+      ) &&
+      listEqual(names, other.names, (String a, String b) => a == b) &&
+      listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
+      listEqual(lengths, other.lengths, (int a, int b) => a == b);
 
   @override
   int get hashCode => Object.hash(
@@ -11339,10 +11023,10 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
 /// extractLocalVariable options
 ///
-/// {
-///   "name": String
-///   "extractAll": bool
-/// }
+///     {
+///       "name": String
+///       "extractAll": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableOptions extends RefactoringOptions {
@@ -11417,12 +11101,10 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExtractLocalVariableOptions) {
-      return name == other.name && extractAll == other.extractAll;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExtractLocalVariableOptions &&
+      name == other.name &&
+      extractAll == other.extractAll;
 
   @override
   int get hashCode => Object.hash(name, extractAll);
@@ -11430,16 +11112,16 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 
 /// extractMethod feedback
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "returnType": String
-///   "names": List<String>
-///   "canCreateGetter": bool
-///   "parameters": List<RefactoringMethodParameter>
-///   "offsets": List<int>
-///   "lengths": List<int>
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "returnType": String
+///       "names": List<String>
+///       "canCreateGetter": bool
+///       "parameters": List<RefactoringMethodParameter>
+///       "offsets": List<int>
+///       "lengths": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodFeedback extends RefactoringFeedback {
@@ -11609,24 +11291,20 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExtractMethodFeedback) {
-      return offset == other.offset &&
-          length == other.length &&
-          returnType == other.returnType &&
-          listEqual(names, other.names, (String a, String b) => a == b) &&
-          canCreateGetter == other.canCreateGetter &&
-          listEqual(
-            parameters,
-            other.parameters,
-            (RefactoringMethodParameter a, RefactoringMethodParameter b) =>
-                a == b,
-          ) &&
-          listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
-          listEqual(lengths, other.lengths, (int a, int b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExtractMethodFeedback &&
+      offset == other.offset &&
+      length == other.length &&
+      returnType == other.returnType &&
+      listEqual(names, other.names, (String a, String b) => a == b) &&
+      canCreateGetter == other.canCreateGetter &&
+      listEqual(
+        parameters,
+        other.parameters,
+        (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b,
+      ) &&
+      listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
+      listEqual(lengths, other.lengths, (int a, int b) => a == b);
 
   @override
   int get hashCode => Object.hash(
@@ -11643,13 +11321,13 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
 /// extractMethod options
 ///
-/// {
-///   "returnType": String
-///   "createGetter": bool
-///   "name": String
-///   "parameters": List<RefactoringMethodParameter>
-///   "extractAll": bool
-/// }
+///     {
+///       "returnType": String
+///       "createGetter": bool
+///       "name": String
+///       "parameters": List<RefactoringMethodParameter>
+///       "extractAll": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractMethodOptions extends RefactoringOptions {
@@ -11792,21 +11470,17 @@ class ExtractMethodOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExtractMethodOptions) {
-      return returnType == other.returnType &&
-          createGetter == other.createGetter &&
-          name == other.name &&
-          listEqual(
-            parameters,
-            other.parameters,
-            (RefactoringMethodParameter a, RefactoringMethodParameter b) =>
-                a == b,
-          ) &&
-          extractAll == other.extractAll;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExtractMethodOptions &&
+      returnType == other.returnType &&
+      createGetter == other.createGetter &&
+      name == other.name &&
+      listEqual(
+        parameters,
+        other.parameters,
+        (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b,
+      ) &&
+      extractAll == other.extractAll;
 
   @override
   int get hashCode => Object.hash(
@@ -11820,8 +11494,8 @@ class ExtractMethodOptions extends RefactoringOptions {
 
 /// extractWidget feedback
 ///
-/// {
-/// }
+///     {
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractWidgetFeedback extends RefactoringFeedback {
@@ -11853,12 +11527,7 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExtractWidgetFeedback) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(Object other) => other is ExtractWidgetFeedback;
 
   @override
   int get hashCode => 0;
@@ -11866,9 +11535,9 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
 
 /// extractWidget options
 ///
-/// {
-///   "name": String
-/// }
+///     {
+///       "name": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ExtractWidgetOptions extends RefactoringOptions {
@@ -11923,12 +11592,8 @@ class ExtractWidgetOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ExtractWidgetOptions) {
-      return name == other.name;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ExtractWidgetOptions && name == other.name;
 
   @override
   int get hashCode => name.hashCode;
@@ -11936,10 +11601,10 @@ class ExtractWidgetOptions extends RefactoringOptions {
 
 /// FileKind
 ///
-/// enum {
-///   LIBRARY
-///   PART
-/// }
+///     enum {
+///       LIBRARY
+///       PART
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FileKind {
@@ -11971,10 +11636,10 @@ enum FileKind {
 
 /// flutter.getWidgetDescription params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionParams implements RequestParams {
@@ -12058,12 +11723,10 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterGetWidgetDescriptionParams) {
-      return file == other.file && offset == other.offset;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterGetWidgetDescriptionParams &&
+      file == other.file &&
+      offset == other.offset;
 
   @override
   int get hashCode => Object.hash(file, offset);
@@ -12071,9 +11734,9 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
 
 /// flutter.getWidgetDescription result
 ///
-/// {
-///   "properties": List<FlutterWidgetProperty>
-/// }
+///     {
+///       "properties": List<FlutterWidgetProperty>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionResult implements ResponseResult {
@@ -12156,16 +11819,13 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterGetWidgetDescriptionResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is FlutterGetWidgetDescriptionResult &&
+      listEqual(
         properties,
         other.properties,
         (FlutterWidgetProperty a, FlutterWidgetProperty b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(properties);
@@ -12173,20 +11833,20 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
 
 /// FlutterOutline
 ///
-/// {
-///   "kind": FlutterOutlineKind
-///   "offset": int
-///   "length": int
-///   "codeOffset": int
-///   "codeLength": int
-///   "label": optional String
-///   "dartElement": optional Element
-///   "attributes": optional List<FlutterOutlineAttribute>
-///   "className": optional String
-///   "parentAssociationLabel": optional String
-///   "variableName": optional String
-///   "children": optional List<FlutterOutline>
-/// }
+///     {
+///       "kind": FlutterOutlineKind
+///       "offset": int
+///       "length": int
+///       "codeOffset": int
+///       "codeLength": int
+///       "label": optional String
+///       "dartElement": optional Element
+///       "attributes": optional List<FlutterOutlineAttribute>
+///       "className": optional String
+///       "parentAssociationLabel": optional String
+///       "variableName": optional String
+///       "children": optional List<FlutterOutline>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterOutline implements HasToJson {
@@ -12437,31 +12097,28 @@ class FlutterOutline implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterOutline) {
-      return kind == other.kind &&
-          offset == other.offset &&
-          length == other.length &&
-          codeOffset == other.codeOffset &&
-          codeLength == other.codeLength &&
-          label == other.label &&
-          dartElement == other.dartElement &&
-          listEqual(
-            attributes,
-            other.attributes,
-            (FlutterOutlineAttribute a, FlutterOutlineAttribute b) => a == b,
-          ) &&
-          className == other.className &&
-          parentAssociationLabel == other.parentAssociationLabel &&
-          variableName == other.variableName &&
-          listEqual(
-            children,
-            other.children,
-            (FlutterOutline a, FlutterOutline b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterOutline &&
+      kind == other.kind &&
+      offset == other.offset &&
+      length == other.length &&
+      codeOffset == other.codeOffset &&
+      codeLength == other.codeLength &&
+      label == other.label &&
+      dartElement == other.dartElement &&
+      listEqual(
+        attributes,
+        other.attributes,
+        (FlutterOutlineAttribute a, FlutterOutlineAttribute b) => a == b,
+      ) &&
+      className == other.className &&
+      parentAssociationLabel == other.parentAssociationLabel &&
+      variableName == other.variableName &&
+      listEqual(
+        children,
+        other.children,
+        (FlutterOutline a, FlutterOutline b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -12482,15 +12139,15 @@ class FlutterOutline implements HasToJson {
 
 /// FlutterOutlineAttribute
 ///
-/// {
-///   "name": String
-///   "label": String
-///   "literalValueBoolean": optional bool
-///   "literalValueInteger": optional int
-///   "literalValueString": optional String
-///   "nameLocation": optional Location
-///   "valueLocation": optional Location
-/// }
+///     {
+///       "name": String
+///       "label": String
+///       "literalValueBoolean": optional bool
+///       "literalValueInteger": optional int
+///       "literalValueString": optional String
+///       "nameLocation": optional Location
+///       "valueLocation": optional Location
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineAttribute implements HasToJson {
@@ -12644,18 +12301,15 @@ class FlutterOutlineAttribute implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterOutlineAttribute) {
-      return name == other.name &&
-          label == other.label &&
-          literalValueBoolean == other.literalValueBoolean &&
-          literalValueInteger == other.literalValueInteger &&
-          literalValueString == other.literalValueString &&
-          nameLocation == other.nameLocation &&
-          valueLocation == other.valueLocation;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterOutlineAttribute &&
+      name == other.name &&
+      label == other.label &&
+      literalValueBoolean == other.literalValueBoolean &&
+      literalValueInteger == other.literalValueInteger &&
+      literalValueString == other.literalValueString &&
+      nameLocation == other.nameLocation &&
+      valueLocation == other.valueLocation;
 
   @override
   int get hashCode => Object.hash(
@@ -12671,14 +12325,14 @@ class FlutterOutlineAttribute implements HasToJson {
 
 /// FlutterOutlineKind
 ///
-/// enum {
-///   DART_ELEMENT
-///   GENERIC
-///   NEW_INSTANCE
-///   INVOCATION
-///   VARIABLE
-///   PLACEHOLDER
-/// }
+///     enum {
+///       DART_ELEMENT
+///       GENERIC
+///       NEW_INSTANCE
+///       INVOCATION
+///       VARIABLE
+///       PLACEHOLDER
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FlutterOutlineKind {
@@ -12726,10 +12380,10 @@ enum FlutterOutlineKind {
 
 /// flutter.outline params
 ///
-/// {
-///   "file": FilePath
-///   "outline": FlutterOutline
-/// }
+///     {
+///       "file": FilePath
+///       "outline": FlutterOutline
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineParams implements HasToJson {
@@ -12811,12 +12465,10 @@ class FlutterOutlineParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterOutlineParams) {
-      return file == other.file && outline == other.outline;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterOutlineParams &&
+      file == other.file &&
+      outline == other.outline;
 
   @override
   int get hashCode => Object.hash(file, outline);
@@ -12824,9 +12476,9 @@ class FlutterOutlineParams implements HasToJson {
 
 /// FlutterService
 ///
-/// enum {
-///   OUTLINE
-/// }
+///     enum {
+///       OUTLINE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FlutterService {
@@ -12856,9 +12508,9 @@ enum FlutterService {
 
 /// flutter.setSubscriptions params
 ///
-/// {
-///   "subscriptions": Map<FlutterService, List<FilePath>>
-/// }
+///     {
+///       "subscriptions": Map<FlutterService, List<FilePath>>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetSubscriptionsParams implements RequestParams {
@@ -12959,17 +12611,14 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterSetSubscriptionsParams) {
-      return mapEqual(
+  bool operator ==(Object other) =>
+      other is FlutterSetSubscriptionsParams &&
+      mapEqual(
         subscriptions,
         other.subscriptions,
         (List<String> a, List<String> b) =>
             listEqual(a, b, (String a, String b) => a == b),
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode =>
@@ -13002,10 +12651,10 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
 
 /// flutter.setWidgetPropertyValue params
 ///
-/// {
-///   "id": int
-///   "value": optional FlutterWidgetPropertyValue
-/// }
+///     {
+///       "id": int
+///       "value": optional FlutterWidgetPropertyValue
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueParams implements RequestParams {
@@ -13103,12 +12752,10 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterSetWidgetPropertyValueParams) {
-      return id == other.id && value == other.value;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterSetWidgetPropertyValueParams &&
+      id == other.id &&
+      value == other.value;
 
   @override
   int get hashCode => Object.hash(id, value);
@@ -13116,9 +12763,9 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
 
 /// flutter.setWidgetPropertyValue result
 ///
-/// {
-///   "change": SourceChange
-/// }
+///     {
+///       "change": SourceChange
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueResult implements ResponseResult {
@@ -13189,12 +12836,8 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterSetWidgetPropertyValueResult) {
-      return change == other.change;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterSetWidgetPropertyValueResult && change == other.change;
 
   @override
   int get hashCode => change.hashCode;
@@ -13202,17 +12845,17 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
 
 /// FlutterWidgetProperty
 ///
-/// {
-///   "documentation": optional String
-///   "expression": optional String
-///   "id": int
-///   "isRequired": bool
-///   "isSafeToUpdate": bool
-///   "name": String
-///   "children": optional List<FlutterWidgetProperty>
-///   "editor": optional FlutterWidgetPropertyEditor
-///   "value": optional FlutterWidgetPropertyValue
-/// }
+///     {
+///       "documentation": optional String
+///       "expression": optional String
+///       "id": int
+///       "isRequired": bool
+///       "isSafeToUpdate": bool
+///       "name": String
+///       "children": optional List<FlutterWidgetProperty>
+///       "editor": optional FlutterWidgetPropertyEditor
+///       "value": optional FlutterWidgetPropertyValue
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetProperty implements HasToJson {
@@ -13410,24 +13053,21 @@ class FlutterWidgetProperty implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterWidgetProperty) {
-      return documentation == other.documentation &&
-          expression == other.expression &&
-          id == other.id &&
-          isRequired == other.isRequired &&
-          isSafeToUpdate == other.isSafeToUpdate &&
-          name == other.name &&
-          listEqual(
-            children,
-            other.children,
-            (FlutterWidgetProperty a, FlutterWidgetProperty b) => a == b,
-          ) &&
-          editor == other.editor &&
-          value == other.value;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterWidgetProperty &&
+      documentation == other.documentation &&
+      expression == other.expression &&
+      id == other.id &&
+      isRequired == other.isRequired &&
+      isSafeToUpdate == other.isSafeToUpdate &&
+      name == other.name &&
+      listEqual(
+        children,
+        other.children,
+        (FlutterWidgetProperty a, FlutterWidgetProperty b) => a == b,
+      ) &&
+      editor == other.editor &&
+      value == other.value;
 
   @override
   int get hashCode => Object.hash(
@@ -13445,10 +13085,10 @@ class FlutterWidgetProperty implements HasToJson {
 
 /// FlutterWidgetPropertyEditor
 ///
-/// {
-///   "kind": FlutterWidgetPropertyEditorKind
-///   "enumItems": optional List<FlutterWidgetPropertyValueEnumItem>
-/// }
+///     {
+///       "kind": FlutterWidgetPropertyEditorKind
+///       "enumItems": optional List<FlutterWidgetPropertyValueEnumItem>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyEditor implements HasToJson {
@@ -13519,20 +13159,17 @@ class FlutterWidgetPropertyEditor implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterWidgetPropertyEditor) {
-      return kind == other.kind &&
-          listEqual(
-            enumItems,
-            other.enumItems,
-            (
-              FlutterWidgetPropertyValueEnumItem a,
-              FlutterWidgetPropertyValueEnumItem b,
-            ) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterWidgetPropertyEditor &&
+      kind == other.kind &&
+      listEqual(
+        enumItems,
+        other.enumItems,
+        (
+          FlutterWidgetPropertyValueEnumItem a,
+          FlutterWidgetPropertyValueEnumItem b,
+        ) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(kind, Object.hashAll(enumItems ?? []));
@@ -13540,14 +13177,14 @@ class FlutterWidgetPropertyEditor implements HasToJson {
 
 /// FlutterWidgetPropertyEditorKind
 ///
-/// enum {
-///   BOOL
-///   DOUBLE
-///   ENUM
-///   ENUM_LIKE
-///   INT
-///   STRING
-/// }
+///     enum {
+///       BOOL
+///       DOUBLE
+///       ENUM
+///       ENUM_LIKE
+///       INT
+///       STRING
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum FlutterWidgetPropertyEditorKind {
@@ -13600,14 +13237,14 @@ enum FlutterWidgetPropertyEditorKind {
 
 /// FlutterWidgetPropertyValue
 ///
-/// {
-///   "boolValue": optional bool
-///   "doubleValue": optional double
-///   "intValue": optional int
-///   "stringValue": optional String
-///   "enumValue": optional FlutterWidgetPropertyValueEnumItem
-///   "expression": optional String
-/// }
+///     {
+///       "boolValue": optional bool
+///       "doubleValue": optional double
+///       "intValue": optional int
+///       "stringValue": optional String
+///       "enumValue": optional FlutterWidgetPropertyValueEnumItem
+///       "expression": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValue implements HasToJson {
@@ -13736,17 +13373,14 @@ class FlutterWidgetPropertyValue implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterWidgetPropertyValue) {
-      return boolValue == other.boolValue &&
-          doubleValue == other.doubleValue &&
-          intValue == other.intValue &&
-          stringValue == other.stringValue &&
-          enumValue == other.enumValue &&
-          expression == other.expression;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterWidgetPropertyValue &&
+      boolValue == other.boolValue &&
+      doubleValue == other.doubleValue &&
+      intValue == other.intValue &&
+      stringValue == other.stringValue &&
+      enumValue == other.enumValue &&
+      expression == other.expression;
 
   @override
   int get hashCode => Object.hash(
@@ -13761,12 +13395,12 @@ class FlutterWidgetPropertyValue implements HasToJson {
 
 /// FlutterWidgetPropertyValueEnumItem
 ///
-/// {
-///   "libraryUri": String
-///   "className": String
-///   "name": String
-///   "documentation": optional String
-/// }
+///     {
+///       "libraryUri": String
+///       "className": String
+///       "name": String
+///       "documentation": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValueEnumItem implements HasToJson {
@@ -13867,15 +13501,12 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is FlutterWidgetPropertyValueEnumItem) {
-      return libraryUri == other.libraryUri &&
-          className == other.className &&
-          name == other.name &&
-          documentation == other.documentation;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is FlutterWidgetPropertyValueEnumItem &&
+      libraryUri == other.libraryUri &&
+      className == other.className &&
+      name == other.name &&
+      documentation == other.documentation;
 
   @override
   int get hashCode => Object.hash(libraryUri, className, name, documentation);
@@ -13883,9 +13514,9 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
 
 /// GeneralAnalysisService
 ///
-/// enum {
-///   ANALYZED_FILES
-/// }
+///     enum {
+///       ANALYZED_FILES
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum GeneralAnalysisService {
@@ -13915,20 +13546,20 @@ enum GeneralAnalysisService {
 
 /// HoverInformation
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "containingLibraryPath": optional String
-///   "containingLibraryName": optional String
-///   "containingClassDescription": optional String
-///   "dartdoc": optional String
-///   "elementDescription": optional String
-///   "elementKind": optional String
-///   "isDeprecated": optional bool
-///   "parameter": optional String
-///   "propagatedType": optional String
-///   "staticType": optional String
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "containingLibraryPath": optional String
+///       "containingLibraryName": optional String
+///       "containingClassDescription": optional String
+///       "dartdoc": optional String
+///       "elementDescription": optional String
+///       "elementKind": optional String
+///       "isDeprecated": optional bool
+///       "parameter": optional String
+///       "propagatedType": optional String
+///       "staticType": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class HoverInformation implements HasToJson {
@@ -14166,23 +13797,20 @@ class HoverInformation implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is HoverInformation) {
-      return offset == other.offset &&
-          length == other.length &&
-          containingLibraryPath == other.containingLibraryPath &&
-          containingLibraryName == other.containingLibraryName &&
-          containingClassDescription == other.containingClassDescription &&
-          dartdoc == other.dartdoc &&
-          elementDescription == other.elementDescription &&
-          elementKind == other.elementKind &&
-          isDeprecated == other.isDeprecated &&
-          parameter == other.parameter &&
-          propagatedType == other.propagatedType &&
-          staticType == other.staticType;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is HoverInformation &&
+      offset == other.offset &&
+      length == other.length &&
+      containingLibraryPath == other.containingLibraryPath &&
+      containingLibraryName == other.containingLibraryName &&
+      containingClassDescription == other.containingClassDescription &&
+      dartdoc == other.dartdoc &&
+      elementDescription == other.elementDescription &&
+      elementKind == other.elementKind &&
+      isDeprecated == other.isDeprecated &&
+      parameter == other.parameter &&
+      propagatedType == other.propagatedType &&
+      staticType == other.staticType;
 
   @override
   int get hashCode => Object.hash(
@@ -14203,10 +13831,10 @@ class HoverInformation implements HasToJson {
 
 /// ImplementedClass
 ///
-/// {
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImplementedClass implements HasToJson {
@@ -14258,12 +13886,10 @@ class ImplementedClass implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ImplementedClass) {
-      return offset == other.offset && length == other.length;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ImplementedClass &&
+      offset == other.offset &&
+      length == other.length;
 
   @override
   int get hashCode => Object.hash(offset, length);
@@ -14271,10 +13897,10 @@ class ImplementedClass implements HasToJson {
 
 /// ImplementedMember
 ///
-/// {
-///   "offset": int
-///   "length": int
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImplementedMember implements HasToJson {
@@ -14326,12 +13952,10 @@ class ImplementedMember implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ImplementedMember) {
-      return offset == other.offset && length == other.length;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ImplementedMember &&
+      offset == other.offset &&
+      length == other.length;
 
   @override
   int get hashCode => Object.hash(offset, length);
@@ -14339,11 +13963,11 @@ class ImplementedMember implements HasToJson {
 
 /// ImportedElementSet
 ///
-/// {
-///   "strings": List<String>
-///   "uris": List<int>
-///   "names": List<int>
-/// }
+///     {
+///       "strings": List<String>
+///       "uris": List<int>
+///       "names": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImportedElementSet implements HasToJson {
@@ -14418,18 +14042,11 @@ class ImportedElementSet implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ImportedElementSet) {
-      return listEqual(
-            strings,
-            other.strings,
-            (String a, String b) => a == b,
-          ) &&
-          listEqual(uris, other.uris, (int a, int b) => a == b) &&
-          listEqual(names, other.names, (int a, int b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ImportedElementSet &&
+      listEqual(strings, other.strings, (String a, String b) => a == b) &&
+      listEqual(uris, other.uris, (int a, int b) => a == b) &&
+      listEqual(names, other.names, (int a, int b) => a == b);
 
   @override
   int get hashCode => Object.hash(
@@ -14441,11 +14058,11 @@ class ImportedElementSet implements HasToJson {
 
 /// ImportedElements
 ///
-/// {
-///   "path": FilePath
-///   "prefix": String
-///   "elements": List<String>
-/// }
+///     {
+///       "path": FilePath
+///       "prefix": String
+///       "elements": List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ImportedElements implements HasToJson {
@@ -14516,14 +14133,11 @@ class ImportedElements implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ImportedElements) {
-      return path == other.path &&
-          prefix == other.prefix &&
-          listEqual(elements, other.elements, (String a, String b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ImportedElements &&
+      path == other.path &&
+      prefix == other.prefix &&
+      listEqual(elements, other.elements, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hash(path, prefix, Object.hashAll(elements));
@@ -14531,10 +14145,10 @@ class ImportedElements implements HasToJson {
 
 /// inlineLocalVariable feedback
 ///
-/// {
-///   "name": String
-///   "occurrences": int
-/// }
+///     {
+///       "name": String
+///       "occurrences": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableFeedback extends RefactoringFeedback {
@@ -14593,12 +14207,10 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is InlineLocalVariableFeedback) {
-      return name == other.name && occurrences == other.occurrences;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is InlineLocalVariableFeedback &&
+      name == other.name &&
+      occurrences == other.occurrences;
 
   @override
   int get hashCode => Object.hash(name, occurrences);
@@ -14618,11 +14230,11 @@ class InlineLocalVariableOptions extends RefactoringOptions
 
 /// inlineMethod feedback
 ///
-/// {
-///   "className": optional String
-///   "methodName": String
-///   "isDeclaration": bool
-/// }
+///     {
+///       "className": optional String
+///       "methodName": String
+///       "isDeclaration": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodFeedback extends RefactoringFeedback {
@@ -14700,14 +14312,11 @@ class InlineMethodFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is InlineMethodFeedback) {
-      return className == other.className &&
-          methodName == other.methodName &&
-          isDeclaration == other.isDeclaration;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is InlineMethodFeedback &&
+      className == other.className &&
+      methodName == other.methodName &&
+      isDeclaration == other.isDeclaration;
 
   @override
   int get hashCode => Object.hash(className, methodName, isDeclaration);
@@ -14715,10 +14324,10 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
 /// inlineMethod options
 ///
-/// {
-///   "deleteSource": bool
-///   "inlineAll": bool
-/// }
+///     {
+///       "deleteSource": bool
+///       "inlineAll": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class InlineMethodOptions extends RefactoringOptions {
@@ -14791,12 +14400,10 @@ class InlineMethodOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is InlineMethodOptions) {
-      return deleteSource == other.deleteSource && inlineAll == other.inlineAll;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is InlineMethodOptions &&
+      deleteSource == other.deleteSource &&
+      inlineAll == other.inlineAll;
 
   @override
   int get hashCode => Object.hash(deleteSource, inlineAll);
@@ -14804,10 +14411,10 @@ class InlineMethodOptions extends RefactoringOptions {
 
 /// LibraryPathSet
 ///
-/// {
-///   "scope": FilePath
-///   "libraryPaths": List<FilePath>
-/// }
+///     {
+///       "scope": FilePath
+///       "libraryPaths": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LibraryPathSet implements HasToJson {
@@ -14879,17 +14486,14 @@ class LibraryPathSet implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is LibraryPathSet) {
-      return scope == other.scope &&
-          listEqual(
-            libraryPaths,
-            other.libraryPaths,
-            (String a, String b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is LibraryPathSet &&
+      scope == other.scope &&
+      listEqual(
+        libraryPaths,
+        other.libraryPaths,
+        (String a, String b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(scope, Object.hashAll(libraryPaths));
@@ -14897,9 +14501,9 @@ class LibraryPathSet implements HasToJson {
 
 /// lsp.handle params
 ///
-/// {
-///   "lspMessage": object
-/// }
+///     {
+///       "lspMessage": object
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LspHandleParams implements RequestParams {
@@ -14965,12 +14569,8 @@ class LspHandleParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is LspHandleParams) {
-      return lspMessage == other.lspMessage;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is LspHandleParams && lspMessage == other.lspMessage;
 
   @override
   int get hashCode => lspMessage.hashCode;
@@ -14978,9 +14578,9 @@ class LspHandleParams implements RequestParams {
 
 /// lsp.handle result
 ///
-/// {
-///   "lspResponse": object
-/// }
+///     {
+///       "lspResponse": object
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LspHandleResult implements ResponseResult {
@@ -15042,12 +14642,8 @@ class LspHandleResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is LspHandleResult) {
-      return lspResponse == other.lspResponse;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is LspHandleResult && lspResponse == other.lspResponse;
 
   @override
   int get hashCode => lspResponse.hashCode;
@@ -15055,9 +14651,9 @@ class LspHandleResult implements ResponseResult {
 
 /// lsp.notification params
 ///
-/// {
-///   "lspNotification": object
-/// }
+///     {
+///       "lspNotification": object
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LspNotificationParams implements HasToJson {
@@ -15120,12 +14716,9 @@ class LspNotificationParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is LspNotificationParams) {
-      return lspNotification == other.lspNotification;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is LspNotificationParams &&
+      lspNotification == other.lspNotification;
 
   @override
   int get hashCode => lspNotification.hashCode;
@@ -15133,9 +14726,9 @@ class LspNotificationParams implements HasToJson {
 
 /// MessageAction
 ///
-/// {
-///   "label": String
-/// }
+///     {
+///       "label": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class MessageAction implements HasToJson {
@@ -15178,12 +14771,8 @@ class MessageAction implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is MessageAction) {
-      return label == other.label;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is MessageAction && label == other.label;
 
   @override
   int get hashCode => label.hashCode;
@@ -15191,12 +14780,12 @@ class MessageAction implements HasToJson {
 
 /// MessageType
 ///
-/// enum {
-///   ERROR
-///   WARNING
-///   INFO
-///   LOG
-/// }
+///     enum {
+///       ERROR
+///       WARNING
+///       INFO
+///       LOG
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum MessageType {
@@ -15247,9 +14836,9 @@ class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
 
 /// moveFile options
 ///
-/// {
-///   "newFile": FilePath
-/// }
+///     {
+///       "newFile": FilePath
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class MoveFileOptions extends RefactoringOptions {
@@ -15309,12 +14898,8 @@ class MoveFileOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is MoveFileOptions) {
-      return newFile == other.newFile;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is MoveFileOptions && newFile == other.newFile;
 
   @override
   int get hashCode => newFile.hashCode;
@@ -15322,10 +14907,10 @@ class MoveFileOptions extends RefactoringOptions {
 
 /// OverriddenMember
 ///
-/// {
-///   "element": Element
-///   "className": String
-/// }
+///     {
+///       "element": Element
+///       "className": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class OverriddenMember implements HasToJson {
@@ -15385,12 +14970,10 @@ class OverriddenMember implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is OverriddenMember) {
-      return element == other.element && className == other.className;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is OverriddenMember &&
+      element == other.element &&
+      className == other.className;
 
   @override
   int get hashCode => Object.hash(element, className);
@@ -15398,12 +14981,12 @@ class OverriddenMember implements HasToJson {
 
 /// Override
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "superclassMember": optional OverriddenMember
-///   "interfaceMembers": optional List<OverriddenMember>
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "superclassMember": optional OverriddenMember
+///       "interfaceMembers": optional List<OverriddenMember>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Override implements HasToJson {
@@ -15512,19 +15095,16 @@ class Override implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is Override) {
-      return offset == other.offset &&
-          length == other.length &&
-          superclassMember == other.superclassMember &&
-          listEqual(
-            interfaceMembers,
-            other.interfaceMembers,
-            (OverriddenMember a, OverriddenMember b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is Override &&
+      offset == other.offset &&
+      length == other.length &&
+      superclassMember == other.superclassMember &&
+      listEqual(
+        interfaceMembers,
+        other.interfaceMembers,
+        (OverriddenMember a, OverriddenMember b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -15537,11 +15117,11 @@ class Override implements HasToJson {
 
 /// PostfixTemplateDescriptor
 ///
-/// {
-///   "name": String
-///   "key": String
-///   "example": String
-/// }
+///     {
+///       "name": String
+///       "key": String
+///       "example": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PostfixTemplateDescriptor implements HasToJson {
@@ -15607,12 +15187,11 @@ class PostfixTemplateDescriptor implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is PostfixTemplateDescriptor) {
-      return name == other.name && key == other.key && example == other.example;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is PostfixTemplateDescriptor &&
+      name == other.name &&
+      key == other.key &&
+      example == other.example;
 
   @override
   int get hashCode => Object.hash(name, key, example);
@@ -15620,9 +15199,9 @@ class PostfixTemplateDescriptor implements HasToJson {
 
 /// PubStatus
 ///
-/// {
-///   "isListingPackageDirs": bool
-/// }
+///     {
+///       "isListingPackageDirs": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class PubStatus implements HasToJson {
@@ -15668,12 +15247,8 @@ class PubStatus implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is PubStatus) {
-      return isListingPackageDirs == other.isListingPackageDirs;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is PubStatus && isListingPackageDirs == other.isListingPackageDirs;
 
   @override
   int get hashCode => isListingPackageDirs.hashCode;
@@ -15681,8 +15256,8 @@ class PubStatus implements HasToJson {
 
 /// RefactoringFeedback
 ///
-/// {
-/// }
+///     {
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringFeedback implements HasToJson {
@@ -15716,12 +15291,7 @@ class RefactoringFeedback implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is RefactoringFeedback) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(Object other) => other is RefactoringFeedback;
 
   @override
   int get hashCode => 0;
@@ -15729,8 +15299,8 @@ class RefactoringFeedback implements HasToJson {
 
 /// RefactoringOptions
 ///
-/// {
-/// }
+///     {
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringOptions implements HasToJson {
@@ -15764,12 +15334,7 @@ class RefactoringOptions implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is RefactoringOptions) {
-      return true;
-    }
-    return false;
-  }
+  bool operator ==(Object other) => other is RefactoringOptions;
 
   @override
   int get hashCode => 0;
@@ -15777,12 +15342,12 @@ class RefactoringOptions implements HasToJson {
 
 /// rename feedback
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "elementKindName": String
-///   "oldName": String
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "elementKindName": String
+///       "oldName": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameFeedback extends RefactoringFeedback {
@@ -15862,15 +15427,12 @@ class RenameFeedback extends RefactoringFeedback {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is RenameFeedback) {
-      return offset == other.offset &&
-          length == other.length &&
-          elementKindName == other.elementKindName &&
-          oldName == other.oldName;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is RenameFeedback &&
+      offset == other.offset &&
+      length == other.length &&
+      elementKindName == other.elementKindName &&
+      oldName == other.oldName;
 
   @override
   int get hashCode => Object.hash(offset, length, elementKindName, oldName);
@@ -15878,9 +15440,9 @@ class RenameFeedback extends RefactoringFeedback {
 
 /// rename options
 ///
-/// {
-///   "newName": String
-/// }
+///     {
+///       "newName": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RenameOptions extends RefactoringOptions {
@@ -15938,12 +15500,8 @@ class RenameOptions extends RefactoringOptions {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is RenameOptions) {
-      return newName == other.newName;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is RenameOptions && newName == other.newName;
 
   @override
   int get hashCode => newName.hashCode;
@@ -15951,11 +15509,11 @@ class RenameOptions extends RefactoringOptions {
 
 /// RequestError
 ///
-/// {
-///   "code": RequestErrorCode
-///   "message": String
-///   "stackTrace": optional String
-/// }
+///     {
+///       "code": RequestErrorCode
+///       "message": String
+///       "stackTrace": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RequestError implements HasToJson {
@@ -16030,14 +15588,11 @@ class RequestError implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is RequestError) {
-      return code == other.code &&
-          message == other.message &&
-          stackTrace == other.stackTrace;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is RequestError &&
+      code == other.code &&
+      message == other.message &&
+      stackTrace == other.stackTrace;
 
   @override
   int get hashCode => Object.hash(code, message, stackTrace);
@@ -16045,41 +15600,41 @@ class RequestError implements HasToJson {
 
 /// RequestErrorCode
 ///
-/// enum {
-///   CONTENT_MODIFIED
-///   DEBUG_PORT_COULD_NOT_BE_OPENED
-///   FILE_NOT_ANALYZED
-///   FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED
-///   FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
-///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
-///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
-///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
-///   FORMAT_INVALID_FILE
-///   FORMAT_WITH_ERRORS
-///   GET_ERRORS_INVALID_FILE
-///   GET_FIXES_INVALID_FILE
-///   GET_IMPORTED_ELEMENTS_INVALID_FILE
-///   GET_NAVIGATION_INVALID_FILE
-///   GET_REACHABLE_SOURCES_INVALID_FILE
-///   GET_SIGNATURE_INVALID_FILE
-///   GET_SIGNATURE_INVALID_OFFSET
-///   GET_SIGNATURE_UNKNOWN_FUNCTION
-///   IMPORT_ELEMENTS_INVALID_FILE
-///   INVALID_ANALYSIS_ROOT
-///   INVALID_EXECUTION_CONTEXT
-///   INVALID_FILE_PATH_FORMAT
-///   INVALID_OVERLAY_CHANGE
-///   INVALID_PARAMETER
-///   INVALID_REQUEST
-///   ORGANIZE_DIRECTIVES_ERROR
-///   REFACTORING_REQUEST_CANCELLED
-///   SERVER_ALREADY_STARTED
-///   SERVER_ERROR
-///   SORT_MEMBERS_INVALID_FILE
-///   SORT_MEMBERS_PARSE_ERRORS
-///   UNKNOWN_REQUEST
-///   UNSUPPORTED_FEATURE
-/// }
+///     enum {
+///       CONTENT_MODIFIED
+///       DEBUG_PORT_COULD_NOT_BE_OPENED
+///       FILE_NOT_ANALYZED
+///       FLUTTER_GET_WIDGET_DESCRIPTION_CONTENT_MODIFIED
+///       FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
+///       FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
+///       FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
+///       FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
+///       FORMAT_INVALID_FILE
+///       FORMAT_WITH_ERRORS
+///       GET_ERRORS_INVALID_FILE
+///       GET_FIXES_INVALID_FILE
+///       GET_IMPORTED_ELEMENTS_INVALID_FILE
+///       GET_NAVIGATION_INVALID_FILE
+///       GET_REACHABLE_SOURCES_INVALID_FILE
+///       GET_SIGNATURE_INVALID_FILE
+///       GET_SIGNATURE_INVALID_OFFSET
+///       GET_SIGNATURE_UNKNOWN_FUNCTION
+///       IMPORT_ELEMENTS_INVALID_FILE
+///       INVALID_ANALYSIS_ROOT
+///       INVALID_EXECUTION_CONTEXT
+///       INVALID_FILE_PATH_FORMAT
+///       INVALID_OVERLAY_CHANGE
+///       INVALID_PARAMETER
+///       INVALID_REQUEST
+///       ORGANIZE_DIRECTIVES_ERROR
+///       REFACTORING_REQUEST_CANCELLED
+///       SERVER_ALREADY_STARTED
+///       SERVER_ERROR
+///       SORT_MEMBERS_INVALID_FILE
+///       SORT_MEMBERS_PARSE_ERRORS
+///       UNKNOWN_REQUEST
+///       UNSUPPORTED_FEATURE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum RequestErrorCode {
@@ -16240,11 +15795,11 @@ enum RequestErrorCode {
 
 /// RuntimeCompletionExpression
 ///
-/// {
-///   "offset": int
-///   "length": int
-///   "type": optional RuntimeCompletionExpressionType
-/// }
+///     {
+///       "offset": int
+///       "length": int
+///       "type": optional RuntimeCompletionExpressionType
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpression implements HasToJson {
@@ -16314,14 +15869,11 @@ class RuntimeCompletionExpression implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is RuntimeCompletionExpression) {
-      return offset == other.offset &&
-          length == other.length &&
-          type == other.type;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is RuntimeCompletionExpression &&
+      offset == other.offset &&
+      length == other.length &&
+      type == other.type;
 
   @override
   int get hashCode => Object.hash(offset, length, type);
@@ -16329,15 +15881,15 @@ class RuntimeCompletionExpression implements HasToJson {
 
 /// RuntimeCompletionExpressionType
 ///
-/// {
-///   "libraryPath": optional FilePath
-///   "kind": RuntimeCompletionExpressionTypeKind
-///   "name": optional String
-///   "typeArguments": optional List<RuntimeCompletionExpressionType>
-///   "returnType": optional RuntimeCompletionExpressionType
-///   "parameterTypes": optional List<RuntimeCompletionExpressionType>
-///   "parameterNames": optional List<String>
-/// }
+///     {
+///       "libraryPath": optional FilePath
+///       "kind": RuntimeCompletionExpressionTypeKind
+///       "name": optional String
+///       "typeArguments": optional List<RuntimeCompletionExpressionType>
+///       "returnType": optional RuntimeCompletionExpressionType
+///       "parameterTypes": optional List<RuntimeCompletionExpressionType>
+///       "parameterNames": optional List<String>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpressionType implements HasToJson {
@@ -16531,36 +16083,33 @@ class RuntimeCompletionExpressionType implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is RuntimeCompletionExpressionType) {
-      return libraryPath == other.libraryPath &&
-          kind == other.kind &&
-          name == other.name &&
-          listEqual(
-            typeArguments,
-            other.typeArguments,
-            (
-              RuntimeCompletionExpressionType a,
-              RuntimeCompletionExpressionType b,
-            ) => a == b,
-          ) &&
-          returnType == other.returnType &&
-          listEqual(
-            parameterTypes,
-            other.parameterTypes,
-            (
-              RuntimeCompletionExpressionType a,
-              RuntimeCompletionExpressionType b,
-            ) => a == b,
-          ) &&
-          listEqual(
-            parameterNames,
-            other.parameterNames,
-            (String a, String b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is RuntimeCompletionExpressionType &&
+      libraryPath == other.libraryPath &&
+      kind == other.kind &&
+      name == other.name &&
+      listEqual(
+        typeArguments,
+        other.typeArguments,
+        (
+          RuntimeCompletionExpressionType a,
+          RuntimeCompletionExpressionType b,
+        ) => a == b,
+      ) &&
+      returnType == other.returnType &&
+      listEqual(
+        parameterTypes,
+        other.parameterTypes,
+        (
+          RuntimeCompletionExpressionType a,
+          RuntimeCompletionExpressionType b,
+        ) => a == b,
+      ) &&
+      listEqual(
+        parameterNames,
+        other.parameterNames,
+        (String a, String b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(
@@ -16576,11 +16125,11 @@ class RuntimeCompletionExpressionType implements HasToJson {
 
 /// RuntimeCompletionExpressionTypeKind
 ///
-/// enum {
-///   DYNAMIC
-///   FUNCTION
-///   INTERFACE
-/// }
+///     enum {
+///       DYNAMIC
+///       FUNCTION
+///       INTERFACE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum RuntimeCompletionExpressionTypeKind {
@@ -16618,10 +16167,10 @@ enum RuntimeCompletionExpressionTypeKind {
 
 /// RuntimeCompletionVariable
 ///
-/// {
-///   "name": String
-///   "type": RuntimeCompletionExpressionType
-/// }
+///     {
+///       "name": String
+///       "type": RuntimeCompletionExpressionType
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionVariable implements HasToJson {
@@ -16680,12 +16229,10 @@ class RuntimeCompletionVariable implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is RuntimeCompletionVariable) {
-      return name == other.name && type == other.type;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is RuntimeCompletionVariable &&
+      name == other.name &&
+      type == other.type;
 
   @override
   int get hashCode => Object.hash(name, type);
@@ -16693,11 +16240,11 @@ class RuntimeCompletionVariable implements HasToJson {
 
 /// search.findElementReferences params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "includePotential": bool
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "includePotential": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesParams implements RequestParams {
@@ -16800,14 +16347,11 @@ class SearchFindElementReferencesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchFindElementReferencesParams) {
-      return file == other.file &&
-          offset == other.offset &&
-          includePotential == other.includePotential;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchFindElementReferencesParams &&
+      file == other.file &&
+      offset == other.offset &&
+      includePotential == other.includePotential;
 
   @override
   int get hashCode => Object.hash(file, offset, includePotential);
@@ -16815,10 +16359,10 @@ class SearchFindElementReferencesParams implements RequestParams {
 
 /// search.findElementReferences result
 ///
-/// {
-///   "id": optional SearchId
-///   "element": optional Element
-/// }
+///     {
+///       "id": optional SearchId
+///       "element": optional Element
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesResult implements ResponseResult {
@@ -16909,12 +16453,10 @@ class SearchFindElementReferencesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchFindElementReferencesResult) {
-      return id == other.id && element == other.element;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchFindElementReferencesResult &&
+      id == other.id &&
+      element == other.element;
 
   @override
   int get hashCode => Object.hash(id, element);
@@ -16922,9 +16464,9 @@ class SearchFindElementReferencesResult implements ResponseResult {
 
 /// search.findMemberDeclarations params
 ///
-/// {
-///   "name": String
-/// }
+///     {
+///       "name": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsParams implements RequestParams {
@@ -16994,12 +16536,8 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchFindMemberDeclarationsParams) {
-      return name == other.name;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchFindMemberDeclarationsParams && name == other.name;
 
   @override
   int get hashCode => name.hashCode;
@@ -17007,9 +16545,9 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
 
 /// search.findMemberDeclarations result
 ///
-/// {
-///   "id": SearchId
-/// }
+///     {
+///       "id": SearchId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsResult implements ResponseResult {
@@ -17075,12 +16613,8 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchFindMemberDeclarationsResult) {
-      return id == other.id;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchFindMemberDeclarationsResult && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -17088,9 +16622,9 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
 
 /// search.findMemberReferences params
 ///
-/// {
-///   "name": String
-/// }
+///     {
+///       "name": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesParams implements RequestParams {
@@ -17160,12 +16694,8 @@ class SearchFindMemberReferencesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchFindMemberReferencesParams) {
-      return name == other.name;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchFindMemberReferencesParams && name == other.name;
 
   @override
   int get hashCode => name.hashCode;
@@ -17173,9 +16703,9 @@ class SearchFindMemberReferencesParams implements RequestParams {
 
 /// search.findMemberReferences result
 ///
-/// {
-///   "id": SearchId
-/// }
+///     {
+///       "id": SearchId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesResult implements ResponseResult {
@@ -17241,12 +16771,8 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchFindMemberReferencesResult) {
-      return id == other.id;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchFindMemberReferencesResult && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -17254,9 +16780,9 @@ class SearchFindMemberReferencesResult implements ResponseResult {
 
 /// search.findTopLevelDeclarations params
 ///
-/// {
-///   "pattern": String
-/// }
+///     {
+///       "pattern": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsParams implements RequestParams {
@@ -17330,12 +16856,8 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchFindTopLevelDeclarationsParams) {
-      return pattern == other.pattern;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchFindTopLevelDeclarationsParams && pattern == other.pattern;
 
   @override
   int get hashCode => pattern.hashCode;
@@ -17343,9 +16865,9 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
 
 /// search.findTopLevelDeclarations result
 ///
-/// {
-///   "id": SearchId
-/// }
+///     {
+///       "id": SearchId
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsResult implements ResponseResult {
@@ -17411,12 +16933,8 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchFindTopLevelDeclarationsResult) {
-      return id == other.id;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchFindTopLevelDeclarationsResult && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -17424,11 +16942,11 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
 
 /// search.getElementDeclarations params
 ///
-/// {
-///   "file": optional FilePath
-///   "pattern": optional String
-///   "maxResults": optional int
-/// }
+///     {
+///       "file": optional FilePath
+///       "pattern": optional String
+///       "maxResults": optional int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsParams implements RequestParams {
@@ -17542,14 +17060,11 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchGetElementDeclarationsParams) {
-      return file == other.file &&
-          pattern == other.pattern &&
-          maxResults == other.maxResults;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchGetElementDeclarationsParams &&
+      file == other.file &&
+      pattern == other.pattern &&
+      maxResults == other.maxResults;
 
   @override
   int get hashCode => Object.hash(file, pattern, maxResults);
@@ -17557,10 +17072,10 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 
 /// search.getElementDeclarations result
 ///
-/// {
-///   "declarations": List<ElementDeclaration>
-///   "files": List<FilePath>
-/// }
+///     {
+///       "declarations": List<ElementDeclaration>
+///       "files": List<FilePath>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsResult implements ResponseResult {
@@ -17663,17 +17178,14 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchGetElementDeclarationsResult) {
-      return listEqual(
-            declarations,
-            other.declarations,
-            (ElementDeclaration a, ElementDeclaration b) => a == b,
-          ) &&
-          listEqual(files, other.files, (String a, String b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchGetElementDeclarationsResult &&
+      listEqual(
+        declarations,
+        other.declarations,
+        (ElementDeclaration a, ElementDeclaration b) => a == b,
+      ) &&
+      listEqual(files, other.files, (String a, String b) => a == b);
 
   @override
   int get hashCode =>
@@ -17682,11 +17194,11 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
 
 /// search.getTypeHierarchy params
 ///
-/// {
-///   "file": FilePath
-///   "offset": int
-///   "superOnly": optional bool
-/// }
+///     {
+///       "file": FilePath
+///       "offset": int
+///       "superOnly": optional bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyParams implements RequestParams {
@@ -17786,14 +17298,11 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchGetTypeHierarchyParams) {
-      return file == other.file &&
-          offset == other.offset &&
-          superOnly == other.superOnly;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchGetTypeHierarchyParams &&
+      file == other.file &&
+      offset == other.offset &&
+      superOnly == other.superOnly;
 
   @override
   int get hashCode => Object.hash(file, offset, superOnly);
@@ -17801,9 +17310,9 @@ class SearchGetTypeHierarchyParams implements RequestParams {
 
 /// search.getTypeHierarchy result
 ///
-/// {
-///   "hierarchyItems": optional List<TypeHierarchyItem>
-/// }
+///     {
+///       "hierarchyItems": optional List<TypeHierarchyItem>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyResult implements ResponseResult {
@@ -17892,16 +17401,13 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchGetTypeHierarchyResult) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is SearchGetTypeHierarchyResult &&
+      listEqual(
         hierarchyItems,
         other.hierarchyItems,
         (TypeHierarchyItem a, TypeHierarchyItem b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(hierarchyItems ?? []);
@@ -17909,12 +17415,12 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
 
 /// SearchResult
 ///
-/// {
-///   "location": Location
-///   "kind": SearchResultKind
-///   "isPotential": bool
-///   "path": List<Element>
-/// }
+///     {
+///       "location": Location
+///       "kind": SearchResultKind
+///       "isPotential": bool
+///       "path": List<Element>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchResult implements HasToJson {
@@ -18020,15 +17526,12 @@ class SearchResult implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchResult) {
-      return location == other.location &&
-          kind == other.kind &&
-          isPotential == other.isPotential &&
-          listEqual(path, other.path, (Element a, Element b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchResult &&
+      location == other.location &&
+      kind == other.kind &&
+      isPotential == other.isPotential &&
+      listEqual(path, other.path, (Element a, Element b) => a == b);
 
   @override
   int get hashCode =>
@@ -18037,15 +17540,15 @@ class SearchResult implements HasToJson {
 
 /// SearchResultKind
 ///
-/// enum {
-///   DECLARATION
-///   INVOCATION
-///   READ
-///   READ_WRITE
-///   REFERENCE
-///   UNKNOWN
-///   WRITE
-/// }
+///     enum {
+///       DECLARATION
+///       INVOCATION
+///       READ
+///       READ_WRITE
+///       REFERENCE
+///       UNKNOWN
+///       WRITE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum SearchResultKind {
@@ -18095,11 +17598,11 @@ enum SearchResultKind {
 
 /// search.results params
 ///
-/// {
-///   "id": SearchId
-///   "results": List<SearchResult>
-///   "isLast": bool
-/// }
+///     {
+///       "id": SearchId
+///       "results": List<SearchResult>
+///       "isLast": bool
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class SearchResultsParams implements HasToJson {
@@ -18197,18 +17700,15 @@ class SearchResultsParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is SearchResultsParams) {
-      return id == other.id &&
-          listEqual(
-            results,
-            other.results,
-            (SearchResult a, SearchResult b) => a == b,
-          ) &&
-          isLast == other.isLast;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is SearchResultsParams &&
+      id == other.id &&
+      listEqual(
+        results,
+        other.results,
+        (SearchResult a, SearchResult b) => a == b,
+      ) &&
+      isLast == other.isLast;
 
   @override
   int get hashCode => Object.hash(id, Object.hashAll(results), isLast);
@@ -18216,9 +17716,9 @@ class SearchResultsParams implements HasToJson {
 
 /// server.cancelRequest params
 ///
-/// {
-///   "id": String
-/// }
+///     {
+///       "id": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerCancelRequestParams implements RequestParams {
@@ -18284,12 +17784,8 @@ class ServerCancelRequestParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerCancelRequestParams) {
-      return id == other.id;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerCancelRequestParams && id == other.id;
 
   @override
   int get hashCode => id.hashCode;
@@ -18321,10 +17817,10 @@ class ServerCancelRequestResult implements ResponseResult {
 
 /// server.connected params
 ///
-/// {
-///   "version": String
-///   "pid": int
-/// }
+///     {
+///       "version": String
+///       "pid": int
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerConnectedParams implements HasToJson {
@@ -18400,12 +17896,10 @@ class ServerConnectedParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerConnectedParams) {
-      return version == other.version && pid == other.pid;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerConnectedParams &&
+      version == other.version &&
+      pid == other.pid;
 
   @override
   int get hashCode => Object.hash(version, pid);
@@ -18413,11 +17907,11 @@ class ServerConnectedParams implements HasToJson {
 
 /// server.error params
 ///
-/// {
-///   "isFatal": bool
-///   "message": String
-///   "stackTrace": String
-/// }
+///     {
+///       "isFatal": bool
+///       "message": String
+///       "stackTrace": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerErrorParams implements HasToJson {
@@ -18508,14 +18002,11 @@ class ServerErrorParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerErrorParams) {
-      return isFatal == other.isFatal &&
-          message == other.message &&
-          stackTrace == other.stackTrace;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerErrorParams &&
+      isFatal == other.isFatal &&
+      message == other.message &&
+      stackTrace == other.stackTrace;
 
   @override
   int get hashCode => Object.hash(isFatal, message, stackTrace);
@@ -18547,9 +18038,9 @@ class ServerGetVersionParams implements RequestParams {
 
 /// server.getVersion result
 ///
-/// {
-///   "version": String
-/// }
+///     {
+///       "version": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerGetVersionResult implements ResponseResult {
@@ -18614,12 +18105,8 @@ class ServerGetVersionResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerGetVersionResult) {
-      return version == other.version;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerGetVersionResult && version == other.version;
 
   @override
   int get hashCode => version.hashCode;
@@ -18627,11 +18114,11 @@ class ServerGetVersionResult implements ResponseResult {
 
 /// ServerLogEntry
 ///
-/// {
-///   "time": int
-///   "kind": ServerLogEntryKind
-///   "data": String
-/// }
+///     {
+///       "time": int
+///       "kind": ServerLogEntryKind
+///       "data": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerLogEntry implements HasToJson {
@@ -18701,12 +18188,11 @@ class ServerLogEntry implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerLogEntry) {
-      return time == other.time && kind == other.kind && data == other.data;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerLogEntry &&
+      time == other.time &&
+      kind == other.kind &&
+      data == other.data;
 
   @override
   int get hashCode => Object.hash(time, kind, data);
@@ -18714,12 +18200,12 @@ class ServerLogEntry implements HasToJson {
 
 /// ServerLogEntryKind
 ///
-/// enum {
-///   NOTIFICATION
-///   RAW
-///   REQUEST
-///   RESPONSE
-/// }
+///     enum {
+///       NOTIFICATION
+///       RAW
+///       REQUEST
+///       RESPONSE
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ServerLogEntryKind {
@@ -18777,9 +18263,9 @@ enum ServerLogEntryKind {
 
 /// server.log params
 ///
-/// {
-///   "entry": ServerLogEntry
-/// }
+///     {
+///       "entry": ServerLogEntry
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerLogParams implements HasToJson {
@@ -18846,12 +18332,8 @@ class ServerLogParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerLogParams) {
-      return entry == other.entry;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerLogParams && entry == other.entry;
 
   @override
   int get hashCode => entry.hashCode;
@@ -18859,9 +18341,9 @@ class ServerLogParams implements HasToJson {
 
 /// server.openUrlRequest params
 ///
-/// {
-///   "url": String
-/// }
+///     {
+///       "url": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerOpenUrlRequestParams implements RequestParams {
@@ -18931,12 +18413,8 @@ class ServerOpenUrlRequestParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerOpenUrlRequestParams) {
-      return url == other.url;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerOpenUrlRequestParams && url == other.url;
 
   @override
   int get hashCode => url.hashCode;
@@ -18968,9 +18446,9 @@ class ServerOpenUrlRequestResult implements ResponseResult {
 
 /// server.pluginError params
 ///
-/// {
-///   "message": String
-/// }
+///     {
+///       "message": String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerPluginErrorParams implements HasToJson {
@@ -19036,12 +18514,8 @@ class ServerPluginErrorParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerPluginErrorParams) {
-      return message == other.message;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerPluginErrorParams && message == other.message;
 
   @override
   int get hashCode => message.hashCode;
@@ -19049,10 +18523,10 @@ class ServerPluginErrorParams implements HasToJson {
 
 /// ServerService
 ///
-/// enum {
-///   LOG
-///   STATUS
-/// }
+///     enum {
+///       LOG
+///       STATUS
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 enum ServerService {
@@ -19084,11 +18558,11 @@ enum ServerService {
 
 /// server.setClientCapabilities params
 ///
-/// {
-///   "requests": List<String>
-///   "supportsUris": optional bool
-///   "lspCapabilities": optional object
-/// }
+///     {
+///       "requests": List<String>
+///       "supportsUris": optional bool
+///       "lspCapabilities": optional object
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetClientCapabilitiesParams implements RequestParams {
@@ -19224,18 +18698,11 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerSetClientCapabilitiesParams) {
-      return listEqual(
-            requests,
-            other.requests,
-            (String a, String b) => a == b,
-          ) &&
-          supportsUris == other.supportsUris &&
-          lspCapabilities == other.lspCapabilities;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerSetClientCapabilitiesParams &&
+      listEqual(requests, other.requests, (String a, String b) => a == b) &&
+      supportsUris == other.supportsUris &&
+      lspCapabilities == other.lspCapabilities;
 
   @override
   int get hashCode =>
@@ -19268,9 +18735,9 @@ class ServerSetClientCapabilitiesResult implements ResponseResult {
 
 /// server.setSubscriptions params
 ///
-/// {
-///   "subscriptions": List<ServerService>
-/// }
+///     {
+///       "subscriptions": List<ServerService>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetSubscriptionsParams implements RequestParams {
@@ -19354,16 +18821,13 @@ class ServerSetSubscriptionsParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerSetSubscriptionsParams) {
-      return listEqual(
+  bool operator ==(Object other) =>
+      other is ServerSetSubscriptionsParams &&
+      listEqual(
         subscriptions,
         other.subscriptions,
         (ServerService a, ServerService b) => a == b,
       );
-    }
-    return false;
-  }
 
   @override
   int get hashCode => Object.hashAll(subscriptions);
@@ -19395,11 +18859,11 @@ class ServerSetSubscriptionsResult implements ResponseResult {
 
 /// server.showMessageRequest params
 ///
-/// {
-///   "type": MessageType
-///   "message": String
-///   "actions": List<MessageAction>
-/// }
+///     {
+///       "type": MessageType
+///       "message": String
+///       "actions": List<MessageAction>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerShowMessageRequestParams implements RequestParams {
@@ -19511,18 +18975,15 @@ class ServerShowMessageRequestParams implements RequestParams {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerShowMessageRequestParams) {
-      return type == other.type &&
-          message == other.message &&
-          listEqual(
-            actions,
-            other.actions,
-            (MessageAction a, MessageAction b) => a == b,
-          );
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerShowMessageRequestParams &&
+      type == other.type &&
+      message == other.message &&
+      listEqual(
+        actions,
+        other.actions,
+        (MessageAction a, MessageAction b) => a == b,
+      );
 
   @override
   int get hashCode => Object.hash(type, message, Object.hashAll(actions));
@@ -19530,9 +18991,9 @@ class ServerShowMessageRequestParams implements RequestParams {
 
 /// server.showMessageRequest result
 ///
-/// {
-///   "action": optional String
-/// }
+///     {
+///       "action": optional String
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerShowMessageRequestResult implements ResponseResult {
@@ -19601,12 +19062,8 @@ class ServerShowMessageRequestResult implements ResponseResult {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerShowMessageRequestResult) {
-      return action == other.action;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerShowMessageRequestResult && action == other.action;
 
   @override
   int get hashCode => action.hashCode;
@@ -19662,10 +19119,10 @@ class ServerShutdownResult implements ResponseResult {
 
 /// server.status params
 ///
-/// {
-///   "analysis": optional AnalysisStatus
-///   "pub": optional PubStatus
-/// }
+///     {
+///       "analysis": optional AnalysisStatus
+///       "pub": optional PubStatus
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerStatusParams implements HasToJson {
@@ -19757,12 +19214,10 @@ class ServerStatusParams implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is ServerStatusParams) {
-      return analysis == other.analysis && pub == other.pub;
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is ServerStatusParams &&
+      analysis == other.analysis &&
+      pub == other.pub;
 
   @override
   int get hashCode => Object.hash(analysis, pub);
@@ -19770,15 +19225,15 @@ class ServerStatusParams implements HasToJson {
 
 /// TypeHierarchyItem
 ///
-/// {
-///   "classElement": Element
-///   "displayName": optional String
-///   "memberElement": optional Element
-///   "superclass": optional int
-///   "interfaces": List<int>
-///   "mixins": List<int>
-///   "subclasses": List<int>
-/// }
+///     {
+///       "classElement": Element
+///       "displayName": optional String
+///       "memberElement": optional Element
+///       "superclass": optional int
+///       "interfaces": List<int>
+///       "mixins": List<int>
+///       "subclasses": List<int>
+///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeHierarchyItem implements HasToJson {
@@ -19945,18 +19400,15 @@ class TypeHierarchyItem implements HasToJson {
   String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  bool operator ==(Object other) {
-    if (other is TypeHierarchyItem) {
-      return classElement == other.classElement &&
-          displayName == other.displayName &&
-          memberElement == other.memberElement &&
-          superclass == other.superclass &&
-          listEqual(interfaces, other.interfaces, (int a, int b) => a == b) &&
-          listEqual(mixins, other.mixins, (int a, int b) => a == b) &&
-          listEqual(subclasses, other.subclasses, (int a, int b) => a == b);
-    }
-    return false;
-  }
+  bool operator ==(Object other) =>
+      other is TypeHierarchyItem &&
+      classElement == other.classElement &&
+      displayName == other.displayName &&
+      memberElement == other.memberElement &&
+      superclass == other.superclass &&
+      listEqual(interfaces, other.interfaces, (int a, int b) => a == b) &&
+      listEqual(mixins, other.mixins, (int a, int b) => a == b) &&
+      listEqual(subclasses, other.subclasses, (int a, int b) => a == b);
 
   @override
   int get hashCode => Object.hash(

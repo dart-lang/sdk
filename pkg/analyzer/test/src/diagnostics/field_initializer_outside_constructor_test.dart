@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +22,7 @@ class A {
   dynamic field = ({this.field}) {};
 }
 ''',
-      [error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 30, 10)],
+      [error(diag.fieldInitializerOutsideConstructor, 30, 10)],
     );
   }
 
@@ -35,7 +34,7 @@ class A {
   m([this.x = 0]) {}
 }
 ''',
-      [error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 28, 6)],
+      [error(diag.fieldInitializerOutsideConstructor, 28, 6)],
     );
   }
 
@@ -48,10 +47,7 @@ class A {
   m(int this.x()) {}
 }
 ''',
-      [
-        error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 35, 12),
-        error(ParserErrorCode.fieldInitializerOutsideConstructor, 39, 4),
-      ],
+      [error(diag.fieldInitializerOutsideConstructor, 35, 12)],
     );
   }
 
@@ -63,7 +59,7 @@ class A {
   A(int p(this.x));
 }
 ''',
-      [error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 30, 6)],
+      [error(diag.fieldInitializerOutsideConstructor, 30, 6)],
     );
   }
 
@@ -76,10 +72,7 @@ class A {
   m(this.x) {}
 }
 ''',
-      [
-        error(ParserErrorCode.fieldInitializerOutsideConstructor, 24, 4),
-        error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 24, 6),
-      ],
+      [error(diag.fieldInitializerOutsideConstructor, 24, 6)],
     );
   }
 
@@ -88,7 +81,7 @@ class A {
       r'''
 f(this.x(y)) {}
 ''',
-      [error(CompileTimeErrorCode.fieldInitializerOutsideConstructor, 2, 9)],
+      [error(diag.fieldInitializerOutsideConstructor, 2, 9)],
     );
   }
 }

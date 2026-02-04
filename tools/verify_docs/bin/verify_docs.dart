@@ -20,7 +20,8 @@ import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
+    as diag;
 import 'package:analyzer/src/util/comment.dart'; // ignore: implementation_imports
 import 'package:path/path.dart' as path;
 
@@ -342,22 +343,21 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
 
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
-      diagnostics
-          .removeWhere((e) => e.diagnosticCode == WarningCode.unusedImport);
+      diagnostics.removeWhere((e) => e.diagnosticCode == diag.unusedImport);
 
       // Also, don't worry about 'unused_local_variable' and related; this may
       // be intentional in samples.
       diagnostics.removeWhere(
         (e) =>
-            e.diagnosticCode == WarningCode.unusedLocalVariable ||
-            e.diagnosticCode == WarningCode.unusedElement,
+            e.diagnosticCode == diag.unusedLocalVariable ||
+            e.diagnosticCode == diag.unusedElement,
       );
 
       // Handle edge case around dart:_http
       diagnostics.removeWhere((e) {
         if (e.message.contains("'dart:_http'")) {
-          return e.diagnosticCode == HintCode.unnecessaryImport ||
-              e.diagnosticCode == CompileTimeErrorCode.importInternalLibrary;
+          return e.diagnosticCode == diag.unnecessaryImport ||
+              e.diagnosticCode == diag.importInternalLibrary;
         }
         return false;
       });
@@ -372,7 +372,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
           final location = result.lineInfo.getLocation(diagnostic.offset);
           print(
             '  ${_severity(diagnostic.severity)}: ${diagnostic.message} '
-            '[$location] (${diagnostic.diagnosticCode.name.toLowerCase()})',
+            '[$location] (${diagnostic.diagnosticCode.lowerCaseName})',
           );
         }
         print('');

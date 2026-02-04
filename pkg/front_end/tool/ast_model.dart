@@ -112,7 +112,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_procedures': FieldRule(name: 'procedures'),
   },
   'Field': {'reference': FieldRule(name: 'fieldReference')},
-  'TypeParameter': {'_variance': FieldRule(name: 'variance')},
   'StructuralParameter': {'_variance': FieldRule(name: 'variance')},
   'FunctionNode': {
     '_body': FieldRule(name: 'body'),
@@ -125,12 +124,13 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'TypedefTearOffConstant': {'parameters': FieldRule(isDeclaration: true)},
   'LocalInitializer': {'variable': FieldRule(isDeclaration: true)},
   'Let': {'variable': FieldRule(isDeclaration: true)},
-  'VariableGet': {'variable': FieldRule(isDeclaration: false)},
-  'VariableSet': {'variable': FieldRule(isDeclaration: false)},
+  'VariableGet': {'expressionVariable': FieldRule(isDeclaration: false)},
+  'VariableSet': {'expressionVariable': FieldRule(isDeclaration: false)},
   'LocalFunctionInvocation': {'variable': FieldRule(isDeclaration: false)},
+  'LocalVariable': {'variableInitialization': FieldRule(isDeclaration: false)},
   'BreakStatement': {'target': FieldRule(isDeclaration: false)},
-  'ForStatement': {'variables': FieldRule(isDeclaration: true)},
-  'ForInStatement': {'variable': FieldRule(isDeclaration: true)},
+  'ForStatement': {'variableInitializations': FieldRule(isDeclaration: true)},
+  'ForInStatement': {'expressionVariable': FieldRule(isDeclaration: true)},
   'SwitchStatement': {'cases': FieldRule(isDeclaration: true)},
   'ContinueSwitchStatement': {'target': FieldRule(isDeclaration: false)},
   'Catch': {
@@ -141,13 +141,21 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'FunctionType': {'typeParameters': FieldRule(isDeclaration: true)},
   'TypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},
-  'VariableDeclaration': {'_name': FieldRule(name: 'name')},
-  'AssignedVariablePattern': {'variable': FieldRule(isDeclaration: false)},
+  'SyntheticVariable': {
+    'variableInitialization': FieldRule(isDeclaration: false),
+  },
+  'VariableStatement': {'_name': FieldRule(name: 'name')},
+  'AssignedVariablePattern': {
+    'expressionVariable': FieldRule(isDeclaration: false),
+  },
   'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
   'OrPattern': {'orPatternJointVariables': FieldRule(isDeclaration: false)},
   'VariablePattern': {'variable': FieldRule(isDeclaration: true)},
   'PatternSwitchCase': {'jointVariables': FieldRule(isDeclaration: true)},
   'PatternSwitchStatement': {'cases': FieldRule(isDeclaration: true)},
+  'TypeVariable': {'parameter': FieldRule(isDeclaration: false)},
+  'ClassTypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
+  'NominalParameter': {'_variance': FieldRule(name: 'variance')},
 };
 
 /// Data that determines exceptions to how fields are used.

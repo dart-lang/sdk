@@ -11,7 +11,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for checking potentially nullable dereferences.
@@ -47,7 +47,7 @@ class NullableDereferenceVerifier {
     List<DiagnosticMessage>? messages,
   }) {
     if (receiverType == _typeSystem.typeProvider.nullType) {
-      diagnosticCode = CompileTimeErrorCode.invalidUseOfNullValue;
+      diagnosticCode = diag.invalidUseOfNullValue;
       arguments = [];
     }
     if (errorEntity is AstNode) {

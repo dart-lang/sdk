@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -18,8 +19,8 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/assignment_verifier.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
@@ -59,8 +60,7 @@ class PropertyElementResolver with ScopeHelpers {
     // `FutureOr<S>`.
     context = _resolver.typeSystem.futureOrBase(context);
 
-    if (context is InterfaceTypeImpl &&
-        context.element.isAccessibleIn(_definingLibrary)) {
+    if (context is InterfaceTypeImpl) {
       var identifier = node.propertyName;
       // Find constructor tearoffs.
       var element = context.lookUpConstructor(
@@ -72,10 +72,8 @@ class PropertyElementResolver with ScopeHelpers {
           var enclosingElement = element.enclosingElement;
           if (enclosingElement is ClassElementImpl &&
               enclosingElement.isAbstract) {
-            _resolver.diagnosticReporter.atNode(
-              node,
-              CompileTimeErrorCode
-                  .tearoffOfGenerativeConstructorOfAbstractClass,
+            _resolver.diagnosticReporter.report(
+              diag.tearoffOfGenerativeConstructorOfAbstractClass.at(node),
             );
           }
         }
@@ -127,10 +125,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    diagnosticReporter.atNode(
-      node,
-      CompileTimeErrorCode.dotShorthandMissingContext,
-    );
+    diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
     return PropertyElementResolverResult();
   }
 
@@ -150,11 +145,10 @@ class PropertyElementResolver with ScopeHelpers {
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
-        _reportUnresolvedIndex(
-          node,
-          CompileTimeErrorCode.undefinedExtensionOperator,
-          ['[]', target.element.name!],
-        );
+        _reportUnresolvedIndex(node, diag.undefinedExtensionOperator, [
+          '[]',
+          target.element.name!,
+        ]);
       }
 
       if (hasWrite &&
@@ -162,11 +156,10 @@ class PropertyElementResolver with ScopeHelpers {
           result != ExtensionResolutionError.ambiguous) {
         // Extension overrides can only refer to named extensions, so it is safe
         // to assume that `target.staticElement!.name` is non-`null`.
-        _reportUnresolvedIndex(
-          node,
-          CompileTimeErrorCode.undefinedExtensionOperator,
-          ['[]=', target.element.name!],
-        );
+        _reportUnresolvedIndex(node, diag.undefinedExtensionOperator, [
+          '[]=',
+          target.element.name!,
+        ]);
       }
 
       return _toIndexResult(
@@ -182,13 +175,13 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (targetType is VoidType) {
       // TODO(scheglov): Report directly in TypePropertyResolver?
-      _reportUnresolvedIndex(node, CompileTimeErrorCode.useOfVoidResult);
+      _reportUnresolvedIndex(node, diag.useOfVoidResult);
       return PropertyElementResolverResult();
     }
 
     if (identical(targetType, NeverTypeImpl.instance)) {
       // TODO(scheglov): Report directly in TypePropertyResolver?
-      diagnosticReporter.atNode(target, WarningCode.receiverOfTypeNever);
+      diagnosticReporter.report(diag.receiverOfTypeNever.at(target));
       return PropertyElementResolverResult();
     }
 
@@ -214,8 +207,8 @@ class PropertyElementResolver with ScopeHelpers {
       _reportUnresolvedIndex(
         node,
         target is SuperExpression
-            ? CompileTimeErrorCode.undefinedSuperOperator
-            : CompileTimeErrorCode.undefinedOperator,
+            ? diag.undefinedSuperOperator
+            : diag.undefinedOperator,
         ['[]', targetType],
       );
     }
@@ -224,8 +217,8 @@ class PropertyElementResolver with ScopeHelpers {
       _reportUnresolvedIndex(
         node,
         target is SuperExpression
-            ? CompileTimeErrorCode.undefinedSuperOperator
-            : CompileTimeErrorCode.undefinedOperator,
+            ? diag.undefinedSuperOperator
+            : diag.undefinedOperator,
         ['[]=', targetType],
       );
     }
@@ -409,7 +402,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     diagnosticReporter.atNode(
       identifier,
-      CompileTimeErrorCode.staticAccessToInstanceMember,
+      diag.staticAccessToInstanceMember,
       arguments: [identifier.name],
     );
     return true;
@@ -422,9 +415,8 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     if (element != null && element.isStatic) {
       if (target is ExtensionOverride) {
-        diagnosticReporter.atNode(
-          propertyName,
-          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
+        diagnosticReporter.report(
+          diag.extensionOverrideAccessToStaticMember.at(propertyName),
         );
       } else {
         var enclosingElement = element.enclosingElement;
@@ -432,7 +424,7 @@ class PropertyElementResolver with ScopeHelpers {
             enclosingElement.name == null) {
           _resolver.diagnosticReporter.atNode(
             propertyName,
-            CompileTimeErrorCode.instanceAccessToStaticMemberOfUnnamedExtension,
+            diag.instanceAccessToStaticMemberOfUnnamedExtension,
             arguments: [propertyName.name, element.kind.displayName],
           );
         } else {
@@ -441,7 +433,7 @@ class PropertyElementResolver with ScopeHelpers {
           // case above.
           diagnosticReporter.atNode(
             propertyName,
-            CompileTimeErrorCode.instanceAccessToStaticMember,
+            diag.instanceAccessToStaticMember,
             arguments: [
               propertyName.name,
               element.kind.displayName,
@@ -543,10 +535,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (targetType is VoidType) {
-      diagnosticReporter.atNode(
-        propertyName,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      diagnosticReporter.report(diag.useOfVoidResult.at(propertyName));
       return PropertyElementResolverResult();
     }
 
@@ -561,13 +550,13 @@ class PropertyElementResolver with ScopeHelpers {
       if (hasRead) {
         diagnosticReporter.atNode(
           propertyName,
-          CompileTimeErrorCode.undefinedGetterOnFunctionType,
+          diag.undefinedGetterOnFunctionType,
           arguments: [propertyName.name, target.type.qualifiedName],
         );
       } else {
         diagnosticReporter.atNode(
           propertyName,
-          CompileTimeErrorCode.undefinedSetterOnFunctionType,
+          diag.undefinedSetterOnFunctionType,
           arguments: [propertyName.name, target.type.qualifiedName],
         );
       }
@@ -610,7 +599,7 @@ class PropertyElementResolver with ScopeHelpers {
       if (result.needsGetterError) {
         diagnosticReporter.atNode(
           propertyName,
-          CompileTimeErrorCode.undefinedGetter,
+          diag.undefinedGetter,
           arguments: [propertyName.name, targetType],
         );
       }
@@ -670,7 +659,7 @@ class PropertyElementResolver with ScopeHelpers {
         // assume that `extension.name` is non-`null`.
         diagnosticReporter.atNode(
           propertyName,
-          CompileTimeErrorCode.undefinedExtensionGetter,
+          diag.undefinedExtensionGetter,
           arguments: [memberName, extension.name!],
         );
       } else {
@@ -690,7 +679,7 @@ class PropertyElementResolver with ScopeHelpers {
       if (writeElement == null) {
         diagnosticReporter.atNode(
           propertyName,
-          CompileTimeErrorCode.undefinedExtensionSetter,
+          diag.undefinedExtensionSetter,
           arguments: [memberName, extension.name!],
         );
       } else {
@@ -718,9 +707,8 @@ class PropertyElementResolver with ScopeHelpers {
   }) {
     if (target.parent is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
-      diagnosticReporter.atToken(
-        target.name,
-        CompileTimeErrorCode.extensionOverrideWithCascade,
+      diagnosticReporter.report(
+        diag.extensionOverrideWithCascade.at(target.name),
       );
     }
 
@@ -739,7 +727,7 @@ class PropertyElementResolver with ScopeHelpers {
         // assume that `element.name` is non-`null`.
         diagnosticReporter.atNode(
           propertyName,
-          CompileTimeErrorCode.undefinedExtensionGetter,
+          diag.undefinedExtensionGetter,
           arguments: [memberName, element.name!],
         );
       } else {
@@ -757,7 +745,7 @@ class PropertyElementResolver with ScopeHelpers {
         // assume that `element.name` is non-`null`.
         diagnosticReporter.atNode(
           propertyName,
-          CompileTimeErrorCode.undefinedExtensionSetter,
+          diag.undefinedExtensionSetter,
           arguments: [memberName, element.name!],
         );
       }
@@ -799,6 +787,23 @@ class PropertyElementResolver with ScopeHelpers {
         }
       }
 
+      if (readElement == null) {
+        if (_definingLibrary.featureSet.isEnabled(Feature.static_extensions)) {
+          // When direct lookups fail, try static extension resolution.
+          var result = _resolver.typePropertyResolver.resolveStaticExtension(
+            declaration: typeReference,
+            name: propertyName.name,
+            hasRead: hasRead,
+            hasWrite: hasWrite,
+            propertyErrorEntity: propertyName,
+            nameErrorEntity: propertyName,
+          );
+          if (result.getter2 != null) {
+            readElement = result.getter2;
+          }
+        }
+      }
+
       if (readElement != null) {
         getType = readElement.returnType;
         if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
@@ -811,13 +816,13 @@ class PropertyElementResolver with ScopeHelpers {
           // context type.
           diagnosticReporter.atNode(
             propertyName,
-            CompileTimeErrorCode.dotShorthandUndefinedGetter,
+            diag.dotShorthandUndefinedGetter,
             arguments: [propertyName.name, typeReference.name!],
           );
         } else {
           var code = typeReference is EnumElement
-              ? CompileTimeErrorCode.undefinedEnumConstant
-              : CompileTimeErrorCode.undefinedGetter;
+              ? diag.undefinedEnumConstant
+              : diag.undefinedGetter;
           diagnosticReporter.atNode(
             propertyName,
             code,
@@ -835,13 +840,38 @@ class PropertyElementResolver with ScopeHelpers {
         if (!_isAccessible(writeElement)) {
           diagnosticReporter.atNode(
             propertyName,
-            CompileTimeErrorCode.privateSetter,
+            diag.privateSetter,
             arguments: [propertyName.name],
           );
         }
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
           writeElementRecovery = writeElement;
           writeElement = null;
+        }
+      } else if (_definingLibrary.featureSet.isEnabled(
+        Feature.static_extensions,
+      )) {
+        // When direct lookups fail, try static extension resolution.
+        var result = _resolver.typePropertyResolver.resolveStaticExtension(
+          declaration: typeReference,
+          name: propertyName.name,
+          hasRead: hasRead,
+          hasWrite: hasWrite,
+          propertyErrorEntity: propertyName,
+          nameErrorEntity: propertyName,
+        );
+        if (result.setter2 != null) {
+          writeElementRecovery = writeElement;
+          writeElement = result.setter2;
+        } else {
+          // Recovery, try to use getter.
+          writeElementRecovery = typeReference.getGetter(propertyName.name);
+          AssignmentVerifier(diagnosticReporter).verify(
+            node: propertyName,
+            requested: null,
+            recovery: writeElementRecovery,
+            receiverType: typeReference.thisType,
+          );
         }
       } else {
         // Recovery, try to use getter.
@@ -894,7 +924,7 @@ class PropertyElementResolver with ScopeHelpers {
           )) {
         diagnosticReporter.atNode(
           identifier,
-          CompileTimeErrorCode.undefinedPrefixedName,
+          diag.undefinedPrefixedName,
           arguments: [identifier.name, target.name!],
         );
       }
@@ -944,7 +974,7 @@ class PropertyElementResolver with ScopeHelpers {
           );
           if (readElement != null) {
             diagnosticReporter.report(
-              CompileTimeErrorCode.abstractSuperMemberReference
+              diag.abstractSuperMemberReference
                   .withArguments(
                     memberKind: readElement.kind.displayName,
                     name: propertyName.name,
@@ -954,7 +984,7 @@ class PropertyElementResolver with ScopeHelpers {
           } else {
             diagnosticReporter.atNode(
               propertyName,
-              CompileTimeErrorCode.undefinedSuperGetter,
+              diag.undefinedSuperGetter,
               arguments: [propertyName.name, targetType],
             );
           }
@@ -995,7 +1025,7 @@ class PropertyElementResolver with ScopeHelpers {
           );
           if (writeElement != null) {
             diagnosticReporter.report(
-              CompileTimeErrorCode.abstractSuperMemberReference
+              diag.abstractSuperMemberReference
                   .withArguments(
                     memberKind: writeElement.kind.displayName,
                     name: propertyName.name,
@@ -1005,7 +1035,7 @@ class PropertyElementResolver with ScopeHelpers {
           } else {
             diagnosticReporter.atNode(
               propertyName,
-              CompileTimeErrorCode.undefinedSuperSetter,
+              diag.undefinedSuperSetter,
               arguments: [propertyName.name, targetType],
             );
           }

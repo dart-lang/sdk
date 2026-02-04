@@ -21,13 +21,12 @@ analyzer:
     implementation_imports: ignore
     overridden_fields: ignore
     todo: ignore
-    # Existing violations (361)
-    unintended_html_in_doc_comment: ignore
 
 linter:
   rules:
     - avoid_bool_literals_in_conditional_expressions
     - avoid_redundant_argument_values
+    - deprecated_member_use_from_same_package
     - flutter_style_todos
     - no_literal_bool_comparisons
     - prefer_single_quotes
@@ -39,3 +38,4 @@ linter:
     - unnecessary_library_directive
     - unnecessary_parenthesis
     - unreachable_from_main
+    - use_null_aware_elements

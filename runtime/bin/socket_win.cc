@@ -68,8 +68,10 @@ static intptr_t Connect(intptr_t fd,
   ClientSocket* handle = reinterpret_cast<ClientSocket*>(fd);
   SOCKET s = handle->socket();
 
-  int status =
-      bind(s, &bind_addr.addr, SocketAddress::GetAddrLength(bind_addr));
+  // Note: unlike |connect| |ConnectEx| requires *bound* socket, so we must
+  // manually bind() it to some local address before we can issue a connect
+  // request to the remote address.
+  int status = bind(s, &bind_addr.addr, bind_addr.size);
   if (status != NO_ERROR) {
     const int rc = WSAGetLastError();
     handle->mark_closed();  // Destructor asserts that socket is marked closed.
@@ -80,9 +82,9 @@ static intptr_t Connect(intptr_t fd,
   }
 
   auto buffer = OverlappedBuffer::AllocateConnectBuffer(handle);
-  status = EventHandler::delegate()->connect_ex()(
-      s, &addr.addr, SocketAddress::GetAddrLength(addr), nullptr, 0, nullptr,
-      buffer->GetCleanOverlapped());
+  status = EventHandler::delegate()->connect_ex()(s, &addr.addr, addr.size,
+                                                  nullptr, 0, nullptr,
+                                                  buffer->GetCleanOverlapped());
   if (status == TRUE) {
     handle->ConnectComplete();
     return fd;
@@ -90,6 +92,7 @@ static intptr_t Connect(intptr_t fd,
     buffer.release();  // Ownership passed to event handler.
     return fd;
   }
+
   const int rc = WSAGetLastError();
   // Cleanup in case of error.
   handle->Close();
@@ -109,18 +112,23 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   bind_addr.ss.ss_family = addr.ss.ss_family;
   if (addr.ss.ss_family == AF_INET) {
     bind_addr.in.sin_addr.s_addr = INADDR_ANY;
-  } else {
+    bind_addr.size = sizeof(sockaddr_in);
+  } else if (addr.ss.ss_family == AF_INET6) {
     bind_addr.in6.sin6_addr = in6addr_any;
+    bind_addr.size = sizeof(sockaddr_in6);
+  } else if (addr.ss.ss_family == AF_UNIX) {
+    // Local address is an anonymous unix socket.
+    bind_addr.size = sizeof(ADDRESS_FAMILY);
+  } else {
+    SetLastError(ERROR_NOT_SUPPORTED);
+    return -1;
   }
 
   return Connect(fd, addr, bind_addr);
 }
 
 intptr_t Socket::CreateUnixDomainConnect(const RawAddr& addr) {
-  // TODO(21403): Support unix domain socket on Windows
-  // https://devblogs.microsoft.com/commandline/af_unix-comes-to-windows/
-  SetLastError(ERROR_NOT_SUPPORTED);
-  return -1;
+  return CreateConnect(addr);
 }
 
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
@@ -135,8 +143,7 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 
 intptr_t Socket::CreateUnixDomainBindConnect(const RawAddr& addr,
                                              const RawAddr& source_addr) {
-  SetLastError(ERROR_NOT_SUPPORTED);
-  return -1;
+  return CreateBindConnect(addr, source_addr);
 }
 
 intptr_t ServerSocket::Accept(intptr_t fd) {
@@ -200,7 +207,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
     return -1;
   }
 
-  status = bind(s, &addr.addr, SocketAddress::GetAddrLength(addr));
+  status = bind(s, &addr.addr, addr.size);
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
@@ -215,29 +222,32 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
 intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
                                         intptr_t backlog,
                                         bool v6_only) {
-  SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, IPPROTO_TCP);
+  SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM,
+                    addr.ss.ss_family == AF_UNIX ? 0 : IPPROTO_TCP);
   if (s == INVALID_SOCKET) {
     return -1;
   }
 
-  BOOL optval = true;
-  int status =
-      setsockopt(s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
-                 reinterpret_cast<const char*>(&optval), sizeof(optval));
-  if (status == SOCKET_ERROR) {
-    DWORD rc = WSAGetLastError();
-    closesocket(s);
-    SetLastError(rc);
-    return -1;
+  int status;
+  if (addr.ss.ss_family != AF_UNIX) {
+    BOOL optval = true;
+    status = setsockopt(s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
+                        reinterpret_cast<const char*>(&optval), sizeof(optval));
+    if (status == SOCKET_ERROR) {
+      DWORD rc = WSAGetLastError();
+      closesocket(s);
+      SetLastError(rc);
+      return -1;
+    }
   }
 
   if (addr.ss.ss_family == AF_INET6) {
-    optval = v6_only;
+    BOOL optval = v6_only;
     setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
                reinterpret_cast<const char*>(&optval), sizeof(optval));
   }
 
-  status = bind(s, &addr.addr, SocketAddress::GetAddrLength(addr));
+  status = bind(s, &addr.addr, addr.size);
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
@@ -245,20 +255,22 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     return -1;
   }
 
-  ListenSocket* listen_socket = new ListenSocket(s);
+  ListenSocket* listen_socket = new ListenSocket(s, addr.ss.ss_family);
 
-  // Test for invalid socket port 65535 (some browsers disallow it).
-  if ((SocketAddress::GetAddrPort(addr) == 0) &&
-      (SocketBase::GetPort(reinterpret_cast<intptr_t>(listen_socket)) ==
-       65535)) {
-    // Don't close fd until we have created new. By doing that we ensure another
-    // port.
-    intptr_t new_s = CreateBindListen(addr, backlog, v6_only);
-    DWORD rc = WSAGetLastError();
-    closesocket(s);
-    listen_socket->Release();
-    SetLastError(rc);
-    return new_s;
+  if (addr.ss.ss_family != AF_UNIX) {
+    // Test for invalid socket port 65535 (some browsers disallow it).
+    if ((SocketAddress::GetAddrPort(addr) == 0) &&
+        (SocketBase::GetPort(reinterpret_cast<intptr_t>(listen_socket)) ==
+         65535)) {
+      // Don't close fd until we have created new. By doing that we ensure
+      // another port.
+      intptr_t new_s = CreateBindListen(addr, backlog, v6_only);
+      DWORD rc = WSAGetLastError();
+      closesocket(s);
+      listen_socket->Release();
+      SetLastError(rc);
+      return new_s;
+    }
   }
 
   status = listen(s, backlog > 0 ? backlog : SOMAXCONN);
@@ -275,10 +287,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
 
 intptr_t ServerSocket::CreateUnixDomainBindListen(const RawAddr& addr,
                                                   intptr_t backlog) {
-  // TODO(21403): Support unix domain socket on Windows
-  // https://devblogs.microsoft.com/commandline/af_unix-comes-to-windows/
-  SetLastError(ERROR_NOT_SUPPORTED);
-  return -1;
+  return CreateBindListen(addr, backlog);
 }
 
 bool ServerSocket::StartAccept(intptr_t fd) {

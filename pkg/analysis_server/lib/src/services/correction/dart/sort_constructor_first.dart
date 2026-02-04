@@ -18,16 +18,21 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.SORT_CONSTRUCTOR_FIRST;
+  FixKind get fixKind => DartFixKind.sortConstructorFirst;
 
   @override
-  FixKind get multiFixKind => DartFixKind.SORT_CONSTRUCTOR_FIRST_MULTI;
+  FixKind get multiFixKind => DartFixKind.sortConstructorFirstMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var constructor = coveringNode?.parent;
-    var clazz = constructor?.parent;
+    var clazz = constructor?.parent?.parent;
     if (clazz is! ClassDeclaration || constructor is! ConstructorDeclaration) {
+      return;
+    }
+
+    var body = clazz.body;
+    if (body is! BlockClassBody) {
       return;
     }
 
@@ -39,7 +44,7 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
 
       builder.addDeletion(deletionRange);
       builder.addSimpleInsertion(
-        clazz.leftBracket.end,
+        body.leftBracket.end,
         utils.getRangeText(deletionRange),
       );
     });

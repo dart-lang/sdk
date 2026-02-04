@@ -363,10 +363,7 @@ String dart2wasmHtml(
       return response.arrayBuffer();
     };
     const appInstance = await compiledApp.instantiate({}, {
-      loadDeferredWasm: (moduleName) => {
-        const moduleFile = '$wasmPath'.replace('.wasm', `_\${moduleName}.wasm`);
-        return fetch(moduleFile);
-      }
+      loadDeferredModule: fetch
     });
     dartMainRunner(() => {
       appInstance.invokeMain();

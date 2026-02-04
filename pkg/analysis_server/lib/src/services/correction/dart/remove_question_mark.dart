@@ -17,10 +17,10 @@ class RemoveQuestionMark extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_QUESTION_MARK;
+  FixKind get fixKind => DartFixKind.removeQuestionMark;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_QUESTION_MARK_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeQuestionMarkMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

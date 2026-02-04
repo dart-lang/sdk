@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ReplaceReturnTypeIterableTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_ITERABLE;
+  FixKind get kind => DartFixKind.replaceReturnTypeIterable;
 
   Future<void> test_complexTypeName() async {
     await resolveTestCode('''

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ int f(num n) {
   assert (n is int);
   return n & 0x0F;
 }''',
-      [error(CompileTimeErrorCode.undefinedOperator, 47, 1)],
+      [error(diag.undefinedOperator, 47, 1)],
     );
   }
 
@@ -80,7 +80,7 @@ void f(List<int> list) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 110, 1)],
+      [error(diag.undefinedOperator, 110, 1)],
     );
   }
 
@@ -146,7 +146,7 @@ int f() {
   num n = 1234;
   return n & 0x0F;
 }''',
-      [error(CompileTimeErrorCode.undefinedOperator, 37, 1)],
+      [error(diag.undefinedOperator, 37, 1)],
     );
   }
 }

@@ -18,7 +18,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -87,7 +87,7 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
 
   @override
   DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      CompileTimeErrorCode.wrongNumberOfTypeArguments;
+      diag.wrongNumberOfTypeArguments;
 
   @override
   List<FormalParameterElement>? _storeResult(
@@ -196,7 +196,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   TypeArgumentListImpl? get _typeArguments;
 
   DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod;
+      diag.wrongNumberOfTypeArgumentsMethod;
 
   @override
   DartType resolveInvocation({required FunctionTypeImpl? rawType}) {
@@ -251,7 +251,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
               if (!resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
                 resolver.diagnosticReporter.atNode(
                   typeArgumentList.arguments[i],
-                  CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+                  diag.typeArgumentNotMatchingBounds,
                   arguments: [typeArgument, typeParameter.name!, bound],
                 );
               }
@@ -851,7 +851,7 @@ class _FunctionLiteralDependencies
 class _IdenticalArgumentInfo {
   /// The [ExpressionInfo] returned by [FlowAnalysis.equalityOperand_end] for
   /// the argument.
-  final ExpressionInfo<SharedTypeView>? expressionInfo;
+  final ExpressionInfo? expressionInfo;
 
   /// The static type of the argument.
   final TypeImpl staticType;

@@ -6,6 +6,8 @@ import 'dart:async' show Completer;
 import 'dart:convert' show JsonEncoder;
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show ExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
@@ -32,9 +34,9 @@ import 'package:kernel/kernel.dart'
         DartType,
         DynamicType,
         Expression,
-        Extension,
+        ExpressionVariable,
         ExtensionType,
-        ExtensionTypeDeclaration,
+        Field,
         FunctionNode,
         InterfaceType,
         Library,
@@ -43,6 +45,7 @@ import 'package:kernel/kernel.dart'
         Name,
         NamedNode,
         Node,
+        Nullability,
         Procedure,
         ProcedureKind,
         Reference,
@@ -51,13 +54,12 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
         VariableGet,
         VariableSet,
         VisitorDefault,
-        VisitorVoidMixin,
-        Member,
-        TypeParameterType;
+        VisitorVoidMixin;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -330,6 +332,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             reusedResult,
             c,
             uriTranslator,
+            context
+                .options
+                .target
+                .incrementalCompilerIncludeMixinApplicationInvalidatedLibraries,
           );
       recorderForTesting?.recordRebuildBodiesCount(
         experimentalInvalidation?.missingSources.length ?? 0,
@@ -526,6 +532,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             c,
             cleanedUpBuilders: cleanedUpBuilders,
           );
+      if (experimentalInvalidation != null &&
+          experimentalInvalidation.invalidatedMixinApplicationLibraries !=
+              null) {
+        outputLibraries = {
+          ...outputLibraries,
+          ...experimentalInvalidation.invalidatedMixinApplicationLibraries!,
+        }.toList();
+      }
       List<String> problemsAsJson = _componentProblems.reissueProblems(
         context,
         currentKernelTarget,
@@ -1116,6 +1130,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     ReusageResult reusedResult,
     CompilerContext c,
     UriTranslator uriTranslator,
+    bool collectMixinsToo,
   ) async {
     Set<DillLibraryBuilder>? rebuildBodies;
     Set<DillLibraryBuilder> originalNotReusedLibraries;
@@ -1187,17 +1202,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               /* this is effectively what the constant evaluator does */
               context.options.globalFeatures.tripleShift.isEnabled,
         );
-        bool enablePatterns =
-            builder.languageVersion >= ExperimentalFlag.patterns.enabledVersion;
-        bool enableEnhancedParts =
-            builder.languageVersion >=
-            ExperimentalFlag.enhancedParts.enabledVersion;
+        ExperimentalFeatures experimentalFeatures =
+            new ExperimentalFeaturesFromVersion(builder.languageVersion);
         String? before = textualOutline(
           previousSource,
           scannerConfiguration,
           performModelling: true,
-          enablePatterns: enablePatterns,
-          enableEnhancedParts: enableEnhancedParts,
+          experimentalFeatures: experimentalFeatures,
         );
         if (before == null) {
           // Coverage-ignore-block(suite): Not run.
@@ -1213,8 +1224,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             await entity.readAsBytes(),
             scannerConfiguration,
             performModelling: true,
-            enablePatterns: enablePatterns,
-            enableEnhancedParts: enableEnhancedParts,
+            experimentalFeatures: experimentalFeatures,
           );
         }
         if (before != now) {
@@ -1235,6 +1245,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // procedures, if the changed file is used as a mixin anywhere else
     // we can't only recompile the changed file.
     // TODO(jensj): Check for mixins in a smarter and faster way.
+    Set<Library>? invalidatedMixinApplicationLibraries;
     if (!skipExperimentalInvalidationChecksForTesting) {
       for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
         if (missingSources!.contains(builder.fileUri)) {
@@ -1258,6 +1269,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               );
               return null;
             }
+          }
+          if (collectMixinsToo &&
+              c.mixedInClass != null &&
+              missingSources.contains(c.mixedInClass!.fileUri)) {
+            (invalidatedMixinApplicationLibraries ??= {}).add(
+              c.enclosingLibrary,
+            );
           }
         }
       }
@@ -1327,6 +1345,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       rebuildBodies,
       originalNotReusedLibraries,
       missingSources,
+      invalidatedMixinApplicationLibraries,
     );
   }
 
@@ -1840,6 +1859,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
       List<VariableDeclarationImpl> extraKnownVariables = [];
       String? usedMethodName = methodName;
+      Substitution? substitution;
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -1880,23 +1900,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             );
           }
 
-          Map<TypeParameter, TypeParameterType> substitutionMap = {};
-          Map<String, TypeParameter> typeDefinitionNamesMap = {};
-          for (TypeParameter typeDefinition in typeDefinitions) {
-            if (typeDefinition.name != null) {
-              typeDefinitionNamesMap[typeDefinition.name!] = typeDefinition;
-            }
-          }
-          for (TypeParameter typeParameter in foundScope.typeParameters) {
-            TypeParameter? match = typeDefinitionNamesMap[typeParameter.name];
-            if (match != null) {
-              substitutionMap[typeParameter] = new TypeParameterType(
-                match,
-                match.computeNullabilityFromBound(),
+          substitution =
+              _calculateExpressionEvaluationTypeParameterSubstitution(
+                typeDefinitions,
+                foundScope.typeParameters,
               );
-            }
-          }
-          Substitution substitution = Substitution.fromMap(substitutionMap);
 
           final bool alwaysInlineConstants = lastGoodKernelTarget
               .backendTarget
@@ -1952,6 +1960,22 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               usedDefinitions[def.key] = substitution.substituteType(
                 def.value.type,
               );
+            } else if (existingType is InterfaceType &&
+                existingType.classNode.enclosingLibrary.importUri.isScheme(
+                  "dart",
+                )) {
+              // The VM tells us about a type from the platform.
+              // We use the static type instead because the compiler for
+              // instance special case int in certain places which is - by the
+              // VM - often described as _Smi.
+              DartType usedType = substitution.substituteType(def.value.type);
+              if (existingType.nullability == Nullability.nonNullable &&
+                  usedType.nullability == Nullability.nullable) {
+                // If a statically nullable type is known to be non-null,
+                // we keep that information though.
+                usedType = usedType.toNonNull();
+              }
+              usedDefinitions[def.key] = usedType;
             }
           }
         }
@@ -1959,6 +1983,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       _ticker.logMs("Loaded library $libraryUri");
 
+      int? offsetToUse;
       Class? cls;
       if (className != null) {
         Builder? scopeMember = libraryBuilder.libraryNameSpace
@@ -1966,12 +1991,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             ?.getable;
         if (scopeMember is ClassBuilder) {
           cls = scopeMember.cls;
+          offsetToUse = cls.fileOffset;
         } else {
           return null;
         }
       }
-      Extension? extension;
-      ExtensionTypeDeclaration? extensionType;
+
+      bool isExtensionOrExtensionType = false;
       String? extensionName;
       if (usedMethodName != null) {
         int indexOfDot = usedMethodName.indexOf(".");
@@ -1997,7 +2023,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
-            extension = builder.extension;
+            isExtensionOrExtensionType = true;
+            offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
@@ -2005,7 +2032,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               }
             }
           } else if (builder is ExtensionTypeDeclarationBuilder) {
-            extensionType = builder.extensionTypeDeclaration;
+            isExtensionOrExtensionType = true;
+            offsetToUse = builder.fileOffset;
             Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionTypeInstanceMember) {
@@ -2018,7 +2046,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   // If we setup the extensionType (and later the
                   // `extensionThis`) we should also set the type correctly
                   // (at least in a non-static setting).
-                  usedDefinitions[syntheticThisName] = positionals.first.type;
+                  if (substitution == null || substitution.isEmpty) {
+                    // Re-do substitutions if the old one is empty - in case the
+                    // finding of scope didn't find the right thing (e.g.
+                    // sometimes the VM claims to be on the offset for a method
+                    // name while having data as if it is inside the method).
+                    substitution =
+                        _calculateExpressionEvaluationTypeParameterSubstitution(
+                          typeDefinitions,
+                          subBuilder.invokeTarget?.function?.typeParameters,
+                        );
+                  }
+                  usedDefinitions[syntheticThisName] = substitution
+                      .substituteType(positionals.first.type);
                 }
                 isStatic = false;
               }
@@ -2042,25 +2082,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           return null;
         }
       }
-      int index = 0;
       for (String name in usedDefinitions.keys) {
-        index++;
-        if (!(isLegalIdentifier(name) ||
-            ((extension != null || extensionType != null) &&
-                !isStatic &&
-                index == 1 &&
-                isExtensionThisName(name)))) {
-          lastGoodKernelTarget.loader.addProblem(
-            codeIncrementalCompilerIllegalParameter.withArgumentsOld(name),
-            // TODO: pass variable declarations instead of
-            // parameter names for proper location detection.
-            // https://github.com/dart-lang/sdk/issues/44158
-            -1,
-            -1,
-            libraryUri,
-          );
-          return null;
+        if (isLegalIdentifier(name)) continue;
+        if (isExtensionThisName(name) &&
+            !isStatic &&
+            isExtensionOrExtensionType) {
+          // Accept  #this for extensions and extension types.
+          continue;
         }
+
+        lastGoodKernelTarget.loader.addProblem(
+          codeIncrementalCompilerIllegalParameter.withArgumentsOld(name),
+          // TODO: pass variable declarations instead of
+          // parameter names for proper location detection.
+          // https://github.com/dart-lang/sdk/issues/44158
+          -1,
+          -1,
+          libraryUri,
+        );
+        return null;
       }
 
       // Setup scope first in two-step process:
@@ -2083,7 +2123,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             ),
             loader: lastGoodKernelTarget.loader,
             resolveInLibrary: libraryBuilder,
-            isUnsupported: libraryBuilder.isUnsupported,
+            conditionalImportSupported:
+                libraryBuilder.conditionalImportSupported,
+            importability: libraryBuilder.importability,
             forAugmentationLibrary: false,
             forPatchLibrary: false,
             referenceIsPartOwner: null,
@@ -2148,7 +2190,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         resolveInLibrary: libraryBuilder,
         parentScope: debugCompilationUnit.compilationUnitScope,
         parentExtensionScope: debugCompilationUnit.extensionScope,
-        isUnsupported: libraryBuilder.isUnsupported,
+        conditionalImportSupported: libraryBuilder.conditionalImportSupported,
+        importability: libraryBuilder.importability,
         forAugmentationLibrary: false,
         forPatchLibrary: false,
         referenceIsPartOwner: null,
@@ -2167,35 +2210,33 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
+      VariableDeclaration? extensionThis;
+
       // TODO: pass variable declarations instead of
       // parameter names for proper location detection.
       // https://github.com/dart-lang/sdk/issues/44158
       FunctionNode parameters = new FunctionNode(
         null,
         typeParameters: typeDefinitions,
-        positionalParameters: usedDefinitions.entries
-            .map<VariableDeclaration>(
-              (MapEntry<String, DartType> def) =>
-                  new VariableDeclarationImpl(def.key, type: def.value)
-                    ..fileOffset =
-                        cls?.fileOffset ??
-                        extension?.fileOffset ??
-                        extensionType?.fileOffset ??
-                        libraryBuilder.library.fileOffset,
-            )
-            .toList(),
+        positionalParameters: usedDefinitions.entries.map<VariableDeclaration>((
+          MapEntry<String, DartType> def,
+        ) {
+          VariableDeclarationImpl variable = new VariableDeclarationImpl(
+            def.key,
+            type: def.value,
+          )..fileOffset = offsetToUse ?? libraryBuilder.library.fileOffset;
+
+          if (isExtensionOrExtensionType &&
+              !isStatic &&
+              isExtensionThisName(def.key) &&
+              extensionThis == null) {
+            // The `#this` variable is special.
+            extensionThis = variable..isLowered = true;
+          }
+          return variable;
+        }).toList(),
       );
 
-      VariableDeclaration? extensionThis;
-      if ((extension != null || extensionType != null) &&
-          !isStatic &&
-          parameters.positionalParameters.isNotEmpty) {
-        // We expect the first parameter to be called #this and be special.
-        if (isExtensionThisName(parameters.positionalParameters.first.name)) {
-          extensionThis = parameters.positionalParameters.first;
-          extensionThis.isLowered = true;
-        }
-      }
       lastGoodKernelTarget.buildSyntheticLibrariesUntilBuildScopes([
         debugLibrary,
       ]);
@@ -2251,6 +2292,32 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       return procedure;
     });
+  }
+
+  // Coverage-ignore(suite): Not run.
+  Substitution _calculateExpressionEvaluationTypeParameterSubstitution(
+    List<TypeParameter> typeDefinitions,
+    List<TypeParameter>? typeParameters,
+  ) {
+    Map<TypeParameter, TypeParameterType> substitutionMap = {};
+    Map<String, TypeParameter> typeDefinitionNamesMap = {};
+    for (TypeParameter typeDefinition in typeDefinitions) {
+      if (typeDefinition.name != null) {
+        typeDefinitionNamesMap[typeDefinition.name!] = typeDefinition;
+      }
+    }
+    if (typeParameters != null) {
+      for (TypeParameter typeParameter in typeParameters) {
+        TypeParameter? match = typeDefinitionNamesMap[typeParameter.name];
+        if (match != null) {
+          substitutionMap[typeParameter] = new TypeParameterType(
+            match,
+            match.computeNullabilityFromBound(),
+          );
+        }
+      }
+    }
+    return Substitution.fromMap(substitutionMap);
   }
 
   // Coverage-ignore(suite): Not run.
@@ -2528,7 +2595,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
 
   ExpressionInferenceResult _returnKnownVariableUnavailable(
     Expression node,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
     Uri fileUri,
@@ -2539,10 +2606,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         compilerContext: compilerContext,
         expression: node,
         message: codeExpressionEvaluationKnownVariableUnavailable
-            .withArgumentsOld(variable.name!),
+            .withArgumentsOld(variable.cosmeticName!),
         fileUri: fileUri,
         fileOffset: node.fileOffset,
-        length: variable.name!.length,
+        length: variable.cosmeticName!.length,
         errorHasBeenReported: false,
         includeExpression: false,
       ),
@@ -2554,6 +2621,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
     required ObjectAccessTarget target,
     required DartType receiverType,
     required Name name,
+    required bool setter,
   }) {
     // On a missing target, rewrite to a dynamic target instead.
     if (target.kind == ObjectAccessTargetKind.missing) {
@@ -2568,14 +2636,37 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         ClassHierarchySubtypes subtypeInformation = hierarchy
             .computeSubtypesInformation();
         Set<Library> foundMatchInLibrary = {};
+        Set<Class> visited = {};
+        nextSubtype:
         for (Class cls in subtypeInformation.getSubtypesOf(
           receiverType.classNode,
         )) {
-          for (Member member in cls.members) {
-            if (member.name.text == name.text) {
-              foundMatchInLibrary.add(cls.enclosingLibrary);
-              break;
+          if (cls.isAbstract) continue;
+          Class? clsOrSuper = cls;
+          while (clsOrSuper != null) {
+            if (!visited.add(clsOrSuper)) break;
+            for (Procedure procedure in clsOrSuper.procedures) {
+              if (procedure.name.text == name.text) {
+                // Name match.
+                if (procedure.isAbstract) continue;
+                if (setter && !procedure.isSetter) {
+                  continue;
+                } else if (!setter && procedure.isSetter) {
+                  continue;
+                }
+                foundMatchInLibrary.add(clsOrSuper.enclosingLibrary);
+                continue nextSubtype;
+              }
             }
+            for (Field field in clsOrSuper.fields) {
+              if (field.name.text == name.text) {
+                // Name match.
+                if (setter && !field.hasSetter) continue;
+                foundMatchInLibrary.add(clsOrSuper.enclosingLibrary);
+                continue nextSubtype;
+              }
+            }
+            clsOrSuper = clsOrSuper.superclass;
           }
         }
         // If we only found one such library we overwrite the name so the VM
@@ -2661,11 +2752,13 @@ class ExperimentalInvalidation {
   final Set<DillLibraryBuilder> rebuildBodies;
   final Set<DillLibraryBuilder> originalNotReusedLibraries;
   final Set<Uri> missingSources;
+  final Set<Library>? invalidatedMixinApplicationLibraries;
 
   ExperimentalInvalidation(
     this.rebuildBodies,
     this.originalNotReusedLibraries,
     this.missingSources,
+    this.invalidatedMixinApplicationLibraries,
   );
 }
 

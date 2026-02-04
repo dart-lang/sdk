@@ -16,7 +16,7 @@ import "dart:_internal";
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C4
 class Array<T extends core::Object? = dynamic> extends core::Object {
   @#C1
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>(core::int foo) → self2::Array<self2::Array::•::T%> /* redirection-target: self2::_ArraySize::•<self2::Array::•::T%>*/
+  static const factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>(core::int foo) → self2::Array<self2::Array::•::T%> /* redirection-target: self2::_ArraySize::•<self2::Array::•::T%>*/
     return new self2::_ArraySize::•<self2::Array::•::T%>(foo);
 }
 class _ArraySize<T extends core::Object? = dynamic> extends core::Object implements self2::Array<self2::_ArraySize::T%> /*hasConstConstructor*/  { // from org-dartlang-testcase:///patch_lib.dart

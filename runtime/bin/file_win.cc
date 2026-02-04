@@ -86,28 +86,28 @@ MappedMemory* File::Map(File::MapType type,
                         int64_t position,
                         int64_t length,
                         void* start) {
-  DWORD prot_alloc;
-  DWORD prot_final;
+  DWORD prot = PAGE_NOACCESS;
   switch (type) {
     case File::kReadOnly:
-      prot_alloc = PAGE_READWRITE;
-      prot_final = PAGE_READONLY;
+      prot = PAGE_READONLY;
       break;
     case File::kReadExecute:
-      prot_alloc = PAGE_EXECUTE_READWRITE;
-      prot_final = PAGE_EXECUTE_READ;
+      prot = PAGE_EXECUTE_READ;
       break;
     case File::kReadWrite:
-      prot_alloc = PAGE_READWRITE;
-      prot_final = PAGE_READWRITE;
+      prot = PAGE_READWRITE;
       break;
   }
 
   void* addr = start;
   if (addr == nullptr) {
-    addr = VirtualAlloc(nullptr, length, MEM_COMMIT | MEM_RESERVE, prot_alloc);
+    addr =
+        VirtualAlloc(nullptr, length, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     if (addr == nullptr) {
-      Syslog::PrintErr("VirtualAlloc failed %d\n", GetLastError());
+      int error = GetLastError();
+      char buffer[1024];
+      Syslog::PrintErr("VirtualAlloc failed %d (%s)\n", error,
+                       Utils::StrError(error, buffer, sizeof(buffer)));
       return nullptr;
     }
   }
@@ -115,7 +115,10 @@ MappedMemory* File::Map(File::MapType type,
   const int64_t remaining_length = Length() - position;
   SetPosition(position);
   if (!ReadFully(addr, Utils::Minimum(length, remaining_length))) {
-    Syslog::PrintErr("ReadFully failed %d\n", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    Syslog::PrintErr("ReadFully failed %d (%s)\n", error,
+                     Utils::StrError(error, buffer, sizeof(buffer)));
     if (start == nullptr) {
       VirtualFree(addr, 0, MEM_RELEASE);
     }
@@ -130,9 +133,12 @@ MappedMemory* File::Map(File::MapType type,
   }
 
   DWORD old_prot;
-  bool result = VirtualProtect(addr, length, prot_final, &old_prot);
+  bool result = VirtualProtect(addr, length, prot, &old_prot);
   if (!result) {
-    Syslog::PrintErr("VirtualProtect failed %d\n", GetLastError());
+    int error = GetLastError();
+    char buffer[1024];
+    Syslog::PrintErr("VirtualProtect failed %d (%s)\n", error,
+                     Utils::StrError(error, buffer, sizeof(buffer)));
     if (start == nullptr) {
       VirtualFree(addr, 0, MEM_RELEASE);
     }
@@ -159,7 +165,7 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
   ASSERT(fd >= 0 && num_bytes <= MAXDWORD && num_bytes >= 0);
   HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
   DWORD written = 0;
-  BOOL result = WriteFile(handle, buffer, num_bytes, &written, nullptr);
+  BOOL result = ::WriteFile(handle, buffer, num_bytes, &written, nullptr);
   if (!result) {
     return -1;
   }
@@ -1128,11 +1134,41 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   return kPipe;
 }
 
+static BOOL GetReparsePointTag(const wchar_t* path, DWORD* tag) {
+  WIN32_FIND_DATA data;
+  HANDLE result = FindFirstFileW(path, &data);
+  if (result == INVALID_HANDLE_VALUE) {
+    return FALSE;
+  }
+  FindClose(result);
+
+  if ((data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    // The meaning of |dwReserved0| is documented in
+    // https://learn.microsoft.com/en-us/windows/win32/fileio/reparse-point-tags
+    *tag = data.dwReserved0;
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 File::Type File::GetType(const wchar_t* path, bool follow_links) {
   DWORD attributes = GetFileAttributesW(path);
   if (attributes == INVALID_FILE_ATTRIBUTES) {
     return File::kDoesNotExist;
   } else if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    DWORD tag;
+    if (!GetReparsePointTag(path, &tag)) {
+      return File::kDoesNotExist;
+    }
+
+    // We treat only Unix domain sockets specially - all other reparse points
+    // we treat as links, even though there are many other types of them. See:
+    // https://learn.microsoft.com/en-us/windows/win32/fileio/reparse-point-tags
+    if (tag == IO_REPARSE_TAG_AF_UNIX) {
+      return File::kIsSock;
+    }
+
     if (follow_links) {
       HANDLE target_handle = CreateFileW(
           path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,

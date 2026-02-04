@@ -8,7 +8,10 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         codeExperimentNotEnabled,
         codeInternalProblemUnsupported;
-import 'package:_fe_analyzer_shared/src/parser/parser.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show DefaultExperimentalFeatures;
+import 'package:_fe_analyzer_shared/src/parser/parser.dart'
+    hide ExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -239,49 +242,6 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("ClassFactoryMethod");
-    pop(); // Body
-    pop(); // Type variables
-    var name = pop() as String;
-    var metadata = popTypedList() as List<Annotation>?;
-    var comment = pop() as Comment?;
-    push(ConstructorDeclaration(comment, metadata, name));
-  }
-
-  @override
-  void endClassMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("Method");
-    pop(); // Body
-    pop(); // Initializers
-    pop(); // Formal parameters
-    pop(); // Type variables
-    var name = pop() as String;
-    var returnType = pop() as TypeName?;
-    var metadata = popTypedList<Annotation>();
-    var comment = pop() as Comment?;
-    push(
-      MethodDeclaration(
-        comment,
-        metadata,
-        getOrSet?.lexeme == 'get',
-        name,
-        returnType,
-      ),
-    );
-  }
-
-  @override
   void endClassOrMixinOrExtensionBody(
     DeclarationKind kind,
     int memberCount,
@@ -325,7 +285,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(
+  void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
     Token leftBrace,
@@ -336,6 +296,22 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void endFactory(
+    DeclarationKind kind,
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    debugEvent("Factory");
+    pop(); // Body
+    pop(); // Type variables
+    var name = pop() as String;
+    var metadata = popTypedList() as List<Annotation>?;
+    var comment = pop() as Comment?;
+    push(ConstructorDeclaration(comment, metadata, name));
+  }
+
+  @override
   void endFieldInitializer(Token assignment, Token token) {
     debugEvent("FieldInitializer");
     pop(); // Expression
@@ -343,6 +319,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endFormalParameter(
+    Token? varOrFinal,
     Token? thisKeyword,
     Token? superKeyword,
     Token? periodAfterThisOrSuper,
@@ -417,6 +394,35 @@ class MiniAstBuilder extends StackListener {
     push(
       popList(count, List<Annotation?>.filled(count, null, growable: true)) ??
           NullValues.Metadata,
+    );
+  }
+
+  @override
+  void endMethod(
+    DeclarationKind kind,
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    debugEvent("Method");
+    pop(); // Body
+    pop(); // Initializers
+    pop(); // Formal parameters
+    pop(); // Type variables
+    var name = pop() as String;
+    var returnType = pop() as TypeName?;
+    var metadata = popTypedList<Annotation>();
+    var comment = pop() as Comment?;
+    push(
+      MethodDeclaration(
+        comment,
+        metadata,
+        getOrSet?.lexeme == 'get',
+        name,
+        returnType,
+      ),
     );
   }
 
@@ -755,7 +761,8 @@ class MiniAstBuilder extends StackListener {
 
 /// Parser intended for use with [MiniAstBuilder].
 class MiniAstParser extends Parser {
-  MiniAstParser(MiniAstBuilder super.listener);
+  MiniAstParser(MiniAstBuilder super.listener)
+    : super(experimentalFeatures: const DefaultExperimentalFeatures());
 
   @override
   Token parseArgumentsOpt(Token token) {

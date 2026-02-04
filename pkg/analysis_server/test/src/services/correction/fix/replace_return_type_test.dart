@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ReplaceReturnTypeTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE;
+  FixKind get kind => DartFixKind.replaceReturnType;
 
   Future<void> test_async_method() async {
     await resolveTestCode('''
@@ -91,9 +91,8 @@ void top() {
   }
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.returnOfInvalidTypeFromFunction;
+      filter: (error) {
+        return error.diagnosticCode == diag.returnOfInvalidTypeFromFunction;
       },
     );
   }
@@ -135,9 +134,8 @@ class B extends A {
   B m() => this;
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.returnOfInvalidTypeFromMethod;
+      filter: (error) {
+        return error.diagnosticCode == diag.returnOfInvalidTypeFromMethod;
       },
     );
   }
@@ -219,9 +217,8 @@ num f() {
   return 2.4;
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.returnOfInvalidTypeFromFunction;
+      filter: (error) {
+        return error.diagnosticCode == diag.returnOfInvalidTypeFromFunction;
       },
     );
   }
@@ -248,9 +245,8 @@ class A {
   }
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.returnOfInvalidTypeFromMethod;
+      filter: (error) {
+        return error.diagnosticCode == diag.returnOfInvalidTypeFromMethod;
       },
     );
   }

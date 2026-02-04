@@ -31,6 +31,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/matchers.dart';
 import '../utils/test_code_extensions.dart';
 import 'completion.dart';
 import 'server_abstract.dart';
@@ -354,6 +355,38 @@ class A {
 void main() {
   final value = A(A(A()));
   if (value case A(value: A(:var value))) {}
+}
+'''),
+    );
+  }
+
+  Future<void> test_pattern_getter_lint() async {
+    content = '''
+abstract class MyType {
+  int get name;
+}
+
+void f(MyType m) {
+  if (m case MyType(:^)) {}
+}
+''';
+    _enableLints([LintNames.always_specify_types]);
+    await initializeServer();
+
+    var completion = await getCompletionItem('name');
+    var resolved = await resolveCompletion(completion);
+    var newContent = applyTextEdits(code.code, [
+      toTextEdit(resolved.textEdit!),
+    ]);
+    expect(
+      newContent,
+      equalsNormalized('''
+abstract class MyType {
+  int get name;
+}
+
+void f(MyType m) {
+  if (m case MyType(:int name)) {}
 }
 '''),
     );
@@ -696,6 +729,129 @@ class Foo {
       labelDescription: null,
       filterText: null,
       detail: 'int',
+    );
+  }
+
+  Future<void> test_functionTearOff() async {
+    content = '''
+void f(void Function(int) x) {
+  f(^);
+}
+
+void myFunction(int i) {}
+''';
+
+    await expectLabel(
+      content,
+      label: 'myFunction',
+      labelDetail: ' (…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_identifierQualified() async {
+    content = '''
+extension on void Function(int i) {
+  void Function(int i) get g2 => this.cal^;
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: ' (…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_identifierUnqualified() async {
+    content = '''
+extension on void Function(int i) {
+  void Function(int i) get g1 => cal^;
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: ' (…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_invocationQualified() async {
+    content = '''
+extension on void Function(int i) {
+  void m2() {
+    this.cal^;
+  }
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: '(…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_invocationUnqualified() async {
+    content = '''
+extension on void Function(int i) {
+  void m() {
+    cal^;
+  }
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: '(…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_parameters() async {
+    content = '''
+void Function(int i) get g3 => g3.cal^;
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: ' (…) → void',
+      labelDescription: null,
+      filterText: null,
+      detail: '(int i) → void',
+    );
+  }
+
+  Future<void> test_functionType_callMember_returnType() async {
+    content = '''
+String m3() {
+  m3.cal^;
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'call',
+      labelDetail: '() → String',
+      labelDescription: null,
+      filterText: null,
+      detail: '() → String',
     );
   }
 
@@ -1176,9 +1332,7 @@ class A {}
 A^
 ''';
 
-    await provideConfig(initialize, {
-      if (preference != null) 'documentation': preference,
-    });
+    await provideConfig(initialize, {'documentation': ?preference});
 
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
@@ -1218,9 +1372,7 @@ void f() {
 }
 ''';
 
-    await provideConfig(initialize, {
-      if (preference != null) 'documentation': preference,
-    });
+    await provideConfig(initialize, {'documentation': ?preference});
 
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
@@ -1408,6 +1560,28 @@ void g() {
       // completion much longer, we just include it in the completion text.
       expectCompletions: ['({a, b}) =>', '({a, b}) {}'],
       applyEditsFor: '({a, b}) =>',
+      expectedContent: expectedContent,
+    );
+  }
+
+  Future<void> test_closure_unnamedParameters() async {
+    var content = '''
+void f(void Function(int) x) {
+  f(^);
+}
+''';
+
+    var expectedContent = '''
+void f(void Function(int) x) {
+  f((p0) => ^,);
+}
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectCompletions: ['(p0) =>', '(p0) {}'],
+      applyEditsFor: '(p0) =>',
       expectedContent: expectedContent,
     );
   }

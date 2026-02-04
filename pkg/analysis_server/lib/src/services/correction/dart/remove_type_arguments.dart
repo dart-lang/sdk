@@ -18,7 +18,7 @@ class RemoveTypeArguments extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_TYPE_ARGUMENTS;
+  FixKind get fixKind => DartFixKind.removeTypeArguments;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

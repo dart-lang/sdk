@@ -38,9 +38,8 @@ exp^
 replacement
   left: 3
 suggestions
-  export '';
+  export '^';
     kind: keyword
-    selection: 8
 ''');
   }
 
@@ -52,9 +51,8 @@ imp^
 replacement
   left: 3
 suggestions
-  import '';
+  import '^';
     kind: keyword
-    selection: 8
 ''');
   }
 
@@ -66,12 +64,10 @@ par^
 replacement
   left: 3
 suggestions
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
-  part of '';
+  part of '^';
     kind: keyword
-    selection: 9
 ''');
   }
 
@@ -84,9 +80,8 @@ par^
 replacement
   left: 3
 suggestions
-  part '';
+  part '^';
     kind: keyword
-    selection: 6
 ''');
   }
 }

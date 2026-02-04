@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +18,41 @@ void main() {
 @reflectiveTest
 class ImportLibraryPrefixTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PREFIX;
+  FixKind get kind => DartFixKind.importLibraryPrefix;
+
+  Future<void> test_annotation_constructor() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class MyAnnotation {
+  const MyAnnotation();
+}
+''');
+    await resolveTestCode('''
+import 'a.dart' as a;
+@other.MyAnnotation()
+void f() {}
+''');
+    await assertHasFix('''
+import 'a.dart' as a;
+@a.MyAnnotation()
+void f() {}
+''');
+  }
+
+  Future<void> test_annotation_variable() async {
+    newFile('$testPackageLibPath/a.dart', '''
+const myAnnotation = 42;
+''');
+    await resolveTestCode('''
+import 'a.dart' as a;
+@other.myAnnotation
+void f() {}
+''');
+    await assertHasFix('''
+import 'a.dart' as a;
+@a.myAnnotation
+void f() {}
+''');
+  }
 
   Future<void> test_double_with_showCombinator() async {
     newFile('$testPackageLibPath/lib1.dart', '''
@@ -90,8 +124,8 @@ void f() {
   print('$a $b');
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass;
+      filter: (error) {
+        return error.diagnosticCode == diag.undefinedClass;
       },
     );
   }
@@ -118,8 +152,8 @@ void f() {
   print('$a $b');
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass;
+      filter: (error) {
+        return error.diagnosticCode == diag.undefinedClass;
       },
     );
   }

@@ -27,11 +27,10 @@ import '../source/fragment_factory.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
+import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
 import 'builder.dart';
-import 'constructor_builder.dart';
 import 'declaration_builders.dart';
-import 'member_builder.dart';
 import 'omitted_type_builder.dart';
 import 'property_builder.dart';
 import 'type_builder.dart';
@@ -73,6 +72,20 @@ class FormalParameterBuilder extends NamedBuilderImpl
   @override
   final String name;
 
+  /// If this parameter is a private named parameter that refers to an instance
+  /// field, then this is the corresponding public name for the parameter.
+  ///
+  /// For example:
+  ///
+  ///     class C {
+  ///       int? _x;
+  ///       C({this._x});
+  ///     }
+  ///
+  /// Here, [publicName] for `_x` will be `x`. If the formal parameter isn't a
+  /// private named parameter that refers to a field, then this is `null`.
+  final String? publicName;
+
   @override
   final Uri fileUri;
 
@@ -87,7 +100,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
   ///
   /// This is stored until outlines have been built through
   /// [buildOutlineExpressions].
-  Token? initializerToken;
+  Token? _initializerToken;
 
   bool initializerWasInferred = false;
 
@@ -111,9 +124,12 @@ class FormalParameterBuilder extends NamedBuilderImpl
     this.fileOffset, {
     required this.fileUri,
     this.isExtensionThis = false,
+    Token? initializerToken,
     required this.hasImmediatelyDeclaredInitializer,
     this.isWildcard = false,
-  }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer {
+    this.publicName,
+  }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
+       this._initializerToken = initializerToken {
     type.registerInferredTypeListener(this);
   }
 
@@ -171,10 +187,18 @@ class FormalParameterBuilder extends NamedBuilderImpl
     if (variable == null) {
       bool isTypeOmitted = type is OmittedTypeBuilder;
       DartType? builtType = type.build(library, TypeUse.parameterType);
+
+      String? variableName = switch (name) {
+        noNameSentinel => null,
+        // If the parameter is a private named parameter, use the public name
+        // for the corresponding variable.
+        _ when publicName != null => publicName,
+        _ => name,
+      };
+
       variable = new VariableDeclarationImpl(
-        name == noNameSentinel ? null : name,
-        // `null` is used in [VariableDeclarationImpl] to signal an omitted
-        // type.
+        variableName,
+        // [VariableDeclarationImpl] uses `null` to signal an omitted type.
         type: isTypeOmitted ? null : builtType,
         isFinal: modifiers.isFinal,
         isConst: false,
@@ -207,7 +231,9 @@ class FormalParameterBuilder extends NamedBuilderImpl
       fileOffset,
       fileUri: fileUri,
       isExtensionThis: isExtensionThis,
+      initializerToken: _takeInitializerToken(),
       hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+      publicName: publicName,
     )..variable = variable;
   }
 
@@ -222,6 +248,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+        publicName: publicName,
       )..variable = variable;
     } else if (isSuperInitializingFormal) {
       return new FormalParameterBuilder(
@@ -233,6 +260,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+        publicName: publicName,
       )..variable = variable;
     } else {
       return this;
@@ -259,8 +287,8 @@ class FormalParameterBuilder extends NamedBuilderImpl
     }
   }
 
-  static bool needsDefaultValuesBuiltAsOutlineExpressions(
-    MemberBuilder memberBuilder,
+  static bool _needsDefaultValuesBuiltAsOutlineExpressions(
+    SourceMemberBuilder memberBuilder,
   ) {
     // For modular compilation we need to include default values for optional
     // and named parameters in several cases:
@@ -271,26 +299,41 @@ class FormalParameterBuilder extends NamedBuilderImpl
     //   in mixin applications, and
     // * for factories, to uphold the invariant that optional parameters always
     //   have default values, even during modular compilation.
-    if (memberBuilder is ConstructorBuilder) {
+    if (memberBuilder is SourceConstructorBuilder) {
       return true;
     } else if (memberBuilder is SourceFactoryBuilder) {
       return true;
     } else {
-      // Coverage-ignore-block(suite): Not run.
       return memberBuilder.isClassInstanceMember;
     }
   }
 
+  /// Returns the [_initializerToken] field and clears it.
+  ///
+  /// This is used to transfer ownership of the token to the receiver. Tokens
+  /// need to be cleared during the outline phase to avoid holding the token
+  /// stream in memory.
+  Token? _takeInitializerToken() {
+    Token? initializerToken = _initializerToken;
+    _initializerToken = null;
+    return initializerToken;
+  }
+
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(
-    SourceLibraryBuilder libraryBuilder,
-    DeclarationBuilder? declarationBuilder, {
+  void buildOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourceMemberBuilder memberBuilder,
     required ExtensionScope extensionScope,
     required LookupScope scope,
-    required bool buildDefaultValue,
   }) {
-    if (buildDefaultValue) {
+    // For const constructors we need to include default parameter values
+    // into the outline. For all other formals we need to call
+    // buildOutlineExpressions to clear initializerToken to prevent
+    // consuming too much memory.
+    Token? initializerToken = _takeInitializerToken();
+    if (_needsDefaultValuesBuiltAsOutlineExpressions(memberBuilder)) {
       if (initializerToken != null) {
         BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
           libraryBuilder,
@@ -305,7 +348,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
           extensionScope: extensionScope,
           scope: scope,
           fileUri: fileUri,
-          initializerToken: initializerToken!,
+          initializerToken: initializerToken,
           declaredType: variable!.type,
           hasDeclaredInitializer: hasDeclaredInitializer,
         );
@@ -319,7 +362,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
         variable!.initializer = new NullLiteral()..parent = variable;
       }
     }
-    initializerToken = null;
   }
 
   @override

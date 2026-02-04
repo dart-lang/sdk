@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +34,7 @@ f(Stream<String> stream) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidElementType, 55, 6)],
+      [error(diag.forInOfInvalidElementType, 55, 6)],
     );
   }
 
@@ -48,7 +48,7 @@ f(Stream<String> stream) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidElementType, 60, 6)],
+      [error(diag.forInOfInvalidElementType, 60, 6)],
     );
   }
 
@@ -63,7 +63,7 @@ class Foo<T extends Iterable<int>> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidElementType, 86, 8)],
+      [error(diag.forInOfInvalidElementType, 86, 8)],
     );
   }
 
@@ -133,7 +133,7 @@ f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidElementType, 22, 10)],
+      [error(diag.forInOfInvalidElementType, 22, 10)],
     );
   }
 
@@ -147,7 +147,7 @@ f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidElementType, 27, 10)],
+      [error(diag.forInOfInvalidElementType, 27, 10)],
     );
   }
 
@@ -192,7 +192,7 @@ void foo(Iterable<C> iterable) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidElementType, 106, 8)],
+      [error(diag.forInOfInvalidElementType, 106, 8)],
     );
   }
 }

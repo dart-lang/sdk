@@ -5,13 +5,13 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
@@ -76,7 +76,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return false;
     }
     if (parent is ConstructorDeclaration) {
-      if (parent.returnType == node) {
+      if (parent.typeName == node) {
         return false;
       }
     }
@@ -196,10 +196,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      diagnosticReporter.atNode(
-        node,
-        CompileTimeErrorCode.invalidFactoryNameNotAClass,
-      );
+      diagnosticReporter.report(diag.invalidFactoryNameNotAClass.at(node));
     } else if (_isConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
@@ -208,23 +205,20 @@ class SimpleIdentifierResolver with ScopeHelpers {
       if (element.name case var name?) {
         diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.prefixIdentifierNotFollowedByDot,
+          diag.prefixIdentifierNotFollowedByDot,
           arguments: [name],
         );
       }
     } else if (element == null) {
       // TODO(brianwilkerson): Recover from this error.
       if (node.name == "await" && _resolver.enclosingFunction != null) {
-        diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.undefinedIdentifierAwait,
-        );
+        diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
       } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
         node,
       )) {
         diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           arguments: [node.name],
         );
       }
@@ -334,7 +328,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     _resolver.diagnosticReporter.atNode(
       node,
-      CompileTimeErrorCode.extensionAsExpression,
+      diag.extensionAsExpression,
       arguments: [node.name],
     );
 
@@ -351,7 +345,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   static bool _isConstructorReturnType(SimpleIdentifier identifier) {
     var parent = identifier.parent;
     if (parent is ConstructorDeclaration) {
-      return identical(parent.returnType, identifier);
+      return identical(parent.typeName, identifier);
     }
     return false;
   }
@@ -361,7 +355,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
     var parent = identifier.parent;
     if (parent is ConstructorDeclaration) {
-      return identical(parent.returnType, identifier) &&
+      return identical(parent.typeName, identifier) &&
           parent.factoryKeyword != null;
     }
     return false;

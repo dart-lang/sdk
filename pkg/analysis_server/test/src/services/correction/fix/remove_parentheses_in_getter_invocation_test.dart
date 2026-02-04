@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveParenthesesInGetterInvocationTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION;
+  FixKind get kind => DartFixKind.removeParenthesesInGetterInvocation;
 
   Future<void> test_noArguments() async {
     await resolveTestCode('''

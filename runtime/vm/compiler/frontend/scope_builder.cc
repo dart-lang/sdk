@@ -652,17 +652,20 @@ void ScopeBuilder::VisitFunctionNode() {
 
 void ScopeBuilder::VisitInitializer() {
   Tag tag = helper_.ReadTag();
-  helper_.ReadByte();  // read isSynthetic flag.
   switch (tag) {
     case kInvalidInitializer:
+      helper_.ReadPosition();         // read position.
+      helper_.ReadStringReference();  // read message
       return;
     case kFieldInitializer:
       helper_.ReadPosition();                // read position.
+      helper_.ReadByte();                    // read isSynthetic flag.
       helper_.SkipCanonicalNameReference();  // read field_reference.
       VisitExpression();                     // read value.
       return;
     case kSuperInitializer:
       helper_.ReadPosition();                // read position.
+      helper_.ReadByte();                    // read isSynthetic flag.
       helper_.SkipCanonicalNameReference();  // read target_reference.
       VisitArguments();                      // read arguments.
       return;
@@ -672,9 +675,11 @@ void ScopeBuilder::VisitInitializer() {
       VisitArguments();                      // read arguments.
       return;
     case kLocalInitializer:
+      helper_.ReadPosition();      // read position.
       VisitVariableDeclaration();  // read variable.
       return;
     case kAssertInitializer:
+      helper_.ReadPosition();  // read position.
       VisitStatement();
       return;
     default:
@@ -1091,6 +1096,7 @@ void ScopeBuilder::VisitExpression() {
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:
+    case kRedirectingFactoryInvocation:
     // These nodes are internal to the front end and
     // removed by the constant evaluator.
     default:

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class SuperInInvalidContextTest extends PubPackageResolutionTest {
       '''
 var v = super + 0;
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 8, 5)],
+      [error(diag.superInInvalidContext, 8, 5)],
     );
   }
 
@@ -35,7 +35,7 @@ class B extends A {
   var f = super.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 63, 5)],
+      [error(diag.superInInvalidContext, 63, 5)],
     );
   }
 
@@ -62,7 +62,7 @@ class B extends A {
   static var f = super.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 70, 5)],
+      [error(diag.superInInvalidContext, 70, 5)],
     );
   }
 
@@ -77,7 +77,7 @@ class B extends A {
   static late var f = super.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 75, 5)],
+      [error(diag.superInInvalidContext, 75, 5)],
     );
   }
 
@@ -92,7 +92,7 @@ class B extends A {
   B() : f = super.m();
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 62, 5)],
+      [error(diag.superInInvalidContext, 62, 5)],
     );
   }
 
@@ -108,7 +108,7 @@ class C extends S {
   C() : super(super.f);
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 75, 5)],
+      [error(diag.superInInvalidContext, 75, 5)],
     );
   }
 
@@ -125,7 +125,7 @@ class C extends S {
   C.other(int a) : super(a);
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 80, 5)],
+      [error(diag.superInInvalidContext, 80, 5)],
     );
   }
 
@@ -143,7 +143,7 @@ class B extends A {
   B._();
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 61, 5)],
+      [error(diag.superInInvalidContext, 61, 5)],
     );
   }
 
@@ -157,7 +157,7 @@ class B extends A {
  var b = super.a;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 50, 5)],
+      [error(diag.superInInvalidContext, 50, 5)],
     );
   }
 
@@ -168,7 +168,7 @@ extension E on int {
   static final v = super.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 40, 5)],
+      [error(diag.superInInvalidContext, 40, 5)],
     );
   }
 
@@ -181,7 +181,7 @@ extension E on int {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 47, 5)],
+      [error(diag.superInInvalidContext, 47, 5)],
     );
   }
 
@@ -196,7 +196,7 @@ mixin M on A {
   var f = super.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 58, 5)],
+      [error(diag.superInInvalidContext, 58, 5)],
     );
   }
 
@@ -223,7 +223,7 @@ mixin M on A {
   static var f = super.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 65, 5)],
+      [error(diag.superInInvalidContext, 65, 5)],
     );
   }
 
@@ -238,7 +238,7 @@ mixin M on A {
   static late var f = super.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 70, 5)],
+      [error(diag.superInInvalidContext, 70, 5)],
     );
   }
 
@@ -253,7 +253,7 @@ extension E on int {
   static var f = super.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 71, 5)],
+      [error(diag.superInInvalidContext, 71, 5)],
     );
   }
 
@@ -268,7 +268,7 @@ extension E on int {
   static late var f = super.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 76, 5)],
+      [error(diag.superInInvalidContext, 76, 5)],
     );
   }
 
@@ -282,7 +282,7 @@ class B extends A {
   static n() { return super.m(); }
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 70, 5)],
+      [error(diag.superInInvalidContext, 70, 5)],
     );
 
     var node = findNode.methodInvocation('super.m()');
@@ -314,7 +314,7 @@ class B extends A {
   static int b = super.a;
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 69, 5)],
+      [error(diag.superInInvalidContext, 69, 5)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -339,7 +339,7 @@ f() {
   super.f();
 }
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 8, 5)],
+      [error(diag.superInInvalidContext, 8, 5)],
     );
   }
 
@@ -348,7 +348,7 @@ f() {
       '''
 var v = super.y;
 ''',
-      [error(CompileTimeErrorCode.superInInvalidContext, 8, 5)],
+      [error(diag.superInInvalidContext, 8, 5)],
     );
   }
 
@@ -368,8 +368,8 @@ class B extends A {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 57, 1),
-        error(WarningCode.unusedLocalVariable, 92, 1),
+        error(diag.unusedLocalVariable, 57, 1),
+        error(diag.unusedLocalVariable, 92, 1),
       ],
     );
   }

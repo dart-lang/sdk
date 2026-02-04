@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/analysis_options/error/option_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_options_test_support.dart';
@@ -22,13 +22,14 @@ include: analysis_options.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.recursiveIncludeFile,
+          diag.recursiveIncludeFile,
           9,
           21,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/analysis_options.yaml')}' includes itself "
-              'recursively.',
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' includes "
+              "'${convertPath('/analysis_options.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );
@@ -42,13 +43,14 @@ include:
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.recursiveIncludeFile,
+          diag.recursiveIncludeFile,
           13,
           21,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/analysis_options.yaml')}' includes itself "
-              'recursively.',
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/analysis_options.yaml')}' includes "
+              "'${convertPath('/analysis_options.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );
@@ -79,12 +81,14 @@ include: a.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.recursiveIncludeFile,
+          diag.recursiveIncludeFile,
           9,
           6,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/b.yaml')}' includes itself recursively.",
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/b.yaml')}' includes "
+              "'${convertPath('/b.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );
@@ -100,7 +104,7 @@ include: a.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.includedFileWarning,
+          diag.includedFileWarning,
           9,
           6,
           messageContains: [
@@ -129,12 +133,14 @@ include:
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.recursiveIncludeFile,
+          diag.recursiveIncludeFile,
           28,
           6,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/b.yaml')}' includes itself recursively.",
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/b.yaml')}' includes "
+              "'${convertPath('/b.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );
@@ -157,12 +163,14 @@ include: a.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.recursiveIncludeFile,
+          diag.recursiveIncludeFile,
           9,
           6,
           text:
-              "The include file 'analysis_options.yaml' "
-              "in '${convertPath('/b.yaml')}' includes itself recursively.",
+              "The URI 'analysis_options.yaml' included in "
+              "'${convertPath('/b.yaml')}' includes "
+              "'${convertPath('/b.yaml')}', "
+              "creating a circular reference.",
         ),
       ],
     );
@@ -181,7 +189,7 @@ include: a.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.includedFileWarning,
+          diag.includedFileWarning,
           9,
           6,
           messageContains: [

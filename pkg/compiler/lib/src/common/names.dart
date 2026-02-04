@@ -306,4 +306,7 @@ class Uris {
     scheme: 'package',
     path: 'meta/dart2js.dart',
   );
+
+  /// The URI for 'package:meta/meta.dart'.
+  static final Uri packageMeta = Uri(scheme: 'package', path: 'meta/meta.dart');
 }

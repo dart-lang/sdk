@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           24,
           1,
           contextMessages: [message(testFile, 34, 1)],
@@ -76,7 +76,7 @@ main() {
 }
 print(x) {}
 ''',
-      [error(WarningCode.unusedLocalVariable, 40, 1)],
+      [error(diag.unusedLocalVariable, 40, 1)],
     );
   }
 
@@ -92,7 +92,7 @@ print(x) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           28,
           1,
           contextMessages: [message(testFile, 34, 1)],
@@ -113,7 +113,7 @@ print(x) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           28,
           1,
           contextMessages: [message(testFile, 38, 1)],
@@ -136,7 +136,7 @@ print(x) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           34,
           1,
           contextMessages: [message(testFile, 48, 1)],
@@ -160,7 +160,7 @@ void f(int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           61,
           1,
           contextMessages: [message(testFile, 75, 1)],
@@ -193,7 +193,7 @@ void f(int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           77,
           1,
           contextMessages: [message(testFile, 91, 1)],
@@ -225,7 +225,7 @@ void f(int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           61,
           1,
           contextMessages: [message(testFile, 74, 1)],
@@ -258,7 +258,7 @@ void f(int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           77,
           1,
           contextMessages: [message(testFile, 90, 1)],
@@ -290,7 +290,7 @@ void f(int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           62,
           1,
           contextMessages: [message(testFile, 76, 1)],
@@ -323,7 +323,7 @@ void f(int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           78,
           1,
           contextMessages: [message(testFile, 92, 1)],
@@ -355,7 +355,7 @@ void f(int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           62,
           1,
           contextMessages: [message(testFile, 75, 1)],
@@ -388,7 +388,7 @@ void f(int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           78,
           1,
           contextMessages: [message(testFile, 91, 1)],
@@ -414,7 +414,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           25,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -432,7 +432,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           19,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -488,7 +488,7 @@ void testTypeRef() {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           23,
           6,
           contextMessages: [message(testFile, 44, 6)],
@@ -508,7 +508,7 @@ void testTypeRef() {
 ''',
       [
         error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           23,
           6,
           contextMessages: [message(testFile, 44, 6)],

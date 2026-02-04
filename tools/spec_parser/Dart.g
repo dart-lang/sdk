@@ -4,6 +4,16 @@
 
 // CHANGES:
 //
+// v0.57 Introduce augmentation related updates.
+//
+// v0.56 Update constructor declaration syntax to allow `constructorHead`.
+// Recatogerize 'factory' to be a reserved word and not a built-in identifier.
+//
+// v0.55 Use `typeWithParameters` consistently, simplify primary constructor
+// rule.
+//
+// v0.54 Simplify members.
+//
 // v0.53 Support declaring constructors.
 //
 // v0.52 Support static access shorthands.
@@ -120,7 +130,7 @@
 // `builtinIdentifier` and `reservedWord`; update `typeAlias` to enable
 // non-function type aliases; add missing `metadata` to formal parameter
 // declarations; correct `symbolLiteral` to allow `VOID`;
-
+//
 // v0.12 (82403371ac00ddf004be60fa7b705474d2864509) Cf. language issue #1341:
 // correct `metadata`. Change `qualifiedName` such that it only includes the
 // cases with a '.'; the remaining case is added where `qualifiedName` is used.
@@ -297,6 +307,7 @@ topLevelDefinition
     |    AUGMENT? EXTERNAL getterSignature ';'
     |    AUGMENT? EXTERNAL setterSignature ';'
     |    AUGMENT? EXTERNAL finalVarOrType identifierList ';'
+    |    AUGMENT? ABSTRACT finalVarOrType identifierList ';'
     |    AUGMENT? getterSignature (functionBody | ';')
     |    AUGMENT? setterSignature (functionBody | ';')
     |    AUGMENT? functionSignature (functionBody | ';')
@@ -420,23 +431,28 @@ typeWithParameters
 
 classDeclaration
     :    AUGMENT? (classModifiers | mixinClassModifiers)
-         CLASS classNamePart superclass? interfaces? classBody
+         CLASS classNameMaybePrimary superclass? interfaces?
+         memberedDeclarationBody
     |    classModifiers MIXIN? CLASS mixinApplicationClass
     ;
 
-primaryConstructorNoConst
-    :    typeIdentifier typeParameters?
-         ('.' identifierOrNew)? declaringParameterList
+primaryConstructor
+    :    CONST? typeWithParameters ('.' identifierOrNew)?
+         declaringParameterList
     ;
 
-classNamePart
-    :    CONST? primaryConstructorNoConst
+classNameMaybePrimary
+    :    primaryConstructor
     |    typeWithParameters
     ;
 
-classBody
-    :    LBRACE (metadata classMemberDeclaration)* RBRACE
+memberedDeclarationBody
+    :    LBRACE memberDeclarations RBRACE
     |    ';'
+    ;
+
+memberDeclarations
+    :    (metadata memberDeclaration)*
     ;
 
 classModifiers
@@ -461,7 +477,7 @@ interfaces
     :    IMPLEMENTS typeNotVoidNotFunctionList
     ;
 
-classMemberDeclaration
+memberDeclaration
     :    AUGMENT? methodSignature functionBody
     |    AUGMENT? declaration ';'
     ;
@@ -471,41 +487,25 @@ mixinApplicationClass
     ;
 
 mixinDeclaration
-    :    AUGMENT? BASE? MIXIN typeWithParameters
+    :    BASE? MIXIN typeWithParameters
          (ON typeNotVoidNotFunctionList)? interfaces?
-         LBRACE (metadata mixinMemberDeclaration)* RBRACE
-    ;
-
-mixinMemberDeclaration
-    :    classMemberDeclaration
+         memberedDeclarationBody
+    |    AUGMENT BASE? MIXIN typeWithParameters interfaces?
+         memberedDeclarationBody
     ;
 
 extensionTypeDeclaration
-    :    EXTENSION TYPE classNamePart interfaces? extensionTypeBody
+    :    EXTENSION TYPE primaryConstructor interfaces?
+         memberedDeclarationBody
     |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
-         extensionTypeBody
-    ;
-
-extensionTypeBody
-    :    LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
-    |    ';'
-    ;
-
-extensionTypeMemberDeclaration
-    :    classMemberDeclaration
+         memberedDeclarationBody
     ;
 
 extensionDeclaration
-    :    EXTENSION typeIdentifierNotType? typeParameters? ON type extensionBody
-    |    AUGMENT EXTENSION typeIdentifierNotType typeParameters? extensionBody
-    ;
-
-extensionBody
-    :    LBRACE (metadata extensionMemberDeclaration)* RBRACE
-    ;
-
-extensionMemberDeclaration
-    :    classMemberDeclaration
+    :    EXTENSION typeIdentifierNotType? typeParameters? ON type
+         memberedDeclarationBody
+    |    AUGMENT EXTENSION typeIdentifierNotType typeParameters?
+         memberedDeclarationBody
     ;
 
 methodSignature
@@ -516,6 +516,7 @@ methodSignature
     |    STATIC? setterSignature
     |    operatorSignature
     |    constructorSignature
+    |    primaryConstructorBodySignature
     ;
 
 declaration
@@ -537,6 +538,7 @@ declaration
     |    redirectingFactoryConstructorSignature
     |    constantConstructorSignature (redirection | initializers)?
     |    constructorSignature (redirection | initializers)?
+    |    primaryConstructorBodySignature
     ;
 
 operatorSignature
@@ -568,16 +570,8 @@ setterSignature
     ;
 
 constructorSignature
-    :    constructorName formalParameterList
-    |    declaringConstructorSignature
-    ;
-
-declaringConstructorSignature
-    :    THIS ('.' identifierOrNew)? declaringParameterList?
-    ;
-
-declaringConstantConstructorSignature
-    :    CONST THIS ('.' identifierOrNew)? declaringParameterList
+    :    constructorName formalParameterList // Old form.
+    |    constructorHead formalParameterList // New form.
     ;
 
 declaringParameterList
@@ -637,12 +631,19 @@ defaultDeclaringNamedParameter
     ;
 
 constructorName
-    :    typeIdentifierOrNew ('.' identifierOrNew)?
+    :    typeIdentifier ('.' identifierOrNew)?
     ;
 
-typeIdentifierOrNew
-    :    typeIdentifier
-    |    NEW
+constructorTwoPartName
+    :    typeIdentifier '.' identifierOrNew
+    ;
+
+constructorHead
+    :    NEW identifier?
+    ;
+
+factoryConstructorHead
+    :    FACTORY identifier?
     ;
 
 identifierOrNew
@@ -677,17 +678,22 @@ initializerExpression
     ;
 
 factoryConstructorSignature
-    :    CONST? FACTORY constructorName formalParameterList
+    :    CONST? FACTORY constructorTwoPartName
+         formalParameterList // Old form.
+    |    CONST? factoryConstructorHead
+         formalParameterList // New form.
     ;
 
 redirectingFactoryConstructorSignature
-    :    CONST? FACTORY constructorName formalParameterList '='
-         constructorDesignation
+    :    factoryConstructorSignature '=' constructorDesignation
+    ;
+
+primaryConstructorBodySignature
+    :    THIS initializers?
     ;
 
 constantConstructorSignature
-    :    CONST constructorName formalParameterList
-    |    declaringConstantConstructorSignature
+    :    CONST constructorSignature
     ;
 
 mixinApplication
@@ -695,10 +701,13 @@ mixinApplication
     ;
 
 enumType
-    :    AUGMENT? ENUM classNamePart mixins? interfaces? LBRACE
-         enumEntry (',' enumEntry)* ','?
-         (';' (metadata classMemberDeclaration)*)?
-         RBRACE
+    :    AUGMENT? ENUM classNameMaybePrimary mixins? interfaces?
+         LBRACE enumBody? RBRACE
+    ;
+
+enumBody
+    :    enumEntry (',' enumEntry)* ','? (';' memberDeclarations)?
+    |    ';' memberDeclarations
     ;
 
 enumEntry

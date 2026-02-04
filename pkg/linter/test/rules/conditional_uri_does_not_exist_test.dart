@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -37,7 +38,7 @@ import ''
       [
         // The imported library '' can't have a part-of directive,
         // but that's OK for the purposes of verifying the lint.
-        error(CompileTimeErrorCode.importOfNonLibrary, 26, 2),
+        error(diag.importOfNonLibrary, 26, 2),
         lint(54, 16),
         lint(139, 16),
       ],
@@ -53,9 +54,9 @@ import ''
     if (dart.library.async) 'dart:missing_2';
 ''',
       [
-        error(WarningCode.unusedImport, 7, 2),
-        lint(35, 16, messageContains: 'dart:missing_1'),
-        lint(120, 16, messageContains: 'dart:missing_2'),
+        error(diag.unusedImport, 7, 2),
+        lint(35, 16, messageContainsAll: ['dart:missing_1']),
+        lint(120, 16, messageContainsAll: ['dart:missing_2']),
       ],
     );
   }
@@ -71,9 +72,9 @@ import ''
     if (dart.library.async) 'missing_2.dart';
 ''',
       [
-        error(WarningCode.unusedImport, 7, 2),
-        lint(35, 16, messageContains: 'missing_1.dart'),
-        lint(121, 16, messageContains: 'missing_2.dart'),
+        error(diag.unusedImport, 7, 2),
+        lint(35, 16, messageContainsAll: ['missing_1.dart']),
+        lint(121, 16, messageContainsAll: ['missing_2.dart']),
       ],
     );
   }
@@ -87,9 +88,9 @@ import ''
     if (dart.library.io) 'package:foo/missing_2.dart';
 ''',
       [
-        error(WarningCode.unusedImport, 7, 2),
-        lint(35, 29, messageContains: 'missing_1.dart'),
-        lint(142, 28, messageContains: 'missing_2.dart'),
+        error(diag.unusedImport, 7, 2),
+        lint(35, 29, messageContainsAll: ['missing_1.dart']),
+        lint(142, 28, messageContainsAll: ['missing_2.dart']),
       ],
     );
   }
@@ -108,7 +109,7 @@ import ''
 
 part 'a.dart';
 ''',
-      [error(WarningCode.unusedImport, 7, 2), lint(35, 16), lint(120, 16)],
+      [error(diag.unusedImport, 7, 2), lint(35, 16), lint(120, 16)],
     );
   }
 }

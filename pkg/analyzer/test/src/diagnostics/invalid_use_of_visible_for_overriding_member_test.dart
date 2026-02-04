@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -41,7 +41,7 @@ class Child extends Parent {
   }
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 63, 3)],
+      [error(diag.invalidUseOfVisibleForOverridingMember, 63, 3)],
     );
   }
 
@@ -109,7 +109,7 @@ class B {
   }
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 56, 1)],
+      [error(diag.invalidUseOfVisibleForOverridingMember, 56, 1)],
     );
   }
 
@@ -133,7 +133,7 @@ void f(Object o) {
   }
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 63, 1)],
+      [error(diag.invalidUseOfVisibleForOverridingMember, 63, 1)],
     );
   }
 
@@ -155,7 +155,7 @@ class B {
   void m(A a) => a > A();
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 47, 1)],
+      [error(diag.invalidUseOfVisibleForOverridingMember, 47, 1)],
     );
   }
 
@@ -180,7 +180,7 @@ class B extends A {
   int get x => super.g + 1;
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 100, 1)],
+      [error(diag.invalidUseOfVisibleForOverridingMember, 100, 1)],
     );
   }
 
@@ -205,7 +205,7 @@ class B extends A {
   void x() => super.m();
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 96, 1)],
+      [error(diag.invalidUseOfVisibleForOverridingMember, 96, 1)],
     );
   }
 
@@ -230,7 +230,7 @@ class B extends A {
   void m() => super > A();
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 111, 1)],
+      [error(diag.invalidUseOfVisibleForOverridingMember, 111, 1)],
     );
   }
 
@@ -255,7 +255,7 @@ class B extends A {
   set x(int i) => super.s = i;
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 106, 1)],
+      [error(diag.invalidUseOfVisibleForOverridingMember, 106, 1)],
     );
   }
 
@@ -296,7 +296,7 @@ class B {
   }
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 50, 1)],
+      [error(diag.invalidUseOfVisibleForOverridingMember, 50, 1)],
     );
   }
 }

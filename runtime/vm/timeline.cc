@@ -31,19 +31,18 @@
 #include "vm/service_event.h"
 #include "vm/thread.h"
 
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#if defined(SUPPORT_PERFETTO)
 #include "perfetto/ext/tracing/core/trace_packet.h"
+#include "third_party/perfetto/protos/perfetto/common/builtin_clock.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/clock_snapshot.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/trace_packet.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/debug_annotation.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/process_descriptor.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/thread_descriptor.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/track_descriptor.pbzero.h"
+#include "third_party/perfetto/protos/perfetto/trace/track_event/track_event.pbzero.h"
 #include "vm/perfetto_utils.h"
-#include "vm/protos/perfetto/common/builtin_clock.pbzero.h"
-#include "vm/protos/perfetto/trace/clock_snapshot.pbzero.h"
-#include "vm/protos/perfetto/trace/interned_data/interned_data.pbzero.h"
-#include "vm/protos/perfetto/trace/trace_packet.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/debug_annotation.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/process_descriptor.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/thread_descriptor.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/track_descriptor.pbzero.h"
-#include "vm/protos/perfetto/trace/track_event/track_event.pbzero.h"
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#endif  // defined(SUPPORT_PERFETTO)
 
 namespace dart {
 
@@ -150,9 +149,22 @@ static TimelineEventRecorder* CreateDefaultTimelineRecorder() {
 #endif
 }
 
-#if !defined(PRODUCT) && defined(SUPPORT_PERFETTO)
+static TimelineEventRecorder* CreateSystraceTimelineRecorder() {
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  return new TimelineEventSystraceRecorder();
+#elif defined(DART_HOST_OS_MACOS)
+  return new TimelineEventMacosRecorder();
+#elif defined(DART_HOST_OS_FUCHSIA)
+  return new TimelineEventFuchsiaRecorder();
+#else
+  return nullptr;
+#endif
+}
+
+#if defined(SUPPORT_PERFETTO)
 static TimelineEventRecorder* CreateTimelineEventPerfettoFileRecorder(
-    const char* filename);
+    const char* filename,
+    bool intern_strings);
 #endif
 
 static TimelineEventRecorder* CreateTimelineRecorder() {
@@ -178,15 +190,11 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 
   // Systrace recorder.
   if (strcmp("systrace", flag) == 0) {
-#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-    return new TimelineEventSystraceRecorder();
-#elif defined(DART_HOST_OS_MACOS)
-    return new TimelineEventMacosRecorder();
-#elif defined(DART_HOST_OS_FUCHSIA)
-    return new TimelineEventFuchsiaRecorder();
-#else
-    // Not supported. A warning will be emitted below.
-#endif
+    const auto recorder = CreateSystraceTimelineRecorder();
+    if (recorder != nullptr) {
+      return recorder;
+    }
+    // Fall-through to emit a warning about unsupported recorder.
   }
 
   if (Utils::StrStartsWith(flag, "file") &&
@@ -201,10 +209,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
     return new TimelineEventEmbedderCallbackRecorder();
   }
 
-#if !defined(PRODUCT)
 #if defined(SUPPORT_PERFETTO)
-  // The Perfetto file recorder is disabled in PRODUCT mode to avoid the large
-  // binary size increase that it brings.
   {
     const intptr_t kPrefixLength = 12;
     if (Utils::StrStartsWith(flag, "perfettofile") &&
@@ -215,11 +220,13 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
                                  : &flag[kPrefixLength + 1];
       free(const_cast<char*>(FLAG_timeline_dir));
       FLAG_timeline_dir = nullptr;
-      return CreateTimelineEventPerfettoFileRecorder(filename);
+      return CreateTimelineEventPerfettoFileRecorder(
+          filename, FLAG_intern_strings_when_writing_perfetto_timeline);
     }
   }
 #endif  // defined(SUPPORT_PERFETTO)
 
+#if !defined(PRODUCT)
   // Recorders below do nothing useful in PRODUCT mode. You can't extract
   // information available in them without vm-service.
   if (strcmp("endless", flag) == 0) {
@@ -245,16 +252,17 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   return CreateDefaultTimelineRecorder();
 }
 
-// Returns a caller freed array of stream names in FLAG_timeline_streams.
-static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams() {
+// Returns a caller freed array of stream names in streams.
+static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams(
+    const char* timeline_streams) {
   MallocGrowableArray<char*>* result = new MallocGrowableArray<char*>();
-  if (FLAG_timeline_streams == nullptr) {
+  if (timeline_streams == nullptr) {
     // Nothing set.
     return result;
   }
   char* save_ptr;  // Needed for strtok_r.
   // strtok modifies arg 1 so we make a copy of it.
-  char* streams = Utils::StrDup(FLAG_timeline_streams);
+  char* streams = Utils::StrDup(timeline_streams);
   char* token = strtok_r(streams, ",", &save_ptr);
   while (token != nullptr) {
     result->Add(Utils::StrDup(token));
@@ -293,8 +301,13 @@ static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
 }
 
 void Timeline::Init() {
+  InitWithRecorder(CreateTimelineRecorder(), FLAG_timeline_streams);
+}
+
+void Timeline::InitWithRecorder(TimelineEventRecorder* recorder,
+                                const char* timeline_streams) {
   ASSERT(recorder_ == nullptr);
-  recorder_ = CreateTimelineRecorder();
+  recorder_ = recorder;
 
   RecorderSynchronizationLock::Init();
 
@@ -311,7 +324,7 @@ void Timeline::Init() {
     OS::PrintErr("Using the %s timeline recorder.\n", recorder_->name());
   }
   ASSERT(recorder_ != nullptr);
-  enabled_streams_ = GetEnabledByDefaultTimelineStreams();
+  enabled_streams_ = GetEnabledByDefaultTimelineStreams(timeline_streams);
 // Global overrides.
 #define TIMELINE_STREAM_FLAG_DEFAULT(name, ...)                                \
   stream_##name##_.set_enabled(HasStream(enabled_streams_, #name));
@@ -810,158 +823,8 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
   writer->CloseObject();
 }
 
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#if defined(SUPPORT_PERFETTO)
 namespace {
-
-// Trait used to map 64-bit ids (e.g. isolate or isolate group id) to
-// interned id of a corresponding string representation.
-//
-// This way we only need to generate formatted string once, instead of
-// repeatedly formatting it and then interning resulting string to get an
-// iid.
-class IdToIidTrait {
- public:
-  struct Pair {
-    uint64_t id;
-    uint64_t formatted_iid;
-  };
-  using Key = uint64_t;
-  using Value = uint64_t;
-
-  static Key KeyOf(const Pair& kv) { return kv.id; }
-  static Value ValueOf(const Pair& kv) { return kv.formatted_iid; }
-  static uword Hash(Key key) {
-    return Utils::WordHash(static_cast<intptr_t>(key));
-  }
-  static bool IsKeyEqual(const Pair& kv, Key key) { return kv.id == key; }
-};
-
-using IdToIidMap = MallocDirectChainedHashMap<IdToIidTrait>;
-
-class InternedDataBuilder : public ValueObject {
- private:
-  using SequenceFlags = perfetto::protos::pbzero::TracePacket_SequenceFlags;
-
- public:
-  // InternedData contains multiple independent interning dictionaries which
-  // are used for different attributes.
-#define PERFETTO_INTERNED_STRINGS_FIELDS_LIST(V)                               \
-  V(event_categories, name)                                                    \
-  V(event_names, name)                                                         \
-  V(debug_annotation_names, name)                                              \
-  V(debug_annotation_string_values, str)
-
-  // Direct access for known strings.
-#define PERFETTO_COMMON_INTERNED_STRINGS_LIST(V)                               \
-  V(debug_annotation_names, isolateId)                                         \
-  V(debug_annotation_names, isolateGroupId)
-
-  InternedDataBuilder() = default;
-
-  // Emit all strings added since the last invocation of |AttachInternedDataTo|
-  // into |interned_data| of the given |TracePacket|.
-  //
-  // Mark the packet as depending on incremental state.
-  void AttachInternedDataTo(perfetto::protos::pbzero::TracePacket* packet) {
-    if (!AnyInternerHasNewlyInternedEntries()) {
-      return;
-    }
-
-    packet->set_sequence_flags(sequence_flags_);
-    // The first packet will have SEQ_INCREMENTAL_STATE_CLEARED
-    // the rest will just have SEQ_NEEDS_INCREMENTAL_STATE.
-    sequence_flags_ &= ~SequenceFlags::SEQ_INCREMENTAL_STATE_CLEARED;
-
-    auto interned_data = packet->set_interned_data();
-
-    // Flush individual interning dictionaries.
-#define FLUSH_FIELD(name, proto_field)                                         \
-  name##_.FlushNewlyInternedTo([interned_data](auto& iid, auto& str) {         \
-    auto entry = interned_data->add_##name();                                  \
-    entry->set_iid(iid);                                                       \
-    entry->set_##proto_field(str);                                             \
-  });
-
-    PERFETTO_INTERNED_STRINGS_FIELDS_LIST(FLUSH_FIELD)
-#undef FLUSH_FIELD
-  }
-
-#define DEFINE_GETTER(name, proto_field)                                       \
-  perfetto_utils::StringInterner<Malloc>& name() { return name##_; }
-  PERFETTO_INTERNED_STRINGS_FIELDS_LIST(DEFINE_GETTER)
-#undef DEFINE_GETTER
-
-#define DEFINE_GETTER_FOR_COMMON_STRING(category, str)                         \
-  uint64_t iid_##str() {                                                       \
-    if (iid_##str##_ == 0) {                                                   \
-      iid_##str##_ = category().Intern(#str);                                  \
-    }                                                                          \
-    return iid_##str##_;                                                       \
-  }
-
-  PERFETTO_COMMON_INTERNED_STRINGS_LIST(DEFINE_GETTER_FOR_COMMON_STRING)
-
-#undef DEFINE_GETTER_FOR_COMMON_STRING
-
-  uint64_t InternFormattedIsolateId(uint64_t isolate_id) {
-    return InternFormattedIdForDebugAnnotation(
-        isolate_id_to_iid_of_formatted_string_,
-        ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id);
-  }
-
-  uint64_t InternFormattedIsolateGroupId(uint64_t isolate_group_id) {
-    return InternFormattedIdForDebugAnnotation(
-        isolate_group_id_to_iid_of_formatted_string_,
-        ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id);
-  }
-
- private:
-  template <std::size_t kFormatLen>
-  uint64_t InternFormattedIdForDebugAnnotation(IdToIidMap& cache,
-                                               const char (&format)[kFormatLen],
-                                               uint64_t id) {
-    if (auto iid = cache.Lookup(id)) {
-      return iid->formatted_iid;
-    }
-
-    // 20 characters is enough to format any uint64_t (or int64_t) value.
-    char formatted[kFormatLen + 20];
-    Utils::SNPrint(formatted, ARRAY_SIZE(formatted), format, id);
-
-    auto formatted_iid = debug_annotation_string_values().Intern(formatted);
-    cache.Insert({id, formatted_iid});
-    return formatted_iid;
-  }
-
-  bool AnyInternerHasNewlyInternedEntries() const {
-#define CHECK_FIELD(name, proto_field)                                         \
-  if (name##_.HasNewlyInternedEntries()) return true;
-
-    PERFETTO_INTERNED_STRINGS_FIELDS_LIST(CHECK_FIELD)
-#undef CHECK_FIELD
-    return false;
-  }
-
-  uint32_t sequence_flags_ = SequenceFlags::SEQ_INCREMENTAL_STATE_CLEARED |
-                             SequenceFlags::SEQ_NEEDS_INCREMENTAL_STATE;
-
-  // These are interned in debug_annotation_string_values space.
-  IdToIidMap isolate_id_to_iid_of_formatted_string_;
-  IdToIidMap isolate_group_id_to_iid_of_formatted_string_;
-
-#define DEFINE_FIELD_FOR_COMMON_STRING(category, str) uint64_t iid_##str##_ = 0;
-
-  PERFETTO_COMMON_INTERNED_STRINGS_LIST(DEFINE_FIELD_FOR_COMMON_STRING)
-
-#undef DEFINE_FIELD_FOR_COMMON_STRING
-
-#define DEFINE_FIELD(name, proto_field)                                        \
-  perfetto_utils::StringInterner<Malloc> name##_;
-  PERFETTO_INTERNED_STRINGS_FIELDS_LIST(DEFINE_FIELD)
-#undef DEFINE_FIELD
-
-  DISALLOW_COPY_AND_ASSIGN(InternedDataBuilder);
-};
 
 class TracePacketWriter : public ValueObject {
  public:
@@ -995,6 +858,10 @@ class TracePacketWriter : public ValueObject {
     } else {
       PopulateAndWritePacket(event.event_type(), event.TimeOrigin(), event);
     }
+  }
+
+  perfetto_utils::InternedDataBuilder& interned_data_builder() {
+    return interned_data_builder_;
   }
 
  private:
@@ -1189,13 +1056,13 @@ class TracePacketWriter : public ValueObject {
   WriteCallback write_callback_;
   const bool intern_strings_;
 
-  InternedDataBuilder interned_data_builder_;
+  perfetto_utils::InternedDataBuilder interned_data_builder_;
 
   DISALLOW_COPY_AND_ASSIGN(TracePacketWriter);
 };
 
 }  // namespace
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#endif  // defined(SUPPORT_PERFETTO)
 
 int64_t TimelineEvent::LowTime() const {
   return timestamp0_;
@@ -1252,6 +1119,7 @@ void TimelineTrackMetadata::PrintJSON(const JSONArray& jsarr_events) const {
     jsobj_args.AddProperty("mode", "basic");
   }
 }
+#endif  // !defined(PRODUCT)
 
 #if defined(SUPPORT_PERFETTO)
 void TimelineTrackMetadata::PopulateTracePacket(
@@ -1269,14 +1137,11 @@ void TimelineTrackMetadata::PopulateTracePacket(
   thread_descriptor.set_tid(tid());
   thread_descriptor.set_thread_name(track_name());
 }
-#endif  // defined(SUPPORT_PERFETTO)
-#endif  // !defined(PRODUCT)
 
 AsyncTimelineTrackMetadata::AsyncTimelineTrackMetadata(intptr_t pid,
                                                        intptr_t async_id)
     : pid_(pid), async_id_(async_id) {}
 
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
 void AsyncTimelineTrackMetadata::PopulateTracePacket(
     perfetto::protos::pbzero::TracePacket* track_descriptor_packet) const {
   perfetto_utils::SetTrustedPacketSequenceId(track_descriptor_packet);
@@ -1285,7 +1150,7 @@ void AsyncTimelineTrackMetadata::PopulateTracePacket(
   track_descriptor.set_parent_uuid(pid());
   track_descriptor.set_uuid(async_id());
 }
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#endif  // defined(SUPPORT_PERFETTO)
 
 TimelineStream::TimelineStream(const char* name,
                                const char* fuchsia_name,
@@ -1499,10 +1364,6 @@ TimelineEventRecorder::TimelineEventRecorder()
       track_uuid_to_track_metadata_lock_(),
       track_uuid_to_track_metadata_(
           &SimpleHashMap::SamePointerValue,
-          TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity),
-      async_track_uuid_to_track_metadata_lock_(),
-      async_track_uuid_to_track_metadata_(
-          &SimpleHashMap::SamePointerValue,
           TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity) {}
 
 TimelineEventRecorder::~TimelineEventRecorder() {
@@ -1513,14 +1374,6 @@ TimelineEventRecorder::~TimelineEventRecorder() {
        entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
     TimelineTrackMetadata* value =
         static_cast<TimelineTrackMetadata*>(entry->value);
-    delete value;
-  }
-  for (SimpleHashMap::Entry* entry =
-           async_track_uuid_to_track_metadata_.Start();
-       entry != nullptr;
-       entry = async_track_uuid_to_track_metadata_.Next(entry)) {
-    AsyncTimelineTrackMetadata* value =
-        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
     delete value;
   }
 }
@@ -1535,48 +1388,6 @@ void TimelineEventRecorder::PrintJSONMeta(const JSONArray& jsarr_events) {
     value->PrintJSON(jsarr_events);
   }
 }
-
-#if defined(SUPPORT_PERFETTO)
-void TimelineEventRecorder::PrintPerfettoMeta(
-    JSONBase64String* jsonBase64String) {
-  ASSERT(jsonBase64String != nullptr);
-
-  perfetto_utils::PopulateClockSnapshotPacket(packet_.get());
-  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
-  packet_.Reset();
-  perfetto_utils::PopulateProcessDescriptorPacket(packet_.get());
-  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
-  packet_.Reset();
-
-  {
-    MutexLocker ml(&async_track_uuid_to_track_metadata_lock_);
-    for (SimpleHashMap::Entry* entry =
-             async_track_uuid_to_track_metadata_.Start();
-         entry != nullptr;
-         entry = async_track_uuid_to_track_metadata_.Next(entry)) {
-      AsyncTimelineTrackMetadata* value =
-          static_cast<AsyncTimelineTrackMetadata*>(entry->value);
-      value->PopulateTracePacket(packet_.get());
-      perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
-                                                     &packet_);
-      packet_.Reset();
-    }
-  }
-
-  {
-    MutexLocker ml(&track_uuid_to_track_metadata_lock_);
-    for (SimpleHashMap::Entry* entry = track_uuid_to_track_metadata_.Start();
-         entry != nullptr; entry = track_uuid_to_track_metadata_.Next(entry)) {
-      TimelineTrackMetadata* value =
-          static_cast<TimelineTrackMetadata*>(entry->value);
-      value->PopulateTracePacket(packet_.get());
-      perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
-                                                     &packet_);
-      packet_.Reset();
-    }
-  }
-}
-#endif  // defined(SUPPORT_PERFETTO)
 #endif  // !defined(PRODUCT)
 
 TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
@@ -1672,15 +1483,16 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
   if (event == nullptr) {
     return;
   }
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+
+#if defined(SUPPORT_PERFETTO)
   // Async track metadata is only written in Perfetto traces, and Perfetto
-  // traces cannot be written when SUPPORT_PERFETTO is not defined, or when
-  // PRODUCT is defined.
+  // traces cannot be written when SUPPORT_PERFETTO is not defined.
   if (event->event_type() == TimelineEvent::kAsyncBegin ||
       event->event_type() == TimelineEvent::kAsyncInstant) {
     AddAsyncTrackMetadataBasedOnEvent(*event);
   }
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#endif  // defined(SUPPORT_PERFETTO)
+
   // Grab the current thread.
   OSThread* thread = OSThread::Current();
   ASSERT(thread != nullptr);
@@ -1779,19 +1591,36 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
   }
 }
 
-#if !defined(PRODUCT)
 void TimelineEventRecorder::AddAsyncTrackMetadataBasedOnEvent(
-    const TimelineEvent& event) {
-  ASSERT(FLAG_timeline_recorder != nullptr);
-  if (strcmp("none", FLAG_timeline_recorder) == 0 ||
-      strcmp("callback", FLAG_timeline_recorder) == 0 ||
-      strcmp("systrace", FLAG_timeline_recorder) == 0 ||
-      FLAG_systrace_timeline) {
-    // There is no way to retrieve track metadata when a no-op, callback, or
-    // systrace recorder is in use, so we don't need to update the map in
-    // these cases.
-    return;
+    const TimelineEvent& event) {}
+
+#if defined(SUPPORT_PERFETTO)
+template <typename Base>
+template <typename... Args>
+TimelineEventRecorderWithPerfettoSupport<
+    Base>::TimelineEventRecorderWithPerfettoSupport(Args&&... args)
+    : Base(std::forward<Args>(args)...),
+      async_track_uuid_to_track_metadata_lock_(),
+      async_track_uuid_to_track_metadata_(
+          &SimpleHashMap::SamePointerValue,
+          TimelineEventRecorder::kTrackUuidToTrackMetadataInitialCapacity) {}
+
+template <typename Base>
+TimelineEventRecorderWithPerfettoSupport<
+    Base>::~TimelineEventRecorderWithPerfettoSupport() {
+  for (SimpleHashMap::Entry* entry =
+           async_track_uuid_to_track_metadata_.Start();
+       entry != nullptr;
+       entry = async_track_uuid_to_track_metadata_.Next(entry)) {
+    AsyncTimelineTrackMetadata* value =
+        static_cast<AsyncTimelineTrackMetadata*>(entry->value);
+    delete value;
   }
+}
+
+template <typename Base>
+void TimelineEventRecorderWithPerfettoSupport<
+    Base>::AddAsyncTrackMetadataBasedOnEvent(const TimelineEvent& event) {
   MutexLocker ml(&async_track_uuid_to_track_metadata_lock_);
 
   void* key = reinterpret_cast<void*>(event.Id());
@@ -1802,7 +1631,51 @@ void TimelineEventRecorder::AddAsyncTrackMetadataBasedOnEvent(
     entry->value = new AsyncTimelineTrackMetadata(OS::ProcessId(), event.Id());
   }
 }
-#endif  // !defined(PRODUCT)
+
+template <typename Base>
+void TimelineEventRecorderWithPerfettoSupport<Base>::PrintPerfettoMeta(
+    JSONBase64String* jsonBase64String) {
+  ASSERT(jsonBase64String != nullptr);
+
+  perfetto_utils::PopulateClockSnapshotPacket(packet_.get());
+  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+  packet_.Reset();
+  perfetto_utils::PopulateProcessDescriptorPacket(packet_.get());
+  perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String, &packet_);
+  packet_.Reset();
+
+  {
+    MutexLocker ml(&async_track_uuid_to_track_metadata_lock_);
+    for (SimpleHashMap::Entry* entry =
+             async_track_uuid_to_track_metadata_.Start();
+         entry != nullptr;
+         entry = async_track_uuid_to_track_metadata_.Next(entry)) {
+      AsyncTimelineTrackMetadata* value =
+          static_cast<AsyncTimelineTrackMetadata*>(entry->value);
+      value->PopulateTracePacket(packet_.get());
+      perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
+                                                     &packet_);
+      packet_.Reset();
+    }
+  }
+
+  {
+    MutexLocker ml(&TimelineEventRecorder::track_uuid_to_track_metadata_lock());
+    for (SimpleHashMap::Entry* entry =
+             TimelineEventRecorder::track_uuid_to_track_metadata().Start();
+         entry != nullptr;
+         entry = TimelineEventRecorder::track_uuid_to_track_metadata().Next(
+             entry)) {
+      TimelineTrackMetadata* value =
+          static_cast<TimelineTrackMetadata*>(entry->value);
+      value->PopulateTracePacket(packet_.get());
+      perfetto_utils::AppendPacketToJSONBase64String(jsonBase64String,
+                                                     &packet_);
+      packet_.Reset();
+    }
+  }
+}
+#endif  // defined(SUPPORT_PERFETTO)
 
 TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
     intptr_t capacity)
@@ -2342,18 +2215,12 @@ void TimelineEventFileRecorderBase::ShutDown() {
 
 TimelineEventBlock* TimelineEventFileRecorderBase::GetNewBlockLocked() {
   ASSERT(lock_.IsOwnedByCurrentThread());
-  // Start by reusing a block.
   TimelineEventBlock* block = nullptr;
-  if (empty_blocks_ != nullptr) {
-    // TODO(vegorov) maybe we don't want to take a lock just to grab an empty
-    // block?
+  {
     MonitorLocker ml(&monitor_);
     if (empty_blocks_ != nullptr) {
       block = empty_blocks_;
       empty_blocks_ = empty_blocks_->next();
-      if (FLAG_trace_timeline) {
-        OS::PrintErr("Reused empty block %p\n", block);
-      }
     }
   }
   if (block == nullptr) {
@@ -2361,9 +2228,10 @@ TimelineEventBlock* TimelineEventFileRecorderBase::GetNewBlockLocked() {
     if (FLAG_trace_timeline) {
       OS::PrintErr("Created new block %p\n", block);
     }
+  } else if (FLAG_trace_timeline) {
+    OS::PrintErr("Reused empty block %p\n", block);
   }
   block->Open();
-
   return block;
 }
 
@@ -2414,34 +2282,62 @@ void TimelineEventFileRecorder::DrainImpl(const TimelineEvent& event) {
   free(output);
 }
 
-#if defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
-class TimelineEventPerfettoFileRecorder : public TimelineEventFileRecorderBase {
+#if defined(SUPPORT_PERFETTO)
+class TimelineEventPerfettoFileRecorder
+    : public TimelineEventRecorderWithPerfettoSupport<
+          TimelineEventFileRecorderBase> {
  public:
-  explicit TimelineEventPerfettoFileRecorder(const char* path);
+  explicit TimelineEventPerfettoFileRecorder(const char* path,
+                                             bool intern_strings);
   virtual ~TimelineEventPerfettoFileRecorder();
 
   const char* name() const final { return PERFETTO_FILE_RECORDER_NAME; }
+
+#if defined(DART_INCLUDE_PROFILER)
+  void WriteProfile(Profile& profile);
+#endif
 
  private:
   void WritePacket(
       protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>* packet);
   void DrainImpl(const TimelineEvent& event) final;
 
+  Mutex writer_mutex_;
   TracePacketWriter writer_;
 };
 
 static TimelineEventRecorder* CreateTimelineEventPerfettoFileRecorder(
-    const char* filename) {
-  return new TimelineEventPerfettoFileRecorder(filename);
+    const char* filename,
+    bool intern_strings) {
+  return new TimelineEventPerfettoFileRecorder(filename, intern_strings);
 }
 
+#if defined(DART_INCLUDE_PROFILER)
+void TimelineEventPerfettoFileRecorder::WriteProfile(Profile& profile) {
+  // Profile conversion code checks for safepoints so we need to use safepoint
+  // aware mutex locker here to avoid deadlocks when two threads call
+  // |WriteProfile| and the third thread requests a safepoint.
+  //
+  // Note that Drain does not need this because it does not check for
+  // safepoint.
+  SafepointMutexLocker ml(&writer_mutex_);
+  profile.PrintProfilePerfetto(
+      writer_.interned_data_builder(), this,
+      [](auto buffer, auto length, auto stream) {
+        static_cast<TimelineEventPerfettoFileRecorder*>(stream)->Write(
+            static_cast<const char*>(buffer), length);
+      });
+}
+#endif
+
 TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
-    const char* path)
-    : TimelineEventFileRecorderBase(path),
+    const char* path,
+    bool intern_strings)
+    : TimelineEventRecorderWithPerfettoSupport(path),
       writer_(
           packet(),
           [this](auto& packet) { this->WritePacket(&packet); },
-          FLAG_intern_strings_when_writing_perfetto_timeline) {
+          intern_strings) {
   protozero::HeapBuffered<perfetto::protos::pbzero::TracePacket>& packet =
       this->packet();
 
@@ -2498,13 +2394,16 @@ void TimelineEventPerfettoFileRecorder::WritePacket(
 }
 
 void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
-  writer_.WriteEvent(event);
+  {
+    MutexLocker lock(&writer_mutex_);
+    writer_.WriteEvent(event);
+  }
   if (event.event_type() == TimelineEvent::kAsyncBegin ||
       event.event_type() == TimelineEvent::kAsyncInstant) {
     AddAsyncTrackMetadataBasedOnEvent(event);
   }
 }
-#endif  // defined(SUPPORT_PERFETTO) && !defined(PRODUCT)
+#endif  // defined(SUPPORT_PERFETTO)
 
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(nullptr), tail_(nullptr), block_index_(0) {}
@@ -2569,6 +2468,60 @@ void TimelineEventEndlessRecorder::ClearLocked() {
   head_ = nullptr;
   tail_ = nullptr;
   block_index_ = 0;
+}
+
+static std::atomic<bool> is_streaming_timeline{false};
+
+bool Timeline::StreamTo(const char* recorder_kind,
+                        const char* file,
+                        const char* streams,
+                        const char** error) {
+  Timeline::Cleanup();
+
+  TimelineEventRecorder* recorder = nullptr;
+  if (strcmp(recorder_kind, "perfettofile") == 0) {
+#if defined(SUPPORT_PERFETTO)
+    recorder =
+        CreateTimelineEventPerfettoFileRecorder(file, /*intern_strings=*/true);
+#else
+    *error = "Support for Perfetto recorder is not included into this build";
+    return false;
+#endif  // defined(SUPPORT_PERFETTO)
+  } else if (strcmp(recorder_kind, "file") == 0) {
+    recorder = new TimelineEventFileRecorder(file);
+  } else if (strcmp(recorder_kind, "systrace") == 0) {
+    recorder = CreateSystraceTimelineRecorder();
+    if (recorder == nullptr) {
+      *error = "Support for systrace recorder is not included into this build";
+      return false;
+    }
+  }
+
+  Timeline::InitWithRecorder(recorder, streams);
+  is_streaming_timeline.store(true);
+
+#if defined(DART_INCLUDE_PROFILER) && defined(SUPPORT_PERFETTO)
+  if (FLAG_profiler && (strcmp(recorder_kind, "perfettofile") == 0)) {
+    Profiler::SetProfileProcessorCallback([](auto& profile) {
+      RecorderSynchronizationLockScope ls;
+      if (recorder_ != nullptr && ls.IsActive() &&
+          is_streaming_timeline.load()) {
+        static_cast<TimelineEventPerfettoFileRecorder*>(recorder_)
+            ->WriteProfile(profile);
+      }
+    });
+  }
+#endif
+  return true;
+}
+
+void Timeline::StopStreaming() {
+  is_streaming_timeline.store(false);
+#if defined(DART_INCLUDE_PROFILER)
+  Profiler::SetProfileProcessorCallback(nullptr);
+#endif
+  Timeline::Cleanup();
+  Timeline::Init();
 }
 
 TimelineEventBlock::TimelineEventBlock(intptr_t block_index)

@@ -47,15 +47,15 @@ void main() {
 }
 
 void test() {
-  void foo(var obj) {
+  void foo(obj) {
     Expect.equals(null, obj);
   }
 
-  bool compareToNull(var value) {
+  bool compareToNull(value) {
     return null == value;
   }
 
-  bool compareWithNull(var value) {
+  bool compareWithNull(value) {
     return value == null;
   }
 

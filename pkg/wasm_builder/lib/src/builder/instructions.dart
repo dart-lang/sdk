@@ -218,16 +218,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Stored stack traces leading to the instructions for watch points.
   final Map<ir.Instruction, StackTrace>? _stackTraces;
 
+  final List<_PatchableRegion> _patchPoints = [];
+
   /// Whether the instruction block is for a Wasm constant expression.
-  final bool _constantExpression;
+  final bool constantExpression;
 
   /// Create a new instruction sequence.
   InstructionsBuilder(
       this.moduleBuilder, List<ir.ValueType> inputs, List<ir.ValueType> outputs,
-      {bool constantExpression = false})
+      {this.constantExpression = false})
       : _stackTraces = moduleBuilder.watchPoints.isNotEmpty ? {} : null,
-        _sourceMappings = moduleBuilder.sourceMapUrl == null ? null : [],
-        _constantExpression = constantExpression {
+        _sourceMappings = moduleBuilder.sourceMapUrl == null ? null : [] {
     _labelStack.add(Expression(const [], outputs));
     for (ir.ValueType paramType in inputs) {
       _addParameter(paramType);
@@ -244,6 +245,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   bool get recordSourceMaps => _sourceMappings != null;
 
+  bool get isEmpty => _instructions.isEmpty;
+
   void collectUsedTypes(Set<ir.DefType> usedTypes) {
     for (final local in locals) {
       final localDefType = local.type.containedDefType;
@@ -256,14 +259,81 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         if (type != null) usedTypes.add(type);
       }
     }
+    for (final patch in _patchPoints) {
+      patch.patchBuilder.collectUsedTypes(usedTypes);
+    }
   }
 
   @override
-  ir.Instructions forceBuild() => ir.Instructions(locals, localNames,
-      _instructions, _stackTraces, _traceLines, _sourceMappings);
+  ir.Instructions forceBuild() {
+    if (_patchPoints.isEmpty) {
+      return ir.Instructions(locals, localNames, _instructions, _stackTraces,
+          _traceLines, _sourceMappings);
+    }
+
+    // We have to fill in the patched instructions & update stack maps.
+
+    final instructions = _instructions;
+    final newInstructions = <ir.Instruction>[];
+    final sourceMappings = _sourceMappings;
+    final newSourceMappings =
+        _sourceMappings == null ? null : <SourceMapping>[];
+
+    // The number of additional patch instructions emitted.
+    int shift = 0;
+    int ini = 0;
+    int smi = _sourceMappings != null ? 0 : -1;
+
+    for (final patch in _patchPoints) {
+      // Add all instructions before the patch starts.
+      while (ini < patch.start) {
+        newInstructions.add(instructions[ini++]);
+      }
+      // Advance current source mapping to be the last that covers the start of
+      // patchable region.
+      if (sourceMappings != null && smi < sourceMappings.length) {
+        while (smi < (sourceMappings.length - 1) &&
+            sourceMappings[smi + 1].instructionOffset <= patch.start) {
+          newSourceMappings!.add(sourceMappings[smi].shiftBy(shift));
+          smi++;
+        }
+      }
+      // Add patched instructions & update shift.
+      final replacement = patch.patchBuilder._instructions;
+      newInstructions.addAll(replacement);
+      shift += replacement.length;
+    }
+
+    // Add remaining instructions & shift remaining source map entries.
+    for (; ini < instructions.length; ini++) {
+      newInstructions.add(instructions[ini]);
+    }
+    if (sourceMappings != null && shift != 0) {
+      for (; smi < sourceMappings.length; smi++) {
+        newSourceMappings!.add(sourceMappings[smi].shiftBy(shift));
+      }
+    }
+
+    return ir.Instructions(locals, localNames, newInstructions, _stackTraces,
+        _traceLines, newSourceMappings);
+  }
+
+  /// Marks a region in the instruction stream (defined by instructions emitted
+  /// by [fun]) which will be updated in the link phase via the [linkFun].
+  InstructionsBuilder? createPatchableRegion(
+      List<ir.ValueType> inputs, List<ir.ValueType> outputs) {
+    assert(_verifyTypes(inputs, outputs, trace: ['<patchable region>']));
+    if (!_reachable) return null;
+
+    final patchBuilder = InstructionsBuilder(moduleBuilder, inputs, outputs,
+        constantExpression: constantExpression);
+    _patchPoints
+        .add(_PatchableRegion._PatchPoint(_instructions.length, patchBuilder));
+    return patchBuilder;
+  }
 
   void _add(ir.Instruction i) {
-    assert(!_constantExpression || i.isConstant,
+    assert(!constantExpression || i.isConstant,
         "Non-constant instruction $i added to constant expression");
     if (!_reachable) return;
     _instructions.add(i);
@@ -614,8 +684,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.Else());
   }
 
-  /// Emit a `try` instruction.
-  Label try_(
+  /// Emit a legacy `try` instruction.
+  Label try_legacy(
           [List<ir.ValueType> inputs = const [],
           List<ir.ValueType> outputs = const []]) =>
       _beginBlock(
@@ -635,17 +705,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     try_.hasCatch = true;
     _reachable = try_.reachable;
     _add(ir.CatchLegacy(tag));
-  }
-
-  void catch_all_legacy() {
-    assert(_topOfLabelStack is Try ||
-        _reportError("Unexpected 'catch_all' (not in 'try' block)"));
-    final Try try_ = _topOfLabelStack as Try;
-    assert(_verifyEndOfBlock([],
-        trace: ['catch_all'], reachableAfter: try_.reachable, reindent: true));
-    try_.hasCatch = true;
-    _reachable = try_.reachable;
-    _add(const ir.CatchAllLegacy());
   }
 
   /// Emit a `throw` instruction.
@@ -797,7 +856,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `local.get` instruction.
   void local_get(ir.Local local) {
     assert(locals[local.index] == local);
-    assert(_verifyTypes(const [], [local.type], trace: ['local.get', local]));
+    assert(_verifyTypes(const [], [local.type],
+        trace: ['local.get', _localTraceString(local)]));
     assert(_localIsInitialized(local) ||
         _reportError("Uninitialized local with non-defaultable type"));
     _add(ir.LocalGet(local));
@@ -806,7 +866,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `local.set` instruction.
   void local_set(ir.Local local) {
     assert(locals[local.index] == local);
-    assert(_verifyTypes([local.type], const [], trace: ['local.set', local]));
+    assert(_verifyTypes([local.type], const [],
+        trace: ['local.set', _localTraceString(local)]));
     assert(_initializeLocal(local));
     _add(ir.LocalSet(local));
   }
@@ -814,8 +875,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `local.tee` instruction.
   void local_tee(ir.Local local) {
     assert(locals[local.index] == local);
-    assert(
-        _verifyTypes([local.type], [local.type], trace: ['local.tee', local]));
+    assert(_verifyTypes([local.type], [local.type],
+        trace: ['local.tee', _localTraceString(local)]));
     assert(_initializeLocal(local));
     _add(ir.LocalTee(local));
   }
@@ -853,6 +914,14 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         trace: ['table.set', table.name]));
     assert(table.enclosingModule == module);
     _add(ir.TableSet(table));
+  }
+
+  /// Emit a `table.size` instruction.
+  void table_fill(ir.Table table) {
+    assert(_verifyTypes([ir.NumType.i32, table.type, ir.NumType.i32], const [],
+        trace: ['table.fill', table.name]));
+    assert(table.enclosingModule == module);
+    _add(ir.TableFill(table));
   }
 
   /// Emit a `table.size` instruction.
@@ -2485,4 +2554,20 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         trace: const ['i64.trunc_sat_f64_u']));
     _add(const ir.I64TruncSatF64U());
   }
+
+  String _localTraceString(ir.Local local) {
+    final localName = localNames[local.index];
+    if (localName == null) {
+      return local.toString();
+    } else {
+      return '$local ($localName)';
+    }
+  }
+}
+
+class _PatchableRegion {
+  final int start;
+  final InstructionsBuilder patchBuilder;
+
+  _PatchableRegion._PatchPoint(this.start, this.patchBuilder);
 }

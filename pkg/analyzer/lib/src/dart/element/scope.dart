@@ -23,7 +23,15 @@ class ConstructorInitializerScope extends EnclosedScope {
       if (formalParameter.name == '_' && hasWildcardVariables) {
         continue;
       }
-      _addGetter(formalParameter);
+
+      // If the parameter is a private named parameter, then the formal
+      // parameter's name is the public name, but in the constructor initializer
+      // list, it is referred to by its private name.
+      if (formalParameter case FieldFormalParameterElement(:var privateName?)) {
+        _getters[privateName] ??= formalParameter;
+      } else {
+        _addGetter(formalParameter);
+      }
     }
   }
 }
@@ -265,6 +273,37 @@ class InstanceScope extends EnclosedScope {
     element.getters.forEach(_addGetter);
     element.setters.forEach(_addSetter);
     element.methods.forEach(_addGetter);
+  }
+
+  @override
+  ScopeLookupResult lookup(String id) {
+    // When a lexical lookup encounters an instance member with the requested
+    // basename, the returned result should have null as the getter and setter
+    // (and that is the result, so we should not search the enclosing scope).
+    // This corresponds to the following rule from the specification:
+    // "Consider the case where D is an instance member declaration in a class
+    // or mixin A. The lexical lookup then yields nothing."
+    var getter = _getters[id];
+    var setter = _setters[id];
+    if (getter == null && setter == null) {
+      return _parent.lookup(id);
+    }
+    if (_isStatic(getter) || _isStatic(setter)) {
+      return ScopeLookupResultImpl(getter: getter, setter: setter);
+    }
+    // A declaration with the right basename was found, so the search ends.
+    // Return nulls to ensure that it is handled as with a prepended `this.`.
+    return ScopeLookupResultImpl(getter: null, setter: null);
+  }
+
+  static bool _isStatic(Element? element) {
+    switch (element) {
+      case PropertyAccessorElement(:var isStatic) ||
+          MethodElement(:var isStatic):
+        return isStatic;
+      default:
+        return false;
+    }
   }
 }
 
@@ -759,6 +798,35 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
       (_deprecatedBits & setterIsFromDeprecatedExportBit) != 0;
 }
 
+/// The primary parameter scope.
+///
+/// It includes every primary formal parameter which is not declaring, not
+/// initializing, and not a super parameter.
+class PrimaryParameterScope extends EnclosedScope {
+  PrimaryParameterScope(super.parent, ConstructorElement element) {
+    assert(element.isPrimary);
+
+    var hasWildcardVariables = element.library.featureSet.isEnabled(
+      Feature.wildcard_variables,
+    );
+
+    for (var formalParameter in element.formalParameters) {
+      // Skip wildcards.
+      if (hasWildcardVariables && formalParameter.name == '_') {
+        continue;
+      }
+
+      // Note, declaring formal parameters are field formals.
+      if (formalParameter is FieldFormalParameterElement ||
+          formalParameter is SuperFormalParameterElement) {
+        continue;
+      }
+
+      _addGetter(formalParameter);
+    }
+  }
+}
+
 class ScopeLookupResultImpl extends ScopeLookupResult {
   @override
   final Element? getter;
@@ -767,14 +835,6 @@ class ScopeLookupResultImpl extends ScopeLookupResult {
   final Element? setter;
 
   ScopeLookupResultImpl({required this.getter, required this.setter});
-
-  @Deprecated('Use getter instead')
-  @override
-  Element? get getter2 => getter;
-
-  @Deprecated('Use getter instead')
-  @override
-  Element? get setter2 => setter;
 }
 
 class TypeParameterScope extends EnclosedScope {

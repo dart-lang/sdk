@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -12,7 +11,8 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -65,7 +65,7 @@ class FunctionExpressionInvocationResolver {
     receiverType = _typeSystem.resolveToBound(receiverType);
     if (receiverType is FunctionTypeImpl) {
       _nullableDereferenceVerifier.expression(
-        CompileTimeErrorCode.uncheckedInvocationOfNullableValue,
+        diag.uncheckedInvocationOfNullableValue,
         function,
       );
       _resolve(
@@ -78,7 +78,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _diagnosticReporter.atNode(function, WarningCode.receiverOfTypeNever);
+      _diagnosticReporter.report(diag.receiverOfTypeNever.at(function));
       _unresolved(
         node,
         NeverTypeImpl.instance,
@@ -101,9 +101,8 @@ class FunctionExpressionInvocationResolver {
 
     if (callElement == null) {
       if (result.needsGetterError) {
-        _diagnosticReporter.atNode(
-          function,
-          CompileTimeErrorCode.invocationOfNonFunctionExpression,
+        _diagnosticReporter.report(
+          diag.invocationOfNonFunctionExpression.at(function),
         );
       }
       var type = result.isGetterInvalid
@@ -119,9 +118,8 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (callElement.kind != ElementKind.METHOD) {
-      _diagnosticReporter.atNode(
-        function,
-        CompileTimeErrorCode.invocationOfNonFunctionExpression,
+      _diagnosticReporter.report(
+        diag.invocationOfNonFunctionExpression.at(function),
       );
       _unresolved(
         node,
@@ -141,7 +139,7 @@ class FunctionExpressionInvocationResolver {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [CompileTimeErrorCode.useOfVoidResult].
+  /// See [diag.useOfVoidResult].
   ///
   // TODO(scheglov): this is duplicate
   bool _checkForUseOfVoidResult(Expression expression, DartType type) {
@@ -151,15 +149,9 @@ class FunctionExpressionInvocationResolver {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _diagnosticReporter.atNode(
-        methodName,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
     } else {
-      _diagnosticReporter.atNode(
-        expression,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }
 
     return true;
@@ -203,7 +195,7 @@ class FunctionExpressionInvocationResolver {
     if (callElement == null) {
       _diagnosticReporter.atNode(
         function,
-        CompileTimeErrorCode.invocationOfExtensionWithoutCall,
+        diag.invocationOfExtensionWithoutCall,
         arguments: [function.name.lexeme],
       );
       return _unresolved(
@@ -215,9 +207,8 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (callElement.isStatic) {
-      _diagnosticReporter.atNode(
-        node.argumentList,
-        CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
+      _diagnosticReporter.report(
+        diag.extensionOverrideAccessToStaticMember.at(node.argumentList),
       );
     }
 

@@ -58,7 +58,7 @@ class LspOverLegacyRequestTest extends AbstractLspOverLegacyTest {
       getHover(testFileUri, Position(character: 0, line: 0)),
       throwsA(
         isResponseError(
-          ServerErrorCodes.InvalidFilePath,
+          ServerErrorCodes.invalidFilePath,
           message: 'File does not exist',
         ),
       ),

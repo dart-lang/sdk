@@ -23,7 +23,7 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.EXTRACT_LOCAL_VARIABLE;
+  FixKind get fixKind => DartFixKind.extractLocalVariable;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

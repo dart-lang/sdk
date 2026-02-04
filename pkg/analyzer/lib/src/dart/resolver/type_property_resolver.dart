@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -16,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
@@ -124,30 +125,27 @@ class TypePropertyResolver {
         }
       }
 
-      CompileTimeErrorCode errorCode;
+      DiagnosticCode diagnosticCode;
       List<String> arguments;
       if (parentNode == null) {
-        errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
+        diagnosticCode = diag.uncheckedInvocationOfNullableValue;
         arguments = [];
       } else {
         if (parentNode is CascadeExpression) {
           parentNode = parentNode.cascadeSections.first;
         }
         if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
-          errorCode =
-              CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue;
+          diagnosticCode = diag.uncheckedOperatorInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression) {
-          errorCode =
-              CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue;
+          diagnosticCode = diag.uncheckedMethodInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is FunctionExpressionInvocation) {
-          errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
+          diagnosticCode = diag.uncheckedInvocationOfNullableValue;
           arguments = [];
         } else {
-          errorCode =
-              CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue;
+          diagnosticCode = diag.uncheckedPropertyAccessOfNullableValue;
           arguments = [name];
         }
       }
@@ -171,7 +169,7 @@ class TypePropertyResolver {
         }
       }
       _resolver.nullableDereferenceVerifier.report(
-        errorCode,
+        diagnosticCode,
         propertyErrorEntity,
         receiverType,
         arguments: arguments,
@@ -237,6 +235,47 @@ class TypePropertyResolver {
 
       return _toResult();
     }
+  }
+
+  /// Resolve static invocations for [declaration].
+  ResolutionResult resolveStaticExtension({
+    required InterfaceElement declaration,
+    required String name,
+    required bool hasRead,
+    required bool hasWrite,
+    required SyntacticEntity propertyErrorEntity,
+    required SyntacticEntity nameErrorEntity,
+    AstNode? parentNode,
+  }) {
+    _name = name;
+    _hasRead = hasRead;
+    _hasWrite = hasWrite;
+    _nameErrorEntity = nameErrorEntity;
+    _resetResult();
+
+    var memberName = Name(_definingLibrary.uri, _name);
+    var result = _extensionResolver.findStaticExtension(
+      declaration,
+      _nameErrorEntity,
+      memberName,
+    );
+
+    _reportedGetterError =
+        result == const AmbiguousStaticExtensionResolutionError();
+    _reportedSetterError =
+        result == const AmbiguousStaticExtensionResolutionError();
+
+    if (result.member != null && hasRead) {
+      _needsGetterError = false;
+      _getterRequested = result.member;
+    }
+
+    if (result.member != null && hasWrite) {
+      _needsSetterError = false;
+      _setterRequested = result.member;
+    }
+
+    return _toResult();
   }
 
   void _lookupExtension(TypeImpl type) {

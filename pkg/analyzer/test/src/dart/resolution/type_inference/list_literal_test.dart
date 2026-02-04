@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class ListLiteralTest extends PubPackageResolutionTest {
       '''
 List<int> a = ['a'];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 15, 3)],
+      [error(diag.listElementTypeNotAssignable, 15, 3)],
     );
     assertType(findNode.listLiteral('['), 'List<int>');
   }
@@ -55,7 +55,7 @@ class A<E extends List<int>> {
   E a = [];
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 39, 2)],
+      [error(diag.invalidAssignment, 39, 2)],
     );
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
@@ -67,7 +67,7 @@ class A<E extends List<dynamic>> {
   E a = [];
 }
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 43, 2)],
+      [error(diag.invalidAssignment, 43, 2)],
     );
     assertType(findNode.listLiteral('['), 'List<dynamic>');
   }
@@ -110,7 +110,7 @@ MethodInvocation
       '''
 List<String> a = <int>[0];
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 17, 8)],
+      [error(diag.invalidAssignment, 17, 8)],
     );
     assertType(findNode.listLiteral('['), 'List<int>');
   }
@@ -120,7 +120,7 @@ List<String> a = <int>[0];
       '''
 List<String> a = <String>[0];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 26, 1)],
+      [error(diag.listElementTypeNotAssignable, 26, 1)],
     );
     assertType(findNode.listLiteral('['), 'List<String>');
   }
@@ -147,7 +147,7 @@ List<String> a = <String>['a'];
       '''
 List<String> a = <int>[];
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 17, 7)],
+      [error(diag.invalidAssignment, 17, 7)],
     );
     assertType(findNode.listLiteral('['), 'List<int>');
   }
@@ -206,7 +206,7 @@ var a = [1, '2', 3];
       '''
 var a = [x];
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 9, 1)],
+      [error(diag.undefinedIdentifier, 9, 1)],
     );
     assertType(findNode.listLiteral('['), 'List<InvalidType>');
   }
@@ -216,7 +216,7 @@ var a = [x];
       '''
 var a = [0, x, 2];
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 12, 1)],
+      [error(diag.undefinedIdentifier, 12, 1)],
     );
     assertType(findNode.listLiteral('['), 'List<InvalidType>');
   }
@@ -366,7 +366,7 @@ void f(Never a) async {
   var v = [...?a];
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 69, 4)],
+      [error(diag.invalidNullAwareOperator, 69, 4)],
     );
     assertType(findNode.listLiteral('['), 'List<Never>');
   }
@@ -399,7 +399,7 @@ void f<T extends Never>(T a) async {
   var v = [...?a];
 }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 82, 4)],
+      [error(diag.invalidNullAwareOperator, 82, 4)],
     );
     assertType(findNode.listLiteral('['), 'List<Never>');
   }
@@ -442,7 +442,7 @@ void f<T extends num>(T a) {
   var v = [...a];
 }
 ''',
-      [error(CompileTimeErrorCode.notIterableSpread, 77, 1)],
+      [error(diag.notIterableSpread, 77, 1)],
     );
     assertType(findNode.listLiteral('[...'), 'List<dynamic>');
   }
@@ -455,7 +455,7 @@ void f<T extends num>(T a) {
   var v = [...a, 0];
 }
 ''',
-      [error(CompileTimeErrorCode.notIterableSpread, 77, 1)],
+      [error(diag.notIterableSpread, 77, 1)],
     );
     assertType(findNode.listLiteral('[...'), 'List<dynamic>');
   }
@@ -465,7 +465,7 @@ void f<T extends num>(T a) {
       '''
 var a = <String>[1];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 17, 1)],
+      [error(diag.listElementTypeNotAssignable, 17, 1)],
     );
     assertType(findNode.listLiteral('['), 'List<String>');
   }
@@ -475,13 +475,7 @@ var a = <String>[1];
       '''
 var a = <String>[(null as String?)];
 ''',
-      [
-        error(
-          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
-          17,
-          17,
-        ),
-      ],
+      [error(diag.listElementTypeNotAssignableNullability, 17, 17)],
     );
     assertType(findNode.listLiteral('['), 'List<String>');
   }

@@ -1,0 +1,33 @@
+class C1() {
+this() {}
+}
+
+class C2() {
+this(int x) : assert(1 > 2) {}
+}
+
+class C3() {
+this();
+}
+
+class C4() {
+this(int x) : assert(1 > 2);
+}
+
+
+class[KeywordToken] C1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]1[StringToken] >[SimpleToken] 2[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C3[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C4[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]1[StringToken] >[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

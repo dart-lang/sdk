@@ -49,7 +49,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           constructors
-            #F2 named (nameOffset:55) (firstTokenOffset:53) (offset:55)
+            #F2 isOriginDeclaration named (nameOffset:55) (firstTokenOffset:53) (offset:55)
               element: dart:foo::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 53
@@ -57,7 +57,7 @@ library
         #F3 class B (nameOffset:73) (firstTokenOffset:67) (offset:73)
           element: dart:foo::@class::B
           constructors
-            #F4 named (nameOffset:81) (firstTokenOffset:79) (offset:81)
+            #F4 isOriginDeclaration named (nameOffset:81) (firstTokenOffset:79) (offset:81)
               element: dart:foo::@class::B::@constructor::named
               typeName: B
               typeNameOffset: 79
@@ -68,7 +68,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       constructors
-        named
+        isOriginDeclaration named
           reference: dart:foo::@class::A::@constructor::named
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -76,7 +76,7 @@ library
       reference: dart:foo::@class::B
       firstFragment: #F3
       constructors
-        named
+        isOriginDeclaration named
           reference: dart:foo::@class::B::@constructor::named
           firstFragment: #F4
 ''');
@@ -102,16 +102,16 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           fields
-            #F2 hasInitializer foo (nameOffset:57) (firstTokenOffset:57) (offset:57)
+            #F2 hasInitializer isOriginDeclaration foo (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: dart:foo::@class::A::@field::foo
           getters
-            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F3 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: dart:foo::@class::A::@getter::foo
           setters
-            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F4 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               formalParameters
-                #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+                #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
                   element: dart:foo::@class::A::@setter::foo::@formalParameter::value
   classes
     hasNonFinalField class A
@@ -119,7 +119,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       fields
-        hasInitializer foo
+        hasInitializer isOriginDeclaration foo
           reference: dart:foo::@class::A::@field::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -127,14 +127,14 @@ library
           getter: dart:foo::@class::A::@getter::foo
           setter: dart:foo::@class::A::@setter::foo
       getters
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: dart:foo::@class::A::@getter::foo
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
           returnType: int
           variable: dart:foo::@class::A::@field::foo
       setters
-        synthetic foo
+        synthetic isOriginVariable foo
           reference: dart:foo::@class::A::@setter::foo
           firstFragment: #F4
           sinceSdkVersion: 2.15.0
@@ -167,10 +167,10 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           getters
-            #F3 foo (nameOffset:61) (firstTokenOffset:53) (offset:61)
+            #F3 isOriginDeclaration foo (nameOffset:61) (firstTokenOffset:53) (offset:61)
               element: dart:foo::@class::A::@getter::foo
   classes
     class A
@@ -178,14 +178,14 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: dart:foo::@class::A::@field::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
           type: int
           getter: dart:foo::@class::A::@getter::foo
       getters
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@class::A::@getter::foo
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
@@ -214,7 +214,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F2 isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -222,7 +222,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -251,7 +251,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
+            #F2 isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -259,7 +259,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.16.0
@@ -288,7 +288,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
+            #F2 isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -296,7 +296,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@class::A::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -324,13 +324,13 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           fields
-            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F2 synthetic isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           setters
-            #F3 foo (nameOffset:57) (firstTokenOffset:53) (offset:57)
+            #F3 isOriginDeclaration foo (nameOffset:57) (firstTokenOffset:53) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               formalParameters
-                #F4 _ (nameOffset:65) (firstTokenOffset:61) (offset:65)
+                #F4 requiredPositional _ (nameOffset:65) (firstTokenOffset:61) (offset:65)
                   element: dart:foo::@class::A::@setter::foo::@formalParameter::_
   classes
     class A
@@ -338,14 +338,14 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       fields
-        synthetic foo
+        synthetic isOriginGetterSetter foo
           reference: dart:foo::@class::A::@field::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
           type: int
           setter: dart:foo::@class::A::@setter::foo
       setters
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@class::A::@setter::foo
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
@@ -379,7 +379,7 @@ library
         #F1 enum E (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@enum::E
           fields
-            #F2 hasInitializer v1 (nameOffset:37) (firstTokenOffset:37) (offset:37)
+            #F2 hasInitializer isOriginDeclaration v1 (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: dart:foo::@enum::E::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -393,7 +393,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer v2 (nameOffset:60) (firstTokenOffset:43) (offset:60)
+            #F3 hasInitializer isOriginDeclaration v2 (nameOffset:60) (firstTokenOffset:43) (offset:60)
               element: dart:foo::@enum::E::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
@@ -407,7 +407,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F4 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: dart:foo::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -424,11 +424,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F5 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F5 synthetic isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: dart:foo::@enum::E::@getter::v1
-            #F6 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+            #F6 synthetic isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: dart:foo::@enum::E::@getter::v2
-            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F7 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: dart:foo::@enum::E::@getter::values
   enums
     enum E
@@ -436,7 +436,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v1
           reference: dart:foo::@enum::E::@field::v1
           firstFragment: #F2
           type: E
@@ -444,7 +444,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: dart:foo::@enum::E::@getter::v1
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v2
           reference: dart:foo::@enum::E::@field::v2
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
@@ -453,7 +453,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: dart:foo::@enum::E::@getter::v2
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: dart:foo::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -462,18 +462,18 @@ library
             expression: expression_2
           getter: dart:foo::@enum::E::@getter::values
       getters
-        synthetic static v1
+        synthetic static isOriginVariable v1
           reference: dart:foo::@enum::E::@getter::v1
           firstFragment: #F5
           returnType: E
           variable: dart:foo::@enum::E::@field::v1
-        synthetic static v2
+        synthetic static isOriginVariable v2
           reference: dart:foo::@enum::E::@getter::v2
           firstFragment: #F6
           sinceSdkVersion: 2.15.0
           returnType: E
           variable: dart:foo::@enum::E::@field::v2
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: dart:foo::@enum::E::@getter::values
           firstFragment: #F7
           returnType: List<E>
@@ -502,7 +502,7 @@ library
         #F1 enum E (nameOffset:46) (firstTokenOffset:26) (offset:46)
           element: dart:foo::@enum::E
           fields
-            #F2 hasInitializer v (nameOffset:52) (firstTokenOffset:52) (offset:52)
+            #F2 hasInitializer isOriginDeclaration v (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: dart:foo::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -516,7 +516,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F3 synthetic isOriginEnumValues values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: dart:foo::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -529,12 +529,12 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F4 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F4 synthetic isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: dart:foo::@enum::E::@getter::v
-            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F5 synthetic isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: dart:foo::@enum::E::@getter::values
           methods
-            #F6 foo (nameOffset:62) (firstTokenOffset:57) (offset:62)
+            #F6 isOriginDeclaration foo (nameOffset:62) (firstTokenOffset:57) (offset:62)
               element: dart:foo::@enum::E::@method::foo
   enums
     enum E
@@ -543,7 +543,7 @@ library
       sinceSdkVersion: 2.15.0
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer isOriginDeclaration v
           reference: dart:foo::@enum::E::@field::v
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -552,7 +552,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: dart:foo::@enum::E::@getter::v
-        synthetic static const values
+        synthetic static const isOriginEnumValues values
           reference: dart:foo::@enum::E::@field::values
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
@@ -562,20 +562,20 @@ library
             expression: expression_1
           getter: dart:foo::@enum::E::@getter::values
       getters
-        synthetic static v
+        synthetic static isOriginVariable v
           reference: dart:foo::@enum::E::@getter::v
           firstFragment: #F4
           sinceSdkVersion: 2.15.0
           returnType: E
           variable: dart:foo::@enum::E::@field::v
-        synthetic static values
+        synthetic static isOriginVariable values
           reference: dart:foo::@enum::E::@getter::values
           firstFragment: #F5
           sinceSdkVersion: 2.15.0
           returnType: List<E>
           variable: dart:foo::@enum::E::@field::values
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@enum::E::@method::foo
           firstFragment: #F6
           sinceSdkVersion: 2.15.0
@@ -603,7 +603,7 @@ library
         #F1 extension E (nameOffset:51) (firstTokenOffset:26) (offset:51)
           element: dart:foo::@extension::E
           methods
-            #F2 foo (nameOffset:69) (firstTokenOffset:64) (offset:69)
+            #F2 isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:64) (offset:69)
               element: dart:foo::@extension::E::@method::foo
   extensions
     extension E
@@ -611,8 +611,9 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       extendedType: int
+      onDeclaration: dart:core::@class::int
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@extension::E::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -640,7 +641,7 @@ library
         #F1 mixin M (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@mixin::M
           methods
-            #F2 foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F2 isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@mixin::M::@method::foo
   mixins
     mixin M
@@ -650,7 +651,7 @@ library
       superclassConstraints
         Object
       methods
-        foo
+        isOriginDeclaration foo
           reference: dart:foo::@mixin::M::@method::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -675,17 +676,17 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:46) (firstTokenOffset:26) (offset:46)
+        #F1 isOriginDeclaration foo (nameOffset:46) (firstTokenOffset:26) (offset:46)
           element: dart:foo::@function::foo
-        #F2 bar (nameOffset:61) (firstTokenOffset:56) (offset:61)
+        #F2 isOriginDeclaration bar (nameOffset:61) (firstTokenOffset:56) (offset:61)
           element: dart:foo::@function::bar
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       returnType: void
-    bar
+    isOriginDeclaration bar
       reference: dart:foo::@function::bar
       firstFragment: #F2
       returnType: void
@@ -707,10 +708,10 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:54) (firstTokenOffset:26) (offset:54)
+        #F1 isOriginDeclaration foo (nameOffset:54) (firstTokenOffset:26) (offset:54)
           element: dart:foo::@function::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.3-dev.7
@@ -733,10 +734,10 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:48) (firstTokenOffset:26) (offset:48)
+        #F1 isOriginDeclaration foo (nameOffset:48) (firstTokenOffset:26) (offset:48)
           element: dart:foo::@function::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.3
@@ -759,10 +760,10 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:44) (firstTokenOffset:26) (offset:44)
+        #F1 isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:26) (offset:44)
           element: dart:foo::@function::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       returnType: void
@@ -787,10 +788,10 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo (nameOffset:56) (firstTokenOffset:51) (offset:56)
+        #F1 isOriginDeclaration foo (nameOffset:56) (firstTokenOffset:51) (offset:56)
           element: dart:foo::@function::foo
   functions
-    foo
+    isOriginDeclaration foo
       reference: dart:foo::@function::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
@@ -815,15 +816,15 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F1 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
-            #F2 p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
+            #F2 requiredPositional p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
               element: dart:foo::@function::f::@formalParameter::p1
-            #F3 p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
+            #F3 optionalNamed p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
               element: dart:foo::@function::f::@formalParameter::p2
   functions
-    f
+    isOriginDeclaration f
       reference: dart:foo::@function::f
       firstFragment: #F1
       formalParameters
@@ -855,15 +856,15 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F1 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
-            #F2 p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
+            #F2 requiredPositional p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
               element: dart:foo::@function::f::@formalParameter::p1
-            #F3 p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
+            #F3 optionalPositional p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
               element: dart:foo::@function::f::@formalParameter::p2
   functions
-    f
+    isOriginDeclaration f
       reference: dart:foo::@function::f
       firstFragment: #F1
       formalParameters
@@ -919,20 +920,20 @@ library
     #F0 dart:foo
       element: dart:foo
       topLevelVariables
-        #F1 hasInitializer foo (nameOffset:47) (firstTokenOffset:47) (offset:47)
+        #F1 hasInitializer isOriginDeclaration foo (nameOffset:47) (firstTokenOffset:47) (offset:47)
           element: dart:foo::@topLevelVariable::foo
       getters
-        #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+        #F2 synthetic isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
           element: dart:foo::@getter::foo
   topLevelVariables
-    final hasInitializer foo
+    final hasImplicitType hasInitializer isOriginDeclaration foo
       reference: dart:foo::@topLevelVariable::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       type: int
       getter: dart:foo::@getter::foo
   getters
-    synthetic static foo
+    synthetic static isOriginVariable foo
       reference: dart:foo::@getter::foo
       firstFragment: #F2
       sinceSdkVersion: 2.15.0

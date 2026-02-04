@@ -49,7 +49,7 @@ void f(Object? x) {
 @reflectiveTest
 class RemoveUnnecessaryWildcardPatternTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_WILDCARD_PATTERN;
+  FixKind get kind => DartFixKind.removeUnnecessaryWildcardPattern;
 
   Future<void> test_logicalAnd_left() async {
     await resolveTestCode('''

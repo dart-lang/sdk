@@ -524,7 +524,7 @@ type FieldDeclaration {
                 hasGetter, hasSetter,
                 hasInitializer, hasNontrivialInitializer, hasInitializerCode,
                 hasSourcePositions, hasAnnotations, hasPragma,
-                hasCustomScript);
+                hasCustomScript, isExtensionTypeMember, isShared);
   PackedObject name;
   PackedObject type;
 
@@ -557,7 +557,7 @@ type FunctionDeclaration {
                 isAsync, isAsyncStar, isSyncStar,
                 isNoSuchMethodForwarder, isExternal, isNative,
                 hasSourcePositions, hasAnnotations, hasPragma,
-                hasCustomScript);
+                hasCustomScript, isExtensionTypeMember);
 
   PackedObject name;
 
@@ -680,7 +680,8 @@ type ClosureDeclaration {
 }
 
 type ClosureCode {
-  UInt flags = (hasExceptionsTable, hasSourcePositions, hasLocalVariables)
+  UInt flags = (hasExceptionsTable, hasSourcePositions, hasLocalVariables,
+                capturesOnlyFinalNotLateVars)
 
   UInt bytecodeSizeInBytes;
   Byte[bytecodeSizeInBytes] bytecodes;
@@ -850,9 +851,27 @@ the 'sourcePositions' section of BytecodeFile.
 ```
 type SourcePositions {
   UInt numEntries;
-  // Encoded list of pairs (PC, FileOffset), ordered by PC (offset of bytecode instruction).
+  // Encoded list of pairs (PC, encodedFileOffset), ordered by PC
+  // (offset of bytecode instruction).
+  //
+  // An encodedFileOffset encodes a fileOffset and a set of flags.
+  //
+  // If the encodedFileOffset is non-negative, then the encodedFileOffset
+  // is the same numeric value as the fileOffset.
+  //
+  // If the encodedFileOffset is -1, then there is no source position
+  // associated with the given PC.
+  //
+  // Otherwise, encodedFileOffset = -((fileOffset << n) | flags) -1,
+  // where n is the number of flags below:
+  // - synthetic (bit 0): set if the source position corresponds to
+  //   synthetic code (e.g., a source position that should not be used
+  //   for debugger breakpoints or pausing or for code coverage).
+  // - yieldPoint (bit 1): set if the source position corresponds to
+  //   bytecode that implements a yield point.
+  //
   // For two consecutive entries (PC1, FileOffset1), (PC2, FileOffset2) all
-  // bytecode instructions in range [PC1,PC2) correspond to a source
+  // bytecode instructions in range [PC1,PC2) correspond to an encoded source
   // position FileOffset1.
   SourcePositionEntry[numEntries] entries
 }

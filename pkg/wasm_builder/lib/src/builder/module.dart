@@ -26,13 +26,14 @@ class ModuleBuilder with Builder<ir.Module> {
   final List<int> watchPoints;
   late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
-  late final tables = TablesBuilder(module);
+  late final elements = ElementsBuilder(this);
+  late final tables = TablesBuilder(this);
   late final memories = MemoriesBuilder(module);
   late final tags = TagsBuilder(module);
   final dataSegments = DataSegmentsBuilder();
   late final globals = GlobalsBuilder(this);
   final exports = ExportsBuilder();
-  ir.BaseFunction? _startFunction;
+  FunctionBuilder? _startFunction;
 
   /// Create a new, initially empty, module.
   ///
@@ -45,15 +46,17 @@ class ModuleBuilder with Builder<ir.Module> {
     types = TypesBuilder(this, parent: parent?.types);
   }
 
-  set startFunction(ir.BaseFunction init) {
-    assert(_startFunction == null);
-    _startFunction = init;
-  }
+  FunctionBuilder get startFunction => _startFunction ??=
+      functions.define(types.defineFunction(const [], const []), "#init");
 
   @override
   ir.Module forceBuild() {
+    if (_startFunction case final start?) {
+      start.body.end();
+    }
     final finalFunctions = functions.build();
     final finalTables = tables.build();
+    final finalElements = elements.build();
     final finalMemories = memories.build();
     final finalGlobals = globals.build();
     final finalTags = tags.build();
@@ -70,6 +73,7 @@ class ModuleBuilder with Builder<ir.Module> {
           finalFunctions,
           _startFunction,
           finalTables,
+          finalElements,
           finalTags,
           finalMemories,
           exports.build(),

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,8 +27,8 @@ class Annotation {
 }
     ''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 12, 3),
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 12, 3),
+        error(diag.undefinedIdentifier, 12, 3),
+        error(diag.constWithNonConstantArgument, 12, 3),
       ],
     );
   }
@@ -47,8 +46,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 20, 3),
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 20, 3),
+        error(diag.undefinedIdentifier, 20, 3),
+        error(diag.constWithNonConstantArgument, 20, 3),
       ],
     );
   }
@@ -65,8 +64,8 @@ class Annotation {
 }
     ''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 12, 3),
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 12, 3),
+        error(diag.undefinedIdentifier, 12, 3),
+        error(diag.constWithNonConstantArgument, 12, 3),
       ],
     );
   }
@@ -84,8 +83,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 24, 3),
-        error(CompileTimeErrorCode.undefinedIdentifier, 24, 3),
+        error(diag.constWithNonConstantArgument, 24, 3),
+        error(diag.undefinedIdentifier, 24, 3),
       ],
     );
   }
@@ -102,8 +101,8 @@ class Annotation {
 }
     ''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 12, 3),
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 12, 3),
+        error(diag.undefinedIdentifier, 12, 3),
+        error(diag.constWithNonConstantArgument, 12, 3),
       ],
     );
   }
@@ -121,8 +120,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 20, 3),
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 20, 3),
+        error(diag.undefinedIdentifier, 20, 3),
+        error(diag.constWithNonConstantArgument, 20, 3),
       ],
     );
   }
@@ -144,8 +143,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 29, 3),
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 29, 3),
+        error(diag.undefinedIdentifier, 29, 3),
+        error(diag.constWithNonConstantArgument, 29, 3),
       ],
     );
   }
@@ -168,8 +167,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 33, 3),
-        error(CompileTimeErrorCode.undefinedIdentifier, 33, 3),
+        error(diag.constWithNonConstantArgument, 33, 3),
+        error(diag.undefinedIdentifier, 33, 3),
       ],
     );
   }
@@ -191,8 +190,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 29, 3),
-        error(CompileTimeErrorCode.constWithNonConstantArgument, 29, 3),
+        error(diag.undefinedIdentifier, 29, 3),
+        error(diag.constWithNonConstantArgument, 29, 3),
       ],
     );
   }
@@ -204,7 +203,7 @@ void f() {
   (x) = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 14, 1)],
+      [error(diag.undefinedIdentifier, 14, 1)],
     );
   }
 
@@ -216,8 +215,8 @@ void f() {
 class A {
 }''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 5, 1),
-        error(CompileTimeErrorCode.undefinedIdentifier, 17, 1),
+        error(diag.undefinedIdentifier, 5, 1),
+        error(diag.undefinedIdentifier, 17, 1),
       ],
     );
   }
@@ -231,7 +230,7 @@ void f() {
   foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 32, 3)],
+      [error(diag.undefinedIdentifier, 32, 3)],
     );
   }
 
@@ -242,7 +241,7 @@ void f() {
   foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 3)],
+      [error(diag.undefinedIdentifier, 13, 3)],
     );
   }
 
@@ -253,7 +252,7 @@ f(var l) {
   for (e in l) {
   }
 }''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 18, 1)],
+      [error(diag.undefinedIdentifier, 18, 1)],
     );
   }
 
@@ -273,8 +272,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 25, 1),
-        error(CompileTimeErrorCode.undefinedIdentifier, 40, 1),
+        error(diag.unusedLocalVariable, 25, 1),
+        error(diag.undefinedIdentifier, 40, 1),
       ],
     );
   }
@@ -288,7 +287,7 @@ void f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 26, 1)],
+      [error(diag.undefinedIdentifier, 26, 1)],
     );
   }
 
@@ -311,8 +310,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 17, 1),
-        error(CompileTimeErrorCode.undefinedIdentifier, 31, 1),
+        error(diag.unusedLocalVariable, 17, 1),
+        error(diag.undefinedIdentifier, 31, 1),
       ],
     );
   }
@@ -322,7 +321,7 @@ f() {
       '''
 int a() => b;
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 11, 1)],
+      [error(diag.undefinedIdentifier, 11, 1)],
     );
   }
 
@@ -348,7 +347,7 @@ main() {
   List;
   String;
 }''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 49, 6)],
+      [error(diag.undefinedIdentifier, 49, 6)],
     );
   }
 
@@ -367,7 +366,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 96, 3)],
+      [error(diag.undefinedIdentifier, 96, 3)],
     );
   }
 
@@ -376,7 +375,7 @@ class B extends A {
       '''
 var a = b;
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 8, 1)],
+      [error(diag.undefinedIdentifier, 8, 1)],
     );
   }
 
@@ -385,7 +384,7 @@ var a = b;
       '''
 f() { C.m(); }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 6, 1)],
+      [error(diag.undefinedIdentifier, 6, 1)],
     );
   }
 
@@ -398,7 +397,7 @@ void f() {
   foo++;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 32, 3)],
+      [error(diag.undefinedIdentifier, 32, 3)],
     );
   }
 
@@ -411,7 +410,7 @@ void f() {
   ++foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 34, 3)],
+      [error(diag.undefinedIdentifier, 34, 3)],
     );
   }
 
@@ -430,8 +429,8 @@ class B extends A {
   }
 }''',
       [
-        error(WarningCode.unusedLocalVariable, 58, 1),
-        error(CompileTimeErrorCode.undefinedIdentifier, 62, 4),
+        error(diag.unusedLocalVariable, 58, 1),
+        error(diag.undefinedIdentifier, 62, 4),
       ],
     );
   }
@@ -450,7 +449,7 @@ class B extends A {
     _foo = 42;
   }
 }''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 54, 4)],
+      [error(diag.undefinedIdentifier, 54, 4)],
     );
   }
 
@@ -471,7 +470,7 @@ main() {
   print(is String);
 }
 ''',
-      [error(ParserErrorCode.missingIdentifier, 29, 2)],
+      [error(diag.missingIdentifier, 29, 2)],
     );
   }
 
@@ -484,8 +483,8 @@ void f(int p) {
 }
 ''',
       [
-        error(ParserErrorCode.missingIdentifier, 32, 1),
-        error(CompileTimeErrorCode.undefinedGetter, 32, 1),
+        error(diag.missingIdentifier, 32, 1),
+        error(diag.undefinedGetter, 32, 1),
       ],
     );
   }

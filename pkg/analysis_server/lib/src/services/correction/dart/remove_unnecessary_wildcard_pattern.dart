@@ -17,11 +17,10 @@ class RemoveUnnecessaryWildcardPattern extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_WILDCARD_PATTERN;
+  FixKind get fixKind => DartFixKind.removeUnnecessaryWildcardPattern;
 
   @override
-  FixKind get multiFixKind =>
-      DartFixKind.REMOVE_UNNECESSARY_WILDCARD_PATTERN_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeUnnecessaryWildcardPatternMulti;
 
   DartPattern? get _wildcardOrParenthesized {
     var wildcard = node;

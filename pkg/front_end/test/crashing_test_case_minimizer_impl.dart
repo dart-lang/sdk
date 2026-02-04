@@ -8,6 +8,7 @@ import 'dart:io' show File, stdin, stdout;
 import 'dart:math' show max;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Listener, Parser;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -19,7 +20,7 @@ import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
+    show ExperimentalFlag, ExperimentalFeaturesFromVersion;
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
@@ -1122,10 +1123,9 @@ worlds:
         String? textualOutlined = textualOutline(
           data!,
           _getScannerConfiguration(languageVersion),
-          enablePatterns:
-              languageVersion >= ExperimentalFlag.patterns.enabledVersion,
-          enableEnhancedParts:
-              languageVersion >= ExperimentalFlag.enhancedParts.enabledVersion,
+          experimentalFeatures: new ExperimentalFeaturesFromVersion(
+            languageVersion,
+          ),
         )?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
@@ -1460,7 +1460,7 @@ worlds:
         shouldCompile = true;
         what = "toplevel method";
       } else if (child.isEnum()) {
-        EnumEnd decl = child.asEnum();
+        EnumDeclarationEnd decl = child.asEnum();
         helper.replacements.add(
           new _Replacement(
             decl.enumKeyword.offset - 1,
@@ -1576,25 +1576,35 @@ worlds:
           if (child.isClass()) {
             // Also try to remove all content of the class.
             ClassDeclarationEnd decl = child.asClass();
-            ClassOrMixinOrExtensionBodyEnd body = decl
+            ClassOrMixinOrExtensionBodyEnd? body = decl
                 .getClassOrMixinOrExtensionBody();
-            if (body.beginToken.offset + 2 < body.endToken.offset) {
-              helper.replacements.add(
-                new _Replacement(body.beginToken.offset, body.endToken.offset),
-              );
-              what = "class body";
-              success = await _tryReplaceAndCompile(
-                helper,
-                uri,
-                initialComponent,
-                what,
-              );
-              if (helper.shouldQuit) return;
-            }
+            Token bodyBegin;
+            if (body != null) {
+              bodyBegin = body.beginToken;
+              if (body.beginToken.offset + 2 < body.endToken.offset) {
+                helper.replacements.add(
+                  new _Replacement(
+                    body.beginToken.offset,
+                    body.endToken.offset,
+                  ),
+                );
+                what = "class body";
+                success = await _tryReplaceAndCompile(
+                  helper,
+                  uri,
+                  initialComponent,
+                  what,
+                );
+                if (helper.shouldQuit) return;
+              }
 
-            if (!success) {
-              // Also try to remove members one at a time.
-              await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              if (!success) {
+                // Also try to remove members one at a time.
+                await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              }
+            } else {
+              NoClassBodyHandle body = decl.getNoClassBody()!;
+              bodyBegin = body.semicolonToken;
             }
 
             // Try to remove "extends", "implements" etc.
@@ -1606,7 +1616,7 @@ worlds:
               helper.replacements.add(
                 new _Replacement(
                   decl.getClassExtends().extendsKeyword!.offset - 1,
-                  body.beginToken.offset,
+                  bodyBegin.offset,
                 ),
               );
               what = "class extends";
@@ -1622,7 +1632,7 @@ worlds:
               helper.replacements.add(
                 new _Replacement(
                   decl.getClassImplements().implementsKeyword!.offset - 1,
-                  body.beginToken.offset,
+                  bodyBegin.offset,
                 ),
               );
               what = "class implements";
@@ -1638,7 +1648,7 @@ worlds:
               helper.replacements.add(
                 new _Replacement(
                   decl.getClassWithClause()!.withKeyword.offset - 1,
-                  body.beginToken.offset,
+                  bodyBegin.offset,
                 ),
               );
               what = "class with clause";
@@ -1675,24 +1685,29 @@ worlds:
           } else if (child.isExtensionType()) {
             // Also try to remove all content of the extension type.
             ExtensionTypeDeclarationEnd decl = child.asExtensionType();
-            ClassOrMixinOrExtensionBodyEnd body = decl
+            ClassOrMixinOrExtensionBodyEnd? body = decl
                 .getClassOrMixinOrExtensionBody();
-            if (body.beginToken.offset + 2 < body.endToken.offset) {
-              helper.replacements.add(
-                new _Replacement(body.beginToken.offset, body.endToken.offset),
-              );
-              what = "extension type body";
-              success = await _tryReplaceAndCompile(
-                helper,
-                uri,
-                initialComponent,
-                what,
-              );
-              if (helper.shouldQuit) return;
-            }
+            if (body != null) {
+              if (body.beginToken.offset + 2 < body.endToken.offset) {
+                helper.replacements.add(
+                  new _Replacement(
+                    body.beginToken.offset,
+                    body.endToken.offset,
+                  ),
+                );
+                what = "extension type body";
+                success = await _tryReplaceAndCompile(
+                  helper,
+                  uri,
+                  initialComponent,
+                  what,
+                );
+                if (helper.shouldQuit) return;
+              }
 
-            if (!success) {
-              await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              if (!success) {
+                await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              }
             }
           } else if (child.isTopLevelMethod()) {
             // Try to remove parameters.
@@ -1734,18 +1749,18 @@ worlds:
       bool shouldCompile = false;
       String what = "";
       if (child is MemberEnd) {
-        if (child.isClassConstructor()) {
-          ClassConstructorEnd memberDecl = child.getClassConstructor();
+        if (child.isConstructor()) {
+          ConstructorEnd memberDecl = child.getConstructor();
           helper.replacements.add(
             new _Replacement(
               memberDecl.beginToken.offset - 1,
               memberDecl.endToken.offset + 1,
             ),
           );
-          what = "class constructor";
+          what = "constructor";
           shouldCompile = true;
-        } else if (child.isClassFields()) {
-          ClassFieldsEnd memberDecl = child.getClassFields();
+        } else if (child.isFields()) {
+          FieldsEnd memberDecl = child.getFields();
           helper.replacements.add(
             new _Replacement(
               memberDecl.beginToken.offset - 1,
@@ -1754,147 +1769,25 @@ worlds:
           );
           what = "class fields";
           shouldCompile = true;
-        } else if (child.isClassMethod()) {
-          ClassMethodEnd memberDecl = child.getClassMethod();
+        } else if (child.isMethod()) {
+          MethodEnd memberDecl = child.getMethod();
           helper.replacements.add(
             new _Replacement(
               memberDecl.beginToken.offset - 1,
               memberDecl.endToken.offset + 1,
             ),
           );
-          what = "class method";
+          what = "method";
           shouldCompile = true;
-        } else if (child.isClassFactoryMethod()) {
-          ClassFactoryMethodEnd memberDecl = child.getClassFactoryMethod();
+        } else if (child.isFactory()) {
+          FactoryEnd memberDecl = child.getFactory();
           helper.replacements.add(
             new _Replacement(
               memberDecl.beginToken.offset - 1,
               memberDecl.endToken.offset + 1,
             ),
           );
-          what = "class factory method";
-          shouldCompile = true;
-        } else if (child.isMixinConstructor()) {
-          MixinConstructorEnd memberDecl = child.getMixinConstructor();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "mixin constructor";
-          shouldCompile = true;
-        } else if (child.isMixinFields()) {
-          MixinFieldsEnd memberDecl = child.getMixinFields();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "mixin fields";
-          shouldCompile = true;
-        } else if (child.isMixinMethod()) {
-          MixinMethodEnd memberDecl = child.getMixinMethod();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "mixin method";
-          shouldCompile = true;
-        } else if (child.isMixinFactoryMethod()) {
-          MixinFactoryMethodEnd memberDecl = child.getMixinFactoryMethod();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "mixin factory method";
-          shouldCompile = true;
-        } else if (child.isExtensionTypeConstructor()) {
-          var memberDecl = child.getExtensionTypeConstructor();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "extension type constructor";
-          shouldCompile = true;
-        } else if (child.isExtensionTypeFields()) {
-          ExtensionTypeFieldsEnd memberDecl = child.getExtensionTypeFields();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "extension type fields";
-          shouldCompile = true;
-        } else if (child.isExtensionTypeMethod()) {
-          ExtensionTypeMethodEnd memberDecl = child.getExtensionTypeMethod();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "extension type method";
-          shouldCompile = true;
-        } else if (child.isExtensionTypeFactoryMethod()) {
-          ExtensionTypeFactoryMethodEnd memberDecl = child
-              .getExtensionTypeFactoryMethod();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "extension type factory method";
-          shouldCompile = true;
-        } else if (child.isExtensionConstructor()) {
-          var memberDecl = child.getExtensionConstructor();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "extension constructor";
-          shouldCompile = true;
-        } else if (child.isExtensionFields()) {
-          ExtensionFieldsEnd memberDecl = child.getExtensionFields();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "extension fields";
-          shouldCompile = true;
-        } else if (child.isExtensionMethod()) {
-          ExtensionMethodEnd memberDecl = child.getExtensionMethod();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "extension method";
-          shouldCompile = true;
-        } else if (child.isExtensionFactoryMethod()) {
-          ExtensionFactoryMethodEnd memberDecl = child
-              .getExtensionFactoryMethod();
-          helper.replacements.add(
-            new _Replacement(
-              memberDecl.beginToken.offset - 1,
-              memberDecl.endToken.offset + 1,
-            ),
-          );
-          what = "extension factory method";
+          what = "factory";
           shouldCompile = true;
         } else {
           // throw "$child --- ${child.children}";
@@ -1925,10 +1818,10 @@ worlds:
         if (!success) {
           BlockFunctionBodyEnd? decl;
           if (child is MemberEnd) {
-            if (child.isClassMethod()) {
-              decl = child.getClassMethod().getBlockFunctionBody();
-            } else if (child.isClassConstructor()) {
-              decl = child.getClassConstructor().getBlockFunctionBody();
+            if (child.isMethod()) {
+              decl = child.getMethod().getBlockFunctionBody();
+            } else if (child.isConstructor()) {
+              decl = child.getConstructor().getBlockFunctionBody();
             }
             // TODO(jensj): The other ones too maybe?
           }
@@ -2426,6 +2319,7 @@ worlds:
     Parser parser = new Parser(
       parserTestListener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     parser.parseUnit(firstToken);
     String parsedString = parser_suite
@@ -2445,6 +2339,7 @@ worlds:
     Parser parser = new Parser(
       parserErrorListener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     parser.parseUnit(firstToken);
     return !parserErrorListener.gotError;

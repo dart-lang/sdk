@@ -4,6 +4,7 @@
 
 import 'dart:io' as io;
 
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -291,13 +292,13 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
       'abstractKeyword': node.abstractKeyword,
-      'name': node.name,
-      'typeParameters': node.typeParameters,
+      'name': node.namePart.typeName,
+      'typeParameters': node.namePart.typeParameters,
       'extendsClause': node.extendsClause,
       'withClause': node.withClause,
       'implementsClause': node.implementsClause,
       'nativeClause': node.nativeClause,
-      'members': node.members,
+      'members': node.members2,
     });
     super.visitClassDeclaration(node);
   }
@@ -370,7 +371,8 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'externalKeyword': node.externalKeyword,
       'constKeyword': node.constKeyword,
       'factoryKeyword': node.factoryKeyword,
-      'returnType': node.returnType,
+      // TODO(scheglov): support primary constructors
+      'returnType': node.typeName!,
       'name': node.name,
       'parameters': node.parameters,
       'initializers': node.initializers,
@@ -466,8 +468,8 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
-      'name': node.name,
-      'constants': node.constants,
+      'name': node.namePart.typeName,
+      'constants': node.body.constants,
     });
     super.visitEnumDeclaration(node);
   }
@@ -512,7 +514,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'name': node.name,
       'typeParameters': node.typeParameters,
       'onClause': node.onClause,
-      'member': node.members,
+      'member': node.body.members,
     });
     super.visitExtensionDeclaration(node);
   }
@@ -883,7 +885,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'typeParameters': node.typeParameters,
       'onClause': node.onClause,
       'implementsClause': node.implementsClause,
-      'members': node.members,
+      'members': node.body.members,
     });
     super.visitMixinDeclaration(node);
   }

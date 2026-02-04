@@ -98,7 +98,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     // update declarations
     for (var renameElement in _validator.elements) {
-      if (renameElement.isSynthetic && renameElement is FieldElement) {
+      if (renameElement is FieldElement && renameElement.isOriginGetterSetter) {
         processor.addDeclarationEdit(renameElement.getter);
         processor.addDeclarationEdit(renameElement.setter);
       } else {
@@ -516,26 +516,28 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       elements = {element};
     }
 
-    if (element is FieldElement) {
-      var interfaceElement = element.enclosingElement;
-      if (interfaceElement is InterfaceElement &&
-          interfaceElement is! ExtensionTypeElement) {
-        var formalParameters = interfaceElement.constructors
-            .expand((constructor) => constructor.formalParameters)
-            .whereType<FieldFormalParameterElement>()
-            .where((formalParameter) => formalParameter.field == element)
-            .cast<FormalParameterElement>()
-            .toList();
+    for (var i = 0; i < elements.length; i++) {
+      element = elements.elementAt(i);
+      if (element is FieldElement) {
+        var interfaceElement = element.enclosingElement;
+        if (interfaceElement is InterfaceElement) {
+          var formalParameters = interfaceElement.constructors
+              .expand((constructor) => constructor.formalParameters)
+              .whereType<FieldFormalParameterElement>()
+              .where((formalParameter) => formalParameter.field == element)
+              .cast<FormalParameterElement>()
+              .toList();
 
-        // The language doesn't allow private named formal parameters.
-        if (name.startsWith('_')) {
-          formalParameters.removeWhere((formalParameter) {
-            return formalParameter.isNamed;
-          });
+          // The language doesn't allow private named formal parameters.
+          if (name.startsWith('_')) {
+            formalParameters.removeWhere((formalParameter) {
+              return formalParameter.isNamed;
+            });
+          }
+
+          await addNamedSuperFormalParameters(searchEngine, formalParameters);
+          elements.addAll(formalParameters);
         }
-
-        await addNamedSuperFormalParameters(searchEngine, formalParameters);
-        elements.addAll(formalParameters);
       }
     }
   }

@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object? = dynamic> extends core::Object {
-  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%> /* redirection-target: self::B::•<dynamic, self::A::•::T%>*/
+  static const factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%> /* redirection-target: self::B::•<dynamic, self::A::•::T%>*/
     return self::B::•<dynamic, self::A::•::T%>();
   static synthetic method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
     return new self::C::•<self::A::_#new#tearOff::T%, dynamic, dynamic>();
 }
 abstract class B<S extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
-  static factory •<S extends core::Object? = dynamic, T extends core::Object? = dynamic>() → self::B<self::B::•::S%, self::B::•::T%> /* redirection-target: self::C::•<self::B::•::T%, self::B::•::S%, dynamic>*/
+  static const factory •<S extends core::Object? = dynamic, T extends core::Object? = dynamic>() → self::B<self::B::•::S%, self::B::•::T%> /* redirection-target: self::C::•<self::B::•::T%, self::B::•::S%, dynamic>*/
     return new self::C::•<self::B::•::T%, self::B::•::S%, dynamic>();
   static synthetic method _#new#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::S%, self::B::_#new#tearOff::T%>
     return new self::C::•<self::B::_#new#tearOff::T%, self::B::_#new#tearOff::S%, dynamic>();

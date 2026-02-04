@@ -193,6 +193,11 @@ const Map<String, LibraryInfo> libraries = const {
     maturity: Maturity.WEB_STABLE,
     platforms: DART2JS_PLATFORM,
   ),
+  '_vm': const LibraryInfo(
+    '_vm/_vm.dart',
+    categories: 'Server',
+    platforms: VM_PLATFORM,
+  ),
   'vmservice_io': const LibraryInfo(
     '_internal/vm/bin/vmservice_io.dart',
     categories: '',

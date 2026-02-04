@@ -23,8 +23,7 @@ static intptr_t Create(const RawAddr& addr) {
 
 static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   SOCKET socket = static_cast<SOCKET>(fd);
-  intptr_t result =
-      connect(socket, &addr.addr, SocketAddress::GetAddrLength(addr));
+  intptr_t result = connect(socket, &addr.addr, addr.size);
   return (result == SOCKET_ERROR) ? -1 : socket;
 }
 
@@ -43,8 +42,7 @@ intptr_t SynchronousSocket::Available(intptr_t fd) {
 intptr_t SynchronousSocket::GetPort(intptr_t fd) {
   SOCKET socket = static_cast<SOCKET>(fd);
   RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (getsockname(socket, &raw.addr, &size) == SOCKET_ERROR) {
+  if (getsockname(socket, &raw.addr, &raw.size) == SOCKET_ERROR) {
     return 0;
   }
   return SocketAddress::GetAddrPort(raw);
@@ -53,15 +51,14 @@ intptr_t SynchronousSocket::GetPort(intptr_t fd) {
 SocketAddress* SynchronousSocket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   SOCKET socket = static_cast<SOCKET>(fd);
   RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (getpeername(socket, &raw.addr, &size)) {
+  if (getpeername(socket, &raw.addr, &raw.size)) {
     return nullptr;
   }
   *port = SocketAddress::GetAddrPort(raw);
   // Clear the port before calling WSAAddressToString as WSAAddressToString
   // includes the port in the formatted string.
   SocketAddress::SetAddrPort(&raw, 0);
-  return new SocketAddress(&raw.addr);
+  return new SocketAddress(raw);
 }
 
 intptr_t SynchronousSocket::Read(intptr_t fd,

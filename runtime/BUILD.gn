@@ -31,6 +31,9 @@ config("dart_maybe_product_config") {
     }
     assert(!dart_debug)
     defines += [ "PRODUCT" ]
+    if (target_os == "linux") {
+      defines += [ "DART_DISABLE_TIMELINE" ]
+    }
   }
 }
 
@@ -47,6 +50,9 @@ config("dart_product_config") {
         # `build/config/gcc:symbol_visibility_hidden` in product mode.
         "-fvisibility=hidden",
       ]
+    }
+    if (dart_runtime_mode == "release" && target_os == "linux") {
+      defines += [ "DART_DISABLE_TIMELINE" ]
     }
   }
 }
@@ -106,10 +112,12 @@ config("dart_precompiler_config") {
 
   # In our GN build rules we'll always compile AOT compiler & AOT runtime in
   # the same mode (TSAN or non-TSAN).
-  if (is_tsan) {
-    defines += [ "TARGET_USES_THREAD_SANITIZER" ]
+  if (is_asan) {
+    defines += [ "TARGET_USES_ADDRESS_SANITIZER" ]
   } else if (is_msan) {
     defines += [ "TARGET_USES_MEMORY_SANITIZER" ]
+  } else if (is_tsan) {
+    defines += [ "TARGET_USES_THREAD_SANITIZER" ]
   }
 }
 
@@ -360,13 +368,13 @@ source_set("dart_api") {
 library_for_all_configs("libdart") {
   target_type = dart_component_kind
   extra_nonproduct_deps = []
-  if (dart_support_perfetto) {
-    extra_nonproduct_deps += [ "vm:libprotozero" ]
-  }
   extra_deps = [
     ":generate_version_cc_file",
     "../third_party/double-conversion/src:libdouble_conversion",
   ]
+  if (dart_support_perfetto) {
+    extra_deps += [ "//third_party/perfetto:libprotozero" ]
+  }
   if (is_fuchsia) {
     extra_deps += [
       "$fuchsia_sdk/pkg/fdio",

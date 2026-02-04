@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,7 +42,7 @@ void f(Object p) {
 @reflectiveTest
 class RemoveUnnecessaryCastMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CAST_MULTI;
+  FixKind get kind => DartFixKind.removeUnnecessaryCastMulti;
 
   Future<void> test_assignment_all() async {
     await resolveTestCode('''
@@ -57,7 +57,7 @@ void f(Object p, Object q) {
   }
 }
 ''');
-    await assertHasFixAllFix(WarningCode.unnecessaryCast, '''
+    await assertHasFixAllFix(diag.unnecessaryCast, '''
 void f(Object p, Object q) {
   if (p is String) {
     var v = p;
@@ -75,7 +75,7 @@ void f(Object p, Object q) {
 @reflectiveTest
 class RemoveUnnecessaryCastTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CAST;
+  FixKind get kind => DartFixKind.removeUnnecessaryCast;
 
   Future<void> test_assignment() async {
     await resolveTestCode('''

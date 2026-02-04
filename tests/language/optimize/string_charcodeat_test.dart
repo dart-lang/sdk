@@ -46,7 +46,7 @@ int testConstantIndexCodeUnitAt(String x) {
   return test();
 }
 
-int testOneByteCodeUnitAtInLoop(var x) {
+int testOneByteCodeUnitAtInLoop(x) {
   var result = 0;
   for (int i = 0; i < x.length; i++) {
     result += x.codeUnitAt(i) as int;
@@ -54,7 +54,7 @@ int testOneByteCodeUnitAtInLoop(var x) {
   return result;
 }
 
-int testTwoByteCodeUnitAtInLoop(var x) {
+int testTwoByteCodeUnitAtInLoop(x) {
   var result = 0;
   for (int i = 0; i < x.length; i++) {
     result += x.codeUnitAt(i) as int;

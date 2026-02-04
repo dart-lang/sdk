@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,10 +11,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Remove unnecessary backslashes in strings.';
 
-class UnnecessaryStringEscapes extends LintRule {
+class UnnecessaryStringEscapes extends AnalysisRule {
   UnnecessaryStringEscapes()
     : super(name: LintNames.unnecessary_string_escapes, description: _desc);
 
@@ -21,7 +23,7 @@ class UnnecessaryStringEscapes extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryStringEscapes;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryStringEscapes;
 
   @override
   void registerNodeProcessors(
@@ -51,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     'u',
   ];
 
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

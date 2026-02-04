@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +20,7 @@ class InvalidUseOfCovariantTest extends PubPackageResolutionTest {
       '''
 Function f = (covariant int x) {};
 ''',
-      [error(CompileTimeErrorCode.invalidUseOfCovariant, 14, 9)],
+      [error(diag.invalidUseOfCovariant, 14, 9)],
     );
   }
 
@@ -32,7 +31,7 @@ class C {
   void m(void p(covariant int)) {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidUseOfCovariant, 26, 9)],
+      [error(diag.invalidUseOfCovariant, 26, 9)],
     );
   }
 
@@ -43,7 +42,7 @@ class C {
   void m(void Function(covariant int) p) {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidUseOfCovariant, 33, 9)],
+      [error(diag.invalidUseOfCovariant, 33, 9)],
     );
   }
 
@@ -52,7 +51,7 @@ class C {
       '''
 typedef F = void Function(covariant int);
 ''',
-      [error(CompileTimeErrorCode.invalidUseOfCovariant, 26, 9)],
+      [error(diag.invalidUseOfCovariant, 26, 9)],
     );
   }
 
@@ -63,10 +62,10 @@ List<void Function(covariant int)> a = [];
 }
 ''',
       [
-        error(CompileTimeErrorCode.invalidUseOfCovariant, 19, 9),
+        error(diag.invalidUseOfCovariant, 19, 9),
         // TODO(srawlins): Recover better from this situation (`covariant` in
         // parameter in type argument).
-        error(ParserErrorCode.expectedExecutable, 43, 1),
+        error(diag.expectedExecutable, 43, 1),
       ],
     );
   }
@@ -78,10 +77,10 @@ void foo<T extends void Function(covariant int)>() {}
 }
 ''',
       [
-        error(CompileTimeErrorCode.invalidUseOfCovariant, 33, 9),
+        error(diag.invalidUseOfCovariant, 33, 9),
         // TODO(srawlins): Recover better from this situation (`covariant` in
         // parameter in bound).
-        error(ParserErrorCode.expectedExecutable, 54, 1),
+        error(diag.expectedExecutable, 54, 1),
       ],
     );
   }
@@ -94,8 +93,8 @@ void foo() {
 }
 ''',
       [
-        error(WarningCode.unusedElement, 20, 1),
-        error(CompileTimeErrorCode.invalidUseOfCovariant, 22, 9),
+        error(diag.unusedElement, 20, 1),
+        error(diag.invalidUseOfCovariant, 22, 9),
       ],
     );
   }
@@ -109,7 +108,7 @@ class C {
 ''',
       [
         // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
-        error(ParserErrorCode.extraneousModifier, 26, 9),
+        error(diag.extraneousModifier, 26, 9),
       ],
     );
   }
@@ -123,7 +122,7 @@ mixin M {
 ''',
       [
         // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
-        error(ParserErrorCode.extraneousModifier, 26, 9),
+        error(diag.extraneousModifier, 26, 9),
       ],
     );
   }
@@ -135,7 +134,7 @@ void f(covariant int x) {}
 ''',
       [
         // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
-        error(ParserErrorCode.extraneousModifier, 7, 9),
+        error(diag.extraneousModifier, 7, 9),
       ],
     );
   }

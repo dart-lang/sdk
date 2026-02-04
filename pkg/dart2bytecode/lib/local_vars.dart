@@ -175,6 +175,9 @@ class LocalVariables {
     _currentFrameInternal = _currentScopeInternal?.frame;
   }
 
+  bool get capturesOnlyFinalNotLateVars =>
+    _currentFrame.capturesOnlyFinalNotLateVars;
+
   void withTemp(TreeNode node, int temp, void action()) {
     final old = _temps![node];
     assert(old == null || old.length == 1);
@@ -202,6 +205,7 @@ class VarDesc {
   Frame get frame => scope.frame;
 
   bool get isAllocated => index != null;
+  bool get isFinalNotLate => declaration.isFinal && !declaration.isLate;
 
   void capture() {
     assert(!isAllocated);
@@ -243,6 +247,7 @@ class Frame {
   int frameSize = 0;
   List<int> temporaries = <int>[];
   int? contextLevelAtEntry;
+  bool capturesOnlyFinalNotLateVars = true;
 
   Frame(this.function, this.parent);
 
@@ -475,6 +480,9 @@ class _ScopeBuilder extends RecursiveVisitor {
     }
     if (v.frame != _currentFrame) {
       v.capture();
+      if (!v.isFinalNotLate) {
+        _currentFrame.capturesOnlyFinalNotLateVars = false;
+      }
     }
   }
 

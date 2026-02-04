@@ -18,10 +18,10 @@ class RemoveNonNullAssertion extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_NON_NULL_ASSERTION;
+  FixKind get fixKind => DartFixKind.removeNonNullAssertion;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REMOVE_NON_NULL_ASSERTION_MULTI;
+  FixKind get multiFixKind => DartFixKind.removeNonNullAssertionMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

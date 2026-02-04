@@ -711,7 +711,9 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   }
 }
 
-class DartTypeToTextVisitor implements DartTypeVisitor<void> {
+class DartTypeToTextVisitor
+    with DartTypeVisitorExperimentExclusionMixin<void>
+    implements DartTypeVisitor<void> {
   final StringBuffer sb;
   final TypeRepresentation typeRepresentation;
 

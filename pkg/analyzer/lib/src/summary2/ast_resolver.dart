@@ -20,7 +20,7 @@ import 'package:analyzer/src/summary2/link.dart';
 /// Used to resolve some AST nodes - variable initializers, and annotations.
 class AstResolver {
   final Linker _linker;
-  final LibraryFragmentImpl _unitElement;
+  final LibraryFragmentImpl _libraryFragment;
   final Scope _nameScope;
   final FeatureSet _featureSet;
   final DiagnosticListener _diagnosticListener =
@@ -29,7 +29,7 @@ class AstResolver {
   final InterfaceElementImpl? enclosingClassElement;
   final ExecutableElementImpl? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
-    unitElement: _unitElement,
+    libraryFragment: _libraryFragment,
     nameScope: _nameScope,
     diagnosticListener: _diagnosticListener,
     strictInference: analysisOptions.strictInference,
@@ -37,40 +37,40 @@ class AstResolver {
     dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
-    DiagnosticReporter(_diagnosticListener, _unitElement.source),
+    DiagnosticReporter(_diagnosticListener, _libraryFragment.source),
     nameScope: _nameScope,
   );
   late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
   late final _flowAnalysis = FlowAnalysisHelper(
     false,
     typeSystemOperations: TypeSystemOperations(
-      _unitElement.library.typeSystem,
+      _libraryFragment.library.typeSystem,
       strictCasts: analysisOptions.strictCasts,
     ),
     typeAnalyzerOptions: _typeAnalyzerOptions,
   );
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
-    _unitElement.library,
+    _libraryFragment.library,
     LibraryResolutionContext(),
-    _unitElement.source,
-    _unitElement.library.typeProvider,
+    _libraryFragment.source,
+    _libraryFragment.library.typeProvider,
     _diagnosticListener,
     featureSet: _featureSet,
     analysisOptions: analysisOptions,
     flowAnalysisHelper: _flowAnalysis,
-    libraryFragment: _unitElement,
+    libraryFragment: _libraryFragment,
     typeAnalyzerOptions: _typeAnalyzerOptions,
   );
 
   AstResolver(
     this._linker,
-    this._unitElement,
+    this._libraryFragment,
     this._nameScope,
     this.analysisOptions, {
     this.enclosingClassElement,
     this.enclosingExecutableElement,
-  }) : _featureSet = _unitElement.library.featureSet;
+  }) : _featureSet = _libraryFragment.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
     node.accept(_resolutionVisitor);
@@ -82,21 +82,21 @@ class AstResolver {
     _flowAnalysis.bodyOrInitializer_exit();
   }
 
-  void resolveConstructorNode(ConstructorDeclarationImpl node) {
+  void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
     // resolve initializers and/or a redirection.
-    void visit(AstVisitor<Object?> visitor) {
+    void accept(AstVisitor<Object?> visitor) {
       node.initializers.accept(visitor);
       node.redirectedConstructor?.accept(visitor);
     }
 
     _prepareEnclosingDeclarations();
-    visit(_resolutionVisitor);
-    visit(_scopeResolverVisitor);
+    accept(_resolutionVisitor);
+    accept(_scopeResolverVisitor);
 
-    _flowAnalysis.bodyOrInitializer_enter(node, node.parameters, visit: visit);
-    visit(_resolverVisitor);
+    _flowAnalysis.bodyOrInitializer_enter(node, node.parameters, visit: accept);
+    accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();
   }
@@ -114,6 +114,28 @@ class AstResolver {
     _flowAnalysis.bodyOrInitializer_enter(node.parent as AstNodeImpl, null);
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
+    _resolverVisitor.checkIdle();
+    _flowAnalysis.bodyOrInitializer_exit();
+  }
+
+  void resolvePrimaryConstructor(
+    PrimaryConstructorDeclarationImpl node,
+    PrimaryConstructorBodyImpl? body,
+  ) {
+    void accept(AstVisitor<Object?> visitor) {
+      body?.initializers.accept(visitor);
+    }
+
+    _prepareEnclosingDeclarations();
+    accept(_resolutionVisitor);
+    accept(_scopeResolverVisitor);
+
+    _flowAnalysis.bodyOrInitializer_enter(
+      node,
+      node.formalParameters,
+      visit: accept,
+    );
+    accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();
   }

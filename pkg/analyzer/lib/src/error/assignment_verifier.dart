@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Helper for verifying resolution of assignments, in form of explicit
 /// an [AssignmentExpression], or a [PrefixExpression] or [PostfixExpression]
@@ -25,8 +25,8 @@ class AssignmentVerifier {
   /// a good error about this.
   ///
   /// When the [receiverType] is not `null`, we report
-  /// [CompileTimeErrorCode.undefinedSetter] instead of a more generic
-  /// [CompileTimeErrorCode.undefinedIdentifier].
+  /// [diag.undefinedSetter] instead of a more generic
+  /// [diag.undefinedIdentifier].
   void verify({
     required SimpleIdentifier node,
     required Element? requested,
@@ -36,10 +36,7 @@ class AssignmentVerifier {
     if (requested != null) {
       if (requested is VariableElement) {
         if (requested.isConst) {
-          _diagnosticReporter.atNode(
-            node,
-            CompileTimeErrorCode.assignmentToConst,
-          );
+          _diagnosticReporter.report(diag.assignmentToConst.at(node));
         }
       }
       return;
@@ -49,20 +46,17 @@ class AssignmentVerifier {
         recovery is InterfaceElement ||
         recovery is TypeAliasElement ||
         recovery is TypeParameterElement) {
-      _diagnosticReporter.atNode(node, CompileTimeErrorCode.assignmentToType);
+      _diagnosticReporter.report(diag.assignmentToType.at(node));
     } else if (recovery is LocalFunctionElement ||
         recovery is TopLevelFunctionElement) {
-      _diagnosticReporter.atNode(
-        node,
-        CompileTimeErrorCode.assignmentToFunction,
-      );
+      _diagnosticReporter.report(diag.assignmentToFunction.at(node));
     } else if (recovery is MethodElement) {
-      _diagnosticReporter.atNode(node, CompileTimeErrorCode.assignmentToMethod);
+      _diagnosticReporter.report(diag.assignmentToMethod.at(node));
     } else if (recovery is PrefixElement) {
       if (recovery.name case var prefixName?) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.prefixIdentifierNotFollowedByDot,
+          diag.prefixIdentifierNotFollowedByDot,
           arguments: [prefixName],
         );
       }
@@ -74,21 +68,21 @@ class AssignmentVerifier {
       }
 
       if (variable.isConst) {
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.assignmentToConst,
-        );
-      } else if (variable is FieldElement && variable.isSynthetic) {
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.assignmentToFinalNoSetter,
-          arguments: [variableName, variable.enclosingElement.displayName],
+        _diagnosticReporter.report(diag.assignmentToConst.at(node));
+      } else if (variable is FieldElement && variable.isOriginGetterSetter) {
+        _diagnosticReporter.report(
+          diag.assignmentToFinalNoSetter
+              .withArguments(
+                variableName: variableName,
+                className: variable.enclosingElement.displayName,
+              )
+              .at(node),
         );
       } else {
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.assignmentToFinal,
-          arguments: [variableName],
+        _diagnosticReporter.report(
+          diag.assignmentToFinal
+              .withArguments(variableName: variableName)
+              .at(node),
         );
       }
     } else if (recovery is MultiplyDefinedElementImpl) {
@@ -100,13 +94,13 @@ class AssignmentVerifier {
       if (receiverType != null) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.undefinedSetter,
+          diag.undefinedSetter,
           arguments: [node.name, receiverType],
         );
       } else {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           arguments: [node.name],
         );
       }

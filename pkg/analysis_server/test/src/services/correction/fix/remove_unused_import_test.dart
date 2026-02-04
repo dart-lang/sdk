@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -85,7 +85,7 @@ void f() {}
 @reflectiveTest
 class RemoveUnusedImportMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT_MULTI;
+  FixKind get kind => DartFixKind.removeUnusedImportMulti;
 
   Future<void> test_all_diverseImports() async {
     await resolveTestCode('''
@@ -94,7 +94,7 @@ import 'dart:math';
 import 'dart:async';
 void f() {}
 ''');
-    await assertHasFixAllFix(WarningCode.unusedImport, '''
+    await assertHasFixAllFix(diag.unusedImport, '''
 void f() {}
 ''');
   }
@@ -109,7 +109,7 @@ var tau = math.pi * 2;
 
 void f() {}
 ''');
-    await assertHasFixAllFix(WarningCode.unusedImport, '''
+    await assertHasFixAllFix(diag.unusedImport, '''
 import 'dart:math' as math;
 
 var tau = math.pi * 2;
@@ -126,7 +126,7 @@ void f() {}
 import 'dart:math'; import 'dart:math'; import 'dart:math';
 void f() {}
 ''');
-    await assertHasFixAllFix(WarningCode.unusedImport, '''
+    await assertHasFixAllFix(diag.unusedImport, '''
 
 void f() {}
 ''');
@@ -137,7 +137,7 @@ void f() {}
 import 'dart:math'; import 'dart:math'; import 'dart:math';
 void f() {}
 ''');
-    await assertHasFixAllFix(WarningCode.unusedImport, '''
+    await assertHasFixAllFix(diag.unusedImport, '''
 import 'dart:math';
 void f() {}
 ''');
@@ -150,7 +150,7 @@ import 'dart:math';
 import 'dart:math';
 void f() {}
 ''');
-    await assertHasFixAllFix(WarningCode.unusedImport, '''
+    await assertHasFixAllFix(diag.unusedImport, '''
 void f() {}
 ''');
   }
@@ -159,7 +159,7 @@ void f() {}
 @reflectiveTest
 class RemoveUnusedImportTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT;
+  FixKind get kind => DartFixKind.removeUnusedImport;
 
   Future<void> test_anotherImportOnLine() async {
     await resolveTestCode('''
@@ -213,7 +213,7 @@ import 'dart:_internal';
 ''');
 
     await assertHasFix('''
-''', errorFilter: (e) => e.diagnosticCode == WarningCode.unusedImport);
+''', filter: (e) => e.diagnosticCode == diag.unusedImport);
   }
 
   Future<void> test_severalLines() async {

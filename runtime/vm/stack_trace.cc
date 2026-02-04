@@ -355,7 +355,7 @@ void AsyncAwareStackUnwinder::Unwind(
       // will handle successful completion. This function is not yet executing
       // so we have to use artificial marker offset (1).
 #if defined(DART_DYNAMIC_MODULES)
-      if (function_.HasBytecode()) {
+      if (function_.IsInterpreted()) {
         bytecode_ = function_.GetBytecode();
         code_ = Code::null();
         pc_offset = StackTraceUtils::kFutureListenerPcOffset;

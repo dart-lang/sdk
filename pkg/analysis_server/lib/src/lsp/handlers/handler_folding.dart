@@ -106,8 +106,8 @@ class FoldingHandler
     for (var i = 0; i < foldingRanges.length - 1; i++) {
       var range = foldingRanges[i];
       var next = foldingRanges[i + 1];
-      // If this item runs into the next but does not completely enclose it...
-      if (range.endLine >= next.startLine && range.endLine <= next.endLine) {
+      // If this item runs into the next but does not enclose it...
+      if (range.endLine >= next.startLine && range.endLine < next.endLine) {
         // Truncate it to end on the line before.
         var newEndLine = next.startLine - 1;
 

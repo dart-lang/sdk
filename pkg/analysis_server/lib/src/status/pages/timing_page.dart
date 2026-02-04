@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
@@ -12,6 +14,14 @@ import 'package:collection/collection.dart';
 class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
   TimingPage(DiagnosticsSite site)
     : super(site, 'timing', 'Timing', description: 'Timing statistics.');
+
+  @override
+  ContentType contentType(Map<String, String> params) {
+    if (params['asJson'] != null) {
+      return ContentType.json;
+    }
+    return super.contentType(params);
+  }
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
@@ -40,13 +50,33 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     }
   }
 
+  @override
+  Future<void> generatePage(Map<String, String> params) async {
+    if (params['asJson'] != null) {
+      var data = [];
+      // No added header etc.
+      for (var item in server.recentPerformance.requests.items.toList()) {
+        data.add({
+          'id': item.id,
+          'operation': item.operation,
+          'elapsedMs': item.performance.elapsed.inMilliseconds,
+          'latency': item.requestLatency,
+          'performance': item.performance.toJson(),
+        });
+      }
+      buf.write(json.encode(data));
+      return;
+    }
+    return await super.generatePage(params);
+  }
+
   void _emitTable(List<RequestPerformance> items) {
     buf.writeln('<table>');
     buf.writeln('<tr><th>Time</th><th>Request</th></tr>');
     for (var item in items) {
       buf.writeln(
         '<tr>'
-        '<td class="pre right"><a href="/timing?id=${item.id}">'
+        '<td class="pre right"><a href="timing?id=${item.id}">'
         '${formatLatencyTiming(item.performance.elapsed.inMilliseconds, item.requestLatency)}'
         '</a></td>'
         '<td>${escape(item.operation)}</td>'

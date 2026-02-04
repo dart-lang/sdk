@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ main() {
   C = null;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 22, 1)],
+      [error(diag.assignmentToType, 22, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ void f() {
   dynamic = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 13, 7)],
+      [error(diag.assignmentToType, 13, 7)],
     );
   }
 
@@ -46,7 +46,7 @@ main() {
   E = null;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 24, 1)],
+      [error(diag.assignmentToType, 24, 1)],
     );
   }
 
@@ -58,7 +58,7 @@ main() {
   F = null;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 29, 1)],
+      [error(diag.assignmentToType, 29, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ void f() {
   F = null;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 37, 1)],
+      [error(diag.assignmentToType, 37, 1)],
     );
   }
 
@@ -84,7 +84,7 @@ class C<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToType, 25, 1)],
+      [error(diag.assignmentToType, 25, 1)],
     );
   }
 }

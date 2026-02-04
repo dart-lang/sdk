@@ -159,6 +159,21 @@ suggestions
 ''');
   }
 
+  Future<void> test_privateNamed() async {
+    await _checkContainers(
+      declarations: 'int? _foo;',
+      constructorParameters: '{this.^}',
+      validator: () {
+        assertResponse(r'''
+suggestions
+  _foo
+    kind: field
+    returnType: int?
+''');
+      },
+    );
+  }
+
   Future<void> test_requiredNamed_keywordName_in() async {
     allowedIdentifiers = {'in01', 'out01'};
     await computeSuggestions('''

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -16,19 +16,19 @@ class IndexStatementTest extends PartialCodeTest {
       'index_assignment',
       [
         TestDescriptor('missing_index_no_space', 'intList[] = 0;', [
-          ParserErrorCode.missingIdentifier,
+          diag.missingIdentifier,
         ], 'intList[_s_] = 0;'),
         TestDescriptor('missing_index_with_space', 'intList[ ] = 0;', [
-          ParserErrorCode.missingIdentifier,
+          diag.missingIdentifier,
         ], 'intList[_s_] = 0;'),
         TestDescriptor('trailing_comma', 'intList[x,] = 0;', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], 'intList[x] = 0;'),
         TestDescriptor('trailing_comma_and_identifier', 'intList[x,y] = 0;', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], 'intList[x] = 0;'),
         TestDescriptor('trailing_identifier_no_comma', 'intList[x y] = 0;', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], 'intList[x] = 0;'),
       ],
       [], //PartialCodeTest.statementSuffixes,
@@ -42,10 +42,10 @@ class IndexStatementTest extends PartialCodeTest {
           'open',
           'intList[',
           [
-            ParserErrorCode.missingIdentifier,
-            ScannerErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
+            diag.expectedToken,
+            diag.expectedToken,
           ],
           'intList[_s_];',
           failing: [
@@ -62,11 +62,7 @@ class IndexStatementTest extends PartialCodeTest {
         TestDescriptor(
           'identifier',
           'intList[x',
-          [
-            ScannerErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.expectedToken, diag.expectedToken, diag.expectedToken],
           'intList[x];',
           failing: ['eof'],
         ),

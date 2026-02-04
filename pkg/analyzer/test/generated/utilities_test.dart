@@ -73,18 +73,30 @@ class LineInfoTest {
   }
 
   void test_fromContent_n() {
-    var lineInfo = LineInfo.fromContent('a\nbb\nccc');
+    var content = 'a\nbb\nccc';
+    var lineInfo = LineInfo.fromContent(content);
     expect(lineInfo.lineStarts, <int>[0, 2, 5]);
+    expect(LineInfo.getOffsetForLine(0, content), 0);
+    expect(LineInfo.getOffsetForLine(1, content), 2);
+    expect(LineInfo.getOffsetForLine(2, content), 5);
   }
 
   void test_fromContent_r() {
-    var lineInfo = LineInfo.fromContent('a\rbb\rccc');
+    var content = 'a\rbb\rccc';
+    var lineInfo = LineInfo.fromContent(content);
     expect(lineInfo.lineStarts, <int>[0, 2, 5]);
+    expect(LineInfo.getOffsetForLine(0, content), 0);
+    expect(LineInfo.getOffsetForLine(1, content), 2);
+    expect(LineInfo.getOffsetForLine(2, content), 5);
   }
 
   void test_fromContent_rn() {
-    var lineInfo = LineInfo.fromContent('a\r\nbb\r\nccc');
+    var content = 'a\r\nbb\r\nccc';
+    var lineInfo = LineInfo.fromContent(content);
     expect(lineInfo.lineStarts, <int>[0, 3, 7]);
+    expect(LineInfo.getOffsetForLine(0, content), 0);
+    expect(LineInfo.getOffsetForLine(1, content), 3);
+    expect(LineInfo.getOffsetForLine(2, content), 7);
   }
 
   void test_getLocation_firstLine() {
@@ -106,6 +118,13 @@ class LineInfoTest {
     var location = info.getLocation(12);
     expect(location.lineNumber, 2);
     expect(location.columnNumber, 1);
+  }
+
+  void test_getOffsetForLine_outside_range() {
+    var content = 'a\r\nbb\r\nccc';
+    expect(LineInfo.getOffsetForLine(-1, content), null);
+    expect(LineInfo.getOffsetForLine(3, content), null);
+    expect(LineInfo.getOffsetForLine(4, content), null);
   }
 
   void test_getOffsetOfLine() {
@@ -453,11 +472,7 @@ class B {
     _assertReplacementForChildren<ConstructorDeclaration>(
       destination: findNode.constructor('A.named'),
       source: findNode.constructor('B.named'),
-      childAccessors: [
-        (node) => node.body,
-        (node) => node.parameters,
-        (node) => node.returnType,
-      ],
+      childAccessors: [(node) => node.body, (node) => node.parameters],
     );
     _assertAnnotatedNode(findNode.constructor('A.named'));
   }
@@ -558,6 +573,30 @@ void f({int a = 0, double b = 1}) {}
     );
   }
 
+  void test_enumBody_constants() {
+    var findNode = _parseStringToFindNode(r'''
+enum E1 {one}
+enum E2 {two}
+''');
+    _assertReplaceInList(
+      destination: findNode.enumDeclaration('enum E1').body,
+      child: findNode.enumConstantDeclaration('one'),
+      replacement: findNode.enumConstantDeclaration('two'),
+    );
+  }
+
+  void test_enumBody_members() {
+    var findNode = _parseStringToFindNode(r'''
+enum E1 {one; void foo() {}}
+enum E2 {two; void bar() {}}
+''');
+    _assertReplaceInList(
+      destination: findNode.enumDeclaration('enum E1').body,
+      child: findNode.methodDeclaration('foo'),
+      replacement: findNode.methodDeclaration('bar'),
+    );
+  }
+
   void test_enumConstantDeclaration() {
     var findNode = _parseStringToFindNode(r'''
 enum E {
@@ -579,34 +618,9 @@ enum E2<U> with M2 implements I2 {one, two}
       destination: findNode.enumDeclaration('enum E1'),
       source: findNode.enumDeclaration('enum E2'),
       childAccessors: [
-        (node) => node.typeParameters!,
         (node) => node.withClause!,
         (node) => node.implementsClause!,
       ],
-    );
-  }
-
-  void test_enumDeclaration_constants() {
-    var findNode = _parseStringToFindNode(r'''
-enum E1 {one}
-enum E2 {two}
-''');
-    _assertReplaceInList(
-      destination: findNode.enumDeclaration('enum E1'),
-      child: findNode.enumConstantDeclaration('one'),
-      replacement: findNode.enumConstantDeclaration('two'),
-    );
-  }
-
-  void test_enumDeclaration_members() {
-    var findNode = _parseStringToFindNode(r'''
-enum E1 {one; void foo() {}}
-enum E2 {two; void bar() {}}
-''');
-    _assertReplaceInList(
-      destination: findNode.enumDeclaration('enum E1'),
-      child: findNode.methodDeclaration('foo'),
-      replacement: findNode.methodDeclaration('bar'),
     );
   }
 

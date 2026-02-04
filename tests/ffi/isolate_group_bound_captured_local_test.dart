@@ -9,9 +9,6 @@
 
 import 'dart:async';
 import 'dart:ffi';
-import 'dart:isolate';
-
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
@@ -19,8 +16,10 @@ import "package:expect/expect.dart";
 typedef CallbackNativeType = Void Function(Int64, Int32);
 
 Future<void> testCapturedLocalVarNoDecoration() async {
+  // ignore: unused_local_variable
   int foo_result = 42;
   Expect.throws(() {
+    // ignore: unused_local_variable
     final callback = NativeCallable<CallbackNativeType>.isolateGroupBound((
       int a,
       int b,
@@ -32,14 +31,16 @@ Future<void> testCapturedLocalVarNoDecoration() async {
 
 Future<void> testCapturedLocalVarPragmaVmShared() async {
   @pragma('vm:shared')
+  // ignore: unused_local_variable
   int foo_result = 42;
-  final callback = NativeCallable<CallbackNativeType>.isolateGroupBound((
-    int a,
-    int b,
-  ) {
-    foo_result += (a * b);
-  });
-  callback.close();
+  Expect.throws(() {
+    final callback = NativeCallable<CallbackNativeType>.isolateGroupBound((
+      int a,
+      int b,
+    ) {
+      foo_result += (a * b);
+    });
+  }, (e) => e.toString().contains("Only final not-late variables can be"));
 }
 
 Future<void> testCapturedLocalVarFinal() async {

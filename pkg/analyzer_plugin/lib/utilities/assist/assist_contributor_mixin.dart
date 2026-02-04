@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 ///
 /// Clients may not extend or implement this class, but are allowed to use it as
 /// a mix-in when creating a subclass of [AssistContributor].
-abstract class AssistContributorMixin implements AssistContributor {
+mixin AssistContributorMixin on AssistContributor {
   /// The collector to which assists should be added.
   AssistCollector get collector;
 

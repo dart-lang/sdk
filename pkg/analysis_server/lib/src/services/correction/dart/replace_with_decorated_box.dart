@@ -10,7 +10,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:linter/src/lint_codes.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 
 class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
   ReplaceWithDecoratedBox({required super.context});
@@ -20,10 +20,10 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_DECORATED_BOX;
+  FixKind get fixKind => DartFixKind.replaceWithDecoratedBox;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_DECORATED_BOX_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithDecoratedBoxMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -118,7 +118,7 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
     return unitResult.diagnostics.any((d) {
       var diagnosticCode = d.diagnosticCode;
       return diagnosticCode.type == DiagnosticType.LINT &&
-          diagnosticCode == LinterLintCode.useDecoratedBox &&
+          diagnosticCode == diag.useDecoratedBox &&
           d.offset == constructorName.offset &&
           d.length == constructorName.length;
     });

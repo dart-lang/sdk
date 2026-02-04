@@ -36,7 +36,7 @@ const b = 1;
 @reflectiveTest
 class ReplaceFinalWithConstTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_FINAL_WITH_CONST;
+  FixKind get kind => DartFixKind.replaceFinalWithConst;
 
   @override
   String get lintCode => LintNames.prefer_const_declarations;

@@ -32,6 +32,25 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   final allowOverlappingHandlersDefault =
       MessageScheduler.allowOverlappingHandlers;
 
+  var isAnalysisOptionsSelector = TypeMatcher<TextDocumentFilterScheme>()
+      .having(
+        (selector) => selector.pattern,
+        'pattern',
+        '**/analysis_options.yaml',
+      );
+
+  var isDartSelector = TypeMatcher<TextDocumentFilterScheme>().having(
+    (selector) => selector.language,
+    'language',
+    'dart',
+  );
+
+  var isPubspecSelector = TypeMatcher<TextDocumentFilterScheme>().having(
+    (selector) => selector.pattern,
+    'pattern',
+    '**/pubspec.yaml',
+  );
+
   /// Waits for any in-progress analysis context rebuild.
   ///
   /// Pumps the event queue before and after, to ensure any server code that
@@ -201,7 +220,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await monitorDynamicReregistration(registrations, () async {
       var plugin = configureTestPlugin();
       plugin.currentSession = PluginSession(plugin)
-        ..interestingFiles = ['*.dart'];
+        ..interestingFileGlobs = ['*.dart'];
       pluginManager.pluginsChangedController.add(null);
     });
 
@@ -289,7 +308,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       plugin.currentSession = PluginSession(plugin);
       // Ensure they have different file types so the registrations change,
       // otherwise they will be optimised out as not changing.
-      plugin.currentSession!.interestingFiles = ['*.foo$i'];
+      plugin.currentSession!.interestingFileGlobs = ['*.foo$i'];
       pluginManager.pluginsChangedController.add(null);
       await null; // Allow the server to begin processing the change.
     }
@@ -416,13 +435,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
     // Support file operations.
     setFileOperationDynamicRegistration();
-    // Support dynamic registration for both text sync + hovers.
+    // Support dynamic registration for text sync, hovers, and code actions.
     setTextSyncDynamicRegistration();
     setHoverDynamicRegistration();
+    setTextDocumentDynamicRegistration('codeAction');
 
     // Basic check that the server responds with the capabilities we'd expect,
-    // for ex including analysis_options.yaml in text synchronization but not
-    // for hovers.
+    // for ex including analysis_options.yaml in text synchronization (and code
+    // actions) but not for hovers.
     var registrations = <Registration>[];
     var initResponse = await monitorDynamicRegistrations(
       registrations,
@@ -440,8 +460,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities, isNotNull);
     expect(initResult.capabilities.textDocumentSync, isNull);
 
-    // Should contain Hover, DidOpen, DidClose, DidChange, WillRenameFiles.
-    expect(registrations, hasLength(5));
+    // Should contain Hover, DidOpen, DidClose, DidChange, CodeAction,
+    // WillRenameFiles.
+    expect(registrations, hasLength(6));
     var hover = registrationOptionsFor(
       registrations,
       Method.textDocument_hover,
@@ -449,6 +470,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     var change = registrationOptionsFor(
       registrations,
       Method.textDocument_didChange,
+    );
+    var codeAction = registrationOptionsFor(
+      registrations,
+      Method.textDocument_codeAction,
     );
     var rename = FileOperationRegistrationOptions.fromJson(
       registrationFor(
@@ -469,21 +494,30 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // The hover capability should only specific Dart.
     expect(hover, isNotNull);
     expect(hover.documentSelector, hasLength(1));
-    expect(hover.documentSelector!.single.language, equals('dart'));
+    expect(hover.documentSelector!.single, isDartSelector);
 
     // didChange should also include pubspec + analysis_options.
     expect(change, isNotNull);
     expect(change.documentSelector, hasLength(greaterThanOrEqualTo(3)));
-    expect(change.documentSelector!.any((ds) => ds.language == 'dart'), isTrue);
     expect(
-      change.documentSelector!.any((ds) => ds.pattern == '**/pubspec.yaml'),
-      isTrue,
+      change.documentSelector,
+      containsAll([
+        isDartSelector,
+        isPubspecSelector,
+        isAnalysisOptionsSelector,
+      ]),
     );
+
+    // codeAction should also include pubspec + analysis_options.
+    expect(codeAction, isNotNull);
+    expect(codeAction.documentSelector, hasLength(greaterThanOrEqualTo(3)));
     expect(
-      change.documentSelector!.any(
-        (ds) => ds.pattern == '**/analysis_options.yaml',
-      ),
-      isTrue,
+      change.documentSelector,
+      containsAll([
+        isDartSelector,
+        isPubspecSelector,
+        isAnalysisOptionsSelector,
+      ]),
     );
 
     expect(rename, equals(fileOperationRegistrationOptions));
@@ -620,7 +654,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       () {
         var plugin = configureTestPlugin();
         plugin.currentSession = PluginSession(plugin)
-          ..interestingFiles = ['*.foo'];
+          ..interestingFileGlobs = ['*.foo'];
         pluginManager.pluginsChangedController.add(null);
       },
     );
@@ -662,7 +696,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     var request = await expectRequest(Method.client_registerCapability, () {
       var plugin = configureTestPlugin();
       plugin.currentSession = PluginSession(plugin)
-        ..interestingFiles = ['*.sql'];
+        ..interestingFileGlobs = ['*.sql'];
       pluginManager.pluginsChangedController.add(null);
     });
 
@@ -999,7 +1033,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.error, isNotNull);
     expect(
       response.error!.code,
-      equals(ServerErrorCodes.ServerAlreadyInitialized),
+      equals(ServerErrorCodes.serverAlreadyInitialized),
     );
   }
 
@@ -1111,14 +1145,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await expectInvalidExperimentalParams({
       'snippetTextEdit': 1,
     }, 'ClientCapabilities.experimental.snippetTextEdit must be a bool?');
-  }
-
-  Future<void>
-  test_invalidExperimental_supportsDartTextDocumentContentProvider() async {
-    await expectInvalidExperimentalParams(
-      {'supportsDartTextDocumentContentProvider': 1},
-      'ClientCapabilities.experimental.supportsDartTextDocumentContentProvider must be a bool?',
-    );
   }
 
   Future<void> test_nonFileScheme_rootUri() async {

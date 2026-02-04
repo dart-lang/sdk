@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -21,7 +21,7 @@ part 'a.dart';
 export 'b.dart';
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.exportDirectiveAfterPartDirective, 15, 6),
+      error(diag.exportDirectiveAfterPartDirective, 15, 6),
     ]);
 
     var node = parseResult.findNode.singleExportDirective;
@@ -106,9 +106,7 @@ ExportDirective
 part of 'a.dart';
 export 'b.dart';
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.nonPartOfDirectiveInPart, 33, 6),
-    ]);
+    parseResult.assertErrors([error(diag.nonPartOfDirectiveInPart, 33, 6)]);
 
     var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
@@ -126,9 +124,7 @@ ExportDirective
 export 'b.dart';
 part of 'a.dart';
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.nonPartOfDirectiveInPart, 32, 4),
-    ]);
+    parseResult.assertErrors([error(diag.nonPartOfDirectiveInPart, 32, 4)]);
 
     var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
@@ -144,7 +140,7 @@ ExportDirective
     var parseResult = parseStringWithErrors(r'''
 export 'a.dart'
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 7, 8)]);
+    parseResult.assertErrors([error(diag.expectedToken, 7, 8)]);
 
     var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
@@ -160,9 +156,7 @@ ExportDirective
     var parseResult = parseStringWithErrors(r'''
 export ;
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.expectedStringLiteral, 7, 1),
-    ]);
+    parseResult.assertErrors([error(diag.expectedStringLiteral, 7, 1)]);
 
     var node = parseResult.findNode.singleExportDirective;
     assertParsedNodeText(node, r'''
@@ -179,8 +173,8 @@ ExportDirective
 export
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.expectedToken, 0, 6),
-      error(ParserErrorCode.expectedStringLiteral, 7, 0),
+      error(diag.expectedToken, 0, 6),
+      error(diag.expectedStringLiteral, 7, 0),
     ]);
 
     var node = parseResult.findNode.singleExportDirective;

@@ -9,7 +9,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -60,7 +60,7 @@ mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
   /// A method that can be used as an error filter to ignore any unused_import
   /// diagnostics.
   bool ignoreUnusedImport(Diagnostic diagnostic) =>
-      diagnostic.diagnosticCode != WarningCode.unusedImport;
+      diagnostic.diagnosticCode != diag.unusedImport;
 
   /// Sets the content of the library that defines the element referenced by the
   /// data on which this test is based.

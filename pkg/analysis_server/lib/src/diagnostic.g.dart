@@ -1,0 +1,426 @@
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Instead modify 'pkg/analyzer/messages.yaml' and run
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+
+// Code generation is easier using double quotes (since we can use json.convert
+// to quote strings).
+// ignore_for_file: prefer_single_quotes
+
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
+
+part of "package:analysis_server/src/diagnostic.dart";
+
+/// Parameters:
+/// Object p0: the conflicting key
+/// Object p1: the key that it conflicts with
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0, required Object p1})
+>
+conflictingKey = DiagnosticWithArguments(
+  name: 'conflicting_key',
+  problemMessage: "The key '{0}' can't be used when '{1}' is also used.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'conflicting_key',
+  withArguments: _withArgumentsConflictingKey,
+  expectedTypes: [ExpectedType.object, ExpectedType.object],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments expectedPrimary =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'expected_primary',
+      problemMessage: "Expected either an identifier or a string literal.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'expected_primary',
+      expectedTypes: [],
+    );
+
+/// Parameters:
+/// Object p0: the old kind
+/// Object p1: the new kind
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0, required Object p1})
+>
+incompatibleElementKind = DiagnosticWithArguments(
+  name: 'incompatible_element_kind',
+  problemMessage:
+      "An element of kind '{0}' can't be replaced by an element of kind '{1}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'incompatible_element_kind',
+  withArguments: _withArgumentsIncompatibleElementKind,
+  expectedTypes: [ExpectedType.object, ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: the change kind that is invalid
+/// Object p1: the element kind for the transform
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0, required Object p1})
+>
+invalidChangeForKind = DiagnosticWithArguments(
+  name: 'invalid_change_for_kind',
+  problemMessage:
+      "A change of type '{0}' can't be used for an element of kind '{1}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'invalid_change_for_kind',
+  withArguments: _withArgumentsInvalidChangeForKind,
+  expectedTypes: [ExpectedType.object, ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: the character that is invalid
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+invalidCharacter = DiagnosticWithArguments(
+  name: 'invalid_character',
+  problemMessage: "Invalid character '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'invalid_character',
+  withArguments: _withArgumentsInvalidCharacter,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: the actual type of the key
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+invalidKey = DiagnosticWithArguments(
+  name: 'invalid_key',
+  problemMessage: "Keys must be of type 'String' but found the type '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'invalid_key',
+  withArguments: _withArgumentsInvalidKey,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: the list of valid parameter styles
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+invalidParameterStyle = DiagnosticWithArguments(
+  name: 'invalid_parameter_style',
+  problemMessage: "The parameter style must be one of the following: {0}.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'invalid_parameter_style',
+  withArguments: _withArgumentsInvalidParameterStyle,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments
+invalidRequiredIf = DiagnosticWithoutArgumentsImpl(
+  name: 'invalid_required_if',
+  problemMessage:
+      "The key 'requiredIf' can only be used with optional named parameters.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'invalid_required_if',
+  expectedTypes: [],
+);
+
+/// Parameters:
+/// Object p0: the key with which the value is associated
+/// Object p1: the expected type of the value
+/// Object p2: the actual type of the value
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required Object p0,
+    required Object p1,
+    required Object p2,
+  })
+>
+invalidValue = DiagnosticWithArguments(
+  name: 'invalid_value',
+  problemMessage:
+      "The value of '{0}' should be of type '{1}' but is of type '{2}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'invalid_value',
+  withArguments: _withArgumentsInvalidValue,
+  expectedTypes: [
+    ExpectedType.object,
+    ExpectedType.object,
+    ExpectedType.object,
+  ],
+);
+
+/// Parameters:
+/// Object p0: the key with which the value is associated
+/// Object p1: the allowed values as a comma-separated list
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0, required Object p1})
+>
+invalidValueOneOf = DiagnosticWithArguments(
+  name: 'invalid_value_one_of',
+  problemMessage: "The value of '{0}' must be one of the following: '{1}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'invalid_value_one_of',
+  withArguments: _withArgumentsInvalidValueOneOf,
+  expectedTypes: [ExpectedType.object, ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: the missing key
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+missingKey = DiagnosticWithArguments(
+  name: 'missing_key',
+  problemMessage: "Missing the required key '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'missing_key',
+  withArguments: _withArgumentsMissingKey,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: the list of valid keys
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+missingOneOfMultipleKeys = DiagnosticWithArguments(
+  name: 'missing_one_of_multiple_keys',
+  problemMessage: "Exactly one of the following keys must be provided: {0}.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'missing_one_of_multiple_keys',
+  withArguments: _withArgumentsMissingOneOfMultipleKeys,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments missingTemplateEnd =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'missing_template_end',
+      problemMessage: "Missing the end brace for the template.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'missing_template_end',
+      expectedTypes: [],
+    );
+
+/// Parameters:
+/// Object p0: a description of the expected kinds of tokens
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+missingToken = DiagnosticWithArguments(
+  name: 'missing_token',
+  problemMessage: "Expected to find {0}.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'missing_token',
+  withArguments: _withArgumentsMissingToken,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments missingUri = DiagnosticWithoutArgumentsImpl(
+  name: 'missing_uri',
+  problemMessage: "At least one URI must be provided.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'missing_uri',
+  expectedTypes: [],
+);
+
+/// Parameters:
+/// Object p0: the missing key
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+undefinedVariable = DiagnosticWithArguments(
+  name: 'undefined_variable',
+  problemMessage: "The variable '{0}' isn't defined.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_variable',
+  withArguments: _withArgumentsUndefinedVariable,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: the token that was unexpectedly found
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+unexpectedTransformSetToken = DiagnosticWithArguments(
+  name: 'unexpected_transform_set_token',
+  problemMessage: "Didn't expect to find {0}.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'unexpected_transform_set_token',
+  withArguments: _withArgumentsUnexpectedTransformSetToken,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: a description of the expected kind of token
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+unknownAccessor = DiagnosticWithArguments(
+  name: 'unknown_accessor',
+  problemMessage: "The accessor '{0}' is invalid.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'unknown_accessor',
+  withArguments: _withArgumentsUnknownAccessor,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: the unsupported key
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+unsupportedKey = DiagnosticWithArguments(
+  name: 'unsupported_key',
+  problemMessage: "The key '{0}' isn't supported.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'unsupported_key',
+  withArguments: _withArgumentsUnsupportedKey,
+  expectedTypes: [ExpectedType.object],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments unsupportedStatic =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'unsupported_static',
+      problemMessage:
+          "The key 'static' is only supported for elements in a class, enum, "
+          "extension, or mixin.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'unsupported_static',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const DiagnosticWithoutArguments unsupportedVersion =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'unsupported_version',
+      problemMessage: "Only version '1' is supported at this time.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'unsupported_version',
+      expectedTypes: [],
+    );
+
+/// Parameters:
+/// Object p0: a description of the expected kind of token
+/// Object p1: a description of the actual kind of token
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0, required Object p1})
+>
+wrongToken = DiagnosticWithArguments(
+  name: 'wrong_token',
+  problemMessage: "Expected to find {0}, but found {1}.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'wrong_token',
+  withArguments: _withArgumentsWrongToken,
+  expectedTypes: [ExpectedType.object, ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: the message produced by the YAML parser
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0})
+>
+yamlSyntaxError = DiagnosticWithArguments(
+  name: 'yaml_syntax_error',
+  problemMessage: "Parse error: {0}",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'yaml_syntax_error',
+  withArguments: _withArgumentsYamlSyntaxError,
+  expectedTypes: [ExpectedType.object],
+);
+
+LocatableDiagnostic _withArgumentsConflictingKey({
+  required Object p0,
+  required Object p1,
+}) {
+  return LocatableDiagnosticImpl(diag.conflictingKey, [p0, p1]);
+}
+
+LocatableDiagnostic _withArgumentsIncompatibleElementKind({
+  required Object p0,
+  required Object p1,
+}) {
+  return LocatableDiagnosticImpl(diag.incompatibleElementKind, [p0, p1]);
+}
+
+LocatableDiagnostic _withArgumentsInvalidChangeForKind({
+  required Object p0,
+  required Object p1,
+}) {
+  return LocatableDiagnosticImpl(diag.invalidChangeForKind, [p0, p1]);
+}
+
+LocatableDiagnostic _withArgumentsInvalidCharacter({required Object p0}) {
+  return LocatableDiagnosticImpl(diag.invalidCharacter, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsInvalidKey({required Object p0}) {
+  return LocatableDiagnosticImpl(diag.invalidKey, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsInvalidParameterStyle({required Object p0}) {
+  return LocatableDiagnosticImpl(diag.invalidParameterStyle, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsInvalidValue({
+  required Object p0,
+  required Object p1,
+  required Object p2,
+}) {
+  return LocatableDiagnosticImpl(diag.invalidValue, [p0, p1, p2]);
+}
+
+LocatableDiagnostic _withArgumentsInvalidValueOneOf({
+  required Object p0,
+  required Object p1,
+}) {
+  return LocatableDiagnosticImpl(diag.invalidValueOneOf, [p0, p1]);
+}
+
+LocatableDiagnostic _withArgumentsMissingKey({required Object p0}) {
+  return LocatableDiagnosticImpl(diag.missingKey, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsMissingOneOfMultipleKeys({
+  required Object p0,
+}) {
+  return LocatableDiagnosticImpl(diag.missingOneOfMultipleKeys, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsMissingToken({required Object p0}) {
+  return LocatableDiagnosticImpl(diag.missingToken, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedVariable({required Object p0}) {
+  return LocatableDiagnosticImpl(diag.undefinedVariable, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsUnexpectedTransformSetToken({
+  required Object p0,
+}) {
+  return LocatableDiagnosticImpl(diag.unexpectedTransformSetToken, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsUnknownAccessor({required Object p0}) {
+  return LocatableDiagnosticImpl(diag.unknownAccessor, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsUnsupportedKey({required Object p0}) {
+  return LocatableDiagnosticImpl(diag.unsupportedKey, [p0]);
+}
+
+LocatableDiagnostic _withArgumentsWrongToken({
+  required Object p0,
+  required Object p1,
+}) {
+  return LocatableDiagnosticImpl(diag.wrongToken, [p0, p1]);
+}
+
+LocatableDiagnostic _withArgumentsYamlSyntaxError({required Object p0}) {
+  return LocatableDiagnosticImpl(diag.yamlSyntaxError, [p0]);
+}

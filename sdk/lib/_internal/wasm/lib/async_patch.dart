@@ -77,11 +77,6 @@ class _AsyncSuspendState {
   void _completeError(Object error, StackTrace stackTrace) {
     _future._asyncCompleteError(error, stackTrace);
   }
-
-  @pragma("wasm:entry-point")
-  void _completeErrorWithCurrentStack(Object error) {
-    _future._asyncCompleteError(error, StackTrace.current);
-  }
 }
 
 // Note: [_AsyncCompleter] is taken as an argument to be able to pass the type

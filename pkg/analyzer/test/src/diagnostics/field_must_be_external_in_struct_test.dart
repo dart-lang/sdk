@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ final class A extends Struct {
   int a;
 }
 ''',
-      [error(FfiCode.fieldMustBeExternalInStruct, 68, 1)],
+      [error(diag.fieldMustBeExternalInStruct, 68, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ final class A extends Union {
   int a;
 }
 ''',
-      [error(FfiCode.fieldMustBeExternalInStruct, 67, 1)],
+      [error(diag.fieldMustBeExternalInStruct, 67, 1)],
     );
   }
 }

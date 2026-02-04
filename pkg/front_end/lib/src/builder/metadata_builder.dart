@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 
+import '../api_prototype/experimental_flags.dart';
 import '../base/extension_scope.dart';
 import '../base/loader.dart';
 import '../base/scope.dart' show LookupScope;
@@ -99,6 +100,7 @@ class MetadataBuilder {
             libraryBuilder.importUri,
             annotationBuilder.fileUri,
             scope,
+            libraryBuilder.libraryFeatures,
           );
           if (delaySharedExpressionLookupForTesting) {
             annotationBuilder._unresolvedSharedExpressionForTesting =
@@ -108,6 +110,7 @@ class MetadataBuilder {
                   libraryBuilder.importUri,
                   annotationBuilder.fileUri,
                   scope,
+                  libraryBuilder.libraryFeatures,
                   delayLookupForTesting: true,
                 );
           }
@@ -172,7 +175,8 @@ shared.Expression _parseSharedExpression(
   Token atToken,
   Uri importUri,
   Uri fileUri,
-  LookupScope scope, {
+  LookupScope scope,
+  LibraryFeatures libraryFeatures, {
   bool delayLookupForTesting = false,
 }) {
   return parseAnnotation(
@@ -181,6 +185,7 @@ shared.Expression _parseSharedExpression(
     importUri,
     fileUri,
     scope,
+    libraryFeatures,
     delayLookupForTesting: delayLookupForTesting,
   );
 }

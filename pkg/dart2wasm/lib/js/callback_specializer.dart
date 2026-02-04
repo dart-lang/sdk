@@ -234,10 +234,10 @@ class CallbackSpecializer {
     String argumentsLength =
         captureThis ? 'arguments.length + 1' : 'arguments.length';
     String dartArguments = 'f,$argumentsLength';
-    String jsMethodParams = 'f';
+    String jsMethodParams = '(module,f)';
     if (needsCastClosure) {
       dartArguments = '$dartArguments,castClosure';
-      jsMethodParams = '($jsMethodParams,castClosure)';
+      jsMethodParams = '(module,f,castClosure)';
     }
     if (captureThis) dartArguments = '$dartArguments,this';
     if (jsParameters.isNotEmpty) {
@@ -251,6 +251,9 @@ class CallbackSpecializer {
         'dart2wasm.$jsMethodName',
         FunctionNode(null,
             positionalParameters: [
+              VariableDeclaration('thisModule',
+                  type: _util.nonNullableWasmExternRefType,
+                  isSynthesized: true),
               VariableDeclaration('dartFunction',
                   type: _util.nonNullableWasmExternRefType,
                   isSynthesized: true),
@@ -271,69 +274,10 @@ class CallbackSpecializer {
         dartProcedure,
         jsMethodName,
         "$jsMethodParams => finalizeWrapper(f, function($jsWrapperParams) {"
-        " return dartInstance.exports.${functionTrampoline.name.text}($dartArguments) "
+        " return module.exports.${functionTrampoline.name.text}($dartArguments) "
         "})");
 
     return (dartProcedure, functionTrampoline);
-  }
-
-  /// Lowers an invocation of `allowInterop<type>(foo)` to:
-  ///
-  ///     let #var = foo in
-  ///       _isDartFunctionWrapped<type>(#var) ?
-  ///         #var :
-  ///         _wrapDartFunction<type>(#var, jsWrapperFunction(#var));
-  ///
-  /// The use of two functions here is necessary because we do not allow
-  /// `WasmExternRef` to be an argument or return type for a tear off.
-  ///
-  /// Note: _wrapDartFunction tracks wrapped Dart functions in a map.  When
-  /// these Dart functions flow to JS, they are replaced by their wrappers.  If
-  /// the wrapper should ever flow back into Dart then it will be replaced by
-  /// the original Dart function.
-  // TODO(srujzs): It looks like there's no more code that references this
-  // function anymore in dart2wasm. Should we delete this lowering and related
-  // code?
-  Expression allowInterop(StaticInvocation staticInvocation) {
-    final argument = staticInvocation.arguments.positional.single;
-    final type = argument.getStaticType(_staticTypeContext) as FunctionType;
-    final (jsWrapperFunction, exportedFunction) = _getJSWrapperFunction(
-        staticInvocation.target, type,
-        boxExternRef: false, needsCastClosure: false, captureThis: false);
-    final v = VariableDeclaration('#var',
-        initializer: argument, type: type, isSynthesized: true);
-    return Let(
-        v,
-        ConditionalExpression(
-            StaticInvocation(_util.isDartFunctionWrappedTarget,
-                Arguments([VariableGet(v)], types: [type])),
-            VariableGet(v),
-            StaticInvocation(
-                _util.wrapDartFunctionTarget,
-                Arguments([
-                  VariableGet(v),
-                  BlockExpression(
-                      Block([
-                        // This ensures TFA will retain the function which the
-                        // JS code will call. The backend in return will export
-                        // the function due to `@pragma('wasm:weak-export', ...)`
-                        ExpressionStatement(StaticInvocation(
-                            _util.exportWasmFunctionTarget,
-                            Arguments([
-                              ConstantExpression(
-                                  StaticTearOffConstant(exportedFunction))
-                            ])))
-                      ]),
-                      StaticInvocation(
-                          jsWrapperFunction,
-                          Arguments([
-                            StaticInvocation(_util.jsObjectFromDartObjectTarget,
-                                Arguments([VariableGet(v)]))
-                          ]))),
-                ], types: [
-                  type
-                ])),
-            type));
   }
 
   Expression _createJSValue(Expression value) =>
@@ -415,6 +359,7 @@ class CallbackSpecializer {
         StaticInvocation(
             jsWrapperFunction,
             Arguments([
+              StaticGet(_util.thisModuleGetter),
               StaticInvocation(
                   _util.jsObjectFromDartObjectTarget, Arguments([argument])),
               if (castClosure != null)

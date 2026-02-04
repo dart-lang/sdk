@@ -102,6 +102,12 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns the bound of [type] if is a type variable or a promoted type
   /// variable. Otherwise returns `null`.
   Type? getTypeVariableBound(Type type);
+
+  /// Returns `true` if [type] is an enum type.
+  bool isEnum(Type type);
+
+  /// Returns the library URI for [type].
+  Uri? libraryUri(Type type);
 }
 
 /// Interface for looking up fields and their corresponding [StaticType]s of

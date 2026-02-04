@@ -5,7 +5,9 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart'
     show UnescapeErrorListener;
@@ -26,14 +28,15 @@ CompilationUnitEnd getAST(
   Uint8List rawBytes, {
   bool includeBody = true,
   bool includeComments = false,
-  bool enableTripleShift = false,
-  bool allowPatterns = false,
-  bool enableEnhancedParts = false,
+  ExperimentalFeatures experimentalFeatures =
+      const DefaultExperimentalFeatures(),
   List<Token>? languageVersionsSeen,
   List<int>? lineStarts,
 }) {
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: enableTripleShift,
+    enableTripleShift: experimentalFeatures.isExperimentEnabled(
+      ExperimentalFlag.tripleShift,
+    ),
   );
 
   ScannerResult scanResult = scan(
@@ -61,15 +64,13 @@ CompilationUnitEnd getAST(
     parser = new Parser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: allowPatterns,
-      enableFeatureEnhancedParts: enableEnhancedParts,
+      experimentalFeatures: experimentalFeatures,
     );
   } else {
     parser = new ClassMemberParser(
       listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      allowPatterns: allowPatterns,
-      enableFeatureEnhancedParts: enableEnhancedParts,
+      experimentalFeatures: experimentalFeatures,
     );
   }
   parser.parseUnit(firstToken);
@@ -175,24 +176,9 @@ class BestEffortParserAstVisitor {
       visitTopLevelMethod(method, method.beginToken, method.endToken);
       return;
     }
-    if (node is ClassMethodEnd) {
-      ClassMethodEnd method = node;
-      visitClassMethod(method, method.beginToken, method.endToken);
-      return;
-    }
-    if (node is ExtensionMethodEnd) {
-      ExtensionMethodEnd method = node;
-      visitExtensionMethod(method, method.beginToken, method.endToken);
-      return;
-    }
-    if (node is ExtensionTypeMethodEnd) {
-      ExtensionTypeMethodEnd method = node;
-      visitExtensionTypeMethod(method, method.beginToken, method.endToken);
-      return;
-    }
-    if (node is MixinMethodEnd) {
-      MixinMethodEnd method = node;
-      visitMixinMethod(method, method.beginToken, method.endToken);
+    if (node is MethodEnd) {
+      MethodEnd method = node;
+      visitMethod(method, method.beginToken, method.endToken);
       return;
     }
     if (node is ImportEnd) {
@@ -212,32 +198,11 @@ class BestEffortParserAstVisitor {
       visitTopLevelFields(fields, fields.beginToken, fields.endToken);
       return;
     }
-    if (node is ClassFieldsEnd) {
+    if (node is FieldsEnd) {
       // TODO(jensj): Possibly this could go into more details too
       // (e.g. to split up a field declaration).
-      ClassFieldsEnd fields = node;
-      visitClassFields(fields, fields.beginToken, fields.endToken);
-      return;
-    }
-    if (node is ExtensionFieldsEnd) {
-      // TODO(jensj): Possibly this could go into more details too
-      // (e.g. to split up a field declaration).
-      ExtensionFieldsEnd fields = node;
-      visitExtensionFields(fields, fields.beginToken, fields.endToken);
-      return;
-    }
-    if (node is ExtensionTypeFieldsEnd) {
-      // TODO(jensj): Possibly this could go into more details too
-      // (e.g. to split up a field declaration).
-      ExtensionTypeFieldsEnd fields = node;
-      visitExtensionTypeFields(fields, fields.beginToken, fields.endToken);
-      return;
-    }
-    if (node is MixinFieldsEnd) {
-      // TODO(jensj): Possibly this could go into more details too
-      // (e.g. to split up a field declaration).
-      MixinFieldsEnd fields = node;
-      visitMixinFields(fields, fields.beginToken, fields.endToken);
+      FieldsEnd fields = node;
+      visitFields(fields, fields.beginToken, fields.endToken);
       return;
     }
     if (node is NamedMixinApplicationEnd) {
@@ -250,8 +215,8 @@ class BestEffortParserAstVisitor {
       visitMixin(declaration, declaration.beginToken, declaration.endToken);
       return;
     }
-    if (node is EnumEnd) {
-      EnumEnd declaration = node;
+    if (node is EnumDeclarationEnd) {
+      EnumDeclarationEnd declaration = node;
       visitEnum(
         declaration,
         declaration.enumKeyword,
@@ -284,34 +249,14 @@ class BestEffortParserAstVisitor {
       visitExtensionTypeDeclaration(ext, ext.extensionKeyword, ext.endToken);
       return;
     }
-    if (node is ClassConstructorEnd) {
-      ClassConstructorEnd decl = node;
-      visitClassConstructor(decl, decl.beginToken, decl.endToken);
+    if (node is ConstructorEnd) {
+      ConstructorEnd decl = node;
+      visitConstructor(decl, decl.beginToken, decl.endToken);
       return;
     }
-    if (node is ExtensionConstructorEnd) {
-      ExtensionConstructorEnd decl = node;
-      visitExtensionConstructor(decl, decl.beginToken, decl.endToken);
-      return;
-    }
-    if (node is ExtensionTypeConstructorEnd) {
-      ExtensionTypeConstructorEnd decl = node;
-      visitExtensionTypeConstructor(decl, decl.beginToken, decl.endToken);
-      return;
-    }
-    if (node is ClassFactoryMethodEnd) {
-      ClassFactoryMethodEnd decl = node;
-      visitClassFactoryMethod(decl, decl.beginToken, decl.endToken);
-      return;
-    }
-    if (node is ExtensionFactoryMethodEnd) {
-      ExtensionFactoryMethodEnd decl = node;
-      visitExtensionFactoryMethod(decl, decl.beginToken, decl.endToken);
-      return;
-    }
-    if (node is ExtensionTypeFactoryMethodEnd) {
-      ExtensionTypeFactoryMethodEnd decl = node;
-      visitExtensionTypeFactoryMethod(decl, decl.beginToken, decl.endToken);
+    if (node is FactoryEnd) {
+      FactoryEnd decl = node;
+      visitFactory(decl, decl.beginToken, decl.endToken);
       return;
     }
     if (node is MetadataEnd) {
@@ -367,32 +312,7 @@ class BestEffortParserAstVisitor {
   ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitClassMethod(
-    ClassMethodEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionMethod(
-    ExtensionMethodEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionTypeMethod(
-    ExtensionTypeMethodEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitMixinMethod(
-    MixinMethodEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
+  void visitMethod(MethodEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitTopLevelFields(
@@ -402,32 +322,7 @@ class BestEffortParserAstVisitor {
   ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitClassFields(
-    ClassFieldsEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionFields(
-    ExtensionFieldsEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionTypeFields(
-    ExtensionTypeFieldsEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitMixinFields(
-    MixinFieldsEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
+  void visitFields(FieldsEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers can call visitChildren on this node.
   void visitNamedMixin(
@@ -448,7 +343,11 @@ class BestEffortParserAstVisitor {
   }
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {}
+  void visitEnum(
+    EnumDeclarationEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitLibraryName(
@@ -482,43 +381,15 @@ class BestEffortParserAstVisitor {
   }
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitClassConstructor(
-    ClassConstructorEnd node,
+  void visitConstructor(
+    ConstructorEnd node,
     Token startInclusive,
     Token endInclusive,
   ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionConstructor(
-    ExtensionConstructorEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionTypeConstructor(
-    ExtensionTypeConstructorEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitClassFactoryMethod(
-    ClassFactoryMethodEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionFactoryMethod(
-    ExtensionFactoryMethodEnd node,
-    Token startInclusive,
-    Token endInclusive,
-  ) {}
-
-  /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionTypeFactoryMethod(
-    ExtensionTypeFactoryMethodEnd node,
+  void visitFactory(
+    FactoryEnd node,
     Token startInclusive,
     Token endInclusive,
   ) {}
@@ -532,28 +403,12 @@ class BestEffortParserAstVisitor {
 }
 
 enum MemberContentType {
-  ClassConstructor,
-  ClassFactoryMethod,
-  ClassFields,
-  ClassMethod,
   ClassRecoverableError,
-  EnumConstructor,
-  EnumFactoryMethod,
-  EnumFields,
-  EnumMethod,
+  Constructor,
   ExperimentNotEnabled,
-  ExtensionConstructor,
-  ExtensionFactoryMethod,
-  ExtensionFields,
-  ExtensionMethod,
-  ExtensionTypeConstructor,
-  ExtensionTypeFactoryMethod,
-  ExtensionTypeFields,
-  ExtensionTypeMethod,
-  MixinConstructor,
-  MixinFactoryMethod,
-  MixinFields,
-  MixinMethod,
+  Factory,
+  Fields,
+  Method,
   Unknown,
 }
 
@@ -678,19 +533,19 @@ extension GeneralASTContentExtension on ParserAstNode {
     if (this is! TopLevelDeclarationEnd) {
       return false;
     }
-    if (children!.first is! UncategorizedTopLevelDeclarationBegin) {
+    if (children!.first is! EnumDeclarationPreludeBegin) {
       return false;
     }
-    if (children!.last is! EnumEnd) {
+    if (children!.last is! EnumDeclarationEnd) {
       return false;
     }
 
     return true;
   }
 
-  EnumEnd asEnum() {
+  EnumDeclarationEnd asEnum() {
     if (!isEnum()) throw "Not enum";
-    return children!.last as EnumEnd;
+    return children!.last as EnumDeclarationEnd;
   }
 
   bool isTypedef() {
@@ -1162,13 +1017,23 @@ extension NamedMixinApplicationExtension on NamedMixinApplicationEnd {
 
 extension ClassDeclarationExtension on ClassDeclarationEnd {
   // Coverage-ignore(suite): Not run.
-  ClassOrMixinOrExtensionBodyEnd getClassOrMixinOrExtensionBody() {
+  ClassOrMixinOrExtensionBodyEnd? getClassOrMixinOrExtensionBody() {
     for (ParserAstNode child in children!) {
       if (child is ClassOrMixinOrExtensionBodyEnd) {
         return child;
       }
     }
-    throw "Not found.";
+    return null;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  NoClassBodyHandle? getNoClassBody() {
+    for (ParserAstNode child in children!) {
+      if (child is NoClassBodyHandle) {
+        return child;
+      }
+    }
+    return null;
   }
 
   // Coverage-ignore(suite): Not run.
@@ -1207,12 +1072,15 @@ extension ClassDeclarationExtension on ClassDeclarationEnd {
 }
 
 // Coverage-ignore(suite): Not run.
-extension ClassOrMixinBodyExtension on ClassOrMixinOrExtensionBodyEnd {
+extension ClassOrMixinBodyExtension on ClassOrMixinOrExtensionBodyEnd? {
   List<MemberEnd> getMembers() {
     List<MemberEnd> members = [];
-    for (ParserAstNode child in children!) {
-      if (child is MemberEnd) {
-        members.add(child);
+    List<ParserAstNode>? children = this?.children;
+    if (children != null) {
+      for (ParserAstNode child in children) {
+        if (child is MemberEnd) {
+          members.add(child);
+        }
       }
     }
     return members;
@@ -1225,36 +1093,10 @@ extension MemberExtension on MemberEnd {
   // here, but will then have to do more if's or a switch at the call site to
   // do anything useful with it, which might not be optimal.
   MemberContentType getMemberType() {
-    if (isClassConstructor()) return MemberContentType.ClassConstructor;
-    if (isClassFactoryMethod()) return MemberContentType.ClassFactoryMethod;
-    if (isClassFields()) return MemberContentType.ClassFields;
-    if (isClassMethod()) return MemberContentType.ClassMethod;
-
-    if (isMixinConstructor()) return MemberContentType.MixinConstructor;
-    if (isMixinFactoryMethod()) return MemberContentType.MixinFactoryMethod;
-    if (isMixinFields()) return MemberContentType.MixinFields;
-    if (isMixinMethod()) return MemberContentType.MixinMethod;
-
-    if (isExtensionConstructor()) return MemberContentType.ExtensionConstructor;
-    if (isExtensionFactoryMethod()) {
-      return MemberContentType.ExtensionFactoryMethod;
-    }
-    if (isExtensionFields()) return MemberContentType.ExtensionFields;
-    if (isExtensionMethod()) return MemberContentType.ExtensionMethod;
-
-    if (isExtensionTypeConstructor()) {
-      return MemberContentType.ExtensionTypeConstructor;
-    }
-    if (isExtensionTypeFactoryMethod()) {
-      return MemberContentType.ExtensionTypeFactoryMethod;
-    }
-    if (isExtensionTypeFields()) return MemberContentType.ExtensionTypeFields;
-    if (isExtensionTypeMethod()) return MemberContentType.ExtensionTypeMethod;
-
-    if (isEnumConstructor()) return MemberContentType.EnumConstructor;
-    if (isEnumFactoryMethod()) return MemberContentType.EnumFactoryMethod;
-    if (isEnumFields()) return MemberContentType.EnumFields;
-    if (isEnumMethod()) return MemberContentType.EnumMethod;
+    if (isConstructor()) return MemberContentType.Constructor;
+    if (isFactory()) return MemberContentType.Factory;
+    if (isFields()) return MemberContentType.Fields;
+    if (isMethod()) return MemberContentType.Method;
 
     if (isClassRecoverableError()) {
       return MemberContentType.ClassRecoverableError;
@@ -1264,99 +1106,51 @@ extension MemberExtension on MemberEnd {
     return MemberContentType.Unknown;
   }
 
-  bool isClassConstructor() {
+  bool isConstructor() {
     ParserAstNode child = children![1];
-    if (child is ClassConstructorEnd) return true;
+    if (child is ConstructorEnd) return true;
     return false;
   }
 
-  ClassConstructorEnd getClassConstructor() {
+  ConstructorEnd getConstructor() {
     ParserAstNode child = children![1];
-    if (child is ClassConstructorEnd) return child;
+    if (child is ConstructorEnd) return child;
     throw "Not found";
   }
 
-  bool isClassFactoryMethod() {
+  bool isFactory() {
     ParserAstNode child = children![1];
-    if (child is ClassFactoryMethodEnd) return true;
+    if (child is FactoryEnd) return true;
     return false;
   }
 
-  ClassFactoryMethodEnd getClassFactoryMethod() {
+  FactoryEnd getFactory() {
     ParserAstNode child = children![1];
-    if (child is ClassFactoryMethodEnd) return child;
+    if (child is FactoryEnd) return child;
     throw "Not found";
   }
 
-  bool isClassFields() {
+  bool isFields() {
     ParserAstNode child = children![1];
-    if (child is ClassFieldsEnd) return true;
+    if (child is FieldsEnd) return true;
     return false;
   }
 
-  ClassFieldsEnd getClassFields() {
+  FieldsEnd getFields() {
     ParserAstNode child = children![1];
-    if (child is ClassFieldsEnd) return child;
+    if (child is FieldsEnd) return child;
     throw "Not found";
   }
 
-  bool isMixinFields() {
+  bool isMethod() {
     ParserAstNode child = children![1];
-    if (child is MixinFieldsEnd) return true;
+    if (child is MethodEnd) return true;
     return false;
   }
 
-  MixinFieldsEnd getMixinFields() {
+  MethodEnd getMethod() {
     ParserAstNode child = children![1];
-    if (child is MixinFieldsEnd) return child;
-    throw "Not found";
-  }
-
-  bool isMixinMethod() {
-    ParserAstNode child = children![1];
-    if (child is MixinMethodEnd) return true;
-    return false;
-  }
-
-  MixinMethodEnd getMixinMethod() {
-    ParserAstNode child = children![1];
-    if (child is MixinMethodEnd) return child;
-    throw "Not found";
-  }
-
-  bool isMixinFactoryMethod() {
-    ParserAstNode child = children![1];
-    if (child is MixinFactoryMethodEnd) return true;
-    return false;
-  }
-
-  MixinFactoryMethodEnd getMixinFactoryMethod() {
-    ParserAstNode child = children![1];
-    if (child is MixinFactoryMethodEnd) return child;
-    throw "Not found";
-  }
-
-  bool isMixinConstructor() {
-    ParserAstNode child = children![1];
-    if (child is MixinConstructorEnd) return true;
-    return false;
-  }
-
-  MixinConstructorEnd getMixinConstructor() {
-    ParserAstNode child = children![1];
-    if (child is MixinConstructorEnd) return child;
-    throw "Not found";
-  }
-
-  bool isClassMethod() {
-    ParserAstNode child = children![1];
-    if (child is ClassMethodEnd) return true;
-    return false;
-  }
-
-  ClassMethodEnd getClassMethod() {
-    ParserAstNode child = children![1];
-    if (child is ClassMethodEnd) return child;
+    if (child is MethodEnd) return child;
     throw "Not found";
   }
 
@@ -1372,245 +1166,21 @@ extension MemberExtension on MemberEnd {
     return false;
   }
 
-  bool isExtensionMethod() {
+  bool isPrimaryConstructorBody() {
     ParserAstNode child = children![1];
-    if (child is ExtensionMethodEnd) return true;
+    if (child is PrimaryConstructorBodyEnd) return true;
     return false;
   }
 
-  ExtensionMethodEnd getExtensionMethod() {
+  PrimaryConstructorBodyEnd getPrimaryConstructorBody() {
     ParserAstNode child = children![1];
-    if (child is ExtensionMethodEnd) return child;
-    throw "Not found";
-  }
-
-  bool isExtensionFields() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionFieldsEnd) return true;
-    return false;
-  }
-
-  ExtensionFieldsEnd getExtensionFields() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionFieldsEnd) return child;
-    throw "Not found";
-  }
-
-  bool isExtensionConstructor() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionConstructorEnd) return true;
-    return false;
-  }
-
-  ExtensionConstructorEnd getExtensionConstructor() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionConstructorEnd) return child;
-    throw "Not found";
-  }
-
-  bool isExtensionFactoryMethod() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionFactoryMethodEnd) return true;
-    return false;
-  }
-
-  ExtensionFactoryMethodEnd getExtensionFactoryMethod() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionFactoryMethodEnd) return child;
-    throw "Not found";
-  }
-
-  bool isExtensionTypeMethod() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionTypeMethodEnd) return true;
-    return false;
-  }
-
-  ExtensionTypeMethodEnd getExtensionTypeMethod() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionTypeMethodEnd) return child;
-    throw "Not found";
-  }
-
-  bool isExtensionTypeFields() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionTypeFieldsEnd) return true;
-    return false;
-  }
-
-  ExtensionTypeFieldsEnd getExtensionTypeFields() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionTypeFieldsEnd) return child;
-    throw "Not found";
-  }
-
-  bool isExtensionTypeConstructor() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionTypeConstructorEnd) return true;
-    return false;
-  }
-
-  ExtensionTypeConstructorEnd getExtensionTypeConstructor() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionTypeConstructorEnd) return child;
-    throw "Not found";
-  }
-
-  bool isExtensionTypeFactoryMethod() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionTypeFactoryMethodEnd) return true;
-    return false;
-  }
-
-  ExtensionTypeFactoryMethodEnd getExtensionTypeFactoryMethod() {
-    ParserAstNode child = children![1];
-    if (child is ExtensionTypeFactoryMethodEnd) return child;
-    throw "Not found";
-  }
-
-  bool isEnumMethod() {
-    ParserAstNode child = children![1];
-    if (child is EnumMethodEnd) return true;
-    return false;
-  }
-
-  EnumMethodEnd getEnumMethod() {
-    ParserAstNode child = children![1];
-    if (child is EnumMethodEnd) return child;
-    throw "Not found";
-  }
-
-  bool isEnumFields() {
-    ParserAstNode child = children![1];
-    if (child is EnumFieldsEnd) return true;
-    return false;
-  }
-
-  EnumFieldsEnd getEnumFields() {
-    ParserAstNode child = children![1];
-    if (child is EnumFieldsEnd) return child;
-    throw "Not found";
-  }
-
-  bool isEnumConstructor() {
-    ParserAstNode child = children![1];
-    if (child is EnumConstructorEnd) return true;
-    return false;
-  }
-
-  EnumConstructorEnd getEnumConstructor() {
-    ParserAstNode child = children![1];
-    if (child is EnumConstructorEnd) return child;
-    throw "Not found";
-  }
-
-  bool isEnumFactoryMethod() {
-    ParserAstNode child = children![1];
-    if (child is EnumFactoryMethodEnd) return true;
-    return false;
-  }
-
-  EnumFactoryMethodEnd getEnumFactoryMethod() {
-    ParserAstNode child = children![1];
-    if (child is EnumFactoryMethodEnd) return child;
+    if (child is PrimaryConstructorBodyEnd) return child;
     throw "Not found";
   }
 }
 
 // Coverage-ignore(suite): Not run.
-extension MixinFieldsExtension on MixinFieldsEnd {
-  List<IdentifierHandle> getFieldIdentifiers() {
-    int countLeft = count;
-    List<IdentifierHandle>? identifiers;
-    for (int i = children!.length - 1; i >= 0; i--) {
-      ParserAstNode child = children![i];
-      if (child is IdentifierHandle &&
-          child.context == IdentifierContext.fieldDeclaration) {
-        countLeft--;
-        if (identifiers == null) {
-          identifiers = new List<IdentifierHandle>.filled(count, child);
-        } else {
-          identifiers[countLeft] = child;
-        }
-        if (countLeft == 0) break;
-      }
-    }
-    if (countLeft != 0) throw "Didn't find the expected number of identifiers";
-    return identifiers ?? [];
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ExtensionFieldsExtension on ExtensionFieldsEnd {
-  List<IdentifierHandle> getFieldIdentifiers() {
-    int countLeft = count;
-    List<IdentifierHandle>? identifiers;
-    for (int i = children!.length - 1; i >= 0; i--) {
-      ParserAstNode child = children![i];
-      if (child is IdentifierHandle &&
-          child.context == IdentifierContext.fieldDeclaration) {
-        countLeft--;
-        if (identifiers == null) {
-          identifiers = new List<IdentifierHandle>.filled(count, child);
-        } else {
-          identifiers[countLeft] = child;
-        }
-        if (countLeft == 0) break;
-      }
-    }
-    if (countLeft != 0) throw "Didn't find the expected number of identifiers";
-    return identifiers ?? [];
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ExtensionTypeFieldsExtension on ExtensionTypeFieldsEnd {
-  List<IdentifierHandle> getFieldIdentifiers() {
-    int countLeft = count;
-    List<IdentifierHandle>? identifiers;
-    for (int i = children!.length - 1; i >= 0; i--) {
-      ParserAstNode child = children![i];
-      if (child is IdentifierHandle &&
-          child.context == IdentifierContext.fieldDeclaration) {
-        countLeft--;
-        if (identifiers == null) {
-          identifiers = new List<IdentifierHandle>.filled(count, child);
-        } else {
-          identifiers[countLeft] = child;
-        }
-        if (countLeft == 0) break;
-      }
-    }
-    if (countLeft != 0) throw "Didn't find the expected number of identifiers";
-    return identifiers ?? [];
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension EnumFieldsExtension on EnumFieldsEnd {
-  List<IdentifierHandle> getFieldIdentifiers() {
-    int countLeft = count;
-    List<IdentifierHandle>? identifiers;
-    for (int i = children!.length - 1; i >= 0; i--) {
-      ParserAstNode child = children![i];
-      if (child is IdentifierHandle &&
-          child.context == IdentifierContext.fieldDeclaration) {
-        countLeft--;
-        if (identifiers == null) {
-          identifiers = new List<IdentifierHandle>.filled(count, child);
-        } else {
-          identifiers[countLeft] = child;
-        }
-        if (countLeft == 0) break;
-      }
-    }
-    if (countLeft != 0) throw "Didn't find the expected number of identifiers";
-    return identifiers ?? [];
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ClassFieldsExtension on ClassFieldsEnd {
+extension FieldsExtension on FieldsEnd {
   List<IdentifierHandle> getFieldIdentifiers() {
     int countLeft = count;
     List<IdentifierHandle>? identifiers;
@@ -1647,7 +1217,7 @@ extension ClassFieldsExtension on ClassFieldsEnd {
 }
 
 // Coverage-ignore(suite): Not run.
-extension EnumExtension on EnumEnd {
+extension EnumDeclarationExtension on EnumDeclarationEnd {
   List<IdentifierHandle> getIdentifiers() {
     List<IdentifierHandle> ids = [];
     for (ParserAstNode child in children!) {
@@ -1707,13 +1277,22 @@ extension ExtensionTypeDeclarationExtension on ExtensionTypeDeclarationEnd {
     return begin.name;
   }
 
-  ClassOrMixinOrExtensionBodyEnd getClassOrMixinOrExtensionBody() {
+  ClassOrMixinOrExtensionBodyEnd? getClassOrMixinOrExtensionBody() {
     for (ParserAstNode child in children!) {
       if (child is ClassOrMixinOrExtensionBodyEnd) {
         return child;
       }
     }
-    throw "Not found.";
+    return null;
+  }
+
+  NoExtensionTypeBodyHandle? getNoExtensionTypeBody() {
+    for (ParserAstNode child in children!) {
+      if (child is NoExtensionTypeBodyHandle) {
+        return child;
+      }
+    }
+    return null;
   }
 }
 
@@ -1967,7 +1546,7 @@ bool _isTypeOrNoType(ParserAstNode node) {
       node is FunctionTypeEnd;
 }
 
-extension ClassMethodExtension on ClassMethodEnd {
+extension MethodExtension on MethodEnd {
   // Coverage-ignore(suite): Not run.
   BlockFunctionBodyEnd? getBlockFunctionBody() {
     for (ParserAstNode child in children!) {
@@ -2001,91 +1580,7 @@ extension ClassMethodExtension on ClassMethodEnd {
 }
 
 // Coverage-ignore(suite): Not run.
-extension MixinMethodExtension on MixinMethodEnd {
-  Token getNameIdentifierToken() {
-    bool foundType = false;
-    for (ParserAstNode child in children!) {
-      if (_isTypeOrNoType(child)) {
-        foundType = true;
-      }
-      if (foundType && child is IdentifierHandle) {
-        return child.token;
-      } else if (foundType && child is OperatorNameHandle) {
-        return child.token;
-      }
-    }
-    throw "No identifier found: $children";
-  }
-
-  String getNameIdentifier() {
-    return getNameIdentifierToken().lexeme;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ExtensionMethodExtension on ExtensionMethodEnd {
-  Token getNameIdentifierToken() {
-    bool foundType = false;
-    for (ParserAstNode child in children!) {
-      if (_isTypeOrNoType(child)) {
-        foundType = true;
-      }
-      if (foundType && child is IdentifierHandle) {
-        return child.token;
-      } else if (foundType && child is OperatorNameHandle) {
-        return child.token;
-      }
-    }
-    throw "No identifier found: $children";
-  }
-
-  String getNameIdentifier() {
-    return getNameIdentifierToken().lexeme;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ExtensionTypeMethodExtension on ExtensionTypeMethodEnd {
-  Token getNameIdentifierToken() {
-    bool foundType = false;
-    for (ParserAstNode child in children!) {
-      if (_isTypeOrNoType(child)) {
-        foundType = true;
-      }
-      if (foundType && child is IdentifierHandle) {
-        return child.token;
-      } else if (foundType && child is OperatorNameHandle) {
-        return child.token;
-      }
-    }
-    throw "No identifier found: $children";
-  }
-
-  String getNameIdentifier() {
-    return getNameIdentifierToken().lexeme;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension EnumMethodExtension on EnumMethodEnd {
-  String getNameIdentifier() {
-    bool foundType = false;
-    for (ParserAstNode child in children!) {
-      if (_isTypeOrNoType(child)) {
-        foundType = true;
-      }
-      if (foundType && child is IdentifierHandle) {
-        return child.token.lexeme;
-      } else if (foundType && child is OperatorNameHandle) {
-        return child.token.lexeme;
-      }
-    }
-    throw "No identifier found: $children";
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ClassFactoryMethodExtension on ClassFactoryMethodEnd {
+extension FactoryExtension on FactoryEnd {
   List<IdentifierHandle> getIdentifiers() {
     List<IdentifierHandle> result = [];
     for (ParserAstNode child in children!) {
@@ -2100,67 +1595,7 @@ extension ClassFactoryMethodExtension on ClassFactoryMethodEnd {
 }
 
 // Coverage-ignore(suite): Not run.
-extension MixinFactoryMethodExtension on MixinFactoryMethodEnd {
-  List<IdentifierHandle> getIdentifiers() {
-    List<IdentifierHandle> result = [];
-    for (ParserAstNode child in children!) {
-      if (child is IdentifierHandle) {
-        result.add(child);
-      } else if (child is FormalParametersEnd) {
-        break;
-      }
-    }
-    return result;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ExtensionFactoryMethodExtension on ExtensionFactoryMethodEnd {
-  List<IdentifierHandle> getIdentifiers() {
-    List<IdentifierHandle> result = [];
-    for (ParserAstNode child in children!) {
-      if (child is IdentifierHandle) {
-        result.add(child);
-      } else if (child is FormalParametersEnd) {
-        break;
-      }
-    }
-    return result;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ExtensionTypeFactoryMethodExtension on ExtensionTypeFactoryMethodEnd {
-  List<IdentifierHandle> getIdentifiers() {
-    List<IdentifierHandle> result = [];
-    for (ParserAstNode child in children!) {
-      if (child is IdentifierHandle) {
-        result.add(child);
-      } else if (child is FormalParametersEnd) {
-        break;
-      }
-    }
-    return result;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension EnumFactoryMethodExtension on EnumFactoryMethodEnd {
-  List<IdentifierHandle> getIdentifiers() {
-    List<IdentifierHandle> result = [];
-    for (ParserAstNode child in children!) {
-      if (child is IdentifierHandle) {
-        result.add(child);
-      } else if (child is FormalParametersEnd) {
-        break;
-      }
-    }
-    return result;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ClassConstructorExtension on ClassConstructorEnd {
+extension ConstructorExtension on ConstructorEnd {
   FormalParametersEnd getFormalParameters() {
     for (ParserAstNode child in children!) {
       if (child is FormalParametersEnd) {
@@ -2188,58 +1623,6 @@ extension ClassConstructorExtension on ClassConstructorEnd {
     return null;
   }
 
-  List<IdentifierHandle> getIdentifiers() {
-    List<IdentifierHandle> result = [];
-    for (ParserAstNode child in children!) {
-      if (child is IdentifierHandle) {
-        result.add(child);
-      }
-    }
-    return result;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ExtensionConstructorExtension on ExtensionConstructorEnd {
-  List<IdentifierHandle> getIdentifiers() {
-    List<IdentifierHandle> result = [];
-    for (ParserAstNode child in children!) {
-      if (child is IdentifierHandle) {
-        result.add(child);
-      }
-    }
-    return result;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension ExtensionTypeConstructorExtension on ExtensionTypeConstructorEnd {
-  List<IdentifierHandle> getIdentifiers() {
-    List<IdentifierHandle> result = [];
-    for (ParserAstNode child in children!) {
-      if (child is IdentifierHandle) {
-        result.add(child);
-      }
-    }
-    return result;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension EnumConstructorExtension on EnumConstructorEnd {
-  List<IdentifierHandle> getIdentifiers() {
-    List<IdentifierHandle> result = [];
-    for (ParserAstNode child in children!) {
-      if (child is IdentifierHandle) {
-        result.add(child);
-      }
-    }
-    return result;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension MixinConstructorExtension on MixinConstructorEnd {
   List<IdentifierHandle> getIdentifiers() {
     List<IdentifierHandle> result = [];
     for (ParserAstNode child in children!) {
@@ -2383,48 +1766,20 @@ class ParserASTListener extends AbstractParserAstListener {
         if (begin == end) {
           // Exact match.
         } else if (end == "TopLevelDeclaration" &&
-            (begin == "ExtensionDeclarationPrelude" ||
+            (begin == "EnumDeclarationPrelude" ||
+                begin == "ExtensionDeclarationPrelude" ||
                 begin == "ClassOrMixinOrNamedMixinApplicationPrelude" ||
                 begin == "TopLevelMember" ||
                 begin == "UncategorizedTopLevelDeclaration")) {
           // endTopLevelDeclaration is started by one of
+          // beginEnumDeclarationPrelude
           // beginExtensionDeclarationPrelude,
           // beginClassOrNamedMixinApplicationPrelude
           // beginTopLevelMember or beginUncategorizedTopLevelDeclaration.
-        } else if (begin == "Method" &&
-            (end == "ClassConstructor" ||
-                end == "ClassMethod" ||
-                end == "ExtensionConstructor" ||
-                end == "ExtensionMethod" ||
-                end == "ExtensionTypeConstructor" ||
-                end == "ExtensionTypeMethod" ||
-                end == "MixinConstructor" ||
-                end == "MixinMethod" ||
-                end == "EnumConstructor" ||
-                end == "EnumMethod")) {
-          // beginMethod is ended by one of endClassConstructor,
-          // endClassMethod, endExtensionMethod, endMixinConstructor,
-          // endMixinMethod, endEnumMethod or endEnumConstructor.
-        } else if (begin == "Fields" &&
-            (end == "TopLevelFields" ||
-                end == "ClassFields" ||
-                end == "MixinFields" ||
-                end == "ExtensionFields" ||
-                end == "ExtensionTypeFields" ||
-                end == "EnumFields")) {
-          // beginFields is ended by one of endTopLevelFields, endMixinFields,
-          // endEnumFields or endExtensionFields.
+        } else if (begin == "Fields" && end == "TopLevelFields") {
+          // beginFields is ended by one of endTopLevelFields or endFields.
         } else if (begin == "ForStatement" && end == "ForIn") {
           // beginForStatement is ended by either endForStatement or endForIn.
-        } else if (begin == "FactoryMethod" &&
-            (end == "ClassFactoryMethod" ||
-                end == "MixinFactoryMethod" ||
-                end == "ExtensionFactoryMethod" ||
-                end == "ExtensionTypeFactoryMethod" ||
-                end == "EnumFactoryMethod")) {
-          // beginFactoryMethod is ended by either endClassFactoryMethod,
-          // endMixinFactoryMethod, endExtensionFactoryMethod, or
-          // endEnumFactoryMethod.
         } else if (begin == "ForControlFlow" && (end == "ForInControlFlow")) {
           // beginForControlFlow is ended by either endForControlFlow or
           // endForInControlFlow.
@@ -2461,10 +1816,6 @@ class ParserASTListener extends AbstractParserAstListener {
   void reportVarianceModifierNotEnabled(Token? variance) {
     throw new UnimplementedError();
   }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Uri get uri => throw new UnimplementedError();
 
   @override
   void logEvent(String name) {

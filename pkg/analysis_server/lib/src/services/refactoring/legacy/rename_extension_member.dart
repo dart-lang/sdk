@@ -80,7 +80,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 
     // Update the declaration.
     var renameElement = element;
-    if (renameElement.isSynthetic && renameElement is FieldElement) {
+    if (renameElement is FieldElement && renameElement.isOriginGetterSetter) {
       processor.addDeclarationEdit(renameElement.getter);
       processor.addDeclarationEdit(renameElement.setter);
     } else {

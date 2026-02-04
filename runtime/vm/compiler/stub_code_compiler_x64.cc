@@ -1190,6 +1190,16 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                         /*preserve_registers=*/false);
     rt.Call(kDeoptimizeFillFrameRuntimeEntry, 1);
   }
+  if (FLAG_target_thread_sanitizer) {
+    __ movq(CALLEE_SAVED_TEMP, RAX);                // Frames created
+    __ TsanFuncExit(/*preserve_registers=*/false);  // Optimized frame.
+    Label loop;
+    __ Bind(&loop);
+    __ movq(CallingConventions::kArg1Reg, Immediate(42));
+    __ TsanFuncEntry(/*preserve_registers=*/false);  // Unoptimized frames.
+    __ subq(CALLEE_SAVED_TEMP, Immediate(1));
+    __ j(NOT_ZERO, &loop);
+  }
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX.
     __ movq(RBX, Address(RBP, target::frame_layout.first_local_from_fp *
@@ -3443,7 +3453,7 @@ void StubCodeCompiler::GenerateGetCStackPointerStub() {
 // No Result.
 void StubCodeCompiler::GenerateJumpToFrameStub() {
   __ movq(THR, CallingConventions::kArg4Reg);
-  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+  if (FLAG_target_thread_sanitizer) {
     Label again, done;
     __ movq(CALLEE_SAVED_TEMP,
             Address(THR, target::Thread::top_exit_frame_info_offset()));

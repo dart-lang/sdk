@@ -111,6 +111,7 @@ static const char* const kSnapshotKindNames[] = {
   V(assembly, assembly_filename)                                               \
   V(elf, elf_filename)                                                         \
   V(macho, macho_filename)                                                     \
+  V(macho_object, macho_object_filename)                                       \
   V(loading_unit_manifest, loading_unit_manifest_filename)                     \
   V(save_debugging_info, debugging_info_filename)                              \
   V(save_obfuscation_map, obfuscation_map_filename)
@@ -640,6 +641,7 @@ static void CreateAndWritePrecompiledSnapshot() {
   Dart_AotBinaryFormat format;
   const char* kind_str = nullptr;
   const char* filename = nullptr;
+  const char* object_filename = nullptr;
   // Default to the assembly ones just to avoid having to type-specify here.
   auto* next_callback = NextAsmCallback;
   auto* create_multiple_callback = Dart_CreateAppAOTSnapshotAsAssemblies;
@@ -659,6 +661,7 @@ static void CreateAndWritePrecompiledSnapshot() {
     case kAppAOTMachODylib:
       kind_str = "MachO dynamic library";
       filename = macho_filename;
+      object_filename = macho_object_filename;
       format = Dart_AotBinaryFormat_MachO_Dylib;
       // Not currently implemented.
       next_callback = nullptr;
@@ -691,9 +694,17 @@ static void CreateAndWritePrecompiledSnapshot() {
     if (debugging_info_filename != nullptr) {
       debug_file = OpenFile(debugging_info_filename);
     }
-    result = Dart_CreateAppAOTSnapshotAsBinary(format, StreamingWriteCallback,
-                                               file, strip, debug_file,
-                                               identifier, filename);
+    if (object_filename != nullptr) {
+      File* object_file = OpenFile(object_filename);
+      result = Dart_CreateAppAOTSnapshotAndRelocatableObject(
+          format, StreamingWriteCallback, file, object_file, strip, debug_file,
+          identifier, object_filename);
+      object_file->Release();
+    } else {
+      result = Dart_CreateAppAOTSnapshotAsBinary(format, StreamingWriteCallback,
+                                                 file, strip, debug_file,
+                                                 identifier, filename);
+    }
     if (debug_file != nullptr) debug_file->Release();
     if (identifier != nullptr) {
       free(identifier);

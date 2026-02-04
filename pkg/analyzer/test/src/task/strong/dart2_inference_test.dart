@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -183,7 +183,7 @@ main() {
   var /*@type=B*/ v = topLevel += 1;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 152, 1)],
+      [error(diag.unusedLocalVariable, 152, 1)],
     );
     _assertTypeAnnotations();
   }

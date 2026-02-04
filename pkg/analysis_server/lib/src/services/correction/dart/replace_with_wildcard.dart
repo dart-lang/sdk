@@ -18,10 +18,10 @@ class ReplaceWithWildcard extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_WITH_WILDCARD;
+  FixKind get fixKind => DartFixKind.replaceWithWildcard;
 
   @override
-  FixKind get multiFixKind => DartFixKind.REPLACE_WITH_WILDCARD_MULTI;
+  FixKind get multiFixKind => DartFixKind.replaceWithWildcardMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

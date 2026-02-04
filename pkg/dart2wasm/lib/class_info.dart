@@ -38,10 +38,6 @@ class FieldIndex {
   static const closureContext = 2;
   static const closureVtable = 3;
   static const closureRuntimeType = 4;
-  static const vtableDynamicCallEntry = 0;
-  static const vtableInstantiationTypeComparisonFunction = 1;
-  static const vtableInstantiationTypeHashFunction = 2;
-  static const vtableInstantiationFunction = 3;
   static const instantiationContextInner = 0;
   static const instantiationContextTypeArgumentsBase = 1;
   static const typeIsDeclaredNullable = 2;
@@ -174,16 +170,13 @@ class ClassInfo {
   /// follow the Dart class hierarchy.
   final ClassInfo? superInfo;
 
-  /// The class that this class masquerades as via `runtimeType`, if any.
-  ClassInfo? masquerade;
-
   /// For every type parameter which is directly mapped to a type parameter in
   /// the superclass, this contains the corresponding superclass type
   /// parameter. These will reuse the corresponding type parameter field of
   /// the superclass.
   final Map<TypeParameter, TypeParameter> typeParameterMatch;
 
-  /// The wasm type used to represent values of a dart interface type of this
+  /// The Wasm type used to represent values of a Dart interface type of this
   /// class.
   w.RefType get repr => _repr!;
 
@@ -228,7 +221,7 @@ class ClassInfo {
   }
 }
 
-ClassInfo upperBound(ClassInfo a, ClassInfo b) {
+ClassInfo _upperBound(ClassInfo a, ClassInfo b) {
   if (a.depth < b.depth) {
     while (b.depth > a.depth) {
       b = b.superInfo!;
@@ -559,7 +552,7 @@ class ClassInfoCollector {
                 representation = current;
                 continue;
               }
-              representation = upperBound(representation!, current);
+              representation = _upperBound(representation!, current);
             }
           }
         }
@@ -812,8 +805,8 @@ class ClassIdNumbering {
         if (importUri.startsWith('dart:core')) return 2;
 
         // The dart:wasm classes are marked as entrypoints, therefore retained by
-        // TFA but they can never be instantiated, as they represent raw wasm
-        // types that aren't part of the dart object hierarchy.
+        // TFA but they can never be instantiated, as they represent raw Wasm
+        // types that aren't part of the Dart object hierarchy.
         // Move them to the very end of the class table.
         if (klass.name.startsWith('_WasmBase')) return 0xffffff;
         return 3;

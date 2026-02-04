@@ -40,7 +40,7 @@ void g(_F2<void Function(int)> f) {}
 @reflectiveTest
 class InlineTypedefTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.INLINE_TYPEDEF;
+  FixKind get kind => DartFixKind.inlineTypedef;
 
   @override
   String get lintCode => LintNames.avoid_private_typedef_functions;

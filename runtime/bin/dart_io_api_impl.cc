@@ -94,5 +94,67 @@ const uint8_t* LookupIONativeSymbol(Dart_NativeFunction nf) {
   return IONativeSymbol(nf);
 }
 
+Dart_Handle SetupDartIoLibrary(const DartIoSettings& settings) {
+  RETURN_IF_ERROR(Builtin::TrySetNativeResolver(Builtin::kIOLibrary));
+
+  // Configure dart:_http _httpConnectionHook is provided.
+  if (settings.http_connection_hook != nullptr) {
+    ASSIGN_OR_RETURN(Dart_Handle http_lib,
+                     Builtin::LoadAndCheckLibrary(Builtin::kHttpLibrary));
+    RETURN_IF_ERROR(Dart_SetField(http_lib,
+                                  DartUtils::NewString("_httpConnectionHook"),
+                                  settings.http_connection_hook));
+  }
+
+  Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+
+  if (settings.namespace_root != nullptr) {
+    ASSIGN_OR_RETURN(
+        Dart_Handle namespc_type,
+        DartUtils::GetDartType(DartUtils::kIOLibURL, "_Namespace"));
+    Dart_Handle args[] = {settings.namespace_root};
+    RETURN_IF_ERROR(args[0]);
+    RETURN_IF_ERROR(Dart_Invoke(
+        namespc_type, DartUtils::NewString("_setupNamespace"), 1, args));
+  }
+
+  if (settings.disable_exit) {
+    ASSIGN_OR_RETURN(
+        Dart_Handle embedder_config_type,
+        DartUtils::GetDartType(DartUtils::kIOLibURL, "_EmbedderConfig"));
+    RETURN_IF_ERROR(embedder_config_type);
+    RETURN_IF_ERROR(Dart_SetField(
+        embedder_config_type, DartUtils::NewString("_mayExit"), Dart_False()));
+  }
+
+  ASSIGN_OR_RETURN(Dart_Handle platform_type,
+                   DartUtils::GetDartType(DartUtils::kIOLibURL, "_Platform"));
+
+  if (settings.script_uri != nullptr) {
+    RETURN_IF_ERROR(Dart_SetField(platform_type,
+                                  DartUtils::NewString("_nativeScript"),
+                                  DartUtils::NewString(settings.script_uri)));
+  }
+
+  if (settings.locale_name_callback != nullptr) {
+    RETURN_IF_ERROR(Dart_SetField(platform_type,
+                                  DartUtils::NewString("_localeClosure"),
+                                  settings.locale_name_callback));
+  }
+
+  if (settings.enable_network_profiling) {
+#if !defined(PRODUCT)
+    ASSIGN_OR_RETURN(
+        Dart_Handle network_profiling_type,
+        DartUtils::GetDartType(DartUtils::kIOLibURL, "_NetworkProfiling"));
+    RETURN_IF_ERROR(Dart_Invoke(
+        network_profiling_type,
+        DartUtils::NewString("_registerServiceExtension"), 0, nullptr));
+#endif  // !defined(PRODUCT)
+  }
+
+  return Dart_Invoke(io_lib, DartUtils::NewString("_setupHooks"), 0, nullptr);
+}
+
 }  // namespace bin
 }  // namespace dart

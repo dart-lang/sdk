@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'sdk_constraint_verifier_support.dart';
@@ -33,7 +33,7 @@ const a = 42 >>> 3;
       '''
 const a = 42 >>> 3;
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionGtGtGtOperator, 13, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionGtGtGtOperator, 13, 3)],
     );
   }
 
@@ -53,7 +53,7 @@ class A {
   A operator >>>(A a) => this;
 }
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionGtGtGtOperator, 23, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionGtGtGtOperator, 23, 3)],
     );
   }
 
@@ -69,7 +69,7 @@ var a = 42 >>> 3;
       '''
 var a = 42 >>> 3;
 ''',
-      expectedErrors: [error(WarningCode.sdkVersionGtGtGtOperator, 11, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionGtGtGtOperator, 11, 3)],
     );
   }
 }

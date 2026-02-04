@@ -17,6 +17,7 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
@@ -931,8 +932,8 @@ class UseBuildContextSynchronously extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.useBuildContextSynchronouslyAsyncUse,
-    LinterLintCode.useBuildContextSynchronouslyWrongMounted,
+    diag.useBuildContextSynchronouslyAsyncUse,
+    diag.useBuildContextSynchronouslyWrongMounted,
   ];
 
   @override
@@ -1122,10 +1123,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (asyncState.isGuarded) return;
 
       if (asyncState == AsyncState.asynchronous) {
-        var errorCode = asyncStateTracker.hasUnrelatedMountedCheck
-            ? LinterLintCode.useBuildContextSynchronouslyWrongMounted
-            : LinterLintCode.useBuildContextSynchronouslyAsyncUse;
-        rule.reportAtNode(node, diagnosticCode: errorCode);
+        var diagnosticCode = asyncStateTracker.hasUnrelatedMountedCheck
+            ? diag.useBuildContextSynchronouslyWrongMounted
+            : diag.useBuildContextSynchronouslyAsyncUse;
+        rule.reportAtNode(node, diagnosticCode: diagnosticCode);
         return;
       }
 
@@ -1271,7 +1272,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (callback == argument.expression) {
         rule.reportAtNode(
           errorNode,
-          diagnosticCode: LinterLintCode.useBuildContextSynchronouslyAsyncUse,
+          diagnosticCode: diag.useBuildContextSynchronouslyAsyncUse,
         );
       }
     }
@@ -1290,7 +1291,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           callback == positionalArguments[position]) {
         rule.reportAtNode(
           errorNode,
-          diagnosticCode: LinterLintCode.useBuildContextSynchronouslyAsyncUse,
+          diagnosticCode: diag.useBuildContextSynchronouslyAsyncUse,
         );
       }
     }

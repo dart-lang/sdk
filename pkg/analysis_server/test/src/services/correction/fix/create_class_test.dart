@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,6 +24,18 @@ void main() {
 class CreateClassLowercaseTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createClassLowercase;
+
+  Future<void> test_ifNull_notType() async {
+    await resolveTestCode('''
+class A {
+  int Function()? _f;
+  int Function() get f {
+    return _f ?? _defaultF;
+  }
+}
+''');
+    await assertNoFix();
+  }
 
   Future<void> test_instanceMethod_noFix() async {
     await resolveTestCode('''
@@ -223,9 +235,9 @@ class A {}
 A? a;
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.IMPORT_LIBRARY_PROJECT1,
-      DartFixKind.IMPORT_LIBRARY_PROJECT2,
-      DartFixKind.IMPORT_LIBRARY_PROJECT3,
+      DartFixKind.importLibraryProject1,
+      DartFixKind.importLibraryProject2,
+      DartFixKind.importLibraryProject3,
       DartFixKind.createClassUppercase,
     ]);
   }
@@ -459,8 +471,8 @@ class Test {
   const Test();
 }
 ''',
-      errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.undefinedFunction;
+      filter: (e) {
+        return e.diagnosticCode == diag.undefinedFunction;
       },
     );
   }
@@ -550,8 +562,8 @@ void f() {}
 class Test {
 }
 ''',
-      errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
+      filter: (error) {
+        return error.diagnosticCode == diag.undefinedIdentifier;
       },
     );
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);

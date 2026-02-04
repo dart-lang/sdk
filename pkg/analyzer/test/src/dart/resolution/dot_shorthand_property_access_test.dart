@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -394,7 +393,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 46, 7)],
+      [error(diag.dotShorthandMissingContext, 46, 7)],
     );
   }
 
@@ -406,7 +405,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 24, 7)],
+      [error(diag.dotShorthandMissingContext, 24, 7)],
     );
   }
 
@@ -420,7 +419,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandUndefinedGetter, 36, 6)],
+      [error(diag.dotShorthandUndefinedGetter, 36, 6)],
     );
   }
 
@@ -436,7 +435,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandUndefinedGetter, 49, 3)],
+      [error(diag.dotShorthandUndefinedGetter, 49, 3)],
     );
   }
 
@@ -598,8 +597,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandMissingContext, 88, 7),
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 95, 2),
+        error(diag.dotShorthandMissingContext, 88, 7),
+        error(diag.illegalAssignmentToNonAssignable, 95, 2),
       ],
     );
   }
@@ -619,216 +618,10 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandMissingContext, 90, 7),
-        error(ParserErrorCode.missingAssignableSelector, 91, 6),
+        error(diag.dotShorthandMissingContext, 90, 7),
+        error(diag.missingAssignableSelector, 91, 6),
       ],
     );
-  }
-
-  test_privateClass_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class _Private {
-  static _Private get getter => _Private();
-}
-
-typedef Public = _Private;
-final Public p = _Private();
-''');
-
-    await assertErrorsInCode(
-      r'''
-import 'a.dart';
-void main() {
-  var x = p;
-  x = .getter;
-  print(x);
-}
-''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 50, 7)],
-    );
-  }
-
-  test_privateClass_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
-class _Private {
-  static _Private get getter => _Private();
-}
-
-typedef Public = _Private;
-final Public p = _Private();
-
-void main() {
-  var x = p;
-  x = .getter;
-  print(x);
-}
-''');
-
-    assertResolvedNodeText(findNode.singleDotShorthandPropertyAccess, r'''
-DotShorthandPropertyAccess
-  period: .
-  propertyName: SimpleIdentifier
-    token: getter
-    element: <testLibrary>::@class::_Private::@getter::getter
-    staticType: _Private
-  isDotShorthand: true
-  correspondingParameter: <null>
-  staticType: _Private
-''');
-  }
-
-  test_privateEnum_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-enum _Private { one, two }
-
-typedef Public = _Private;
-final Public p = _Private.one;
-''');
-
-    await assertErrorsInCode(
-      r'''
-import 'a.dart';
-void main() {
-  var x = p;
-  x = .two;
-  print(x);
-}
-''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 50, 4)],
-    );
-  }
-
-  test_privateEnum_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
-enum _Private { one, two }
-
-typedef Public = _Private;
-final Public p = _Private.one;
-
-void main() {
-  var x = p;
-  x = .two;
-  print(x);
-}
-''');
-
-    assertResolvedNodeText(findNode.singleDotShorthandPropertyAccess, r'''
-DotShorthandPropertyAccess
-  period: .
-  propertyName: SimpleIdentifier
-    token: two
-    element: <testLibrary>::@enum::_Private::@getter::two
-    staticType: _Private
-  isDotShorthand: true
-  correspondingParameter: <null>
-  staticType: _Private
-''');
-  }
-
-  test_privateExtensionType_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-extension type _Private(int i) {
-  static _Private get getter => _Private(0);
-}
-
-typedef Public = _Private;
-final Public p = _Private(1);
-''');
-
-    await assertErrorsInCode(
-      r'''
-import 'a.dart';
-void main() {
-  var x = p;
-  x = .getter;
-  print(x);
-}
-''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 50, 7)],
-    );
-  }
-
-  test_privateExtensionType_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
-extension type _Private(int i) {
-  static _Private get getter => _Private(0);
-}
-
-typedef Public = _Private;
-final Public p = _Private(1);
-
-void main() {
-  var x = p;
-  x = .getter;
-  print(x);
-}
-''');
-
-    assertResolvedNodeText(findNode.singleDotShorthandPropertyAccess, r'''
-DotShorthandPropertyAccess
-  period: .
-  propertyName: SimpleIdentifier
-    token: getter
-    element: <testLibrary>::@extensionType::_Private::@getter::getter
-    staticType: _Private
-  isDotShorthand: true
-  correspondingParameter: <null>
-  staticType: _Private
-''');
-  }
-
-  test_privateMixin_otherLibrary() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-mixin _Private {
-  static _Private get getter => C();
-}
-
-class C with _Private {}
-typedef Public = _Private;
-final Public p = C();
-''');
-
-    await assertErrorsInCode(
-      r'''
-import 'a.dart';
-void main() {
-  var x = p;
-  x = .getter;
-  print(x);
-}
-''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 50, 7)],
-    );
-  }
-
-  test_privateMixin_sameLibrary() async {
-    await assertNoErrorsInCode(r'''
-mixin _Private {
-  static _Private get getter => C();
-}
-
-class C with _Private {}
-typedef Public = _Private;
-final Public p = C();
-
-void main() {
-  var x = p;
-  x = .getter;
-  print(x);
-}
-''');
-
-    assertResolvedNodeText(findNode.singleDotShorthandPropertyAccess, r'''
-DotShorthandPropertyAccess
-  period: .
-  propertyName: SimpleIdentifier
-    token: getter
-    element: <testLibrary>::@mixin::_Private::@getter::getter
-    staticType: _Private
-  isDotShorthand: true
-  correspondingParameter: <null>
-  staticType: _Private
-''');
   }
 
   test_tearOff_constructor() async {
@@ -867,13 +660,7 @@ Function fn() {
   return .new;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
-          25,
-          4,
-        ),
-      ],
+      [error(diag.tearoffOfGenerativeConstructorOfAbstractClass, 25, 4)],
     );
   }
 
@@ -929,5 +716,37 @@ DotShorthandPropertyAccess
   isDotShorthand: true
   staticType: Object Function()
 ''');
+  }
+
+  test_undefinedGetter_message() async {
+    await assertErrorsInCode(
+      r'''
+int f() => .foo;
+''',
+      [
+        error(
+          diag.dotShorthandUndefinedGetter,
+          12,
+          3,
+          messageContains: ["static getter 'foo'", "context type 'int'"],
+        ),
+      ],
+    );
+  }
+
+  test_undefinedGetter_message_equalityRhs() async {
+    await assertErrorsInCode(
+      r'''
+bool f(int x) => x == .foo;
+''',
+      [
+        error(
+          diag.dotShorthandUndefinedGetter,
+          23,
+          3,
+          messageContains: ["static getter 'foo'", "context type 'int'"],
+        ),
+      ],
+    );
   }
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,14 +13,15 @@ import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Always override `hashCode` if overriding `==`.';
 
-class HashAndEquals extends LintRule {
+class HashAndEquals extends AnalysisRule {
   HashAndEquals() : super(name: LintNames.hash_and_equals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.hashAndEquals;
+  DiagnosticCode get diagnosticCode => diag.hashAndEquals;
 
   @override
   void registerNodeProcessors(
@@ -32,15 +34,20 @@ class HashAndEquals extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var body = node.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
     MethodDeclaration? eq;
     ClassMember? hash;
-    for (var member in node.members) {
+    for (var member in body.members) {
       if (isEquals(member)) {
         eq = member as MethodDeclaration;
       } else if (isHashCode(member)) {

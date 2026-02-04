@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ Future<int> f() async {
   return;
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 26, 6)],
+      [error(diag.returnWithoutValue, 26, 6)],
     );
   }
 
@@ -33,7 +33,7 @@ Future<Object> f() async {
   return;
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 29, 6)],
+      [error(diag.returnWithoutValue, 29, 6)],
     );
   }
 
@@ -56,7 +56,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 30, 6)],
+      [error(diag.returnWithoutValue, 30, 6)],
     );
   }
 
@@ -67,7 +67,7 @@ int f() {
   return;
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 12, 6)],
+      [error(diag.returnWithoutValue, 12, 6)],
     );
   }
 
@@ -125,7 +125,7 @@ f() {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 48, 6)],
+      [error(diag.returnWithoutValue, 48, 6)],
     );
   }
 
@@ -146,7 +146,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 26, 6)],
+      [error(diag.returnWithoutValue, 26, 6)],
     );
   }
 
@@ -162,7 +162,7 @@ int f(int x) {
   return;
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 50, 6)],
+      [error(diag.returnWithoutValue, 50, 6)],
     );
   }
 }

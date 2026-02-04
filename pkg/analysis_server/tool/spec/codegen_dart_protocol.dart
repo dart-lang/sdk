@@ -559,30 +559,17 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln('=> other is $className;');
       return;
     }
-    writeln('{');
+    writeln('=> ');
     indent(() {
-      writeln('if (other is $className) {');
-      indent(() {
-        var comparisons = <String>[];
-        for (var field in type.fields) {
-          if (field.value != null) {
-            continue;
-          }
-          comparisons.add(
+      var comparisons = [
+        'other is $className',
+        for (var field in type.fields)
+          if (field.value == null)
             compareEqualsCode(field.type, field.name, 'other.${field.name}'),
-          );
-        }
-        if (comparisons.isEmpty) {
-          writeln('return true;');
-        } else {
-          var concatenated = comparisons.join(' &&\n    ');
-          writeln('return $concatenated;');
-        }
-      });
-      writeln('}');
-      writeln('return false;');
+      ];
+      var concatenated = comparisons.join(' &&\n    ');
+      writeln('$concatenated;');
     });
-    writeln('}');
   }
 
   /// Emit the method for decoding an object from JSON.

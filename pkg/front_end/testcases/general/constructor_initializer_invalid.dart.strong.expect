@@ -26,7 +26,7 @@ import "dart:core" as core;
 class C1 extends core::Object {
   field dynamic f = null;
   constructor •() → self::C1
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constructor_initializer_invalid.dart:5:26: Error: This couldn't be parsed.
+    : invalid-initializer "pkg/front_end/testcases/general/constructor_initializer_invalid.dart:5:26: Error: This couldn't be parsed.
 class C1 { var f; C1() : ; }
                          ^"
     ;
@@ -42,7 +42,7 @@ class C2 { var f; C2() : f; }
 class C3 extends core::Object {
   field dynamic f = null;
   constructor •() → self::C3
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/constructor_initializer_invalid.dart:7:26: Error: This couldn't be parsed.
+    : invalid-initializer "pkg/front_end/testcases/general/constructor_initializer_invalid.dart:7:26: Error: This couldn't be parsed.
 class C3 { var f; C3() : f++; }
                          ^"
     ;

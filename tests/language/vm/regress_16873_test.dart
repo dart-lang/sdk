@@ -9,7 +9,7 @@ library map_test;
 
 import 'dart:collection';
 
-void testCollection(var collection, n) {
+void testCollection(collection, n) {
   for (int i = 0; i < n; i++) {
     if (i % 1000 == 0) print(i);
     collection.add(i);

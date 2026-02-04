@@ -16,8 +16,8 @@ import 'package:analyzer/source/line_info.dart' as engine;
 import 'package:analyzer/source/source.dart' as engine;
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/error/lint_codes.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as engine;
-import 'package:analyzer/src/error/codes.dart' as engine;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart' as engine;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,7 +43,7 @@ class AnalysisErrorTest {
     // prepare AnalysisError
     engineDiagnostic = MockDiagnostic(
       source: source,
-      diagnosticCode: engine.CompileTimeErrorCode.ambiguousExport,
+      diagnosticCode: diag.ambiguousExport,
       offset: 10,
       length: 20,
       message: 'my message',
@@ -76,42 +76,42 @@ class AnalysisErrorTest {
       engineDiagnostic,
     );
     expect(error.toJson(), {
-      SEVERITY: 'ERROR',
-      TYPE: 'COMPILE_TIME_ERROR',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'ERROR',
+      typeKey: 'COMPILE_TIME_ERROR',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CODE: 'ambiguous_export',
-      URL: 'https://dart.dev/diagnostics/ambiguous_export',
-      CONTEXT_MESSAGES: [
+      messageKey: 'my message',
+      codeKey: 'ambiguous_export',
+      urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
+      contextReferencesKey: [
         {
-          MESSAGE: 'context',
-          LOCATION: {
-            FILE: 'bar.dart',
-            OFFSET: 30,
-            LENGTH: 5,
-            START_LINE: 4,
-            START_COLUMN: 11,
-            END_LINE: 4,
-            END_COLUMN: 16,
+          messageKey: 'context',
+          locationKey: {
+            fileKey: 'bar.dart',
+            offsetKey: 30,
+            lengthKey: 5,
+            startLineKey: 4,
+            startColumnKey: 11,
+            endLineKey: 4,
+            endColumnKey: 16,
           },
         },
       ],
-      HAS_FIX: false,
+      hasFixKey: false,
     });
   }
 
   void test_fromEngine_hasCorrection() {
     engineDiagnostic = MockDiagnostic(
       source: source,
-      diagnosticCode: engine.CompileTimeErrorCode.ambiguousExport,
+      diagnosticCode: diag.ambiguousExport,
       offset: 10,
       length: 20,
       message: 'my message',
@@ -119,22 +119,22 @@ class AnalysisErrorTest {
     );
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
-      SEVERITY: 'ERROR',
-      TYPE: 'COMPILE_TIME_ERROR',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'ERROR',
+      typeKey: 'COMPILE_TIME_ERROR',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CORRECTION: 'my correction',
-      CODE: 'ambiguous_export',
-      URL: 'https://dart.dev/diagnostics/ambiguous_export',
-      HAS_FIX: false,
+      messageKey: 'my message',
+      correctionKey: 'my correction',
+      codeKey: 'ambiguous_export',
+      urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
+      hasFixKey: false,
     });
   }
 
@@ -150,21 +150,21 @@ class AnalysisErrorTest {
     );
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
-      SEVERITY: 'ERROR',
-      TYPE: 'COMPILE_TIME_ERROR',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'ERROR',
+      typeKey: 'COMPILE_TIME_ERROR',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CODE: 'test_error',
-      URL: 'http://codes.dartlang.org/TEST_ERROR',
-      HAS_FIX: false,
+      messageKey: 'my message',
+      codeKey: 'test_error',
+      urlKey: 'http://codes.dartlang.org/TEST_ERROR',
+      hasFixKey: false,
     });
   }
 
@@ -175,6 +175,7 @@ class AnalysisErrorTest {
         'my_lint',
         'my message',
         correctionMessage: 'correction',
+        uniqueName: 'LintCode.my_lint',
       ),
       offset: 10,
       length: 20,
@@ -182,48 +183,48 @@ class AnalysisErrorTest {
     );
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
-      SEVERITY: 'INFO',
-      TYPE: 'LINT',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'INFO',
+      typeKey: 'LINT',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CODE: 'my_lint',
-      HAS_FIX: false,
+      messageKey: 'my message',
+      codeKey: 'my_lint',
+      hasFixKey: false,
     });
   }
 
   void test_fromEngine_noCorrection() {
     engineDiagnostic = MockDiagnostic(
       source: source,
-      diagnosticCode: engine.CompileTimeErrorCode.ambiguousExport,
+      diagnosticCode: diag.ambiguousExport,
       offset: 10,
       length: 20,
       message: 'my message',
     );
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
-      SEVERITY: 'ERROR',
-      TYPE: 'COMPILE_TIME_ERROR',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'ERROR',
+      typeKey: 'COMPILE_TIME_ERROR',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CODE: 'ambiguous_export',
-      URL: 'https://dart.dev/diagnostics/ambiguous_export',
-      HAS_FIX: false,
+      messageKey: 'my message',
+      codeKey: 'ambiguous_export',
+      urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
+      hasFixKey: false,
     });
   }
 }
@@ -274,6 +275,7 @@ class EnumTest {
     EnumTester<MatchKind, SearchResultKind>().run(
       newSearchResultKind_fromEngine,
       exceptions: {
+        MatchKind.REFERENCE_IN_PATTERN_FIELD: SearchResultKind.REFERENCE,
         MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION:
             SearchResultKind.INVOCATION,
         MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS:
@@ -368,9 +370,6 @@ class MockDiagnostic implements engine.Diagnostic {
   String? get correctionMessage => _correctionMessage;
 
   @override
-  Object? get data => throw UnimplementedError();
-
-  @override
   engine.DiagnosticCode get diagnosticCode => _diagnosticCode!;
 
   @override
@@ -403,7 +402,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   engine.DiagnosticSeverity severity;
 
   @override
-  String name;
+  String lowerCaseName;
 
   @override
   String? url;
@@ -411,7 +410,7 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   MockDiagnosticCode({
     this.type = engine.DiagnosticType.COMPILE_TIME_ERROR,
     this.severity = engine.DiagnosticSeverity.ERROR,
-    this.name = 'TEST_ERROR',
+    this.lowerCaseName = 'test_error',
     this.url,
   });
 
@@ -430,13 +429,13 @@ class MockDiagnosticCode implements engine.DiagnosticCode {
   bool get isUnresolvedIdentifier => false;
 
   @override
-  String get problemMessage {
-    throw StateError('Unexpected invocation of problemMessage');
+  String get lowerCaseUniqueName {
+    throw StateError('Unexpected invocation of lowerCaseUniqueName');
   }
 
   @override
-  String get uniqueName {
-    throw StateError('Unexpected invocation of uniqueName');
+  String get problemMessage {
+    throw StateError('Unexpected invocation of problemMessage');
   }
 
   @override

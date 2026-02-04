@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import '../serialize/serialize.dart';
+import '../serialize/printer.dart';
 import 'ir.dart';
 
 /// A logically const wasm module ready to encode. Created with `ModuleBuilder`.
@@ -25,6 +26,7 @@ class Module implements Serializable {
   late final Functions _functions;
   late final BaseFunction? _start;
   late final Tables _tables;
+  late final Elements _elements;
   late final Tags _tags;
   late final Memories _memories;
   late final Exports _exports;
@@ -42,6 +44,7 @@ class Module implements Serializable {
     Functions functions,
     BaseFunction? start,
     Tables tables,
+    Elements elements,
     Tags tags,
     Memories memories,
     Exports exports,
@@ -59,6 +62,7 @@ class Module implements Serializable {
     _functions = functions;
     _start = start;
     _tables = tables;
+    _elements = elements;
     _tags = tags;
     _memories = memories;
     _exports = exports;
@@ -74,6 +78,7 @@ class Module implements Serializable {
   Functions get functions => _functions;
   BaseFunction? get start => _start;
   Tables get tables => _tables;
+  Elements get elements => _elements;
   Tags get tags => _tags;
   Memories get memories => _memories;
   Exports get exports => _exports;
@@ -102,9 +107,7 @@ class Module implements Serializable {
     GlobalSection(globals.defined, watchPoints).serialize(s);
     ExportSection(exports.exported, watchPoints).serialize(s);
     StartSection(start, watchPoints).serialize(s);
-    ElementSection(
-            tables.defined, tables.imported, functions.declared, watchPoints)
-        .serialize(s);
+    ElementSection(elements, watchPoints).serialize(s);
     DataCountSection(dataSegments.defined, watchPoints).serialize(s);
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
@@ -118,7 +121,8 @@ class Module implements Serializable {
     SourceMapSection(sourceMapUrl).serialize(s);
   }
 
-  static Module deserialize(Deserializer d) {
+  static (Map<int, List<Deserializer>>, Map<String, List<Deserializer>>)
+      _deserializeTopLevel(Deserializer d) {
     final preamble = d.readBytes(8);
     if (preamble[0] != 0x00 ||
         preamble[1] != 0x61 ||
@@ -149,6 +153,12 @@ class Module implements Serializable {
         sections.putIfAbsent(id, () => []).add(deserializer);
       }
     }
+
+    return (sections, customSections);
+  }
+
+  static Module deserialize(Deserializer d) {
+    final (sections, customSections) = _deserializeTopLevel(d);
 
     final Module module = Module.uninitialized();
 
@@ -190,10 +200,7 @@ class Module implements Serializable {
         StartSection.deserialize(startFunctionSections?.single, functions);
 
     final elementSections = sections[ElementSection.sectionId];
-    // As side-effect initializes [Table.elements]
-    // As side-effect initializes [ImprotedTable.setElements]
-    // As side-effect initializes [Functions.declaredFunctions]
-    ElementSection.deserialize(
+    final elements = ElementSection.deserialize(
         elementSections?.single, module, types, functions, tables, globals);
 
     final dataCountSections = sections[DataCountSection.sectionId];
@@ -222,6 +229,7 @@ class Module implements Serializable {
         functions,
         start,
         tables,
+        elements,
         tags,
         memories,
         exports,
@@ -232,5 +240,71 @@ class Module implements Serializable {
         [],
         sourceMapUrl,
       );
+  }
+
+  /// Deserialize just the `sourceMapUrl` section of a module as a [Uri].
+  static Uri? deserializeSourceMapUrl(Deserializer d) {
+    final (sections, customSections) = _deserializeTopLevel(d);
+    final sourceMapUrl = SourceMapSection.deserialize(
+        customSections[SourceMapSection.customSectionName]?.single);
+    return sourceMapUrl;
+  }
+
+  String printAsWat(
+      {ModulePrintSettings settings = const ModulePrintSettings()}) {
+    final mp = ModulePrinter(this, settings: settings);
+
+    if (settings.hasFilters) {
+      // If we have any filters, we treat those as roots.
+      if (settings.typeFilters.isNotEmpty) {
+        for (final type in mp.typeNamer.sort(mp.typeNamer
+            .filter(types.defined, settings.printTypeConstituents))) {
+          mp.enqueueType(type);
+        }
+      }
+      if (settings.globalFilters.isNotEmpty) {
+        for (final global in mp.globalNamer.sort(mp.globalNamer
+            .filter(globals.defined, settings.printGlobalInitializer))) {
+          mp.enqueueGlobal(global);
+        }
+      }
+      if (settings.functionFilters.isNotEmpty) {
+        for (final function in mp.functionNamer.sort(mp.functionNamer
+            .filter(functions.defined, settings.printFunctionBody))) {
+          mp.enqueueFunction(function);
+        }
+      }
+      if (settings.tableFilters.isNotEmpty) {
+        for (final table in mp.tableNamer.sort(mp.tableNamer
+            .filter(tables.defined, settings.printTableElements))) {
+          mp.enqueueTable(table);
+        }
+      }
+    } else {
+      // Enqueue all types, tags, globals, functions thereby making the
+      // printed module contain most things we care about.
+      for (final type in types.defined) {
+        if (type is! FunctionType) {
+          mp.enqueueType(type);
+        }
+      }
+
+      for (final table in [...tables.imported, ...tables.defined]) {
+        mp.enqueueTable(table);
+      }
+
+      for (final tag in [...tags.imported, ...tags.defined]) {
+        mp.enqueueTag(tag);
+      }
+
+      for (final global in [...globals.imported, ...globals.defined]) {
+        mp.enqueueGlobal(global);
+      }
+
+      for (final function in [...functions.imported, ...functions.defined]) {
+        mp.enqueueFunction(function);
+      }
+    }
+    return mp.print();
   }
 }

@@ -17,7 +17,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:linter/src/lint_codes.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules/avoid_double_and_int_checks.dart';
 import 'package:linter/src/rules/invalid_runtime_check_with_js_interop_types.dart';
 import 'package:path/path.dart' as p;
@@ -35,15 +35,10 @@ enum _DryRunErrorCode {
   noDartHtml(0),
   noDartJs(1),
   interopChecksError(2),
-  // Deprecated.
-  // ignore: unused_field
-  isTestValueError(3),
-  // Deprecated.
-  // ignore: unused_field
-  isTestTypeError(4),
-  // Deprecated.
-  // ignore: unused_field
-  isTestGenericTypeError(5),
+  // 3, 4, 5 are tombstones. Don't reuse!
+  // isTestValueError(3),
+  // isTestTypeError(4),
+  // isTestGenericTypeError(5),
   invalidRuntimeCheckWithJsInteropTypesDartAsJs(6),
   invalidRuntimeCheckWithJsInteropTypesDartIsJs(7),
   invalidRuntimeCheckWithJsInteropTypesJsAsDart(8),
@@ -51,7 +46,9 @@ enum _DryRunErrorCode {
   invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs(10),
   invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs(11),
   invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs(12),
-  avoidDoubleAndIntChecks(13);
+  avoidDoubleAndIntChecks(13),
+  noPackageJs(14),
+  noDartJsUtil(15);
 
   const _DryRunErrorCode(this.code);
 
@@ -104,19 +101,39 @@ class DryRunSummarizer {
 
   static const Map<String, _DryRunErrorCode> _disallowedDartUris = {
     'dart:html': _DryRunErrorCode.noDartHtml,
+    'dart:indexed_db': _DryRunErrorCode.noDartHtml,
     'dart:js': _DryRunErrorCode.noDartJs,
+    'dart:js_util': _DryRunErrorCode.noDartJsUtil,
+    'dart:svg': _DryRunErrorCode.noDartHtml,
+    'dart:web_audio': _DryRunErrorCode.noDartHtml,
+    'dart:web_gl': _DryRunErrorCode.noDartHtml,
     // 'dart:ffi' is handled by interop checks.
   };
+
+  static const Map<String, _DryRunErrorCode> _disallowedPackageUris = {
+    'package:js/js.dart': _DryRunErrorCode.noPackageJs,
+    // Note that we use `noDartJsUtil` as this is just a re-export.
+    'package:js/js_util.dart': _DryRunErrorCode.noDartJsUtil,
+  };
+
+  bool _shouldSkipLibrary(Library library) {
+    if (library.importUri.scheme == 'dart') return true;
+    // Ignore any dry-run analysis within disallowed packages as we check
+    // imports of those separately.
+    return _disallowedPackageUris.containsKey(library.importUri.toString());
+  }
 
   List<_DryRunError> _analyzeImports() {
     final errors = <_DryRunError>[];
 
     for (final library in component.libraries) {
-      if (library.importUri.scheme == 'dart') continue;
+      if (_shouldSkipLibrary(library)) continue;
 
       for (final dep in library.dependencies) {
         final depLib = dep.importedLibraryReference.asLibrary;
-        final code = _disallowedDartUris[depLib.importUri.toString()];
+        final depUriString = depLib.importUri.toString();
+        var code = _disallowedDartUris[depUriString] ??
+            _disallowedPackageUris[depUriString];
         if (code != null) {
           errors.add(_DryRunError(code, '${depLib.importUri} unsupported',
               errorSourceUri: library.importUri, errorLocation: dep.location));
@@ -144,7 +161,7 @@ class DryRunSummarizer {
 
     final pathUriMap = <String, Uri>{};
     for (final library in component.libraries) {
-      if (library.importUri.scheme == 'dart') continue;
+      if (_shouldSkipLibrary(library)) continue;
       final uri = library.fileUri;
       pathUriMap[p.normalize(
           p.absolute(uri.toFilePath(windows: Platform.isWindows)))] = uri;
@@ -174,7 +191,7 @@ class DryRunSummarizer {
             if (errorCode != null) {
               errors.add(_DryRunError(
                   errorCode,
-                  '${diagnostic.diagnosticCode.name} lint violation: '
+                  '${diagnostic.diagnosticCode.lowerCaseName} lint violation: '
                   '${diagnostic.message}',
                   errorSourceUri: uri,
                   errorLocation: component.getLocation(
@@ -191,25 +208,23 @@ class DryRunSummarizer {
 
   _DryRunErrorCode? _getDryRunErrorCodeFromDiagnostic(Diagnostic diagnostic) =>
       switch (diagnostic.diagnosticCode) {
-        LinterLintCode.invalidRuntimeCheckWithJsInteropTypesDartAsJs =>
+        diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs =>
           _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
-        LinterLintCode.invalidRuntimeCheckWithJsInteropTypesDartIsJs =>
+        diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs =>
           _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
-        LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsAsDart =>
+        diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart =>
           _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
-        LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsDart =>
+        diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart =>
           _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsIsDart,
-        LinterLintCode
-              .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs =>
+        diag.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs =>
           _DryRunErrorCode
               .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
-        LinterLintCode
-              .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs =>
+        diag.invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs =>
           _DryRunErrorCode
               .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
-        LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs =>
+        diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs =>
           _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
-        LinterLintCode.avoidDoubleAndIntChecks =>
+        diag.avoidDoubleAndIntChecks =>
           _DryRunErrorCode.avoidDoubleAndIntChecks,
         _ => null,
       };

@@ -38,12 +38,6 @@ suggestions
     kind: parameter
   const
     kind: keyword
-  true
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
   switch
     kind: keyword
 ''');
@@ -64,12 +58,6 @@ suggestions
     kind: parameter
   const
     kind: keyword
-  true
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
   switch
     kind: keyword
 ''');
@@ -89,12 +77,6 @@ suggestions
   x
     kind: parameter
   const
-    kind: keyword
-  true
-    kind: keyword
-  false
-    kind: keyword
-  null
     kind: keyword
   switch
     kind: keyword

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/dart_type.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -50,15 +51,19 @@ class CreateSetter extends ResolvedCorrectionProducer {
     // prepare target element
     var staticModifier = false;
     InstanceElement? targetElement;
+    InterfaceType? targetType;
     if (target is ExtensionOverride) {
       targetElement = target.element;
-    } else if (target is Identifier && target.element is ExtensionElement) {
-      targetElement = target.element as ExtensionElement;
+    } else if (target case Identifier(
+      :InstanceElement element,
+    ) when element is! ExtensionElement) {
+      targetElement = element;
       staticModifier = true;
     } else if (target != null) {
       // prepare target interface type
-      var targetType = target.staticType;
-      if (targetType is! InterfaceType) {
+      if (target.staticType case InterfaceType type) {
+        targetType = type;
+      } else {
         return;
       }
       targetElement = targetType.element;
@@ -69,11 +74,27 @@ class CreateSetter extends ResolvedCorrectionProducer {
         staticModifier = targetElement?.kind == ElementKind.CLASS;
       }
     } else {
-      targetElement = node.enclosingInstanceElement;
-      if (targetElement == null) {
-        return;
-      }
       staticModifier = inStaticContext;
+      targetElement = node.enclosingInstanceElement;
+      if (targetElement is ExtensionElement) {
+        if (staticModifier) {
+          // This should be handled by create extension member fixes
+          return;
+        }
+        targetElement = targetElement.extendedInterfaceElement;
+      }
+      if (targetElement?.thisType case InterfaceType type) {
+        targetType = type;
+      }
+    }
+    if (targetElement is ExtensionElement) {
+      targetElement = targetElement.extendedInterfaceElement;
+      if (targetElement?.thisType case InterfaceType type) {
+        targetType = type;
+      }
+    }
+    if (targetElement == null) {
+      return;
     }
     var targetFragment = targetElement.firstFragment;
     var targetSource = targetFragment.libraryFragment.source;
@@ -91,7 +112,6 @@ class CreateSetter extends ResolvedCorrectionProducer {
     if (targetNode is CompilationUnitMember) {
       if (targetDeclarationResult.node is! ClassDeclaration &&
           targetDeclarationResult.node is! MixinDeclaration &&
-          targetDeclarationResult.node is! ExtensionDeclaration &&
           targetDeclarationResult.node is! ExtensionTypeDeclaration) {
         return;
       }
@@ -108,11 +128,16 @@ class CreateSetter extends ResolvedCorrectionProducer {
     }
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertGetter(targetNode, (builder) {
+        var parameterTypeNode = climbPropertyAccess(nameNode);
+        var parameterType = inferUndefinedExpressionType(parameterTypeNode);
+        var boundedType =
+            targetType.typeParameterCorrespondingTo(parameterType) ??
+            parameterType;
         builder.writeSetterDeclaration(
           _setterName,
           isStatic: staticModifier,
           nameGroupName: 'NAME',
-          parameterType: parameterType,
+          parameterType: boundedType,
           parameterTypeGroupName: 'TYPE',
         );
       });

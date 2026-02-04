@@ -6,3 +6,4 @@ filters:
 ignored:
   - beginParenthesizedExpressionOrRecordLiteral
   - endParenthesizedExpression
+  - handlePositionalRecordField

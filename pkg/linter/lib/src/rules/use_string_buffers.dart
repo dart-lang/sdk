@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use string buffers to compose strings.';
 
@@ -24,12 +26,12 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// step it creates an auxiliary String that takes O(amount of chars) to be
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
-class UseStringBuffers extends LintRule {
+class UseStringBuffers extends AnalysisRule {
   UseStringBuffers()
     : super(name: LintNames.use_string_buffers, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useStringBuffers;
+  DiagnosticCode get diagnosticCode => diag.useStringBuffers;
 
   @override
   void registerNodeProcessors(
@@ -44,7 +46,7 @@ class UseStringBuffers extends LintRule {
 }
 
 class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   SimpleIdentifier identifier;
 
   _IdentifierIsPrefixVisitor(this.rule, this.identifier);
@@ -83,7 +85,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor<void> {
 }
 
 class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
   final localElements = <Element?>{};
 
   _UseStringBufferVisitor(this.rule);
@@ -135,7 +137,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _Visitor(this.rule);
 

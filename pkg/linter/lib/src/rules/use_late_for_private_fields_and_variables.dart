@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
@@ -13,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Use late for private members with a non-nullable type.';
@@ -25,7 +27,7 @@ bool _isPrivateExtension(AstNode parent) {
   return parentName == null || Identifier.isPrivateName(parentName);
 }
 
-class UseLateForPrivateFieldsAndVariables extends LintRule {
+class UseLateForPrivateFieldsAndVariables extends AnalysisRule {
   UseLateForPrivateFieldsAndVariables()
     : super(
         name: LintNames.use_late_for_private_fields_and_variables,
@@ -34,8 +36,7 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.useLateForPrivateFieldsAndVariables;
+  DiagnosticCode get diagnosticCode => diag.useLateForPrivateFieldsAndVariables;
 
   @override
   void registerNodeProcessors(
@@ -54,7 +55,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   final Set<Element> nullableAccess = <Element>{};
 
-  final LintRule rule;
+  final AnalysisRule rule;
   final RuleContext context;
 
   /// The "current" [LibraryFragment], which is set by
@@ -103,9 +104,11 @@ class _Visitor extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // See: https://dart.dev/tools/diagnostic-messages#late_final_field_with_const_constructor
-    for (var member in node.members) {
-      if (member is ConstructorDeclaration && member.constKeyword != null) {
-        return;
+    if (node.body case BlockClassBody body) {
+      for (var member in body.members) {
+        if (member is ConstructorDeclaration && member.constKeyword != null) {
+          return;
+        }
       }
     }
 
@@ -128,7 +131,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     if (parent is ExtensionTypeDeclaration && !node.isStatic) return;
     if (parent != null) {
       var parentIsPrivateExtension = _isPrivateExtension(parent);

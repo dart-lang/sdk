@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/workspace/workspace.dart';
+import 'package:collection/collection.dart';
 
 /// Algorithm for detecting usages of a set of elements.
 class ElementUsageDetector<TagInfo extends Object> {
@@ -52,7 +53,7 @@ class ElementUsageDetector<TagInfo extends Object> {
       return;
     }
     // Implicit getters/setters.
-    if (element.isSynthetic && element is PropertyAccessorElement) {
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
       element = element.variable;
     }
     var tagInfo = elementUsageSet.getTagInfo(element);
@@ -113,12 +114,34 @@ class ElementUsageDetector<TagInfo extends Object> {
       var invokeClass = invokeType.element;
       displayName = '${invokeClass.name}.${element.displayName}';
     }
+
+    // TODO(srawlins): Consider `node` being a `ConstructorDeclaration`, and use
+    // `ConstructorDeclaration.errorRange` here. This would stray from the API
+    // of passing a SyntacticEntity here.
+
     elementUsageReporter.report(
       errorEntity,
       displayName,
       tagInfo,
       isInSamePackage: _isLibraryInWorkspacePackage(element.library),
     );
+  }
+
+  void constructorDeclaration(ConstructorDeclaration node) {
+    // Check usage of any implicit super-constructor call.
+    // There is only an implicit super-constructor if:
+    // * this is not a factory constructor,
+    // * there is no redirecting constructor invocation, and
+    // * there is no explicit super constructor invocation.
+    if (node.factoryKeyword != null) return;
+    var hasConstructorInvocation = node.initializers.any(
+      (i) =>
+          i is SuperConstructorInvocation ||
+          i is RedirectingConstructorInvocation,
+    );
+    if (hasConstructorInvocation) return;
+
+    checkUsage(node.declaredFragment!.element.superConstructor, node);
   }
 
   void constructorName(ConstructorName node) {
@@ -141,6 +164,37 @@ class ElementUsageDetector<TagInfo extends Object> {
 
   void extensionOverride(ExtensionOverride node) {
     checkUsage(node.element, node);
+  }
+
+  void formalParameter(FormalParameter node) {
+    if (node.parent case DefaultFormalParameter defaultFormalParameter) {
+      node = defaultFormalParameter;
+    }
+    var parent = node.parent;
+    if (parent is! FormalParameterList) return;
+    if (parent.parent case ConstructorDeclaration constructor) {
+      if (constructor.redirectedConstructor?.element
+          case var redirectedConstructor?) {
+        if (node.isNamed) {
+          var redirectedParameter = redirectedConstructor.formalParameters
+              .firstWhereOrNull(
+                (p) => p.isNamed && p.name == node.name?.lexeme,
+              );
+          checkUsage(redirectedParameter, node);
+        } else {
+          // Positional.
+          var position = parent.parameters.indexOf(node);
+          if (position < 0) return;
+          if (position >= redirectedConstructor.formalParameters.length) {
+            return;
+          }
+          var redirectedParameter =
+              redirectedConstructor.formalParameters[position];
+          if (!redirectedParameter.isPositional) return;
+          checkUsage(redirectedParameter, node);
+        }
+      }
+    }
   }
 
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
@@ -221,6 +275,10 @@ class ElementUsageDetector<TagInfo extends Object> {
   void superConstructorInvocation(SuperConstructorInvocation node) {
     checkUsage(node.element, node);
     _invocationArguments(node.element, node.argumentList);
+  }
+
+  void superFormalParameter(SuperFormalParameter node) {
+    checkUsage(node.declaredFragment!.element.superConstructorParameter, node);
   }
 
   void _invocationArguments(Element? element, ArgumentList arguments) {

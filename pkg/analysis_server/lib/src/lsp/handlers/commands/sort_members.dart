@@ -30,7 +30,7 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     if (parameters['path'] is! String) {
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.InvalidCommandArguments,
+          code: ServerErrorCodes.invalidCommandArguments,
           message: '$commandName requires a Map argument containing a "path"',
         ),
       );
@@ -56,7 +56,7 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
       }
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.FileNotAnalyzed,
+          code: ServerErrorCodes.fileNotAnalyzed,
           message: '$commandName is only available for analyzed files',
         ),
       );
@@ -71,7 +71,7 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
       }
       return ErrorOr.error(
         ResponseError(
-          code: ServerErrorCodes.FileHasErrors,
+          code: ServerErrorCodes.fileHasErrors,
           message:
               'Unable to $commandName because the file contains parse errors',
           data: path,

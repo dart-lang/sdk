@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -40,33 +39,17 @@ mixin CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases
   _Variant get _variant;
 
   test_notSubtype_hasEqEq() async {
-    List<ExpectedError> expectedErrors;
+    List<ExpectedDiagnostic> expectedDiagnosticss;
     switch (_variant) {
       case _Variant.nullSafe:
-        expectedErrors = [
-          error(
-            CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
-            180,
-            2,
-          ),
-          error(
-            CompileTimeErrorCode.caseExpressionTypeImplementsEquals,
-            180,
-            2,
-          ),
-          error(
-            CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
-            206,
-            10,
-          ),
-          error(
-            CompileTimeErrorCode.caseExpressionTypeImplementsEquals,
-            206,
-            10,
-          ),
+        expectedDiagnosticss = [
+          error(diag.caseExpressionTypeIsNotSwitchExpressionSubtype, 180, 2),
+          error(diag.caseExpressionTypeImplementsEquals, 180, 2),
+          error(diag.caseExpressionTypeIsNotSwitchExpressionSubtype, 206, 10),
+          error(diag.caseExpressionTypeImplementsEquals, 206, 10),
         ];
       case _Variant.patterns:
-        expectedErrors = [];
+        expectedDiagnosticss = [];
     }
 
     await assertErrorsInCode('''
@@ -90,29 +73,21 @@ void f(A e) {
       break;
   }
 }
-''', expectedErrors);
+''', expectedDiagnosticss);
   }
 
   test_notSubtype_primitiveEquality() async {
-    List<ExpectedError> expectedErrors;
+    List<ExpectedDiagnostic> expectedDiagnostics;
     switch (_variant) {
       case _Variant.nullSafe:
-        expectedErrors = [
-          error(
-            CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
-            145,
-            2,
-          ),
-          error(
-            CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
-            171,
-            10,
-          ),
+        expectedDiagnostics = [
+          error(diag.caseExpressionTypeIsNotSwitchExpressionSubtype, 145, 2),
+          error(diag.caseExpressionTypeIsNotSwitchExpressionSubtype, 171, 10),
         ];
       case _Variant.patterns:
-        expectedErrors = [
-          error(WarningCode.constantPatternNeverMatchesValueType, 145, 2),
-          error(WarningCode.constantPatternNeverMatchesValueType, 171, 10),
+        expectedDiagnostics = [
+          error(diag.constantPatternNeverMatchesValueType, 145, 2),
+          error(diag.constantPatternNeverMatchesValueType, 171, 10),
         ];
     }
 
@@ -136,7 +111,7 @@ void f(A e) {
       break;
   }
 }
-''', expectedErrors);
+''', expectedDiagnostics);
   }
 
   test_subtype() async {

@@ -23,6 +23,11 @@ class SourceMapping {
 
   SourceMapping.unmapped(this.instructionOffset) : sourceInfo = null;
 
+  SourceMapping shiftBy(int shift) {
+    if (shift == 0) return this;
+    return SourceMapping._(shift + instructionOffset, sourceInfo);
+  }
+
   @override
   String toString() => '$instructionOffset -> $sourceInfo';
 }

@@ -73,6 +73,9 @@ patterns/issue51009: semiFuzzFailureOnForceRebuildBodies # private extension met
 patterns/issue55310: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/pattern_matching: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/private_names_in_object_patterns: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
+primary_constructors/constructors: semiFuzzFailureOnForceRebuildBodies
+private_named_parameters/access_in_initializer: semiFuzzFailureOnForceRebuildBodies # private fields in class.
+private_named_parameters/initializing_formal: semiFuzzFailureOnForceRebuildBodies # private field in class.
 records/issue51940: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 dart2wasm/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # private fields in class.
@@ -119,8 +122,8 @@ nnbd/platform_nonnullable_fields/main: SemiFuzzFailure
 nnbd/platform_optional_parameters/main: SemiFuzzFailure
 
 # UNSORTED ONES:
-coverage/static2_test: TypeCheckError
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
+enhanced_parts/export_part_file: SemiFuzzFailure
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
 general/platform_invalid_uris/main: SemiFuzzFailure
@@ -176,6 +179,7 @@ general/error_recovery/empty_for: RuntimeError
 general/expressions: RuntimeError
 general/hierarchy/conflict: TypeCheckError
 general/hierarchy/duplicates: TypeCheckError
+general/invalid_initializer: RuntimeError # Deliberate crash using InvalidInitializer
 general/invocations: RuntimeError
 general/issue37776: RuntimeError
 general/issue47994b: RuntimeError
@@ -251,3 +255,6 @@ wildcard_variables/class_type_parameters: semiFuzzFailureOnForceRebuildBodies # 
 wildcard_variables/initializing_formals: RuntimeError # Expected
 wildcard_variables/local_var_no_shadowing: semiFuzzFailureOnForceRebuildBodies # Expected
 wildcard_variables/top_level_function_no_shadow: semiFuzzFailureOnForceRebuildBodies # Expected
+
+# Temporarily unimplemented binary serialization, see https://github.com/dart-lang/sdk/issues/61765
+closure_context_lowering/local_variables: Crash

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/error/listener.dart';
@@ -49,8 +49,8 @@ class CodeFragmentParser {
   /// Parse the [content] into a list of accessors. Add the [delta] to translate
   /// from offsets within the content to offsets within the file.
   ///
-  /// <content> ::=
-  ///   <accessor> ('.' <accessor>)*
+  ///     <content> ::=
+  ///       <accessor> ('.' <accessor>)*
   List<Accessor>? parseAccessors(String content, int delta) {
     this.delta = delta;
     var scannedTokens = _CodeFragmentScanner(
@@ -86,7 +86,7 @@ class CodeFragmentParser {
         diagnosticReporter.atOffset(
           offset: token.offset + delta,
           length: token.length,
-          diagnosticCode: TransformSetErrorCode.wrongToken,
+          diagnosticCode: diag.wrongToken,
           arguments: ['.', token.kind.displayName],
         );
         return null;
@@ -98,8 +98,8 @@ class CodeFragmentParser {
   /// Parse the [content] into a condition. Add the [delta] to translate
   /// from offsets within the content to offsets within the file.
   ///
-  /// <content> ::=
-  ///   <logicalExpression>
+  ///     <content> ::=
+  ///       <logicalExpression>
   Expression? parseCondition(String content, int delta) {
     this.delta = delta;
     var scannedTokens = _CodeFragmentScanner(
@@ -119,7 +119,7 @@ class CodeFragmentParser {
       diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        diagnosticCode: TransformSetErrorCode.unexpectedToken,
+        diagnosticCode: diag.unexpectedTransformSetToken,
         arguments: [token.kind.displayName],
       );
       return null;
@@ -157,7 +157,7 @@ class CodeFragmentParser {
       diagnosticReporter.atOffset(
         offset: offset + delta,
         length: length,
-        diagnosticCode: TransformSetErrorCode.missingToken,
+        diagnosticCode: diag.missingToken,
         arguments: [validKindsDisplayString()],
       );
       return null;
@@ -166,7 +166,7 @@ class CodeFragmentParser {
       diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        diagnosticCode: TransformSetErrorCode.wrongToken,
+        diagnosticCode: diag.wrongToken,
         arguments: [validKindsDisplayString(), token.kind.displayName],
       );
       return null;
@@ -176,8 +176,8 @@ class CodeFragmentParser {
 
   /// Parse an accessor.
   ///
-  /// <accessor> ::=
-  ///   <identifier> '[' (<integer> | <identifier>) ']'
+  ///     <accessor> ::=
+  ///       <identifier> '[' (<integer> | <identifier>) ']'
   Accessor? _parseAccessor() {
     var token = _expect(const [_TokenKind.identifier]);
     if (token == null) {
@@ -239,7 +239,7 @@ class CodeFragmentParser {
       diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        diagnosticCode: TransformSetErrorCode.unknownAccessor,
+        diagnosticCode: diag.unknownAccessor,
         arguments: [identifier],
       );
       return null;
@@ -248,10 +248,10 @@ class CodeFragmentParser {
 
   /// Parse a logical expression.
   ///
-  /// <equalityExpression> ::=
-  ///   <primaryExpression> (<comparisonOperator> <primaryExpression>)?
-  /// <comparisonOperator> ::=
-  ///   '==' | '!='
+  ///     <equalityExpression> ::=
+  ///       <primaryExpression> (<comparisonOperator> <primaryExpression>)?
+  ///     <comparisonOperator> ::=
+  ///       '==' | '!='
   Expression? _parseEqualityExpression() {
     var expression = _parsePrimaryExpression();
     if (expression == null) {
@@ -277,8 +277,8 @@ class CodeFragmentParser {
 
   /// Parse a logical expression.
   ///
-  /// <logicalExpression> ::=
-  ///   <equalityExpression> ('&&' <equalityExpression>)*
+  ///     <logicalExpression> ::=
+  ///       <equalityExpression> ('&&' <equalityExpression>)*
   Expression? _parseLogicalAndExpression() {
     var leftOperand = _parseEqualityExpression();
     if (leftOperand == null) {
@@ -306,8 +306,8 @@ class CodeFragmentParser {
 
   /// Parse a logical expression.
   ///
-  /// <primaryExpression> ::=
-  ///   <identifier> | <string>
+  ///     <primaryExpression> ::=
+  ///       <identifier> | <string>
   Expression? _parsePrimaryExpression() {
     var token = _currentToken;
     if (token != null) {
@@ -320,7 +320,7 @@ class CodeFragmentParser {
           diagnosticReporter.atOffset(
             offset: token.offset + delta,
             length: token.length,
-            diagnosticCode: TransformSetErrorCode.undefinedVariable,
+            diagnosticCode: diag.undefinedVariable,
             arguments: [variableName],
           );
           return null;
@@ -351,7 +351,7 @@ class CodeFragmentParser {
     diagnosticReporter.atOffset(
       offset: offset,
       length: length,
-      diagnosticCode: TransformSetErrorCode.expectedPrimary,
+      diagnosticCode: diag.expectedPrimary,
     );
     return null;
   }
@@ -478,7 +478,7 @@ class _CodeFragmentScanner {
     _diagnosticReporter.atOffset(
       offset: offset + delta,
       length: 1,
-      diagnosticCode: TransformSetErrorCode.invalidCharacter,
+      diagnosticCode: diag.invalidCharacter,
       arguments: [content.substring(offset, offset + 1)],
     );
     return null;

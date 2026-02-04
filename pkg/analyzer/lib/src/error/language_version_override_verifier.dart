@@ -4,8 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 
 /// Finds invalid, or misplaced language override comments.
 class LanguageVersionOverrideVerifier {
@@ -186,29 +186,32 @@ class LanguageVersionOverrideVerifier {
     // language version override comment.
 
     if (slashCount > 2) {
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideTwoSlashes,
+      _diagnosticReporter.report(
+        diag.invalidLanguageVersionOverrideTwoSlashes.atOffset(
+          offset: offset,
+          length: length,
+        ),
       );
       return false;
     }
 
     if (!atSignPresent) {
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideAtSign,
+      _diagnosticReporter.report(
+        diag.invalidLanguageVersionOverrideAtSign.atOffset(
+          offset: offset,
+          length: length,
+        ),
       );
       return false;
     }
 
     if (possibleDart != 'dart') {
       // The 4 characters after `@` are "dart", but in the wrong case.
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideLowerCase,
+      _diagnosticReporter.report(
+        diag.invalidLanguageVersionOverrideLowerCase.atOffset(
+          offset: offset,
+          length: length,
+        ),
       );
       return false;
     }
@@ -217,28 +220,31 @@ class LanguageVersionOverrideVerifier {
         comment.codeUnitAt(dartVersionSeparatorStartIndex) != 0x3D) {
       // The separator between "@dart" and the version number is either not
       // present, or is not a single "=" character.
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideEquals,
+      _diagnosticReporter.report(
+        diag.invalidLanguageVersionOverrideEquals.atOffset(
+          offset: offset,
+          length: length,
+        ),
       );
       return false;
     }
 
     if (containsInvalidVersionNumberPrefix) {
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverridePrefix,
+      _diagnosticReporter.report(
+        diag.invalidLanguageVersionOverridePrefix.atOffset(
+          offset: offset,
+          length: length,
+        ),
       );
       return false;
     }
 
     void reportInvalidNumber() {
-      _diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: WarningCode.invalidLanguageVersionOverrideNumber,
+      _diagnosticReporter.report(
+        diag.invalidLanguageVersionOverrideNumber.atOffset(
+          offset: offset,
+          length: length,
+        ),
       );
     }
 
@@ -271,11 +277,11 @@ class LanguageVersionOverrideVerifier {
 
     // This comment is a valid language version override, except for trailing
     // characters.
-    _diagnosticReporter.atOffset(
-      offset: offset,
-      length: length,
-      diagnosticCode:
-          WarningCode.invalidLanguageVersionOverrideTrailingCharacters,
+    _diagnosticReporter.report(
+      diag.invalidLanguageVersionOverrideTrailingCharacters.atOffset(
+        offset: offset,
+        length: length,
+      ),
     );
     return false;
   }
@@ -301,11 +307,11 @@ class LanguageVersionOverrideVerifier {
           var match = _overrideCommentLine.firstMatch(lexeme);
           if (match != null) {
             var atDartStart = lexeme.indexOf('@dart');
-            _diagnosticReporter.atOffset(
-              offset: commentToken.offset + atDartStart,
-              length: match.end - atDartStart,
-              diagnosticCode:
-                  WarningCode.invalidLanguageVersionOverrideLocation,
+            _diagnosticReporter.report(
+              diag.invalidLanguageVersionOverrideLocation.atOffset(
+                offset: commentToken.offset + atDartStart,
+                length: match.end - atDartStart,
+              ),
             );
           }
         }

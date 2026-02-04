@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../serialize/serialize.dart';
+import '../serialize/printer.dart';
 import 'ir.dart';
 
 /// An (imported or defined) global variable.
@@ -26,6 +27,9 @@ abstract class Global with Indexable, Exportable {
   Export buildExport(String name) {
     return GlobalExport(name, this);
   }
+
+  void printTo(IrPrinter p, {bool includeInitializer = true}) =>
+      throw 'not implemented';
 }
 
 /// A global variable defined in a module.
@@ -40,6 +44,35 @@ class DefinedGlobal extends Global implements Serializable {
   void serialize(Serializer s) {
     s.write(type);
     s.write(initializer);
+  }
+
+  @override
+  void printTo(IrPrinter p, {bool includeInitializer = true}) {
+    // This may generate globals this one refers to.
+    final ip = p.dup();
+    if (includeInitializer) {
+      initializer.printInitializerTo(ip);
+    }
+
+    p.write('(global ');
+    p.writeGlobalReference(this);
+    p.write(' ');
+    type.printTo(p);
+    if (includeInitializer) {
+      if (p.preferMultiline) {
+        p.indent();
+        p.writeln();
+      } else {
+        p.write(' ');
+      }
+      p.write(ip.getText().trim());
+      if (p.preferMultiline) {
+        p.deindent();
+      }
+    } else {
+      p.write(' <...>');
+    }
+    p.write(')');
   }
 }
 
@@ -61,6 +94,17 @@ class ImportedGlobal extends Global implements Import {
     s.writeName(name);
     s.writeByte(0x03);
     s.write(type);
+  }
+
+  @override
+  void printTo(IrPrinter p, {bool includeInitializer = true}) {
+    p.write('(global ');
+    p.writeGlobalReference(this);
+    p.write(' ');
+    p.writeImport(module, name);
+    p.write(' ');
+    p.writeValueType(type.type);
+    p.write(')');
   }
 }
 

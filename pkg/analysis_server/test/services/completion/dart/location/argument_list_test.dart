@@ -67,12 +67,6 @@ replacement
 suggestions
   l0
     kind: parameter
-  true
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
   const
     kind: keyword
   switch
@@ -98,12 +92,6 @@ replacement
 suggestions
   random
     kind: localVariable
-  null
-    kind: keyword
-  false
-    kind: keyword
-  true
-    kind: keyword
   const
     kind: keyword
   switch
@@ -238,6 +226,151 @@ suggestions
 ''');
   }
 
+  Future<void> test_booleansDynamic() async {
+    await computeSuggestions('''
+void f(dynamic o) => f(^);
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_booleansForNullableObject() async {
+    await computeSuggestions('''
+void f(Object? o) => f(^);
+''');
+    assertResponse(r'''
+suggestions
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_booleansForObject() async {
+    await computeSuggestions('''
+void f(Object o) => f(^);
+''');
+    assertResponse(r'''
+suggestions
+  true
+    kind: keyword
+  false
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_coreFunction() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(Function p0) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  () => ^,
+    kind: invocation
+  () {
+    ^
+  },
+    kind: invocation
+  p0
+    kind: parameter
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_namedParameters() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(void Function(int i) p0) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (i) => ^,
+    kind: invocation
+  (i) {
+    ^
+  },
+    kind: invocation
+  p0
+    kind: parameter
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_unnamedParameters() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(void Function(int) p0) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (p0) => ^,
+    kind: invocation
+  (p0) {
+    ^
+  },
+    kind: invocation
+  p0
+    kind: parameter
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_closure_unnamedParameters_equal() async {
+    includeClosures = true;
+    await computeSuggestions('''
+void f(void Function(int p2, int p2_1, int) p0) {
+  f(^);
+}
+''');
+    // We expect it to try and use `p2` but since it is already in use, it
+    // should try `p2_1`, and then `p2_2`.
+    assertResponse('''
+suggestions
+  (p2, p2_1, p2_2) => ^,
+    kind: invocation
+  (p2, p2_1, p2_2) {
+    ^
+  },
+    kind: invocation
+  p0
+    kind: parameter
+  switch
+    kind: keyword
+''');
+  }
+
   Future<void> test_dotShorthands_constructor() async {
     await computeSuggestions('''
 class A {
@@ -271,6 +404,169 @@ suggestions
     kind: namedArgument
 ''');
   }
+
+  Future<void> test_functionTearoff() async {
+    identifierRegExp = RegExp(r'^myFunction');
+    await computeSuggestions('''
+void f(void Function(int) x) {
+  f(^);
+}
+
+void myFunction(int i) {}
+''');
+    assertResponse(r'''
+suggestions
+  myFunction
+    kind: function
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_functionTearoff_coreFunction() async {
+    identifierRegExp = RegExp(r'^myFunction');
+    await computeSuggestions('''
+class RaisedButton {
+  RaisedButton({Function? onPressed});
+}
+
+void x() {
+  RaisedButton(onPressed: ^);
+}
+
+void myFunction() {}
+''');
+    assertResponse(r'''
+suggestions
+  myFunction
+    kind: function
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_noClosure_const() async {
+    includeClosures = true;
+    await computeSuggestions('''
+class C {
+  const C(void Function() f);
+}
+void f0() {
+  const C(^);
+}
+''');
+    assertResponse('''
+suggestions
+  f0
+    kind: function
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_noClosure_const_named() async {
+    includeClosures = true;
+    await computeSuggestions('''
+class C {
+  const C({required void Function() f});
+}
+void f0() {
+  const C(f: ^);
+}
+''');
+    assertResponse('''
+suggestions
+  f0
+    kind: function
+''');
+  }
+
+  Future<void> test_notDeclaredFunction() async {
+    await computeSuggestions('''
+void f() {foo(^);}
+''');
+    assertResponse(r'''
+suggestions
+  const
+    kind: keyword
+  true
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_null() async {
+    await computeSuggestions('''
+void f(Null n) => f(^);
+''');
+    assertResponse(r'''
+suggestions
+  null
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_null_named() async {
+    await computeSuggestions('''
+void f({Null n}) => f(n: ^);
+''');
+    assertResponse(r'''
+suggestions
+  null
+    kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_nullableClosure() async {
+    await computeSuggestions('''
+void f(void Function(int i)? x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  null
+    kind: keyword
+  switch
+    kind: keyword
+''');
+  }
+
+  Future<void> test_staticMethod_constConstructor_const() async {
+    allowedIdentifiers = {'new', 'other', 'staticMethod'};
+    await computeSuggestions('''
+class C {
+  const C({void Function()? f});
+  C.other();
+  static void staticMethod() {}
+}
+void f0() {
+  const C(f: C.^);
+}
+''');
+    assertResponse('''
+suggestions
+  new
+    kind: constructor
+  other
+    kind: constructor
+  staticMethod
+    kind: method
+''');
+  }
 }
 
 @reflectiveTest
@@ -299,9 +595,8 @@ build() => new Row(
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -323,9 +618,8 @@ build() => new Row(
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -394,9 +688,8 @@ build() => new Row(
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -420,9 +713,8 @@ build() => new Scaffold(
 
     assertResponse(r'''
 suggestions
-  backgroundColor: ,
+  backgroundColor: ^,
     kind: namedArgument
-    selection: 17
 ''');
   }
 
@@ -446,9 +738,8 @@ class DynamicRow extends Widget {
 
     assertResponse(r'''
 suggestions
-  children: [],
+  children: [^],
     kind: namedArgument
-    selection: 11
 ''');
   }
 
@@ -471,9 +762,8 @@ class MapRow extends Widget {
 
     assertResponse(r'''
 suggestions
-  children: ,
+  children: ^,
     kind: namedArgument
-    selection: 10
 ''');
   }
 
@@ -495,9 +785,8 @@ class CustomScrollView extends Widget {
 
     assertResponse(r'''
 suggestions
-  slivers: [],
+  slivers: [^],
     kind: namedArgument
-    selection: 10
 ''');
   }
 
@@ -581,9 +870,8 @@ suggestions
 replacement
   left: 1
 suggestions
-  foo01: ,
+  foo01: ^,
     kind: namedArgument
-    selection: 7
 ''', where: where);
       },
     );
@@ -646,9 +934,8 @@ suggestions
       check: (String where) {
         assertResponse(r'''
 suggestions
-  foo01: ,
+  foo01: ^,
     kind: namedArgument
-    selection: 7
 ''', where: where);
       },
     );
@@ -721,9 +1008,8 @@ suggestions
       check: (String where) {
         assertResponse(r'''
 suggestions
-  foo02: ,
+  foo02: ^,
     kind: namedArgument
-    selection: 7
 ''', where: where);
       },
     );
@@ -932,6 +1218,64 @@ suggestions
 ''', where: where);
       },
     );
+  }
+
+  Future<void> test_privateNamed() async {
+    await computeSuggestions('''
+class A {
+  final int? _foo;
+  A({this._foo});
+}
+
+f() {
+  A(^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  |foo: |
+    kind: namedArgument
+''');
+  }
+
+  Future<void> test_superCall_excludesSuperParams() async {
+    await computeSuggestions('''
+class A {
+  final int x;
+  final int y;
+  A({this.x, this.y})
+}
+
+class B extends A {
+  B({super.x}) : super(^);
+}
+''');
+    // Only y is included because x is a super param.
+    assertResponse(r'''
+suggestions
+  |y: |
+    kind: namedArgument
+''');
+  }
+
+  Future<void> test_superCall_excludesUsedNames() async {
+    await computeSuggestions('''
+class A {
+  final int x;
+  final int y;
+  A({this.x, this.y})
+}
+
+class B extends A {
+  B() : super(x: 1, ^);
+}
+''');
+    // Only y is included because x is already used.
+    assertResponse(r'''
+suggestions
+  |y: |
+    kind: namedArgument
+''');
   }
 
   Future<void> _tryParametersArguments({

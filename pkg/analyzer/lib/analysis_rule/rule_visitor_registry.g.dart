@@ -41,6 +41,8 @@ abstract class RuleVisitorRegistry {
 
   void addBlock(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
   void addBlockFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addBooleanLiteral(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -115,9 +117,13 @@ abstract class RuleVisitorRegistry {
 
   void addDoubleLiteral(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor visitor);
+
+  void addEnumBody(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addEnumConstantArguments(AbstractAnalysisRule rule, AstVisitor visitor);
 
@@ -276,6 +282,8 @@ abstract class RuleVisitorRegistry {
 
   void addNamedType(AbstractAnalysisRule rule, AstVisitor visitor);
 
+  void addNameWithTypeParameters(AbstractAnalysisRule rule, AstVisitor visitor);
+
   void addNativeClause(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addNativeFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -322,6 +330,15 @@ abstract class RuleVisitorRegistry {
   void addPrefixedIdentifier(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addPrefixExpression(AbstractAnalysisRule rule, AstVisitor visitor);
+
+  void addPrimaryConstructorBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
+  void addPrimaryConstructorDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  );
+
+  void addPrimaryConstructorName(AbstractAnalysisRule rule, AstVisitor visitor);
 
   void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor visitor);
 

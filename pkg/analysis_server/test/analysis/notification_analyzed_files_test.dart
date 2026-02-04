@@ -40,7 +40,7 @@ class AnalysisNotificationAnalyzedFilesTest
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_ANALYZED_FILES) {
+    if (notification.event == analysisNotificationAnalyzedFiles) {
       var params = AnalysisAnalyzedFilesParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

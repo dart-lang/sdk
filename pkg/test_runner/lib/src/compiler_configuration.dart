@@ -108,8 +108,6 @@ abstract class CompilerConfiguration {
       case Compiler.dart2bytecode:
         return BytecodeCompilerConfiguration(configuration);
     }
-
-    throw "unreachable";
   }
 
   CompilerConfiguration._subclass(this._configuration);
@@ -567,11 +565,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       CommandArtifact? artifact) {
     final wasmFilename = artifact!.filename;
     final args = testFile.dartOptions;
-    final isD8 = runtimeConfiguration is D8RuntimeConfiguration;
     return [
-      if (isD8) ...[
-        '--shell-option=--experimental-wasm-imported-strings',
-      ],
       wasmFilename,
       ...testFile.sharedObjects
           .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
@@ -1090,6 +1084,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.simriscv64:
           target = ['-arch', 'riscv64'];
           break;
+        default:
+          throw 'Unhandled architecture: ${_configuration.architecture}';
       }
     } else if (Platform.isWindows) {
       cc = 'buildtools\\win-x64\\clang\\bin\\clang.exe';
@@ -1107,6 +1103,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.simarm64c:
           target = ['--target=arm64-windows'];
           break;
+        default:
+          throw 'Unhandled architecture: ${_configuration.architecture}';
       }
       ldFlags.add('-nostdlib');
       ldFlags.add('-Wl,/NOENTRY');
@@ -1423,6 +1421,12 @@ abstract mixin class VMKernelCompilerMixin {
           return Path('$tempDir/out.dll').toNativePath();
       }
     }
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.machODylib) {
+      return Path('$tempDir/libout.dylib').toNativePath();
+    }
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.elf) {
+      return Path('$tempDir/libout.so').toNativePath();
+    }
     return Path('$tempDir/out.aotsnapshot').toNativePath();
   }
 
@@ -1441,6 +1445,9 @@ abstract mixin class VMKernelCompilerMixin {
     var dillFile = tempKernelFile(tempDir);
 
     var isProductMode = _configuration.configuration.mode == Mode.product;
+    var isAsan = _configuration.configuration.sanitizer == Sanitizer.asan;
+    var isMsan = _configuration.configuration.sanitizer == Sanitizer.msan;
+    var isTsan = _configuration.configuration.sanitizer == Sanitizer.tsan;
 
     var args = [
       _isAot ? '--aot' : '--no-aot',
@@ -1455,6 +1462,9 @@ abstract mixin class VMKernelCompilerMixin {
           name.startsWith('--enable-experiment=') ||
           name.startsWith('--keep-class-names-implementing=')),
       '-Ddart.vm.product=$isProductMode',
+      '-Ddart.vm.asan=$isAsan',
+      '-Ddart.vm.msan=$isMsan',
+      '-Ddart.vm.tsan=$isTsan',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
@@ -1605,6 +1615,9 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
     final bytecodeFile = tempBytecodeFile(tempDir);
     final isProductMode = _configuration.configuration.mode == Mode.product;
+    final isAsan = _configuration.configuration.sanitizer == Sanitizer.asan;
+    final isMsan = _configuration.configuration.sanitizer == Sanitizer.msan;
+    final isTsan = _configuration.configuration.sanitizer == Sanitizer.tsan;
 
     final args = [
       dart2bytecodeSnapshot(),
@@ -1618,6 +1631,9 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
       '-Ddart.vm.product=$isProductMode',
+      '-Ddart.vm.asan=$isAsan',
+      '-Ddart.vm.msan=$isMsan',
+      '-Ddart.vm.tsan=$isTsan',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))

@@ -1,3 +1,4 @@
+// @dart=2.19
 int abstract(int x) {
   if (x == 0) return 42;
   return abstract(x-1) + 1;

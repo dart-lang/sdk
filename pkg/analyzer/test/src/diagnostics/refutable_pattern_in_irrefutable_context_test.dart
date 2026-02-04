@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ void f() {
   var (0) = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.refutablePatternInIrrefutableContext, 18, 1)],
+      [error(diag.refutablePatternInIrrefutableContext, 18, 1)],
     );
 
     var node = findNode.singlePatternVariableDeclaration;
@@ -55,8 +55,8 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.refutablePatternInIrrefutableContext, 18, 6),
-        error(WarningCode.deadCode, 20, 4),
+        error(diag.refutablePatternInIrrefutableContext, 18, 6),
+        error(diag.deadCode, 20, 4),
       ],
     );
 
@@ -92,7 +92,7 @@ void f(int? x) {
   var (_?) = x;
 }
 ''',
-      [error(CompileTimeErrorCode.refutablePatternInIrrefutableContext, 24, 2)],
+      [error(diag.refutablePatternInIrrefutableContext, 24, 2)],
     );
 
     var node = findNode.singlePatternVariableDeclaration;
@@ -125,7 +125,7 @@ void f() {
   var (> 0) = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.refutablePatternInIrrefutableContext, 18, 3)],
+      [error(diag.refutablePatternInIrrefutableContext, 18, 3)],
     );
 
     var node = findNode.singlePatternVariableDeclaration;

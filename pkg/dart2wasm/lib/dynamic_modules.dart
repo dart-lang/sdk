@@ -80,16 +80,27 @@ extension DynamicModuleMember on Member {
   bool isDynamicSubmoduleOverridable(CoreTypes coreTypes) =>
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenPragmaName) ||
       hasPragma(coreTypes, this, kDynModuleCanBeOverriddenImplicitlyPragmaName);
+
+  /// Indicates that this member is inherited into subclass interfaces.
+  ///
+  /// The member may be invoked via the interface of subclasses defined in
+  /// submodules. Even though the member may not be directly callable from the
+  /// submodule, it needs to be included in the updated dispatch table for the
+  /// subclass.
+  bool isDynamicSubmoduleInheritable(CoreTypes coreTypes) =>
+      (enclosingClass?.isDynamicSubmoduleExtendable(coreTypes) ?? false);
 }
 
 class DynamicSubmoduleOutputData extends ModuleOutputData {
   final CoreTypes coreTypes;
-  final ModuleOutput _submodule;
-  DynamicSubmoduleOutputData(this.coreTypes, super.modules, super.importMap)
-      : _submodule = modules[1];
+  final ModuleMetadata _submodule;
+  DynamicSubmoduleOutputData(this.coreTypes, ModuleMetadata mainModule,
+      this._submodule, Map<Library, ModuleMetadata> libraryToModuleMetadata)
+      : super.librarySplit(
+            [mainModule, _submodule], libraryToModuleMetadata, null);
 
   @override
-  ModuleOutput moduleForReference(Reference reference) {
+  ModuleMetadata moduleForReference(Reference reference) {
     // Rather than create tear-offs for all dynamic callable methods in the main
     // module, we create them as needed in the submodules.
     if (reference.isTearOffReference) return _submodule;
@@ -105,23 +116,29 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
   final CoreTypes coreTypes;
   @override
   final LibraryIndex index;
+  final WasmCompilerOptions options;
   final Uri dynamicInterfaceSpecificationBaseUri;
   final String dynamicInterfaceSpecification;
 
   DynamicMainModuleStrategy(
       this.component,
       this.coreTypes,
+      this.options,
       this.dynamicInterfaceSpecification,
       this.dynamicInterfaceSpecificationBaseUri)
       : index = coreTypes.index;
 
   @override
-  void prepareComponent() {
+  void addEntryPoints() {
     // Annotate the kernel with info from dynamic interface.
     dynamic_interface_annotator.annotateComponent(dynamicInterfaceSpecification,
         dynamicInterfaceSpecificationBaseUri, component, coreTypes);
-    _addImplicitPragmas();
 
+    _addImplicitPragmas();
+  }
+
+  @override
+  void prepareComponent() {
     for (final lib in component.libraries) {
       lib.annotations = [...lib.annotations];
       addPragma(lib, _mainModLibPragma, coreTypes);
@@ -133,11 +150,11 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
 
   @override
   ModuleOutputData buildModuleOutputData() {
-    final builder = ModuleOutputBuilder();
-    final mainModule = builder.buildModule();
-    mainModule.libraries.addAll(component.libraries);
-    final placeholderModule = builder.buildModule(skipEmit: true);
-    return ModuleOutputData([mainModule, placeholderModule], const {});
+    final builder = ModuleMetadataBuilder(options);
+    final mainModule = builder.buildModuleMetadata();
+    final placeholderModule = builder.buildModuleMetadata();
+    return ModuleOutputData.librarySplit(
+        [mainModule, placeholderModule], {}, mainModule);
   }
 
   void _addImplicitPragmas() {
@@ -198,6 +215,10 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
     // SystemHash.combine used by closures.
     add(systemHashCombine, kDynModuleCallablePragmaName);
   }
+
+  @override
+  Future<void> processComponentAfterTfa(
+      DeferredModuleLoadingMap loadingMap) async {}
 }
 
 class DynamicSubmoduleStrategy extends ModuleStrategy {
@@ -209,6 +230,9 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
 
   DynamicSubmoduleStrategy(this.component, this.options, this.kernelTarget,
       this.coreTypes, this.mainModuleComponentUri);
+
+  @override
+  void addEntryPoints() {}
 
   @override
   void prepareComponent() {
@@ -312,19 +336,25 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
 
   @override
   ModuleOutputData buildModuleOutputData() {
-    final moduleBuilder = ModuleOutputBuilder();
-    final mainModule = moduleBuilder.buildModule(skipEmit: true);
-    final submodule = moduleBuilder.buildModule(emitAsMain: true);
+    final builder = ModuleMetadataBuilder(options);
+    final mainModule = builder.buildModuleMetadata(skipEmit: true);
+    final submodule = builder.buildModuleMetadata(emitAsMain: true);
+
+    final libraryToModuleMetadata = <Library, ModuleMetadata>{};
     for (final library in component.libraries) {
       final module = hasPragma(coreTypes, library, _mainModLibPragma)
           ? mainModule
           : submodule;
-      module.libraries.add(library);
+      libraryToModuleMetadata[library] = module;
     }
 
     return DynamicSubmoduleOutputData(
-        coreTypes, [mainModule, submodule], const {});
+        coreTypes, mainModule, submodule, libraryToModuleMetadata);
   }
+
+  @override
+  Future<void> processComponentAfterTfa(
+      DeferredModuleLoadingMap loadingMap) async {}
 }
 
 void _recordIdMain(w.FunctionBuilder f, Translator translator) {
@@ -395,13 +425,14 @@ class DynamicModuleInfo {
   DynamicModuleInfo(this.translator, this.metadata);
 
   void initSubmodule() {
-    submodule.startFunction = initFunction = submodule.functions.define(
-        translator.typesBuilder.defineFunction(const [], const []), "#init");
+    initFunction = submodule.startFunction;
 
-    // Make sure the exception tag is exported from the main module.
-    translator.getExceptionTag(submodule);
+    // Make sure the exception tags are exported from the main module.
+    translator.getDartExceptionTag(submodule);
+    translator.getJsExceptionTag(submodule);
 
     if (isSubmodule) {
+      _initMainModuleConstantDefinitions();
       _initSubmoduleId();
       _initModuleRtt();
     } else {
@@ -410,6 +441,16 @@ class DynamicModuleInfo {
     }
 
     _initializeOverridableReferences();
+  }
+
+  void _initMainModuleConstantDefinitions() {
+    final mainAppConstants = translator.dynamicModuleConstants;
+    final constants = translator.constants;
+    mainAppConstants?.constantNames.forEach((constant, name) {
+      final initializerName =
+          mainAppConstants.constantInitializerNames[constant];
+      constants.defineMainAppConstant(constant, name, initializerName);
+    });
   }
 
   void _initModuleRtt() {
@@ -612,8 +653,6 @@ class DynamicModuleInfo {
   void finishDynamicModule() {
     _registerModuleRefs(
         isSubmodule ? initFunction.body : translator.initFunction.body);
-
-    initFunction.body.end();
   }
 
   void _registerModuleRefs(w.InstructionsBuilder b) {
@@ -648,7 +687,8 @@ class DynamicModuleInfo {
     overridableFunctions.putIfAbsent(index, () {
       if (!isSubmodule) {
         final mainFunction = translator.mainModule.functions.define(type, name);
-        translator.mainModule.functions.declare(mainFunction);
+        translator.mainModule.elements.declarativeSegmentBuilder
+            .declare(mainFunction);
         buildMain(mainFunction);
         return mainFunction;
       }
@@ -656,7 +696,7 @@ class DynamicModuleInfo {
       if (skipSubmodule) return null;
 
       final submoduleFunction = submodule.functions.define(type, name);
-      submodule.functions.declare(submoduleFunction);
+      submodule.elements.declarativeSegmentBuilder.declare(submoduleFunction);
       buildSubmodule(submoduleFunction);
       return submoduleFunction;
     });
@@ -730,13 +770,13 @@ class DynamicModuleInfo {
       // Whether we use checked+unchecked (or normal) we'll have the same
       // class-id ranges - only the actual target `Reference` may be a unchecked
       // or checked one.
-      assert(uncheckedTargets.targetRanges.length ==
-          checkedTargets.targetRanges.length);
+      assert(uncheckedTargets.allTargetRanges.length ==
+          checkedTargets.allTargetRanges.length);
 
       // NOTE: Keep this in sync with
       // `code_generator.dart:AstCodeGenerator._virtualCall`.
-      final bool noTarget = checkedTargets.targetRanges.isEmpty;
-      final bool directCall = checkedTargets.targetRanges.length == 1;
+      final bool noTarget = checkedTargets.allTargetRanges.isEmpty;
+      final bool directCall = checkedTargets.allTargetRanges.length == 1;
       final callPolymorphicDispatcher =
           !directCall && checkedTargets.staticDispatchRanges.isNotEmpty;
       // disabled for dyn overridable selectors atm
@@ -752,7 +792,7 @@ class DynamicModuleInfo {
       final w.FunctionType localSignature;
       final ParameterInfo localParamInfo;
       if (directCall) {
-        final target = checkedTargets.targetRanges.single.target;
+        final target = checkedTargets.allTargetRanges.single.target;
         localSignature = translator.signatureForDirectCall(target);
         localParamInfo = translator.paramInfoForDirectCall(target);
       } else {
@@ -825,11 +865,12 @@ class DynamicModuleInfo {
 
       if (directCall) {
         if (!localSelector.useMultipleEntryPoints) {
-          final target = checkedTargets.targetRanges.single.target;
+          final target = checkedTargets.allTargetRanges.single.target;
           ib.invoke(translator.directCallTarget(target));
         } else {
-          final uncheckedTarget = uncheckedTargets.targetRanges.single.target;
-          final checkedTarget = checkedTargets.targetRanges.single.target;
+          final uncheckedTarget =
+              uncheckedTargets.allTargetRanges.single.target;
+          final checkedTarget = checkedTargets.allTargetRanges.single.target;
           // Check if the invocation is checked or unchecked and use the
           // appropriate offset.
           ib.local_get(ib.locals[function.type.inputs.length - 1]);
@@ -926,7 +967,8 @@ class DynamicModuleInfo {
             buildSelectorBranch(interfaceTarget, mainModuleSelector),
         buildSubmoduleMatch:
             buildSelectorBranch(interfaceTarget, mainModuleSelector),
-        skipSubmodule: selector.targets(unchecked: false).targetRanges.isEmpty);
+        skipSubmodule:
+            selector.targets(unchecked: false).allTargetRanges.isEmpty);
     translator.convertType(
         b, generalizedSignature.outputs.single, localSignature.outputs.single);
   }
@@ -1038,7 +1080,7 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
     // Declare the function so it can be used as a ref_func in a constant
     // context.
-    b.moduleBuilder.functions.declare(checker);
+    b.moduleBuilder.elements.declarativeSegmentBuilder.declare(checker);
 
     // Invoke the 'canonicalize' function with the value and checker.
     b.local_get(valueLocal);
@@ -1072,7 +1114,7 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
     // Declare the function so it can be used as a ref_func in a constant
     // context.
-    b.moduleBuilder.functions.declare(checker);
+    b.moduleBuilder.elements.declarativeSegmentBuilder.declare(checker);
 
     // Invoke the canonicalizer function with the value and checker.
     b.local_get(valueLocal);

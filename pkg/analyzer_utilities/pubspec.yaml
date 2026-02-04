@@ -3,7 +3,7 @@ name: analyzer_utilities
 publish_to: none
 
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.10.0
 
 resolution: workspace
 
@@ -15,10 +15,12 @@ dependencies:
   package_config: any
   path: any
   pub_semver: any
+  source_span: any
   test: any
   yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  analyzer_plugin: any
   lints: any
   test_reflective_loader: any

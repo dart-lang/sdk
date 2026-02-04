@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -16,58 +16,58 @@ class ImportDirectivesTest extends PartialCodeTest {
       TestDescriptor('keyword', 'import', [
         // TODO(danrubel): Consider an improved error message
         // ParserErrorCode.MISSING_URI,
-        ParserErrorCode.expectedStringLiteral,
-        ParserErrorCode.expectedToken,
+        diag.expectedStringLiteral,
+        diag.expectedToken,
       ], "import '';"),
       TestDescriptor('emptyUri', "import ''", [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], "import '';"),
       TestDescriptor('fullUri', "import 'a.dart'", [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], "import 'a.dart';"),
       TestDescriptor('if', "import 'a.dart' if", [
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.expectedStringLiteral,
+        diag.expectedToken,
+        diag.expectedToken,
+        diag.expectedStringLiteral,
       ], "import 'a.dart' if (_s_) '';"),
       TestDescriptor(
         'ifParen',
         "import 'a.dart' if (",
         [
-          ParserErrorCode.missingIdentifier,
-          ScannerErrorCode.expectedToken,
-          ParserErrorCode.expectedStringLiteral,
-          ParserErrorCode.expectedToken,
+          diag.missingIdentifier,
+          diag.expectedToken,
+          diag.expectedStringLiteral,
+          diag.expectedToken,
         ],
         "import 'a.dart' if (_s_) '';",
         failing: ['functionNonVoid', 'getter', 'setter'],
       ),
       TestDescriptor('ifId', "import 'a.dart' if (b", [
-        ScannerErrorCode.expectedToken,
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.expectedStringLiteral,
+        diag.expectedToken,
+        diag.expectedToken,
+        diag.expectedStringLiteral,
       ], "import 'a.dart' if (b) '';"),
       TestDescriptor('ifEquals', "import 'a.dart' if (b ==", [
-        ParserErrorCode.expectedStringLiteral,
-        ParserErrorCode.expectedToken,
-        ScannerErrorCode.expectedToken,
-        ParserErrorCode.expectedStringLiteral,
+        diag.expectedStringLiteral,
+        diag.expectedToken,
+        diag.expectedToken,
+        diag.expectedStringLiteral,
       ], "import 'a.dart' if (b == '') '';"),
       TestDescriptor('ifCondition', "import 'a.dart' if (b)", [
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.expectedStringLiteral,
+        diag.expectedToken,
+        diag.expectedStringLiteral,
       ], "import 'a.dart' if (b) '';"),
       TestDescriptor(
         'as',
         "import 'a.dart' as",
-        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+        [diag.missingIdentifier, diag.expectedToken],
         "import 'a.dart' as _s_;",
         failing: ['functionNonVoid', 'getter'],
       ),
       TestDescriptor(
         'show',
         "import 'a.dart' show",
-        [ParserErrorCode.expectedToken, ParserErrorCode.missingIdentifier],
+        [diag.expectedToken, diag.missingIdentifier],
         "import 'a.dart' show _s_;",
         failing: ['functionNonVoid', 'getter'],
       ),

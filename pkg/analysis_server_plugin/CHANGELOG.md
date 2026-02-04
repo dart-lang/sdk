@@ -1,4 +1,22 @@
-## 0.3.2-dev
+## 0.3.5-dev
+
+- Require version `10.0.0` of the `analyzer` package.
+- Require version `0.14.0` of the `analyzer_plugin` package.
+- `PluginRegistry.registerFixForRule` now accepts a `DiagnosticCode` (a
+  supertype of the old parameter type, `LintCode`).
+- Fixes can now be suggested and applied in part files. (Thanks @FMorschel)
+- `AnalysisRuleVisitor.afterLibrary` is now properly supported.
+- Various documentation improvements.
+
+## 0.3.4
+
+- Require version `9.0.0` of the `analyzer` package.
+
+## 0.3.3
+
+- Require version `8.4.0` of the `analyzer` package.
+
+## 0.3.2
 
 - Fix support for automatic re-analysis of '*.dart' files _added_, both on-disk
   and for files added in the IDE.

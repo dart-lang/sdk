@@ -11,6 +11,8 @@ import "dart:_internal" show patch;
 
 import "dart:async" show Future, Zone;
 
+import "dart:io" show Platform;
+
 import "dart:isolate" show SendPort;
 
 /// These are the additional parts of this patch library:
@@ -228,4 +230,104 @@ abstract final class NativeRuntime {
   @patch
   @pragma("vm:external-name", "Developer_NativeRuntime_writeHeapSnapshotToFile")
   external static void writeHeapSnapshotToFile(String filepath);
+
+  @patch
+  static void streamTimelineTo(
+    TimelineRecorder recorder, {
+    String? path,
+    List<TimelineStream> streams = const [
+      TimelineStream.dart,
+      TimelineStream.gc,
+    ],
+    bool enableProfiler = false,
+    Duration samplingInterval = const Duration(microseconds: 1000),
+  }) {
+    if (samplingInterval.inMicroseconds < 50) {
+      throw ArgumentError.value(
+        samplingInterval,
+        'samplingInterval',
+        'should be at least 50 us',
+      );
+    }
+
+    if (recorder == TimelineRecorder.systrace) {
+      if (path != null) {
+        throw ArgumentError.value(
+          path,
+          'path',
+          '$recorder writes output to the global ftrace buffer and '
+              'can not redirect output to a specific file',
+        );
+      }
+
+      if (Platform.isWindows) {
+        throw ArgumentError.value(
+          recorder,
+          'recorder',
+          '$recorder not supported on Windows',
+        );
+      }
+    }
+
+    if (recorder != TimelineRecorder.systrace && path == null) {
+      throw ArgumentError.value(
+        path,
+        'path',
+        '$recorder needs an output file to write timeline data to',
+      );
+    }
+
+    if (recorder != TimelineRecorder.perfetto && enableProfiler) {
+      throw ArgumentError.value(
+        enableProfiler,
+        'enableProfiler',
+        '$recorder does not support encoding profiling data, '
+            'disable profiler or switch to TimelineRecorder.perfetto',
+      );
+    }
+
+    final recorderName = switch (recorder) {
+      TimelineRecorder.perfetto => 'perfettofile',
+      TimelineRecorder.chrome => 'file',
+      TimelineRecorder.systrace => 'systrace',
+    };
+
+    // Convert list of TimelineStream into a comma-separated list of values.
+    final streamsString = [
+      for (var str in streams)
+        switch (str) {
+          TimelineStream.api => 'API',
+          TimelineStream.compiler => 'Compiler',
+          TimelineStream.compilerVerbose => 'CompilerVerbose',
+          TimelineStream.dart => 'Dart',
+          TimelineStream.debugger => 'Debugger',
+          TimelineStream.embedder => 'Embedder',
+          TimelineStream.gc => 'GC',
+          TimelineStream.isolate => 'Isolate',
+          TimelineStream.microtask => 'Microtask',
+          TimelineStream.vm => 'vm',
+        },
+    ].join(',');
+
+    _streamTimelineToImpl(
+      recorderName,
+      path,
+      streamsString,
+      enableProfiler,
+      samplingInterval.inMicroseconds,
+    );
+  }
+
+  @pragma("vm:external-name", "Developer_NativeRuntime_streamTimelineTo")
+  external static void _streamTimelineToImpl(
+    String recorder,
+    String? path,
+    String streams,
+    bool enableProfiler,
+    int samplingInterval,
+  );
+
+  @patch
+  @pragma("vm:external-name", "Developer_NativeRuntime_stopStreamingTimeline")
+  external static void stopStreamingTimeline();
 }

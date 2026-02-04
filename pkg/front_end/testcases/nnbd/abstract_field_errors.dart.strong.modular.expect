@@ -190,10 +190,10 @@ abstract class A extends core::Object {
   static final field core::int finalStaticField = null;
   late field core::int lateInstanceField;
   constructor •(core::int initializedField1) → self::A
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/nnbd/abstract_field_errors.dart:18:10: Error: Abstract fields cannot have initializers.
+    : invalid-initializer "pkg/front_end/testcases/nnbd/abstract_field_errors.dart:18:10: Error: Abstract fields cannot have initializers.
 Try removing the field initializer or the 'abstract' keyword from the field declaration.
   A(this.initializedField1) : this.initializedField2 = 0;
-         ^^^^^^^^^^^^^^^^^", final dynamic #t2 = invalid-expression "pkg/front_end/testcases/nnbd/abstract_field_errors.dart:18:36: Error: Abstract fields cannot have initializers.
+         ^^^^^^^^^^^^^^^^^", invalid-initializer "pkg/front_end/testcases/nnbd/abstract_field_errors.dart:18:36: Error: Abstract fields cannot have initializers.
 Try removing the field initializer or the 'abstract' keyword from the field declaration.
   A(this.initializedField1) : this.initializedField2 = 0;
                                    ^^^^^^^^^^^^^^^^^"

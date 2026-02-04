@@ -183,6 +183,7 @@ import 'deprecated_colon_for_default_value_test.dart'
 import 'deprecated_export_use_test.dart' as deprecated_export_use;
 import 'deprecated_extend_test.dart' as deprecated_extend;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
+import 'deprecated_factory_method_test.dart' as deprecated_factory_method;
 import 'deprecated_implement_test.dart' as deprecated_implement;
 import 'deprecated_implements_function_test.dart'
     as deprecated_implements_function;
@@ -227,6 +228,8 @@ import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_pattern_assignment_variable_test.dart'
     as duplicate_pattern_assignment_variable;
 import 'duplicate_pattern_field_test.dart' as duplicate_pattern_field;
+import 'duplicate_private_named_parameter_test.dart'
+    as duplicate_private_named_parameter;
 import 'duplicate_rest_element_in_pattern_test.dart'
     as duplicate_rest_element_in_pattern;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
@@ -258,6 +261,7 @@ import 'expected_two_map_pattern_type_arguments_test.dart'
 import 'expected_two_map_type_arguments_test.dart'
     as expected_two_map_type_arguments;
 import 'experiment_not_enabled_test.dart' as experiment_not_enabled;
+import 'experimental_member_use_test.dart' as experimental_member_use;
 import 'export_internal_library_test.dart' as export_internal_library;
 import 'export_of_non_library_test.dart' as export_of_non_library;
 import 'expression_in_map_test.dart' as expression_in_map;
@@ -512,8 +516,6 @@ import 'invalid_use_of_visible_for_testing_member_test.dart'
     as invalid_use_of_visible_for_testing_member;
 import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
-import 'invalid_visible_for_overriding_annotation_test.dart'
-    as invalid_visible_for_overriding_annotation;
 import 'invalid_visible_outside_template_annotation_test.dart'
     as invalid_visible_outside_template_annotation;
 import 'invalid_widget_preview_application_test.dart'
@@ -671,6 +673,8 @@ import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_nullable_equals_parameter_test.dart' as non_null_equals_parameters;
 import 'non_positive_array_dimension_test.dart' as non_positive_array_dimension;
+import 'non_redirecting_generative_constructor_with_primary_test.dart'
+    as non_redirecting_generative_constructor_with_primary;
 import 'non_sized_type_argument_test.dart' as non_sized_type_argument;
 import 'non_type_as_type_argument_test.dart' as non_type_as_type_argument;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
@@ -923,6 +927,8 @@ import 'unreachable_switch_default_test.dart' as unreachable_switch_default;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
 import 'unused_catch_stack_test.dart' as unused_catch_stack;
 import 'unused_element_test.dart' as unused_element;
+import 'unused_field_from_primary_constructor_test.dart'
+    as unused_field_from_primary_constructor;
 import 'unused_field_test.dart' as unused_field;
 import 'unused_import_test.dart' as unused_import;
 import 'unused_label_test.dart' as unused_label;
@@ -1074,6 +1080,7 @@ main() {
     deprecated_export_use.main();
     deprecated_extend.main();
     deprecated_extends_function.main();
+    deprecated_factory_method.main();
     deprecated_implement.main();
     deprecated_implements_function.main();
     deprecated_instantiate.main();
@@ -1104,6 +1111,7 @@ main() {
     duplicate_part.main();
     duplicate_pattern_assignment_variable.main();
     duplicate_pattern_field.main();
+    duplicate_private_named_parameter.main();
     duplicate_rest_element_in_pattern.main();
     duplicate_shown_name.main();
     duplicate_variable_pattern.main();
@@ -1125,6 +1133,7 @@ main() {
     expected_two_map_pattern_type_arguments.main();
     expected_two_map_type_arguments.main();
     experiment_not_enabled.main();
+    experimental_member_use.main();
     export_internal_library.main();
     export_of_non_library.main();
     expression_in_map.main();
@@ -1152,6 +1161,7 @@ main() {
     extension_type_implements_representation_not_supertype.main();
     extension_type_inherited_member_conflict.main();
     extension_type_representation_depends_on_itself.main();
+
     extension_type_representation_type_bottom.main();
     extension_type_with_abstract_member.main();
     external_field_constructor_initializer.main();
@@ -1280,7 +1290,6 @@ main() {
     invalid_use_of_visible_for_template_member.main();
     invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
-    invalid_visible_for_overriding_annotation.main();
     invalid_visible_outside_template_annotation.main();
     invalid_widget_preview_application.main();
     invalid_widget_preview_private_argument.main();
@@ -1382,6 +1391,7 @@ main() {
     non_native_function_type_argument_to_pointer.main();
     non_null_equals_parameters.main();
     non_positive_array_dimension.main();
+    non_redirecting_generative_constructor_with_primary.main();
     non_sized_type_argument.main();
     non_type_as_type_argument.main();
     non_type_in_catch_clause.main();
@@ -1554,6 +1564,7 @@ main() {
     unused_catch_stack.main();
     unused_element.main();
     unused_field.main();
+    unused_field_from_primary_constructor.main();
     unused_import.main();
     unused_label.main();
     unused_local_variable.main();

@@ -4,6 +4,8 @@
 
 import 'dart:convert' show jsonDecode;
 
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
 import 'package:kernel/ast.dart';
 
 import '../base/combinator.dart';
@@ -96,7 +98,11 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   bool get isSynthetic => _dillLibraryBuilder.isSynthetic;
 
   @override
-  bool get isUnsupported => _dillLibraryBuilder.isUnsupported;
+  bool get conditionalImportSupported =>
+      _dillLibraryBuilder.conditionalImportSupported;
+
+  @override
+  Importability get importability => _dillLibraryBuilder.importability;
 
   @override
   LibraryBuilder get libraryBuilder => _dillLibraryBuilder;
@@ -114,7 +120,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
     int length,
     Uri fileUri,
   ) {
-    _dillLibraryBuilder.recordAccess(accessor, charOffset, length, fileUri);
+    // We can't save this here, it will cause leaks.
   }
 }
 
@@ -382,7 +388,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  bool get isUnsupported => library.isUnsupported;
+  bool get conditionalImportSupported => library.conditionalImportSupported;
+
+  @override
+  Importability get importability => library.importability;
 
   @override
   bool get isSynthetic => library.isSynthetic;

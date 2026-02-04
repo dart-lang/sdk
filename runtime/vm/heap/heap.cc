@@ -273,20 +273,8 @@ bool Heap::Contains(uword addr) const {
   return new_space_.Contains(addr) || old_space_.Contains(addr);
 }
 
-bool Heap::NewContains(uword addr) const {
-  return new_space_.Contains(addr);
-}
-
-bool Heap::OldContains(uword addr) const {
-  return old_space_.Contains(addr);
-}
-
 bool Heap::CodeContains(uword addr) const {
   return old_space_.CodeContains(addr);
-}
-
-bool Heap::DataContains(uword addr) const {
-  return old_space_.DataContains(addr);
 }
 
 void Heap::VisitObjects(ObjectVisitor* visitor) {
@@ -1029,6 +1017,7 @@ static void RecordRSS() {
 }
 
 void Heap::RecordBeforeGC(GCType type, GCReason reason) {
+  OS::NotifyBeforeGC();
   stats_.num_++;
   stats_.type_ = type;
   stats_.reason_ = reason;
@@ -1067,6 +1056,8 @@ void Heap::RecordAfterGC(GCType type) {
         /*at_safepoint=*/true);
   }
 #endif  // !PRODUCT
+
+  OS::NotifyAfterGC();
 }
 
 void Heap::PrintStats() {

@@ -1,21 +1,19 @@
 # Testing rules
 
-<!-- TODO(srawlins): Link to analyzer_testing, when published. -->
-
-The `analyzer_testing` package provides an API for testing analysis rules. Tests
-can be written concisely, encouraging the plugin author to write test cases with
-good coverage of possible Dart syntax, and the analysis rules themselves.
+The [`analyzer_testing`][] package provides an API for testing analysis rules.
+Tests can be written concisely, encouraging the plugin author to write test
+cases with good coverage of possible Dart syntax, and the analysis rules
+themselves.
 
 ## The test class
 
-Analysis rule tests that are written with the `analyzer_testing` package's
+Analysis rule tests that are written with the [`analyzer_testing`][] package's
 support use a class hierarchy to specify shared variables, helper methods, and
 set-up and tear-down code. This is all based on the [`test_reflective_loader`][]
 package. Here is the basic structure:
 
 
 ```dart
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:my_rule/src/rules/my_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,12 +22,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 class MyRuleTest extends AnalysisRuleTest {
   @override
   void setUp() {
-    Registry.ruleRegistry.registerLintRule(MyRule());
+    rule = MyRule();
     super.setUp();
   }
-
-  @override
-  String get analysisRule => 'my_rule';
 
   // Test cases go here.
 }
@@ -52,11 +47,8 @@ components of the `MyRuleTest` class.
   `newFile`.
 * `void setUp` - Override this method to provide some set-up code that is
   executed before each test. This method must call `super.setUp()`. This method
-  is where we register the analysis rule that we are testing:
-  `Registry.ruleRegistry.registerLintRule(MyRule());`.
-* `String get analysisRule` - This getter must be implemented, returning the
-  analysis rule name, so that the test knows what analysis rule to expect. This
-  is the name that the rule class passes up to the super-constructor.
+  is where we instantiate the analysis rule that we are testing:
+  `rule = MyRule();`.
 
 ## The test cases
 
@@ -154,5 +146,59 @@ With this `main` function, tests can be run in the same way as class `test`
 package tests. They can be run in the usual ways, such as using the IDE, or by
 running `dart test` or `dart --enable-asserts test/my_rule_test.dart`.
 
+[`analyzer_testing`]: https://pub.dev/packages/analyzer_testing
 [writing rules]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_rules.md
 [`test_reflective_loader`]: https://pub.dev/packages/test_reflective_loader
+
+## Writing stub package sources
+
+Often an analysis rule needs to understand if a type or an element (like a class
+or a method) is a specific type/element from a specific library in a package.
+For example, a rule might be concerned with the use of the `test` function
+declared in the `test_core` package. In order to write tests for such a rule,
+the test code needs to import something like
+`'package:test_core/test_core.dart'`. In order to make such an import
+meaningful, some stub code needs to be written so that, in fact, a `test`
+function is made available by that import.
+
+The [`AnalysisRuleTest`][] class offers a [`newPackage`][] method which supports
+writing code in other packages. `newPackage` returns a `PackageBuilder`, which
+is used to add individual library sources via its `addFile` method. For example,
+to write the sources for a stub `test` function in a package named `test_core`,
+you can:
+
+```dart
+class MyRuleTest extends AnalysisRuleTest {
+  @override
+  void setUp() {
+    newPackage('test_core')..addFile('lib/test_core.dart', r'''
+void test(
+  Object? description,
+  dynamic body(), {
+  String? testOn,
+  Object? /*Timeout?*/ timeout,
+  Object? skip,
+  Object? tags,
+  Map<String, dynamic>? onPlatform,
+  int? retry,
+  Object? /*TestLocation?*/ location,
+  bool solo = false,
+}) {}
+''');
+    super.setUp();
+  }
+}
+```
+
+Here are a few tips for writing stub package sources:
+
+* `newPackage` needs to be called in `setUp`, before the call to `super.setUp`.
+* For the static analysis purposes of testing analysis rules, it is unnecessary
+  to include function bodies (see the empty `test` body above).
+* It is often not necessary to include all of the types which are needed to
+  write a type or an element, like a function signature (see the `location`
+  parameter above, which is typed as an `Object?` instead of a `TestLocation?`).
+  This can greatly simplify the stubs.
+
+[`AnalysisRuleTest`]: https://pub.dev/documentation/analyzer_testing/latest/analysis_rule_analysis_rule/AnalysisRuleTest-class.html
+[`newPackage`]: https://pub.dev/documentation/analyzer_testing/latest/analysis_rule_analysis_rule/AnalysisRuleTest/newPackage.html

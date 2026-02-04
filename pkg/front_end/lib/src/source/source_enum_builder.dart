@@ -412,7 +412,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // The super initializer for the synthesized default constructor is
     // inserted here if the enum's supertype is _Enum to preserve the legacy
     // behavior or having the old-style enum constants built in the outlines.
-    // Other constructors are handled in [BodyBuilder.finishConstructor] as
+    // Other constructors are handled in [Resolver._finishConstructor] as
     // they are processed via the pipeline for constructor parsing and
     // building.
     if (identical(this.supertypeBuilder, _underscoreEnumTypeBuilder)) {
@@ -512,7 +512,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {
     Name toStringName = new Name(
       _enumToStringName,
@@ -683,15 +682,6 @@ class _EnumValuesFieldDeclaration
   @override
   void createFieldEncoding(SourcePropertyBuilder builder) {
     this.builder = builder;
-  }
-
-  @override
-  Initializer buildErroneousInitializer(
-    Expression effect,
-    Expression value, {
-    required int fileOffset,
-  }) {
-    throw new UnsupportedError('${runtimeType}.buildErroneousInitializer');
   }
 
   @override
@@ -872,7 +862,6 @@ class _EnumValuesFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
-    required bool isClassInstanceMember,
   }) {}
 
   @override

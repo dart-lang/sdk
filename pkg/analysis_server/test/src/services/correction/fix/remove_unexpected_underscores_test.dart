@@ -35,7 +35,7 @@ var b = 1_000_000;
 @reflectiveTest
 class RemoveUnexpectedUnderscoresTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_UNEXPECTED_UNDERSCORES;
+  FixKind get kind => DartFixKind.removeUnexpectedUnderscores;
 
   Future<void> test_double_afterE() async {
     await resolveTestCode('''

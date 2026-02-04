@@ -153,6 +153,28 @@ static inline T LoadRelaxed(const T* ptr) {
       std::memory_order_relaxed);
 }
 
+inline void StoreStoreFence() {
+#if defined(HOST_ARCH_ARM) && defined(_MSC_VER)
+  __dmb(_ARM_BARRIER_ISHST);
+#elif defined(HOST_ARCH_ARM64) && defined(_MSC_VER)
+  __dmb(_ARM64_BARRIER_ISHST);
+#elif defined(HOST_ARCH_ARM64) && defined(__GNUC__)
+  __asm__ __volatile__("dmb ishst" : : : "memory");
+#elif defined(HOST_ARCH_ARM) && defined(__GNUC__)
+  __asm__ __volatile__("dmb ishst" : : : "memory");
+#elif defined(HOST_ARCH_RISCV32) && defined(__GNUC__)
+  __asm__ __volatile__("fence w,w" : : : "memory");
+#elif defined(HOST_ARCH_RISCV64) && defined(__GNUC__)
+  __asm__ __volatile__("fence w,w" : : : "memory");
+#else
+  // GCC warns that TSAN doesn't understand thread fences.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
+  std::atomic_thread_fence(std::memory_order_release);
+#endif
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_ATOMIC_H_

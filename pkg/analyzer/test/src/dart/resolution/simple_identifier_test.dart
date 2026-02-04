@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -197,7 +197,7 @@ main() {
   dynamic;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 42, 7)],
+      [error(diag.undefinedIdentifier, 42, 7)],
     );
 
     var node = findNode.simple('dynamic;');
@@ -273,7 +273,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.returnInGenerativeConstructor, 43, 1)],
+      [error(diag.returnInGenerativeConstructor, 43, 1)],
     );
 
     var node = findNode.simple('a;');
@@ -295,8 +295,8 @@ class C {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnInGenerativeConstructor, 30, 5),
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromConstructor, 33, 1),
+        error(diag.returnInGenerativeConstructor, 30, 5),
+        error(diag.returnOfInvalidTypeFromConstructor, 33, 1),
       ],
     );
 
@@ -361,7 +361,7 @@ int Function() foo(A? a) {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 68, 1)],
+      [error(diag.returnOfInvalidTypeFromFunction, 68, 1)],
     );
 
     var identifier = findNode.simple('a;');
@@ -548,7 +548,7 @@ extension E on ({int foo}) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 46, 3)],
+      [error(diag.undefinedIdentifier, 46, 3)],
     );
 
     var node = findNode.simple('bar;');
@@ -625,7 +625,7 @@ extension E on (int, String) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 48, 2)],
+      [error(diag.undefinedIdentifier, 48, 2)],
     );
 
     var node = findNode.simple(r'$3;');

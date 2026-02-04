@@ -6,8 +6,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:collection/collection.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 class UseResultVerifier {
   final DiagnosticReporter _diagnosticReporter;
@@ -98,41 +97,25 @@ class UseResultVerifier {
       return;
     }
 
-    var toAnnotate = _getNodeToAnnotate(node);
-    String displayName;
-    if (toAnnotate is SimpleIdentifier) {
-      displayName = toAnnotate.name;
-    } else {
-      displayName = element.displayName;
-    }
+    var toAnnotate = node.nodeToAnnotate;
+    var displayName = toAnnotate is SimpleIdentifier
+        ? toAnnotate.name
+        : element.displayName;
 
-    var message = _getUseResultMessage(annotation);
+    var message = annotation.useResultMessage;
     if (message == null || message.isEmpty) {
       _diagnosticReporter.atNode(
         toAnnotate,
-        WarningCode.unusedResult,
+        diag.unusedResult,
         arguments: [displayName],
       );
     } else {
       _diagnosticReporter.atNode(
         toAnnotate,
-        WarningCode.unusedResultWithMessage,
+        diag.unusedResultWithMessage,
         arguments: [displayName, message],
       );
     }
-  }
-
-  String? _getUseResultMessage(ElementAnnotation annotation) {
-    if (annotation.element is GetterElement) {
-      return null;
-    }
-    var constantValue = annotation.computeConstantValue();
-    return constantValue?.getField('message')?.toStringValue();
-  }
-
-  String? _getUseResultUnlessParam(ElementAnnotation annotation) {
-    var constantValue = annotation.computeConstantValue();
-    return constantValue?.getField('parameterDefined')?.toStringValue();
   }
 
   bool _passesUsingParam(AstNode node, ElementAnnotation annotation) {
@@ -140,7 +123,7 @@ class UseResultVerifier {
       return false;
     }
 
-    var unlessParam = _getUseResultUnlessParam(annotation);
+    var unlessParam = annotation.useResultUnlessParameter;
     if (unlessParam == null) {
       return false;
     }
@@ -161,26 +144,18 @@ class UseResultVerifier {
     return false;
   }
 
-  static AstNode _getNodeToAnnotate(AstNode node) {
-    if (node is MethodInvocation) {
-      return node.methodName;
-    }
-    if (node is PropertyAccess) {
-      return node.propertyName;
-    }
-    if (node is FunctionExpressionInvocation) {
-      return _getNodeToAnnotate(node.function);
-    }
-    return node;
-  }
-
   static ElementAnnotation? _getUseResultMetadata(Element element) {
     // Implicit getters/setters.
-    if (element.isSynthetic && element is PropertyAccessorElement) {
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
       element = element.variable;
     }
 
-    return element.metadata.annotations.firstWhereOrNull((e) => e.isUseResult);
+    var annotations = element.metadata.annotations;
+    for (int i = 0; i < annotations.length; i++) {
+      var annotation = annotations[i];
+      if (annotation.isUseResult) return annotation;
+    }
+    return null;
   }
 
   static bool _isUsed(AstNode node) {
@@ -202,13 +177,8 @@ class UseResultVerifier {
     }
 
     if (parent is PostfixExpression) {
-      if (parent.operator.type == TokenType.BANG) {
-        // Null-checking a result is not a "use."
-        return _isUsed(parent);
-      } else {
-        // Other uses, like `++`, count as a "use."
-        return true;
-      }
+      // Null-checking a result is not a "use." Other uses, like `++`, do count.
+      return parent.operator.type == TokenType.BANG && _isUsed(parent);
     }
 
     if (parent is AsExpression ||
@@ -248,6 +218,7 @@ class UseResultVerifier {
         parent is MapLiteralEntry ||
         parent is MethodInvocation ||
         parent is NamedExpression ||
+        parent is PatternAssignment ||
         parent is PatternVariableDeclaration ||
         parent is PropertyAccess ||
         parent is RecordLiteral ||
@@ -262,4 +233,28 @@ class UseResultVerifier {
         parent is WhileStatement ||
         parent is YieldStatement;
   }
+}
+
+extension on ElementAnnotation {
+  String? get useResultMessage {
+    if (element is GetterElement) {
+      return null;
+    }
+    return computeConstantValue()?.getField('message')?.toStringValue();
+  }
+
+  String? get useResultUnlessParameter {
+    return computeConstantValue()
+        ?.getField('parameterDefined')
+        ?.toStringValue();
+  }
+}
+
+extension on AstNode {
+  AstNode get nodeToAnnotate => switch (this) {
+    MethodInvocation node => node.methodName,
+    PropertyAccess node => node.propertyName,
+    FunctionExpressionInvocation node => node.function.nodeToAnnotate,
+    _ => this,
+  };
 }

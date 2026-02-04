@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class ReplaceCascadeWithDotTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_CASCADE_WITH_DOT;
+  FixKind get kind => DartFixKind.replaceCascadeWithDot;
 
   @override
   String get lintCode =>
@@ -54,8 +54,8 @@ class A {
   }
 }
 ''',
-      errorFilter: (e) =>
-          e.diagnosticCode.name ==
+      filter: (e) =>
+          e.diagnosticCode.lowerCaseName ==
           LintNames.avoid_single_cascade_in_expression_statements,
     );
   }
@@ -97,8 +97,8 @@ f() {
   E(3).g;
 }
 ''',
-      errorFilter: (e) =>
-          e.diagnosticCode.name ==
+      filter: (e) =>
+          e.diagnosticCode.lowerCaseName ==
           LintNames.avoid_single_cascade_in_expression_statements,
     );
   }

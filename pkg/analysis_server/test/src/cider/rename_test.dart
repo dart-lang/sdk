@@ -10,6 +10,7 @@ import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../utils/matchers.dart';
 import 'cider_service.dart';
 
 void main() {
@@ -891,7 +892,7 @@ void f(bar a) {}
     edits = edits.reversed.toList();
     // validate resulting code
     var actualCode = SourceEdit.applySequence(_testCode, edits);
-    expect(actualCode, expectedCode);
+    expect(actualCode, equalsNormalized(expectedCode));
   }
 
   Future<CheckNameResponse?> _checkName(String content, String newName) async {
@@ -928,7 +929,7 @@ void f(bar a) {}
   }
 
   void _updateFile(String content) {
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     var offset = code.position.offset;
 
     _testCode = code.code;

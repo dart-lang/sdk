@@ -12,11 +12,23 @@ abstract class PluginRegistry {
 
   /// Registers this fix [generator] for the given lint [code] with the
   /// analyzer's rule registry.
-  void registerFixForRule(LintCode code, ProducerGenerator generator);
+  void registerFixForRule(DiagnosticCode code, ProducerGenerator generator);
 
   /// Registers this [rule] with the analyzer's rule registry.
+  ///
+  /// Lint rules are disabled by default and can be enabled using
+  /// the analysis options file.
+  ///
+  /// Use [registerWarningRule] for rules that are enabled by
+  /// default.
   void registerLintRule(AbstractAnalysisRule rule);
 
   /// Registers this [rule] with the analyzer's rule registry.
+  ///
+  /// Warning rules are enabled by default and can be disabled using
+  /// the analysis options file.
+  ///
+  /// Use [registerLintRule] for rules that are disabled by
+  /// default.
   void registerWarningRule(AbstractAnalysisRule rule);
 }

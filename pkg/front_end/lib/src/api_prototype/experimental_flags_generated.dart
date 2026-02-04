@@ -62,6 +62,15 @@ class ExperimentalFlag {
         experimentReleasedVersion: const Version(2, 18),
       );
 
+  static const ExperimentalFlag anonymousMethods = const ExperimentalFlag(
+    name: 'anonymous-methods',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag augmentations = const ExperimentalFlag(
     name: 'augmentations',
     isEnabledByDefault: false,
@@ -305,6 +314,24 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 0),
   );
 
+  static const ExperimentalFlag primaryConstructors = const ExperimentalFlag(
+    name: 'primary-constructors',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
+  static const ExperimentalFlag privateNamedParameters = const ExperimentalFlag(
+    name: 'private-named-parameters',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag recordUse = const ExperimentalFlag(
     name: 'record-use',
     isEnabledByDefault: false,
@@ -500,6 +527,10 @@ class GlobalFeatures {
         ExperimentalFlag.alternativeInvalidationStrategy,
       );
 
+  GlobalFeature? _anonymousMethods;
+  GlobalFeature get anonymousMethods => _anonymousMethods ??=
+      _computeGlobalFeature(ExperimentalFlag.anonymousMethods);
+
   GlobalFeature? _augmentations;
   GlobalFeature get augmentations =>
       _augmentations ??= _computeGlobalFeature(ExperimentalFlag.augmentations);
@@ -610,6 +641,14 @@ class GlobalFeatures {
   GlobalFeature get patterns =>
       _patterns ??= _computeGlobalFeature(ExperimentalFlag.patterns);
 
+  GlobalFeature? _primaryConstructors;
+  GlobalFeature get primaryConstructors => _primaryConstructors ??=
+      _computeGlobalFeature(ExperimentalFlag.primaryConstructors);
+
+  GlobalFeature? _privateNamedParameters;
+  GlobalFeature get privateNamedParameters => _privateNamedParameters ??=
+      _computeGlobalFeature(ExperimentalFlag.privateNamedParameters);
+
   GlobalFeature? _recordUse;
   GlobalFeature get recordUse =>
       _recordUse ??= _computeGlobalFeature(ExperimentalFlag.recordUse);
@@ -685,6 +724,14 @@ class LibraryFeatures {
             canonicalUri,
             libraryVersion,
           );
+
+  LibraryFeature? _anonymousMethods;
+  LibraryFeature get anonymousMethods =>
+      _anonymousMethods ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.anonymousMethods,
+        canonicalUri,
+        libraryVersion,
+      );
 
   LibraryFeature? _augmentations;
   LibraryFeature get augmentations =>
@@ -902,6 +949,22 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _primaryConstructors;
+  LibraryFeature get primaryConstructors =>
+      _primaryConstructors ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.primaryConstructors,
+        canonicalUri,
+        libraryVersion,
+      );
+
+  LibraryFeature? _privateNamedParameters;
+  LibraryFeature get privateNamedParameters =>
+      _privateNamedParameters ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.privateNamedParameters,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _recordUse;
   LibraryFeature get recordUse =>
       _recordUse ??= globalFeatures._computeLibraryFeature(
@@ -1019,6 +1082,8 @@ class LibraryFeatures {
     shared.ExperimentalFlag experimentalFlag,
   ) {
     switch (experimentalFlag) {
+      case shared.ExperimentalFlag.anonymousMethods:
+        return anonymousMethods;
       case shared.ExperimentalFlag.augmentations:
         return augmentations;
       case shared.ExperimentalFlag.classModifiers:
@@ -1073,6 +1138,10 @@ class LibraryFeatures {
         return nullAwareElements;
       case shared.ExperimentalFlag.patterns:
         return patterns;
+      case shared.ExperimentalFlag.primaryConstructors:
+        return primaryConstructors;
+      case shared.ExperimentalFlag.privateNamedParameters:
+        return privateNamedParameters;
       case shared.ExperimentalFlag.recordUse:
         return recordUse;
       case shared.ExperimentalFlag.records:
@@ -1109,6 +1178,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
   switch (flag) {
     case "alternative-invalidation-strategy":
       return ExperimentalFlag.alternativeInvalidationStrategy;
+    case "anonymous-methods":
+      return ExperimentalFlag.anonymousMethods;
     case "augmentations":
       return ExperimentalFlag.augmentations;
     case "class-modifiers":
@@ -1163,6 +1234,10 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.nullAwareElements;
     case "patterns":
       return ExperimentalFlag.patterns;
+    case "primary-constructors":
+      return ExperimentalFlag.primaryConstructors;
+    case "private-named-parameters":
+      return ExperimentalFlag.privateNamedParameters;
     case "record-use":
       return ExperimentalFlag.recordUse;
     case "records":
@@ -1198,6 +1273,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
 final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy:
       ExperimentalFlag.alternativeInvalidationStrategy.isEnabledByDefault,
+  ExperimentalFlag.anonymousMethods:
+      ExperimentalFlag.anonymousMethods.isEnabledByDefault,
   ExperimentalFlag.augmentations:
       ExperimentalFlag.augmentations.isEnabledByDefault,
   ExperimentalFlag.classModifiers:
@@ -1247,6 +1324,10 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.nullAwareElements:
       ExperimentalFlag.nullAwareElements.isEnabledByDefault,
   ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
+  ExperimentalFlag.primaryConstructors:
+      ExperimentalFlag.primaryConstructors.isEnabledByDefault,
+  ExperimentalFlag.privateNamedParameters:
+      ExperimentalFlag.privateNamedParameters.isEnabledByDefault,
   ExperimentalFlag.recordUse: ExperimentalFlag.recordUse.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
@@ -1278,52 +1359,64 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
         "json": {ExperimentalFlag.enhancedParts, ExperimentalFlag.macros},
       },
     );
-const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
-  shared.ExperimentalFlag.augmentations: ExperimentalFlag.augmentations,
-  shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
-  shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
-  shared.ExperimentalFlag.constantUpdate2018:
-      ExperimentalFlag.constantUpdate2018,
-  shared.ExperimentalFlag.constructorTearoffs:
-      ExperimentalFlag.constructorTearoffs,
-  shared.ExperimentalFlag.controlFlowCollections:
-      ExperimentalFlag.controlFlowCollections,
-  shared.ExperimentalFlag.dataAssets: ExperimentalFlag.dataAssets,
-  shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
-  shared.ExperimentalFlag.dotShorthands: ExperimentalFlag.dotShorthands,
-  shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
-  shared.ExperimentalFlag.enhancedParts: ExperimentalFlag.enhancedParts,
-  shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
-  shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
-  shared.ExperimentalFlag.getterSetterError: ExperimentalFlag.getterSetterError,
-  shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
-  shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
-  shared.ExperimentalFlag.inferenceUpdate3: ExperimentalFlag.inferenceUpdate3,
-  shared.ExperimentalFlag.inferenceUpdate4: ExperimentalFlag.inferenceUpdate4,
-  shared.ExperimentalFlag.inferenceUsingBounds:
-      ExperimentalFlag.inferenceUsingBounds,
-  shared.ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass,
-  shared.ExperimentalFlag.macros: ExperimentalFlag.macros,
-  shared.ExperimentalFlag.namedArgumentsAnywhere:
-      ExperimentalFlag.namedArgumentsAnywhere,
-  shared.ExperimentalFlag.nativeAssets: ExperimentalFlag.nativeAssets,
-  shared.ExperimentalFlag.nonNullable: ExperimentalFlag.nonNullable,
-  shared.ExperimentalFlag.nonfunctionTypeAliases:
-      ExperimentalFlag.nonfunctionTypeAliases,
-  shared.ExperimentalFlag.nullAwareElements: ExperimentalFlag.nullAwareElements,
-  shared.ExperimentalFlag.patterns: ExperimentalFlag.patterns,
-  shared.ExperimentalFlag.recordUse: ExperimentalFlag.recordUse,
-  shared.ExperimentalFlag.records: ExperimentalFlag.records,
-  shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,
-  shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
-  shared.ExperimentalFlag.soundFlowAnalysis: ExperimentalFlag.soundFlowAnalysis,
-  shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,
-  shared.ExperimentalFlag.staticExtensions: ExperimentalFlag.staticExtensions,
-  shared.ExperimentalFlag.superParameters: ExperimentalFlag.superParameters,
-  shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,
-  shared.ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift,
-  shared.ExperimentalFlag.unnamedLibraries: ExperimentalFlag.unnamedLibraries,
-  shared.ExperimentalFlag.unquotedImports: ExperimentalFlag.unquotedImports,
-  shared.ExperimentalFlag.variance: ExperimentalFlag.variance,
-  shared.ExperimentalFlag.wildcardVariables: ExperimentalFlag.wildcardVariables,
+ExperimentalFlag fromSharedExperimentalFlag(
+  shared.ExperimentalFlag flag,
+) => switch (flag) {
+  shared.ExperimentalFlag.anonymousMethods => ExperimentalFlag.anonymousMethods,
+  shared.ExperimentalFlag.augmentations => ExperimentalFlag.augmentations,
+  shared.ExperimentalFlag.classModifiers => ExperimentalFlag.classModifiers,
+  shared.ExperimentalFlag.constFunctions => ExperimentalFlag.constFunctions,
+  shared.ExperimentalFlag.constantUpdate2018 =>
+    ExperimentalFlag.constantUpdate2018,
+  shared.ExperimentalFlag.constructorTearoffs =>
+    ExperimentalFlag.constructorTearoffs,
+  shared.ExperimentalFlag.controlFlowCollections =>
+    ExperimentalFlag.controlFlowCollections,
+  shared.ExperimentalFlag.dataAssets => ExperimentalFlag.dataAssets,
+  shared.ExperimentalFlag.digitSeparators => ExperimentalFlag.digitSeparators,
+  shared.ExperimentalFlag.dotShorthands => ExperimentalFlag.dotShorthands,
+  shared.ExperimentalFlag.enhancedEnums => ExperimentalFlag.enhancedEnums,
+  shared.ExperimentalFlag.enhancedParts => ExperimentalFlag.enhancedParts,
+  shared.ExperimentalFlag.extensionMethods => ExperimentalFlag.extensionMethods,
+  shared.ExperimentalFlag.genericMetadata => ExperimentalFlag.genericMetadata,
+  shared.ExperimentalFlag.getterSetterError =>
+    ExperimentalFlag.getterSetterError,
+  shared.ExperimentalFlag.inferenceUpdate1 => ExperimentalFlag.inferenceUpdate1,
+  shared.ExperimentalFlag.inferenceUpdate2 => ExperimentalFlag.inferenceUpdate2,
+  shared.ExperimentalFlag.inferenceUpdate3 => ExperimentalFlag.inferenceUpdate3,
+  shared.ExperimentalFlag.inferenceUpdate4 => ExperimentalFlag.inferenceUpdate4,
+  shared.ExperimentalFlag.inferenceUsingBounds =>
+    ExperimentalFlag.inferenceUsingBounds,
+  shared.ExperimentalFlag.inlineClass => ExperimentalFlag.inlineClass,
+  shared.ExperimentalFlag.macros => ExperimentalFlag.macros,
+  shared.ExperimentalFlag.namedArgumentsAnywhere =>
+    ExperimentalFlag.namedArgumentsAnywhere,
+  shared.ExperimentalFlag.nativeAssets => ExperimentalFlag.nativeAssets,
+  shared.ExperimentalFlag.nonNullable => ExperimentalFlag.nonNullable,
+  shared.ExperimentalFlag.nonfunctionTypeAliases =>
+    ExperimentalFlag.nonfunctionTypeAliases,
+  shared.ExperimentalFlag.nullAwareElements =>
+    ExperimentalFlag.nullAwareElements,
+  shared.ExperimentalFlag.patterns => ExperimentalFlag.patterns,
+  shared.ExperimentalFlag.primaryConstructors =>
+    ExperimentalFlag.primaryConstructors,
+  shared.ExperimentalFlag.privateNamedParameters =>
+    ExperimentalFlag.privateNamedParameters,
+  shared.ExperimentalFlag.recordUse => ExperimentalFlag.recordUse,
+  shared.ExperimentalFlag.records => ExperimentalFlag.records,
+  shared.ExperimentalFlag.sealedClass => ExperimentalFlag.sealedClass,
+  shared.ExperimentalFlag.setLiterals => ExperimentalFlag.setLiterals,
+  shared.ExperimentalFlag.soundFlowAnalysis =>
+    ExperimentalFlag.soundFlowAnalysis,
+  shared.ExperimentalFlag.spreadCollections =>
+    ExperimentalFlag.spreadCollections,
+  shared.ExperimentalFlag.staticExtensions => ExperimentalFlag.staticExtensions,
+  shared.ExperimentalFlag.superParameters => ExperimentalFlag.superParameters,
+  shared.ExperimentalFlag.testExperiment => ExperimentalFlag.testExperiment,
+  shared.ExperimentalFlag.tripleShift => ExperimentalFlag.tripleShift,
+  shared.ExperimentalFlag.unnamedLibraries => ExperimentalFlag.unnamedLibraries,
+  shared.ExperimentalFlag.unquotedImports => ExperimentalFlag.unquotedImports,
+  shared.ExperimentalFlag.variance => ExperimentalFlag.variance,
+  shared.ExperimentalFlag.wildcardVariables =>
+    ExperimentalFlag.wildcardVariables,
 };

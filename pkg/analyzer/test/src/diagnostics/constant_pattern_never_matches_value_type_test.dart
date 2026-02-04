@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,7 +31,7 @@ void f(int x) {
   if (x case (true)) {}
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 30, 4)],
+      [error(diag.constantPatternNeverMatchesValueType, 30, 4)],
     );
   }
 
@@ -42,7 +42,7 @@ void f(List<bool> x) {
   if (x case (true)) {}
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 37, 4)],
+      [error(diag.constantPatternNeverMatchesValueType, 37, 4)],
     );
   }
 
@@ -69,7 +69,7 @@ void f<T extends num>(T x) {
   if (x case (true)) {}
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 43, 4)],
+      [error(diag.constantPatternNeverMatchesValueType, 43, 4)],
     );
   }
 
@@ -80,7 +80,7 @@ void f<T extends num>(List<T> x) {
   if (x case [true]) {}
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 49, 4)],
+      [error(diag.constantPatternNeverMatchesValueType, 49, 4)],
     );
   }
 
@@ -103,7 +103,7 @@ void f<T>(T x) {
   }
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 51, 4)],
+      [error(diag.constantPatternNeverMatchesValueType, 51, 4)],
     );
   }
 
@@ -184,7 +184,7 @@ class B extends A {
   const B();
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 27, 9)],
+      [error(diag.constantPatternNeverMatchesValueType, 27, 9)],
     );
   }
 
@@ -219,7 +219,7 @@ class B extends A<int> {
   const B();
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 27, 14)],
+      [error(diag.constantPatternNeverMatchesValueType, 27, 14)],
     );
   }
 
@@ -258,7 +258,7 @@ class A<T> {
   const A();
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 32, 14)],
+      [error(diag.constantPatternNeverMatchesValueType, 32, 14)],
     );
   }
 
@@ -293,7 +293,7 @@ void f(bool x) {
   if (x case (0)) {}
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 31, 1)],
+      [error(diag.constantPatternNeverMatchesValueType, 31, 1)],
     );
   }
 
@@ -316,7 +316,7 @@ void f(E x) {
   if (x case (0)) {}
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 58, 1)],
+      [error(diag.constantPatternNeverMatchesValueType, 58, 1)],
     );
   }
 
@@ -339,7 +339,7 @@ void f(void Function() x) {
 
 class A {}
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 42, 1)],
+      [error(diag.constantPatternNeverMatchesValueType, 42, 1)],
     );
   }
 
@@ -376,7 +376,20 @@ void f(A x) {
 
 class A {}
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 28, 1)],
+      [error(diag.constantPatternNeverMatchesValueType, 28, 1)],
+    );
+  }
+
+  test_int_recordType() async {
+    await assertErrorsInCode(
+      '''
+void f((int, int) x) {
+  if (x case 0) {}
+}
+
+class A {}
+''',
+      [error(diag.constantPatternNeverMatchesValueType, 36, 1)],
     );
   }
 
@@ -387,7 +400,7 @@ void f(String x) {
   if (x case (0)) {}
 }
 ''',
-      [error(WarningCode.constantPatternNeverMatchesValueType, 33, 1)],
+      [error(diag.constantPatternNeverMatchesValueType, 33, 1)],
     );
   }
 
@@ -395,12 +408,12 @@ void f(String x) {
     await assertErrorsInCode(
       '''
 void f(void Function() x) {
-  if (x case (null)) {}
+  if (x case null) {}
 }
 ''',
       [
-        error(WarningCode.constantPatternNeverMatchesValueType, 42, 4),
-        error(WarningCode.deadCode, 49, 2),
+        error(diag.constantPatternNeverMatchesValueType, 41, 4),
+        error(diag.deadCode, 47, 2),
       ],
     );
   }
@@ -408,7 +421,7 @@ void f(void Function() x) {
   test_Null_functionTypeQuestion() async {
     await assertNoErrorsInCode('''
 void f(void Function()? x) {
-  if (x case (null)) {}
+  if (x case null) {}
 }
 ''');
   }
@@ -417,12 +430,12 @@ void f(void Function()? x) {
     await assertErrorsInCode(
       '''
 void f(int x) {
-  if (x case (null)) {}
+  if (x case null) {}
 }
 ''',
       [
-        error(WarningCode.constantPatternNeverMatchesValueType, 30, 4),
-        error(WarningCode.deadCode, 37, 2),
+        error(diag.constantPatternNeverMatchesValueType, 29, 4),
+        error(diag.deadCode, 35, 2),
       ],
     );
   }
@@ -430,7 +443,29 @@ void f(int x) {
   test_Null_intQuestion() async {
     await assertNoErrorsInCode('''
 void f(int? x) {
-  if (x case (null)) {}
+  if (x case null) {}
+}
+''');
+  }
+
+  test_Null_recordType() async {
+    await assertErrorsInCode(
+      '''
+void f((int, int) x) {
+  if (x case null) {}
+}
+''',
+      [
+        error(diag.constantPatternNeverMatchesValueType, 36, 4),
+        error(diag.deadCode, 42, 2),
+      ],
+    );
+  }
+
+  test_Null_recordTypeQuestion() async {
+    await assertNoErrorsInCode('''
+void f((int, int)? x) {
+  if (x case null) {}
 }
 ''');
   }
@@ -443,8 +478,8 @@ void f<T extends Object>(T x) {
 }
 ''',
       [
-        error(WarningCode.constantPatternNeverMatchesValueType, 45, 4),
-        error(WarningCode.deadCode, 51, 2),
+        error(diag.constantPatternNeverMatchesValueType, 45, 4),
+        error(diag.deadCode, 51, 2),
       ],
     );
   }

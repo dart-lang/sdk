@@ -37,7 +37,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
     return new self::Class::named(constants: constants);
 }
 abstract class Const extends core::Object {
-  static factory impl() → self::Const /* redirection-target: self::_ConstImpl::•<dynamic>*/
+  static const factory impl() → self::Const /* redirection-target: self::_ConstImpl::•<dynamic>*/
     return new self::_ConstImpl::•<dynamic>();
   static synthetic method _#impl#tearOff() → self::Const
     return new self::_ConstImpl::•<dynamic>();

@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "bin/elf_loader.h"
 #include "bin/error_exit.h"
 #include "bin/file.h"
+#include "bin/snapshot_utils.h"
 
 #include "bin/options.h"
 #include "bin/platform.h"
 
-#if defined(TARGET_ARCH_IS_64_BIT) && defined(DART_PRECOMPILED_RUNTIME) &&     \
-    (defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_LINUX) ||       \
-     defined(DART_TARGET_OS_MACOS))
+#if defined(TARGET_ARCH_IS_64_BIT) && defined(DART_PRECOMPILED_RUNTIME)
 #define SUPPORT_ANALYZE_SNAPSHOT
 #endif
 
@@ -170,24 +168,14 @@ int RunAnalyzer(int argc, char** argv) {
   const char* script_name = nullptr;
   script_name = inputs.GetArgument(0);
 
-  // Dart_LoadELF will crash on nonexistent file non-gracefully
-  // even though it should return `nullptr`.
-  File* const file = File::Open(/*namespc=*/nullptr, script_name, File::kRead);
-  if (file == nullptr) {
-    Syslog::PrintErr("Snapshot file does not exist\n");
+  auto* const app_snapshot = Snapshot::TryReadAppSnapshot(
+      script_name, /*force_load_from_memory=*/true);
+  if (app_snapshot == nullptr) {
+    Syslog::PrintErr("Cannot load snapshot file.\n");
     return kErrorExitCode;
   }
-  file->Release();
-
-  const char* loader_error = nullptr;
-  Dart_LoadedElf* loaded_elf = Dart_LoadELF(
-      script_name, 0, &loader_error, &vm_snapshot_data,
-      &vm_snapshot_instructions, &vm_isolate_data, &vm_isolate_instructions);
-
-  if (loaded_elf == nullptr) {
-    Syslog::PrintErr("Failure calling Dart_LoadELF:\n%s\n", loader_error);
-    return kErrorExitCode;
-  }
+  app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
+                           &vm_isolate_data, &vm_isolate_instructions);
 
   // Begin initialization
   Dart_InitializeParams init_params = {};
@@ -245,8 +233,8 @@ int RunAnalyzer(int argc, char** argv) {
 
   Dart_ExitScope();
   Dart_ShutdownIsolate();
-  // Unload our DartELF to avoid leaks
-  Dart_UnloadELF(loaded_elf);
+  // Delete the returned AppSnapshot to avoid leaks.
+  delete app_snapshot;
   return 0;
 }
 #endif
@@ -260,8 +248,7 @@ int main(int argc, char** argv) {
   dart::Syslog::PrintErr("Unsupported platform.\n");
   dart::Syslog::PrintErr(
       "Requires SDK with following "
-      "flags:\n\tTARGET_ARCH_IS_64_BIT\n\tDART_PRECOMPILED_RUNTIME\n\tDART_"
-      "TARGET_OS_ANDROID || DART_TARGET_OS_LINUX");
+      "flags:\n\tTARGET_ARCH_IS_64_BIT\n\tDART_PRECOMPILED_RUNTIME");
   return dart::bin::kErrorExitCode;
 #endif
 }

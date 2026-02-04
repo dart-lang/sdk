@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
@@ -20,12 +22,12 @@ const _desc = r"Don't create a lambda when a tear-off will do.";
 Set<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
-class UnnecessaryLambdas extends LintRule {
+class UnnecessaryLambdas extends AnalysisRule {
   UnnecessaryLambdas()
     : super(name: LintNames.unnecessary_lambdas, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryLambdas;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryLambdas;
 
   @override
   void registerNodeProcessors(
@@ -93,7 +95,7 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final bool constructorTearOffsEnabled;
-  final LintRule rule;
+  final AnalysisRule rule;
   final TypeSystem typeSystem;
 
   _Visitor(this.rule, RuleContext context)
@@ -246,8 +248,8 @@ extension on Expression? {
 extension on Element? {
   /// Returns whether this is a `final` variable or property and not `late`.
   bool get isFinal => switch (this) {
-    PropertyAccessorElement(:var isSynthetic, :var variable) =>
-      isSynthetic && variable.isFinal && !variable.isLate,
+    PropertyAccessorElement(:var isOriginVariable, :var variable) =>
+      isOriginVariable && variable.isFinal && !variable.isLate,
     VariableElement(:var isLate, :var isFinal) => isFinal && !isLate,
     // TODO(pq): [element model] this preserves existing v1 semantics but looks fishy
     _ => true,

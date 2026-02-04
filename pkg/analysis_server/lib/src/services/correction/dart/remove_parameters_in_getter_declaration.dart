@@ -18,7 +18,7 @@ class RemoveParametersInGetterDeclaration extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION;
+  FixKind get fixKind => DartFixKind.removeParenthesesInGetterDeclaration;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

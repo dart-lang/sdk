@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -39,7 +39,10 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore_for_file: undefined_annotation
 @x int a = 0;
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 41, 2)],
+      [
+        error(diag.unignorableIgnore, 20, 20),
+        error(diag.undefinedAnnotation, 41, 2),
+      ],
     );
   }
 
@@ -52,7 +55,10 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore_for_file: UNDEFINED_ANNOTATION
 @x int a = 0;
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 41, 2)],
+      [
+        error(diag.unignorableIgnore, 20, 20),
+        error(diag.undefinedAnnotation, 41, 2),
+      ],
     );
   }
 
@@ -65,7 +71,10 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore: undefined_annotation
 @x int a = 0;
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 32, 2)],
+      [
+        error(diag.unignorableIgnore, 11, 20),
+        error(diag.undefinedAnnotation, 32, 2),
+      ],
     );
   }
 
@@ -83,16 +92,20 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore: avoid_int
 int a = 0;
 ''',
-      [error(avoidIntRule.diagnosticCode, 21, 3)],
+      [
+        error(diag.unignorableIgnore, 11, 9),
+        error(avoidIntRule.diagnosticCode, 21, 3),
+      ],
     );
   }
 }
 
-class _AvoidIntRule extends LintRule {
+class _AvoidIntRule extends AnalysisRule {
   static const LintCode code = LintCode(
     'avoid_int',
     'Avoid int.',
     correctionMessage: 'Try avoiding int.',
+    uniqueName: 'LintCode.avoid_int',
   );
 
   _AvoidIntRule() : super(name: 'avoid_int', description: '');
@@ -111,7 +124,7 @@ class _AvoidIntRule extends LintRule {
 }
 
 class _AvoidIntVisitor extends SimpleAstVisitor {
-  final LintRule rule;
+  final AnalysisRule rule;
 
   _AvoidIntVisitor(this.rule);
 

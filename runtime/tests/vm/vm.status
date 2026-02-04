@@ -17,6 +17,8 @@ cc/MutatorMarkerRace_ReleaseHeader: Pass, Fail # Comparison to demonstrate race,
 cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an STC via assert checks.
 cc/TypeArguments_Cache_ManyInstantiations: Pass, Slow
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
+dart/asan/read_test/none: SkipByDesign
+dart/asan/write_test/none: SkipByDesign
 dart/async_igoto_threshold_flag_test: Pass, Slow
 dart/b162922506_test: Pass, Slow # Generated very large program
 dart/boxmint_test: Pass, Slow # Uses slow path
@@ -32,6 +34,7 @@ dart/incompatible_loading_unit_test: Pass, Slow # Spawns several subprocesses
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
 dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
+dart/msan/read_test/none: SkipByDesign
 dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
 dart/regress32619_test: Pass, Slow
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
@@ -75,6 +78,7 @@ cc/ChainInduction: SkipByDesign # Building flow graph is not supported from byte
 cc/CheckStackOverflowElimination_NoInterruptsPragma: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/CompileFunction*: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/ConstantFold_bitLength: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/CreateMirrorSystem: SkipByDesign # dart:mirrors is not supported.
 cc/DelayAllocations_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/DeoptimizeFramesWhenSettingBreakpoint: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/DerivedInduction: SkipByDesign # Building flow graph is not supported from bytecode.
@@ -84,6 +88,7 @@ cc/IRTest_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/Inliner_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/IsolateReload_EnumWithSet: SkipByDesign # Bytecode doesn't support KernelProgramInfo.
 cc/IsolateReload_RegressB179030011: SkipByDesign # Bytecode doesn't support concatenated kernel programs.
+cc/IsolateReload_TypeIdentityParameter: SkipByDesign # dart:mirrors is not supported.
 cc/LICM_Deopt_*: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/LoadOptimizer_Redundant*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/NonStrictCondition*: SkipByDesign # Building flow graph is not supported from bytecode.
@@ -156,7 +161,28 @@ dart/symbolized_dart_crash_test: Skip # Stack dump code excluded from product mo
 [ $sanitizer == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
+[ $sanitizer != asan ]
+dart/asan/*: SkipByDesign
+
+[ $sanitizer != msan ]
+dart/msan/*: SkipByDesign
+
 [ $sanitizer != none ]
+cc/AllocationSinking_Arrays: SkipByDesign # Sanitizers build different flow graphs
+cc/AllocationSinking_Records: SkipByDesign # Sanitizers build different flow graphs
+cc/CheckStackOverflowElimination_NoInterruptsPragma: SkipByDesign # Sanitizers build different flow graphs
+cc/DelayAllocations_DelayAcrossCalls: SkipByDesign # Sanitizers build different flow graphs
+cc/FlowGraph_PhiUnboxingHeuristic_Double: SkipByDesign # Sanitizers build different flow graphs
+cc/FlowGraph_PhiUnboxingHeuristic_Float32x4: SkipByDesign # Sanitizers build different flow graphs
+cc/FlowGraph_PhiUnboxingHeuristic_Float64x2: SkipByDesign # Sanitizers build different flow graphs
+cc/FlowGraph_PhiUnboxingHeuristic_Int32x4: SkipByDesign # Sanitizers build different flow graphs
+cc/IRTest_*: SkipByDesign # Sanitizers build different flow graphs
+cc/Inliner_List_generate: SkipByDesign # Sanitizers build different flow graphs
+cc/LoadOptimizer_RedundantInitializingStoreAOT: SkipByDesign # Sanitizers build different flow graphs
+cc/LoadOptimizer_RedundantStaticFieldInitialization: SkipByDesign # Sanitizers build different flow graphs
+cc/LoadOptimizer_RedundantStoreAOT: SkipByDesign # Sanitizers build different flow graphs
+cc/TypePropagator_NonNullableLoadStaticField: SkipByDesign # Sanitizers build different flow graphs
+cc/TypePropagator_RecordFieldAccess: SkipByDesign # Sanitizers build different flow graphs
 dart/exported_symbols_test: SkipByDesign # Sanitizers add extra symbols.
 
 [ $sanitizer == tsan ]
@@ -174,6 +200,9 @@ dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not loc
 dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating several snapshots in both ELF and assembly modes.
 dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
 dart/v8_snapshot_profile_writer_test: SkipSlow
+
+[ $sanitizer != tsan ]
+dart/tsan/*: SkipByDesign
 
 [ $system == android ]
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # On android this test does not work due to not being able to identify library uri.
@@ -248,6 +277,7 @@ dart/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test us
 dart/reachability_test: SkipByDesign # Test takes too long on the simulator
 dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart/regress_b_216834909_test: SkipByDesign # No FFI on simulators
+dart/scoped_thread_local_test: SkipByDesign # No FFI on simulators
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
 dart/sendport_api_test: SkipByDesign # No FFI on simulators
 dart/shared_collect_all_garbage_test: SkipByDesign # No FFI on simulators
@@ -330,6 +360,7 @@ dart/regress_48196_test: SkipSlow
 dart/regress_52703_test: SkipSlow
 dart/use_dwarf_stack_traces_flag_deferred_test: SkipSlow
 dart/use_dwarf_stack_traces_flag_test: SkipSlow
+dart/use_macho_reduce_padding_flag_test: SkipSlow
 
 [ $compiler == dartkp && $simulator ]
 dart/awaiter_stacks/stream_methods_test/1: Pass, Slow
@@ -402,9 +433,6 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
-
-[ $runtime != dart_precompiled || $sanitizer != tsan ]
-dart/tsan/*: SkipByDesign
 
 [ $runtime != dart_precompiled || $sanitizer != msan && $sanitizer != tsan ]
 dart/sanitizer_compatibility_test: SkipByDesign

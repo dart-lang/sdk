@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,18 +11,19 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/unused_futures.dart';
 
 const _desc =
     r'`Future` results in `async` function bodies must be '
     '`await`ed or marked `unawaited` using `dart:async`.';
 
-class UnawaitedFutures extends LintRule {
+class UnawaitedFutures extends AnalysisRule {
   UnawaitedFutures()
     : super(name: LintNames.unawaited_futures, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unawaitedFutures;
+  DiagnosticCode get diagnosticCode => diag.unawaitedFutures;
 
   @override
   void registerNodeProcessors(

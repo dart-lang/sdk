@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -914,7 +913,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -925,8 +924,8 @@ VariableDeclaration
 final x = const (0);
 ''',
       [
-        error(ParserErrorCode.experimentNotEnabled, 32, 1),
-        error(ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, 34, 1),
+        error(diag.experimentNotEnabled, 32, 1),
+        error(diag.recordLiteralOnePositionalNoTrailingComma, 34, 1),
       ],
     );
 
@@ -942,7 +941,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -952,7 +951,7 @@ VariableDeclaration
 // @dart = 2.19
 final x = (0,);
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
+      [error(diag.experimentNotEnabled, 26, 1)],
     );
 
     var node = findNode.singleVariableDeclaration;
@@ -967,7 +966,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -977,7 +976,7 @@ VariableDeclaration
 // @dart = 2.19
 final x = (0, 1);
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
+      [error(diag.experimentNotEnabled, 26, 1)],
     );
 
     var node = findNode.singleVariableDeclaration;
@@ -992,7 +991,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -1002,7 +1001,7 @@ VariableDeclaration
 // @dart = 2.19
 final x = ();
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
+      [error(diag.experimentNotEnabled, 26, 1)],
     );
 
     var node = findNode.singleVariableDeclaration;
@@ -1018,7 +1017,7 @@ VariableDeclaration
       staticType: InvalidType
     rightParenthesis: )
     staticType: InvalidType
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -1143,7 +1142,7 @@ void f() {}
 
 g() => (f(),);
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 21, 3)],
+      [error(diag.useOfVoidResult, 21, 3)],
     );
 
     var node = findNode.recordLiteral('(f(),');

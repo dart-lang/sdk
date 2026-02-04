@@ -1010,7 +1010,6 @@ abstract class AbstractScanner implements Scanner {
         iterations++;
 
         if (iterations > 100) {
-          // Coverage-ignore-block(suite): Not run.
           return recoveryCount;
         }
       }

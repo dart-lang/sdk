@@ -23,7 +23,7 @@ String quoteStringForRegExp(String string) =>
     );
 
 // TODO(srujzs): Add this to `JSObject`.
-@js.JS('Object.keys')
+@interop.JS('Object.keys')
 external JSArray objectKeys(JSObject o);
 
 extension type JSNativeMatch._(JSArray _) implements JSArray {

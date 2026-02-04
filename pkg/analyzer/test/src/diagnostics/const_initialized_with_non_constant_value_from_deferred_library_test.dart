@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,8 +31,7 @@ const B = a.V;
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .constInitializedWithNonConstantValueFromDeferredLibrary,
+          diag.constInitializedWithNonConstantValueFromDeferredLibrary,
           60,
           1,
         ),
@@ -53,8 +52,7 @@ const B = a.V + 1;
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .constInitializedWithNonConstantValueFromDeferredLibrary,
+          diag.constInitializedWithNonConstantValueFromDeferredLibrary,
           60,
           1,
         ),
@@ -72,10 +70,9 @@ extension E on int {
 const g = self.E.f;
 ''',
       [
-        error(CompileTimeErrorCode.deferredImportOfExtension, 7, 2),
+        error(diag.deferredImportOfExtension, 7, 2),
         error(
-          CompileTimeErrorCode
-              .constInitializedWithNonConstantValueFromDeferredLibrary,
+          diag.constInitializedWithNonConstantValueFromDeferredLibrary,
           97,
           1,
         ),

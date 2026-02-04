@@ -7,7 +7,6 @@
 
 #include "vm/dart.h"
 
-#include "platform/thread_sanitizer.h"
 #include "platform/unwinding_records.h"
 
 #include "vm/app_snapshot.h"
@@ -217,6 +216,7 @@ static void CheckOffsets() {
 // No consistency checks needed for these constructs.
 #define CHECK_ARRAY_SIZEOF(Class, Name, ElementOffset)
 #define CHECK_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
+#define CHECK_ENUM(Name, Elements)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define CHECK_FIELD(Class, Name)                                               \
@@ -266,15 +266,15 @@ static void CheckOffsets() {
 
   COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
                       CHECK_ARRAY_SIZEOF, CHECK_PAYLOAD_SIZEOF, CHECK_RANGE,
-                      CHECK_CONSTANT)
+                      CHECK_CONSTANT, CHECK_ENUM)
 
   NOT_IN_PRECOMPILED_RUNTIME(JIT_OFFSETS_LIST(
       CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_ARRAY_SIZEOF,
-      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
+      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT, CHECK_ENUM))
 
   ONLY_IN_PRECOMPILED(AOT_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
                                        CHECK_ARRAY_SIZEOF, CHECK_PAYLOAD_SIZEOF,
-                                       CHECK_RANGE, CHECK_CONSTANT))
+                                       CHECK_RANGE, CHECK_CONSTANT, CHECK_ENUM))
 
   if (!ok) {
     FATAL(
@@ -289,6 +289,7 @@ static void CheckOffsets() {
 #undef CHECK_CONSTANT
 #undef CHECK_OFFSET
 #undef CHECK_PAYLOAD_SIZEOF
+#undef CHECK_ENUM
 #endif  // !defined(IS_SIMARM_HOST64)
 }
 #endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
@@ -312,6 +313,12 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   if (!Flags::Initialized()) {
     return Utils::StrDup("VM initialization failed-VM Flags not initialized.");
   }
+  if (((FLAG_target_address_sanitizer ? 1 : 0) +
+       (FLAG_target_memory_sanitizer ? 1 : 0) +
+       (FLAG_target_thread_sanitizer ? 1 : 0)) > 1) {
+    return Utils::StrDup("Can only target one sanitizer at a time");
+  }
+
   if (vm_isolate_ != nullptr) {
     return Utils::StrDup("VM initialization is in an inconsistent state.");
   }
@@ -365,7 +372,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #endif
 
   OSThread::Init();
-  Random::Init();
   Zone::Init();
 #if defined(SUPPORT_TIMELINE)
   Timeline::Init();
@@ -800,7 +806,6 @@ char* Dart::Cleanup() {
 #endif
   NOT_IN_PRODUCT(MicrotaskMirrorQueues::CleanUp());
   Zone::Cleanup();
-  Random::Cleanup();
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
@@ -1085,8 +1090,9 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
   if (Snapshot::IncludesCode(kind)) {
     VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
 
-    ADD_FLAG(tsan, FLAG_target_thread_sanitizer)
+    ADD_FLAG(asan, FLAG_target_address_sanitizer)
     ADD_FLAG(msan, FLAG_target_memory_sanitizer)
+    ADD_FLAG(tsan, FLAG_target_thread_sanitizer)
     ADD_FLAG(shared_data, FLAG_experimental_shared_data)
 
     if (kind == Snapshot::kFullJIT) {

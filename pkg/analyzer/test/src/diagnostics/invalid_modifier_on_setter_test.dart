@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class A {
   set x(v) async {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidModifierOnSetter, 21, 5)],
+      [error(diag.invalidModifierOnSetter, 21, 5)],
     );
   }
 
@@ -33,7 +33,7 @@ class A {
   set x(v) async* {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidModifierOnSetter, 21, 5)],
+      [error(diag.invalidModifierOnSetter, 21, 5)],
     );
   }
 
@@ -44,7 +44,7 @@ class A {
   set x(v) sync* {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidModifierOnSetter, 21, 4)],
+      [error(diag.invalidModifierOnSetter, 21, 4)],
     );
   }
 
@@ -53,7 +53,7 @@ class A {
       '''
 set x(v) async {}
 ''',
-      [error(CompileTimeErrorCode.invalidModifierOnSetter, 9, 5)],
+      [error(diag.invalidModifierOnSetter, 9, 5)],
     );
   }
 
@@ -62,7 +62,7 @@ set x(v) async {}
       '''
 set x(v) async* {}
 ''',
-      [error(CompileTimeErrorCode.invalidModifierOnSetter, 9, 5)],
+      [error(diag.invalidModifierOnSetter, 9, 5)],
     );
   }
 
@@ -71,7 +71,7 @@ set x(v) async* {}
       '''
 set x(v) sync* {}
 ''',
-      [error(CompileTimeErrorCode.invalidModifierOnSetter, 9, 4)],
+      [error(diag.invalidModifierOnSetter, 9, 4)],
     );
   }
 }
