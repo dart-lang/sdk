@@ -85,6 +85,23 @@ final class AllocationStub extends Arm64StubCodeGenerator {
   }
 }
 
+final class WriteBarrierStub extends Arm64StubCodeGenerator {
+  final Register objectReg;
+  final Register valueReg;
+
+  WriteBarrierStub(super.vmOffsets, this.objectReg, this.valueReg);
+
+  @override
+  void _generate() {
+    enterStubFrame();
+
+    _asm.unimplemented('WriteBarrierStub');
+
+    leaveStubFrame();
+    _asm.ret();
+  }
+}
+
 final class Arm64StubFactory extends StubFactory {
   final VMOffsets vmOffsets;
   Arm64StubFactory(this.vmOffsets, super.consumeGeneratedCode);
@@ -92,4 +109,10 @@ final class Arm64StubFactory extends StubFactory {
   @override
   StubCodeGenerator allocationStubGenerator(ast.Class cls) =>
       AllocationStub(vmOffsets, cls);
+
+  @override
+  StubCodeGenerator writeBarrierStubGenerator(
+    Register objectReg,
+    Register valueReg,
+  ) => WriteBarrierStub(vmOffsets, objectReg, valueReg);
 }

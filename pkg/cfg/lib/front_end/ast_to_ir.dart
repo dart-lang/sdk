@@ -1623,6 +1623,7 @@ class LocalVariableIndexer {
         parameters.add(variableForDeclaration(v));
       }
     }
+    assert(parameters.length == function.numberOfParameters);
   }
 
   LocalVariable variableForDeclaration(ast.VariableDeclaration declaration) =>

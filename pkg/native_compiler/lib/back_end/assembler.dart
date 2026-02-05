@@ -161,6 +161,14 @@ abstract base class Assembler {
     OperandSize sz = OperandSize.s64,
   ]);
 
+  /// [dst] = [src] - arbitrary integer [value].
+  void subImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]);
+
   /// [dst] = bitwise and ([src], arbitrary integer [value]).
   void andImmediate(
     Register dst,

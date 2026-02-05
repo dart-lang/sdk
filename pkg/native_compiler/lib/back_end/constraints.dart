@@ -91,9 +91,6 @@ abstract base class Constraints
   int getNumberOfFPRegisters();
   List<FPRegister> getAllocatableFPRegisters();
 
-  int sizeInWords(RegisterClass registerClass);
-  int alignmentInWords(RegisterClass registerClass);
-
   InstructionConstraints? getConstraints(Instruction instr) =>
       instr.accept(this);
 
