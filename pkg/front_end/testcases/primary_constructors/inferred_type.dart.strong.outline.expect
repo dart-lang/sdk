@@ -1,0 +1,60 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::Object? b;
+  final field core::Object? c;
+  field core::int d;
+  field core::int e;
+  field core::int f;
+  constructor •(core::Object? a, core::Object? b, final core::Object? c) → self::C1
+    ;
+}
+class C2 extends core::Object {
+  field core::Object? b;
+  final field core::Object? c;
+  field core::int d;
+  field core::int e;
+  field core::int f;
+  constructor •([has-declared-initializer core::Object? a = null, has-declared-initializer core::Object? b = null, final has-declared-initializer core::Object? c = null]) → self::C2
+    ;
+}
+class C3 extends core::Object {
+  field core::Object? b;
+  final field core::Object? c;
+  field core::int d;
+  field core::int e;
+  field core::int f;
+  constructor •({has-declared-initializer core::Object? a = null, has-declared-initializer core::Object? b = null, final has-declared-initializer core::Object? c = null}) → self::C3
+    ;
+}
+extension type ET1(dynamic a) {
+  abstract extension-type-member representation-field get a() → core::Object?;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(dynamic a) {
+  abstract extension-type-member representation-field get a() → core::Object?;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(dynamic a) {
+  abstract extension-type-member representation-field get a() → core::Object?;
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::Object? a) → self::ET1% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::Object? a) → self::ET1% /* erasure=dynamic, declared=! */
+  return self::ET1|constructor#(a);
+static extension-type-member method ET2|constructor#([has-declared-initializer core::Object? a = null]) → self::ET2% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff([has-declared-initializer core::Object? a]) → self::ET2% /* erasure=dynamic, declared=! */
+  return self::ET2|constructor#(a);
+static extension-type-member method ET3|constructor#({has-declared-initializer core::Object? a = null}) → self::ET3% /* erasure=dynamic, declared=! */
+  ;
+static extension-type-member synthetic method ET3|constructor#_#new#tearOff({has-declared-initializer core::Object? a}) → self::ET3% /* erasure=dynamic, declared=! */
+  return self::ET3|constructor#(a: a);
+static method test(self::C1 c1, self::C2 c2, self::C3 c3, self::ET1% /* erasure=dynamic, declared=! */ e1, self::ET2% /* erasure=dynamic, declared=! */ e2, self::ET3% /* erasure=dynamic, declared=! */ e3) → dynamic
+  ;

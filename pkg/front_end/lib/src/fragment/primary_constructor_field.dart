@@ -463,15 +463,21 @@ class PrimaryConstructorFieldDeclaration
             bodyBuilderContext: createBodyBuilderContext(),
             startToken: token,
             isLate: false,
+            inferenceDefaultType: inferenceDefaultType,
           );
       return (
         expressionInferenceResult.inferredType,
         expressionInferenceResult.expression,
       );
     } else {
-      return (const DynamicType(), null);
+      assert(inferenceDefaultType == InferenceDefaultType.NullableObject);
+      return (classHierarchy.coreTypes.objectNullableRawType, null);
     }
   }
+
+  @override
+  InferenceDefaultType get inferenceDefaultType =>
+      InferenceDefaultType.NullableObject;
 
   @override
   Initializer takePrimaryConstructorFieldInitializer() {

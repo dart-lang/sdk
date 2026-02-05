@@ -1654,15 +1654,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType inferDeclarationType(
     DartType initializerType, {
     bool forSyntheticVariable = false,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     if (forSyntheticVariable) {
       return initializerType;
     } else if (initializerType is NullType) {
-      // If the initializer type is Null or bottom, the inferred type is
-      // dynamic.
-      // TODO(paulberry): this rule is inherited from analyzer behavior but is
-      // not spec'ed anywhere.
-      return const DynamicType();
+      switch (inferenceDefaultType) {
+        case InferenceDefaultType.NullableObject:
+          // For primary constructors, `Object?` used in this case.
+          return coreTypes.objectNullableRawType;
+        case InferenceDefaultType.Dynamic:
+          // If the initializer type is Null or bottom, the inferred type is
+          // dynamic.
+          // TODO(paulberry): this rule is inherited from analyzer behavior but
+          //  is not spec'ed anywhere.
+          return const DynamicType();
+      }
     } else {
       return demoteTypeInLibrary(initializerType);
     }

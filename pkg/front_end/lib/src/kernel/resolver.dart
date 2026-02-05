@@ -47,6 +47,7 @@ import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart';
+import '../util/helpers.dart';
 import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder.dart';
@@ -230,6 +231,7 @@ class Resolver {
             fileUri: fileUri,
             declaredType: const UnknownType(),
             initializer: initializer,
+            inferenceDefaultType: InferenceDefaultType.Dynamic,
           );
       initializer = inferenceResult.expression;
       fieldType = inferenceResult.inferredType;
@@ -249,6 +251,7 @@ class Resolver {
     DartType? declaredFieldType,
     required Token startToken,
     required InferenceDataForTesting? inferenceDataForTesting,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
@@ -276,6 +279,7 @@ class Resolver {
           fileUri: fileUri,
           declaredType: declaredFieldType,
           initializer: result.initializer,
+          inferenceDefaultType: inferenceDefaultType,
         );
     context.performBacklog(result.annotations);
     return expressionInferenceResult;

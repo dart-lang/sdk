@@ -42,6 +42,7 @@ import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_builder.dart';
 import '../fragment/fragment.dart';
+import '../util/helpers.dart';
 import '../util/local_stack.dart';
 import 'fragment_factory.dart';
 import 'name_space_builder.dart';
@@ -758,7 +759,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
   }
 
-  Uri _resolve(Uri baseUri, String? uri, int uriOffset, {isPart = false}) {
+  Uri _resolve(Uri baseUri, String? uri, int uriOffset, {bool isPart = false}) {
     if (uri == null) {
       // Coverage-ignore-block(suite): Not run.
       _problemReporting.addProblem(
@@ -1459,7 +1460,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       startOffset: startOffset,
       formalsOffset: formalsOffset,
       modifiers: isConst ? Modifiers.Const : Modifiers.empty,
-      returnType: addInferableType(),
+      returnType: addInferableType(InferenceDefaultType.Dynamic),
       typeParameterNameSpace: typeParameterNameSpace,
       typeParameterScope: typeParameterScope.lookupScope,
       formals: formals,
@@ -1545,7 +1546,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       endOffset: endOffset,
       modifiers: modifiers - Modifiers.Abstract,
       metadata: metadata,
-      returnType: addInferableType(),
+      returnType: addInferableType(InferenceDefaultType.Dynamic),
       typeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: _declarationFragments.current.bodyScope,
@@ -1925,7 +1926,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       isTopLevel: enclosingDeclaration == null,
       metadata: metadata,
       modifiers: modifiers,
-      returnType: returnType ?? addInferableType(),
+      returnType: returnType ?? addInferableType(InferenceDefaultType.Dynamic),
       declaredTypeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
@@ -2086,7 +2087,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       isTopLevel: enclosingDeclaration == null,
       metadata: metadata,
       modifiers: modifiers,
-      returnType: returnType ?? addInferableType(),
+      returnType: returnType ?? addInferableType(InferenceDefaultType.Dynamic),
       declaredTypeParameters: typeParameters,
       typeParameterNameSpace: typeParameterNameSpace,
       enclosingScope: enclosingDeclaration?.bodyScope ?? _compilationUnitScope,
@@ -2136,7 +2137,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           metadata: metadata,
           modifiers: modifiers,
           isTopLevel: isTopLevel,
-          type: type ?? addInferableType(),
+          type: type ?? addInferableType(InferenceDefaultType.Dynamic),
           name: info.identifier.name,
           nameOffset: info.identifier.nameOffset,
           endOffset: info.endOffset,
@@ -2441,8 +2442,12 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
-  InferableTypeBuilder addInferableType() {
-    return _compilationUnit.loader.inferableTypes.addInferableType();
+  InferableTypeBuilder addInferableType(
+    InferenceDefaultType inferenceDefaultType,
+  ) {
+    return _compilationUnit.loader.inferableTypes.addInferableType(
+      inferenceDefaultType,
+    );
   }
 
   void _addFragment(Fragment fragment) {

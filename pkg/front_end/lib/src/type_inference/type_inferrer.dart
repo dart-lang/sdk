@@ -15,6 +15,7 @@ import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
@@ -43,11 +44,16 @@ abstract class TypeInferrer {
 
   AssignedVariablesImpl get assignedVariables;
 
-  /// Performs full type inference on the given field initializer.
+  /// Performs type inference on the given field [initializer] with the given
+  /// [declaredType], if any.
+  ///
+  /// When [declaredType] is `null` and the [initializer] has type `Null`, the
+  /// inferred field type is determined by [inferenceDefaultType].
   ExpressionInferenceResult inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
     required Expression initializer,
+    required InferenceDefaultType inferenceDefaultType,
   });
 
   /// Performs type inference on the given function body.
@@ -196,6 +202,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required Uri fileUri,
     DartType? declaredType,
     required Expression initializer,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(fileUri: fileUri);
     ExpressionInferenceResult initializerResult = visitor.inferExpression(
@@ -214,7 +221,10 @@ class TypeInferrerImpl implements TypeInferrer {
       // If the field has no declared type, compute the field type from the
       // inferred type.
       initializerResult = new ExpressionInferenceResult(
-        visitor.inferDeclarationType(initializerResult.inferredType),
+        visitor.inferDeclarationType(
+          initializerResult.inferredType,
+          inferenceDefaultType: inferenceDefaultType,
+        ),
         initializerResult.expression,
       );
     }
@@ -437,12 +447,14 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required Uri fileUri,
     DartType? declaredType,
     required Expression initializer,
+    required InferenceDefaultType inferenceDefaultType,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFieldInitializer);
     ExpressionInferenceResult result = impl.inferFieldInitializer(
       fileUri: fileUri,
       declaredType: declaredType,
       initializer: initializer,
+      inferenceDefaultType: inferenceDefaultType,
     );
     benchmarker.endSubdivide();
     return result;
