@@ -211,39 +211,284 @@ void _testI64x2() {
 void _testF32x4() {
   // splat
   var v1 = WasmF32x4.splat(WasmF32.fromDouble(10.5));
+  var v2 = WasmF32x4.splat(WasmF32.fromDouble(2.0));
 
   Expect.equals(v1.extractLane(0).toDouble(), 10.5);
+  Expect.equals(v1.extractLane(1).toDouble(), 10.5);
+  Expect.equals(v1.extractLane(2).toDouble(), 10.5);
   Expect.equals(v1.extractLane(3).toDouble(), 10.5);
+  Expect.equals(v2.extractLane(0).toDouble(), 2.0);
+  Expect.equals(v2.extractLane(1).toDouble(), 2.0);
+  Expect.equals(v2.extractLane(2).toDouble(), 2.0);
+  Expect.equals(v2.extractLane(3).toDouble(), 2.0);
 
   // replaceLane
-  var v2 = v1.replaceLane(0, WasmF32.fromDouble(5.5));
-  Expect.equals(v2.extractLane(0).toDouble(), 5.5);
-  Expect.equals(v2.extractLane(1).toDouble(), 10.5);
+  var v3 = v1.replaceLane(0, WasmF32.fromDouble(5.5));
+  Expect.equals(v3.extractLane(0).toDouble(), 5.5);
+  Expect.equals(v3.extractLane(1).toDouble(), 10.5);
+  Expect.equals(v3.extractLane(2).toDouble(), 10.5);
+  Expect.equals(v3.extractLane(3).toDouble(), 10.5);
 
+  // +
+  var vAdd = v1 + v2;
+  Expect.equals(vAdd.extractLane(0).toDouble(), 12.5);
+  Expect.equals(vAdd.extractLane(1).toDouble(), 12.5);
+  Expect.equals(vAdd.extractLane(2).toDouble(), 12.5);
+  Expect.equals(vAdd.extractLane(3).toDouble(), 12.5);
+
+  // -
+  var vSub = v1 - v2;
+  Expect.equals(vSub.extractLane(0).toDouble(), 8.5);
+  Expect.equals(vSub.extractLane(1).toDouble(), 8.5);
+  Expect.equals(vSub.extractLane(2).toDouble(), 8.5);
+  Expect.equals(vSub.extractLane(3).toDouble(), 8.5);
+
+  // *
+  var vMul = v1 * v2;
+  Expect.equals(vMul.extractLane(0).toDouble(), 21.0);
+  Expect.equals(vMul.extractLane(1).toDouble(), 21.0);
+  Expect.equals(vMul.extractLane(2).toDouble(), 21.0);
+  Expect.equals(vMul.extractLane(3).toDouble(), 21.0);
+
+  // /
+  var vDiv = v1 / v2;
+  Expect.equals(vDiv.extractLane(0).toDouble(), 5.25);
+  Expect.equals(vDiv.extractLane(1).toDouble(), 5.25);
+  Expect.equals(vDiv.extractLane(2).toDouble(), 5.25);
+  Expect.equals(vDiv.extractLane(3).toDouble(), 5.25);
+
+  // unary -
+  var vNeg = -v1;
+  Expect.equals(vNeg.extractLane(0).toDouble(), -10.5);
+  Expect.equals(vNeg.extractLane(1).toDouble(), -10.5);
+  Expect.equals(vNeg.extractLane(2).toDouble(), -10.5);
+  Expect.equals(vNeg.extractLane(3).toDouble(), -10.5);
+
+  // abs
+  var vAbs = vNeg.abs(); // abs(-10.5) -> 10.5
+  Expect.equals(vAbs.extractLane(0).toDouble(), 10.5);
+  Expect.equals(vAbs.extractLane(1).toDouble(), 10.5);
+  Expect.equals(vAbs.extractLane(2).toDouble(), 10.5);
+  Expect.equals(vAbs.extractLane(3).toDouble(), 10.5);
+
+  // sqrt
+  var vSqrt = WasmF32x4.splat(WasmF32.fromDouble(4.0)).sqrt();
+  Expect.equals(vSqrt.extractLane(0).toDouble(), 2.0);
+  Expect.equals(vSqrt.extractLane(1).toDouble(), 2.0);
+  Expect.equals(vSqrt.extractLane(2).toDouble(), 2.0);
+  Expect.equals(vSqrt.extractLane(3).toDouble(), 2.0);
+
+  // min
+  var vMin = v1.min(v2); // min(10.5, 2.0) -> 2.0
+  Expect.equals(vMin.extractLane(0).toDouble(), 2.0);
+  Expect.equals(vMin.extractLane(1).toDouble(), 2.0);
+  Expect.equals(vMin.extractLane(2).toDouble(), 2.0);
+  Expect.equals(vMin.extractLane(3).toDouble(), 2.0);
+
+  // max
+  var vMax = v1.max(v2); // max(10.5, 2.0) -> 10.5
+  Expect.equals(vMax.extractLane(0).toDouble(), 10.5);
+  Expect.equals(vMax.extractLane(1).toDouble(), 10.5);
+  Expect.equals(vMax.extractLane(2).toDouble(), 10.5);
+  Expect.equals(vMax.extractLane(3).toDouble(), 10.5);
+
+  // ceil
+  var vCeil = WasmF32x4.splat(WasmF32.fromDouble(1.1)).ceil();
+  Expect.equals(vCeil.extractLane(0).toDouble(), 2.0);
+  Expect.equals(vCeil.extractLane(1).toDouble(), 2.0);
+  Expect.equals(vCeil.extractLane(2).toDouble(), 2.0);
+  Expect.equals(vCeil.extractLane(3).toDouble(), 2.0);
+
+  vCeil = WasmF32x4.splat(WasmF32.fromDouble(-1.1)).ceil();
+  Expect.equals(vCeil.extractLane(0).toDouble(), -1.0);
+
+  // floor
+  var vFloor = WasmF32x4.splat(WasmF32.fromDouble(1.9)).floor();
+  Expect.equals(vFloor.extractLane(0).toDouble(), 1.0);
+
+  vFloor = WasmF32x4.splat(WasmF32.fromDouble(-1.9)).floor();
+  Expect.equals(vFloor.extractLane(0).toDouble(), -2.0);
+
+  // trunc
+  var vTrunc = WasmF32x4.splat(WasmF32.fromDouble(1.9)).trunc();
+  Expect.equals(vTrunc.extractLane(0).toDouble(), 1.0);
+
+  vTrunc = WasmF32x4.splat(WasmF32.fromDouble(-1.9)).trunc();
+  Expect.equals(vTrunc.extractLane(0).toDouble(), -1.0);
+
+  // nearest
+  var vNearest = WasmF32x4.splat(WasmF32.fromDouble(1.6)).nearest();
+  Expect.equals(vNearest.extractLane(0).toDouble(), 2.0);
+
+  vNearest = WasmF32x4.splat(WasmF32.fromDouble(1.4)).nearest();
+  Expect.equals(vNearest.extractLane(0).toDouble(), 1.0);
+
+  // Comparisons
   // eq
   var vEq = v1.eq(WasmF32x4.splat(WasmF32.fromDouble(10.5)));
   _expectCmpTrue(vEq.extractLane(0).toIntSigned());
+  _expectCmpTrue(vEq.extractLane(1).toIntSigned());
+  _expectCmpTrue(vEq.extractLane(2).toIntSigned());
+  _expectCmpTrue(vEq.extractLane(3).toIntSigned());
+
   vEq = v1.eq(WasmF32x4.splat(WasmF32.fromDouble(11.5)));
   _expectCmpFalse(vEq.extractLane(0).toIntSigned());
+  _expectCmpFalse(vEq.extractLane(1).toIntSigned());
+  _expectCmpFalse(vEq.extractLane(2).toIntSigned());
+  _expectCmpFalse(vEq.extractLane(3).toIntSigned());
+
+  // lt
+  var vLt = v2.lt(v1); // 2.0 < 10.5 -> true
+  _expectCmpTrue(vLt.extractLane(0).toIntSigned());
+  _expectCmpTrue(vLt.extractLane(1).toIntSigned());
+  _expectCmpTrue(vLt.extractLane(2).toIntSigned());
+  _expectCmpTrue(vLt.extractLane(3).toIntSigned());
+  vLt = v1.lt(v2); // 10.5 < 2.0 -> false
+  _expectCmpFalse(vLt.extractLane(0).toIntSigned());
+  _expectCmpFalse(vLt.extractLane(1).toIntSigned());
+  _expectCmpFalse(vLt.extractLane(2).toIntSigned());
+  _expectCmpFalse(vLt.extractLane(3).toIntSigned());
+
+  // le
+  var vLe = v2.le(v1); // 2.0 <= 10.5 -> true
+  _expectCmpTrue(vLe.extractLane(0).toIntSigned());
+  _expectCmpTrue(vLe.extractLane(1).toIntSigned());
+  _expectCmpTrue(vLe.extractLane(2).toIntSigned());
+  _expectCmpTrue(vLe.extractLane(3).toIntSigned());
+  vLe = v1.le(v1); // 10.5 <= 10.5 -> true
+  _expectCmpTrue(vLe.extractLane(0).toIntSigned());
+  _expectCmpTrue(vLe.extractLane(1).toIntSigned());
+  _expectCmpTrue(vLe.extractLane(2).toIntSigned());
+  _expectCmpTrue(vLe.extractLane(3).toIntSigned());
+
+  // gt
+  var vGt = v1.gt(v2); // 10.5 > 2.0 -> true
+  _expectCmpTrue(vGt.extractLane(0).toIntSigned());
+  _expectCmpTrue(vGt.extractLane(1).toIntSigned());
+  _expectCmpTrue(vGt.extractLane(2).toIntSigned());
+  _expectCmpTrue(vGt.extractLane(3).toIntSigned());
+
+  // ge
+  var vGe = v1.ge(v2); // 10.5 >= 2.0 -> true
+  _expectCmpTrue(vGe.extractLane(0).toIntSigned());
+  _expectCmpTrue(vGe.extractLane(1).toIntSigned());
+  _expectCmpTrue(vGe.extractLane(2).toIntSigned());
+  _expectCmpTrue(vGe.extractLane(3).toIntSigned());
+  vGe = v1.ge(v1); // 10.5 >= 10.5 -> true
+  _expectCmpTrue(vGe.extractLane(0).toIntSigned());
+  _expectCmpTrue(vGe.extractLane(1).toIntSigned());
+  _expectCmpTrue(vGe.extractLane(2).toIntSigned());
+  _expectCmpTrue(vGe.extractLane(3).toIntSigned());
 }
 
 void _testF64x2() {
   // splat
   var v1 = WasmF64x2.splat(WasmF64.fromDouble(10.5));
+  var v2 = WasmF64x2.splat(WasmF64.fromDouble(2.0));
 
   Expect.equals(v1.extractLane(0).toDouble(), 10.5);
+  Expect.equals(v2.extractLane(0).toDouble(), 2.0);
   Expect.equals(v1.extractLane(1).toDouble(), 10.5);
+  Expect.equals(v2.extractLane(1).toDouble(), 2.0);
 
   // replaceLane
-  var v2 = v1.replaceLane(0, WasmF64.fromDouble(5.5));
-  Expect.equals(v2.extractLane(0).toDouble(), 5.5);
-  Expect.equals(v2.extractLane(1).toDouble(), 10.5);
+  var v3 = v1.replaceLane(0, WasmF64.fromDouble(5.5));
+  Expect.equals(v3.extractLane(0).toDouble(), 5.5);
+  Expect.equals(v3.extractLane(1).toDouble(), 10.5);
 
+  // +
+  var vAdd = v1 + v2;
+  Expect.equals(vAdd.extractLane(0).toDouble(), 12.5);
+  Expect.equals(vAdd.extractLane(1).toDouble(), 12.5);
+
+  // -
+  var vSub = v1 - v2;
+  Expect.equals(vSub.extractLane(0).toDouble(), 8.5);
+  Expect.equals(vSub.extractLane(1).toDouble(), 8.5);
+
+  // *
+  var vMul = v1 * v2;
+  Expect.equals(vMul.extractLane(0).toDouble(), 21.0);
+  Expect.equals(vMul.extractLane(1).toDouble(), 21.0);
+
+  // /
+  var vDiv = v1 / v2;
+  Expect.equals(vDiv.extractLane(0).toDouble(), 5.25);
+  Expect.equals(vDiv.extractLane(1).toDouble(), 5.25);
+
+  // unary -
+  var vNeg = -v1;
+  Expect.equals(vNeg.extractLane(0).toDouble(), -10.5);
+  Expect.equals(vNeg.extractLane(1).toDouble(), -10.5);
+
+  // abs
+  var vAbs = vNeg.abs();
+  Expect.equals(vAbs.extractLane(0).toDouble(), 10.5);
+  Expect.equals(vAbs.extractLane(1).toDouble(), 10.5);
+
+  // sqrt
+  var vSqrt = WasmF64x2.splat(WasmF64.fromDouble(4.0)).sqrt();
+  Expect.equals(vSqrt.extractLane(0).toDouble(), 2.0);
+  Expect.equals(vSqrt.extractLane(1).toDouble(), 2.0);
+
+  // min
+  var vMin = v1.min(v2); // 2.0
+  Expect.equals(vMin.extractLane(0).toDouble(), 2.0);
+  Expect.equals(vMin.extractLane(1).toDouble(), 2.0);
+
+  // max
+  var vMax = v1.max(v2); // 10.5
+  Expect.equals(vMax.extractLane(0).toDouble(), 10.5);
+  Expect.equals(vMax.extractLane(1).toDouble(), 10.5);
+
+  // ceil
+  var vCeil = WasmF64x2.splat(WasmF64.fromDouble(1.1)).ceil();
+  Expect.equals(vCeil.extractLane(0).toDouble(), 2.0);
+  Expect.equals(vCeil.extractLane(1).toDouble(), 2.0);
+
+  // floor
+  var vFloor = WasmF64x2.splat(WasmF64.fromDouble(1.9)).floor();
+  Expect.equals(vFloor.extractLane(0).toDouble(), 1.0);
+  Expect.equals(vFloor.extractLane(1).toDouble(), 1.0);
+
+  // trunc
+  var vTrunc = WasmF64x2.splat(WasmF64.fromDouble(1.9)).trunc();
+  Expect.equals(vTrunc.extractLane(0).toDouble(), 1.0);
+  Expect.equals(vTrunc.extractLane(1).toDouble(), 1.0);
+
+  // nearest
+  var vNearest = WasmF64x2.splat(WasmF64.fromDouble(1.6)).nearest();
+  Expect.equals(vNearest.extractLane(0).toDouble(), 2.0);
+  Expect.equals(vNearest.extractLane(1).toDouble(), 2.0);
+
+  // Comparisons
   // eq
   var vEq = v1.eq(WasmF64x2.splat(WasmF64.fromDouble(10.5)));
   _expectCmpTrue(vEq.extractLane(0).toInt());
+  _expectCmpTrue(vEq.extractLane(1).toInt());
   vEq = v1.eq(WasmF64x2.splat(WasmF64.fromDouble(11.5)));
   _expectCmpFalse(vEq.extractLane(0).toInt());
+  _expectCmpFalse(vEq.extractLane(1).toInt());
+
+  // lt
+  var vLt = v2.lt(v1); // 2.0 < 10.5
+  _expectCmpTrue(vLt.extractLane(0).toInt());
+  _expectCmpTrue(vLt.extractLane(1).toInt());
+
+  // le
+  var vLe = v2.le(v1);
+  _expectCmpTrue(vLe.extractLane(0).toInt());
+  _expectCmpTrue(vLe.extractLane(1).toInt());
+
+  // gt
+  var vGt = v1.gt(v2);
+  _expectCmpTrue(vGt.extractLane(0).toInt());
+  _expectCmpTrue(vGt.extractLane(1).toInt());
+
+  // ge
+  var vGe = v1.ge(v2);
+  _expectCmpTrue(vGe.extractLane(0).toInt());
+  _expectCmpTrue(vGe.extractLane(1).toInt());
 }
 
 void _testV128() {
