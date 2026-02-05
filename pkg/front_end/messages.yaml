@@ -6082,9 +6082,9 @@ jsInteropFunctionToJSTypeParameters:
 
 jsInteropFunctionToJSTypeViolation:
   parameters:
-    String conversion: undocumented
-    String string2: undocumented
-  problemMessage: "Function converted via '#conversion' contains invalid types in its function signature: '#string2'."
+    String conversion: The "toJS" conversion in use.
+    String typeWithDiasllowedPartsHighlighted: The function type, with disallowed types surrounded by asterisks.
+  problemMessage: "Function converted via '#conversion' contains invalid types in its function signature: '#typeWithDiasllowedPartsHighlighted'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 jsInteropInvalidStaticClassMemberName:
@@ -6093,9 +6093,9 @@ jsInteropInvalidStaticClassMemberName:
 
 jsInteropJSClassExtendsDartClass:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
+    Name className: The name of the class that extends a Dart class.
+    Name superclassName: The name of the extended Dart class.
+  problemMessage: "JS interop class '#className' cannot extend Dart class '#superclassName'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
 
 jsInteropNamedParameters:
@@ -6105,11 +6105,11 @@ jsInteropNamedParameters:
 
 jsInteropNativeClassInAnnotation:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string3: undocumented
-  problemMessage: "Non-static JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
-  correctionMessage: "Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '#name2'."
+    Name className: The name of the problematic class.
+    Name nativeClassName: The name of the conflicting natively supported class.
+    String uri: The URI in which the conflict occurs.
+  problemMessage: "Non-static JS interop class '#className' conflicts with natively supported class '#nativeClassName' in '#uri'."
+  correctionMessage: "Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '#nativeClassName'."
 
 jsInteropNonExternalConstructor:
   parameters: none
@@ -6123,8 +6123,8 @@ jsInteropNonExternalMember:
 
 jsInteropObjectLiteralConstructorPositionalParameters:
   parameters:
-    String string: undocumented
-  problemMessage: "#string should not contain any positional parameters."
+    String kind: The kind of the erroneous construct.
+  problemMessage: "#kind should not contain any positional parameters."
   correctionMessage: "Try replacing them with named parameters instead."
 
 jsInteropOperatorCannotBeRenamed:
@@ -6139,23 +6139,23 @@ jsInteropOperatorsNotSupported:
 
 jsInteropNonStaticWithStaticInteropSupertype:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
-  correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
+    Name className: The name of the problematic class.
+    Name superclassName: The name of the conflicting superclass.
+  problemMessage: "Class '#className' does not have an `@staticInterop` annotation, but has supertype '#superclassName', which does."
+  correctionMessage: "Try marking '#className' as a `@staticInterop` class, or don't inherit '#superclassName'."
 
 # TODO(srujzs): Is there any way to save the correction message into a variable
 # to avoid duplication?
 jsInteropStaticInteropExternalAccessorTypeViolation:
   parameters:
-    Type type: undocumented
+    Type type: The invalid type.
   problemMessage: "External JS interop member contains an invalid type: '#type'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 jsInteropStaticInteropExternalFunctionTypeViolation:
   parameters:
-    String string2: undocumented
-  problemMessage: "External JS interop member contains invalid types in its function signature: '#string2'."
+    String typeWithDiasllowedPartsHighlighted: The function type, with disallowed types surrounded by asterisks.
+  problemMessage: "External JS interop member contains invalid types in its function signature: '#typeWithDiasllowedPartsHighlighted'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 jsInteropStaticInteropGenerativeConstructor:
@@ -6165,20 +6165,20 @@ jsInteropStaticInteropGenerativeConstructor:
 
 jsInteropStaticInteropMockMissingGetterOrSetter:
   parameters:
-    Name name: undocumented
-    String string: undocumented
-    String string2: undocumented
-    Name name2: undocumented
-    String string3: undocumented
-  problemMessage: "Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3."
-  correctionMessage: "Declare an exportable #string2 that implements one of these extension members."
+    Name className: The name of the problematic class.
+    String accessorKindPresent: The kind of accessor that is present ("getter" or "setter").
+    String accessorKindAbsent: The kind of accessor that is not present ("getter" or "setter").
+    Name exportName: The export name.
+    String missingMembers: A list of the missing members, separated by ", ".
+  problemMessage: "Dart class '#className' has a #accessorKindPresent, but does not have a #accessorKindAbsent to implement any of the following extension member(s) with export name '#exportName': #missingMembers."
+  correctionMessage: "Declare an exportable #accessorKindAbsent that implements one of these extension members."
 
 jsInteropStaticInteropMockMissingImplements:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-    String string: undocumented
-  problemMessage: "Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string."
+    Name className: The name of the problematic class.
+    Name exportName: The export name.
+    String missingMembers: A list of the missing members, separated by ", ".
+  problemMessage: "Dart class '#className' does not have any members that implement any of the following extension member(s) with export name '#exportName': #missingMembers."
   correctionMessage: "Declare an exportable member that implements one of these extension members."
 
 jsInteropStaticInteropMockNotStaticInteropType:

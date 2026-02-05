@@ -174,12 +174,14 @@ class StaticInteropMockValidator {
               (implementsGetter ^ implementsSetter)) {
             _diagnosticReporter.report(
               diag.jsInteropStaticInteropMockMissingGetterOrSetter
-                  .withArgumentsOld(
-                    dartClass.name,
-                    implementsGetter ? 'getter' : 'setter',
-                    implementsGetter ? 'setter' : 'getter',
-                    exportName,
-                    getAsErrorString(implementsGetter ? setters : getters),
+                  .withArguments(
+                    className: dartClass.name,
+                    accessorKindPresent: implementsGetter ? 'getter' : 'setter',
+                    accessorKindAbsent: implementsGetter ? 'setter' : 'getter',
+                    exportName: exportName,
+                    missingMembers: getAsErrorString(
+                      implementsGetter ? setters : getters,
+                    ),
                   ),
               node.fileOffset,
               node.name.text.length,
@@ -193,10 +195,10 @@ class StaticInteropMockValidator {
 
       if (!hasImplementation) {
         _diagnosticReporter.report(
-          diag.jsInteropStaticInteropMockMissingImplements.withArgumentsOld(
-            dartClass.name,
-            exportName,
-            getAsErrorString(descriptors),
+          diag.jsInteropStaticInteropMockMissingImplements.withArguments(
+            className: dartClass.name,
+            exportName: exportName,
+            missingMembers: getAsErrorString(descriptors),
           ),
           node.fileOffset,
           node.name.text.length,
