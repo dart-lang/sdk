@@ -411,6 +411,46 @@ extension type WasmF32x4(WasmV128 value) implements WasmV128 {
   external WasmF32x4 replaceLane(int index, WasmF32 value);
 
   @pragma("wasm:intrinsic")
+  external WasmF32x4 operator +(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 operator -(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 operator *(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 operator /(WasmF32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 lt(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 le(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 gt(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ge(WasmF32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 abs();
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 sqrt();
+
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 min(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 max(WasmF32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 ceil();
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 floor();
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 trunc();
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 nearest();
+
+  @pragma("wasm:intrinsic")
   external WasmI32x4 eq(WasmF32x4 other);
 }
 
@@ -421,6 +461,46 @@ extension type WasmF64x2(WasmV128 value) implements WasmV128 {
   external WasmF64 extractLane(int index);
   @pragma("wasm:intrinsic")
   external WasmF64x2 replaceLane(int index, WasmF64 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator +(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator -(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator *(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator /(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 lt(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 le(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 gt(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 ge(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 abs();
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 sqrt();
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 min(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 max(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 ceil();
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 floor();
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 trunc();
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 nearest();
 
   @pragma("wasm:intrinsic")
   external WasmI64x2 eq(WasmF64x2 other);
