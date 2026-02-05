@@ -10,17 +10,33 @@ import 'package:expect/expect.dart';
 external void eval(String code);
 
 @JS()
-external void throwFunction();
+external void throwError();
+
+@JS()
+external void throwNonError();
 
 void main() {
   eval('''
-    self.throwFunction = function() {
+    self.throwNonError = function() {
+      throw 'Hi from JS';
+    }
+
+    self.throwError = function() {
       throw new Error('Hi from JS');
     }
   ''');
+
   try {
-    throwFunction();
+    throwError();
   } catch (e, st) {
     Expect.isTrue(e.toString().contains('Hi from JS'));
+    Expect.isTrue(st.toString().isNotEmpty);
+  }
+
+  try {
+    throwNonError();
+  } catch (e, st) {
+    Expect.isTrue(e.toString().contains('Hi from JS'));
+    Expect.isTrue(st.toString().isEmpty);
   }
 }

@@ -67,8 +67,17 @@ class _JavaScriptError extends Error {
 
   @override
   @pragma("wasm:entry-point")
-  StackTrace get stackTrace =>
-      _JavaScriptStack(JS<WasmExternRef?>("(exn) => exn.stack", _errorRef));
+  StackTrace get stackTrace => _JavaScriptStack(
+    JS<WasmExternRef?>("""
+        (exn) => {
+          if (exn instanceof Error) {
+            return exn.stack;
+          } else {
+            return null;
+          }
+        }
+      """, _errorRef),
+  );
 }
 
 class _TypeError extends _Error implements TypeError {
