@@ -4804,8 +4804,8 @@ class ConstantEvaluator
         return env.lookupVariable(node.variable) ??
             createEvaluationErrorConstant(
               node,
-              diag.constEvalNonConstantVariableGet.withArgumentsOld(
-                variable.cosmeticName ?? '',
+              diag.constEvalNonConstantVariableGet.withArguments(
+                name: variable.cosmeticName ?? '',
               ),
             );
       }
