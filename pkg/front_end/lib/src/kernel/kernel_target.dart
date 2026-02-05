@@ -1670,9 +1670,9 @@ class KernelTarget {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-              diag.fieldNonNullableWithoutInitializerError.withArgumentsOld(
-                fieldBuilder.name,
-                fieldBuilder.fieldType,
+              diag.fieldNonNullableWithoutInitializerError.withArguments(
+                fieldName: fieldBuilder.name,
+                fieldType: fieldBuilder.fieldType,
               ),
               fieldBuilder.fileOffset,
               fieldBuilder.name.length,
@@ -1726,7 +1726,10 @@ class KernelTarget {
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
               diag.fieldNonNullableNotInitializedByConstructorError
-                  .withArgumentsOld(fieldBuilder.name, fieldBuilder.fieldType),
+                  .withArguments(
+                    fieldName: fieldBuilder.name,
+                    fieldType: fieldBuilder.fieldType,
+                  ),
               constructorBuilder.fileOffset,
               noLength,
               constructorBuilder.fileUri,

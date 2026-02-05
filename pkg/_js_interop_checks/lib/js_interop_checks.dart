@@ -217,9 +217,9 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       if (superclass != null && hasJSInteropAnnotation(superclass)) {
         report(
-          diag.jsInteropDartClassExtendsJSClass.withArgumentsOld(
-            node.name,
-            superclass.name,
+          diag.jsInteropDartClassExtendsJSClass.withArguments(
+            className: node.name,
+            superclassName: superclass.name,
           ),
         );
       }

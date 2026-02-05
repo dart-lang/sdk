@@ -5838,9 +5838,9 @@ optionalNonNullableWithoutInitializerError:
 
 fieldNonNullableWithoutInitializerError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "Field '#name' should be initialized because its type '#type' doesn't allow null."
+    Name fieldName: The name of the field.
+    Type fieldType: The type of the field.
+  problemMessage: "Field '#fieldName' should be initialized because its type '#fieldType' doesn't allow null."
   script: |
     class Foo {
       int x;
@@ -5848,9 +5848,9 @@ fieldNonNullableWithoutInitializerError:
 
 fieldNonNullableNotInitializedByConstructorError:
   parameters:
-    Name name: undocumented
-    Type type: undocumented
-  problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
+    Name fieldName: The name of the field.
+    Type fieldType: The type of the field.
+  problemMessage: "This constructor should initialize field '#fieldName' because its type '#fieldType' doesn't allow null."
   script: |
     class Foo {
       int x;
@@ -5860,10 +5860,10 @@ fieldNonNullableNotInitializedByConstructorError:
 
 experimentOptOutExplicit:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The '#string' language feature is disabled for this library."
-  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
+    String featureName: The name of the language feature.
+    String enabledVersion: The language version in which the feature was enabled.
+  problemMessage: "The '#featureName' language feature is disabled for this library."
+  correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #enabledVersion or higher."
   script: |
     // @dart=2.14
     class Foo {}
@@ -5874,10 +5874,10 @@ experimentOptOutExplicit:
 
 experimentOptOutImplicit:
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "The '#string' language feature is disabled for this library."
-  correctionMessage: "Try removing the package language version or setting the language version to #string2 or higher."
+    String featureName: The name of the language feature.
+    String enabledVersion: The language version in which the feature was enabled.
+  problemMessage: "The '#featureName' language feature is disabled for this library."
+  correctionMessage: "Try removing the package language version or setting the language version to #enabledVersion or higher."
   script:
     .dart_tool/package_config.json: |
       {
@@ -5901,8 +5901,8 @@ experimentOptOutImplicit:
 
 experimentOptOutComment:
   parameters:
-    String string: undocumented
-  problemMessage: "This is the annotation that opts out this library from the '#string' language feature."
+    String featureName: The name of the language feature.
+  problemMessage: "This is the annotation that opts out this library from the '#featureName' language feature."
   severity: CONTEXT
 
 awaitInLateLocalInitializer:
@@ -5915,16 +5915,16 @@ awaitInLateLocalInitializer:
 
 nullableSuperclassError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't extend '#name' because it's nullable."
+    Name supertypeName: The name of the supertype.
+  problemMessage: "Can't extend '#supertypeName' because it's nullable."
   correctionMessage: "Try removing the question mark."
   script: |
     class Foo extends Object? {}
 
 nullableInterfaceError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't implement '#name' because it's nullable."
+    Name interfaceName: The name of the interface that couldn't be implemented.
+  problemMessage: "Can't implement '#interfaceName' because it's nullable."
   correctionMessage: "Try removing the question mark."
   script: |
     class Foo {}
@@ -5932,8 +5932,8 @@ nullableInterfaceError:
 
 nullableMixinError:
   parameters:
-    Name name: undocumented
-  problemMessage: "Can't mix '#name' in because it's nullable."
+    Name mixinName: The name of the type that couldn't be mixed in.
+  problemMessage: "Can't mix '#mixinName' in because it's nullable."
   correctionMessage: "Try removing the question mark."
   script: |
     mixin Foo {}
@@ -5941,9 +5941,9 @@ nullableMixinError:
 
 jsInteropDartClassExtendsJSClass:
   parameters:
-    Name name: undocumented
-    Name name2: undocumented
-  problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
+    Name className: The name of the class that cannot extend a JS interop class.
+    Name superclassName: The name of the JS interop class.
+  problemMessage: "Dart class '#className' cannot extend JS interop class '#superclassName'."
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
 
 jsInteropDartJsInteropAnnotationForStaticInteropOnly:
@@ -5963,21 +5963,21 @@ jsInteropEnclosingClassJSAnnotationContext:
 
 jsInteropExportClassNotMarkedExportable:
   parameters:
-    Name name: undocumented
-  problemMessage: "Class '#name' does not have a `@JSExport` on it or any of its members."
+    Name className: The name of the class that is not marked exportable.
+  problemMessage: "Class '#className' does not have a `@JSExport` on it or any of its members."
   correctionMessage: "Use the `@JSExport` annotation on this class."
 
 jsInteropExportDartInterfaceHasNonEmptyJSExportValue:
   parameters:
-    Name name: undocumented
-  problemMessage: "The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored."
+    Name className: The name of the class with a non-empty `@JSExport` value.
+  problemMessage: "The value in the `@JSExport` annotation on the class or mixin '#className' will be ignored."
   correctionMessage: "Remove the value in the annotation."
   severity: WARNING
 
 jsInteropExportDisallowedMember:
   parameters:
-    Name name: undocumented
-  problemMessage: "Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported."
+    Name memberName: The name of the problematic member.
+  problemMessage: "Member '#memberName' is not a concrete instance member or declares type parameters, and therefore can't be exported."
   correctionMessage: "Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead."
 
 jsInteropExportInvalidInteropTypeArgument:
