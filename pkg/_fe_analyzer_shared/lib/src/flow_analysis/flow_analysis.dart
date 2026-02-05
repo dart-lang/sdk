@@ -1034,8 +1034,7 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting a property get expression.
   ///
-  /// [wholeExpression] should be the whole property get, and [propertyName]
-  /// should be the identifier to the right hand side of the `.`.
+  /// [propertyName] should be the identifier to the right hand side of the `.`.
   /// [unpromotedType] should be the static type of the value returned by the
   /// property get.
   ///
@@ -1047,13 +1046,6 @@ abstract class FlowAnalysis<
   /// visited. If it is [SuperPropertyTarget], a property of `super` was just
   /// visited.
   ///
-  /// [wholeExpression] is used by flow analysis to detect the case where the
-  /// property get is used as a subexpression of a larger expression that
-  /// participates in promotion (e.g. promotion of a property of a property).
-  /// If there is no expression corresponding to the property get (e.g. because
-  /// the property is being invoked like a method, or the property get is part
-  /// of a compound assignment), [wholeExpression] may be `null`.
-  ///
   /// [propertyMember] should be whatever data structure the client uses to keep
   /// track of the field or property being accessed. If not `null`, and field
   /// promotion is enabled for the current library,
@@ -1062,10 +1054,12 @@ abstract class FlowAnalysis<
   /// property get, this value can be retrieved from
   /// [PropertyNotPromoted.propertyMember].
   ///
-  /// If the property's type is currently promoted, the promoted type is
-  /// returned. Otherwise `null` is returned.
-  SharedTypeView? propertyGet(
-    Expression? wholeExpression,
+  /// Returns a pair:
+  /// - If the property's type is currently promoted, the first element of the
+  ///   pair is the promoted type. Otherwise it is `null`.
+  /// - The second element of the pair is the expression info for the property
+  ///   get.
+  (SharedTypeView?, ExpressionInfo?) propertyGet(
     PropertyTarget<Expression> target,
     String propertyName,
     Object? propertyMember,
@@ -2368,18 +2362,16 @@ class FlowAnalysisDebug<
   }
 
   @override
-  SharedTypeView? propertyGet(
-    Expression? wholeExpression,
+  (SharedTypeView?, ExpressionInfo?) propertyGet(
     PropertyTarget<Expression> target,
     String propertyName,
     Object? propertyMember,
     SharedTypeView unpromotedType,
   ) {
     return _wrap(
-      'propertyGet($wholeExpression, $target, $propertyName, '
+      'propertyGet($target, $propertyName, '
       '$propertyMember, $unpromotedType)',
       () => _wrapped.propertyGet(
-        wholeExpression,
         target,
         propertyName,
         propertyMember,
@@ -6369,15 +6361,14 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  SharedTypeView? propertyGet(
-    Expression? wholeExpression,
+  (SharedTypeView?, ExpressionInfo?) propertyGet(
     PropertyTarget<Expression> target,
     String propertyName,
     Object? propertyMember,
     SharedTypeView unpromotedType,
   ) {
     SsaNode? targetSsaNode = target._getSsaNode(this);
-    if (targetSsaNode == null) return null;
+    if (targetSsaNode == null) return (null, null);
     var (
       SharedTypeView? promotedType,
       _PropertySsaNode propertySsaNode,
@@ -6395,10 +6386,7 @@ class _FlowAnalysisImpl<
       type: promotedType ?? unpromotedType,
       ssaNode: propertySsaNode,
     );
-    if (wholeExpression != null) {
-      _storeExpressionInfo(wholeExpression, propertyReference);
-    }
-    return promotedType;
+    return (promotedType, propertyReference);
   }
 
   @override

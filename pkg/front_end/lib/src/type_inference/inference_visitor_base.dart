@@ -3497,15 +3497,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       resultType: calleeType,
       interfaceTarget: originalTarget,
     )..fileOffset = fileOffset;
-    DartType? promotedCalleeType = flowAnalysis
-        .propertyGet(
-          originalPropertyGet,
-          computePropertyTarget(originalReceiver),
-          originalName.text,
-          originalTarget,
-          new SharedTypeView(calleeType),
-        )
-        ?.unwrapTypeView();
+    var (
+      SharedTypeView? wrappedPromotedType,
+      ExpressionInfo? expressionInfo,
+    ) = flowAnalysis.propertyGet(
+      computePropertyTarget(originalReceiver),
+      originalName.text,
+      originalTarget,
+      new SharedTypeView(calleeType),
+    );
+    flowAnalysis.storeExpressionInfo(originalPropertyGet, expressionInfo);
+    DartType? promotedCalleeType = wrappedPromotedType?.unwrapTypeView();
     originalPropertyGet.resultType = calleeType;
     Expression propertyGet = originalPropertyGet;
     if (receiver is! ThisExpression &&
@@ -3909,16 +3911,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         DartType type = target.getGetterType(this);
+        var (SharedTypeView? wrappedPromotedType, _) = flowAnalysis.propertyGet(
+          computePropertyTarget(receiver),
+          name.text,
+          (target as ExtensionTypeRepresentationAccessTarget)
+              .representationField,
+          new SharedTypeView(type),
+        );
         type =
-            flowAnalysis
-                .propertyGet(
-                  null,
-                  computePropertyTarget(receiver),
-                  name.text,
-                  (target as ExtensionTypeRepresentationAccessTarget)
-                      .representationField,
-                  new SharedTypeView(type),
-                )
+            wrappedPromotedType
                 // Coverage-ignore(suite): Not run.
                 ?.unwrapTypeView() ??
             type;
@@ -4187,15 +4188,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, node);
     }
-    DartType? promotedType = flowAnalysis
-        .propertyGet(
-          node,
-          SuperPropertyTarget.singleton,
-          name.text,
-          member,
-          new SharedTypeView(inferredType),
-        )
-        ?.unwrapTypeView();
+    var (
+      SharedTypeView? wrappedPromotedType,
+      ExpressionInfo? expressionInfo,
+    ) = flowAnalysis.propertyGet(
+      SuperPropertyTarget.singleton,
+      name.text,
+      member,
+      new SharedTypeView(inferredType),
+    );
+    flowAnalysis.storeExpressionInfo(node, expressionInfo);
+    DartType? promotedType = wrappedPromotedType?.unwrapTypeView();
     if (promotedType != null) {
       node = new AsExpression(node, promotedType)
         ..isUnchecked = true

@@ -357,17 +357,17 @@ class PropertyElementResolver with ScopeHelpers {
       if (readElementRequested is InternalPropertyAccessorElement &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
-        getType =
-            _resolver.flowAnalysis.flow
-                ?.propertyGet(
-                  node,
-                  ThisPropertyTarget.singleton,
-                  node.name,
-                  readElementRequested,
-                  SharedTypeView(unpromotedType),
-                )
-                ?.unwrapTypeView() ??
-            unpromotedType;
+        if (_resolver.flowAnalysis.flow case var flow?) {
+          var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
+            ThisPropertyTarget.singleton,
+            node.name,
+            readElementRequested,
+            SharedTypeView(unpromotedType),
+          );
+          flow.storeExpressionInfo(node, expressionInfo);
+          getType = wrappedPromotedType?.unwrapTypeView();
+        }
+        getType ??= unpromotedType;
       }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
     }
@@ -592,20 +592,20 @@ class PropertyElementResolver with ScopeHelpers {
         InternalPropertyAccessorElement(:var returnType) => returnType,
         _ => result.recordField?.type ?? _typeSystem.typeProvider.dynamicType,
       };
-      getType =
-          _resolver.flowAnalysis.flow
-              ?.propertyGet(
-                node,
-                isCascaded
-                    ? CascadePropertyTarget.singleton
-                          as PropertyTarget<ExpressionImpl>
-                    : ExpressionPropertyTarget(target),
-                propertyName.name,
-                result.getter2,
-                SharedTypeView(unpromotedType),
-              )
-              ?.unwrapTypeView() ??
-          unpromotedType;
+      if (_resolver.flowAnalysis.flow case var flow?) {
+        var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
+          isCascaded
+              ? CascadePropertyTarget.singleton
+                    as PropertyTarget<ExpressionImpl>
+              : ExpressionPropertyTarget(target),
+          propertyName.name,
+          result.getter2,
+          SharedTypeView(unpromotedType),
+        );
+        flow.storeExpressionInfo(node, expressionInfo);
+        getType = wrappedPromotedType?.unwrapTypeView();
+      }
+      getType ??= unpromotedType;
 
       _checkForStaticMember(target, propertyName, result.getter2);
       if (result.needsGetterError) {
@@ -1027,17 +1027,17 @@ class PropertyElementResolver with ScopeHelpers {
         }
         var unpromotedType =
             readElement?.returnType ?? _typeSystem.typeProvider.dynamicType;
-        getType =
-            _resolver.flowAnalysis.flow
-                ?.propertyGet(
-                  node,
-                  SuperPropertyTarget.singleton,
-                  propertyName.name,
-                  readElement,
-                  SharedTypeView(unpromotedType),
-                )
-                ?.unwrapTypeView() ??
-            unpromotedType;
+        if (_resolver.flowAnalysis.flow case var flow?) {
+          var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
+            SuperPropertyTarget.singleton,
+            propertyName.name,
+            readElement,
+            SharedTypeView(unpromotedType),
+          );
+          flow.storeExpressionInfo(node, expressionInfo);
+          getType = wrappedPromotedType?.unwrapTypeView();
+        }
+        getType ??= unpromotedType;
       }
 
       if (hasWrite) {
