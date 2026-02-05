@@ -1,0 +1,9 @@
+mixin A<X> {
+  foo<Y extends X>() {}
+}
+
+class B {
+  foo<Z extends num>() {}
+}
+
+class C extends B with A<num> {}
