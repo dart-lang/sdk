@@ -4357,6 +4357,7 @@ package:analyzer/dart/element/type_system.dart:
   TypeSystem (class extends Object):
     new (constructor: TypeSystem Function())
     flatten (method: DartType Function(DartType))
+    futureValueType (method: DartType Function(DartType))
     greatestLowerBound (method: DartType Function(DartType, DartType))
     instantiateInterfaceToBounds (method: InterfaceType Function({required InterfaceElement element, required NullabilitySuffix nullabilitySuffix}))
     instantiateTypeAliasToBounds (method: DartType Function({required TypeAliasElement element, required NullabilitySuffix nullabilitySuffix}))

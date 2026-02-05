@@ -14242,7 +14242,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       type = const InvalidType();
       result = new InvalidExpression(
         diag.experimentNotEnabledOffByDefault
-            .withArgumentsOld(ExperimentalFlag.records.name)
+            .withArguments(featureName: ExperimentalFlag.records.name)
             .withoutLocation()
             .problemMessage,
       );

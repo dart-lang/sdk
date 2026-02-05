@@ -4807,12 +4807,13 @@ experimentalMemberUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
-/// String string2: undocumented
+/// String featureName: The name of of the language feature.
+/// String enabledVersion: The language version in which the language feature
+///                        was enabled.
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String string,
-    required String string2,
+    required String featureName,
+    required String enabledVersion,
   })
 >
 experimentNotEnabled = DiagnosticWithArguments(
@@ -4828,9 +4829,9 @@ experimentNotEnabled = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String string: undocumented
+/// String featureName: The name of the language feature.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String string})
+  LocatableDiagnostic Function({required String featureName})
 >
 experimentNotEnabledOffByDefault = DiagnosticWithArguments(
   name: 'experiment_not_enabled_off_by_default',
@@ -18750,17 +18751,20 @@ LocatableDiagnostic _withArgumentsExperimentalMemberUse({
 }
 
 LocatableDiagnostic _withArgumentsExperimentNotEnabled({
-  required String string,
-  required String string2,
+  required String featureName,
+  required String enabledVersion,
 }) {
-  return LocatableDiagnosticImpl(diag.experimentNotEnabled, [string, string2]);
+  return LocatableDiagnosticImpl(diag.experimentNotEnabled, [
+    featureName,
+    enabledVersion,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsExperimentNotEnabledOffByDefault({
-  required String string,
+  required String featureName,
 }) {
   return LocatableDiagnosticImpl(diag.experimentNotEnabledOffByDefault, [
-    string,
+    featureName,
   ]);
 }
 

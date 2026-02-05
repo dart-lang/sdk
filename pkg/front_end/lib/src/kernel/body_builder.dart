@@ -3145,8 +3145,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (!libraryFeatures.digitSeparators.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.digitSeparators.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.digitSeparators.name,
         ),
         token.offset,
         token.length,
@@ -4704,8 +4704,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (!libraryFeatures.digitSeparators.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.digitSeparators.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.digitSeparators.name,
         ),
         token.offset,
         token.length,
@@ -4782,8 +4782,8 @@ class BodyBuilderImpl extends StackListenerImpl
       if (!libraryFeatures.nullAwareElements.isEnabled) {
         // Coverage-ignore-block(suite): Not run.
         addProblem(
-          diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-            ExperimentalFlag.nullAwareElements.name,
+          diag.experimentNotEnabledOffByDefault.withArguments(
+            featureName: ExperimentalFlag.nullAwareElements.name,
           ),
           (nullAwareKeyToken ?? nullAwareValueToken!).offset,
           noLength,
@@ -5034,8 +5034,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.records.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.records.name,
         ),
         leftBracket.offset,
         noLength,
@@ -7460,8 +7460,8 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("NullAwareElement");
     if (!libraryFeatures.nullAwareElements.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.nullAwareElements.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.nullAwareElements.name,
         ),
         nullAwareElement.offset,
         noLength,
@@ -11018,8 +11018,8 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("DotShorthandContext");
     if (!libraryFeatures.dotShorthands.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.dotShorthands.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.dotShorthands.name,
         ),
         token.offset,
         token.length,
@@ -11040,8 +11040,8 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("DotShorthandHead");
     if (!libraryFeatures.dotShorthands.isEnabled) {
       addProblem(
-        diag.experimentNotEnabledOffByDefault.withArgumentsOld(
-          ExperimentalFlag.dotShorthands.name,
+        diag.experimentNotEnabledOffByDefault.withArguments(
+          featureName: ExperimentalFlag.dotShorthands.name,
         ),
         token.offset,
         token.length,

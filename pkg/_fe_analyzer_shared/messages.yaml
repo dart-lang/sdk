@@ -10,19 +10,19 @@
 experimentNotEnabled:
   type: syntacticError
   parameters:
-    String string: undocumented
-    String string2: undocumented
-  problemMessage: "This requires the '#string' language feature to be enabled."
-  correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
+    String featureName: The name of of the language feature.
+    String enabledVersion: The language version in which the language feature was enabled.
+  problemMessage: "This requires the '#featureName' language feature to be enabled."
+  correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #enabledVersion or higher, and running 'pub get'."
   analyzerCode: experimentNotEnabled
   hasPublishedDocs: false
 
 experimentNotEnabledOffByDefault:
   type: syntacticError
   parameters:
-    String string: undocumented
-  problemMessage: "This requires the experimental '#string' language feature to be enabled."
-  correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
+    String featureName: The name of the language feature.
+  problemMessage: "This requires the experimental '#featureName' language feature to be enabled."
+  correctionMessage: "Try passing the '--enable-experiment=#featureName' command line option."
   analyzerCode: experimentNotEnabledOffByDefault
   hasPublishedDocs: false
   script: |

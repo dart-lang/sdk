@@ -2076,8 +2076,8 @@ Message _withArgumentsOldConstEvalNegativeShift(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(String nameOKEmpty),
-  Message Function({required String nameOKEmpty})
+  Message Function(String name),
+  Message Function({required String name})
 >
 constEvalNonConstantVariableGet = const Template(
   "ConstEvalNonConstantVariableGet",
@@ -2086,21 +2086,19 @@ constEvalNonConstantVariableGet = const Template(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalNonConstantVariableGet({
-  required String nameOKEmpty,
-}) {
-  var nameOKEmpty_0 = conversions.nameOrUnnamed(nameOKEmpty);
+Message _withArgumentsConstEvalNonConstantVariableGet({required String name}) {
+  var name_0 = conversions.nameOrUnnamed(name);
   return new Message(
     constEvalNonConstantVariableGet,
     problemMessage:
-        """The variable '${nameOKEmpty_0}' is not a constant, only constant expressions are allowed.""",
-    arguments: {'nameOKEmpty': nameOKEmpty},
+        """The variable '${name_0}' is not a constant, only constant expressions are allowed.""",
+    arguments: {'name': name},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldConstEvalNonConstantVariableGet(String nameOKEmpty) =>
-    _withArgumentsConstEvalNonConstantVariableGet(nameOKEmpty: nameOKEmpty);
+Message _withArgumentsOldConstEvalNonConstantVariableGet(String name) =>
+    _withArgumentsConstEvalNonConstantVariableGet(name: name);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constEvalNonNull = const MessageCode(

@@ -445,8 +445,8 @@ constEvalFailedAssertionWithNonStringMessage:
 
 constEvalNonConstantVariableGet:
   parameters:
-    NameOKEmpty nameOKEmpty: undocumented
-  problemMessage: "The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed."
+    NameOKEmpty name: The variable name.
+  problemMessage: "The variable '#name' is not a constant, only constant expressions are allowed."
 
 constEvalDeferredLibrary:
   parameters:
