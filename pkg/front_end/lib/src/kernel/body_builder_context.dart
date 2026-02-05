@@ -395,6 +395,15 @@ abstract class BodyBuilderContext {
   /// This is only used for classes. For extensions and extension types, `this`
   /// is handled via a synthetic this variable.
   InterfaceType? get thisType => declarationContext.thisType;
+
+  /// Variable representing `this` in member bodies of classes and similar.
+  ///
+  /// Declarations with synthesized `this`, such as extensions and extension
+  /// types, don't have an internal [ThisVariable] because `this` is desugared
+  /// as a parameter in that case.
+  ThisVariable? createInternalThisVariable() {
+    return thisType != null ? new ThisVariable(type: thisType!) : null;
+  }
 }
 
 /// Interface that provides information for a [BodyBuilderContext] from the

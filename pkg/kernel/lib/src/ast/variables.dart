@@ -1351,7 +1351,7 @@ class SyntheticVariable extends ExpressionVariable {
 /// an `assert` and not captured anywhere outside of `assert`s.
 enum CaptureKind {
   notCaptured,
-  captured,
+  directCaptured,
   assertCaptured;
 }
 

@@ -172,11 +172,6 @@ abstract class BodyBuilder {
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
   });
-
-  /// If the current member is an instance member of a non-extension
-  /// declaration, and the closure context lowering experiment is enabled, this
-  /// field contains the variable representing `this`.
-  ThisVariable? get internalThisVariable;
 }
 
 class BodyBuilderImpl extends StackListenerImpl
@@ -337,8 +332,10 @@ class BodyBuilderImpl extends StackListenerImpl
   /// for `this`.
   final VariableDeclaration? thisVariable;
 
-  @override
-  ThisVariable? internalThisVariable;
+  /// If the current member is an instance member of a non-extension
+  /// declaration, and the closure context lowering experiment is enabled, this
+  /// field contains the variable representing `this`.
+  ThisVariable? _internalThisVariable;
 
   final List<TypeParameter>? thisTypeParameters;
 
@@ -370,6 +367,7 @@ class BodyBuilderImpl extends StackListenerImpl
     required this.typeEnvironment,
     required ConstantContext constantContext,
     required this.extensionScope,
+    required ThisVariable? internalThisVariable,
   }) : _context = context,
        forest = const Forest(),
        enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
@@ -377,7 +375,8 @@ class BodyBuilderImpl extends StackListenerImpl
        ),
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
-       _labelScopes = new LocalStack([new LabelScopeImpl()]) {
+       _labelScopes = new LocalStack([new LabelScopeImpl()]),
+       _internalThisVariable = internalThisVariable {
     this.constantContext = constantContext;
     if (formalParameterScope != null) {
       for (VariableBuilder builder in formalParameterScope!.localVariables) {
@@ -406,18 +405,15 @@ class BodyBuilderImpl extends StackListenerImpl
         assignedVariables.declare(variable);
       }
     }
-    if (isClosureContextLoweringEnabled &&
-        context.isDeclarationInstanceContext) {
-      ThisVariable variable = new ThisVariable(type: context.thisType!);
-      assignedVariables.declare(variable);
-      internalThisVariable = variable;
+    if (isClosureContextLoweringEnabled && _internalThisVariable != null) {
+      assignedVariables.declare(_internalThisVariable!);
     }
   }
 
   @override
   void readInternalThisVariable() {
-    if (internalThisVariable != null) {
-      assignedVariables.read(internalThisVariable!);
+    if (isClosureContextLoweringEnabled && _internalThisVariable != null) {
+      assignedVariables.read(_internalThisVariable!);
     }
   }
 

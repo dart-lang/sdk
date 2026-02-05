@@ -17023,7 +17023,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (assignedVariables.outsideAsserts.captured.contains(variableKey) ||
         assignedVariables.outsideAsserts.readCaptured.contains(variableKey)) {
-      return CaptureKind.captured;
+      return CaptureKind.directCaptured;
     } else if (assignedVariables.insideAsserts.captured.contains(variableKey) ||
         assignedVariables.insideAsserts.readCaptured.contains(variableKey)) {
       return CaptureKind.assertCaptured;

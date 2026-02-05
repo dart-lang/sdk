@@ -1124,8 +1124,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeIndentation();
     writeWord('${syntheticNames.nameVariableContext(context)}:');
     switch (context.captureKind) {
-      case CaptureKind.captured:
-        writeWord('captured');
+      case CaptureKind.directCaptured:
+        writeWord('direct-captured');
       case CaptureKind.notCaptured:
         writeWord('not-captured');
       case CaptureKind.assertCaptured:
