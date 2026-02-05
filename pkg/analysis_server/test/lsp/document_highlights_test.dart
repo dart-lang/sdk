@@ -387,6 +387,99 @@ class /*[0*/A/*0]*/ {}
 p./*[1*/A/*1]*/? a;
 ''');
 
+  /// The body/this keyword isn't an occurrence of anything.
+  Future<void> test_primaryConstructor_body() async {
+    await _testMarkedContent('''
+class Aaa() {
+  th^is {}
+}
+
+Aaa a = Aaa();
+''');
+  }
+
+  /// The body/this keyword isn't an occurrence of anything.
+  Future<void> test_primaryConstructor_named_body() async {
+    await _testMarkedContent('''
+class Aaa.named() {
+  th^is {}
+}
+
+Aaa a = Aaa.named();
+''');
+  }
+
+  Future<void>
+  test_primaryConstructor_named_constructorName_declaration() async {
+    await _testMarkedContent('''
+class Aaa./*[0*/nam^ed/*0]*/() {
+  this {}
+}
+
+Aaa a = Aaa./*[1*/named/*1]*/();
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_constructorName_reference() async {
+    await _testMarkedContent('''
+class Aaa./*[0*/named/*0]*/() {
+  this {}
+}
+
+Aaa a = Aaa./*[1*/nam^ed/*1]*/();
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_typeName_declaration() async {
+    await _testMarkedContent('''
+class /*[0*/Aaa/*0]*/.named() {
+  this {}
+}
+
+/*[1*/Aaa/*1]*/ a = /*[2*/Aaa/*2]*/.named();
+''');
+  }
+
+  Future<void> test_primaryConstructor_named_typeName_reference() async {
+    await _testMarkedContent('''
+class /*[0*/Aaa/*0]*/.named() {
+  this {}
+}
+
+/*[1*/Aaa/*1]*/ a = /*[2*/Aa^a/*2]*/.named();
+''');
+  }
+
+  Future<void> test_primaryConstructor_typeName_constructorInvocation() async {
+    await _testMarkedContent('''
+class Aaa() {
+  this {}
+}
+
+Aaa a = /*[0*/Aa^a/*0]*/();
+''');
+  }
+
+  Future<void> test_primaryConstructor_typeName_declaration() async {
+    await _testMarkedContent('''
+class /*[0*/Aa^a/*0]*/() {
+  this {}
+}
+
+/*[1*/Aaa/*1]*/ a = Aaa();
+''');
+  }
+
+  Future<void> test_primaryConstructor_typeName_reference() async {
+    await _testMarkedContent('''
+class /*[0*/Aaa/*0]*/() {
+  this {}
+}
+
+/*[1*/Aa^a/*1]*/ a = Aaa();
+''');
+  }
+
   Future<void> test_shadow_inner() => _testMarkedContent('''
 void f() {
   var foo = 1;

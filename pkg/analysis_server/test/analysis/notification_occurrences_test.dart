@@ -673,6 +673,50 @@ p./*[1*/A/*1]*/? a;
 ''');
   }
 
+  Future<void> test_primaryConstructor_named_constructorName() async {
+    await assertOccurrences(
+      kind: ElementKind.CONSTRUCTOR,
+      elementName: 'Aaa.named',
+      '''
+class Aaa./*[0*/named/*0]*/() {
+  this {}
+}
+
+Aaa a = Aaa./*[1*/named/*1]*/();
+''',
+    );
+  }
+
+  Future<void> test_primaryConstructor_named_typeName() async {
+    await assertOccurrences(kind: ElementKind.CLASS, '''
+class /*[0*/Aaa/*0]*/.named() {
+  this {}
+}
+
+/*[1*/Aaa/*1]*/ a = /*[2*/Aaa/*2]*/.named();
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_constructorInvocation() async {
+    await assertOccurrences(kind: ElementKind.CONSTRUCTOR, '''
+class Aaa() {
+  this {}
+}
+
+Aaa a = /*[0*/Aaa/*0]*/();
+''');
+  }
+
+  Future<void> test_primaryConstructor_unnamed_typeName() async {
+    await assertOccurrences(kind: ElementKind.CLASS, '''
+class /*[0*/Aaa/*0]*/() {
+  this {}
+}
+
+/*[1*/Aaa/*1]*/ a = Aaa();
+''');
+  }
+
   Future<void> test_recordType_typeName() async {
     await assertOccurrences(kind: ElementKind.CLASS, r'''
 /*[0*/double/*0]*/ f((/*[1*/double/*1]*/, /*[2*/double/*2]*/) param) {
