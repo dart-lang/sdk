@@ -885,7 +885,7 @@ class AstBuilder extends StackListener {
       // TODO(danrubel): Consider specializing the error message based
       // upon the type of expression. e.g. "x.this" -> fe_diag.thisAsIdentifier
       handleRecoverableError(
-        fe_diag.expectedIdentifier.withArgumentsOld(token),
+        fe_diag.expectedIdentifier.withArguments(lexeme: token),
         token,
         token,
       );
@@ -1854,7 +1854,7 @@ class AstBuilder extends StackListener {
         );
         if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
           handleRecoverableError(
-            fe_diag.extraneousModifier.withArgumentsOld(keyword),
+            fe_diag.extraneousModifier.withArguments(lexeme: keyword),
             keyword,
             keyword,
           );
@@ -2208,9 +2208,9 @@ class AstBuilder extends StackListener {
       );
     } else {
       internalProblem(
-        fe_diag.internalProblemUnhandled.withArgumentsOld(
-          "${node.runtimeType}",
-          "identifier",
+        fe_diag.internalProblemUnhandled.withArguments(
+          what: "${node.runtimeType}",
+          where: "identifier",
         ),
         nameToken.charOffset,
         uri,
@@ -2357,9 +2357,9 @@ class AstBuilder extends StackListener {
           elements.add(part);
         } else {
           internalProblem(
-            fe_diag.internalProblemUnhandled.withArgumentsOld(
-              "${part.runtimeType}",
-              "string interpolation",
+            fe_diag.internalProblemUnhandled.withArguments(
+              what: "${part.runtimeType}",
+              where: "string interpolation",
             ),
             first.charOffset,
             uri,
@@ -2991,8 +2991,8 @@ class AstBuilder extends StackListener {
       for (var label in member.labels) {
         if (!labels.add(label.label.name)) {
           handleRecoverableError(
-            fe_diag.duplicateLabelInSwitchStatement.withArgumentsOld(
-              label.label.name,
+            fe_diag.duplicateLabelInSwitchStatement.withArguments(
+              labelName: label.label.name,
             ),
             label.beginToken,
             label.beginToken,
@@ -5828,9 +5828,9 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        fe_diag.internalProblemUnhandled.withArgumentsOld(
-          "${bodyObject.runtimeType}",
-          "bodyObject",
+        fe_diag.internalProblemUnhandled.withArguments(
+          what: "${bodyObject.runtimeType}",
+          where: "bodyObject",
         ),
         beginToken.charOffset,
         uri,
@@ -5922,9 +5922,9 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        fe_diag.internalProblemUnhandled.withArgumentsOld(
-          "${bodyObject.runtimeType}",
-          "bodyObject",
+        fe_diag.internalProblemUnhandled.withArguments(
+          what: "${bodyObject.runtimeType}",
+          where: "bodyObject",
         ),
         beginToken.charOffset,
         uri,
@@ -6134,9 +6134,9 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        fe_diag.internalProblemUnhandled.withArgumentsOld(
-          "${bodyObject.runtimeType}",
-          "bodyObject",
+        fe_diag.internalProblemUnhandled.withArguments(
+          what: "${bodyObject.runtimeType}",
+          where: "bodyObject",
         ),
         beginToken.charOffset,
         uri,
@@ -6304,9 +6304,9 @@ class AstBuilder extends StackListener {
     var requiredVersion =
         feature.releaseVersion ?? ExperimentStatus.currentVersion;
     handleRecoverableError(
-      fe_diag.experimentNotEnabled.withArgumentsOld(
-        feature.enableString,
-        _versionAsString(requiredVersion),
+      fe_diag.experimentNotEnabled.withArguments(
+        featureName: feature.enableString,
+        enabledVersion: _versionAsString(requiredVersion),
       ),
       startToken,
       endToken ?? startToken,
