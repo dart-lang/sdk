@@ -396,12 +396,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   Label async_callback;
   Label sync_isolate_group_bound_callback;
+  Label sync_callback_isolate_ownership;
   Label done;
-
-  // If GetFfiCallbackMetadata returned a null thread, it means that the async
-  // callback was invoked after it was deleted. In this case, do nothing.
-  __ cmp(THR, Operand(0));
-  __ b(&done, EQ);
 
   // Check the trampoline type to see how the callback should be invoked.
   __ cmp(
@@ -412,6 +408,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ cmp(R4, Operand(static_cast<uword>(
                  FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
   __ b(&sync_isolate_group_bound_callback, EQ);
+
+  __ tst(R4, Operand(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
+  __ b(&sync_callback_isolate_ownership, NE);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -424,6 +423,32 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Clobbers R4, R5 and TMP, all saved or volatile.
   __ EnterFullSafepoint(R4, R5);
+
+  __ b(&done);
+
+  __ Bind(&sync_callback_isolate_ownership);
+
+  __ blx(R5);
+
+  // Exit the target isolate.
+  {
+    __ EnterFrame(1 << FP, 0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, R4);
+
+    __ blx(R4);
+
+    __ PopRegisters(return_registers);
+    __ LeaveFrame(1 << FP);
+  }
 
   __ b(&done);
 

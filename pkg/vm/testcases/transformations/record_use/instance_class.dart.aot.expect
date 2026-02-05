@@ -1,17 +1,11 @@
 library #lib;
 import self as self;
-import "dart:core" as core;
 import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
 
 import "package:meta/meta.dart" show RecordUse;
 
-@#C2
-class A extends core::Object {
-  synthetic constructor •() → self::A
-    : super core::Object::•()
-    ;
-}
-@#C3
+@#C1
 class MyClass extends core::Object /*hasConstConstructor*/  {
 
   [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)]
@@ -22,10 +16,10 @@ class MyClass extends core::Object /*hasConstConstructor*/  {
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  core::print(new self::A::•());
+  core::print(#C3);
 }
 constants  {
-  #C1 = 42
-  #C2 = self::MyClass {i:#C1}
-  #C3 = meta::RecordUse {}
+  #C1 = meta::RecordUse {}
+  #C2 = 42
+  #C3 = self::MyClass {i:#C2}
 }

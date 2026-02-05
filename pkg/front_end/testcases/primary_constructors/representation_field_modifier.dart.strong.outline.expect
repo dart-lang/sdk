@@ -29,17 +29,17 @@ extension type ET3(core::int i) {
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
 extension type ET4(dynamic i) {
-  abstract extension-type-member representation-field get i() → dynamic;
+  abstract extension-type-member representation-field get i() → core::Object?;
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
 extension type ET5(dynamic i) {
-  abstract extension-type-member representation-field get i() → dynamic;
+  abstract extension-type-member representation-field get i() → core::Object?;
   constructor • = self::ET5|constructor#;
   constructor tearoff • = self::ET5|constructor#_#new#tearOff;
 }
 extension type ET6(dynamic i) {
-  abstract extension-type-member representation-field get i() → dynamic;
+  abstract extension-type-member representation-field get i() → core::Object?;
   constructor • = self::ET6|constructor#;
   constructor tearoff • = self::ET6|constructor#_#new#tearOff;
 }
@@ -55,15 +55,15 @@ static extension-type-member method ET3|constructor#(final core::int i) → self
   ;
 static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(i);
-static extension-type-member method ET4|constructor#(dynamic i) → self::ET4% /* erasure=dynamic, declared=! */
+static extension-type-member method ET4|constructor#(core::Object? i) → self::ET4% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member synthetic method ET4|constructor#_#new#tearOff(dynamic i) → self::ET4% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method ET4|constructor#_#new#tearOff(core::Object? i) → self::ET4% /* erasure=dynamic, declared=! */
   return self::ET4|constructor#(i);
-static extension-type-member method ET5|constructor#(dynamic i) → self::ET5% /* erasure=dynamic, declared=! */
+static extension-type-member method ET5|constructor#(core::Object? i) → self::ET5% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member synthetic method ET5|constructor#_#new#tearOff(dynamic i) → self::ET5% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method ET5|constructor#_#new#tearOff(core::Object? i) → self::ET5% /* erasure=dynamic, declared=! */
   return self::ET5|constructor#(i);
-static extension-type-member method ET6|constructor#(final dynamic i) → self::ET6% /* erasure=dynamic, declared=! */
+static extension-type-member method ET6|constructor#(final core::Object? i) → self::ET6% /* erasure=dynamic, declared=! */
   ;
-static extension-type-member synthetic method ET6|constructor#_#new#tearOff(dynamic i) → self::ET6% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method ET6|constructor#_#new#tearOff(core::Object? i) → self::ET6% /* erasure=dynamic, declared=! */
   return self::ET6|constructor#(i);

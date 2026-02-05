@@ -2664,6 +2664,17 @@ const MessageCode nonPartOfDirectiveInPart = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+nonRedirectingGenerativeConstructorWithPrimary = const MessageCode(
+  "NonRedirectingGenerativeConstructorWithPrimary",
+  sharedCode: SharedCode.nonRedirectingGenerativeConstructorWithPrimary,
+  problemMessage:
+      """Classes with primary constructors can't have non-redirecting generative constructors.""",
+  correctionMessage:
+      """Try making the constructor redirect to the primary constructor, or remove the primary constructor.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nullAwareCascadeOutOfOrder = const MessageCode(
   "NullAwareCascadeOutOfOrder",
   sharedCode: SharedCode.nullAwareCascadeOutOfOrder,
@@ -3527,6 +3538,7 @@ enum SharedCode {
   nativeClauseShouldBeAnnotation,
   newConstructorNewName,
   newConstructorQualifiedName,
+  nonRedirectingGenerativeConstructorWithPrimary,
   nullAwareCascadeOutOfOrder,
   outOfOrderClauses,
   patternAssignmentDeclaresVariable,

@@ -1,17 +1,11 @@
 library #lib;
 import self as self;
-import "dart:core" as core;
 import "package:meta/meta.dart" as meta;
+import "dart:core" as core;
 
 import "package:meta/meta.dart" show RecordUse;
 
-@#C12
-class A extends core::Object {
-  synthetic constructor •() → self::A
-    : super core::Object::•()
-    ;
-}
-@#C13
+@#C1
 class MyClass extends core::Object /*hasConstConstructor*/  {
 
   [@vm.inferred-type.metadata=dart.core::_Smi (value: 15)]
@@ -42,20 +36,20 @@ class MyClass extends core::Object /*hasConstConstructor*/  {
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  core::print(new self::A::•());
+  core::print(#C13);
 }
 constants  {
-  #C1 = 15
-  #C2 = "s"
-  #C3 = "h"
-  #C4 = false
-  #C5 = <core::String, core::bool>{#C3:#C4}
-  #C6 = true
-  #C7 = "l"
-  #C8 = 3
-  #C9 = <core::String, core::int>{#C7:#C8}
-  #C10 = <core::Map<core::String, core::int>>[#C9]
-  #C11 = null
-  #C12 = self::MyClass {i:#C1, s:#C2, m:#C5, b:#C6, l:#C10, n:#C11}
-  #C13 = meta::RecordUse {}
+  #C1 = meta::RecordUse {}
+  #C2 = 15
+  #C3 = "s"
+  #C4 = "h"
+  #C5 = false
+  #C6 = <core::String, core::bool>{#C4:#C5}
+  #C7 = true
+  #C8 = "l"
+  #C9 = 3
+  #C10 = <core::String, core::int>{#C8:#C9}
+  #C11 = <core::Map<core::String, core::int>>[#C10]
+  #C12 = null
+  #C13 = self::MyClass {i:#C2, s:#C3, m:#C6, b:#C7, l:#C11, n:#C12}
 }

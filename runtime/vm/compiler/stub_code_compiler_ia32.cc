@@ -292,22 +292,22 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   Label async_callback;
   Label sync_isolate_group_bound_callback;
+  Label sync_callback_isolate_ownership;
   Label done;
-
-  // If GetFfiCallbackMetadata returned a null thread, it means that the async
-  // callback was invoked after it was deleted. In this case, do nothing.
-  __ cmpl(THR, Immediate(0));
-  __ j(EQUAL, &done, Assembler::kFarJump);
 
   // Check the trampoline type to see how the callback should be invoked.
   __ cmpl(EBX, Immediate(static_cast<uword>(
                    FfiCallbackMetadata::TrampolineType::kAsync)));
-  __ j(EQUAL, &async_callback, Assembler::kNearJump);
+  __ j(EQUAL, &async_callback);
 
   __ cmpl(EBX,
           Immediate(static_cast<uword>(
               FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
   __ j(EQUAL, &sync_isolate_group_bound_callback, Assembler::kNearJump);
+
+  __ testl(EBX,
+           Immediate(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
+  __ j(NOT_ZERO, &sync_callback_isolate_ownership, Assembler::kNearJump);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -334,6 +334,52 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ Bind(&ret_4);
   __ ret(Immediate(4));
+
+  __ Bind(&sync_callback_isolate_ownership);
+
+  __ call(ECX);
+
+  // Exit the target isolate.
+  {
+    __ pushl(CallingConventions::kReturnReg);
+    __ pushl(CallingConventions::kSecondReturnReg);
+    __ subl(ESP, Immediate(kFpuRegisterSize));
+    __ movups(Address(ESP, 0), CallingConventions::kReturnFpuReg);
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ movl(EAX, Immediate(reinterpret_cast<int64_t>(
+                     DLRT_ExitSyncCallbackTargetIsolate)));
+    __ CallCFunction(EAX);
+
+    __ LeaveFrame();
+
+    __ movups(Address(ESP, 0), CallingConventions::kReturnFpuReg);
+    __ addl(ESP, Immediate(kFpuRegisterSize));
+    __ popl(CallingConventions::kSecondReturnReg);
+    __ popl(CallingConventions::kReturnReg);
+
+    // Pop the trampoline type into ECX.
+    __ popl(ECX);
+
+    // Restore callee-saved registers.
+    __ popl(EBX);
+    __ popl(THR);
+
+    Label ownership_ret_4;
+    __ cmpl(ECX,
+            Immediate(
+                static_cast<uword>(FfiCallbackMetadata::TrampolineType::kSync) |
+                FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
+    __ j(NOT_EQUAL, &ownership_ret_4, Assembler::kNearJump);
+    __ ret();
+
+    __ Bind(&ownership_ret_4);
+    __ ret(Immediate(4));
+  }
+
+  __ jmp(&done, Assembler::kNearJump);
 
   __ Bind(&sync_isolate_group_bound_callback);
 

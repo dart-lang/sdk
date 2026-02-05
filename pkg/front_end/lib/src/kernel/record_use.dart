@@ -4,7 +4,11 @@
 
 /// Recognition and validation of usage recording annotations.
 ///
-/// A static method to be recorded can be annotated with `@RecordUse()`.
+/// A static method or class to be recorded can be annotated with
+/// `@RecordUse()`.
+///
+/// Only usages in reachable code (executable code) are tracked. Usages
+/// appearing within metadata (annotations) are ignored.
 library;
 
 import 'package:front_end/src/codes/diagnostic.dart' as diag;

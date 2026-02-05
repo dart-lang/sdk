@@ -12,6 +12,7 @@ import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import '../source/type_parameter_factory.dart';
+import '../util/helpers.dart';
 import 'declaration_builders.dart';
 import 'inferable_type_builder.dart';
 import 'library_builder.dart';
@@ -161,6 +162,10 @@ class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
 class InferableTypeBuilder extends OmittedTypeBuilderImpl
     with InferableTypeBuilderMixin
     implements InferableType {
+  final InferenceDefaultType inferenceDefaultType;
+
+  InferableTypeBuilder(this.inferenceDefaultType);
+
   @override
   DartType build(
     LibraryBuilder library,
@@ -229,7 +234,12 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
       if (inferable != null) {
         inferable.inferTypes(hierarchy);
       } else {
-        registerInferredType(const DynamicType());
+        switch (inferenceDefaultType) {
+          case InferenceDefaultType.NullableObject:
+            registerInferredType(hierarchy.coreTypes.objectNullableRawType);
+          case InferenceDefaultType.Dynamic:
+            registerInferredType(const DynamicType());
+        }
       }
       assert(hasType, "No type computed for $this");
     }
@@ -273,8 +283,12 @@ abstract class Inferable {
 class InferableTypes {
   final List<InferableType> _inferableTypes = [];
 
-  InferableTypeBuilder addInferableType() {
-    InferableTypeBuilder typeBuilder = new InferableTypeBuilder();
+  InferableTypeBuilder addInferableType(
+    InferenceDefaultType inferenceDefaultType,
+  ) {
+    InferableTypeBuilder typeBuilder = new InferableTypeBuilder(
+      inferenceDefaultType,
+    );
     registerInferableType(typeBuilder);
     return typeBuilder;
   }

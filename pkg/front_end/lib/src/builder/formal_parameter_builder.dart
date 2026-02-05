@@ -35,6 +35,7 @@ import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
+import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
 import 'omitted_type_builder.dart';
@@ -278,7 +279,9 @@ class FormalParameterBuilder extends NamedBuilderImpl
     return new FormalParameterBuilder(
       kind: kind,
       modifiers: modifiers | Modifiers.InitializingFormal,
-      type: builderFactory.addInferableType(),
+      type: builderFactory.addInferableType(
+        InferenceDefaultType.NullableObject,
+      ),
       name: name,
       fileOffset: fileOffset,
       nameOffset: nameOffset,

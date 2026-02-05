@@ -573,12 +573,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   Label async_callback;
   Label sync_isolate_group_bound_callback;
+  Label sync_callback_isolate_ownership;
   Label done;
-
-  // If GetFfiCallbackMetadata returned a null thread, it means that the async
-  // callback was invoked after it was deleted. In this case, do nothing.
-  __ cmp(THR, Operand(0));
-  __ b(&done, EQ);
 
   // Check the trampoline type to see how the callback should be invoked.
   __ cmp(
@@ -590,6 +586,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
                  FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
   __ b(&sync_isolate_group_bound_callback, EQ);
 
+  __ tsti(R9,
+          Immediate(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
+  __ b(&sync_callback_isolate_ownership, NOT_ZERO);
+
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
   // re-enter it afterwards.
@@ -600,6 +600,52 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Clobbers TMP, TMP2 and R9 -- all volatile and not holding return values.
   __ EnterFullSafepoint(/*scratch=*/R9);
+
+  __ b(&done);
+
+  __ Bind(&sync_callback_isolate_ownership);
+
+  __ blr(R10);
+
+  // Exit the target isolate.
+  {
+    __ SetupDartSP();
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    const RegisterSet return_registers(
+        (1 << CallingConventions::kReturnReg) |
+            (1 << CallingConventions::kSecondReturnReg),
+        1 << CallingConventions::kReturnFpuReg);
+    __ PushRegisters(return_registers);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallbackTargetIsolate,
+                           R4, R9);
+    } else {
+      Label call;
+      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
+      __ b(&call);
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitSyncCallbackTargetIsolate));
+      __ Bind(&call);
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, R4);
+#endif
+
+    __ mov(CSP, SP);
+    __ blr(R4);
+    __ mov(SP, CSP);
+    __ mov(THR, R0);
+
+    __ PopRegisters(return_registers);
+
+    __ LeaveFrame();
+    __ RestoreCSP();
+  }
 
   __ b(&done);
 

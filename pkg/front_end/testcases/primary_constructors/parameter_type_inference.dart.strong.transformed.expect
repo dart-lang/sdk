@@ -47,12 +47,12 @@ class C3 extends core::Object {
     ;
 }
 class C4 extends core::Object {
-  constructor •([dynamic e = #C1]) → self::C4
+  constructor •([core::Object? e = #C1]) → self::C4
     : super core::Object::•()
     ;
 }
 class C5 extends core::Object {
-  constructor •({dynamic f = #C2}) → self::C5
+  constructor •({core::Object? f = #C2}) → self::C5
     : super core::Object::•()
     ;
 }

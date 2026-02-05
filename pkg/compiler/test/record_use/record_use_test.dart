@@ -132,6 +132,7 @@ const dart2jsNotSupported = {
   'instance_duplicates.dart',
   'instance_method.dart',
   'instance_not_annotation.dart',
+  'nested_instance_constant.dart',
   'nested.dart',
   'record_enum.dart',
   'record_instance_constant_empty.dart',

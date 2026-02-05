@@ -1,0 +1,41 @@
+{
+  "constants": [
+    {
+      "type": "string",
+      "value": "id"
+    },
+    {
+      "type": "instance",
+      "value": {
+        "id": 0
+      }
+    }
+  ],
+  "locations": [
+    {
+      "uri": "nested_instance_constant.dart"
+    }
+  ],
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.4.0"
+  },
+  "recordings": [
+    {
+      "definition": {
+        "identifier": {
+          "name": "Recorded",
+          "uri": "nested_instance_constant.dart"
+        },
+        "loading_unit": "1"
+      },
+      "instances": [
+        {
+          "@": 0,
+          "constant_index": 1,
+          "loading_unit": "1"
+        }
+      ]
+    }
+  ]
+}

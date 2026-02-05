@@ -60,6 +60,7 @@ import '../kernel/late_lowering.dart' as late_lowering;
 import '../source/check_helper.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
+import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'context_allocation_strategy.dart';
 import 'external_ast_helper.dart';
@@ -14866,7 +14867,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   SharedTypeView variableTypeFromInitializerType(SharedTypeView type) {
     // TODO(paulberry): make a test verifying that we don't need to pass
     // `forSyntheticVariable: true` (and possibly a language issue)
-    return new SharedTypeView(inferDeclarationType(type.unwrapTypeView()));
+    return new SharedTypeView(
+      inferDeclarationType(
+        type.unwrapTypeView(),
+        inferenceDefaultType: InferenceDefaultType.Dynamic,
+      ),
+    );
   }
 
   @override
@@ -17017,7 +17023,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (assignedVariables.outsideAsserts.captured.contains(variableKey) ||
         assignedVariables.outsideAsserts.readCaptured.contains(variableKey)) {
-      return CaptureKind.captured;
+      return CaptureKind.directCaptured;
     } else if (assignedVariables.insideAsserts.captured.contains(variableKey) ||
         assignedVariables.insideAsserts.readCaptured.contains(variableKey)) {
       return CaptureKind.assertCaptured;
@@ -17104,6 +17110,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = inferDeclarationType(
         initializerResult.inferredType,
         forSyntheticVariable: node.name == null,
+        inferenceDefaultType: InferenceDefaultType.Dynamic,
       );
     } else {
       inferredType = const DynamicType();

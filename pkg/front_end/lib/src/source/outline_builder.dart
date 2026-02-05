@@ -54,6 +54,7 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
 import '../kernel/utils.dart';
+import '../util/helpers.dart';
 import 'check_helper.dart';
 import 'fragment_factory.dart';
 import 'offset_map.dart';
@@ -3046,11 +3047,7 @@ class OutlineBuilder extends StackListenerImpl {
           metadata: metadata,
           kind: kind,
           modifiers: modifiers,
-          type:
-              type ??
-              (memberKind.isParameterInferable(libraryFeatures)
-                  ? _builderFactory.addInferableType()
-                  : const ImplicitTypeBuilder()),
+          type: type ?? _createOmittedParameterTypeBuilder(memberKind),
           name: parameterName,
           publicName: publicName,
           hasThis: thisKeyword != null,
@@ -3062,6 +3059,47 @@ class OutlineBuilder extends StackListenerImpl {
           lowerWildcard: declarationContext != DeclarationContext.ExtensionType,
         ),
       );
+    }
+  }
+
+  /// Creates the [TypeBuilder] use for an omitted parameter type on the given
+  /// member [kind].
+  TypeBuilder _createOmittedParameterTypeBuilder(MemberKind kind) {
+    switch (kind) {
+      case MemberKind.Catch:
+      case MemberKind.FunctionTypeAlias:
+      case MemberKind.Factory:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+      case MemberKind.Local:
+      case MemberKind.StaticMethod:
+      case MemberKind.TopLevelMethod:
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
+        // Parameter type is not inferred.
+        return const ImplicitTypeBuilder();
+      case MemberKind.NonStaticMethod:
+      case MemberKind.ExtensionTypeNonStaticMethod:
+      // TODO(eernst): Write a test such that this does run.
+      case MemberKind.AnonymousMethod:
+      // These can be inferred but cannot hold parameters so the cases are
+      // dead code:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
+        // Parameter type is inferred with `dynamic` as default.
+        return _builderFactory.addInferableType(InferenceDefaultType.Dynamic);
+      case MemberKind.PrimaryConstructor:
+        if (libraryFeatures.primaryConstructors.isEnabled) {
+          // Parameter type is inferred with `Object?` as default.
+          return _builderFactory.addInferableType(
+            InferenceDefaultType.NullableObject,
+          );
+        } else {
+          // Parameter type is not inferred.
+          return const ImplicitTypeBuilder();
+        }
     }
   }
 
@@ -4778,38 +4816,6 @@ class OutlineBuilder extends StackListenerImpl {
       token.charOffset,
       token.length,
     );
-  }
-}
-
-extension on MemberKind {
-  /// Returns `true` if a parameter occurring in this context can be inferred.
-  bool isParameterInferable(LibraryFeatures libraryFeatures) {
-    switch (this) {
-      case MemberKind.Catch:
-      case MemberKind.FunctionTypeAlias:
-      case MemberKind.Factory:
-      case MemberKind.FunctionTypedParameter:
-      case MemberKind.GeneralizedFunctionType:
-      case MemberKind.Local:
-      case MemberKind.StaticMethod:
-      case MemberKind.TopLevelMethod:
-      case MemberKind.ExtensionNonStaticMethod:
-      case MemberKind.ExtensionStaticMethod:
-      case MemberKind.ExtensionTypeStaticMethod:
-        return false;
-      case MemberKind.NonStaticMethod:
-      case MemberKind.ExtensionTypeNonStaticMethod:
-      // TODO(eernst): Write a test such that this does run.
-      case MemberKind.AnonymousMethod:
-      // These can be inferred but cannot hold parameters so the cases are
-      // dead code:
-      case MemberKind.NonStaticField:
-      case MemberKind.StaticField:
-      case MemberKind.TopLevelField:
-        return true;
-      case MemberKind.PrimaryConstructor:
-        return libraryFeatures.primaryConstructors.isEnabled;
-    }
   }
 }
 
